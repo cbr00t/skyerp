@@ -313,9 +313,9 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 					attrSet[kod] = true
 			}
 		}*/
-		let {toplam} = tabloYapi
+		let {grupVeToplam} = tabloYapi
 		for (let key in attrSet) {
-			let formul = toplam[key]?.formul
+			let formul = grupVeToplam[key]?.formul
 			if (!formul)
 				continue
 			let {attrListe} = formul

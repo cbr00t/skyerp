@@ -50,7 +50,7 @@ class OperBaseHareketci extends Hareketci {
 		extend(hv, {
 			bizsubekod: 'emr.bizsubekod',
 			shTipi: `'S'`, tarih: 'emr.tarih',
-			fisno: 'emr.fisno', fisnox: 'emr.fisnox',
+			fisno: 'emr.no', fisnox: 'emr.fisnox',
 			opno: 'oem.opno', hatkod: 'oem.ismrkkod',
 			stokkod: 'frm.formul', sipmustkod: 'emr.mustkod',
 			kstokkod: 'kfrm.formul', seviyebelirtim: 'edet.seviyebelirtim',
@@ -85,6 +85,18 @@ class OperBaseHareketci extends Hareketci {
 				.hvDuzenleIslemi(({ hv }) => {
 					extend(hv, { kayittipi: `'OperGer'`, isladi: `'Oper. Gerçekleme'` })
 				})
+			],
+			iskarta: [new Hareketci_UniBilgi()
+				.sentDuzenleIslemi(({ sent, sent: { where: wh, sahalar } }) => { })
+				.hvDuzenleIslemi(({ hv }) => {
+					extend(hv, { kayittipi: `'Iskarta'`, isladi: `'Iskarta'` })
+				})
+			],
+			duraksama: [new Hareketci_UniBilgi()
+				.sentDuzenleIslemi(({ sent, sent: { where: wh, sahalar } }) => { })
+				.hvDuzenleIslemi(({ hv }) => {
+					extend(hv, { kayittipi: `'Dur'`, isladi: `'Duraksama'` })
+				})
 			]
 		})
         return this
@@ -115,7 +127,23 @@ class OperDurumHareketci extends OperBaseHareketci {
 	}
 }
 
-class OperGerHareketci extends OperBaseHareketci {
+class OperGerHareketciOrtak extends OperBaseHareketci {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	uniOrtakSonIslem({ hvDegeri, sent }) {
+		super.uniOrtakSonIslem(...arguments)
+		sent
+			.fromIliski('opergerdetay gdet', 'oem.kaysayac = gdet.fissayac')
+			.fromIliski('personel per', 'gdet.perkod = per.kod')
+			.fromIliski('tekilmakina tez', 'gdet.tezgahkod = tez.kod')
+	}
+	static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
+		super.varsayilanHVDuzenle(...arguments)
+		;['perkod', 'tezgahkod'].forEach(k =>
+			hv[k] = `gdet.${k}`)
+	}
+}
+
+class OperGerHareketci extends OperGerHareketciOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return super.oncelik + 2 } static get kisaKod() { return 'OG' }
 	static get kod() { return 'OPEGER' } static get aciklama() { return 'Oper. Gerçekleme' }
@@ -124,24 +152,78 @@ class OperGerHareketci extends OperBaseHareketci {
         super.hareketTipSecim_kaListeDuzenle(arguments)
 		kaListe.push(new CKodVeAdi(['operGer', 'Oper. Gerçekleme']))
     }
-	uniOrtakSonIslem({ hvDegeri, sent, sent: { from } }) {
-		super.uniOrtakSonIslem(...arguments)
-		if (!from.aliasIcinTable('gdet'))
-			sent.fromIliski('opergerdetay gdet', 'oem.kaysayac = gdet.fissayac')
-		if (!from.aliasIcinTable('per'))
-			sent.fromIliski('personel per', 'gdet.perkod = per.kod')
-		if (!from.aliasIcinTable('tez'))
-			sent.fromIliski('tekilmakina tez', 'gdet.tezgahkod = tez.kod')
-	}
 	static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
 		super.varsayilanHVDuzenle(...arguments)
 		extend(hv, {
 			emirmiktar: 'oem.emirmiktar', brutmiktar: 'SUM(gdet.miktar)',
 			netmiktar2: 'SUM(gdet.miktar2)'
 		})
-		;['perkod', 'tezgahkod'].forEach(k =>
-			hv[k] = `gdet.${k}`)
 		;['firemiktar', 'iskartamiktar', 'netmiktar', 'brutislemsuresn', 'topduraksamasuresn', 'netislemsuresn'].forEach(k =>
 			hv[k] = `SUM(gdet.${k})`)
+	}
+}
+
+class IskartaHareketci extends OperGerHareketciOrtak {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get oncelik() { return super.oncelik + 3 } static get kisaKod() { return 'IS' }
+	static get kod() { return 'ISKARTA' } static get aciklama() { return 'Iskarta' }
+
+	static hareketTipSecim_kaListeDuzenle({ kaListe }) {
+        super.hareketTipSecim_kaListeDuzenle(arguments)
+		kaListe.push(new CKodVeAdi(['iskarta', 'Iskarta']))
+    }
+	uniOrtakSonIslem({ hvDegeri, stm, sent, sent: { from, sahalar } }) {
+		super.uniOrtakSonIslem(...arguments)
+		sahalar.add('gdet._')    // gdet alias silinmesin diye geçici saha
+	}
+	stmIcinSonIslemler({ rapor, attrSet, hrkDefHV: defHV, stm }) {
+		super.stmIcinSonIslemler(...arguments)
+		let {operGenel: { iskartaMaxSayi: iskMaxSayi = 8 } = {}} = app.params
+		for (let asilSent of stm) {    // tek sent gelecek
+			let uni = new MQUnionAll()
+			for (let i = 1; i <= iskMaxSayi; i++) {
+				let sent = asilSent.deepCopy(), {where: wh, sahalar} = sent
+				sahalar.liste = sahalar.liste                                                     // gdet alias silinmesin diye geçici saha silinir
+					.filter(({ alias }) => alias != '_')
+				let nedenKodClause = `gdet.iskartaneden${i}kod`
+				sent.fromIliski('opiskartanedeni ned', `${nedenKodClause} = ned.kod`)
+				wh.add(`${nedenKodClause} <> ''`)
+				sahalar.add(
+					`${nedenKodClause} nedenkod`, 'ned.aciklama nedenadi',
+					`SUM(gdet.iskartamiktar${i}) iskartamiktar`
+				)
+				uni.add(sent)
+			}
+			stm.sent = uni
+		}
+	}
+	static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
+		super.varsayilanHVDuzenle(...arguments)
+		// extend(hv, { nedenkod: sqlNull, iskartamiktar: sqlNull })
+	}
+}
+
+class DuraksamaHareketci extends OperGerHareketciOrtak {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get oncelik() { return super.oncelik + 4 } static get kisaKod() { return 'DR' }
+	static get kod() { return 'DURAKSAMA' } static get aciklama() { return 'Duraksama' }
+
+	static hareketTipSecim_kaListeDuzenle({ kaListe }) {
+        super.hareketTipSecim_kaListeDuzenle(arguments)
+		kaListe.push(new CKodVeAdi(['duraksama', 'Duraksama']))
+    }
+	uniOrtakSonIslem({ hvDegeri, stm, sent, sent: { from, sahalar } }) {
+		super.uniOrtakSonIslem(...arguments)
+		sent
+			.fromIliski('makduraksama mdur', 'gdet.kaysayac = mdur.opergersayac')
+			.fromIliski('makdurneden dned', 'mdur.durnedenkod = dned.kod')
+	}
+	static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
+		super.varsayilanHVDuzenle(...arguments)
+		extend(hv, {
+			nedenkod: 'mdur.durnedenkod', nedenadi: 'dned.aciklama',
+			dursuresn: 'SUM(mdur.dursuresn)', durbasts: 'mdur.duraksamabasts', dursonts: 'mdur.duraksamasonts',
+			duraciklama: 'mdur.aciklama', durtipi: 'dned.duraksamatipi'
+		})
 	}
 }

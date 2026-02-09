@@ -14,6 +14,7 @@
 <script src="<?=$_partRoot?>/mes.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/pdksBase.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/pdks.js?<?=$appVersion?>"></script>
+<script src="<?=$_partRoot?>/pratikSatis.js?<?=$appVersion?>"></script>
 
 <?php
 /*let text = 'cbr00t', tmp = {}, r = {}

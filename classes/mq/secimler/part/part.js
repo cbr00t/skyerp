@@ -20,16 +20,24 @@ class SecimlerPart extends Part {
 		let {mfSinif} = this, {sinifAdi} = mfSinif || {};
 		this.title = e.title == null ? (( sinifAdi ? `<u style="font-size: 110%;">${sinifAdi}</u> ` : '' ) || 'Filtre Ekranı') : e.title || '';
 	}
-	runDevam(e) {
-		e = e || {}; super.runDevam(e); let {layout} = this;
-		this.header = layout.find('.header'); this.initIslemTuslari(e); this.initFiltreForm(e)
+	runDevam(e = {}) {
+		super.runDevam(e); let {layout} = this
+		this.header = layout.find('.header')
+		this.initIslemTuslari(e); this.initFiltreForm(e)
 	}
-	afterRun(e) {
-		e = e || {}; super.afterRun(e); let {partName} = this.class, parentPartName = this.parentPart?.partName;
+	afterRun(e = {}) {
+		super.afterRun(e)
+		let {partName} = this.class
+		let parentPartName = this.parentPart?.partName
 		let elms = [this.wnd, this.layout]; for (let elm of elms) {
-			if (!elm?.length) { continue }
-			elm.addClass(`${partName} with-tabs`);
-			if (parentPartName) { elm.addClass(parentPartName) }
+			if (!elm?.length)
+				continue
+			let ignorePartName = 'modelTanim'
+			if (partName != ignorePartName)
+				elm.addClass(partName)
+			elm.addClass('with-tabs')
+			if (parentPartName && parentPartName != ignorePartName)
+				elm.addClass(parentPartName)
 		}
 		this.initTabPages(e); this.formGenelEventleriBagla(e)
 	}

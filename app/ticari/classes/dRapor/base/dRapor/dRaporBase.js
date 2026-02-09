@@ -56,7 +56,9 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 	}
 	static async goster(e) {
 		let inst = new this(e)
-		let result = await inst.goster(); if (result == null) { return null }
+		let result = await inst.goster()
+		if (result == null)
+			return null
 		let {part} = result, {builder} = part
 		return { inst, part, builder }
 	}
@@ -75,13 +77,29 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 	setBaslik(value) { this._baslik = value; return this }
 }
 class DRaporMQ extends DRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'mq' } static get dMQRapormu() { return true }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get anaTip() { return 'mq' } static get dMQRapormu() { return true }
+	static get kodListeTipi() { return this.kod } static get sinifAdi() { return this.aciklama }
+	static get tanimUISinif() { return ModelTanimPart } static get sadeceTanimmi() { return false }
 	goster(e = {}) {
-		let args = e.args = e.args || {}; args.inst = this
-		let result = this.class.listeEkraniAc(e); if (result == null) { return null }
+		let args = e.args = e.args || {}
+		args.inst = this
+		let {sadeceTanimmi} = this.class
+		if (sadeceTanimmi)
+			e.islem ||= 'yeni'
+		let result = this.class[sadeceTanimmi ? 'tanimla' : 'listeEkraniAc'](e)
+		if (result == null)
+			return null
 		let {part} = result, {anaTip} = this.class, {partName} = this
-		part.layout.addClass(`${anaTip} ${partName}`);
-		let {builder} = part; $.extend(this, { part, builder })
+		if (part) {
+			if (part.then)
+				part.then(part => part?.layout?.addClass(`${anaTip} ${partName}`))
+			else
+				part.layout?.addClass(`${anaTip} ${partName}`)
+			
+		}
+		let {builder} = part ?? {}
+		$.extend(this, { part, builder })
 		return result
 	}
 	tazele(e) { super.tazele(e) }

@@ -64,7 +64,7 @@ class Secim extends CIO {
 		let {ozetBilgiValueDuzenlenmis: result} = this
 		if (result?.bosmu == true)
 			result = null
-		if (result && !$.isArray(result))
+		if (result && !isArray(result))
 			result = [result]
 		if (result) {
 			result = result.filter(value => !!value).map(value => `<div class="float-left ozetBilgi-item">${value}</div>`)

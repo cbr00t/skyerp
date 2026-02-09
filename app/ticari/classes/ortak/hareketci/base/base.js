@@ -244,7 +244,9 @@ class Hareketci extends CObject {
 	stmOlustur(e) {
 		e = e || {}; let _e, stm = new MQStm({ orderBy: ['tarih', 'oncelik'] });
 		this.stmDuzenle(_e = { ...e, stm }); stm = _e.stm;
-		let {sent: uni} = stm; if (uni.unionmu) { uni.liste = uni.liste.filter(sent => !!sent?.sahalar?.liste?.length) }
+		let {sent: uni} = stm
+		if (uni.unionmu)
+			uni.liste = uni.liste.filter(sent => !!sent?.sahalar?.liste?.length)
 		return stm
 	}
 	stmDuzenle(e) { let uni = e.stm.sent = this.uniOlustur(e); return this.stmDuzenleDevam(e) }
@@ -308,6 +310,7 @@ class Hareketci extends CObject {
 					uni.add(sent)
 			}
 		}
+		this.stmIcinSonIslemler(e)
 	}
 	uniDuzenleOncesi(e) { }
 	uniDuzenle_tumSonIslemler(e) {    /* degerci bosGcbEkle value: sent. degerci koopDonemEkle value: sent. degerci sonIslem value: sent */
@@ -351,6 +354,7 @@ class Hareketci extends CObject {
 		}
 		return this
 	}
+	stmIcinSonIslemler(e) { }
 	sentSahaEkleyici(e) {
 		let {attrSet} = this, {sent, sql, alias, attr2Deger} = e
 		let saha = alias ? new MQAliasliYapi({ alias, deger: sql }) : MQAliasliYapi.newForSahaText(sql)

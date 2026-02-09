@@ -1,10 +1,11 @@
 class MQFirewall extends MQKA {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporKullanilirmi() { return false }
 	static get kodListeTipi() { return 'FIREWALL' } static get sinifAdi() { return 'Firewall' }
-	static get kodKullanilirmi() { return false } static get kodSaha() { return 'name' } static get adiSaha() { return 'name' }
-	static get adiEtiket() { return 'Kural Adı' }
+	static get kodKullanilirmi() { return false } static get kodSaha() { return 'name' }
+	static get adiSaha() { return 'name' } static get adiEtiket() { return 'Kural Adı' }
 	static get tumKolonlarGosterilirmi() { return true } static get defaultDirection() { return 'in' }
 	get name() { return this.aciklama } set name(value) { this.aciklama = value }
+
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments); delete pTanim.kod;
 		$.extend(pTanim, {
@@ -45,8 +46,17 @@ class MQFirewall extends MQKA {
 				.addStyle(`$elementCSS { margin: 35px 0 0 20px !important }`)
 		}
 		{
-			let form = tanimForm.addFormWithParent()
-			form.addTextInput('ip', 'IP')
+			let form = tanimForm.addFormWithParent().onAfterRun(({ builder: { rootPart, layout } }) => {
+				setTimeout(() => {
+					layout.find('input').on('keyup', ({ key }) => {
+						key = key.toLowerCase()
+						if (key == 'enter' || key == 'linefeed')
+							rootPart.tamamIstendi(e)
+					})
+				}, 50)
+			})
+			form.addTextInput('ip', 'IP').onAfterRun(({ builder: { input } }) =>
+				setTimeout(() => input.focus(), 200))
 			form.addModelKullan('direction', 'Yön').disable().dropDown()
 				.noMF().kodsuz().bosKodEklenmez().listedenSecilmez().setSource(MQFirewall_Direction.kaListe)
 			form.addModelKullan('action', 'Eylem').disable().dropDown()
@@ -146,9 +156,20 @@ class MQFirewall extends MQKA {
 			this.name = rec?.name
 		}
 	}
-	async degistir(eskiInst) {
-		await eskiInst.sil();
-		return await this.yaz()
+	async uiKaydetOncesiIslemler({ islem, sender: tanimPart }) {
+		await super.uiKaydetOncesiIslemler(...arguments)
+		let {ip} = this
+		if (!ip)
+			throw { isError: true, errorText: 'IP belirtilmelidir' }
+		ip = ip.trim()
+		if (ip.at(-1) == '.') {
+			let count2Postfix = { 3: '0/24', 2: '0.0/16' }
+			let dotCount = ip.split('.').filter(Boolean).length
+			let postfix = count2Postfix[dotCount]
+			if (postfix)
+				ip += postfix
+		}
+		this.ip = ip
 	}
 	yaz(e) {
 		let {aciklama: name, enabled, direction, action, ip} = this
@@ -157,6 +178,10 @@ class MQFirewall extends MQKA {
 		let data = { name, enabled, direction, action, add: [ip] }
 		showProgress(); return app.wsFirewall_update({ data })
 			.finally(() => hideProgress())
+	}
+	async degistir(eskiInst) {
+		await eskiInst.sil();
+		return await this.yaz()
 	}
 	sil(e) {
 		let {aciklama: name, enabled, direction, action, ip} = this

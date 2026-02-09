@@ -1,6 +1,7 @@
 class Secimler extends CIO {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get uiSinif() { return window.SecimlerWindowPart } static get duzenlemeUISinif() { return this.uiSinif }
+	
 	constructor(e) {
 		e = e || {}; super(e); let {eConf} = e; if (eConf != null) { this.eConf = eConf }
 		if ($.isArray(e)) { e = { liste: e } } else { this.uiSinif = e.uiSinif; this.duzenlemeUISinif = e.duzenlemeUISinif || this.uiSinif }
@@ -183,22 +184,25 @@ class Secimler extends CIO {
 	}
 	initHTMLElements_ilk(e) { } initHTMLElements_ara(e) { } initHTMLElements_son(e) { }
 	grupOzetBilgiDuzenle(e) {
-		let {elmGrup} = e, elmHeaderText = elmGrup?.find('.header > .jqx-expander-header-content');
-		if (elmHeaderText?.length) { elmHeaderText.html(this.getGrupHeaderHTML(e) ?? '') }
+		let {elmGrup} = e, elmHeaderText = elmGrup?.find('.header > .jqx-expander-header-content')
+		if (elmHeaderText?.length)
+			elmHeaderText.html(this.getGrupHeaderHTML(e) ?? '')
 	}
-	getGrupHeaderHTML(e) {
-		e = e ?? {}; let innerHTML = this.getGrupOzetBilgiHTML(e), {elmGrup} = e;
-		let grupKod = e.grupKod ?? (elmGrup?.data('id') || elmGrup?.prop('id'));
-		let grup = this.grupListe?.[grupKod], grupText = grup?.aciklama ?? '';
-		if (!(grupKod || innerHTML)) { return null }
+	getGrupHeaderHTML(e = {}) {
+		let innerHTML = this.getGrupOzetBilgiHTML(e), {elmGrup} = e
+		let grupKod = e.grupKod ?? (elmGrup?.data('id') || elmGrup?.prop('id'))
+		let grup = this.grupListe?.[grupKod], grupText = grup?.aciklama ?? ''
+		if (!(grupKod || innerHTML))
+			return null
 		return (
 			(grupText ? `<div class="item asil float-left">${grupText}</div>` : '') +
 			`<div class="item diger float-left">${innerHTML || ''}</div>`
 		)
 	}
 	getGrupOzetBilgiHTML(e) {
-		let innerHTML = e.html ?? $.isArray(e.liste) ? e.liste.join('') : null;
-		if (innerHTML?.html) { innerHTML = innerHTML.html() }
+		let innerHTML = e.html ?? isArray(e.liste) ? e.liste.join('') : null
+		if (innerHTML?.html)
+			innerHTML = innerHTML.html()
 		return innerHTML || null
 	}
 	shallowCopy(e) {

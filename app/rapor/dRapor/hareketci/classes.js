@@ -986,8 +986,8 @@ class DRapor_Hareketci_OperBase_Main extends DRapor_Hareketci_Main {
 				tekSecim: new OperDurum().bu()
 			})
 		})
-		sec.whereBlockEkle(({ secimler: sec, where: wh, hv }) => {
-			wh.basiSonu(sec.fisNo, hv.fisno)
+		sec.whereBlockEkle(({ secimler: sec, where: wh, hvDegeri }) => {
+			wh.basiSonu(sec.fisNo, hvDegeri('fisno'))
 			wh.birlestir(sec.operDurum.tekSecim.getTersNullClause('oem.bittarih'))
 		})
 		let {grupListe} = sec
@@ -1078,6 +1078,10 @@ class DRapor_Hareketci_OperGer_Main extends DRapor_Hareketci_OperBase_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Hareketci_OperGer }
 
+	async ilkIslemler(e) {
+		await super.ilkIslemler(e)
+		this.iskNedenKod2Adi = await DMQIskNeden.getGloKod2Adi()
+	}
 	tabloYapiDuzenle({ result }) {
 		let e = arguments[0]
 		super.tabloYapiDuzenle(e)
@@ -1132,6 +1136,23 @@ class DRapor_Hareketci_OperGer_Main extends DRapor_Hareketci_OperBase_Main {
 				colDef.alignCenter()
 				extend(colDef.userData ??= {}, { ekCSS: ['bold', 'royalblue'] })
 			})
+
+		{
+			let {operGenel: { iskartaMaxSayi: iskMaxSayi = 8 } = {}} = app.params
+			let {iskNedenKod2Adi} = this
+			let getIskMiktarClause = kod => {
+				let result = []
+				for (let i = 1; i <= iskMaxSayi; i++)
+					result.push(`when gdet.iskartaneden${i}kod = '${kod}' then gdet.iskartamiktar${i}`)
+				return `SUM(case ${result.join(' ')} else 0 end)`
+			}
+			for (let [kod, adi] of entries(iskNedenKod2Adi)) {
+				result.addToplamBasit(    // '...MIKTAR....' ifadesi için brm'li miktar işlemi var
+					`ISKMIK${kod}`, `${adi}) Mik.`, `iskmik${kod}`, null, null, ({ item, colDef }) =>
+						item.setSql([_ => getIskMiktarClause(kod)])
+				)
+			}
+		}
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
 		super.loadServerData_queryDuzenle_hrkSent(e)
@@ -1166,5 +1187,81 @@ class DRapor_Hareketci_OperGer_Main extends DRapor_Hareketci_OperBase_Main {
 				sahalar.add(`${clause} ${belirtec}`)
 			}
 		}
+	}
+}
+class DRapor_Hareketci_Iskarta extends DRapor_Hareketci_OperBase {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get hareketciSinif() { return IskartaHareketci }
+}
+class DRapor_Hareketci_Iskarta_Main extends DRapor_Hareketci_OperBase_Main {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get raporClass() { return DRapor_Hareketci_Iskarta }
+
+	tabloYapiDuzenle({ result }) {
+		let e = arguments[0]
+		super.tabloYapiDuzenle(e)
+		result.addKAPrefix('neden')
+		result
+			.addGrupBasit('NEDEN', 'Neden', 'neden', DMQIskNeden, null, null)
+				// null, [_ => _.hvDegeri('nedkod'), 'ned.aciklama'])     -- özel olarak eklenecek
+			.addToplamBasit('ISKARTAMIKTAR', 'Isk. Mik.', 'iskartamiktar', null)
+				// null, ({ item }) => item.setSql_hv())                  -- özel olarak eklenecek
+	}
+	loadServerData_queryDuzenle_hrkSent(e) {
+		super.loadServerData_queryDuzenle_hrkSent(e)
+		// let {attrSet, sent, hvDegeri} = e
+		// let {where: wh, sahalar} = sent
+	}
+	loadServerData_queryDuzenle_hrkStm_sonIslemler(e) {
+		super.loadServerData_queryDuzenle_hrkStm_sonIslemler(e)
+		// let { attrSet, stm } = e
+	}
+}
+class DRapor_Hareketci_Duraksama extends DRapor_Hareketci_OperBase {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get hareketciSinif() { return DuraksamaHareketci }
+}
+class DRapor_Hareketci_Duraksama_Main extends DRapor_Hareketci_OperBase_Main {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get raporClass() { return DRapor_Hareketci_Duraksama}
+
+	tabloYapiDuzenle({ result }) {
+		let e = arguments[0]
+		super.tabloYapiDuzenle(e)
+		result.addKAPrefix('neden', 'durtip')
+		result
+			.addGrupBasit('NEDEN', 'Neden', 'neden', DMQDurNeden, null, null,
+				null, [_ => _.hvDegeri('nedenkod'), 'dned.aciklama'])
+			.addGrupBasit('DURTIP', 'Dur. Tip', 'durtip', DurTipi, null, null,
+				null, [_ => _.hvDegeri('durtipi'), _ => DurTipi.getClause(_.hvDegeri('durtipi'))])
+			.addToplamBasit('DURSURESN', 'Süre (sn)', 'dursuresn', null, null, ({ item }) => item.setSql_hv())
+			.addGrupBasit('DURSURETEXT', 'Süre Text', 'dursuretext', null, 13, ({ item, colDef }) => {
+				item.noOrderBy()
+					.setFormul(['DURSURESN'], ({ rec: { dursuresn: v } }) => timeToString(asDate(v)))
+				colDef.alignCenter()
+				extend(colDef.userData ??= {}, { ekCSS: ['bold', 'royalblue'] })
+			})
+			.addGrupBasit('DURBASTS', null, 'durbasts', null, null, ({ item }) =>
+				item.setSql_hv().hidden())
+			.addGrupBasit('DURBASTSTEXT', 'Başlangıç', 'durbaststext', null, null, ({ item }) =>
+				item.noOrderBy()
+					.setFormul(['DURBASTS'], ({ rec: { durbasts: v } }) => dateTimeAsKisaString(asDate(v)))
+			)
+			.addGrupBasit('DURSONTS', null, 'dursonts', null, null, ({ item }) =>
+				item.setSql_hv().hidden())
+			.addGrupBasit('DURSONTSTEXT', 'Bitiş', 'dursontstext', null, null, ({ item }) =>
+				item.noOrderBy()
+					.setFormul(['DURSONTS'], ({ rec: { dursonts: v } }) => dateTimeAsKisaString(asDate(v)))
+			)
+			.addGrupBasit('DURACIKLAMA', 'Dur. Açıklama', 'duraciklama', null, null, ({ item }) => item.setSql_hv())
+	}
+	loadServerData_queryDuzenle_hrkSent(e) {
+		super.loadServerData_queryDuzenle_hrkSent(e)
+		// let {attrSet, sent, hvDegeri} = e
+		// let {where: wh, sahalar} = sent
+	}
+	loadServerData_queryDuzenle_hrkStm_sonIslemler(e) {
+		super.loadServerData_queryDuzenle_hrkStm_sonIslemler(e)
+		// let { attrSet, stm } = e
 	}
 }

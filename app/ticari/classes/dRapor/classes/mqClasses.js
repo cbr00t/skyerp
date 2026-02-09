@@ -318,10 +318,9 @@ class DMQDurNeden extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Duraksama Nedeni' }
 	static get kodListeTipi() { return 'DURNEDEN' } static get table() { return 'makdurneden' } static get tableAlias() { return 'dned' }
 }
-class DurNeden extends TekSecim {
+class DurTipi extends TekSecim {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kodListeTipi() { return 'DNED' } static get sinifAdi() { return 'Duraksama Nedeni' }
-	static get table() { return 'makdurneden' } static get tableAlias() { 'dned' }
+	static get kodListeTipi() { return 'DURTIP' } static get sinifAdi() { return 'Duraksama Tipi' }
 	static get defaultChar() { return ' ' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)

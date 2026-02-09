@@ -146,6 +146,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	super_tabloYapiDuzenle_odemeGun(e) { super.tabloYapiDuzenle_odemeGun(e) }
 	async loadServerDataInternal(e = {}) {
 		let {hareketci} = e
+		e.rapor = this
 		hareketci ??= this.hareketci
 		let {secimler, raporTanim, class: { totalmi }} = this
 		let {value: devirAlinmasin} = secimler.devirAlinmasin ?? { value: true }
@@ -247,7 +248,11 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		return this.loadServerData_queryDuzenle_ek(e)
 	}
 	loadServerData_queryDuzenle_hrkStm_ilkIslemler({ stm, uni }) { }
-	loadServerData_queryDuzenle_hrkStm_sonIslemler({ stm, uni }) { }
+	loadServerData_queryDuzenle_hrkStm_sonIslemler({ stm, uni, hareketci: har }) {
+		har ??= this.hareketci
+		har.stmIcinSonIslemler(...arguments)
+		
+	}
 	loadServerData_queryDuzenle_hrkSent(e) {
 		let {attrSet, sentHVEkle, sent, hrkHV: hv, hrkDefHV: defHV, hvDegeri} = e
 		let {sahalar} = sent, tarihClause = hvDegeri('tarih')

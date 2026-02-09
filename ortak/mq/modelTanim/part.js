@@ -76,15 +76,17 @@ class ModelTanimPart extends Part {
 		let mfSinif = this.mfSinif ?? this?.inst?.class
 		let {rootPartName, partName} = this.class, {layout, hasTabPages, formLayoutSelector} = this
 		if (mfSinif) { layout.addClass(mfSinif.dataKey || mfSinif.classKey) }
-		layout.addClass(`${partName} ${rootPartName}`); this.header = layout.find('.header')
+		layout.addClass(`${partName} ${rootPartName}`)
+		this.header = layout.find('.header')
 		let form = this.form = this.formParent = layout.find('.form')
 		if (formLayoutSelector) {
-			let formLayout = this.getLayout({ selector: formLayoutSelector });
+			let formLayout = this.getLayout({ selector: formLayoutSelector })
 			if (formLayout?.length) { formLayout.appendTo(form); form = this.form = formLayout }
 		}
-		form.addClass(`${partName} form-layout`);
+		form.addClass(`${partName} form-layout`)
 		if (hasTabPages) { layout.addClass('with-tabs'); this.tabPanel = form.find('#tabPanel') }
 		await this.inst?.uiGirisOncesiIslemler(e)
+		this.islem = e.islem
 		if (this.yeniVeyaKopyami)
 			await this.yeniTanimOncesiIslemler(e)
 	}
@@ -163,12 +165,19 @@ class ModelTanimPart extends Part {
 			let bulPart = this.bulPart = new FiltreFormPart({
 				layout: bulForm,
 				degisince: ({ tokens }) =>
-					FiltreFormPart.hizliBulIslemi({ sender: this, layout: form, tokens })
+					this.hizliBulIslemi({ ...e, tokens })
 			})
 			bulPart.run()
 		}
 		else
 			bulForm.addClass('jqx-hidden')
+	}
+	hizliBulIslemi(e) {
+		let {form: layout, inst} = this
+		let _e = { sender: this, layout, ...e }
+		if (inst?.tanimPart_hizliBulIslemi?.(_e) == true)
+			return
+		FiltreFormPart.hizliBulIslemi(_e)
 	}
 	initIslemTuslari(e) {
 		let islemTuslari = this.islemTuslari = this.header.find('.islemTuslari')

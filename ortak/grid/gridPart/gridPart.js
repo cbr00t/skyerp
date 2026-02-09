@@ -665,19 +665,25 @@ class GridPart extends Part {
 		$.extend(this, _e); /* let gridContent = this.grid; gridContent.addClass('fade-inout'); setTimeout(() => gridContent.removeClass('fade-inout'), 1000); */
 		this.columns = jqxCols; return this
 	}
-	hizliBulIslemi(e) {
-		e = e || {}; let {tokens} = e, {gridWidget} = this; this.filtreTokens = tokens; e.gridPart = this
-		clearTimeout(this._timer_hizliBulIslemi_ozel); this._timer_hizliBulIslemi_ozel = setTimeout(() => {
+	hizliBulIslemi(e = {}) {
+		let {tokens} = e, {gridWidget, parentPart} = this
+		this.filtreTokens = tokens
+		e.gridPart = this
+		clearTimeout(this._timer_hizliBulIslemi_ozel)
+		this._timer_hizliBulIslemi_ozel = setTimeout(() => {
 			try {
-				let {bulPart} = this, {input} = bulPart; 
-				this.tazele({ action: 'hizliBul' });
+				let {bulPart = parentPart?.bulPart} = this, {input} = bulPart
+				this.tazele({ action: 'hizliBul' })
 				for (let delayMS of [400, 1000]) {
 					setTimeout(() => {
 						bulPart.focus();
-						setTimeout(() => { input[0].selectionStart = input[0].selectionEnd = input[0].value?.length }, 205)
+						setTimeout(() =>
+							input[0].selectionStart = input[0].selectionEnd = input[0].value?.length,
+							205)
 					}, delayMS)
 				}
-				setTimeout(() => FiltreFormPart.hizliBulIslemi(e), 500)
+				setTimeout(() =>
+					FiltreFormPart.hizliBulIslemi(e), 500)
 			}
 			finally { delete this._timer_hizliBulIslemi_ozel }
 		}, 100)

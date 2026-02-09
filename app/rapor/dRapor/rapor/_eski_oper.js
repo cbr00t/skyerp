@@ -184,7 +184,7 @@ class DRapor_Oper_Iskarta_Main extends DRapor_OperBase_Main {
 		stm.with.add(new MQToplu([
 			`onkomut ${new MQClause(['gersayac', 'nedenkod', 'iskmiktar']).parantezli()} AS`,
 			new MQClause([wUni]).parantezli()
-		]));
+		]))
 		for (let sent of stm) {
 			let {sahalar, where: wh} = sent; $.extend(e, { sent });
 			sent.fromAdd('onkomut onk'); this.loadServerData_queryDuzenle_gerDetayBagla(e);

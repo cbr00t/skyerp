@@ -40,6 +40,7 @@ class AccordionPart extends Part {
 		return result
 	}
 	get activePanel() { return this.activePanels?.at(-1) }
+	get activePanelId() { return this.activePanel?.id }
 	get hasActivePanel() { return !!this.activePanel }
 
 	constructor({ defaultCollapsed, coklu, coklumu, panels, events, userData } = {}) {
