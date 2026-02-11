@@ -1,5 +1,6 @@
 class DRapor_Ticari extends DRapor_Donemsel {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get oncelik() { return 105 }
 	static get kategoriKod() { return 'TICARI' } static get shd() { return null }
 	get stokmu() { return this.shd == 'stok' } get hizmetmi() { return this.shd == 'hizmet' }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { shd: e.shd ?? e.shd ?? this.class.shd }) }
@@ -243,7 +244,8 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 }
 
 class DRapor_Sevkiyat_Main extends DRapor_Ticari_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get toplamPrefix() { return 'Net ' }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get toplamPrefix() { return 'Net ' }
 	fisVeHareketBagla({ sent }) {
 		super.fisVeHareketBagla(...arguments); let {shd} = this
 		sent.fisHareket('piffis', `pif${shd}`)

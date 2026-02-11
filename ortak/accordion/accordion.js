@@ -421,13 +421,13 @@ class AccordionPart extends Part {
 		}
 		let {events} = this
 		let handlers = events[name] ?? []
-		for (let handler of handlers)
-			handler?.call?.(this, { sender: this, ...args })
 		if (name == 'stateChange') {
 			let {action} = args ?? {}
 			if (action)
-				this.signal(action, args, internal)
+				await this.signal(action, args, internal)
 		}
+		for (let handler of handlers)
+			await handler?.call?.(this, { sender: this, ...args })
 		return this
 	}
 	on(name, handler) {

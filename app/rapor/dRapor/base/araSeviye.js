@@ -960,7 +960,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		let stokmu = alias == 'stk'
 		let hizmetmi = alias == 'hiz'
 		let shBelirtec = hizmetmi ? 'hizmet' : 'stok'
-		if (attrSet.STANAGRP && !from.aliasIcinTable('grp'))
+		if (attrSet.SHANAGRP && !from.aliasIcinTable('grp'))
 			sent[`${shBelirtec}2GrupBagla`]()
 		if (stokmu && attrSet.STOKMARKA && !from.aliasIcinTable('smar'))
 			sent.stok2MarkaBagla()
@@ -970,7 +970,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 					sahalar.add(`${alias}.kod shkod`, `${alias}.aciklama shadi`)
 					wh.icerikKisitDuzenle_stok({ ...arguments[0], saha: `${alias}.kod` })
 					break
-				case 'STANAGRP':
+				case 'SHANAGRP':
 					sent.stokGrup2AnaGrupBagla()
 					sahalar.add('grp.anagrupkod', 'agrp.aciklama anagrupadi')
 					wh.icerikKisitDuzenle_stokAnaGrup({ ...arguments[0], saha: 'grp.anagrupkod' })

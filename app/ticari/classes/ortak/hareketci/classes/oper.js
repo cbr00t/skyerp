@@ -223,7 +223,8 @@ class DuraksamaHareketci extends OperGerHareketciOrtak {
 		extend(hv, {
 			nedenkod: 'mdur.durnedenkod', nedenadi: 'dned.aciklama',
 			dursuresn: 'SUM(mdur.dursuresn)', durbasts: 'mdur.duraksamabasts', dursonts: 'mdur.duraksamasonts',
-			duraciklama: 'mdur.aciklama', durtipi: 'dned.duraksamatipi'
+			duraciklama: 'mdur.aciklama', durtipi: 'dned.duraksamatipi',
+			perkod: 'gdet.perkod'
 		})
 	}
 }

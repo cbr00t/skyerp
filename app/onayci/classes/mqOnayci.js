@@ -117,15 +117,15 @@ class MQOnayci extends MQCogul {
 				// /efgecicialfatfis, sipfis
 				{
 					// Alım e-İşlem
-					let table = 'efgecicialfatfis', tip = 'GeciciAlimEFat'
+					let table = 'efgecicialfatfis', harTable = 'efgecicialfatdetay', tip = 'GeciciAlimEFat'
 					if (tip2Kural[tip]) {
 						let sent = new MQSent(), {where: wh, sahalar} = sent
 						sent
 							.fromAdd(`${db}..${table} fis`)
 						wh.inDizi(['', 'E'], 'fis.efbelge')
 						sahalar.add(
-							`'${db}' _db`, `'${table}' _table`, `'${tip}' tip`,
-							'fis.efbelge eIslTip', 'fis.efuuid uuid', 
+							`'${db}' _db`, `'${table}' _table`, `'${harTable}' _harTable`,
+							`'${tip}' tip`, 'fis.efbelge eIslTip', 'fis.efuuid uuid', 
 							`'Geçici Alım e-İşlem' tipText`,
 							`'' mustKod`, 'fis.efmustunvan mustUnvan'
 						)
@@ -139,7 +139,7 @@ class MQOnayci extends MQCogul {
 					// Siparişler
 					let almSat2Tip = { 'A': 'AlimSip', 'T': 'SatisSip' }
 					for (let [almSat, tip] of entries(almSat2Tip)) {
-						let table = 'sipfis', psTip = 'S'
+						let table = 'sipfis', harTable = 'sipstok', psTip = 'S'
 						if (tip2Kural[tip]) {
 							let sent = new MQSent(), {where: wh, sahalar} = sent
 							sent
@@ -149,8 +149,8 @@ class MQOnayci extends MQCogul {
 							wh.degerAta(almSat, 'fis.almsat')
 							wh.add(`fis.ayrimtipi = ''`)
 							sahalar.add(
-								`'${db}' _db`, `'${table}' _table`, `'${tip}' tip`,
-								'fis.efayrimtipi eIslTip', 'fis.efatuuid uuid',
+								`'${db}' _db`, `'${table}' _table`, `'${harTable}' _harTable`,
+								`'${tip}' tip`, 'fis.efayrimtipi eIslTip', 'fis.efatuuid uuid',
 								'(' +
 									`(case fis.almsat when 'A' then 'Alım ' when 'T' then 'Satış ' else '' end) + ` +
 									`'Sipariş'` +
@@ -291,7 +291,11 @@ class MQOnayci extends MQCogul {
 					return
 			}
 			else {
-				nedenText = await jqxPrompt({ etiket: 'RED Nedeni giriniz', title: islemAdi })
+				nedenText = await jqxPrompt({
+					etiket: 'RED Nedeni giriniz', title: islemAdi,
+					duzenle: ({ fbd_value: fbd }) =>
+						fbd.setMaxLength(40)
+				})
 				if (!nedenText)
 					return
 			}
@@ -339,110 +343,173 @@ class MQOnayci extends MQCogul {
 		//- IPTAL - -- onaykurali: { tip: GAF }, { tip: TS, OnayNo: 2 }	-- onayNo yoksa =1 demektir
 	}
 	static async izleIstendi({ sender: gridPart }) {
-		let islemAdi = 'e-İşlem İZLE'
+		let islemAdi = 'Belge İçerik Göster'
 		try {
 			let {selectedRecs: recs} = gridPart
 			let xmlFileNames = recs
-					.filter(_ => _.uuid)
+					.filter(_ => _.tip == 'GeciciAlimEFat' && _.uuid)
 					.map(_ => `${_.uuid}.xml`)
-			if (empty(xmlFileNames)) {
-				hConfirm('Gösterilecek e-İşlem Görüntüsü bulunamadı', islemAdi)
-				return
-			}
 			let eConf = await MQEConf.getInstance()
 			// let divContainer = $(`<div/>`)[0]
 			let eDocs = [], eDocCount = 0, aborted = false
-			let pm = showProgress('e-İşlem Görüntüleri açılıyor...', islemAdi, true, () => aborted = true)
+			let pm = showProgress('Belge İçeriği hazırlanıyor...', islemAdi, true, () => aborted = true)
 			pm.setProgressMax(xmlFileNames.length * 3)
 			let errors = []
 			for (let rec of recs) {
-				let {uuid, tip, eIslTip} = rec || {}
-				if (!uuid)
+				if (!rec)
 					continue
-				eIslTip ||= 'E'
-				let gelenmi = tip == 'GeciciAlimEFat'
-				let xmlDosyaAdi = `${uuid}.xml`
-				let eIslAltBolum = eConf.getAnaBolumFor({ eIslTip })?.trimEnd()
-				let subDirName = gelenmi ? 'ALINAN' : 'IMZALI'
-				let remoteFile = [eIslAltBolum, subDirName, xmlDosyaAdi].filter(_ => _).join('/')
-				if (aborted)
-					break
-				
-				let xsltProcessor
-				try { xsltProcessor = new XSLTProcessor() }
-				catch (ex) { cerr(ex) }
-				try {
+				let {tip, db} = rec
+				if (tip == 'GeciciAlimEFat') {
+					let {uuid, eIslTip} = rec
+					if (!uuid)
+						continue
+					eIslTip ||= 'E'
+					let gelenmi = tip == 'GeciciAlimEFat'
+					let xmlDosyaAdi = `${uuid}.xml`
+					let eIslAltBolum = eConf.getAnaBolumFor({ eIslTip })?.trimEnd()
+					let subDirName = gelenmi ? 'ALINAN' : 'IMZALI'
+					let remoteFile = [eIslAltBolum, subDirName, xmlDosyaAdi].filter(_ => _).join('/')
 					if (aborted)
 						break
-					let xmlData
-					try { xmlData = await app.wsDownloadAsStream({ remoteFile, localFile: xmlDosyaAdi }) }
+					
+					let xsltProcessor
+					try { xsltProcessor = new XSLTProcessor() }
 					catch (ex) { cerr(ex) }
-					pm?.progressStep()
-					if (!xmlData)
-						throw { isError: true, rc: 'noXML', errorText: 'XML (e-İşlem Belge İçeriği) bilgisi belirlenemedi' }
-					let xml = $.parseXML(xmlData)
-					let docRefs = Array.from(xml.documentElement.querySelectorAll(`AdditionalDocumentReference`))
-					let xsltData
-					{
-						let xbinDoc, subName = 'EmbeddedDocumentBinaryObject'
-						xbinDoc = docRefs.find(elm => elm.querySelector('DocumentType')?.innerHTML?.toUpperCase() == 'XSLT' && elm.querySelector(subName))
-						if (!xbinDoc)
-							xbinDoc = docRefs.find(elm => elm.querySelector(subName))
-						if (xbinDoc)
-							xsltData = xbinDoc.querySelector(subName)?.textContent
-					}
-					if (!xsltData)
-						throw { isError: true, rc: 'noXSLT', errorText: 'XSLT (e-İşlem Görüntü) bilgisi belirlenemedi' }
-					if (Base64.isValid(xsltData))
-						xsltData = Base64.decode(xsltData)
-					if (aborted)
-						break
-					let eDoc, source = xsltProcessor
 					try {
-						let xslt = $.parseXML(xsltData)
-						xsltProcessor?.importStylesheet(xslt)
-						eDoc = xsltProcessor?.transformToFragment(xml, document)
+						if (aborted)
+							break
+						let xmlData
+						try { xmlData = await app.wsDownloadAsStream({ remoteFile, localFile: xmlDosyaAdi }) }
+						catch (ex) { cerr(ex) }
+						pm?.progressStep()
+						if (!xmlData)
+							throw { isError: true, rc: 'noXML', errorText: 'XML (e-İşlem Belge İçeriği) bilgisi belirlenemedi' }
+						let xml = $.parseXML(xmlData)
+						let docRefs = Array.from(xml.documentElement.querySelectorAll(`AdditionalDocumentReference`))
+						let xsltData
+						{
+							let xbinDoc, subName = 'EmbeddedDocumentBinaryObject'
+							xbinDoc = docRefs.find(elm => elm.querySelector('DocumentType')?.innerHTML?.toUpperCase() == 'XSLT' && elm.querySelector(subName))
+							if (!xbinDoc)
+								xbinDoc = docRefs.find(elm => elm.querySelector(subName))
+							if (xbinDoc)
+								xsltData = xbinDoc.querySelector(subName)?.textContent
+						}
+						if (!xsltData)
+							throw { isError: true, rc: 'noXSLT', errorText: 'XSLT (e-İşlem Görüntü) bilgisi belirlenemedi' }
+						if (Base64.isValid(xsltData))
+							xsltData = Base64.decode(xsltData)
+						if (aborted)
+							break
+						let eDoc, source = xsltProcessor
+						try {
+							let xslt = $.parseXML(xsltData)
+							xsltProcessor?.importStylesheet(xslt)
+							eDoc = xsltProcessor?.transformToFragment(xml, document)
+						}
+						catch (ex) { cerr(ex) }
+						if (aborted)
+							break
+						if (!eDoc) {
+							xsltProcessor = 'api'
+							let xmlURL = remoteFile
+							let html = await app.wsXSLTTransformAsStream({ data: { xmlURL, xsltData } })
+							if (html)
+								eDoc = $(html)
+						}
+						if (!eDoc)
+							throw { isError: true, rc: 'xsltTransform', errorText: 'XSLT Görüntüsü oluşturulamadı', source }
+						/*if (eDocCount) {
+							let elmPageBreak = $(`<div style="float: none;"><div style="page-break-after: always;"></div></div>`)[0]
+							let {lastElementChild} = divContainer
+							lastElementChild.after(elmPageBreak)
+							lastElementChild.after(eDoc.querySelector('.paper') ?? eDoc)
+						}
+						else
+							divContainer.append(eDoc)*/
+						let container = $(`<div/>`).append(eDoc)
+						eDocCount++
+						eDocs.push(container)
+						pm?.progressStep(2)
 					}
-					catch (ex) { cerr(ex) }
-					if (aborted)
-						break
-					if (!eDoc) {
-						xsltProcessor = 'api'
-						let xmlURL = remoteFile
-						let html = await app.wsXSLTTransformAsStream({ data: { xmlURL, xsltData } })
-						if (html)
-							eDoc = $(html)
+					catch (ex) {
+						pm?.progressStep(3)
+						let errorText, {statusText} = ex
+						let [code] = statusText?.split(delimWS) ?? []
+						if (!statusText) {
+							let isObj = isObject(ex)
+							code = isObj ? ex.rc ?? ex.code : null
+							errorText = ex.errorText ?? ex.toString()
+						}
+						code = code?.toLowerCase() ?? ''
+						if (code == 'filenotfoundexception')
+							errorText = `XML Dosyası bulunamadı: [<b class=firebrick>${remoteFile}</b>]`
+						errors.push(errorText)
 					}
-					if (!eDoc)
-						throw { isError: true, rc: 'xsltTransform', errorText: 'XSLT Görüntüsü oluşturulamadı', source }
-					/*if (eDocCount) {
-						let elmPageBreak = $(`<div style="float: none;"><div style="page-break-after: always;"></div></div>`)[0]
-						let {lastElementChild} = divContainer
-						lastElementChild.after(elmPageBreak)
-						lastElementChild.after(eDoc.querySelector('.paper') ?? eDoc)
-					}
-					else
-						divContainer.append(eDoc)*/
-					let container = $(`<div/>`).append(eDoc)
-					eDocCount++
-					eDocs.push(container)
-					pm?.progressStep(2)
 				}
-				catch (ex) {
-					pm?.progressStep(3)
-					let errorText, {statusText} = ex
-					let [code] = statusText?.split(delimWS) ?? []
-					if (!statusText) {
-						let isObj = isObject(ex)
-						code = isObj ? ex.rc ?? ex.code : null
-						errorText = ex.errorText ?? ex.toString()
+				else {
+					let {_table: table, _harTable: harTables, sayac, fisNox, _text: headerHTML} = rec
+					if (isString(harTables))
+						harTables = harTables ? harTables.split(delimWS) : null
+					if (!(table && sayac) || empty(harTables))
+						continue
+					let uni = new MQUnionAll()
+					for (let harTable of harTables) {
+						let sent = new MQSent(), {where: wh, sahalar} = sent
+						sent
+							.fisHareket(table, harTable)
+							.har2StokBagla()
+						wh
+							.fisSilindiEkle()
+							.degerAta(sayac, 'fis.kaysayac')
+						sahalar.add(
+							'har.kaysayac sayac', 'har.seq',
+							'har.stokkod stokKod', 'stk.aciklama stokAdi',
+							'SUM(har.miktar) miktar', 'stk.brm',
+							'SUM(har.brutbedel) brutBedel', 'SUM(har.bedel) bedel'
+						)
+						sent.groupByOlustur()
+						uni.add(sent)
 					}
-					code = code?.toLowerCase() ?? ''
-					if (code == 'filenotfoundexception')
-						errorText = `XML Dosyası bulunamadı: [<b class=firebrick>${remoteFile}</b>]`
-					errors.push(errorText)
+					let stm = new MQStm({ sent: uni, orderBy: ['seq'] })
+					let _recs = await app.sqlExecSelect(stm)
+					if (empty(_recs))
+						continue
+
+					let rfb = new RootFormBuilder()
+						.addStyle_fullWH()
+						.asWindow(`Belge İzle: [<span class=orangered>${fisNox}</span>]`)
+					rfb.addButton('vazgec')
+						.addStyle_wh(50, 40)
+						.addCSS('absolute')
+						.addStyle(`$elementCSS { top: 0; right: 10px; min-width: unset !important; z-index: 1005 !important }`)
+						.onClick(({ builder: { rootPart } }) =>
+							rootPart.close())
+					rfb.addForm('header').setLayout(({ builder: { parent }}) =>
+						$(`<div class="full-width" style="font-size: 110%; padding: 3px 10px; min-height: 60px; max-height: 90px; overflow-y: auto !important">` +
+							headerHTML +
+						`</div>`)
+					)
+					rfb.addGridliGosterici('grid')
+						.addStyle_fullWH(null, 'calc(var(--full) - 90px)')
+						.addCSS('dock-bottom')
+						.widgetArgsDuzenleIslemi(({ args }) =>
+							extend(args, { rowsHeight: 50 })
+						)
+						.setTabloKolonlari([
+							...this.getKAKolonlar(
+								new GridKolon({ belirtec: 'stokKod', text: 'Ürün', genislikCh: 13, filterType: 'checkedlist' }),
+								new GridKolon({ belirtec: 'stokAdi', text: 'Ürün Adı', genislikCh: 30, filterType: 'checkedlist' }),
+							),
+							new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 9, filterType: 'checkedlist' }).tipDecimal(),
+							new GridKolon({ belirtec: 'brm', text: 'Brm', genislikCh: 4, filterType: 'checkedlist' }),
+							new GridKolon({ belirtec: 'bedel', text: 'Net Bedel', genislikCh: 16 }).tipDecimal_bedel()
+						])
+						.setSource(_recs)
+					rfb.run()
 				}
 			}
+			
 			if (!aborted && eDocCount) {
 				for (let eDoc of eDocs) {
 					// let html = `<html><head>${divContainer.innerHTML}</head></html>`
@@ -452,16 +519,18 @@ class MQOnayci extends MQCogul {
 					setTimeout(() => URL.revokeObjectURL(url), 10_000)
 				}
 			}
+			
 			if (!aborted && errors.length) {
 				let errorText = `<ul>${errors.map(_ => `<li class="mt-1">${_}</li>`).join(CrLf)}</ul>`
-				hConfirm(errorText, 'e-İşlem Görüntüle')
+				hConfirm(errorText, islemAdi)
 				console.error(errorText)
 			}
 			pm?.progressEnd()
 			setTimeout(() => hideProgress(), 500)
 		}
 		catch (ex) {
-			hConfirm(getErrorText(ex), islemAdi)
+			hideProgress()
+			// hConfirm(getErrorText(ex), islemAdi)
 			throw ex
 		}
 	}

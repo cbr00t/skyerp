@@ -1,7 +1,7 @@
 class PratikSatisHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get oncelik() { return 130 } static get sadeceTotalmi() { return true }
-	static get uygunmu() { return config.dev && app.params.aktarim?.kullanim?.pratikSatis }
+	static get oncelik() { return 170 } static get sadeceTotalmi() { return true }
+	static get uygunmu() { return app.params.aktarim?.kullanim?.pratikSatis }
 	// static get kategoriKod() { return '' } static get kategoriAdi() { return '' }
 	static get kisaKod() { return 'PR' } static get kod() { return 'PRASATIS' } static get aciklama() { return 'Pratik Satış' }
 	static get maliTabloIcinUygunmu() { return false } static get donemselIslemlerIcinUygunmu() { return false }
@@ -29,7 +29,7 @@ class PratikSatisHareketci extends Hareketci {
     static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
 		super.varsayilanHVDuzenle(...arguments)
 		extend(hv, {
-			bizsubekod: 'emr.bizsubekod',
+			bizsubekod: 'emr.bizsubekod'
 		})
 	}
     uygunluk2UnionBilgiListeDuzenleDevam(e) {

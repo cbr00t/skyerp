@@ -437,6 +437,7 @@ class DRapor_Hareketci_Hizmet extends DRapor_Hareketci {
 class DRapor_Hareketci_Hizmet_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Hareketci_Hizmet }
+	static get ticarimi() { return true }
 	secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments)
 		sec.secimTopluEkle({
@@ -462,7 +463,8 @@ class DRapor_Hareketci_Hizmet_Main extends DRapor_Hareketci_Main {
 		super.tabloYapiDuzenle(...arguments)
 	}
 	loadServerData_queryDuzenle_hrkSent({ sent, attrSet, hvDegeri }) {
-		super.loadServerData_queryDuzenle_hrkSent(...arguments); let {sqlNull} = Hareketci_UniBilgi.ortakArgs;
+		super.loadServerData_queryDuzenle_hrkSent(...arguments)
+		let {sqlNull} = Hareketci_UniBilgi.ortakArgs;
 		let {from, sahalar, where: wh} = sent, kDetayClause;
 		let kodClause = hvDegeri('hizmetkod'); this.loadServerData_queryDuzenle_hizmet({ ...arguments[0], kodClause });
 		if (attrSet.HZANAGRP) { sent.hizmet2GrupBagla() }
@@ -1228,8 +1230,10 @@ class DRapor_Hareketci_Duraksama_Main extends DRapor_Hareketci_OperBase_Main {
 	tabloYapiDuzenle({ result }) {
 		let e = arguments[0]
 		super.tabloYapiDuzenle(e)
-		result.addKAPrefix('neden', 'durtip')
+		result.addKAPrefix('per', 'neden', 'durtip')
 		result
+			.addGrupBasit('PER', 'Personel', 'per', DMQPersonel, null, null,
+				null, [_ => _.hvDegeri('perkod'), 'per.aciklama'])
 			.addGrupBasit('NEDEN', 'Neden', 'neden', DMQDurNeden, null, null,
 				null, [_ => _.hvDegeri('nedenkod'), 'dned.aciklama'])
 			.addGrupBasit('DURTIP', 'Dur. Tip', 'durtip', DurTipi, null, null,

@@ -1,6 +1,7 @@
 class DRapor_SonStok extends DRapor_AraSeviye {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get altRaporClassPrefix() { return 'DRapor_SonStok' }
+	static get oncelik() { return 110 }
 	static get kategoriKod() { return 'STOK' } static get kategoriAdi() { return 'Stok' }
 	static get kod() { return 'SONSTOK' } static get aciklama() { return 'Son Stok' }
 	static get vioAdim() { return 'ST-LS' } get stokmu() { return true } 
