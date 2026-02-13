@@ -26,12 +26,15 @@ class AlimSatisOrtakHareketci extends Hareketci {
 		Hareketci.varsayilanHVDuzenle değerleri aynen alınır, sadece eksikler eklenir */
     static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
         super.varsayilanHVDuzenle(...arguments)
-		for (let key of ['fisaciklama', 'detaciklama']) { hv[key] = sqlEmpty }
+		for (let key of ['fisaciklama', 'detaciklama'])
+			hv[key] = sqlEmpty
 		// for (let key of ['dvbedel']) { hv[key] = sqlZero }
-		$.extend(hv, {
+		extend(hv, {
+			must: ({ hv }) => hv.refkod,
 			aciklama: ({ hv }) => {
-                let withCoalesce = clause => (clause?.sqlDoluDegermi ?? false) ? `COALESCE(${clause}, '')` : sqlEmpty;
-                let {fisaciklama: fisAciklama, detaciklama: detAciklama} = hv;
+                let withCoalesce = clause =>
+					(clause?.sqlDoluDegermi ?? false) ? `COALESCE(${clause}, '')` : sqlEmpty
+                let {fisaciklama: fisAciklama, detaciklama: detAciklama} = hv
                 return fisAciklama && detAciklama
                     ? `${withCoalesce(fisAciklama)} + ' ' + ${withCoalesce(detAciklama)}` 
                     : withCoalesce(detAciklama || fisAciklama || sqlEmpty)
@@ -120,7 +123,8 @@ class AlimSatisOrtakHareketci extends Hareketci {
 						kayittipi: `'AS'`, anaislemadi: hizmetmi ? `'Hizmet'` : `'Stok'`,
 						islemadi: `'Alım/Satış'`, bizsubekod: 'fis.bizsubekod',
 						ozelisaret: 'fis.ozelisaret', tarih: 'fis.tarih', fisnox: 'fis.fisnox',
-						refkod: 'fis.must', refadi: 'car.birunvan', dvkod: 'fis.dvkod', dvkur: 'fis.dvkur',
+						refkod: 'fis.must', refadi: 'car.birunvan',
+						dvkod: 'fis.dvkod', dvkur: 'fis.dvkur',
 						fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama',
 						brm: `${mstAlias}.brm`, brm2: (hizmetmi ? sqlEmpty : `${mstAlias}.brm2`),
 						brmorani: (hizmetmi ? sqlZero : 'har.brmorani'),

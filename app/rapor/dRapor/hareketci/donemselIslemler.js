@@ -5,6 +5,8 @@ class DRapor_DonemselIslemler extends DRapor_Donemsel {
 	static get kategoriKod() { return 'FINANLZ' } static get kategoriAdi() { return 'Finansal Analiz' }
 	static get kod() { return 'DONISL' } static get aciklama() { return 'Dönemsel İşlemler' }
 	static get mstEtiket() { return this.aciklama }
+	static get otoTazeleYapilirmi() { return true }
+
 	altRaporlarDuzenle(e) {
 		super.altRaporlarDuzenle(e); let {mainClass} = this.class
 		this.addZorunluOzelID(mainClass)

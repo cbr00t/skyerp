@@ -108,10 +108,15 @@ class MQCariGenelParam extends MQTicariParamBase {
 	static get sinifAdi() { return 'Cari Genel Parametreleri' } static get paramKod() { return 'XCGEN' }
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e); let {paramci} = e;
-		paramci.addGrup().setEtiket('Genel'); let form = paramci.addFormWithParent();
-			form.addBool('cekSenetDevirCariyeIslenir', 'Çek/Senet Devir Cariye İşlenir');
-		let kullanim = paramci.addKullanim().addGrup().setEtiket('Kullanım'); form = kullanim.addFormWithParent();
-			form.addBool('konsolide', 'Konsolide'); form.addBool('altHesap', 'Alt Hesap')
+		paramci.addGrup().setEtiket('Genel')
+		let form = paramci.addFormWithParent()
+			form.addBool('cekSenetDevirCariyeIslenir', 'Çek/Senet Devir Cariye İşlenir')
+		let kullanim = paramci.addKullanim().addGrup().setEtiket('Kullanım')
+		form = kullanim.addFormWithParent()
+			form.addBool('konsolide', 'Konsolide')
+			form.addBool('altHesap', 'Alt Hesap')
+			form.addBool('onlineMutabakat', 'Online Mutabakat')
+			form.addBool('mutabakat2ZamanDamgasi', 'Zaman Damgası')
 	}
 }
 class MQStokGenelParam extends MQTicariParamBase {

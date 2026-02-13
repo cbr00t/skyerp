@@ -31,27 +31,26 @@ class DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main extends DRapor_Hareketci_Mai
 			result
 				.addToplamBasit_bedel('STBRCIRO', 'Brüt Ciro', 'stbrciro')
 				.addToplamBasit_bedel('ISKBEDEL', 'İskonto Bedel', 'iskbedel')
+				.addToplamBasit_bedel('DIPISKONTO', 'Dip İskonto', 'dipiskonto')
 				.addToplamBasit_bedel('CIRO', 'Net Ciro', 'ciro')
 				.addToplamBasit_bedel('CIROFIYAT', 'Ciro Fiyat', 'cirofiyat', null, null, ({ item }) =>
-					item.setFormul(['CIRO', 'MIKTAR'], ({ rec }) => roundToFiyatFra(rec.miktar ? rec.ciro / rec.miktar : 0)))
-				.addToplamBasit_bedel('STBRCIRO', 'Brüt Ciro', 'stbrciro')
-				.addToplamBasit_bedel('STBRCIRO', 'Brüt Ciro', 'stbrciro')
+					item.setFormul(['CIRO', 'MIKTAR'], ({ rec }) => rec.miktar ? roundToFiyatFra(rec.ciro / rec.miktar, 2) : 0))
 				.addToplamBasit_bedel('TUMMALIYET', 'Tüm Maliyet', 'tummaliyet')
 				.addToplamBasit('YUZDE_CIRO_TUMMALIYET', 'Mal. Ciro(%)', 'yuzde_ciro_tummaliyet', null, null, ({ item }) =>
-					item.setFormul(['TUMMALIYET', 'CIRO'], ({ rec }) => rec.ciro ? roundToFra((rec.tummaliyet / rec.ciro) * 100, 1) : 0))
+					item.setFormul(['TUMMALIYET', 'CIRO'], ({ rec }) => rec.ciro ? roundToFra(rec.tummaliyet / rec.ciro * 100, 1) : 0))
 				.addToplamBasit_bedel('HAMMALIYET', 'Ham Maliyet', 'hammaliyet')
 			if (uretimMalMuh)
 				result.addToplamBasit_bedel('MALMUH', 'Maliyet Muhasebesi', 'malmuh')
 			result
 				.addToplamBasit_bedel('BRUTKAR', 'Brüt Kar', 'brutkar')
 				.addToplamBasit('YUZDE_CIRO_BRUTKAR', 'Kar Ciro(%)', 'yuzde_ciro_brutkar', null, null, ({ item }) =>
-					item.setFormul(['BRUTKAR', 'CIRO'], ({ rec }) => rec.ciro ? roundToFra((rec.brutkar / rec.ciro) * 100, 1) : 0))
+					item.setFormul(['BRUTKAR', 'CIRO'], ({ rec }) => rec.ciro ? roundToFra(rec.brutkar / rec.ciro * 100, 1) : 0))
 				.addToplamBasit('YUZDE_MALIYET_BRUTKAR', 'Kar Mal.(%)', 'yuzde_maliyet_brutkar', null, null, ({ item }) =>
-					item.setFormul(['BRUTKAR', 'TUMMALIYET'], ({ rec }) => rec.tummaliyet ? roundToFra((rec.brutkar / rec.tummaliyet) * 100, 1) : 0))
-				.addToplamBasit('BRMMALIYET', 'Brm. Maliyet', 'brmmaliyet', null, null, ({ item }) =>
-					item.setFormul(['TUMMALIYET', 'MIKTAR'], ({ rec }) => rec.miktar ? roundToFra((rec.tummaliyet / rec.miktar) * 100, 1) : 0))
+					item.setFormul(['BRUTKAR', 'TUMMALIYET'], ({ rec }) => rec.tummaliyet ? roundToFra(rec.brutkar / rec.tummaliyet * 100, 1) : 0))
+				.addToplamBasit_bedel('BRMMALIYET', 'Brm. Maliyet', 'brmmaliyet', null, null, ({ item }) =>
+					item.setFormul(['TUMMALIYET', 'MIKTAR'], ({ rec }) => rec.miktar ? roundToFra(rec.tummaliyet / rec.miktar, 2) : 0))
 				.addToplamBasit('BRMIKTAR', 'Br. Miktar', 'brmiktar', null, null, ({ item }) =>
-					item.setFormul(['BRUTKAR', 'MIKTAR'], ({ rec }) => rec.miktar ? roundToFra((rec.brutkar / rec.miktar) * 100, 1) : 0))
+					item.setFormul(['BRUTKAR', 'MIKTAR'], ({ rec }) => rec.miktar ? roundToFra(rec.brutkar / rec.miktar, 2) : 0))
 			// this.tabloYapiDuzenle_gc({ ...e, tip: 'MALIYET', etiket: 'Maliyet', belirtec: 'tummaliyet' })
 		}
 		; {
@@ -123,6 +122,7 @@ class DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main extends DRapor_Hareketci_Mai
 				case 'MIKTAR2': sahalar.add(`${hvDegeri('miktar2').asSumDeger()} miktar2`); break
 				case 'STBRCIRO': sahalar.add(`SUM(${hvDegeri('brutbedel')}) stbrciro`); break
 				case 'CIRO': sahalar.add(`SUM(${hvDegeri('bedel')} - ${hvDegeri('dipiskonto')}) ciro`); break
+				case 'DIPISKONTO': sahalar.add(`SUM(${hvDegeri('dipiskonto')}) dipiskonto`); break
 				case 'ISKBEDEL': sahalar.add(`SUM(${hvDegeri('brutbedel')} - ${hvDegeri('bedel')}) iskbedel`); break
 				case 'TUMMALIYET': sahalar.add(`SUM(${hvDegeri('fmalhammadde')} + ${hvDegeri('fmalmuh')}) tummaliyet`); break
 				case 'HAMMALIYET': sahalar.add(`SUM(${hvDegeri('fmalhammadde')}) hammaliyet`); break

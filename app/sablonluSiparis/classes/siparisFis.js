@@ -6,13 +6,15 @@ class SablonluSatisSiparisFis extends SatisSiparisFis {
 	/*static get numYapi() { let result = super.numYapi; if (result) { result.seri = 'ABC' } return result }*/
 	static get aciklamaKullanilirmi() { return this.templateSinif.aciklamaKullanilirmi }
 	static get teslimCariSaha() { return this.templateSinif.teslimCariSaha }
+
 	constructor(e) { e = e ?? {}; super(e); e.fis = this; this.templateSinif.constructor(e) }
 	static detaySiniflarDuzenle(e) { /* super yok - 'this.detaySiniflar' boş ise 'this.detaySinif' kullanılır */ }
 	static getUISplitHeight(e) { e = e ?? {}; e.fisSinif = this; return this.templateSinif.getUISplitHeight(e) }
 	static pTanimDuzenle(e) { e = e ?? {}; e.fisSinif = this; super.pTanimDuzenle(e); this.templateSinif.pTanimDuzenle(e) }
-	static rootFormBuilderDuzenle(e) { e = e ?? {}; e.fisSinif = this; /* super.rootFormBuilderDuzenle(e) */ this.templateSinif.rootFormBuilderDuzenle(e) }
 	static loadServerData_queryDuzenle(e) { e.fisSinif = this; super.loadServerData_queryDuzenle(e); this.templateSinif.loadServerData_queryDuzenle(e) }
-	sablonYukleVeBirlestir(e) { e = e ?? {}; e.fis = this; return this.templateSinif.sablonYukleVeBirlestir(e) }
+	static rootFormBuilderDuzenle(e) { e = e ?? {}; e.fisSinif = this; /* super.rootFormBuilderDuzenle(e) */ this.templateSinif.rootFormBuilderDuzenle(e) }
+	static async orjBaslikListesi_gridInit(e = {}) { e.fisSinif = this; return this.templateSinif.orjBaslikListesi_gridInit(e) }
+	sablonYukleVeBirlestir(e = {}) { e.fis = this; return this.templateSinif.sablonYukleVeBirlestir(e) }
 	async yukle(e) {
 		e??= {}; $.extend(e, { fis: this, islem: e.islem || 'degistir' });
 		let result = await this.templateSinif.ozelYukleIslemi(e);
@@ -63,10 +65,12 @@ class SablonluKonsinyeAlimSiparisFis extends AlimSiparisFis {
 	/*static get numYapi() { let result = super.numYapi; if (result) { result.seri = 'ABC' } return result }*/
 	static get aciklamaKullanilirmi() { return this.templateSinif.aciklamaKullanilirmi }
 	static get teslimCariSaha() { return this.templateSinif.teslimCariSaha }
+	
 	constructor(e) { e = e ?? {}; super(e); e.fis = this; this.templateSinif.constructor(e) }
-	static detaySiniflarDuzenle(e) { /* super yok - 'this.detaySiniflar' boş ise 'this.detaySinif' kullanılır */ }
 	static getUISplitHeight(e) { e = e ?? {}; e.fisSinif = this; return this.templateSinif.getUISplitHeight(e) }
+	static detaySiniflarDuzenle(e) { /* super yok - 'this.detaySiniflar' boş ise 'this.detaySinif' kullanılır */ }
 	static pTanimDuzenle(e) { e = e ?? {}; e.fisSinif = this; super.pTanimDuzenle(e); this.templateSinif.pTanimDuzenle(e) }
+	static async orjBaslikListesi_gridInit(e = {}) { e.fisSinif = this; return this.templateSinif.orjBaslikListesi_gridInit(e) }
 	static rootFormBuilderDuzenle(e) { e = e ?? {}; e.fisSinif = this; /* super.rootFormBuilderDuzenle(e) */ this.templateSinif.rootFormBuilderDuzenle(e) }
 	static loadServerData_queryDuzenle(e) { e.fisSinif = this; super.loadServerData_queryDuzenle(e); this.templateSinif.loadServerData_queryDuzenle(e) }
 	sablonYukleVeBirlestir(e) { e = e ?? {}; e.fis = this; return this.templateSinif.sablonYukleVeBirlestir(e) }
@@ -122,8 +126,10 @@ class SablonluKonsinyeTransferFis extends TransferSiparisFis {
 	static get teslimCariSaha() { return this.mustSaha }
 	static detaySiniflarDuzenle(e) { /* super yok - 'this.detaySiniflar' boş ise 'this.detaySinif' kullanılır */ }
 	static getUISplitHeight(e) { e = e ?? {}; e.fisSinif = this; return this.templateSinif.getUISplitHeight(e) }
+	
 	constructor(e) { e = e ?? {}; super(e); e.fis = this; this.templateSinif.constructor(e) }
 	static pTanimDuzenle(e) { e = e ?? {}; e.fisSinif = this; super.pTanimDuzenle(e); this.templateSinif.pTanimDuzenle(e) }
+	static async orjBaslikListesi_gridInit(e = {}) { e.fisSinif = this; return this.templateSinif.orjBaslikListesi_gridInit(e) }
 	static rootFormBuilderDuzenle(e) { e = e ?? {}; e.fisSinif = this; /* super.rootFormBuilderDuzenle(e) */ this.templateSinif.rootFormBuilderDuzenle(e) }
 	static loadServerData_queryDuzenle(e) { e.fisSinif = this; super.loadServerData_queryDuzenle(e); this.templateSinif.loadServerData_queryDuzenle(e) }
 	sablonYukleVeBirlestir(e) { e = e ?? {}; e.fis = this; return this.templateSinif.sablonYukleVeBirlestir(e) }

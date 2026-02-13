@@ -49,6 +49,12 @@ body #ust-parent > #parent > main,
 
 html, body,
 body > #root-parent,
+body #ust-parent {
+	overflow: none !important
+}
+
+html, body,
+body > #root-parent,
 body #ust-parent,
 body #ust-parent > #nav,
 body #ust-parent > #nav > ul,

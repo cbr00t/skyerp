@@ -91,6 +91,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		await this.rapor?.signal('init', _e)
 	}
 	async onGridRun(e) {
+		let {rapor: { builder: { id2Builder }, isPanelItem, class: { otoTazeleYapilirmi } }} = this
 		await this.tazeleOncesi(e)
 		await this.onGridRun_ozel?.(e)
 		
@@ -104,7 +105,27 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		}
 		document.addEventListener('keydown', handler)
 		await delay(200)
-		await this.tazele(e)
+		
+		if (otoTazeleYapilirmi || this.tazeleCount || isPanelItem)
+			await this.tazele(e)
+		else {
+			let {layout: islemTuslari} = id2Builder.islemTuslari
+			islemTuslari.find('#tazele').addClass('anim-clickme')
+			let _notify = this._notify = notify({
+				status: 'info', autotimeout: 10_000,
+				content: (
+					`<div align="right"
+							style="font-size: 250%; font-weight: bold; position: relative; right: 50px; color: limegreen;
+							margin-top: -20px; padding-top: 3px">
+						^
+					</div>
+					<div>
+						Raporu göstermek için Tazele butonuna tıklayınız
+					</div>`
+				)
+			})
+			$(_notify.container).css({ top: 85 })
+		}
 	}
 	gridRowExpanded(e) { let {gridPart} = this, {level, uid} = e.event.args.row || {}; gridPart.expandedRowsSet[`${level}-${uid}`] = true }
 	gridRowCollapsed(e) { let {gridPart} = this, {level, uid} = e.event.args.row || {}; gridPart.expandedRowsSet[`${level}-${uid}`] = false }
@@ -138,8 +159,16 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		this.rapor?.signal('tazeleOncesi', e)
 	}
 	tazeleSonrasi(e) {
-		let {etiket: raporAdi, raporTanim: { aciklama: raporTanimAdi } = {}} = this
-		let {rapor, rapor: { part: parentPart, isPanelItem }, fbd_grid: { parent: layout } = {}} = this
+		let { etiket: raporAdi, rapor = {}, raporTanim = {}, fbd_grid: { parent: layout } = {}, _notify } = this
+		let { part: parentPart, isPanelItem, builder: { id2Builder } } = rapor
+		let { aciklama: raporTanimAdi } = raporTanim
+		let {layout: islemTuslari} = id2Builder?.islemTuslari ?? {}
+		if (!isPanelItem)
+			islemTuslari?.find('#tazele')?.removeClass('anim-clickme')
+		if (_notify) {
+			_notify.close()
+			delete this._notify
+		}
 		//if (!isPanelItem) {
 		let orjRaporAdi = raporAdi
 		if (raporTanimAdi)
@@ -797,9 +826,14 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		let {sinifAdi} = raporTanimSinif, title = `${sinifAdi} Tanım`
 		if (raporAdi)
 			title += `: <span class="fs-120 bold royalblue" style="margin-left: 5px">${raporAdi}</span>`
-		let ustHeight = '50px', ustEkHeight = '33px', islemTuslariHeight = '55px';
+		let ustHeight = '50px', ustEkHeight = '3px', islemTuslariHeight = '55px';
 		let wnd, wRFB = new RootFormBuilder({ id: 'raporTanim' }).setInst(inst).addCSS('part')
-			.addStyle(e => `$elementCSS { --islemTuslariHeight: ${islemTuslariHeight}; --ustHeight: ${ustHeight}; --ustEkHeight : ${ustEkHeight} }`);
+			.addStyle(
+				`$elementCSS {
+					--islemTuslariHeight: ${islemTuslariHeight}; --ustHeight: ${ustHeight}; --ustEkHeight : ${ustEkHeight};
+					overflow: hidden !important
+				}
+			`)
 		let fbd_ust = wRFB.addFormWithParent('ust').yanYana().addStyle_fullWH(null, 'var(--ustHeight)');
 		let fbd_sablonParent = fbd_ust.addFormWithParent('sablon-parent').yanYana().addStyle_fullWH().addStyle([e =>
 			`$elementCSS { position: relative; top: 5px } $elementCSS > .button { width: 50px !important; height: 45px !important; min-width: unset !important }`]);
@@ -857,6 +891,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		this.wnd_raporTanim = wnd = createJQXWindow({
 			title, args: {
 				isModal: false, closeButtonAction: 'close',
+				position: 'center, center + 30px',
 				width: Math.max(800, Math.min(630, $(window).width() - 100)),
 				height: Math.min(1000, $(window).height() - 50) }
 		})

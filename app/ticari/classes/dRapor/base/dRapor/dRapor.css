@@ -140,4 +140,10 @@ body.dark-theme .dRapor.part #items > .item._main .jqx-grid tr:nth-child(even) .
 	/*direction: ltr !important*/
 }
 .dRapor.part #items > .item.main .secimBilgi .ozetBilgi-item:not(:first-child) { margin-left: 3px !important }
-
+.dRapor.part button.jqx-fill-state-normal.anim-clickme {
+	animation: 1000ms infinite cubic-bezier(0, 0, 0.2, 1) anim-clickme
+}
+@keyframes anim-clickme {
+	 50% { opacity: .5 }
+	100% { filter: brightness(0.9) }
+}

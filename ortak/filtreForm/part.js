@@ -1,5 +1,6 @@
 class FiltreFormPart extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get partName() { return 'filtreForm' } static get isSubPart() { return true }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get partName() { return 'filtreForm' } static get isSubPart() { return true }
 	constructor(e) {
 		e = e || {}; super(e); const {parentPart, value} = e; $.extend(this, { parentPart, value, degisinceEvent: [] });
 		const degisinceBlock = e.degisince || e.degisinceBlock; if (degisinceBlock) { this.change(degisinceBlock) }

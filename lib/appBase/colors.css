@@ -36,6 +36,14 @@
 .cyan { color: cyan !important }
 .lightcyan { color: lightcyan !important }
 .lightpink { color: lightpink !important }
+.pink { color: pink !important }
+.deeppink { color: deeppink !important }
+.hotpink { color: hotpink !important }
+.blueviolet { color: blueviolet !important }
+.violet { color: violet !important }
+.darkviolet { color: darkviolet !important }
+.palevioletred { color: palevioletred !important }
+
 :not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-black { background-color: black !important }
 :not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-lightblack { background-color: #333 !important }
 :not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-white { background-color: white !important }

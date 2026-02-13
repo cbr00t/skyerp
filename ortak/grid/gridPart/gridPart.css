@@ -40,8 +40,20 @@
 .jqx-grid .jqx-grid-cell-filter-row .jqx-datetimeinput .jqx-action-button { top: 0 }
 .jqx-grid .jqx-clear >.jqx-widget-header { color: #999; background: linear-gradient(90deg, #47608d29 5%, #fdfeff2b 50%) !important }
 .jqx-grid .jqx-clear > .jqx-grid-groups-header > div > div { font-weight: bold; font-size: 100% }
-.jqx-grid .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header { font-weight: bold; color: #616161; text-wrap: pretty }
-.jqx-grid .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header > div { padding: 0 !important }
+.jqx-grid .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header {
+	font-weight: bold; color: #616161; text-wrap: pretty
+}
+.jqx-grid .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header > * {
+	padding: 0 !important
+}
+.jqx-grid .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header > * > *:first-child {
+	height: calc(var(--full) - 6px) !important
+}
+.jqx-grid:has(:focus) .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header > * > *:first-child {
+	border-bottom: 3px solid royalblue !important
+}
+.jqx-grid .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header > * > *:first-child > * {
+}
 .jqx-grid.jqx-grid-metro .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header { font-size: 150% }
 .jqx-grid div[role=row] .jqx-grid-cell-selected { color: unset; background: #0d366333; border: none }
 .gridKolonVeGrupOrtak.list-item { line-height: 150% }

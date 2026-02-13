@@ -943,8 +943,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			.addGrupBasit('SHISTGRP', 'S/H  İst. Grup', 'istgrup', DMQStokIstGrup)
 			.addGrupBasit('SH', 'Stok/Hizmet', 'sh', DMQStok)
 			.addGrupBasit('SHMARKA', 'Stok Marka', 'marka', DMQStokMarka)
-			.addGrupBasit('BRM', 'Brm', 'brm', null, 60, ({ colDef }) => colDef.alignCenter())
-			.addGrupBasit('BRM2', 'Br2', 'brm2', null, 60, ({ colDef }) => colDef.alignCenter())
+			.addGrupBasit('BRM', 'Brm', 'brm', null, 5, ({ colDef }) => colDef.alignCenter())
+			.addGrupBasit('BRM2', 'Br2', 'brm2', null, 5, ({ colDef }) => colDef.alignCenter())
 			.addGrupBasit('BRMORANI', 'Brm Oranı', 'brmorani', null, 100, ({ colDef }) => colDef.tipDecimal())
 			.addGrupBasit('STOKRESIM', 'Stok Resim', 'stokresim')
 		return this

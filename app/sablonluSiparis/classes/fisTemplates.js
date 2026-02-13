@@ -1,9 +1,11 @@
 class SablonluSiparisFisTemplate extends CObject {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sablonSinif() { return MQSablonOrtak }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get sablonSinif() { return MQSablonOrtak }
 	static getUISplitHeight({ islem }) { return 170 + ($(window).width() < 1300 ? 90 : 0) + (islem == 'onayla' || islem == 'sil' ? 65 : 0) }
 	static get numaratorGosterilirmi() { return false } static get dipGirisYapilirmi() { return false }
 	static get aciklamaKullanilirmi() { return false } static get teslimCariSaha() { return 'teslimcarikod' }
 	static get kodListeTipi() { return 'KONSIP' } static get sinifAdi() { return 'Web Konsinye Sipariş' }
+	
 	static constructor({ fis } = {}) {
 		let {web} = app.params, {otoTeslimTarihi_gunEk} = web;
 		if (otoTeslimTarihi_gunEk) { fis.baslikTeslimTarihi = fis.tarih.clone().addDays(otoTeslimTarihi_gunEk) }
@@ -17,20 +19,40 @@ class SablonluSiparisFisTemplate extends CObject {
 			koliYuvarlanirmi: new PInstBitBool()
 		})
 	}
-	static rootFormBuilderDuzenle({ fisSinif, builders, sender: gridPart, islem /* , inst */ }) {
-		fisSinif.rootFormBuilderDuzenle_numarator(...arguments); let {offlineMode: offline} = app
+	static async orjBaslikListesi_gridInit({ sender: tanimPart } = {}) { }
+	static rootFormBuilderDuzenle({ fisSinif, builders, sender: tanimPart, islem /* , inst */ }) {
+		fisSinif.rootFormBuilderDuzenle_numarator(...arguments)
+		let {offlineMode: offline} = app
 		let {root: rfb, baslikForm: fbd_baslikForm} = builders, {builders: baslikFormlar} = fbd_baslikForm;
-		let {konsinyemi} = fisSinif, {grid, gridWidget, layout} = gridPart;
+		let {konsinyemi} = fisSinif, {grid, gridWidget, layout} = tanimPart
 		rfb.addStyle(e =>
 			`/*$elementCSS .islemTuslari { position: absolute !important; top: 3px !important }*/
 			 $elementCSS .grid [role = row] .sonStokBilgi { font-size: 90% !important; margin-top: -5px !important; line-height: 20px !important }
 			 $elementCSS .grid [role = row] .sonStokBilgi .sub-item:not(:first-child) { margin-left: 10px }
-		`);
+		`)
+		if ($(window).width() >= 1100) {
+			let elm = layout.find('.bulForm.part')
+			if (elm.length) {
+				baslikFormlar[0].onAfterRun(({ builder: { layout: target } }) => {
+					setTimeout(() => {
+						elm.detach().appendTo(target)
+						elm.css({
+							position: 'absolute', bottom: 'unset', right: 'unset',
+							top:  $(window).width() >= 1200 ? 80 : 130,
+							right: $(window).width() >= 1500 ? 300 : 50,
+							width: 200, height: 50,
+							opacity: .9
+						})
+						elm.children('input').attr('placeholder', 'Hızlı Arama')
+					}, 5)
+				})
+			}
+		}
 		/* rfb.vazgecIstendi = e => false; */
 		let updateHeader = async e => {
-			e = e ?? {}; let fbd = e.builder ?? gridPart.fbd_baslikBilgi;
-			let {altInst: inst, layout} = fbd;
-			let {subeKod, mustKod, sablonSayac, klFirmaKod, teslimCariKod} = inst;
+			e = e ?? {}; let fbd = e.builder ?? tanimPart.fbd_baslikBilgi
+			let {altInst: inst, layout} = fbd
+			let {subeKod, mustKod, sablonSayac, klFirmaKod, teslimCariKod} = inst
 			let setKA = async (selector, kod, aciklama) => {
 				let elm = selector ? layout.find(`.${selector}`) : null; if (!elm?.length) { return }
 				if (kod) {
@@ -49,10 +71,14 @@ class SablonluSiparisFisTemplate extends CObject {
 		};
 		baslikFormlar[0].altAlta().addForm('_baslikBilgi')
 			.addStyle(e =>
-				`$elementCSS { font-size: 130% } $elementCSS > ._row { gap: 10px } $elementCSS > ._row:not(:last-child) { margin-bottom: 5px }
-				$elementCSS .etiket { width: 130px !important } $elementCSS .veri { font-weight: bold; color: royalblue }`
+				`$elementCSS { font-size: 110% } $elementCSS ._row { gap: 20px }
+				$elementCSS ._row:not(:last-child) > div { margin-bottom: 10px !important }
+				$elementCSS .etiket { width: 100px !important }
+				$elementCSS .veri { font-weight: bold; color: royalblue }`
 			 ).setLayout(({ builder: fbd }) => {
-				let {altInst: inst} = fbd, {tarih, subeKod, mustKod, sablonSayac, klFirmaKod, teslimCariKod, takipNo} = inst, css = `gap: 50px`;
+				let {altInst: inst} = fbd
+				let {tarih, subeKod, mustKod, sablonSayac, klFirmaKod, teslimCariKod, takipNo} = inst
+				let css = `gap: 40px`
 				return $(`<div class="full-width">
 					<div class="flex-row" style="${css}">
 						<div class="tarih _row flex-row"><div class="etiket">Tarih</div><div style="margin-right: 10px"></div><div class="veri">${dateToString(inst.tarih) || ''}</div></div>
@@ -70,19 +96,24 @@ class SablonluSiparisFisTemplate extends CObject {
 				</div>`)
 			}).onBuildEk(({ builder: fbd }) => { fbd.rootPart.fbd_baslikBilgi = fbd; updateHeader() });
 		baslikFormlar[1].yanYana();
-		baslikFormlar[1].addModelKullan('sevkAdresKod', 'Sevk Adres').comboBox().autoBind().setMFSinif(MQSSevkAdres)
-			.addStyle_wh(500)
+		baslikFormlar[1].addModelKullan('sevkAdresKod', 'Sevk Adres')
+			.comboBox().autoBind().setMFSinif(MQSSevkAdres)
+			.addStyle_wh(400)
 			.ozelQueryDuzenleHandler(({ builder: fbd, aliasVeNokta, stm }) => {
 				if (offline) { return }
 				let {altInst: inst} = fbd ?? {}, {mustKod} = inst ?? {}; if (!mustKod) { return }
 				for (let {where: wh} of stm.getSentListe()) { wh.degerAta(mustKod, `${aliasVeNokta}must`) }
 			})
 			.degisince(({ builder: fbd }) => updateHeader());
-		baslikFormlar[1].addDateInput('baslikTeslimTarihi', 'Teslim Tarihi');
-		baslikFormlar[1].addTextInput('baslikAciklama', 'Açıklama');
+		baslikFormlar[1].addDateInput('baslikTeslimTarihi', 'Teslim Tarihi')
+		baslikFormlar[1].addTextInput('baslikAciklama', 'Açıklama')
+			.addStyle_wh(350)
 		let disableWithInfo = ({ color, text }) => {
-			grid.jqxGrid('editable', false); gridPart.baslikFormlar[0].parent().css('box-shadow', `0 2px 5px 3px ${color}`);
-			baslikFormlar[2].addForm('_ekBilgi').addStyle_fullWH(null, 'unset').addStyle(() => `$elementCSS { margin-top: 5px; padding: 5px 5px 10px 20px }`)
+			grid.jqxGrid('editable', false)
+			tanimPart.baslikFormlar[0].parent().css('box-shadow', `0 2px 5px 3px ${color}`)
+			baslikFormlar[2].addForm('_ekBilgi')
+				.addStyle_fullWH(null, 'unset')
+				.addStyle(() => `$elementCSS { margin-top: 5px; padding: 5px 5px 10px 20px }`)
 				.setLayout(({ builder: fbd }) => $(`<h4 class="bold ${color}">Bu sipariş ${text}:</h4>`))
 		};
 		switch (islem) {
