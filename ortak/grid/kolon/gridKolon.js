@@ -88,7 +88,8 @@ class GridKolon extends GridKolonVeGrupOrtak {
 					colDef = rowIndex; rowIndex = belirtec
 					belirtec = value; value = rec
 				}
-				let {gridWidget} = this.gridPart || {}, result = [belirtec]
+				let {gridWidget} = this.gridPart || {}
+				let result = [belirtec]
 				if (gridWidget?.editable && !this.attributes.editable)
 					result.push('grid-readOnly')
 				let {tip, align} = colDef

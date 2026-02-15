@@ -25,12 +25,15 @@ class DRapor_PratikSatis extends DRaporMQ {
 			.addKA('kasiyer', DMQKasiyer, 'fis.kasiyerkod', 'kas.aciklama')
 		extend(this, { secimler })
 		secimler.whereBlockEkle(({ secimler: sec, sent, where: wh }) => {
+			let {tarihBS} = sec
 			sent
-				.fromIliski('bizsubekod sub', 'fis.bizsubekod = sub.kod')
+				.fromIliski('isyeri sub', 'fis.bizsubekod = sub.kod')
 				.fromIliski('kasiyer kas', 'fis.kasiyerkod = kas.kod')
 			wh
 				.fisSilindiEkle()
 				.add(new MQOrClause([`fis.ozelisaret <> '*'`, `fis.fisanatipi = 'YM'`]))
+			if (tarihBS)
+				wh.basiSonu(tarihBS, 'fis.tarih')
 		})
 	}
 	static rootFormBuilderDuzenle_islemTuslari({ fbd_islemTuslari: fbd }) {
@@ -131,10 +134,12 @@ class DRapor_PratikSatis extends DRaporMQ {
 			altForm.addGridliGosterici('ozet')
 				.addStyle_fullWH(null, 190)
 				.rowNumberOlmasin().notAdaptive()
+				.setToplamYapi({ etiket: { belirtec: 'tipText' } })
 				.widgetArgsDuzenleIslemi(({ args }) =>
 					extend(args, {
-						autoHeight: true, rowsHeight: 30, selectionMode: 'multiplerowsextended',
-						showStatusBar: false, showAggregates: false, showGroupAggregates: false
+						autoHeight: true, rowsHeight: 30, columnsMenu: false, columnsReorder: false,
+						showStatusBar: false, showAggregates: false, showGroupAggregates: false,
+						selectionMode: 'multiplerowsextended'
 					})
 				)
 				.setTabloKolonlari(e => {
@@ -187,15 +192,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 					}
 					let stm = new MQStm({ sent: uni, orderBy: ['oncelik'] })
 					let recs = await app.sqlExecSelect(stm)
-					;{
-						let t = { _toplam: true, tipText: 'TOPLAM', fisSayi: 0, bedel: 0 }
-						for (let rec of recs) {
-							t.fisSayi += rec.fisSayi
-							t.bedel += rec.bedel
-						}
-						t.bedel = roundToBedelFra(t.bedel)
-						recs.unshift(t)
-					}
+					recs = recs.filter(r => r.fisSayi)
 					return recs
 				})
 			
@@ -204,8 +201,8 @@ class DRapor_PratikSatis extends DRaporMQ {
 				.rowNumberOlmasin().notAdaptive()
 				.widgetArgsDuzenleIslemi(({ args }) =>
 					extend(args, {
-						rowsHeight: 30, selectionMode: 'multiplerowsextended',
-						columnsHeight: 25
+						rowsHeight: 30, columnsHeight: 25, columnsMenu: false, columnsReorder: false,
+						selectionMode: 'multiplerowsextended'
 						// showStatusBar: true, showAggregates: false, showGroupAggregates: false
 					})
 				)
@@ -268,16 +265,19 @@ class DRapor_PratikSatis extends DRaporMQ {
 						uni.add(sent)
 					}
 					let stm = new MQStm({ sent: uni, orderBy: ['oncelik'] })
-					return await app.sqlExecSelect(stm)
+					let recs = await app.sqlExecSelect(stm)
+					recs = recs.filter(r => r.fisSayi)
+					return recs
 				})
 		}
 		;{
 			form.addGridliGosterici('tahsilat')
-				.addStyle_fullWH(440, 370)
+				.addStyle_fullWH(440, 375)
 				.rowNumberOlmasin().notAdaptive()
+				.setToplamYapi({ etiket: { belirtec: 'tahSekliAdi' } })
 				.widgetArgsDuzenleIslemi(({ args }) =>
 					extend(args, {
-						rowsHeight: 30, showStatusBar: false,
+						rowsHeight: 30, showStatusBar: false, columnsMenu: false, columnsReorder: false,
 						showAggregates: false, showGroupAggregates: false,
 						selectionMode: 'multiplerowsextended'
 					})
@@ -285,8 +285,6 @@ class DRapor_PratikSatis extends DRaporMQ {
 				.setTabloKolonlari(e => {
 					let cellClassName = (sender, rowIndex, belirtec, value, rec, prefix) => {
 						let result = [belirtec]
-						if (rec._toplam)
-							result.push('toplam')
 						return result.join(' ')
 					}
 					return [
@@ -306,22 +304,16 @@ class DRapor_PratikSatis extends DRaporMQ {
 					sent.groupByOlustur()
 					let stm = new MQStm({ sent, orderBy: ['oncelik', 'tahSekliAdi'] })
 					let recs = await app.sqlExecSelect(stm)
-					;{
-						let t = { _toplam: true, tahSekliAdi: 'TOPLAM', bedel: 0 }
-						for (let rec of recs)
-							t.bedel += rec.bedel
-						t.bedel = roundToBedelFra(t.bedel)
-						recs.unshift(t)
-					}
 					return recs
 				})
 			form.addGridliGosterici('ozel')
 				.addStyle_fullWH(440, 130)
 				.addStyle(`$elementCSS { min-width: 200px !important; max-width: 440px !important }`)
 				.rowNumberOlmasin().notAdaptive()
+				.setToplamYapi({ etiket: { belirtec: 'text' } })
 				.widgetArgsDuzenleIslemi(({ args }) =>
 					extend(args, {
-						rowsHeight: 30, showStatusBar: true,
+						rowsHeight: 30, showStatusBar: true, columnsMenu: false, columnsReorder: false,
 						showAggregates: true, showGroupAggregates: true,
 						selectionMode: 'multiplerowsextended'
 					})
@@ -329,8 +321,6 @@ class DRapor_PratikSatis extends DRaporMQ {
 				.setTabloKolonlari(e => {
 					let cellClassName = (sender, rowIndex, belirtec, value, rec, prefix) => {
 						let result = [belirtec]
-						if (rec._toplam)
-							result.push('toplam')
 						return result.join(' ')
 					}
 					return [
@@ -349,9 +339,10 @@ class DRapor_PratikSatis extends DRaporMQ {
 			form.addGridliGosterici('matrahKdv')
 				.addStyle_fullWH(440, 200)
 				.rowNumberOlmasin().notAdaptive()
+				.setToplamYapi({ etiket: { belirtec: 'text' } })
 				.widgetArgsDuzenleIslemi(({ args }) =>
 					extend(args, {
-						rowsHeight: 30, showStatusBar: false,
+						rowsHeight: 30, showStatusBar: false, columnsMenu: false, columnsReorder: false,
 						showAggregates: false, showGroupAggregates: false,
 						selectionMode: 'multiplerowsextended'
 					})
@@ -359,12 +350,10 @@ class DRapor_PratikSatis extends DRaporMQ {
 				.setTabloKolonlari(e => {
 					let cellClassName = (sender, rowIndex, belirtec, value, rec, prefix) => {
 						let result = [belirtec]
-						if (rec._toplam)
-							result.push('toplam')
 						return result.join(' ')
 					}
 					return [
-						new GridKolon({ belirtec: 'text', text: `<span class=orangered>KDV</span>`, genislikCh: 8, filterType: 'checkedlist', cellClassName }).alignRight(),
+						new GridKolon({ belirtec: 'text', text: `<span class=orangered>KDV</span>`, genislikCh: 10, filterType: 'checkedlist', cellClassName }).alignRight(),
 						new GridKolon({ belirtec: 'matrah', text: 'Matrah', genislikCh: 16, aggregates: ['sum'], cellClassName }).tipDecimal_bedel(),
 						new GridKolon({ belirtec: 'kdv', text: 'Kdv', genislikCh: 16, aggregates: ['sum'], cellClassName }).tipDecimal_bedel()
 					]
@@ -380,17 +369,8 @@ class DRapor_PratikSatis extends DRaporMQ {
 					sent.groupByOlustur()
 					let stm = new MQStm({ sent, orderBy: ['oran', 'ozelIsaret'] })
 					let recs = await app.sqlExecSelect(stm)
-					;{
-						let t = { _toplam: true, tipText: 'TOPLAM', matrah: 0, kdv: 0 }
-						for (let rec of recs) {
-							rec.text = `%${rec.oran}`
-							t.matrah += rec.matrah
-							t.kdv += rec.kdv
-						}
-						t.matrah = roundToBedelFra(t.matrah)
-						t.kdv = roundToBedelFra(t.kdv)
-						recs.unshift(t)
-					}
+					recs.forEach(r =>
+						r.text = `%${r.oran}`)
 					return recs
 				})
 		}
@@ -408,6 +388,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 				.widgetArgsDuzenleIslemi(({ args }) =>
 					extend(args, {
 						showGroupsHeader: true, rowsHeight: 50, showStatusBar: true,
+						columnsMenu: false, columnsReorder: false,
 						showAggregates: true, showGroupAggregates: true,
 						selectionMode: 'multiplerowsextended'
 					})
@@ -423,8 +404,8 @@ class DRapor_PratikSatis extends DRaporMQ {
 					}
 					return [
 						new GridKolon({ belirtec: 'stokAdi', text: 'Stok', filterType: 'checkedlist', cellClassName }),
-						new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 8, filterType: 'checkedlist', aggregates: ['sum'], cellClassName }).tipDecimal(),
-						new GridKolon({ belirtec: 'brm', text: ' ', genislikCh: 4, filterType: 'checkedlist', cellClassName }),
+						new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 9, filterType: 'checkedlist', aggregates: ['sum'], cellClassName }).tipDecimal(),
+						new GridKolon({ belirtec: 'brm', text: 'Brm', genislikCh: 4, filterType: 'checkedlist', cellClassName }),
 						new GridKolon({ belirtec: 'hasilat', text: 'Hasılat (Kdvli)', genislikCh: 13, aggregates: ['sum'], cellClassName }).tipDecimal_bedel(),
 						new GridKolon({ belirtec: 'grupAdi', text: 'Grup', genislikCh: 20, filterType: 'checkedlist', cellClassName })
 					]
@@ -540,10 +521,12 @@ class DRapor_PratikSatis extends DRaporMQ {
 
 	baslikSentDuzele(e = {}) {
 		let { sent, sent: { where: wh, sahalar }, harTable, iade = e.iademi } = e
+		let { secimler } = this
 		sent.fisHareket('restoranfis', harTable)
 		wh
 			.add(`fis.kapanmazamani IS NOT NULL`, 'fis.biptalmi = 0')
 			.degerAta(iade ? 'I' : '', 'fis.iade')
+			.birlestir(secimler.getTBWhereClause(e))
 		return this
 	}
 	

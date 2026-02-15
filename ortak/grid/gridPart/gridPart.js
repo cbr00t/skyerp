@@ -75,7 +75,7 @@ class GridPart extends Part {
 	
 	constructor(e = {}) {
 		super(e)
-		$.extend(this, {
+		extend(this, {
 			parentPart: e.parentPart, parentBuilder: e.parentBuilder, builder: e.builder, async: e.async == null ? null : asBool(e.async), cache: e.cache == null ? null : asBool(e.cache),
 			bulPart: e.bulPart, ekTabloKolonlari: e.tabloKolonlari, ozelKolonDuzenleBlock: e.ozelKolonDuzenleBlock || e.ozelKolonDuzenle,
 			argsDuzenleBlock: e.argsDuzenleBlock || e.argsDuzenle, loadServerDataBlock: e.source || e.loadServerDataBlock || e.loadServerData,
@@ -88,19 +88,29 @@ class GridPart extends Part {
 			gridContextMenuIstendiBlock: e.gridContextMenuIstendiBlock || e.gridContextMenuIstendi, gridIDBelirtec: e.gridIDBelirtec || this.defaultGridIDBelirtec,
 			kolonFiltreDuzenleyici: e.kolonFiltreDuzenleyici ?? new GridKolonFiltreDuzenleyici(), sabitFlag: e.sabit ?? e.sabitmi ?? e.sabitFlag ?? this.defaultSabitFlag ?? false, detaySinif: e.detaySinif,
 			_kontrolcu: e.kontrolcu, rowNumberOlmasinFlag: e.rowNumberOlmasin ?? e.rowNumberOlmasinFlag ?? (isMiniDevice() ? true : undefined),
-			notAdaptiveFlag: e.notAdaptive ?? e.notAdaptiveFlag, noAnimateFlag: e.noAnimate ?? e.noAnimateFlag
-		});
-		let {kolonFiltreDuzenleyici} = this; if ($.isPlainObject(kolonFiltreDuzenleyici)) {
-			kolonFiltreDuzenleyici = this.kolonFiltreDuzenleyici = new GridKolonFiltreDuzenleyici(kolonFiltreDuzenleyici) }
+			notAdaptiveFlag: e.notAdaptive ?? e.notAdaptiveFlag, noAnimateFlag: e.noAnimate ?? e.noAnimateFlag,
+			toplamYapi: e.toplamYapi
+		})
+		let {kolonFiltreDuzenleyici} = this
+		if (isPlainObject(kolonFiltreDuzenleyici))
+			kolonFiltreDuzenleyici = this.kolonFiltreDuzenleyici = new GridKolonFiltreDuzenleyici(kolonFiltreDuzenleyici)
 	}
 	runDevam(e) {
-		super.runDevam(e); let result = this.gridInit(e);
-		if (this.isWindowPart) { let hasModalClass = this.hasModalClass = $('body').hasClass('bg-modal'); if (hasModalClass) { $('body').removeClass('bg-modal') } }
+		super.runDevam(e)
+		let result = this.gridInit(e)
+		if (this.isWindowPart) {
+			let hasModalClass = this.hasModalClass = $('body').hasClass('bg-modal')
+			if (hasModalClass)
+				$('body').removeClass('bg-modal')
+		}
 		return result
 	}
 	superRunDevam(e) { return super.runDevam(e) }
 	destroyPart(e) {
-		super.destroyPart(e); let {isWindowPart, hasModalClass, grid, gridWidget} = this; if (isWindowPart && hasModalClass) { $('body').addClass('bg-modal') }
+		super.destroyPart(e)
+		let {isWindowPart, hasModalClass, grid, gridWidget} = this
+		if (isWindowPart && hasModalClass)
+			$('body').addClass('bg-modal')
 		if (grid?.length && grid.parent()?.length) {
 			try { grid.jqxGrid('destroy') } catch (ex) { }
 			if (gridWidget) {
@@ -113,12 +123,13 @@ class GridPart extends Part {
 			grid.remove()
 		}
 		this.grid = this.gridWidget = null
+		delete this.toplamYapi
 	}
 	gridInit(e = {}) {
 		let grid = this.grid ?? this.layout
 		if (grid.hasClass('wnd-content')) { grid = grid.find(this.gridFormSelector) }
 		this.grid = grid
-		let {builder, tabloKolonlari, argsDuzenleBlock, gridRenderedBlock, cacheFlag, asyncFlag, notAdaptiveFlag} = this
+		let {builder, tabloKolonlari, argsDuzenleBlock, gridRenderedBlock, cacheFlag, asyncFlag, notAdaptiveFlag, toplamYapi} = this
 		let mini = isMiniDevice(), micro = isMicroDevice()
 		let cache = cacheFlag, async = asyncFlag, _theme = theme;	/*let _theme = theme == 'metro' ? 'material' : theme;*/
 		let args = {
@@ -131,7 +142,11 @@ class GridPart extends Part {
 			showGroupsHeader: false, groupIndentWidth: 30, groupsHeaderHeight: 33, groupsExpandedByDefault: false,
 			enableBrowserSelection: false, selectionMode: 'multiplecellsextended', pageable: false, pagermode: 'advanced', adaptive: undefined, virtualMode: false, updatedelay: 0,
 			scrollbarsize: 13, scrollMode: 'logical',		/* default | logical | deferred */
-			renderGridRows: e => { let recs = e.data?.records || e.data; return recs  /* return recs.slice(e.startindex, e.startindex + e.endindex) */ },
+			renderGridRows: ({ data = {} }) => {
+				let recs = data?.records ?? data
+				return recs
+				/* return recs.slice(e.startindex, e.startindex + e.endindex) */
+			},
 			groupColumnRenderer: text => `<div style="padding: 5px 10px; float: left;">${text}</div>`,
 			groupsRenderer: (text, group, expanded, groupInfo) => `<div class="grid-cell-group">${group}</div>`,
 			rendered: type => { return this.gridRendered({ sender: this, builder, type, gridPart: this, grid: this.grid, gridWidget: this.gridWidget }) },
@@ -175,7 +190,10 @@ class GridPart extends Part {
 						}
 					}
 				})
-		};
+		}
+		/*let {toplamYapi} = this
+		if (toplamYapi && args.frozenRows == null)
+			args.frozenRows = toplamYapi.sabitSatirSayi || 1*/
 		let _e = { ...e, sender: this, builder, grid, args }
 		this.gridArgsDuzenle(_e)
 		this.gridArgsDuzenle_ek?.call(this, _e)
@@ -322,28 +340,42 @@ class GridPart extends Part {
 		}
 		return liste
 	}
-	async loadServerData(e) {
-		let {parentPart, builder, grid, gridWidget, loadServerDataBlock} = this, editCell = gridWidget?.editcell;
-		e = e || {}; $.extend(e, { sender: this, gridPart: this, parentPart, builder }); let {wsArgs, source, action} = e;
+	async loadServerData(e = {}) {
+		let {parentPart, builder, grid, gridWidget, loadServerDataBlock} = this
+		let editCell = gridWidget?.editcell
+		extend(e, { sender: this, gridPart: this, parentPart, builder })
+		let {wsArgs, source, action} = e
 		if (wsArgs && gridWidget) {
 			if (gridWidget.pageable || gridWidget.virtualmode) {
 				if (source) {
-					let keys = ['recordstartindex', 'recordendindex', 'pagenum', 'pageindex', 'pagesize'];
-					for (let key of keys) { let value = source[key]; if (value != null) { wsArgs[key] = value } }
+					let _keys = ['recordstartindex', 'recordendindex', 'pagenum', 'pageindex', 'pagesize']
+					for (let key of _keys) {
+						let value = source[key]
+						if (value != null)
+							wsArgs[key] = value
+					}
 				}
 			}
 			else {
-				let keys = ['recordstartindex', 'recordendindex', 'pagenum', 'pageindex', 'pagesize'];
-				for (let key of keys) { delete wsArgs[key] }
+				let _keys = ['recordstartindex', 'recordendindex', 'pagenum', 'pageindex', 'pagesize']
+				deleteKeys(wsArgs, ..._keys)
 			}
 		}
-		(() => {
+		;(() => {
 			let keys = ['recordstartindex', 'recordendindex', 'pagenum', 'pageindex', 'pagesize'];
-			for (let key of keys) { let value = qs[key]; if (value != null) { wsArgs[key] = asInteger(value) } }
-			let _value = qs.maxRow ?? qs.maxrow; if (_value != null) { wsArgs.pagesize = asInteger(_value) }
-		})();
+			for (let key of keys) {
+				let value = qs[key]
+				if (value != null)
+					wsArgs[key] = asInteger(value)
+			}
+			let _value = qs.maxRow ?? qs.maxrow
+			if (_value != null)
+				wsArgs.pagesize = asInteger(_value)
+		})()
 		try {
-			let secimler = parentPart?.secimler; if (parentPart?.partName == 'secimler') { secimler = null}
+			let secimler = parentPart?.secimler
+			if (parentPart?.partName == 'secimler')
+				secimler = null
 			let _e = {
 				...e,
 				action, sender: this, builder, parentPart, gridPart: this, gridWidget, inst: parentPart?.inst, fis: parentPart?.inst, secimler,
@@ -382,31 +414,134 @@ class GridPart extends Part {
 		return recs
 	}
 	loadServerData_recsDuzenle(e) { }
-	loadServerData_recsDuzenle_son(e) {
-		let {recs} = e; if (!recs?.length) { return }
-		for (let i = 0; i < recs.length; i++) { let rec = recs[i]; rec._rowNumber = i + 1 }
+	async loadServerData_recsDuzenle_son({ recs }) {
+		recs = await recs
+		if (empty(recs))
+			return
+		let {toplamYapi} = this
+		recs.forEach((r, i) =>
+			r._rowNumber = i + 1)
+		if (toplamYapi) {
+			let {etiket: etk = {}} = toplamYapi, {duzKolonTanimlari: colDefs} = this
+			let aggColDefs = colDefs.filter(({ aggregates: agg }) =>
+				!empty(agg) && isArray(agg) &&
+				isString(agg[0])
+			)
+			if (!empty(aggColDefs)) {
+				let {belirtec: etkBelirtec, value: etkValue} = etk
+				if (etkBelirtec == null) {
+					let maxGenislikCh = 0
+					aggColDefs
+						.forEach(c => {
+							let {tip, belirtec, genislikCh} = c
+							if (tip?.clsss?.mfbmi)
+								return false    // break
+							if (genislikCh && genislikCh > maxGenislikCh) {
+								maxGenislikCh = genislikCh
+								etkBelirtec = belirtec
+							}
+						})
+				}
+				let t = { _toplam: true, [etkBelirtec]: etk.value ?? 'TOPLAM' }
+				let tKeys = [], belirtec2ColDef = {}
+				let handlers = {}
+				colDefs.forEach(c => {
+					let {belirtec: k, cellClassName: h} = c
+					if (h)
+						handlers[k] = h
+					c.cellClassName = (sender, rowIndex, belirtec, value, rec, prefix) => {
+						let result = [belirtec]
+						if (rec._toplam)
+							result.push('toplam')
+						let {[belirtec]: h} = handlers
+						if (h) {
+							let _result = h.call(this, sender, rowIndex, belirtec, value, rec, prefix)
+							if (!empty(_result)) {
+								if (isString(_result))
+									_result = _result.split(' ').filter(Boolean)
+								result = keys({ ...asSet(result), ...asSet(_result) })
+							}
+						}
+						return result.join(' ')
+					}
+				})
+				aggColDefs.forEach(c => {
+					let {belirtec: k} = c
+					belirtec2ColDef[k]  = c
+					c.aggregates.forEach(agg => {
+						agg = agg.toLowerCase()
+						switch (agg) {
+							case 'sum': {
+								t[k] = 0
+								tKeys.push(k)
+								break
+							}
+						}
+					})
+				})
+				recs.forEach(r =>
+				tKeys.forEach(k => {
+					let v = r[k] ?? 0
+					t[k] += v
+				}))
+				tKeys.forEach(k => {
+					let fra = belirtec2ColDef[k]?.tip?.fra
+					let v = t[k]
+					if (fra != null && v)
+						v = t[k] = roundToFra(v, fra)
+				})
+				let _recs = recs
+				recs = merge([t], _recs)
+				return recs
+			}
+		}
 	}
 	loadServerData_recsDuzenle_hizliBulIslemi(e) {
-		let {recs} = e; if (!recs?.length) { return } let mfSinif = e.mfSinif = this.getMFSinif ? this.getMFSinif(e) : null;
-		if (mfSinif?.orjBaslikListesi_recsDuzenle_hizliBulIslemi) { if (mfSinif.orjBaslikListesi_recsDuzenle_hizliBulIslemi(e) === false) { return } }
-		let {filtreTokens} = this, attrListe = this._hizliBulFiltreAttrListe; if (!attrListe?.length) {
-			attrListe = mfSinif?.orjBaslikListesi_getHizliBulFiltreAttrListe({ ...e, gridPart: this, filtreTokens });
-			if (!attrListe?.length) {
-				let {duzKolonTanimlari} = this; attrListe = [];
+		let {recs} = e
+		if (empty(recs))
+			return
+		let mfSinif = e.mfSinif = this.getMFSinif ? this.getMFSinif(e) : null
+		if (mfSinif?.orjBaslikListesi_recsDuzenle_hizliBulIslemi) {
+			if (mfSinif.orjBaslikListesi_recsDuzenle_hizliBulIslemi(e) === false)
+				return
+		}
+		let {filtreTokens, _hizliBulFiltreAttrListe: attrListe} = this
+		if (empty(attrListe)) {
+			attrListe = mfSinif?.orjBaslikListesi_getHizliBulFiltreAttrListe({ ...e, gridPart: this, filtreTokens })
+			if (empty(attrListe)) {
+				let {duzKolonTanimlari} = this
+				attrListe = []
 				for (let colDef of duzKolonTanimlari) {
-					if (!(colDef.ekKolonmu || !colDef.text?.trim)) { attrListe.push(colDef.belirtec) } }
+					if (!(colDef.ekKolonmu || !colDef.text?.trim))
+						attrListe.push(colDef.belirtec)
+				}
 			}
 			this._hizliBulFiltreAttrListe = attrListe
 		}
-		let orjRecs = recs; recs = []; for (let rec of orjRecs) {
-			let uygunmu = true; let values = attrListe.map(key => typeof rec[key] == 'object' ? toJSONStr(rec[key]) : rec[key]?.toString()).filter(value => !!value);
+		let orjRecs = recs; recs = []
+		for (let rec of orjRecs) {
+			let uygunmu = true
+			let values = attrListe
+				.map(key => isObject(rec[key]) ? toJSONStr(rec[key]) : rec[key]?.toString())
+				.filter(Boolean)
 			for (let token of filtreTokens) {
-				let _uygunmu = false; for (let value of values) {
-					if (value == null) { continue } value = value.toString();
-					if (value.toUpperCase().includes(token.toUpperCase()) || value.toLocaleUpperCase(culture).includes(token.toLocaleUpperCase(culture))) { _uygunmu = true; break }
-				} if (!_uygunmu) { uygunmu = false; break }
-			} if (!uygunmu) { continue }
-			recs.push(rec)
+				let _uygunmu = false
+				for (let value of values) {
+					if (value == null)
+						continue
+					value = value.toString()
+					if (value.toUpperCase().includes(token.toUpperCase()) || value.toLocaleUpperCase(culture).includes(token.toLocaleUpperCase(culture))) {
+						_uygunmu = true
+						break
+					}
+				}
+				if (!_uygunmu) {
+					uygunmu = false
+					break
+				}
+			}
+			if (uygunmu)
+				recs.push(rec)
 		}
 		return recs
 	}
@@ -1181,7 +1316,9 @@ class GridPart extends Part {
 		}, 500)
 	}
 	veriYuklenince(handler) { this.bindingCompleteBlock = handler; return this }
+	setToplamYapi(value) { this.toplamYapi = value; return this }
 }
+
 
 /*
 theme: theme, localization: localizationObj, autoshowloadelement: false,

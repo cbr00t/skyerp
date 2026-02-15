@@ -897,17 +897,29 @@ class FBuilder_Grid extends FBuilder_DivOrtak {
 	get gridSinif() {
 		let result = this._gridSinif; if (result === undefined) { result = this._gridSinif = e => { e.temp(); let {rootPart} = this; if (rootPart) return rootPart.gridSinif ?? rootPart.gridPart?.class } }
 		if (result != null && !result.prototype && isFunction(result)) {
-			let e = this.getBuilderBlockArgs({ result }); result = getFuncValue.call(this, result, e);
-			if (e.commitFlag) { this._gridSinif = result }
+			let e = this.getBuilderBlockArgs({ result })
+			result = getFuncValue.call(this, result, e)
+			if (e.commitFlag)
+				this._gridSinif = result
 		}
 		return result
 	}
 	set gridSinif(value) { this._gridSinif = value }
 	get detaySinif() {
-		let result = this._detaySinif; if (result === undefined) { result = this._detaySinif = e => { e.temp(); let {rootPart} = this; if (rootPart) return rootPart.detaySinif ?? rootPart.fis?.detaySinif ?? rootPart.inst?.detaySinif } }
+		let result = this._detaySinif
+		if (result === undefined) {
+			result = this._detaySinif = e => {
+				e.temp()
+				let {rootPart} = this
+				if (rootPart)
+					return rootPart.detaySinif ?? rootPart.fis?.detaySinif ?? rootPart.inst?.detaySinif
+			}
+		}
 		if (result != null && !result.prototype && isFunction(result)) {
-			let e = this.getBuilderBlockArgs({ result }); result = getFuncValue.call(this, result, e);
-			if (e.commitFlag) { this._detaySinif = result }
+			let e = this.getBuilderBlockArgs({ result })
+			result = getFuncValue.call(this, result, e)
+			if (e.commitFlag)
+				this._detaySinif = result
 		}
 		return result
 	}
@@ -940,6 +952,7 @@ class FBuilder_Grid extends FBuilder_DivOrtak {
 		return result
 	}
 	set tabloKolonlari(value) { this._tabloKolonlari = value }
+
 	constructor(e) {
 		e = e || {}; super(e); this.etiketGosterim_yok();
 		$.extend(this, {
@@ -951,18 +964,30 @@ class FBuilder_Grid extends FBuilder_DivOrtak {
 			editablemi: e.editable ?? e.editablemi ?? e.isEditable, sabitmi: e.sabitmi ?? e.sabit,
 			veriYuklenince: e.veriYuklenince || e.veriYukleninceBlock || e.bindingComplete || e.bindingCompleteBlock,
 			veriDegisince: e.veriDegisince || e.veriDegistiBlock || e.veriDegisti || e.cellValueChanged, rowNumberOlmasinFlag: e.rowNumberOlmasin ?? e.rowNumberOlmasinFlag,
-			groupsChanged: e.groupsChanged ?? e.gridGroupsChanged ?? e.gridGroupsChangedBlock, notAdaptiveFlag: e.notAdaptive ?? e.notAdaptiveFlag, noAnimateFlag: e.noAnimate ?? e.noAnimateFlag
-		});
-		let {_kontrolcu} = this; if (_kontrolcu) { this._kontrolcuSinif = _kontrolcu.class }
+			groupsChanged: e.groupsChanged ?? e.gridGroupsChanged ?? e.gridGroupsChangedBlock, notAdaptiveFlag: e.notAdaptive ?? e.notAdaptiveFlag, noAnimateFlag: e.noAnimate ?? e.noAnimateFlag,
+			toplamYapi: e.toplamYapi
+		})
+		let {_kontrolcu} = this
+		if (_kontrolcu)
+			this._kontrolcuSinif = _kontrolcu.class
 	}
 	buildDevam(e) {
-		super.buildDevam(e); let {input} = this;
+		super.buildDevam(e)
+		let {input} = this
 		if (input?.length) {
-			/* input.addClass('dock-bottom') */ let tabloKolonlari = this.tabloKolonlari || []; let {tabloKolonlariDuzenle, widgetArgsDuzenle} = this;
-			if (tabloKolonlariDuzenle) { let _e = { liste: tabloKolonlari }, result = getFuncValue.call(this, tabloKolonlariDuzenle, _e); if ($.isArray(result)) { tabloKolonlari = result } }
-			let {kontrolcu, kontrolcuSinif} = this; if (!kontrolcuSinif) { kontrolcuSinif = this.kontrolcuSinif = kontrolcu?.class }
+			/* input.addClass('dock-bottom') */
+			let tabloKolonlari = this.tabloKolonlari || []; let {tabloKolonlariDuzenle, widgetArgsDuzenle} = this
+			if (tabloKolonlariDuzenle) { 
+				let _e = { liste: tabloKolonlari }
+				let result = getFuncValue.call(this, tabloKolonlariDuzenle, _e)
+				if (isArray(result))
+					tabloKolonlari = result
+			}
+			let {kontrolcu, kontrolcuSinif} = this
+			if (!kontrolcuSinif)
+				kontrolcuSinif = this.kontrolcuSinif = kontrolcu?.class
 			if (!kontrolcu && kontrolcuSinif) { kontrolcu = this.kontrolcu = new kontrolcuSinif() }
-			let {mfSinif, yeniInstOlusturucu, detaySinif, noEmptyRowFlag, rowNumberOlmasinFlag, notAdaptiveFlag, noAnimateFlag} = this;
+			let {mfSinif, yeniInstOlusturucu, detaySinif, noEmptyRowFlag, rowNumberOlmasinFlag, notAdaptiveFlag, noAnimateFlag, toplamYapi} = this
 			let _e = {
 				...e,
 				args: {
@@ -970,34 +995,40 @@ class FBuilder_Grid extends FBuilder_DivOrtak {
 					ozelQueryDuzenleBlock: this.ozelQueryDuzenle, ozelQuerySonucuBlock: this.ozelQuerySonucu, yeniInstOlusturucu,
 					loadServerData: e => this.source, bindingCompleteBlock: e => this.veriYuklendi(e), gridVeriDegistiBlock: this.veriDegisince,
 					gridGroupsChangedBlock: this.groupsChanged, sabitFlag: this.sabitmi,
-					noEmptyRowFlag, detaySinif, rowNumberOlmasinFlag, notAdaptiveFlag, noAnimateFlag
+					noEmptyRowFlag, detaySinif, rowNumberOlmasinFlag, notAdaptiveFlag,
+					noAnimateFlag, toplamYapi
 				}
 			};
 			if (widgetArgsDuzenle) {
 				_e.args.argsDuzenle = e => {
-					let _e = { sender: this.part, builder: this, ...e };
+					let _e = { sender: this.part, builder: this, ...e }
 					getFuncValue.call(this, widgetArgsDuzenle, _e)
 				}
 			}
-			this.part = new this.gridSinif(_e.args);
+			this.part = new this.gridSinif(_e.args)
 		}
 	}
 	afterBuildDevam(e) {
 		let {part, styles, editablemi} = this; if (part) { part.run() }
 		if (part && !part.isDestroyed) {
-			let {grid, gridWidget} = part;
-			if (grid?.length) { this.input = grid; this.widget = gridWidget }
-			if (editablemi != null) { part.isEditable = editablemi }
+			let {grid, gridWidget} = part
+			if (grid?.length) {
+				this.input = grid
+				this.widget = gridWidget
+			}
+			if (editablemi != null)
+				part.isEditable = editablemi
 		}
-		styles.push(`$elementCSS > input { min-width: 150px; max-width: 99.5% }`);
+		styles.push(`$elementCSS > input { min-width: 150px; max-width: 99.7% }`)
 		super.afterBuildDevam(e)
 	}
 	veriYuklendi(e) {
-		let {part} = this, {gridWidget} = part;
-		if (gridWidget.editable && !part.sabitFlag && !this.noEmptyRowFlag) {
-			if ($.isEmptyObject(gridWidget.getboundrows())) { gridWidget.addrow(null, part.newRec()) }
-		}
-		let {veriYuklenince} = this; if (veriYuklenince) { getFuncValue.call(this, veriYuklenince, e) }
+		let {part} = this, {gridWidget} = part
+		if (gridWidget.editable && !part.sabitFlag && !this.noEmptyRowFlag && empty(gridWidget.getboundrows()))
+			gridWidget.addrow(null, part.newRec())
+		let {veriYuklenince} = this
+		if (veriYuklenince)
+			getFuncValue.call(this, veriYuklenince, e)
 	}
 	gridliGiris() { this.gridSinif = GridliGirisPart; return this } gridliGosterici() { this.gridSinif = GridliGostericiPart; return this }
 	masterListe() { this.gridSinif = MasterListePart; return this } fisListe() { this.gridSinif = FisListePart; return this }
@@ -1017,6 +1048,7 @@ class FBuilder_Grid extends FBuilder_DivOrtak {
 	veriDegisinceIslemi(handler) { this.veriDegisince = handler; return this } veriDegisinceBlock(handler) { return this.veriDegisinceIslemi(handler) }
 	groupsChangedIslemi(handler) { this.groupsChanged = handler; return this } onBindingComplete(value) { return this.veriYukleninceIslemi(value) }
 	setKontrolcu(value) { this.kontrolcu = value; return this } setKontrolcuSinif(value) { this.kontrolcuSinif = value; return this }
+	setToplamYapi(value) { this.toplamYapi = value; return this }
 }
 
 class FBuilder_IslemTuslari extends FBuilder_DivOrtak {
