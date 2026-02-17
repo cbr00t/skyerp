@@ -452,7 +452,7 @@ class GridPart extends Part {
 					c.cellClassName = (sender, rowIndex, belirtec, value, rec, prefix) => {
 						let result = [belirtec]
 						if (rec._toplam)
-							result.push('toplam')
+							result.push('_toplam')
 						let {[belirtec]: h} = handlers
 						if (h) {
 							let _result = h.call(this, sender, rowIndex, belirtec, value, rec, prefix)

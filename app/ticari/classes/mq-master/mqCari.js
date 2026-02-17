@@ -265,8 +265,8 @@ class MQCari_Vergi extends MQCariAlt {
 		let vknTcknDegisince = ({ builder: fbd }) => { for (let _fbd of fbd.rootPart.fbd_gibAlias?.builders) { _fbd.dataBind() } };
 		let form = tabPage.addFormWithParent().yanYana(4).setAltInst(e => e.builder.inst.vergi);
 		form.addTextInput({ id: 'vergiDaire',etiket: 'Vergi Dairesi', maxLength: 20 }).addStyle(e => `$elementCSS { max-width: 150px }`);
-		form.addTextInput({ id: 'vergiNo', etiket: 'Vergi No', maxLength: 11 }).degisince(vknTcknDegisince).addStyle(e => `$elementCSS { max-width: 150px }`);
-		form.addTextInput({ id: 'tcKimlikNo', etiket: 'TC Kimlik No', maxLength: 12 }).degisince(vknTcknDegisince).addStyle(e => `$elementCSS { max-width: 150px }`);
+		form.addTextInput({ id: 'vergiNo', etiket: 'Vergi No', maxLength: 10 }).degisince(vknTcknDegisince).addStyle(e => `$elementCSS { max-width: 150px }`);
+		form.addTextInput({ id: 'tcKimlikNo', etiket: 'TC Kimlik No', maxLength: 11 }).degisince(vknTcknDegisince).addStyle(e => `$elementCSS { max-width: 150px }`);
 		form.addTextInput({ id: 'ticaretSicilNo', etiket: 'Ticaret Sicil No', maxLength: 11 }).addStyle(e => `$elementCSS { max-width: 150px }`);
 		form.addTextInput({ id: 'mersisNo',etiket: 'Mersis No', maxLength: 16 }).addStyle(e => `$elementCSS { max-width: 150px }`);
 		form.addCheckBox({ id: 'sahismi', etiket: 'Şahıstır' }).degisince(vknTcknDegisince);
@@ -539,8 +539,15 @@ class MQCari_Ticari extends MQCariAlt {
 		let {tip2SatisBilgileri} = this, {kod: must} = this.inst, {gunKodlari, gun2Index} = MQSatisRota, plas2Eklenecek = {};
 		let rotaClause = [{ degerAta: must, saha: 'har.must' }, `fis.tipkod = 'T'`, `fis.sutalttip = ''`];
 		for (let satRec of values(tip2SatisBilgileri)) {
-			let {plasiyerKod: plasKod} = satRec, eklenecek = plas2Eklenecek[plasKod] = plas2Eklenecek[plasKod] || {};
-			for (let gunKod of gunKodlari) { if (satRec[gunKod]) { eklenecek[gunKod] = true } }
+			let {plasiyerKod: plasKod} = satRec
+			plasKod = plasKod?.trimEnd()
+			if (!plasKod)
+				continue
+			let eklenecek = plas2Eklenecek[plasKod] ??= {}
+			for (let gunKod of gunKodlari) {
+				if (gunKod && satRec[gunKod])
+					eklenecek[gunKod] = true
+			}
 		}
 		let plasKodListe = keys(plas2Eklenecek), or = new MQOrClause([ ...plasKodListe.map(plasKod => ({ like: `${plasKod}-%`, saha: 'fis.kod', aynenAlinsin: true })) ]);
 		let sent = new MQSent({
@@ -552,37 +559,58 @@ class MQCari_Ticari extends MQCariAlt {
 			let eklenecek = plas2Eklenecek[plasKod] ?? {}, silinecek = plas2Silinecek[plasKod] = plas2Silinecek[plasKod] ?? {};
 			if (eklenecek[gunKod]) { delete eklenecek[gunKod] } else { silinecek[gunKod] = true }
 		}
-		if (!$.isEmptyObject(plas2Silinecek)) {
-			let toplu = new MQToplu(); for (let [plasKod, gunSet] of entries(plas2Silinecek)) {
-				let kodlar = keys(gunSet).map(gunKod => `${plasKod}-${gunKod}`);
-				toplu.add(new MQIliskiliDelete({
-					from: 'rotadetay har', fromIliskiler: [{ from: 'rota fis', iliski: 'har.fissayac = fis.kaysayac' }],
-					where: [...rotaClause, { inDizi: kodlar, saha: 'fis.kod' }], sahalar: 'fis.kod'
-				}))
+		if (!(empty(plas2Silinecek) && empty(plas2Eklenecek))) {
+			if (!empty(plas2Silinecek)) {
+				let toplu = new MQToplu()
+				for (let [plasKod, gunSet] of entries(plas2Silinecek)) {
+					let kodlar = keys(gunSet).map(gunKod => `${plasKod}-${gunKod}`);
+					toplu.add(new MQIliskiliDelete({
+						from: 'rotadetay har', fromIliskiler: [{ from: 'rota fis', iliski: 'har.fissayac = fis.kaysayac' }],
+						where: [...rotaClause, { inDizi: kodlar, saha: 'fis.kod' }], sahalar: 'fis.kod'
+					}))
+				}
+				if (toplu.bosDegilmi)
+					await app.sqlExecNone(toplu)
 			}
-			if (toplu.bosDegilmi) { await app.sqlExecNone(toplu) }
-		}
-		if (!$.isEmptyObject(plas2Eklenecek)) {
-			for (let [plasKod, gunSet] of entries(plas2Eklenecek)) {
-				let getSent = _kodlar => new MQSent({
-					from: 'rota fis', sahalar: ['RTRIM(kod) kod', 'kaysayac'],
-					where: [{ inDizi: _kodlar, saha: 'kod' }, `fis.tipkod = 'T'`, `fis.sutalttip = ''`]
-				});
-				let kodlar = keys(gunSet).map(gunKod => `${plasKod}-${gunKod}`);
-				let sent = getSent(kodlar), kod2FisSayac = {}, fisSayac2KodVeMaxSeq = {};
-				for (let {kod, kaysayac: sayac} of await app.sqlExecSelect(sent)) { kod2FisSayac[kod] = sayac; fisSayac2KodVeMaxSeq[sayac] = { kod, maxSeq: 0 } };
-				let farklar = arrayFark(kodlar, keys(kod2FisSayac)); if (farklar?.length) {
-					let hvListe = []; for (let kod of farklar) { hvListe.push({ kod, tipkod: 'T', sutalttip: '' }) } await app.sqlExecNone(new MQInsert({ table: 'rota', hvListe }));
-					sent = getSent(farklar); for (let {kod, kaysayac: sayac} of await app.sqlExecSelect(sent)) {
-						kod2FisSayac[kod] = sayac; fisSayac2KodVeMaxSeq[sayac] = { kod, maxSeq: 0 } }
+			if (!empty(plas2Eklenecek)) {
+				for (let [plasKod, gunSet] of entries(plas2Eklenecek)) {
+					let getSent = _kodlar => new MQSent({
+						from: 'rota fis', sahalar: ['RTRIM(kod) kod', 'kaysayac'],
+						where: [{ inDizi: _kodlar, saha: 'kod' }, `fis.tipkod = 'T'`, `fis.sutalttip = ''`]
+					})
+					let kodlar = keys(gunSet).map(gunKod => `${plasKod}-${gunKod}`);
+					let sent = getSent(kodlar), kod2FisSayac = {}, fisSayac2KodVeMaxSeq = {};
+					for (let {kod, kaysayac: sayac} of await app.sqlExecSelect(sent)) {
+						kod2FisSayac[kod] = sayac
+						fisSayac2KodVeMaxSeq[sayac] = { kod, maxSeq: 0 }
+					}
+					let farklar = arrayFark(kodlar, keys(kod2FisSayac))
+					if (farklar?.length) {
+						let hvListe = []
+						for (let kod of farklar)
+							hvListe.push({ kod, tipkod: 'T', sutalttip: '' })
+						await app.sqlExecNone(new MQInsert({ table: 'rota', hvListe }))
+						sent = getSent(farklar)
+						for (let {kod, kaysayac: sayac} of await app.sqlExecSelect(sent)) {
+							kod2FisSayac[kod] = sayac
+							fisSayac2KodVeMaxSeq[sayac] = { kod, maxSeq: 0 }
+						}
+					}
+					sent = new MQSent({
+						from: 'rotadetay',
+						where: { inDizi: values(kod2FisSayac), saha: 'fissayac' },
+						sahalar: ['fissayac', 'MAX(seq) seq']
+					}).groupByOlustur()
+					for (let {fissayac: sayac, seq} of await app.sqlExecSelect(sent))
+						fisSayac2KodVeMaxSeq[sayac].maxSeq = seq || 0
+					let hvListe = []; for (let kod of kodlar) {
+						let fissayac = kod2FisSayac[kod]
+						let seq = (fisSayac2KodVeMaxSeq[fissayac]?.maxSeq || 0) + 1
+						hvListe.push({ fissayac, seq, must })
+					}
+					if (hvListe?.length)
+						await app.sqlExecNone(new MQInsert({ table: 'rotadetay', hvListe }))
 				}
-				sent = new MQSent({ from: 'rotadetay', where: { inDizi: values(kod2FisSayac), saha: 'fissayac' }, sahalar: ['fissayac', 'MAX(seq) seq'] }); sent.groupByOlustur();
-				for (let {fissayac: sayac, seq} of await app.sqlExecSelect(sent)) { fisSayac2KodVeMaxSeq[sayac].maxSeq = seq || 0 }
-				let hvListe = []; for (let kod of kodlar) {
-					let fissayac = kod2FisSayac[kod], seq = (fisSayac2KodVeMaxSeq[fissayac]?.maxSeq || 0) + 1;
-					hvListe.push({ fissayac, seq, must })
-				}
-				if (hvListe?.length) { await app.sqlExecNone(new MQInsert({ table: 'rotadetay', hvListe })) }
 			}
 		}
 	}

@@ -131,7 +131,7 @@ class FormBuilderBase extends CObject {
 			if (builder.autoInitLayoutFlag == null) { builder.autoInitLayoutFlag = autoInitLayoutFlag }
 			builder.runInternal(e)
 		}
-		if (!this._afterBuild_calistimi) { this._afterBuild_calistimi = true; this.afterBuildDevam(e) }
+		this.afterBuildDevam(e)
 	}
 	preInit(e) { }
 	beforeBuild(e = {}) {
@@ -184,13 +184,14 @@ class FormBuilderBase extends CObject {
 			if (!elm?.length) continue
 			if (elm?.length && !elm.data('part')) { let {part} = this; if (part) { elm.data('part', part) } }
 		}
-		if (!this._afterBuild_calistimi) { this._afterBuild_calistimi = true; this.afterBuildDevam(e) } /* this.applyStyles(e) */
-		
+		this.afterBuildDevam(e)
+		/* this.applyStyles(e) */
 	}
 	afterBuildDevam(e) {
-		if (!this.isRootFormBuilder && !this._afterRun_calistimi) {
+		if (!(this.isRootFormBuilder || this._afterRun_calistimi)) {
 			let {afterRun} = this
-			if (afterRun) { getFuncValue.call(this, afterRun, e) }
+			if (afterRun)
+				getFuncValue.call(this, afterRun, e)
 		}
 		this._afterRun_calistimi = true
 	}

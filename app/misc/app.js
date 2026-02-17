@@ -1,8 +1,34 @@
 class MiscApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get isLoginRequired() { return true }
-	static get yerelParamSinif() { return MQYerelParam } get configParamSinif() { return MQYerelParamConfig_App }
-	constructor(e) { e = e || {}; super(e) } async runDevam(e) { await super.runDevam(e); await this.anaMenuOlustur(e) }
-	paramsDuzenle(e) { super.paramsDuzenle(e); $.extend(e.params, { localData: MQLocalData.getInstance(), misc: MQParam_Misc.getInstance() }) }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	get loginRequiredMenuIdSet() {
+		let {_loginRequiredMenuIdSet: result} = this
+		if (result == null) {
+			result = asSet([
+				...MQHesnaStok.subClasses,
+				MQFirewall
+			].map(_ => _.kodListeTipi))
+		}
+		return result
+	}
+	get isLoginRequired() {
+		let {menu: id = qs.menuAdim} = qs
+		return !id || this.loginRequiredMenuIdSet[id.split('-').at(-1)]
+	}
+	static get yerelParamSinif() { return MQYerelParam }
+	get configParamSinif() { return MQYerelParamConfig_App }
+
+	constructor(e = {}) { super(e) }
+	async runDevam(e) {
+		await super.runDevam(e)
+		await this.anaMenuOlustur(e)
+	}
+	paramsDuzenle({ params }) { 
+		super.paramsDuzenle(...arguments)
+		extend(params, {
+			localData: MQLocalData.getInstance(),
+			misc: MQParam_Misc.getInstance()
+		})
+	}
 	async afterRun(e) {
 		await super.afterRun(e)
 		if (!config.dev)
@@ -15,38 +41,58 @@ class MiscApp extends App {
 		new FRMenu().navLayoutOlustur({ parent: mainNav })
 	}
 	async getAnaMenu(e) {
-		const {noMenuFlag, params} = this; if (noMenuFlag) { return new FRMenu() } let items = [];
-		const addMenuSubItems = (mne, text, ...classes) => {
+		let {noMenuFlag, params} = this; if (noMenuFlag) { return new FRMenu() } let items = [];
+		let addMenuSubItems = (mne, text, ...classes) => {
 			let subItems = classes.flat().map(cls =>
 				new FRMenuChoice({
 					mne: cls.kodListeTipi || cls.partName, text: cls.sinifAdi,
-					block: e => cls.listeEkraniAc ? cls.listeEkraniAc(e) : new cls(e).run()
+					block: async e => {
+						if (qs.newWindow)
+							return null
+						let result = await (
+							cls.sadeceTanimmi
+								? cls.tanimla({ ...e, islem: 'izle' })
+								: cls.listeEkraniAc ? cls.listeEkraniAc(e) : new cls(e).run()
+						)
+						let part = result?.part ?? result
+						if (qs.inNewWindow && part?.kapaninca)
+							part.kapaninca(e => window.close())
+						return result
+					}
 				})
 			);
-			let menuItems = []; if (subItems?.length) { menuItems = mne ? [new FRMenuCascade({ mne, text, items: subItems })] : subItems; items.push(...menuItems) }
+			let menuItems = []
+			if (subItems?.length) {
+				menuItems = mne ? [new FRMenuCascade({ mne, text, items: subItems })] : subItems
+				items.push(...menuItems)
+			}
 			return menuItems
 		};
-		addMenuSubItems('HESNA', 'Hesna', [...MQHesnaStok.subClasses]);
-		addMenuSubItems('UTILS', 'Utils', [MQFirewall]);
-		// addMenuSubItems('AI', 'AI Training', [AITraining01Part]);
+		addMenuSubItems('HESNA', 'Hesna', [...MQHesnaStok.subClasses])
+		addMenuSubItems('UTILS', 'Utils', [MQFirewall])
+		// addMenuSubItems('AI', 'AI Training', [AITraining01Part])
 		return new FRMenu({ items })
 	}
+	
 	wsX(e) { let args = e || {}; delete args.data; return ajaxPost({ url: this.getWSUrl({ api: 'testBilgi', args }) }) }
 	wsY(e) {
 		let args = e || {}, {data} = args; if (typeof data == 'object') { data = toJSONStr(data) } delete args.data;
 		return ajaxPost({ timeout: 13 * 1000, processData: false, ajaxContentType: wsContentType, url: this.getWSUrl({ api: 'testSonucKaydet', args }), data })
 	}
 
+
+
+	
 	/*// --- Performance Estimator (cbr00t sürümü) ---
-	const cfg = { base: 200, kdWeight: 15, kpmWeight: 20, idlePenaltyPer10pct: 7.5 }    // katsayılar
+	let cfg = { base: 200, kdWeight: 15, kpmWeight: 20, idlePenaltyPer10pct: 7.5 }    // katsayılar
 	// kills, deaths, minutes, idlePct(%) alır → KD, KPM, Perf döner
 	function calcPerf({ kills, deaths, minutes, idlePct = 0 }) {
 	  // safety      if (!minutes || minutes <= 0) { minutes = 1 }
-	  // KD          const kd  = deaths > 0 ? kills / deaths : kills
-	  // KPM         const kpm = kills / minutes
-	  // ham puan    const raw = cfg.base + cfg.kdWeight * kd + cfg.kpmWeight * kpm
-	  // idle cezası (isteğe bağlı)  const penalty = cfg.idlePenaltyPer10pct * (idlePct / 10)
-	  // sonuç        const perf = raw - penalty
+	  // KD          let kd  = deaths > 0 ? kills / deaths : kills
+	  // KPM         let kpm = kills / minutes
+	  // ham puan    let raw = cfg.base + cfg.kdWeight * kd + cfg.kpmWeight * kpm
+	  // idle cezası (isteğe bağlı)  let penalty = cfg.idlePenaltyPer10pct * (idlePct / 10)
+	  // sonuç        let perf = raw - penalty
 	  return { kd, kpm, perf }
 	}
 	// Örnek kullanım (dakika sürelerini sen gir):

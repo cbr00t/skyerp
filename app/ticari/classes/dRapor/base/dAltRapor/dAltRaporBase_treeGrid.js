@@ -91,7 +91,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		await this.rapor?.signal('init', _e)
 	}
 	async onGridRun(e) {
-		let {rapor: { builder: { id2Builder }, isPanelItem, class: { otoTazeleYapilirmi } }} = this
+		let {rapor: { builder: { id2Builder } = {}, isPanelItem, class: { otoTazeleYapilirmi } }} = this
 		await this.tazeleOncesi(e)
 		await this.onGridRun_ozel?.(e)
 		

@@ -100,10 +100,10 @@ class DRapor_PratikSatis extends DRaporMQ {
 			return new RootFormBuilder()
 				.setPart(tanimPart)
 				.setLayout(layout)
-				.addStyle(
-					`.jqx-grid [role = row] > .toplam { font-size: 110% !important; font-weight: bold !important }
-					 .jqx-grid [role = row] > .toplam:not(.jqx-grid-cell-selected) { background-color: lightpink !important }`
-				)
+				/*.addStyle(
+					`$elementCSS .jqx-grid [role = row] > .toplam { font-size: 110% !important; font-weight: bold !important }
+					 $elementCSS .jqx-grid [role = row] > .toplam:not(.jqx-grid-cell-selected) { background-color: lightpink !important }`
+				)*/
 		}
 		acc
 			.add({
@@ -146,7 +146,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 					let cellClassName = (sender, rowIndex, belirtec, value, rec, prefix) => {
 						let result = [belirtec]
 						if (rec._toplam)
-							result.push('toplam')
+							result.push('_toplam')
 						return result.join(' ')
 					}
 					return [
@@ -209,8 +209,6 @@ class DRapor_PratikSatis extends DRaporMQ {
 				.setTabloKolonlari(e => {
 					let cellClassName = (sender, rowIndex, belirtec, value, rec, prefix) => {
 						let result = [belirtec]
-						if (rec._toplam)
-							result.push('toplam')
 						return result.join(' ')
 					}
 					return [
@@ -285,6 +283,8 @@ class DRapor_PratikSatis extends DRaporMQ {
 				.setTabloKolonlari(e => {
 					let cellClassName = (sender, rowIndex, belirtec, value, rec, prefix) => {
 						let result = [belirtec]
+						if (rec._toplam)
+							result.push('_toplam')
 						return result.join(' ')
 					}
 					return [
@@ -321,6 +321,8 @@ class DRapor_PratikSatis extends DRaporMQ {
 				.setTabloKolonlari(e => {
 					let cellClassName = (sender, rowIndex, belirtec, value, rec, prefix) => {
 						let result = [belirtec]
+						if (rec._toplam)
+							result.push('_toplam')
 						return result.join(' ')
 					}
 					return [
@@ -350,6 +352,8 @@ class DRapor_PratikSatis extends DRaporMQ {
 				.setTabloKolonlari(e => {
 					let cellClassName = (sender, rowIndex, belirtec, value, rec, prefix) => {
 						let result = [belirtec]
+						if (rec._toplam)
+							result.push('_toplam')
 						return result.join(' ')
 					}
 					return [
@@ -398,8 +402,8 @@ class DRapor_PratikSatis extends DRaporMQ {
 				.setTabloKolonlari(e => {
 					let cellClassName = (sender, rowIndex, belirtec, value, rec, prefix) => {
 						let result = [belirtec]
-						if (rec._toplam)
-							result.push('toplam')
+						//if (rec._toplam)
+						//	result.push('_toplam')
 						return result.join(' ')
 					}
 					return [

@@ -42,8 +42,7 @@
 .dRapor.part #items.maximized > .item:not(.maximized),
 	.dPanel.part .items.maximized > :not(:has(.maximized)) { display: none }
 .dRapor.part #items > .item > [data-builder-id = 'fullScreen'],
-	.dRapor.part #items > .item > [data-builder-id = 'close']
-{
+	.dRapor.part #items > .item > [data-builder-id = 'close'] {
 	position: absolute; width: 32px !important; height: 32px !important;
 	top: 3px !important; z-index: 1100 !important; box-sizing: border-box !important;
 	background-color: transparent !important; background-size: contain !important;
@@ -90,7 +89,8 @@ body:not(.dark-theme) .dRapor.part #items > .item.hasFocus .secimBilgi > * { col
 body.dark-theme .dRapor.part #items > .item.hasFocus .secimBilgi > * { color: ghostwhite !important }
 .dRapor .anim-raporTanim-highlight, .dRapor .anim-raporTanim-highlight { border: 3px solid forestgreen !important; animation: 850ms infinite cubic-bezier(0.46, 0.03, 0.52, 0.96) anim-raporTanim-hightlight }
 @keyframes anim-raporTanim-hightlight { 50% { background-color: #c9e0c9 } }
-.dRapor.masterListe.part .jqx-grid [role = row], .dRapor.part #items > .item .jqx-grid .jqx-grid-cell.toplam { font-weight: bold }
+.dRapor.masterListe.part .jqx-grid [role = row],
+	.dRapor.part #items > .item .jqx-grid .jqx-grid-cell.toplam { font-weight: bold }
 .dRapor.part #items > .item .jqx-grid .jqx-grid-cell:not(.jqx-grid-cell-selected).toplam { background-color: #f1fff1 }
 .dRapor.part #items > .item .jqx-grid .jqx-grid-cell.zero  { color: lightgray /*; opacity: 1*/ }
 .dRapor.part #items > .item .jqx-grid .jqx-grid-cell.toplam { color: forestgreen }

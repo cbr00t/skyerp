@@ -2,7 +2,8 @@
 .butonlar.part {
 	--button-width: 65px; --button-height: 48px; --button-margin-x: 2px; --button-form-margin-x: 0px; --button-right-katsayi: 4;
 	--button-right: calc(var(--button-width) + var(--button-margin-x) * var(--button-right-katsayi) + var(--button-form-margin-x));
-	--width-sag: calc((var(--button-right) + 10px) * 2); --width-sag-ek: 55px; width: var(--full) !important; height: var(--button-height); /*background-color: whitesmoke;*/
+	--width-sag: calc((var(--button-right) + 10px) * 2); --width-sag-ek: 55px;
+	width: var(--full) !important; height: var(--button-height); /*background-color: whitesmoke;*/
 	position: relative;  margin: 0; padding: 0; /*box-shadow: 0px var(--islemTuslari-box-shadow-height) 30px 0px #edeef2;*/
 	/*background: linear-gradient(90deg, transparent 30%, #f2f2f2 100%) !important;*/
 	background: transparent !important;

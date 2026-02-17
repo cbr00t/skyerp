@@ -150,10 +150,10 @@ class TabsPart extends Part {
 				try {
 					await this.triggerInitContent({ ..._e })
 					let {content} = tabPage
-					if (!(this.noScrollFlag || content?.hasClass('no-scroll') || content?.children().hasClass('no-scroll'))) {
+					/*if (!(this.noScrollFlag || content?.hasClass('no-scroll') || content?.children().hasClass('no-scroll'))) {
 						makeScrollable(tabPage.content, evt =>
 							!(document.activeElement && document.activeElement.classList.contains('jqx-widget-content')))
-					}
+					}*/
 					tabPage.initFlag = true
 					_e.content = content
 					_e.collapsed = content?.length && content.hasClass('jqx-hidden')

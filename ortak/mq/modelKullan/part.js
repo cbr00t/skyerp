@@ -103,7 +103,15 @@ class ModelKullanPart extends Part {
 		let widget = this.widget = input[jqxSelector]('getInstance')
 		let {input: _input} = widget
 		let {value} = this; if (value != null) { input.val(value); input.attr('data-value', value ?? null) }
-		setTimeout(() => { if (!isDropDown && coklumu) {  let ddContent = widget.dropdownlistContent; if (ddContent?.length) { ddContent.css('max-height', '98px'); makeScrollable(ddContent) } } }, 200)
+		setTimeout(() => {
+			if (!isDropDown && coklumu) {
+				let ddContent = widget.dropdownlistContent
+				if (ddContent?.length) {
+					ddContent.css('max-height', '98px')
+					makeScrollable(ddContent)
+				}
+			}
+		}, 200)
 		input.on('bindingComplete', evt => {
 			clearTimeout(this.timer_bindingComplete);
 			this.timer_bindingComplete = setTimeout(() => { try { this.veriYuklendi({ event: evt }) } finally { delete this.timer_bindingComplete } }, 200)

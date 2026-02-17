@@ -81,6 +81,7 @@ class DRaporMQ extends DRapor {
 	static get anaTip() { return 'mq' } static get dMQRapormu() { return true }
 	static get kodListeTipi() { return this.kod } static get sinifAdi() { return this.aciklama }
 	static get tanimUISinif() { return ModelTanimPart } static get sadeceTanimmi() { return false }
+
 	goster(e = {}) {
 		let args = e.args = e.args || {}
 		args.inst = this

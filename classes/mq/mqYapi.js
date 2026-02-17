@@ -80,19 +80,24 @@ class MQYapi extends CIO {
 		return this
 	}
 	async getInstance_yukleIslemi(e) { return await this.yukle(e) }
-	async yukle(e) {
-		e = e || {}; let {rec} = e; e.orjRec = rec;
+	async yukle(e = {}) {
+		let {rec} = e
+		e.orjRec = rec
 		if (!rec) {
-			rec = await this.tekilOku(e); let {params} = rec || {};
+			rec = await this.tekilOku(e)
+			let {params} = rec || {}
 			if (params) {
-				let param = params.result ?? params.baslik ?? params.fis;
-				if (params) { rec = params.value }
+				let param = params.result ?? params.baslik ?? params.fis
+				if (params)
+					rec = params.value
 			}
 			e.rec = rec
 		}
-		if (!rec) { return false }
-		let basitFlag = e.basit ?? e.basitmi ?? e.basitFlag;
-		if (!basitFlag) { await this.yukleSonrasiIslemler(e) }
+		if (!rec)
+			return false
+		let basitFlag = e.basit ?? e.basitmi ?? e.basitFlag
+		if (!basitFlag)
+			await this.yukleSonrasiIslemler(e)
 		return true
 	}
 	kopyaIcinDuzenle(e) { }

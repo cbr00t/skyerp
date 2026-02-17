@@ -69,14 +69,18 @@ class RootFormBuilder extends SubPartBuilder {
 			part = this.part = new partClass(e); part.run();
 			this.layout = part.layout
 		}
-		e.rootPart = e.part = part;
-		let {layout} = this; if (!layout?.length) layout = this.layout = part.layout
+		e.rootPart = e.part = part
+		let {layout} = this
+		if (!layout?.length)
+			layout = this.layout = part.layout
 	}
 	postRun(e) {
-		super.postRun(e);
+		super.postRun(e)
 		$.extend(e, { builder: this, temps: e.temps || {} });
 		if (!this._afterRun_calistimi) {
-			const {afterRun} = this; if (afterRun) getFuncValue.call(this, afterRun, e)
+			let {afterRun} = this
+			if (afterRun)
+				getFuncValue.call(this, afterRun, e)
 			this._afterRun_calistimi = true
 		}
 	}

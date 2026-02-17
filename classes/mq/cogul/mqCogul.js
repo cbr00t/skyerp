@@ -21,7 +21,8 @@ class MQCogul extends MQYapi {
 	static get defaultOrjBaslik_gridRenderDelayMS() { return 200 }
 	static get orjBaslikListesi_panelGrupAttrListe() { let _e = { liste: [] }; this.orjBaslikListesi_panelGrupAttrListeDuzenle(_e); return _e.liste }
 	static get orjBaslikListesi_panelUstSeviyeAttrListe() { let _e = { liste: [] }; this.orjBaslikListesi_panelUstSeviyeAttrListeDuzenle(_e); return _e.liste }
-	static get orjBaslikListesi_defaultRowsHeight() { return null } static get orjBaslikListesi_maxColCount() { return 5 } static get orjBaslikListesi_defaultColCount() { return null }
+	static get orjBaslikListesi_defaultRowsHeight() { return null } static get orjBaslikListesi_maxColCount() { return 5 }
+	static get orjBaslikListesi_defaultColCount() { return null }
 	static get yerelParam() { return app.params.yerel } static get notCacheable() { return false }
 	static get mqGlobals() { return app.mqGlobals = app.mqGlobals || {} }
 	static get mqTemps() { return app.mqTemps = app.mqTemps || {} }
@@ -172,12 +173,12 @@ class MQCogul extends MQYapi {
 							}).addStyle(e => `$elementCSS { width: 20% !important; min-width: 120px !important; margin-bottom: 8px !important }`)
 					)
 				}
-				let lastBuilder = parentBuilder.builders[parentBuilder.builders.length - 1]; if (lastBuilder) {
+				/*let lastBuilder = parentBuilder.builders[parentBuilder.builders.length - 1]
+				if (lastBuilder) {
 					lastBuilder.onAfterRun(({ builder: fbd }) => {
-						/* let {parent} = fbd, parentElmId = parentBuilder.getElementId(parent); */
 						setTimeout(() => parent.jqxSortable({ theme, items: `> div` }), 10)
 					})
-				}
+				}*/
 			}
 		}
 		let ozelSahaYapilari = await this.getOzelSahaYapilari?.(e); if (!$.isEmptyObject(ozelSahaYapilari)) {

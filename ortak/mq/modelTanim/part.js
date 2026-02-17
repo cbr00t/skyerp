@@ -98,8 +98,10 @@ class ModelTanimPart extends Part {
 		await this.initLayout(e)
 		await this.initLayoutSonrasi(e)
 	}
-	async afterRun(e) {
+	async afterRun(e = {}) {
 		await super.afterRun(e)
+		let sender = this, {inst} = this
+		extend(e, { sender, inst })
 		if (this.hasTabPages) {
 			let {wnd, wndContent, class: { rootPartName }} = this
 			for (let elm of [wnd, wndContent])
@@ -180,6 +182,7 @@ class ModelTanimPart extends Part {
 		FiltreFormPart.hizliBulIslemi(_e)
 	}
 	initIslemTuslari(e) {
+		let {inst} = this
 		let islemTuslari = this.islemTuslari = this.header.find('.islemTuslari')
 		let _e = {
 			args: {
@@ -187,12 +190,21 @@ class ModelTanimPart extends Part {
 				layout: islemTuslari,
 				butonlarDuzenleyici: e =>
 					this.islemTuslariDuzenle(e)
-			}
+			},
+			builder: new FormBuilderBase()
 		}
 		if (this.islemTuslariArgsDuzenle(_e) === false)
 			return null
 		let islemTuslariPart = this.islemTuslariPart = new ButonlarPart(_e.args)
 		islemTuslariPart.run()
+		let {builder} = _e
+		if (builder) {
+			builder._afterRun_calistimi = false
+			builder
+				.setLayout(islemTuslari)
+				.setPart(islemTuslari)
+			builder.run(e)
+		}
 		return islemTuslariPart
 	}
 	initTabPages(e) {
