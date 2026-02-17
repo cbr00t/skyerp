@@ -41,7 +41,7 @@ class MQEMutOnay extends MQCogul {
 			if (errText)
 				await hConfirm(errText)
 			if (!config.dev)
-				tanimPart.close()
+				setTimeout(() => tanimPart.close(), 100)
 			return
 			// throw { isError: true, rc: 'userClose' }
 		}
@@ -163,8 +163,11 @@ class MQEMutOnay extends MQCogul {
 						}
 					}
 				`)
-			tanimForm.addTextInput('cevaplayan', 'Cevaplayan').onAfterRun(({ builder: { input } }) =>
-				setTimeout(() => input.focus(), 200))
+			tanimForm.addTextInput('cevaplayan', 'Cevaplayan')
+				.onAfterRun(({ builder: { input } }) => {
+					tanimPart.txtCevaplayan = input
+					setTimeout(() => input.focus(), 200)
+				})
 			tanimForm.addTextInput('notlar', 'Notlar')
 			tanimForm.addDiv('_dosyaAdi', 'Dosya Eki')
 				.onBuildEk(({ builder: { input: parent } }) => {
@@ -231,13 +234,25 @@ class MQEMutOnay extends MQCogul {
 		extend(this, { fileName, fileData })
 	}
 	async onayRedIstendi({ sender: tanimPart, state }) {
-		let { wsResult } = this
-		if (!wsResult)
+		let islemAdi = 'Onay/Red'
+		let { wsResult, sms, zamanDamgasi, telNo, id, cevaplayan } = this
+		if (!(id && wsResult)) {
+			hConfirm('Mutabakat bilgileri belirlenemedi', islemAdi)
 			return
-		
-		let { sms, zamanDamgasi, telNo } = this
+		}
+		if (state == null) {
+			hConfirm('Onay/Red durumu belirsizdir', islemAdi)
+			return
+		}
+		if (!cevaplayan) {
+			wConfirm(`<b class=royalblue>Cevaplayan Kişi</b> alanı doldurulmalıdır`, islemAdi)
+			tanimPart?.txtCevaplayan?.focus()
+			return
+		}
+
+		let onayKodu = ''
 		if (sms) {
-			let onayKodu = await jqxPrompt({
+			onayKodu = await jqxPrompt({
 				etiket: `Lütfen ${'abc'} nolu telefona gelen SMS Onay Kodunu giriniz`,
 				maxLength: 6,
 				// placeHolder: '______',
@@ -255,34 +270,25 @@ class MQEMutOnay extends MQCogul {
 					}`)
 				}
 			})?.trim()
-			if (!onayKodu)
+			if (!smsOnayKodu)
 				return
 		}
-		
-		/* zamanDamgasi SMS onayı istenecek
-		ekranda telNo input => telNo
-		zaman damgasına gönderilirken:
-			hash üretilecek text = 
-				"Kaynak Vkn: [isyRow.vkno]	Unvan: [isyRow.birunvan]
-				Hedef Vkn: [car.vkno]  Unvan: [car.birunvan]
-				Hedef Bakiye: [mut.bakiye] + ' ' + ([mut.dvkod].bosmu() ? 'TL' : [mut.dvkod])
-				Cevaplayan: ... (web sitesinde adını yazan) - [mut.cevaplayan]
-				Onay Tel: [ekranTekNo], OnayKod: [ekranOnayKod]"
-		email ile sonuç bildirilirken bu metin ve hash bilgisi de gönderilir
 
-
-		SAYIN ....,
-		... tarihli mutabakat için ... TL bakiye için onay/red verdiniz
-		... telefon numarası ile SMS Onayı belirttiniz
+		let { notlar, fileName, fileData } = this
+		let data = { id, state, onayKodu, cevaplayan, fileName, fileData }
 		
-		Yanıtınız zaman damgası ile kesinleştirilmiştir
+		try {
+			let { result } = await app.wsMutabakatCevapKaydet({ data })
+			if (result === false)
+				throw { isError: true, errorText: 'e-Mutabakat Cevabı kaydedilemedi' }
+		}
+		catch (ex) {
+			hConfirm(getErrorText(ex), islemAdi)
+			//throw ex
+			return
+		}
 		
-
-		Teknik Bilgi:
-		    docHash, tsr, timeUTC
-		*/
-		
-		debugger
+		eConfirm('Mutabakat Cevabı sisteme gönderilmiştir')
 	}
 	async getWSResult({ sender: tanimPart }) {
 		let {id} = this

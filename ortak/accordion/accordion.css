@@ -12,6 +12,7 @@
 	border-radius: 10px; border: var(--border-size) solid rgba(0, 0, 0, .10);
 	box-sizing: content-box; transition: 200ms ease
 }
+.accordion.part.fullScreen:has(> .accordion.item.expanded) .accordion.item:not(.expanded) { display: none }
 /*.accordion.part .accordion.item.expanded > .header > .collapsed-content,*/
 .accordion.part .accordion.item:not(.expanded) > .content { display: none }
 .accordion.part .accordion > .header {

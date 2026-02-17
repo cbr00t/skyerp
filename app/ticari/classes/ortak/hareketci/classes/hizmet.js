@@ -256,19 +256,12 @@ class HizmetHareketci extends Hareketci {
             ekMasraf: [
                 new Hareketci_UniBilgi()
 					.sentDuzenleIslemi(({ sent }) => {
+						let {where: wh} = sent
 						sent.fisHareket('hefis', 'hehar')
 							.x2HizmetBagla({ kodClause: 'har.masrafhizkod' })
-							.fis2BankaHesapBagla();
-	                    let {where: wh} = sent; wh.fisSilindiEkle().add(...[							/* '...[]' gereksiz - sadece collapse için eklendi, method (...array) alıyor zaten */
-							new MQOrClause()
-								.inDizi(['SH', 'SE', 'SS', 'BH', 'BE', 'BS'], 'fis.fistipi')
-								.add(...[																/* '...[]' gereksiz - sadece collapse için eklendi, method (...array) alıyor zaten */
-									new MQAndClause()
-										.degerAta('TP', 'fis.fistipi')
-										.degerAta('A', 'har.hba')
-										.add(`har.masraf > 0`)
-								])
-						])
+							.fis2BankaHesapBagla()
+	                    wh.fisSilindiEkle().add('har.masraf > 0')
+						wh.inDizi(['SH', 'SE', 'SS', 'BH', 'BE', 'BS', 'TP'], 'fis.fistipi')
 	                })
 					.hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
 	                    $.extend(hv, {
@@ -276,11 +269,14 @@ class HizmetHareketci extends Hareketci {
 							tarih: 'coalesce(har.belgetarih, fis.tarih)', ba: `'B'`, bedel: 'har.masraf',
 							fisnox: '(case when har.belgeno > 0 then har.belgenox else fis.fisnox end)',
 							isladi: (
-								`(case when fis.fistipi = 'BH' then 'Kendimize Havale' when fis.fistipi = 'BE' then 'Kendimize EFT'` +
-								` when fis.fistipi = 'BS' then 'Kendimize Swift'` +
-								` when (fis.fistipi = 'SH' or (fis.fistipi = 'TP' and har.hisl = 'AHAV')) then 'Satıcıya Havale'` +
-								` when (fis.fistipi = 'SE' or (fis.fistipi = 'TP' and har.hisl = 'AEFT')) then 'Satıcıya EFT'` +
-								` when (fis.fistipi = 'SS' or (fis.fistipi = 'TP' and har.hisl = 'ASWF')) then 'Satıcıya Swift' else '' end)`
+								`(case ` + 
+									` when fis.fistipi = 'BH' then 'Kendimize Havale' when fis.fistipi = 'BE' then 'Kendimize EFT'` +
+									` when fis.fistipi = 'BS' then 'Kendimize Swift'` +
+									` when (fis.fistipi = 'SH' or (fis.fistipi = 'TP' and har.hisl = 'AHAV')) then 'Satıcıya Havale'` +
+									` when (fis.fistipi = 'SE' or (fis.fistipi = 'TP' and har.hisl = 'AEFT')) then 'Satıcıya EFT'` +
+									` when (fis.fistipi = 'SS' or (fis.fistipi = 'TP' and har.hisl = 'ASWF')) then 'Satıcıya Swift' ` +
+									` when (fis.fistipi = 'TP' and har.hisl = 'BSWF') then 'Müşteriden Swift' ` +
+								` else '' end)`
 							),
 							althesapkod: 'har.cariitn', takipno: 'har.takipno', mustkod: 'har.must',
 							refkod: 'fis.banhesapkod', refadi: 'bhes.aciklama',
@@ -289,13 +285,14 @@ class HizmetHareketci extends Hareketci {
 	                }),
 				new Hareketci_UniBilgi()
 					.sentDuzenleIslemi(({ sent }) => {
+						let {where: wh} = sent
 						sent.fisHareket('csfis', 'csdigerhar')
 							.x2HizmetBagla({ kodClause: 'har.masrafhizkod' })
 							.leftJoin('fis', 'banbizhesap bhes', [`fis.fistipi = 'KR'`, 'fis.banhesapkod = bhes.kod'])
 							.leftJoin('fis', 'csportfoy prt', [`fis.fistipi = 'EK'`, 'fis.portfkod = prt.kod'])
 							.leftJoin('fis', 'carmst ciran', [`fis.fistipi = '3K'`, 'fis.fisciranta = ciran.must']);
-	                    let {where: wh} = sent; wh.fisSilindiEkle();
-						wh.inDizi(['KR', 'EK', '3K'], 'fis.fistipi').add(`har.masraf > 0`)
+	                    wh.fisSilindiEkle().add('har.masraf > 0')
+						wh.inDizi(['KR', 'EK', '3K'], 'fis.fistipi')
 	                })
 					.hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
 	                    $.extend(hv, {
@@ -407,7 +404,7 @@ class HizmetHareketci extends Hareketci {
 				/* 3) Fatura Dip Hizmetleri */
 				new Hareketci_UniBilgi()
 					.sentDuzenleIslemi(({ sent }) => {
-						let {fatura, giderPusula, perakende} = uygunluk;
+						let {fatura, giderPusula, perakende} = uygunluk
 						let pifTipleri = [
 							(fatura ? 'F' : null),
 							(giderPusula || perakende ? 'P' : null)

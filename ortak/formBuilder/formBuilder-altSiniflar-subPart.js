@@ -1094,24 +1094,27 @@ class FBuilder_IslemTuslari extends FBuilder_DivOrtak {
 	setEkSagButonlar(..._values) { let values = _values?.flat(); this.ekSagButonlar = values; return this }
 	setUserData(value) { this.userData = value; return this }
 }
+
 class FBuilder_AccordionPart extends FBuilder_DivOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-    constructor({ panels, coklu, coklumu, defaultCollapsed, events, userData, ...e } = {}) {
+    constructor({ panels, coklu, coklumu, fullScreen, fullScreenFlag, defaultCollapsed, events, userData, ...e } = {}) {
         super(e)
-		panels ??= []; coklu ??= coklumu
-		$.extend(this, { panels, coklu, defaultCollapsed, events, userData })
+		panels ??= []
+		coklu ??= coklumu
+		fullScreen ??= fullScreen
+		$.extend(this, { panels, coklu, fullScreen, defaultCollapsed, events, userData })
 		this.etiketGosterim_yok()
     }
 	afterBuild(e) {
 		let {input} = this, part
         if (input?.length) {
 			let sender = this, builder = this, layout = input
-			let {rootPart: parentPart, panels, coklumu: coklu, isDefaultCollapsed: defaultCollapsed, events, userData} = this
+			let {rootPart: parentPart, panels, coklumu: coklu, fullScreenFlag: fullScreen, isDefaultCollapsed: defaultCollapsed, events, userData} = this
             // AccordionPart kendi layout’unu input olarak kullanacak
             input.addClass('full-wh')
             let _e = {
                 ...e,
-                args: { sender, parentPart, builder, layout, panels, coklu, defaultCollapsed, events, userData }
+                args: { sender, parentPart, builder, layout, panels, coklu, fullScreen, defaultCollapsed, events, userData }
 			}
             this.widgetArgsDuzenle?.call(this, _e)
             part = this.part = new AccordionPart(_e.args)
@@ -1134,10 +1137,12 @@ class FBuilder_AccordionPart extends FBuilder_DivOrtak {
         return this
     }
     // DSL setters
-    coklu(value = true) { this.coklumu = !!value; return this }
-    tekli(value = true) { this.coklumu = !value; return this }
-    defaultCollapsed(value = true) { this.isDefaultCollapsed = !!value; return this }
-    defaultExpanded(value) { this.isDefaultCollapsed = !value; return this }
+    coklu() { this.coklumu = true; return this }
+    tekli() { this.coklumu = false; return this }
+	fullScreen() { this.fullScreenFlag = true; return this }
+    normal(value) { this.fullScreenFlag = false; return this }
+    defaultCollapsed() { this.isDefaultCollapsed = true; return this }
+    defaultExpanded() { this.isDefaultCollapsed = false; return this }
     setEvents(value) { this.events = value; return this }
     setUserData(value) { this.userData = value; return this }
 	on(name, handler) { (this.getEvents()[name] ??= []).push(handler); this.part?.on(name, handler); return this }
@@ -1151,6 +1156,7 @@ class FBuilder_AccordionPart extends FBuilder_DivOrtak {
     setEvents(v) { this.events = v; this.part?.setEvents(v); return this }
 	getEvents() { return this.events ??= {} }
 }
+
 class FBuilder_SimpleComboBox extends FBuilder_TextInput {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) {

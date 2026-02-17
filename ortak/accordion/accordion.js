@@ -43,15 +43,16 @@ class AccordionPart extends Part {
 	get activePanelId() { return this.activePanel?.id }
 	get hasActivePanel() { return !!this.activePanel }
 
-	constructor({ defaultCollapsed, coklu, coklumu, panels, events, userData } = {}) {
+	constructor({ defaultCollapsed, coklu, coklumu, fullScreen, fullScreenFlag, panels, events, userData } = {}) {
 		super(...arguments)
 		defaultCollapsed ??= true
 		coklu ??= coklumu ?? false
+		fullScreen ??= fullScreenFlag ?? false
 		events ??= {}
 		this.panels = []
 		if (panels)
 			this.addAll(...panels)
-		$.extend(this, { isDefaultCollapsed: defaultCollapsed, coklumu: coklu, panels, events, userData })
+		$.extend(this, { isDefaultCollapsed: defaultCollapsed, coklumu: coklu, fullScreenFlag: fullScreen, panels, events, userData })
 	}
 	runDevam(e = {}) {
 		super.runDevam(e)
@@ -82,11 +83,14 @@ class AccordionPart extends Part {
 		let {layout, panels, _lastPanelCount} = this
 		if (!layout?.length)
 			return this
+		let {defaultCollapsed, fullScreenFlag: fullScreen} = this
+		layout[fullScreen ? 'addClass' : 'removeClass']('fullScreen')
 		if (_lastPanelCount > panels.length) {
 			layout.find('.accordion.item').remove()
-			panels.forEach(_ => _._rendered = false)
+			panels.forEach(_ =>
+				_._rendered = false)
 		}
-		let {id2Elm, defaultCollapsed} = this
+		let {id2Elm} = this
 		for (let item of panels) {
 			let id = item.id ||= newGUID()
 			let container = id2Elm[id], hasElm = container?.length
@@ -185,6 +189,8 @@ class AccordionPart extends Part {
 				setTimeout(() => {
 					let safeZone = 20
 					let {length: N} = layout.children('.accordion.item')
+					if (fullScreen && N)
+						N = 1
 					let H = layout.height()
 					let headerH = parseInt(layout.css('--acc-header-height'))                   // getComputedStyle(layout[0]).getPropertyValue('--acc-header-height')
 					let itemPadY = parseInt(layout.css('--item-pad-y'))                         // getComputedStyle(layout[0]).getPropertyValue('--item-pad-y')
@@ -316,7 +322,7 @@ class AccordionPart extends Part {
 		if (!item)
 			return this.add(item)
 		let ind = (typeof idOrIndex == 'string' ? panels.findIndex(_ => _.id == idOrIndex) : idOrIndex) ?? -1
-		panels[i] = newItem
+		panels[ind] = newItem
 		id2Panel[item.id] = newItem
 		this.signalChange({ type: 'set', oldItem: item, item: newItem })
 		return this
@@ -401,11 +407,13 @@ class AccordionPart extends Part {
 			switch (name) {
 				case 'stateChange': {
 					let {panels} = this, {item} = args ?? {}
-					if (item && !this.coklumu) {
-						// çoklu değilse, diğer paneller collapsed duruma geçmesi için render() öncesi işaretlenir
-						for (let _ of panels) {
-							if (_ != item)
-								_.collapsed = true
+					if (item) {
+						if (!this.coklumu) {
+							// çoklu değilse, diğer paneller collapsed duruma geçmesi için render() öncesi işaretlenir
+							for (let _ of panels) {
+								if (_ != item)
+									_.collapsed = true
+							}
 						}
 					}
 					if (this._initialized && !this._updating)
@@ -458,6 +466,8 @@ class AccordionPart extends Part {
 	}
 	coklu() { this.coklumu = true; return this }
 	tekli() { this.coklumu = false; return this }
+	fullScreen() { this.fullScreenFlag = true; return this }
+	normal() { this.fullScreenFlag = false; return this }
 	defaultCollapsed() { this.isDefaultCollapsed = true; return this }
 	defaultExpanded() { this.isDefaultCollapsed = false; return this }
 	setPanels(...panels) {
