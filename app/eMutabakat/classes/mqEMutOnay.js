@@ -13,7 +13,7 @@ class MQEMutOnay extends MQCogul {
 		super.pTanimDuzenle(...arguments)
 		;['id'].forEach(k =>
 			pTanim[k] = new PInstGuid())
-		;['telNo', 'cevaplayan', 'fileName', 'fileData', 'notlar'].forEach(k =>
+		;['receiver', 'cevaplayan', 'fileName', 'fileData', 'notlar'].forEach(k =>
 			pTanim[k] = new PInstStr())
 		;['bakiye'].forEach(k =>
 			pTanim[k] = new PInstNum())
@@ -46,7 +46,11 @@ class MQEMutOnay extends MQCogul {
 			// throw { isError: true, rc: 'userClose' }
 		}
 		let {wsResult} = this
-		extend(this, wsResult)
+		if (wsResult) {
+			extend(this, wsResult)
+			if (!this.receiver)
+				this.receiver = wsResult.must?.receiver
+		}
 	}
 	async uiGirisSonrasiIslemler({ sender: tanimPart }) {
 		await super.uiGirisSonrasiIslemler(...arguments)
@@ -72,8 +76,17 @@ class MQEMutOnay extends MQCogul {
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e)
 		let { sender: tanimPart, islem, inst, rootBuilder: rfb, tanimFormBuilder: tanimForm, kaForm } = e
-		let { wsResult } = inst
+		let { wsResult } = inst, { onayTipi } = wsResult
 		let uygunmu = wsResult && !wsResult.cevapTS
+		let receiverTipAdi
+		if (onayTipi) {
+			onayTipi = onayTipi.toLowerCase()
+			let araText
+			switch (onayTipi) {
+				case 'sms': receiverTipAdi = 'Tel No'; break
+				case 'email': receiverTipAdi = 'e-Mail'; break
+			}
+		}
 		rfb.addStyle(...[
 			`$elementCSS .header { padding: 10px 0 }
 			 $elementCSS .islemTuslari { --button-height: var(--full); height: 60px !important }
@@ -100,14 +113,14 @@ class MQEMutOnay extends MQCogul {
 		`])
 		tanimForm.addStyle(...[
 			`$elementCSS {
-				width: 850px !important; height: 600px !important;
+				width: 850px !important; height: 700px !important;
 				max-width: calc(var(--full) - 80px) !important;
 				max-height: calc(var(--full) - 80px) !important;
 				margin: 10px auto !important; padding: 30px !important;
 				border-radius: 15px !important; box-shadow: 0 0 13px 0px darkcyan !important;
 				overflow-x: hidden !important; overflow-y: auto !important
 			}
-			$elementCSS > div { margin-bottom: 20px !important }
+			$elementCSS > div { margin-bottom: 10px !important }
 			@media (max-width: 800px) {
 				$elementCSS { width: 500px !important }
 			}
@@ -190,6 +203,8 @@ class MQEMutOnay extends MQCogul {
 					setTimeout(() =>
 						input.focus(), 200)
 				})
+			if (onayTipi)
+				tanimForm.addTextInput('receiver', receiverTipAdi)
 			tanimForm.addTextInput('notlar', 'Notlar')
 			tanimForm.addDiv('_dosyaAdi', 'Dosya Eki')
 				.onBuildEk(({ builder: { input: parent } }) => {
@@ -235,7 +250,7 @@ class MQEMutOnay extends MQCogul {
 	}
 	async onayRedIstendi({ sender: tanimPart, state }) {
 		let islemAdi = 'Onay/Red'
-		let { wsResult, sms, zamanDamgasi, telNo, id, cevaplayan, notlar, fileName, fileData } = this
+		let { wsResult, onayTipi, zamanDamgasi, id, receiver, cevaplayan, notlar, fileName, fileData } = this
 		if (!(id && wsResult)) {
 			hConfirm('Mutabakat bilgileri belirlenemedi', islemAdi)
 			return
@@ -250,32 +265,49 @@ class MQEMutOnay extends MQCogul {
 			return
 		}
 
-		let onayKodu = ''
-		if (sms) {
-			onayKodu = await jqxPrompt({
-				etiket: `Lütfen <b class=royalblue>${telNo}</b> nolu telefona gelen SMS Onay Kodunu giriniz`,
-				maxLength: 6,
-				// placeHolder: '______',
-				validate: ({ value: v }) => {
-					if (asInteger(v) >= 100000 && asInteger(v) <= 999999)
-						return true
-					return hConfirm('Onay Kodu 6 haneli bir sayı olmalıdır')
-				},
-				buildEk: ({ builder: { id2Builder: { value: fbd } } }) => {
-					fbd.addStyle(
-						`$elementCSS > input {
-							font-size: 170%; font-weight: bold; color: forestgreen; width: 250px !important;
-							margin: 8px auto !important; padding: 3px 15px;
-							text-align: center; letter-spacing: 13px
-					}`)
-				}
-			})
-			onayKodu = onayKodu?.trim()
+		let onayKodu = '', receiverTipAdi
+		if (onayTipi) {
+			onayTipi = onayTipi.toLowerCase()
+			let araText
+			switch (onayTipi) {
+				case 'sms':
+					araText = `nolu telefona gelen SMS`
+					break
+				case 'email':
+					araText = `e-Mail adresine gelen`
+					break
+			}
+			showProgress()
+			try {
+				let oRes = await app.wsMutabakatOnayKoduGonder({ id, receiver })
+				onayKodu = await jqxPrompt({
+					etiket: `Lütfen <b class=forestgreem>${receiver}</b> ${araText} Onay Kodunu giriniz`,
+					maxLength: 6,
+					// placeHolder: '______',
+					validate: ({ value: v }) => {
+						if (asInteger(v) >= 100000 && asInteger(v) <= 999999)
+							return true
+						return hConfirm('Onay Kodu 6 haneli bir sayı olmalıdır')
+					},
+					buildEk: ({ builder: { id2Builder: { value: fbd } } }) => {
+						fbd.addStyle(
+							`$elementCSS > input {
+								font-size: 170%; font-weight: bold; color: forestgreen; width: 250px !important;
+								margin: 8px auto !important; padding: 3px 15px;
+								text-align: center; letter-spacing: 13px
+						}`)
+					}
+				})
+				onayKodu = onayKodu?.trim()
+			}
+			finally { hideProgress() }
 			if (!onayKodu)
 				return
 		}
 
-		let data = { id, state, onayKodu, cevaplayan, notlar, fileName, fileData }
+		receiver ??= ''
+		let data = { id, state, onayKodu, receiver, cevaplayan, notlar, fileName, fileData }
+		showProgress()
 		try {
 			let { result } = await app.wsMutabakatCevapKaydet({ data }) ?? {}
 			if (result === false)
@@ -286,6 +318,7 @@ class MQEMutOnay extends MQCogul {
 			//throw ex
 			return
 		}
+		finally { hideProgress() }
 
 		await this.class.tanimla()
 		tanimPart.close()
@@ -325,7 +358,7 @@ class MQEMutOnay extends MQCogul {
 	getHeaderHTML({ sender: tanimPart }) {
 		let {wsResult} = this
 		wsResult ??= {}
-		let {cevapTS, state, isyeri = {}, must = {}, bakiye, dvKod, zamanDamgasi, logoData} = wsResult
+		let {cevapTS, onayTipi, state, isyeri = {}, must = {}, bakiye, dvKod, zamanDamgasi, logoData} = wsResult
 		dvKod ||= 'TL'
 		bakiye = bakiye ? roundToBedelFra(bakiye) : null
 
@@ -337,7 +370,9 @@ class MQEMutOnay extends MQCogul {
 				`<p> <span class="warn-etiket">⚠ Uyarı</span>:`,
 					(cevaplandimi
 						? `<span class="warn">Bu mutabakat ${dateTimeAsKisaString(cevapTS)} tarihinde ${stateHTML}</span>`
-						: `<span class="warn">Onay veya Red butonuna tıklandığında Zaman Damgası için SMS Onayı alınacaktır</span>`
+						: onayTipi
+							 ? `<span class="warn">Onay veya Red butonuna tıklandığında Zaman Damgası için <b class=royalblue>${onayTipi.toLocaleUpperCase()} Onayı</b> alınacaktır</span>`
+							 : null
 					),
 				`</p>`
 			].filter(Boolean).join('\n')
@@ -372,7 +407,7 @@ class MQEMutOnay extends MQCogul {
 				`<div class="logo" style="${logoCSS}" />`,
 				// `<div class="logo" style="background-image: url(../../images/logo_217x217.png)" />`,
 			`</div>`
-		].join('\n'))
+		].filter(Boolean).join('\n'))
 	}
 }
 
