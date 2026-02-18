@@ -21,7 +21,7 @@ class MQDetayli extends MQSayacli {
 	static get detayTableAlias() { return (this.detaySinif || MQDetay).tableAlias }
 	static detaySinifFor(e) { e = e || {}; return e.detaySinif || (this.detaySiniflar || [])[0] }
 	static get sabitBilgiRaporcuSinif() { return FisRapor } static get logAnaTip() { return 'F' }
-	static get gridHeight_bosluk() { return 50 }
+	static get gridHeight_bosluk() { return 90 }
 	constructor(e) {
 		e = e || {}; super(e); let detaylar = this.detaylar = e.detaylar || [];
 		let hasNull = false; for (let [i, det] of entries(detaylar)) {

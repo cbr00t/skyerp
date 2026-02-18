@@ -17,8 +17,10 @@ class EMutabakatApp extends App {
 	async afterRun(e) {
 		await super.afterRun(e)
 		await this.anaMenuOlustur(e)
+		/*if (!config.dev)
+			this.divMenu?.hide()*/
 		if (!config.dev)
-			this.divMenu?.hide()
+			setTimeout(() => this.enterKioskMode(), 100)
 	}
 	paramsDuzenle({ params }) { 
 		extend(params, {

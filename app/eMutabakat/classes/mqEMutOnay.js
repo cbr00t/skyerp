@@ -29,9 +29,9 @@ class MQEMutOnay extends MQCogul {
 		let { sender: tanimPart } = e, islem = 'izle'
 		let { class: { sinifAdi: title } } = this
 		extend(e, { title, islem })
-		setTimeout(() => app.enterKioskMode(), 100)
+		/*setTimeout(() => app.enterKioskMode(), 100)
 		tanimPart.kapaninca(() =>
-			app.exitKioskMode())
+			app.exitKioskMode())*/
 		try {
 			if (!await this.getWSResult(e))
 				throw null
@@ -45,27 +45,36 @@ class MQEMutOnay extends MQCogul {
 			return
 			// throw { isError: true, rc: 'userClose' }
 		}
+		let {wsResult} = this
+		extend(this, wsResult)
 	}
 	async uiGirisSonrasiIslemler({ sender: tanimPart }) {
 		await super.uiGirisSonrasiIslemler(...arguments)
 	}
 	static tanimPart_islemTuslariDuzenle(e) {
 		let { sender: tanimPart, sender: { inst }, part, liste } = e
+		let { wsResult } = inst
 		super.tanimPart_islemTuslariArgsDuzenle(e)
-		let items = [
-			// { id: 'tamam', handler: _e => inst.tamamIstendi({ ..._e, ...e }) }
-			{ id: 'onay', text: 'ONAY', handler: _e => inst.onayRedIstendi({ ..._e, ...e, state: true }) },
-			{ id: 'red', text: 'RED', handler: _e => inst.onayRedIstendi({ ..._e, ...e, state: false }) }
-		].filter(Boolean)
+		let items = []
+		let onayRedIcinUygunmu = !(empty(wsResult) || wsResult.cevapTS)
+		if (onayRedIcinUygunmu) {
+			items.push(...[
+				{ id: 'onay', text: 'ONAY', handler: _e => inst.onayRedIstendi({ ..._e, ...e, state: true }) },
+				{ id: 'red', text: 'RED', handler: _e => inst.onayRedIstendi({ ..._e, ...e, state: false }) }
+			])
+		}
 		if (!empty(items)) {
 			liste.unshift(...items)
-			part.ekSagButonIdSet = extend(part.ekSagButonIdSet ?? {}, asSet(items.map(_ => _.id)))
+			let sagIdSet = part.ekSagButonIdSet ??= {}
+			extend(sagIdSet, asSet(items.map(_ => _.id)))
 		}
 	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e)
-		let {sender: tanimPart, islem, inst, rootBuilder: rfb, tanimFormBuilder: tanimForm, kaForm} = e
-		rfb.addStyle(
+		let { sender: tanimPart, islem, inst, rootBuilder: rfb, tanimFormBuilder: tanimForm, kaForm } = e
+		let { wsResult } = inst
+		let uygunmu = wsResult && !wsResult.cevapTS
+		rfb.addStyle(...[
 			`$elementCSS .header { padding: 10px 0 }
 			 $elementCSS .islemTuslari { --button-height: var(--full); height: 60px !important }
 			 $elementCSS .islemTuslari .sag { width: 400px !important }
@@ -77,7 +86,10 @@ class MQEMutOnay extends MQCogul {
 			 $elementCSS .islemTuslari #red.jqx-fill-state-hover { background-color: darkred !important }
 			 $elementCSS .islemTuslari #red.jqx-fill-state-pressed { background-color: red !important }
 			 $elementCSS .islemTuslari #red { margin-right: 50px !important }
-			 $elementCSS .islemTuslari #vazgec { filter: invert(1) hue-rotate(180deg) }
+			 $elementCSS .islemTuslari #vazgec {
+				 filter: invert(1) hue-rotate(180deg)
+				 ${ config.dev ? '' : `;display: none !important` }
+			 }
 			 $elementCSS .islemTuslari #vazgec.jqx-fill-state-normal { background-color: transparent !important }
 			 @media (max-width: 800px) {
 				 $elementCSS .header { padding: 5px 0 }
@@ -85,8 +97,8 @@ class MQEMutOnay extends MQCogul {
 				 $elementCSS .islemTuslari #onay, $elementCSS .islemTuslari #red { color: ghostwhite; width: 100px !important }
 				 $elementCSS .islemTuslari #red { margin-right: 30px !important }
 			 }
-		`)
-		tanimForm.addStyle(
+		`])
+		tanimForm.addStyle(...[
 			`$elementCSS {
 				width: 850px !important; height: 600px !important;
 				max-width: calc(var(--full) - 80px) !important;
@@ -102,7 +114,16 @@ class MQEMutOnay extends MQCogul {
 			@media (max-height: 850px) {
 				$elementCSS { margin: -35px auto !important }
 			}
-		`)
+		`])
+		if (!uygunmu) {
+			rfb.onAfterRun(({ builder: { layout } }) => {
+				setTimeout(() => {
+					let inputs = layout.find('input')
+					inputs.attr('readonly', '')
+					inputs.filter('[type = file]').attr('disabled', '')
+				}, 100)
+			})
+		}
 		/*
 			;{
 			//let fbd_islemTuslari = tanimPart.fbd_islemTuslari = rfb.addForm('islemTuslari')
@@ -131,7 +152,7 @@ class MQEMutOnay extends MQCogul {
 				.setLayout(_e => inst.getHeaderHTML({ ..._e, ..._e }))
 				.addCSS('relative')
 				.addStyle_fullWH(null, 'auto')
-				.addStyle(
+				.addStyle(...[
 					`$elementCSS { font-size: 100%; padding-bottom: 0 }
 					 $elementCSS .etiket { color: #555; font-size: 110%; margin-right: 10px }
 					 $elementCSS .veri { font-weight: bold; font-size: 120%; color: royalblue }
@@ -161,12 +182,13 @@ class MQEMutOnay extends MQCogul {
 							height: 80px;
 							top: 140px; right: -75px
 						}
-					}
-				`)
+					}`
+				])
 			tanimForm.addTextInput('cevaplayan', 'Cevaplayan')
 				.onAfterRun(({ builder: { input } }) => {
 					tanimPart.txtCevaplayan = input
-					setTimeout(() => input.focus(), 200)
+					setTimeout(() =>
+						input.focus(), 200)
 				})
 			tanimForm.addTextInput('notlar', 'Notlar')
 			tanimForm.addDiv('_dosyaAdi', 'Dosya Eki')
@@ -200,28 +222,6 @@ class MQEMutOnay extends MQCogul {
 						inst.dosyaSecildi({ ...e, event, file: event.currentTarget.files?.[0] }))
 				})
 		}
-		/*;{
-			let form = tanimForm.addFormWithParent().yanYana()
-				.addStyle(`$elementCSS { position: fixed !important; top: 10px !important; right: 10px !important; z-index: 10 !important }`)
-			form.addButton('onay', 'ONAY')
-				.addStyle_wh(150, 60)
-				.addStyle(
-					`$elementCSS > button { color: ghostwhite }
-					 $elementCSS > button.jqx-fill-state-normal { background-color: forestgreen !important }
-					 $elementCSS > button.jqx-fill-state-hover { background-color: darkgreen !important }
-					 $elementCSS > button.jqx-fill-state-pressed { background-color: green !important }
-				`)
-				.onClick(_e => inst.onayRedIstendi({ ..._e, ...e, state: true }))
-			form.addButton('red', 'RED')
-				.addStyle_wh(150, 60)
-				.addStyle(
-					`$elementCSS > button { color: ghostwhite }
-					 $elementCSS > button.jqx-fill-state-normal { background-color: firebrick !important }
-					 $elementCSS > button.jqx-fill-state-hover { background-color: darkred !important }
-					 $elementCSS > button.jqx-fill-state-pressed { background-color: red !important }
-				`)
-				.onClick(_e => inst.onayRedIstendi({ ..._e, ...e, state: false }))
-		}*/
 	}
 	async dosyaSecildi({ sender: tanimPart, file }) {
 		if (!file) {
@@ -235,7 +235,7 @@ class MQEMutOnay extends MQCogul {
 	}
 	async onayRedIstendi({ sender: tanimPart, state }) {
 		let islemAdi = 'Onay/Red'
-		let { wsResult, sms, zamanDamgasi, telNo, id, cevaplayan } = this
+		let { wsResult, sms, zamanDamgasi, telNo, id, cevaplayan, notlar, fileName, fileData } = this
 		if (!(id && wsResult)) {
 			hConfirm('Mutabakat bilgileri belirlenemedi', islemAdi)
 			return
@@ -253,7 +253,7 @@ class MQEMutOnay extends MQCogul {
 		let onayKodu = ''
 		if (sms) {
 			onayKodu = await jqxPrompt({
-				etiket: `Lütfen ${'abc'} nolu telefona gelen SMS Onay Kodunu giriniz`,
+				etiket: `Lütfen <b class=royalblue>${telNo}</b> nolu telefona gelen SMS Onay Kodunu giriniz`,
 				maxLength: 6,
 				// placeHolder: '______',
 				validate: ({ value: v }) => {
@@ -269,16 +269,15 @@ class MQEMutOnay extends MQCogul {
 							text-align: center; letter-spacing: 13px
 					}`)
 				}
-			})?.trim()
-			if (!smsOnayKodu)
+			})
+			onayKodu = onayKodu?.trim()
+			if (!onayKodu)
 				return
 		}
 
-		let { notlar, fileName, fileData } = this
-		let data = { id, state, onayKodu, cevaplayan, fileName, fileData }
-		
+		let data = { id, state, onayKodu, cevaplayan, notlar, fileName, fileData }
 		try {
-			let { result } = await app.wsMutabakatCevapKaydet({ data })
+			let { result } = await app.wsMutabakatCevapKaydet({ data }) ?? {}
 			if (result === false)
 				throw { isError: true, errorText: 'e-Mutabakat Cevabı kaydedilemedi' }
 		}
@@ -287,8 +286,10 @@ class MQEMutOnay extends MQCogul {
 			//throw ex
 			return
 		}
-		
-		eConfirm('Mutabakat Cevabı sisteme gönderilmiştir')
+
+		await this.class.tanimla()
+		tanimPart.close()
+		setTimeout(() => eConfirm('Mutabakat Cevabı sisteme gönderilmiştir'), 500)
 	}
 	async getWSResult({ sender: tanimPart }) {
 		let {id} = this
@@ -302,20 +303,20 @@ class MQEMutOnay extends MQCogul {
 				v = wsResult[k] = asDate(v)
 		})
 		let {tarih, cevapTS, state, logoData} = wsResult
-		if (cevapTS) {
+		/*if (cevapTS) {
 			let cevapTSHTML = `<b class=orangered>${dateTimeAsKisaString(asDate(cevapTS))}</b>`
 			let stateHTML = (
 				state ? `<span class=forestgreen>ONAYLANMIŞTIR</span>` :
 				`<span class=firebrick>RED EDİLMİŞTİR</span>`
 			)
 			throw { isError: true, errorText: `Bu mutabakat <b>${cevapTSHTML} tarihinde ${stateHTML}` }
-		}
+		}*/
 		if (isBuffer(logoData))
 			logoData = wsResult.logoData = Base64.fromUint8Array(logoData)
 		/*let wsResult = this.wsResult = {
 			id: '12345',
 			isyeri: { unvan: 'SKYLOG YAZILIM', vkn: '111' },
-			must: { kod: 'MUS001', unvan: 'POLEN YAZILIM bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla ', vkn: '12345678901' },
+			must: { kod: 'MUS001', unvan: 'POLEN YAZILIM', vkn: '12345678901' },
 			bakiye: 10_500.55, dvKod: '',
 			telNo: '123', zamanDamgasi: true
 		}*/
@@ -324,19 +325,24 @@ class MQEMutOnay extends MQCogul {
 	getHeaderHTML({ sender: tanimPart }) {
 		let {wsResult} = this
 		wsResult ??= {}
-		let {isyeri = {}, must = {}, bakiye, dvKod, zamanDamgasi, logoData} = wsResult
+		let {cevapTS, state, isyeri = {}, must = {}, bakiye, dvKod, zamanDamgasi, logoData} = wsResult
 		dvKod ||= 'TL'
 		bakiye = bakiye ? roundToBedelFra(bakiye) : null
-		let tsUyariHTML = zamanDamgasi
+
+		let cevaplandimi = !!cevapTS
+		let stateHTML = !cevaplandimi ? '' :
+			( state ? `<span class=forestgreen>ONAYLANMIŞTIR</span>` : `<span class=firebrick>RED EDİLMİŞTİR</span>` )
+		let tsUyariHTML = zamanDamgasi || cevaplandimi
 			? [
-				`<p>`,
-					`⚠ <span class="warn-etiket">Uyarı</span>: <span class="warn">Onay veya Red butonuna tıklandığında Zaman Damgası için SMS Onayı alınacaktır</span>`,
+				`<p> <span class="warn-etiket">⚠ Uyarı</span>:`,
+					(cevaplandimi
+						? `<span class="warn">Bu mutabakat ${dateTimeAsKisaString(cevapTS)} tarihinde ${stateHTML}</span>`
+						: `<span class="warn">Onay veya Red butonuna tıklandığında Zaman Damgası için SMS Onayı alınacaktır</span>`
+					),
 				`</p>`
 			].filter(Boolean).join('\n')
 			: ''
-		let logoCSS = logoData
-			? `background-image: url(data:image/png;base64,${logoData})`
-			: ''
+		let logoCSS = logoData ? `background-image: url(data:image/png;base64,${logoData})` : ''
 
 		return $([
 			`<div>`,
@@ -359,7 +365,7 @@ class MQEMutOnay extends MQCogul {
 					`</div>`,
 				`</div>`,
 				`<div class="footer">`,
-					`<span class="info">Onay veya Red vermeniz rica olunur.</span>`,
+					( cevaplandimi ? '' : `<span class="info">Onay veya Red vermeniz rica olunur.</span>` ),
 				`</div>`,
 				tsUyariHTML,
 				`<hr>`,
@@ -370,4 +376,6 @@ class MQEMutOnay extends MQCogul {
 	}
 }
 
-/* 2aeb7ee5-b0fe-439d-a6b6-6443f2400e8a */
+
+// 2aeb7ee5-b0fe-439d-a6b6-6443f2400e8a
+

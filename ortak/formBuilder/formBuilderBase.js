@@ -131,7 +131,8 @@ class FormBuilderBase extends CObject {
 			if (builder.autoInitLayoutFlag == null) { builder.autoInitLayoutFlag = autoInitLayoutFlag }
 			builder.runInternal(e)
 		}
-		this.afterBuildDevam(e)
+		if (!this._afterRun_calistimi)
+			this.afterBuildDevam(e)
 	}
 	preInit(e) { }
 	beforeBuild(e = {}) {

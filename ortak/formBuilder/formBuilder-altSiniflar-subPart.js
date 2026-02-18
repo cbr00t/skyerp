@@ -1009,7 +1009,9 @@ class FBuilder_Grid extends FBuilder_DivOrtak {
 		}
 	}
 	afterBuildDevam(e) {
-		let {part, styles, editablemi} = this; if (part) { part.run() }
+		let {part, styles, editablemi} = this
+		if (part)
+			part.run()
 		if (part && !part.isDestroyed) {
 			let {grid, gridWidget} = part
 			if (grid?.length) {
