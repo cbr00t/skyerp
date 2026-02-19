@@ -83,11 +83,11 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 			.addGrupBasit_numerik('ONCELIK', 'Öncelik', 'oncelik', null, null, null, false)
 			.addGrupBasit_numerik('GRUPONCELIK', 'Grup Öncelik', 'gruponcelik', null, null, null, false)
 			.addGrupBasit('GRUP', '', 'grup', null, null, null, false)
-			.addGrupBasit('MST', this.class.mstEtiket, 'mst', null, 550, null, false)
+			.addGrupBasit('MST', this.class.mstEtiket, 'mst', null, 40, null, false)
 		for (let {kod, aciklama} of this.dovizKAListe)
-			result.addToplamBasit_bedel(`BEDEL_${kod}`, `${aciklama} Bedel`, `bedel_${kod}`, null, 110, ({ colDef }) => colDef?.hidden(), false)
-		result.addToplamBasit_bedel('BEDEL', 'TL Bedel', 'bedel', null, 140, null, false)
-		result.addToplamBasit('MIKTAR', 'Miktar', 'miktar', null, 110)
+			result.addToplamBasit_bedel(`BEDEL_${kod}`, `${aciklama} Bedel`, `bedel_${kod}`, null, 18, ({ colDef }) => colDef?.hidden(), false)
+		result.addToplamBasit_bedel('BEDEL', 'TL Bedel', 'bedel', null, 19, null, false)
+		result.addToplamBasit('MIKTAR', 'Miktar', 'miktar', null, 11)
 	}
 	sabitRaporTanimDuzenle({ result }) {
 		super.sabitRaporTanimDuzenle(...arguments)
