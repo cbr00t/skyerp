@@ -46,20 +46,31 @@ class Secimler extends CIO {
 		return _e
 	}
 	readFrom(e) {
-		if (!e) { return false }
-		let {mfSinif} = e; if (typeof mfSinif == 'string') { mfSinif = getFunc.call(this, mfSinif, e) } this.mfSinif = mfSinif;
-		let _whereBlockListe = getFunc(e.whereBlockListe); if (!$.isEmptyObject(_whereBlockListe)) { let whereBlockListe = this.whereBlockListe = []; whereBlockListe.push(..._whereBlockListe) }
-		let _grupListe = e.grupListe; if (!$.isEmptyObject(_grupListe)) { this.grupTopluEkle(_grupListe) }
-		let {liste} = this, _liste = e.liste; if ($.isEmptyObject(_liste)) { this.initProps() }
+		if (!e)
+			return false
+		let {mfSinif} = e
+			mfSinif = isString(mfSinif) ? getFunc.call(this, mfSinif, e) : mfSinif
+		this.mfSinif = mfSinif
+		let _whereBlockListe = getFunc(e.whereBlockListe)
+		if (!empty(_whereBlockListe)) { let whereBlockListe = this.whereBlockListe = []; whereBlockListe.push(..._whereBlockListe) }
+		let _grupListe = e.grupListe; if (!empty(_grupListe)) { this.grupTopluEkle(_grupListe) }
+		let {liste} = this, _liste = e.liste
+		if (empty(_liste))
+			this.initProps()
 		else {
-			this.beginUpdate();
+			this.beginUpdate()
 			for (let key in _liste) {
-				let secim = liste[key]; let item = _liste[key]; if (!item) { continue } let isDef = $.isPlainObject(item);
+				let secim = liste[key], item = _liste[key]
+				if (!item)
+					continue 
+				let isDef = $.isPlainObject(item)
 				if (secim) { if (isDef) { secim.readFrom(item) } else { liste[key] = secim = item } }
 				else { secim = isDef ? Secim.from(item) : item; if (secim) { this.secimEkle({ key, secim, noInit: true }) } }
 			}
 			this.endUpdate()
 		}
+		try { this.readFromObject(qs.secimler) }
+		catch (ex) { cerr(ex) }
 		return true
 	}
 	writeTo(e) {
@@ -74,9 +85,41 @@ class Secimler extends CIO {
 		}
 		return true
 	}
+	readFromObject(e, _disabled) {
+		let data = isObject(e) ? e.data : e
+		let disabled = isObject(e) ? e.disabled : _disabled
+		let key2Sec = data
+		if (isString(key2Sec)) {
+			let str = Base64.isValid(key2Sec) ? Base64.decode(key2Sec) : key2Sec
+			key2Sec = JSON.parse(str)
+		}
+		if (empty(key2Sec))
+			return this
+		let {liste} = this
+		for (let [key, _sec] of entries(key2Sec)) {
+			if (empty(_sec))
+				continue
+			let sec = liste[key]
+			if (!sec)
+				continue
+			let def = key2Sec[key]
+			try {
+				// if (sec is SecimDate && sec is )
+				for (let [k, v] of entries(def)) {
+					if (v !== undefined)
+						sec[k] = sec.getConvertedValue(v)
+				}
+				if (disabled)
+					sec.hidden()
+			}
+			catch (ex) { cerr(ex) }
+		}
+		return this
+	}
 	secimTopluEkle(e) {
 		let liste = e.liste || e, noInitFlag = (e.noInit ?? this._noInit);
-		if (!noInitFlag) { this.beginUpdate() } if (liste) { for (let key in liste) { this.secimEkle({ key, secim: liste[key], noInit: true }) } } if (!noInitFlag) { this.endUpdate() }
+		if (!noInitFlag) { this.beginUpdate() } if (liste) { for (let key in liste) { this.secimEkle({ key, secim: liste[key], noInit: true }) } }
+		if (!noInitFlag) { this.endUpdate() }
 		return this
 	}
 	secimEkle(e, _secim, _noInit) {
@@ -240,9 +283,14 @@ class DonemselSecimler extends Secimler {
 	}
 	get tarihBSVeyaCariDonem() {
 		let {tarihBS} = this; if (tarihBS?.bosDegilmi) { return tarihBS }
-		let donemBS = new CBasiSonu({ basi: today().yilBasi(), sonu: today().yilSonu() });
-		let {cariYil: yil} = app.params?.zorunlu ?? {}; if (yil && yil != today().yil) {
-			for (let key of ['basi', 'sonu']) { let value = donemBS[key]; if (!isInvalidDate(value)) { value.setYil(yil) } }
+		let donemBS = new CBasiSonu({ basi: today().yilBasi(), sonu: today().yilSonu() })
+		let {cariYil: yil} = app.params?.zorunlu ?? {}
+		if (yil && yil != today().yil) {
+			for (let key of ['basi', 'sonu']) {
+				let value = donemBS[key]
+				if (!isInvalidDate(value))
+					value.setYil(yil)
+			}
 		}
 		let {donem, tarihAralik} = this, {tarihAralikmi, basiSonu: bs} = donem?.tekSecim ?? {};
 		if (tarihAralikmi) { bs = new CBasiSonu(tarihAralik) }
@@ -272,14 +320,16 @@ class DonemselSecimler extends Secimler {
 	initHTMLElements_son({ secim2Info }) {
 		super.initHTMLElements_son(...arguments);
 		let part = secim2Info?.donem?.element?.find('.ddList')?.data('part')
+		let {donem: sec_donem, tarihAralik: sec_tarihBS} = secim2Info
+		let {tarihAralikmi} = sec_donem.secim.tekSecim
 		if (part) {
-			{
-				let {tarihAralikmi} = secim2Info.donem.secim.tekSecim
-				secim2Info.tarihAralik.element[tarihAralikmi ? 'removeClass' : 'addClass']('jqx-hidden')
-			}
+			let updateVisible = () =>
+				sec_tarihBS.element[tarihAralikmi ? 'removeClass' : 'addClass']('jqx-hidden')
+			if (!sec_tarihBS.secim.isHidden)
+				updateVisible()
 			part.degisince(e => {
-				let {tarihAralikmi} = secim2Info.donem.secim.tekSecim
-				secim2Info.tarihAralik.element[tarihAralikmi ? 'removeClass' : 'addClass']('jqx-hidden')
+				if (!sec_tarihBS.secim.isHidden)
+					updateVisible()
 			})
 		}
 	}

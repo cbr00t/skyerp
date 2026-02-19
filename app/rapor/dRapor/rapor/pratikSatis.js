@@ -108,35 +108,48 @@ class DRapor_PratikSatis extends DRaporMQ {
 		}
 		acc
 			.add({
-				id: 'genel', title: 'Genel', expanded: true,
+				id: 'ozet', title: 'Özet', expanded: true,
 				content: ({ item, item: { contentLayout: layout } }) =>
-					setTimeout(() => this.acc_initContent_genel({ ...e, item, layout, rfb: getRFB(layout) }), 100),
+					setTimeout(() => this.acc_initContent_ozet({ ...e, item, layout, rfb: getRFB(layout) }), 100),
 				collapsedContent: ({ sender: acc, item, item: { contentLayout: layout } }) => 
-					this.acc_initCollapsedContent_genel({ ...e, item, layout, rfb: getRFB(layout) })
+					this._acc_initCollapsedContent_ortak({ ...e, item, layout, rfb: getRFB(layout) })
 			})
 			.add({
-				id: 'satis', title: 'Ürün Satışı',
+				id: 'tahsilatVeKdv', title: 'Tahsilat ve KDV', expanded: false,
+				content: ({ item, item: { contentLayout: layout } }) =>
+					setTimeout(() => this.acc_initContent_tahsilatVeKdv({ ...e, item, layout, rfb: getRFB(layout) }), 100),
+				collapsedContent: ({ sender: acc, item, item: { contentLayout: layout } }) => 
+					this._acc_initCollapsedContent_ortak({ ...e, item, layout, rfb: getRFB(layout) })
+			})
+			.add({
+				id: 'diger', title: 'Diğer', expanded: false,
+				content: ({ item, item: { contentLayout: layout } }) =>
+					setTimeout(() => this.acc_initContent_diger({ ...e, item, layout, rfb: getRFB(layout) }), 100),
+				collapsedContent: ({ sender: acc, item, item: { contentLayout: layout } }) => 
+					this._acc_initCollapsedContent_ortak({ ...e, item, layout, rfb: getRFB(layout) })
+			})
+			.add({
+				id: 'satis', title: 'Ürün Satışı', expanded: false,
 				content: ({ item, item: { contentLayout: layout } }) =>
 					setTimeout(() => this.acc_initContent_satis({ ...e, item, layout, rfb: getRFB(layout) }), 100),
 				collapsedContent: ({ sender: acc, item, item: { contentLayout: layout } }) => 
-					this.acc_initCollapsedContent_satis({ ...e, item, layout, rfb: getRFB(layout) })
+					this._acc_initCollapsedContent_ortak({ ...e, item, layout, rfb: getRFB(layout) })
 			})
 		acc.onCollapse(_e => this.acc_onCollapse({ ...e, ..._e }))
 		acc.onExpand(_e => this.acc_onExpand({ ...e, ..._e }))
 	}
-	async acc_initContent_genel({ tanimPart, islem, acc, item, layout, rfb }) {
+	async acc_initContent_ozet({ tanimPart, islem, acc, item, layout, rfb }) {
 		// rfb.addStyle_fullWH()
 		let form = rfb.addFormWithParent().yanYana()
-			.addStyle_fullWH()
 			.addStyle(`$elementCSS > div { overflow-y: auto !important }`)
 		
 		// özet
 		;{
 			let altForm = form.addFormWithParent().altAlta()
-				.addStyle_wh(440)
+				.addStyle_wh(450)
 			;{
 				altForm.addGridliGosterici('ozet')
-					.addStyle_fullWH(null, 190)
+					.addStyle_fullWH(null, 197)
 					.rowNumberOlmasin().notAdaptive()
 					.setToplamYapi({ etiket: { belirtec: 'tipText' } })
 					.widgetArgsDuzenleIslemi(({ args }) =>
@@ -200,7 +213,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 			}
 			;{
 				altForm.addGridliGosterici('ozetEk')
-					.addStyle_fullWH(null, 170)
+					.addStyle_fullWH(null, 130)
 					.rowNumberOlmasin().notAdaptive()
 					.widgetArgsDuzenleIslemi(({ args }) =>
 						extend(args, {
@@ -273,10 +286,51 @@ class DRapor_PratikSatis extends DRaporMQ {
 			}
 		}
 
+		// özel aralık
+		;{
+			form.addGridliGosterici('ozel')
+				.addStyle_fullWH(440, 130)
+				.addStyle(`$elementCSS { min-width: 200px !important; max-width: 440px !important }`)
+				.rowNumberOlmasin().notAdaptive()
+				.setToplamYapi({ etiket: { belirtec: 'text' } })
+				.widgetArgsDuzenleIslemi(({ args }) =>
+					extend(args, {
+						rowsHeight: 30, showStatusBar: true, columnsMenu: false, columnsReorder: false,
+						showAggregates: true, showGroupAggregates: true,
+						selectionMode: 'multiplerowsextended'
+					})
+				)
+				.setTabloKolonlari(e => {
+					let cellClassName = (sender, rowIndex, belirtec, value, rec, prefix) => {
+						let result = [belirtec]
+						if (rec._toplam)
+							result.push('_toplam')
+						return result.join(' ')
+					}
+					return [
+						new GridKolon({ belirtec: 'text', text: 'Özel Aralık', genislikCh: 13, filterType: 'checkedlist', cellClassName }),
+						new GridKolon({ belirtec: 'hasilat', text: 'Hasılat (Kdvli)', genislikCh: 20, aggregates: ['sum'], cellClassName }).tipDecimal_bedel(),
+						new GridKolon({ belirtec: 'oran', text: '%', genislikCh: 8, cellClassName }).tipNumerik()
+					]
+				})
+				.setSource(async ({ builder: { layout }}) => {
+					let recs
+					layout[empty(recs) ? 'addClass' : 'removeClass']('jqx-hidden')
+					return recs ?? []
+				})
+		}
+		
+		rfb.run()
+	}
+	async acc_initContent_tahsilatVeKdv({ tanimPart, islem, acc, item, layout, rfb }) {
+		// rfb.addStyle_fullWH()
+		let form = rfb.addFormWithParent().yanYana()
+			.addStyle(`$elementCSS > div { overflow-y: auto !important }`)
+		
 		// tahsilat
 		;{
 			form.addGridliGosterici('tahsilat')
-				.addStyle_fullWH(440, 375)
+				.addStyle_fullWH(450, 200)
 				.rowNumberOlmasin().notAdaptive()
 				.setToplamYapi({ etiket: { belirtec: 'aciklama' } })
 				.widgetArgsDuzenleIslemi(({ args }) =>
@@ -314,44 +368,10 @@ class DRapor_PratikSatis extends DRaporMQ {
 				})
 		}
 
-		// özel aralık
-		;{
-			form.addGridliGosterici('ozel')
-				.addStyle_fullWH(440, 130)
-				.addStyle(`$elementCSS { min-width: 200px !important; max-width: 440px !important }`)
-				.rowNumberOlmasin().notAdaptive()
-				.setToplamYapi({ etiket: { belirtec: 'text' } })
-				.widgetArgsDuzenleIslemi(({ args }) =>
-					extend(args, {
-						rowsHeight: 30, showStatusBar: true, columnsMenu: false, columnsReorder: false,
-						showAggregates: true, showGroupAggregates: true,
-						selectionMode: 'multiplerowsextended'
-					})
-				)
-				.setTabloKolonlari(e => {
-					let cellClassName = (sender, rowIndex, belirtec, value, rec, prefix) => {
-						let result = [belirtec]
-						if (rec._toplam)
-							result.push('_toplam')
-						return result.join(' ')
-					}
-					return [
-						new GridKolon({ belirtec: 'text', text: 'Özel Aralık', genislikCh: 13, filterType: 'checkedlist', cellClassName }),
-						new GridKolon({ belirtec: 'hasilat', text: 'Hasılat (Kdvli)', genislikCh: 20, aggregates: ['sum'], cellClassName }).tipDecimal_bedel(),
-						new GridKolon({ belirtec: 'oran', text: '%', genislikCh: 8, cellClassName }).tipNumerik()
-					]
-				})
-				.setSource(async ({ builder: { layout }}) => {
-					let recs
-					layout[empty(recs) ? 'addClass' : 'removeClass']('jqx-hidden')
-					return recs ?? []
-				})
-		}
-
 		// matrah ve kdv
 		;{
 			form.addGridliGosterici('matrahKdv')
-				.addStyle_fullWH(440, 200)
+				.addStyle_fullWH(450, 200)
 				.rowNumberOlmasin().notAdaptive()
 				.setToplamYapi({ etiket: { belirtec: 'text' } })
 				.widgetArgsDuzenleIslemi(({ args }) =>
@@ -390,6 +410,14 @@ class DRapor_PratikSatis extends DRaporMQ {
 					return recs
 				})
 		}
+		
+		rfb.run()
+	}
+	async acc_initContent_diger({ tanimPart, islem, acc, item, layout, rfb }) {
+		// rfb.addStyle_fullWH()
+		let form = rfb.addFormWithParent().yanYana()
+			// .addStyle_fullWH()
+			.addStyle(`$elementCSS > div { overflow-y: auto !important }`)
 
 		// kasiyer
 		;{
@@ -434,7 +462,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 		// şube
 		;{
 			form.addGridliGosterici('sube')
-				.addStyle_fullWH(430, 200)
+				.addStyle_fullWH(450, 250)
 				.rowNumberOlmasin().notAdaptive()
 				.setToplamYapi({ etiket: { belirtec: 'aciklama' } })
 				.widgetArgsDuzenleIslemi(({ args }) =>
@@ -452,7 +480,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 						return result.join(' ')
 					}
 					return [
-						new GridKolon({ belirtec: 'aciklama', text: `<span class=orange>ŞUBE</span>`, genislikCh: 23, filterType: 'checkedlist', cellClassName }),
+						new GridKolon({ belirtec: 'aciklama', text: `<span class=orange>ŞUBE</span>`, genislikCh: 25, filterType: 'checkedlist', cellClassName }),
 						new GridKolon({ belirtec: 'bedel', text: 'Hasılat', genislikCh: 18, aggregates: ['sum'], cellClassName }).tipDecimal_bedel()
 					]
 				})
@@ -472,9 +500,6 @@ class DRapor_PratikSatis extends DRaporMQ {
 		}
 		
 		rfb.run()
-	}
-	acc_initCollapsedContent_genel({ tanimPart, islem, acc, item, layout, rfb }) {
-		return this._acc_initCollapsedContent_ortak(...arguments)
 	}
 	async acc_initContent_satis({ tanimPart, islem, acc, item, layout, rfb }) {
 		let {secimler: sec} = this
@@ -542,9 +567,6 @@ class DRapor_PratikSatis extends DRaporMQ {
 				})
 		}
 		rfb.run()
-	}
-	acc_initCollapsedContent_satis({ tanimPart, islem, acc, item, layout, rfb }) {
-		return this._acc_initCollapsedContent_ortak(...arguments)
 	}
 	_acc_initCollapsedContent_ortak({ tanimPart, islem, acc, item, layout, rfb }) {
 		let {secimler} = this, {collapsed} = item
