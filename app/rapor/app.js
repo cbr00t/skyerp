@@ -131,7 +131,8 @@ class SkyRaporApp extends TicariApp {
 			let ul = app.mainNav.children('ul')
 			let li = ul.children('li#FAV')
 			if (li) {
-				li.html(li.html().replace('<br>', ' '))
+				let a = li?.children('a')
+				a?.html(a.html()?.replace('<br>', ' '))
 				li.after($('<hr>'))
 				if (!li.hasClass('expanded'))
 					li.click()

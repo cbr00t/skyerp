@@ -7,49 +7,55 @@ class FRMenu extends CObject {
 	}
 	static from(arr) {
 		if (!arr) { return null }
-		const result = new this(); return result.readFrom(arr) ? result : null
+		let result = new this(); return result.readFrom(arr) ? result : null
 	}
 	readFrom(arr) {
 		if (!arr) { return false }
-		const items = [], id2Item = {}, mne2Item = {};
-		for (const _item of arr) {
-			const item = _item ? FRMenuItem.from(_item) : null;
-			if (item) { const {id} = item; id2Item[id] = item; items.push(item) }
+		let items = [], id2Item = {}, mne2Item = {};
+		for (let _item of arr) {
+			let item = _item ? FRMenuItem.from(_item) : null;
+			if (item) { let {id} = item; id2Item[id] = item; items.push(item) }
 		}
 		this.items = items; this.id2Item = id2Item; this.mne2Item = mne2Item;
 		return true
 	}
 	jqxMenuLayoutOlustur(e) {
-		const {parent} = e; if (!parent?.length) { return false } const yataymi = e.yatay;
+		let {parent} = e; if (!parent?.length) { return false } let yataymi = e.yatay;
 		parent.jqxMenu({
 			theme, mode: yataymi ? 'horizontal' : 'vertical', animationShowDuration: 100, animationHideDuration: 100,
 			autoOpen: true, autoOpenPopup: true, autoCloseOnClick: false, source: this.getJQXMenuSource()
 		});
 		parent.on('itemclick', evt => {
-			const menuItemElement = evt.args, {id} = menuItemElement;
-			const item = this.id2Item[id]; if (item) { item.run({ event: evt, menuItemElement }) }
+			let menuItemElement = evt.args, {id} = menuItemElement;
+			let item = this.id2Item[id]; if (item) { item.run({ event: evt, menuItemElement }) }
 		});
 		return true
 	}
 	menuLayoutOlustur(e) {
-		const {parent} = e; if (!parent?.length) { return false }
+		let {parent} = e; if (!parent?.length) { return false }
 		this.menuSourceDuzenle(e); this.menuLayoutDuzenle(e); return true
 	}
 	menuLayoutDuzenle(e) {
-		e = e || {}; const content = e.parent, sender = this, {parentPart} = this, _e = { ...e };
-		const part = this.part = new MenuPart({ parentPart, sender, content, source: this.getMenuSource(_e) }); part.run()
+		e = e || {}; let content = e.parent, sender = this, {parentPart} = this, _e = { ...e };
+		let part = this.part = new MenuPart({ parentPart, sender, content, source: this.getMenuSource(_e) }); part.run()
 	}
 	navLayoutOlustur(e) {
-		const {parent} = e; if (!parent?.length) { return }
-		const {items} = this, ul = $('<ul class="list-unstyled"/>'), _e = { ...e, parent: ul };
-		for (const item of items) { item.navLayoutOlustur(_e) } this.navLayoutOlustur_araIslem(_e);
+		let {parent} = e
+		if (!parent?.length)
+			return
+		let {items} = this, ul = $('<ul class="list-unstyled"/>'), _e = { ...e, parent: ul }
+		for (let item of items)
+			item.navLayoutOlustur(_e)
+		this.navLayoutOlustur_araIslem(_e)
 		parent.children().remove(); ul.appendTo(parent)
 	}
-	navLayoutOlustur_araIslem(e) { if (app.navLayoutOlustur_araIslem) { app.navLayoutOlustur_araIslem(e) } }
+	navLayoutOlustur_araIslem(e) {
+		app?.navLayoutOlustur_araIslem?.(e)
+	}
 	getMenuSource(e) { this.menuSourceDuzenle(e); return this }
 	menuSourceDuzenle(e) {
-		e = e || {}; const {items} = this; if ($.isEmptyObject(items)) { return }
-		e.frMenu = this; for (const item of items) { item.menuSourceDuzenle(e) }
+		e = e || {}; let {items} = this; if ($.isEmptyObject(items)) { return }
+		e.frMenu = this; for (let item of items) { item.menuSourceDuzenle(e) }
 	}
 	static listeEkraniAc({ headerBuilder } = {}) {
 		// let secince = e => console.info(e)
