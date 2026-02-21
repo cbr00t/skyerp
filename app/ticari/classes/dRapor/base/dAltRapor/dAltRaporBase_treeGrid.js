@@ -21,6 +21,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		}
 		return result
 	}
+
 	constructor(e = {}) {
 		super(e); let {gridVeriYuklendi_ek} = e
 		$.extend(this, { gridVeriYuklendi_ek })
@@ -35,7 +36,9 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		this.fbd_grid = parentBuilder.addForm('grid')
 			.setLayout(({ builder: { id }}) => $(`<div class="${id} part"/>`))
 			.onAfterRun(async e => {
-				let {builder: fbd_grid, builder: { layout }} = e
+				let {builder: fbd_grid, builder: { rootPart, layout }} = e
+				rootPart?.kapaninca?.(() =>
+					this._notify?.close?.())
 				let gridPart = this.gridPart = fbd_grid.part = {}, grid = gridPart.grid = layout
 				$.extend(gridPart, {
 					tazele: e => { delete this._promise_wait; this.tazele(e) },
@@ -91,7 +94,9 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		await this.rapor?.signal('init', _e)
 	}
 	async onGridRun(e) {
-		let {rapor: { builder: { id2Builder } = {}, isPanelItem, class: { otoTazeleYapilirmi } }} = this
+		let { rapor, raporTanim, isPanelItem, class: { otoTazeleYapilirmi } } = this
+		if (!otoTazeleYapilirmi)
+			otoTazeleYapilirmi = rapor.otoTazeleYapilirmi
 		await this.tazeleOncesi(e)
 		await this.onGridRun_ozel?.(e)
 		
@@ -108,23 +113,34 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		
 		if (otoTazeleYapilirmi || this.tazeleCount || isPanelItem)
 			await this.tazele(e)
-		else {
-			let {layout: islemTuslari} = id2Builder.islemTuslari
-			islemTuslari.find('#tazele').addClass('anim-clickme')
-			let _notify = this._notify = notify({
-				status: 'info', autotimeout: 10_000,
-				content: (
-					`<div align="right"
-							style="font-size: 250%; font-weight: bold; position: relative; right: 50px; color: limegreen;
-							margin-top: -20px; padding-top: 3px">
-						^
-					</div>
-					<div>
-						Raporu göstermek için Tazele butonuna tıklayınız
-					</div>`
-				)
-			})
-			$(_notify.container).css({ top: 85 })
+		else if (!rapor._notify_shown) {
+			setTimeout(() => {
+				let { builder: { id2Builder } = {} } = rapor
+				let {layout: islemTuslari} = id2Builder?.islemTuslari ?? {}
+				islemTuslari?.find('#tazele')?.addClass('anim-clickme')
+				let _notify = this._notify = notify({
+					status: 'info', autotimeout: 10_000,
+					content: (
+						`<div align="right"
+								style="font-size: 250%; font-weight: bold; position: relative;
+								right: 50px; color: limegreen;
+								margin-top: -20px; padding-top: 3px">
+							^
+						</div>
+						<div>
+							Raporu göstermek için Tazele butonuna tıklayınız
+						</div>`
+					)
+				})
+				$(_notify.wrapper).css({ top: 87 })
+			}, 100)
+			rapor._notify_shown = true
+		}
+
+		if (!raporTanim?.favorimi) {
+			let { parentBuilder: { rootBuilder: { id2Builder } } } = this
+			let { islemTuslari: { layout } } = id2Builder
+			layout.find('button#favoriSil').addClass('jqx-hidden')
 		}
 	}
 	gridRowExpanded(e) { let {gridPart} = this, {level, uid} = e.event.args.row || {}; gridPart.expandedRowsSet[`${level}-${uid}`] = true }
@@ -141,6 +157,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		let {grid} = this.gridPart || {}
 		if (!grid)
 			return
+		this._notify?.close?.()
 		let da = this.tazele_ozel?.(e)
 		if (!da)
 			da = await this.getDataAdapter(e)
@@ -265,6 +282,23 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	loadServerData_recsDuzenleEk(e) { return this.loadServerData_recsDuzenleEk_ozel?.(e) }
 	loadServerData_recsDuzenleSon(e) { return this.loadServerData_recsDuzenleSon_ozel?.(e) }
 	loadServerData_recsDuzenle_seviyelendir(e) { return this.loadServerData_recsDuzenle_seviyelendir_ozel?.(e) }
+	async favoriSilIstendi(e = {}) {
+		let {raporTanim} = this
+		if (!raporTanim.favorimi)
+			return
+		let rdlg = await ehConfirm(`Mevcut rapor Favori Rapor listesinden kaldırılacak, devam edilsin mi?`, 'Favori SİL')
+		if (!rdlg)
+			return
+		let rapor = this
+		e = { ...e, rapor }
+		// await raporTanim.tamamSonrasiIslemlar(e)
+		raporTanim.favorimi = false
+		raporTanim.degistimi = true
+		raporTanim.setDefault(e)
+		await raporTanim.kaydet()
+		e.button?.addClass('jqx-hidden')
+		app.anaMenuOlustur()
+	}
 	exportExcelIstendi(e) { return this.exportXIstendi({ ...e, type: 'xls', mimeType: 'application/vnd.ms-excel' }) }
 	exportPDFIstendi(e) { return this.exportXIstendi({ ...e, type: 'pdf', mimeType: 'application/pdf' }) }
 	exportHTMLIstendi(e) { return this.exportXIstendi({ ...e, type: 'html', mimeType: 'text/html' }) }
@@ -818,12 +852,19 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			}
 		}
 	}
+	secimlerIstendi(e) {
+		this._notify?.close?.()
+		return super.secimlerIstendi(e)
+	}
 	raporTanimIstendi(e) {
+		this._notify?.close?.()
 		if (this.wnd_raporTanim?.length)
 			return this.restartWndRaporTanim(e)
-		let {tamamIslemi} = e, {raporTanim, rapor: { class: { aciklama: raporAdi } }} = this
-		let inst = raporTanim, {class: raporTanimSinif} = raporTanim
-		let {sinifAdi} = raporTanimSinif, title = `${sinifAdi} Tanım`
+		let { tamamIslemi } = e, { raporTanim, rapor } = this
+		let { class: { aciklama: raporAdi } } = rapor
+		let inst = raporTanim, { class: raporTanimSinif } = raporTanim
+		inst._favorimi = inst.favorimi
+		let { sinifAdi } = raporTanimSinif, title = `${sinifAdi} Tanım`
 		if (raporAdi)
 			title += `: <span class="fs-120 bold royalblue" style="margin-left: 5px">${raporAdi}</span>`
 		let ustHeight = '50px', ustEkHeight = '3px', islemTuslariHeight = '55px';
@@ -837,23 +878,36 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		let fbd_ust = wRFB.addFormWithParent('ust').yanYana().addStyle_fullWH(null, 'var(--ustHeight)');
 		let fbd_sablonParent = fbd_ust.addFormWithParent('sablon-parent').yanYana().addStyle_fullWH().addStyle([e =>
 			`$elementCSS { position: relative; top: 5px } $elementCSS > .button { width: 50px !important; height: 45px !important; min-width: unset !important }`]);
-		fbd_sablonParent.addModelKullan('sablonKod', 'Şablon').etiketGosterim_yok().dropDown().kodsuz().bosKodAlinir()
-			.setMFSinif(raporTanimSinif).setValue(inst.sayac).addStyle_fullWH('calc(var(--full) - 350px)')
-			.initArgsDuzenleHandler(({ args }) =>  args.args = { rapor: this })
-			.ozelQueryDuzenleHandler(e => {
-				let {noUserCheck, stm, aliasVeNokta} = e, {raporKod, class: mfSinif} = raporTanim
-				let {isAdmin, encUser} = config.session, {kodSaha} = mfSinif
+		fbd_sablonParent.addModelKullan('sablonKod', 'Şablon').etiketGosterim_yok()
+			.addStyle_fullWH('calc(var(--full) - 350px)')
+			.dropDown().kodsuz().bosKodAlinir()
+			.setMFSinif(raporTanimSinif)
+			.initArgsDuzenleHandler(({ args }) =>
+				args.args = { rapor: this })
+			.ozelQueryDuzenleHandler(({ noUserCheck, stm, aliasVeNokta }) => {
+				let {raporKod} = raporTanim
+				let {isAdmin, encUser} = config.session
 				for (let {where: wh} of stm) {
 					if (!(noUserCheck || isAdmin) && encUser)
 						wh.degerAta(encUser, `${aliasVeNokta}xuserkod`)
 					wh.degerAta(raporKod, `${aliasVeNokta}raportip`)
 				}
-			}).degisince(e => {
-				let sayac = e.value, {raporTanim} = this
+			})
+			.degisince(({ value: sayac }) => {
+				let {raporTanim} = this
 				if (sayac) {
 					raporTanim.sayac = sayac
-					raporTanim.yukle().then(() => { this.restartWndRaporTanim(e) })
+					raporTanim.yukle().then(() =>
+						this.restartWndRaporTanim(e))
 				}
+			})
+			.onAfterRun(async ({ builder: { part } }) => {
+				let {encUser} = config.session
+				let recs = await raporTanimSinif.loadServerData()
+				let rec = recs
+					.find(({ xuserkod, aciklama }) =>
+						(!xuserkod || xuserkod == encUser) && aciklama == raporTanim.aciklama)
+				part.val(rec?.kaysayac ?? null)
 			})
 			/* .loadServerDataHandler(e => { let {mfSinif} = e; e.args = { rapor: this }; return mfSinif.loadServerData(e) }) */
 		fbd_sablonParent.addButton('sablonKaydet').addCSS('button')
@@ -899,6 +953,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			wnd.jqxWindow('destroy')
 			$('body').removeClass('bg-modal')
 			delete this.wnd_raporTanim
+			rapor._otoTazeleDisabled = false
 		})
 		wnd.prop('id', wRFB.id); wnd.addClass('dRapor part')
 		setTimeout(() => $('body').addClass('bg-modal'), 10)
@@ -917,6 +972,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			}, 50)
 		})
 		this._tabloTanimGosterildiFlag = true
+		rapor._otoTazeleDisabled = true
 		return wRFB
 	}
 	async raporTanim_tamamIstendi(e = {}) {
@@ -939,13 +995,15 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		try {
 			if (!aciklama) {
 				wnd_raporTanim.jqxWindow('collapse')
-				await hConfirm(`<b class="firebrick">Rapor Adı</b> belirtilmelidir`, title); wnd_raporTanim.jqxWindow('expand')
+				await hConfirm(`<b class="firebrick">Rapor Adı</b> belirtilmelidir`, title)
+				wnd_raporTanim.jqxWindow('expand')
 				return
 			}
 			let sayac = null, {encUser} = config.session
 			raporTanim = raporTanim.deepCopy()
 			$.extend(raporTanim, { sayac, encUser })
-			let degistirmi = await raporTanim.varmi(), islem = degistirmi ? 'degistir' : 'kopya'
+			let degistirmi = await raporTanim.varmi()
+			let islem = degistirmi ? 'degistir' : 'kopya'
 			let _e = { islem }
 			await raporTanim.dataDuzgunmu(_e)
 			if (degistirmi) {
@@ -961,6 +1019,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				await raporTanim.kaydet(_e)
 				this.raporTanim = raporTanim
 			}
+			if (raporTanim.favorimi != raporTanim._favorimi)
+				app.anaMenuOlustur()
 			this.restartWndRaporTanim(e)
 			
 		}

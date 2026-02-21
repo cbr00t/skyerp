@@ -3,7 +3,7 @@ class Secim extends CIO {
 	static _tip2Sinif = {}; static get anaTip() { return null } static get tip() { return null }
 	get parentPart() { return this._parentPart ?? app.activePart } set parentPart(value) { this._parentPart = value }
 	get builder() { return this._builder ?? this.parentPart?.builder } set builder(value) { this._builder = value }
-	get bosmu() { const {value} = this; return !value || $.isEmptyObject(value) } get bosDegilmi() { return !this.bosmu }
+	get bosmu() { let {value} = this; return !value || empty(value) } get bosDegilmi() { return !this.bosmu }
 	get ozetBilgiValue() {
 		if (this.bosmu)
 			return null
@@ -22,30 +22,45 @@ class Secim extends CIO {
 
 	constructor(e) { e = e || {}; super(e); this.readFrom(e) }
 	static getClass(e) {
-		let cls = Secim; if (e) { const {tip} = e; if (tip) cls = this._tip2Sinif[tip] ?? cls }
+		let cls = Secim; if (e) { let {tip} = e; if (tip) cls = this._tip2Sinif[tip] ?? cls }
 		return cls
 	}
 	static from(e) {
 		if (!e) return null
-		const cls = this.getClass(e); if (!cls) return null
-		const result = new cls(e); return result.readFrom(e) ? result : null
+		let cls = this.getClass(e); if (!cls) return null
+		let result = new cls(e); return result.readFrom(e) ? result : null
 	}
 	get asObject() {
-		const _e = { _reduce: true }; this.writeTo(_e); delete _e._reduce
-		for (const key of Object.keys(_e)) {
-			if (key[0] == '_') { delete _e[key]; continue }
-			const item = _e[key]; if ($.isEmptyObject(item)) { delete _e[key]; continue }
+		let _e = { _reduce: true }
+		this.writeTo(_e)
+		delete _e._reduce
+		for (let key of keys(_e)) {
+			if (key[0] == '_') {
+				delete _e[key]
+				continue
+			}
+			let item = _e[key]
+			if (empty(item)) {
+				delete _e[key]
+				continue
+			}
 		}
 		return _e
 	}
 	readFrom(e) {
-		if (!e) { return false }
-		this.userData = e.userData;
-		this.isHidden = asBool(e.hidden); this.isDisabled = asBool(e.disabled);
-		this.etiket = e.etiket; this.grupKod = e.grupKod ?? e.grup?.kod ?? null;
-		this.placeHolder = e.placeHolder ?? e.placeholder ?? '';
-		let {mfSinif} = e; if (typeof mfSinif == 'string') mfSinif = getFunc.call(this, mfSinif, e); this.mfSinif = mfSinif
-		this.ozetBilgiValueGetter = e.ozetBilgiValueGetter;
+		if (!e)
+			return false
+		this.userData = e.userData
+		this.isHidden = asBool(e.hidden)
+		this.isDisabled = asBool(e.disabled)
+		this.etiket = e.etiket
+		this.grupKod = e.grupKod ?? e.grup?.kod ?? null
+		this.placeHolder = e.placeHolder ?? e.placeholder ?? ''
+		let {mfSinif} = e
+		if (typeof mfSinif == 'string')
+			mfSinif = getFunc.call(this, mfSinif, e)
+		this.mfSinif = mfSinif
+		this.ozetBilgiValueGetter = e.ozetBilgiValueGetter
 		return true
 	}
 	writeTo(e) {
@@ -55,7 +70,7 @@ class Secim extends CIO {
 	}
 	temizle(e) { return this }
 	uiSetValues(e) { }
-	get asHTMLElementString() { const _e = { target: '' }; this.buildHTMLElementStringInto(_e); return _e.target }
+	get asHTMLElementString() { let _e = { target: '' }; this.buildHTMLElementStringInto(_e); return _e.target }
 	buildHTMLElementStringInto(e) { }
 	initHTMLElements(e) { }
 	ozetBilgiHTMLOlustur({ liste }) {
@@ -79,6 +94,6 @@ class Secim extends CIO {
 }
 
 (function() {
-	const tip2Sinif = Secim.prototype.constructor._tip2Sinif, subClasses = [Secim];
-	for (const cls of subClasses) { const {tip} = cls; if (tip) tip2Sinif[tip] = cls }
+	let tip2Sinif = Secim.prototype.constructor._tip2Sinif, subClasses = [Secim];
+	for (let cls of subClasses) { let {tip} = cls; if (tip) tip2Sinif[tip] = cls }
 })()

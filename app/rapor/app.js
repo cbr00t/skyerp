@@ -28,7 +28,7 @@ class SkyRaporApp extends TicariApp {
 	}
 	async runDevam(e) {
 		await super.runDevam(e)
-		await this.ilkIslemler(e)
+		// await this.ilkIslemler(e)
 		await window.DRapor_Hareketci?.autoGenerateSubClasses(e)
 	}
 	async afterRun(e) {
@@ -47,14 +47,24 @@ class SkyRaporApp extends TicariApp {
 				try { await app.sqlExecNone(`alter table wpaneldetay add raporadi varchar(50) not null default ''`) }
 				catch (ex) { console.error(getErrorText(ex)) }
 			}
-			let maxLen = 25, table = 'wgruprapor', field = 'raportip';
-			let len = values(await app.sqlGetColumns(table, field))[0]?.length
-			if (len != null && len < maxLen) {
-				try { await app.sqlExecNone(`alter table ${table} alter column ${field} varchar(${maxLen}) not null`) }
-				catch (ex2) {
-					console.error(getErrorText(ex2))
-					try { await app.sqlExecNone(`alter table ${table} alter column ${field} char(${maxLen}) not null`) }
-					catch (ex3) { console.error(getErrorText(ex3)) }
+			if (await app.sqlHasTable('wgruprapor') && empty(await app.sqlGetColumns('wgruprapor', 'id'))) {
+				try { await app.sqlExecNone(`alter table wgruprapor add id uniqueidentifier not null default NEWID()`) }
+				catch (ex) { console.error(getErrorText(ex)) }
+			}
+			if (await app.sqlHasTable('wgruprapor') && empty(await app.sqlGetColumns('wgruprapor', 'bfavori'))) {
+				try { await app.sqlExecNone(`alter table wgruprapor add bfavori bit not null default 0`) }
+				catch (ex) { console.error(getErrorText(ex)) }
+			}
+			{
+				let maxLen = 25, table = 'wgruprapor', field = 'raportip';
+				let len = values(await app.sqlGetColumns(table, field))[0]?.length
+				if (len != null && len < maxLen) {
+					try { await app.sqlExecNone(`alter table ${table} alter column ${field} varchar(${maxLen}) not null`) }
+					catch (ex2) {
+						console.error(getErrorText(ex2))
+						try { await app.sqlExecNone(`alter table ${table} alter column ${field} char(${maxLen}) not null`) }
+						catch (ex3) { console.error(getErrorText(ex3)) }
+					}
 				}
 			}
 		}
@@ -63,6 +73,8 @@ class SkyRaporApp extends TicariApp {
 	}
 	async anaMenuOlustur(e) {
 		try {
+			let {divMenu} = this
+			divMenu?.children()?.remove()
 			let {yetkiVarmi, dbName} = config.session ?? {}
 			if (!yetkiVarmi) {
 				this.noMenuFlag = true
@@ -114,9 +126,21 @@ class SkyRaporApp extends TicariApp {
 			}
 		}
 		finally { await super.anaMenuOlustur(e) }
+
+		setTimeout(() => {
+			let ul = app.mainNav.children('ul')
+			let li = ul.children('li#FAV')
+			if (li) {
+				li.html(li.html().replace('<br>', ' '))
+				li.after($('<hr>'))
+				if (!li.hasClass('expanded'))
+					li.click()
+			}
+			
+		}, 500)
 	}
 	super_anaMenuOlustur(e) { return super.anaMenuOlustur(e) }
-	getAnaMenu(e) {
+	async getAnaMenu(e) {
 		let {noMenuFlag, mainRaporBase} = this
 		if (noMenuFlag)
 			return new FRMenu()
@@ -157,6 +181,58 @@ class SkyRaporApp extends TicariApp {
 			target.push(..._items)
 		}
 		items.push(...items_raporlar.filter(x => !!x))
+		{
+			let { session: { encUser } } = config
+			let sent = new MQSent(), {where: wh, sahalar} = sent
+			sent.fromAdd('wgruprapor')
+			wh.add(
+				`bfavori <> 0`,
+				new MQOrClause()
+					.add(`COALESCE(xuserkod, '') = ''`)
+					.degerAta(encUser, 'xuserkod')
+			)
+			sahalar.add('raportip tip', 'kaysayac sayac', 'aciklama raporAdi')
+			let stm = new MQStm({ sent, orderBy: ['tip', 'raporAdi'] })
+			let favItems = []
+			for (let { tip, sayac, raporAdi: text } of await app.sqlExecSelect(stm)) {
+				let raporSinif = kod2Sinif[tip]
+				if (!raporSinif)
+					continue
+				let {vioAdim} = raporSinif
+				let mne = `${tip}_${sayac}`
+				favItems.push(new FRMenuChoice({
+					mne, vioAdim, text,
+					block: async e => {
+						let { menuItemElement: item, event: evt} = e ?? {}, {ctrlKey: ctrl, shiftKey: shift } = evt ?? {}
+						let newWindow = (ctrl || shift) || !($('body').hasClass('no-wnd') || asBool(qs.sameWindow))
+						let menuId = newWindow ? item?.mneText : null
+						if (menuId) {
+							this.openNewWindow({ menuId, qs: { sameWindow: true } })
+							return
+						}
+						//let result = (await sinif.goster(e)) || {}
+						let { mainClass: { raporTanimSinif } = {} } = raporSinif
+						let rapor = new raporSinif().otoTazeleYapilir()
+						if (raporTanimSinif) {
+							rapor.on('raporTanim', async () => {
+								let inst = await new raporTanimSinif({ sayac, rapor })
+								inst = await inst.oku()
+								return inst
+							})
+							// raporTanim?.setDefault({ rapor: { raporKod: tip } })
+						}
+						let result = await rapor.goster(e) ?? {}
+						let part = result.part ?? result
+						if (qs.inNewWindow && part?.kapaninca)
+							part.kapaninca(e => window.close())
+					}
+				}))
+			}
+			if (!empty(favItems)) {
+				let favParent = new FRMenuCascade({ mne: 'FAV', text: '❤️ Favori<br/>Raporlarım', items: favItems })
+				items = [favParent, ...items]
+			}
+		}
 		if (isAdmin)
 			items.push(new FRMenuChoice({ mne: 'DRAPOR_PARAM', text: 'Rapor Parametreleri', block: e => this.params.dRapor.tanimla(e) }))
 		/*let menu_test = (dev ? new FRMenuCascade({ mne: 'TEST', text: 'TEST', items: items_raporlar }) : null);

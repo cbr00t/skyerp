@@ -130,7 +130,8 @@ class DAltRapor_Grid_Ozet extends DAltRapor_Grid {
 			if (gridWidget?.isbindingcompleted()) {
 				gridWidget?.beginupdate()
 				gridPart?.updateColumns(colDefs)
-				gridWidget?.endupdate(false)
+				try { gridWidget?.endupdate(false) }
+				catch (ex) { cerr(ex) }
 			}
 		}, 100)
 	}

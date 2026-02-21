@@ -20,7 +20,7 @@ class SecimBasSon extends Secim {
 	readFrom(e) {
 		if (!super.readFrom(e))
 			return false
-		let birKismimi = this.birKismimi = e.birKismi ?? e.birKismimi ?? this.defaultBirKismimi
+		let birKismimi = this.birKismimi = e.b ?? e.birKismi ?? e.birKismimi ?? this.defaultBirKismimi
 		this.disindakilermi = e.disindakilermi ?? e.disindakiler ?? false
 		if (birKismimi) {
 			let {kodListe} = e; if (typeof kodListe == 'string') { kodListe = getFunc.call(this, e) }
@@ -40,16 +40,28 @@ class SecimBasSon extends Secim {
 		return true
 	}
 	writeTo(e) {
-		if (!super.writeTo(e)) { return false }
+		if (!super.writeTo(e))
+			return false
 		let {birKismimi, disindakilermi} = this
-		$.extend(e, { birKismimi, disindakilermi })
+		if (birKismimi)
+			e.b = true
+		if (disindakilermi)
+			e.disindakilermi = true
 		if (birKismimi) {
-			let {kodListe} = this; if (kodListe != null) { e.kodListe = kodListe } }
+			let {kodListe} = this
+			if (!empty(kodListe))
+				e.kodListe = kodListe
+		}
 		else {
 			let {basi, sonu} = this;
-			if (basi != null) { e.basi = this.getConvertedUIValue(basi) }
-			if (sonu != null) { e.sonu = this.getConvertedUIValue(sonu) }
+			if (basi != null)
+				e.basi = this.getConvertedUIValue(basi)
+			if (sonu != null)
+				e.sonu = this.getConvertedUIValue(sonu)
 		}
+		delete e.hepsimi
+		if (e._reduce && birKismimi && keys(e).length == 2)
+			deleteKeys(e, 'b', 'birKismimi')
 		return true
 	}
 	temizle(e) {

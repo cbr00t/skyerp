@@ -40,15 +40,17 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 		return this.uygunRaporlar
 			.map(cls => ({ kod: cls.kod, aciklama: cls.aciklama, sinif: cls }))
 	}
+	
 	constructor(e = {}) {
-		super(e); let { width, height, events } = e
+		super(e)
+		let { width, height, otoTazeleYapilirmi = e.otoTazeleYapilir, events } = e
 		events ??= {}
 		for (let k of ['init', 'tazeleOncesi', 'tazeleSonrasi']) {
 			let v = e[k]
 			if (v !== undefined)
 				events[k] = v
 		}
-		$.extend(this, { width, height, events })
+		$.extend(this, { width, height, events, otoTazeleYapilirmi })
 	}
 	static getClass(e) {
 		let kod = typeof e == 'object' ? (e.kod ?? e.tip) : e
@@ -63,7 +65,8 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 		return { inst, part, builder }
 	}
 	static autoGenerateSubClasses(e) { }
-	goster(e) { return null } tazele(e) { }
+	goster(e) { return null }
+	tazele(e) { }
 	onInit(e) { }
 	onBuildEk(e) { }
 	onAfterRun({ rfb }) { /* let {layout} = rfb; layout.addClass('slow-animation') */ }
@@ -75,6 +78,8 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 		return this
 	}
 	setBaslik(value) { this._baslik = value; return this }
+	otoTazeleYapilir() { this.otoTazeleYapilirmi = true; return this }
+	otoTazeleYapilmaz() { this.otoTazeleYapilirmi = false; return this }
 }
 class DRaporMQ extends DRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -115,7 +120,8 @@ class DRaporOzel extends DRapor {
 		let rfb = e.rfb ?? new RootFormBuilder({ id: partName }).noDestroy()
 			.setInst(this).addCSS('slow-animation')
 		if (!isPanelItem) { rfb = rfb.asWindow?.(title) }
-		let _e = { ...e, rfb }; this.rootFormBuilderDuzenle(_e); rfb = _e.rfb;
+		let _e = { ...e, rfb }; this.rootFormBuilderDuzenle(_e)
+		rfb = _e.rfb
 		await this.ilkIslemler(e); await this.ilkIslemler_ek(e)
 		rfb.onInit(e => this.onInit({ ...e, rfb: e.builder }))
 		rfb.onBuildEk(e => this.onBuildEk({ ...e, rfb: e.builder }))
@@ -136,8 +142,45 @@ class DRaporOzel extends DRapor {
 		this.rootBuilder = rfb
 		/* rfb.addStyle(e => `$elementCSS { overflow: hidden !important }`); */
 		if (!isPanelItem) {
-			rfb.addIslemTuslari('islemTuslari').addCSS('islemTuslari').setTip('tazeleVazgec')
-				.setButonlarDuzenleyici(e => this.islemTuslariArgsDuzenle(e)).setId2Handler(this.islemTuslariGetId2Handler(e))
+			let fbd_islemTuslari = rfb.addIslemTuslari('islemTuslari')
+				.addCSS('islemTuslari')
+				.setTip('tazeleVazgec')
+				.setButonlarDuzenleyici(e => this.islemTuslariArgsDuzenle(e))
+				.setId2Handler(this.islemTuslariGetId2Handler(e))
+			fbd_islemTuslari.addNumberInput('_otoTazeleDk', null, null, 'Tazele (dk)')
+				.etiketGosterim_yok()
+				.setAltInst(this)
+				.setMin(0).setMax(24 * 60)
+				.setValue(this._otoTazeleDk || null)
+				.degisince(e => {
+					let { value, builder: fbd } = e
+					let { layout, input } = fbd
+					if (!value)
+						input.val(null)
+					layout[value ? 'addClass' : 'removeClass']('active')
+					this.otoTazele_startTimer({ ...arguments[0], ...e })
+				})
+				.addStyle_wh(100)
+				.addStyle(...[
+					`$elementCSS {
+						position: absolute !important;
+						right: 330px !important;
+						border-radius: 13px; z-index: 1001 !important
+					}
+					 $elementCSS.active { animation: 3000ms infinite anim-dRapor-otoTazele }
+					 .dRapor.part.refreshing $elementCSS > input {
+						background-color: lightcyan !important;
+						background-image: url(../../images/loading.gif) !important;
+						background-position: center center !important;
+						background-size: 32px 32px !important;
+						background-repeat: no-repeat !important
+					 }
+					 @keyframes anim-dRapor-otoTazele {
+						   0% { box-shadow: 0 0 13px 3px forestgreen }
+						  70% { box-shadow: 0 0 13px 8px forestgreen }
+						 100% { box-shadow: 0 0 13px 3px forestgreen }
+					 }`
+				])
 			rfb.addForm('bulForm')
 				.setLayout(e => $(`<div class="${e.builder.id} part"><input class="input full-wh" type="textbox" maxlength="100"></input></div>`))
 				.onAfterRun(e => {
@@ -154,16 +197,22 @@ class DRaporOzel extends DRapor {
 		}
 	}
 	onAfterRun(e) {
-		super.onAfterRun(e); let {rfb} = e, {part, part: { layout }} = rfb, {isPanelItem} = this;
-		let resizeHandler = this._resizeHandler = event => this.onResize({ ...e, event });
-		$.extend(part, { builder: rfb, inst: this });
-		part.builder = rfb
-		if (!layout) { layout = part.layout = rfb.layout }
+		super.onAfterRun(e)
+		let { isPanelItem } = this, { rfb } = e
+		let { part: rootPart, part: { layout }, id2Builder: { islemTuslari } } = rfb
+		let resizeHandler = this._resizeHandler = event => this.onResize({ ...e, event })
+		$.extend(rootPart, { builder: rfb, inst: this })
+		rootPart.builder = rfb
+		if (!layout)
+			layout = rootPart.layout = rfb.layout
 		layout.prop('id', rfb.id)
-		if (!isPanelItem) {
-			/* !! f..ks the grid */
-			$(window).on('resize', resizeHandler)
-		}
+		if (!isPanelItem)
+			$(window).on('resize', resizeHandler)    // !! because this f..ks the grid
+		rootPart.kapaninca(e =>
+			this.destroyPart(e))
+	}
+	destroyPart(e) {
+		this.otoTazele_stopTimer()
 	}
 	onResize(e) {
 		if (this.part?.isDestroyed) {
@@ -212,6 +261,45 @@ class DRaporOzel extends DRapor {
 		if (value && isFunction(value))
 			value = await value.call(this, ...args)
 		return value
+	}
+
+	otoTazele_startTimer(e) {
+		// let {_timer_otoTazele: timer, secimler: { _otoTazele: { value: otoTazeleDk } = {} } = {}} = this
+		let {_timer_otoTazele: timer, _otoTazeleDk: otoTazeleDk} = this
+		if (otoTazeleDk)
+			otoTazeleDk = Math.max(otoTazeleDk, .05)
+		if (!otoTazeleDk) {
+			this.otoTazele_stopTimer(e)
+			return null
+		}
+		/*if (timer)
+			return timer*/
+		this.otoTazele_stopTimer(e)
+		return this._timer_otoTazele = setInterval(
+			e => this.otoTazele_timerProc(e),
+			otoTazeleDk * 60_000
+		)
+	}
+	otoTazele_stopTimer(e) {
+		let {_timer_otoTazele: timer} = this
+		if (timer) {
+			clearInterval(timer)
+			delete this._timer_otoTazele
+		}
+		return timer
+	}
+	otoTazele_timerProc(e) {
+		let { _otoTazeleDk: otoTazeleDk, _inTazeleProc, _otoTazeleDisabled, part: rootPart } = this
+		let { activeWndPart } = app, { appActivatedFlag } = window
+		if (_otoTazeleDisabled || activeWndPart != rootPart)
+			return
+		if (!otoTazeleDk)
+			otoTazeleDk = Math.max(otoTazeleDk, .05)
+		if (!(otoTazeleDk && window.appActivatedFlag) || _inTazeleProc)
+			return
+		this._inTazeleProc = true
+		this.tazele({ ...e, action: 'otoTazele' })
+		setTimeout(() => this._inTazeleProc = false, 1_000)
 	}
 }
 class DPanelRapor extends DRaporOzel {
@@ -316,13 +404,17 @@ class DPanelRapor extends DRaporOzel {
 	}
 	tazele(e) {
 		super.super_tazele(e)
-		let {id2AltRapor} = this, {main} = id2AltRapor ?? {}
-		let {gridPart: mainGridPart} = main ?? {}
+		let { id2AltRapor, builder: rfb } = this
+		let { layout, id2Builder: { islemTuslari: fbd_islemTuslari } } = rfb
+		let { main } = id2AltRapor ?? {}
+		let { gridPart: mainGridPart } = main ?? {}
 		if (!id2AltRapor) {
 			console.warn('id2AltRapor = null')
 			return
 		}
+		// let { _otoTazeleDk: { input } = {} } = fbd_islemTuslari.id2Builder
 		this.tazeleCount = 0
+		layout.addClass('refreshing')
 		for (let altRapor of values(id2AltRapor)) {
 			delete altRapor._promise_wait
 			if (!altRapor?.tazeleYapilirmi)
@@ -334,6 +426,7 @@ class DPanelRapor extends DRaporOzel {
 			}
 			altRapor.tazele?.(e)
 		}
+		setTimeout(() => layout.removeClass('refreshing'), 2_000)
 	}
 	hizliBulIslemi_ara(e) {
 		super.hizliBulIslemi_ara(e); let {tokens} = e, {main} = this;
@@ -382,8 +475,9 @@ class DPanelRapor extends DRaporOzel {
 class DGrupluPanelRapor extends DPanelRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get dGrupluPanelRapormu() { return true }
-	islemTuslariArgsDuzenle({ liste }) {
-		super.islemTuslariArgsDuzenle(...arguments); let {sabitmi} = this.class
+	islemTuslariArgsDuzenle({ liste, part: butonPart }) {
+		super.islemTuslariArgsDuzenle(...arguments)
+		let { class: { sabitmi } } = this
 		liste.push(...[
 			(sabitmi ? null : { id: 'raporTanim', text: 'Rapor Tanım', handler: _e => this.main.raporTanimIstendi({ ...e, ..._e }) }),
 			{ id: 'secimler', text: '', handler: _e => this.main.secimlerIstendi({ ...e, ..._e }) },
@@ -391,8 +485,14 @@ class DGrupluPanelRapor extends DPanelRapor {
 			{ id: 'seviyeKapat', text: 'Seviye Kapat', handler: _e => this.seviyeKapatIstendi({ ...e, ..._e }) },
 			{ id: 'excel', text: '', handler: _e => this.exportExcelIstendi({ ...e, ..._e }) },
 			/*{ id: 'pdf', text: '', handler: _e => this.exportPDFIstendi({ ...e, ..._e }) },*/
-			{ id: 'html', text: '', handler: _e => this.exportHTMLIstendi({ ...e, ..._e }) }
-		].filter(x => !!x))
+			{ id: 'html', text: '', handler: _e => this.exportHTMLIstendi({ ...e, ..._e }) },
+			{ id: 'favoriSil', text: 'Favori Sil', handler: _e => this.favoriSilIstendi({ ...e, ..._e }) }
+		].filter(Boolean))
+		let sagIdSet = butonPart.ekSagButonIdSet ??= {}
+		extend(sagIdSet, asSet(['favoriSil']))
+	}
+	async onAfterRun(e) {
+		await super.onAfterRun(e)
 	}
 	raporTanimIstendi(e) { for (let altRapor of values(this.id2AltRapor)) { this.main?.raporTanimIstendi?.(e) }; return this }
 	secimlerIstendi(e) { for (let altRapor of values(this.id2AltRapor)) { this.main?.secimlerIstendi?.(e) }; return this }
@@ -402,4 +502,5 @@ class DGrupluPanelRapor extends DPanelRapor {
 	exportPDFIstendi(e) { for (let altRapor of values(this.id2AltRapor)) { altRapor?.exportPDFIstendi?.(e) }; return this }
 	exportHTMLIstendi(e) { for (let altRapor of values(this.id2AltRapor)) { altRapor?.exportHTMLIstendi?.(e) }; return this }
 	gridVeriYuklendiIslemi(e) { for (let altRapor of values(this.id2AltRapor)) { altRapor?.gridVeriYuklendiIslemi?.(e) }; return this }
+	favoriSilIstendi(e) { for (let altRapor of values(this.id2AltRapor)) { altRapor?.favoriSilIstendi?.(e) }; return this }
 }

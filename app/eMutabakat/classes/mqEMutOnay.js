@@ -279,7 +279,8 @@ class MQEMutOnay extends MQCogul {
 			}
 			showProgress()
 			try {
-				let oRes = await app.wsMutabakatOnayKoduGonder({ id, receiver })
+				let oRes = await app.wsMutabakatOnayKoduGonder({ id, receiver }) ?? {}
+				let { expires } = oRes
 				onayKodu = await jqxPrompt({
 					etiket: `Lütfen <b class=forestgreem>${receiver}</b> ${araText} Onay Kodunu giriniz`,
 					maxLength: 6,
@@ -289,13 +290,48 @@ class MQEMutOnay extends MQCogul {
 							return true
 						return hConfirm('Onay Kodu 6 haneli bir sayı olmalıdır')
 					},
-					buildEk: ({ builder: { id2Builder: { value: fbd } } }) => {
+					buildEk: ({ wnd, builder: rfb, builder: { id2Builder: { value: fbd } } }) => {
+						let close = () =>
+							wnd?.jqxWindow('close')
 						fbd.addStyle(
 							`$elementCSS > input {
 								font-size: 170%; font-weight: bold; color: forestgreen; width: 250px !important;
 								margin: 8px auto !important; padding: 3px 15px;
 								text-align: center; letter-spacing: 13px
 						}`)
+						if (expires) {
+							rfb.addForm('countdown')
+								.addStyle_wh('max-content')
+								.addStyle(
+									`$elementCSS { font-size: 110%; top: 90px; left: 30px }
+									 $elementCSS > .etiket { color: #555 }
+									 $elementCSS > .veri { font-weight: bold; color: orangered }
+									 $elementCSS > .ek-bilgi { color: #777 }`
+								)
+								.setLayout( ({ builder: { id }}) =>
+									$(`<div class="${id} relative">
+										<span class="etiket">Kalan Süre:</span>
+										<span class="veri">${expires}</span>
+										<span class="ek-bilgi">sn</span>
+									</div>`)
+								)
+								.onAfterRun( ({ builder: fbd }) => {
+									let { part: dlgPart } = rfb
+									let { layout } = fbd
+									let remaining = expires
+									let timer = setInterval(() => {
+										remaining--
+										layout.find('.veri').text(`${remaining}`)
+										if (remaining <= 0) {
+											clearInterval(timer)
+											close()
+										}
+									}, 1_000)
+									wnd?.on('close', () =>
+										clearInterval(timer))
+								})
+						}
+						hideProgress()
 					}
 				})
 				onayKodu = onayKodu?.trim()

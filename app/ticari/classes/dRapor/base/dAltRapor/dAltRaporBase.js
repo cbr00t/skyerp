@@ -62,16 +62,22 @@ class DAltRapor extends DRapor {
 			altRapor.onResize(e)
 	}
 	secimlerIstendi(e) {
-		let {secimlerPart} = this; if (secimlerPart?.isDestroyed) { secimlerPart = this.secimlerPart = undefined }
-		if (secimlerPart) { secimlerPart.show() }
+		let {secimlerPart} = this
+		if (secimlerPart?.isDestroyed)
+			secimlerPart = this.secimlerPart = undefined
+		if (secimlerPart)
+			secimlerPart.show()
 		else {
-			let {secimler} = this; if (secimler) {
+			let { secimler, rapor } = this
+			let { part: parentPart } = rapor
+			if (secimler) {
 				secimlerPart = this.secimlerPart = secimler.duzenlemeEkraniAc({
-					parentPart: this.rapor.part,
-					tamamIslemi: e => void(this.rapor.tazele())    // no async/await
-				});
-				if (secimlerPart)
-					secimlerPart.acilinca(() => this.secimlerInitEvents(e))
+					parentPart,
+					tamamIslemi: e =>
+						void(this.rapor.tazele())    // no async/await
+				})
+				secimlerPart?.acilinca(() =>
+					this.secimlerInitEvents(e))
 			}
 		}
 	}

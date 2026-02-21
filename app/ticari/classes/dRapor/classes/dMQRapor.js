@@ -7,23 +7,36 @@ class DMQRapor extends DMQSayacliKA {
 	static get tanimUISinif() { return ModelTanimPart } static get secimSinif() { return Secimler }
 	static get kodKullanilirmi() { return false } static get idSaha() { return this.sayacSaha }
 	get raporKod() { let result = this._raporKod; if (result === undefined) { result = this.class.getRaporKod(this.rapor) }; return result }
+	get secimler() { return this.rapor?.secimler }
+	get secimlerPart() { return this.rapor?.secimlerPart }
 	get attrSet() { let result = {}; for (let selector of ['grup', 'icerik']) { $.extend(result, asSet(keys(this[selector]))) } return result }
 	get grupListe() { return keys(this.grup || {}) } set grupListe(value) { return this.grup = asSet(value || []) }
 	get icerikListe() { return keys(this.icerik || {}) } set icerikListe(value) { return this.icerik = asSet(value || []) }
 	get secilenVarmi() { return !!(keys(this.grup).length || keys(this.icerik).length) }
-	get yatayAnaliz() { return this.kullanim?.yatayAnaliz } set yatayAnaliz(value) { return (this.kullanim = this.kullanim ?? {}).yatayAnaliz = value }
+	get yatayAnaliz() { return this.kullanim?.yatayAnaliz }
+	set yatayAnaliz(value) { return (this.kullanim ??= {}).yatayAnaliz = value }
+	get filtreKaydedilirmi() { return this.kullanim?.filtreKaydedilirmi }
+	set filtreKaydedilirmi(value) { return (this.kullanim ??= {}).filtreKaydedilirmi = value }
 
-	constructor(e) {
-		e = e || {}; super(e); let {isCopy} = e, {user, encUser} = config.session; this.rapor = e.rapor?.main ?? e.rapor
+	constructor(e = {}) {
+		super(e)
+		let { isCopy } = e, { user, encUser } = config.session
+		this.rapor = e.rapor?.main ?? e.rapor
 		$.extend(this, {
-			user: e.userkod ?? user, encUser: e.encuser ?? e.encUser ?? encUser,
+			id: e.id, user: e.userkod ?? user, encUser: e.encuser ?? e.encUser ?? encUser,
 			grup: e.grupListe ?? e.grup ?? {}, icerik: e.icerikListe ?? e.icerik ?? {},
-			ozetMax: e.ozetMax ?? 5, kullanim: asSet(e.kullanim) ?? {}
-		});
+			ozetMax: e.ozetMax ?? 5, favorimi: asBool(e.favori ?? e.favorimi),
+			kullanim: asSet(e.kullanim) ?? {}
+		})
 		if (!isCopy) {
 			for (let key of ['grup', 'icerik']) {
-				let value = this[key], orjValue = value; if (isArray(value)) { value = asSet(value) }
-				if (value == null) { value = {} } if (value != orjValue) { this[key] = value }
+				let value = this[key], orjValue = value
+				if (isArray(value))
+					value = asSet(value)
+				if (value == null)
+					value = {}
+				if (value != orjValue)
+					this[key] = value
 			}
 		}
 	}
@@ -55,103 +68,192 @@ class DMQRapor extends DMQSayacliKA {
 	}
 	static rootFormBuilderDuzenle(e = {}) {
 		super.rootFormBuilderDuzenle(e)
-		let {rootBuilder: rfb, tanimFormBuilder: tanimForm} = e, kaForm = tanimForm.builders.find(fbd => fbd.id == 'kaForm');
-		let {inst} = e, {rapor, ozetMax, kullanim} = inst, {tabloYapi} = rapor, {kaListe, grupVeToplam} = tabloYapi;
-		let kaDict = {}; for (let ka of kaListe) { kaDict[ka.kod] = ka }
-		let tumAttrSet = asSet(keys(kaDict)), getKalanlarSource = selector => {
-			let {attrSet} = inst, tabloYapiItems = selector ? tabloYapi[selector] : null;
-			return keys(tumAttrSet).filter(attr => !attrSet[attr] && (!tabloYapiItems || tabloYapiItems[attr]))
+		let { inst, rootBuilder: rfb, tanimFormBuilder: tanimForm } = e
+		let kaForm = tanimForm.builders.find(fbd => fbd.id == 'kaForm')
+		let { id2Builder: { aciklama: fbd_aciklama } } = kaForm
+		let { rapor, rapor: { tabloYapi }, ozetMax, kullanim } = inst
+		let { kaListe, grupVeToplam } = tabloYapi
+		let kaDict = fromEntries(kaListe.map(ka => [ka.kod, ka]))
+		let tumAttrSet = asSet(keys(kaDict))
+		let getKalanlarSource = s => {
+			let t = s ? tabloYapi[s] : null
+			let {attrSet} = inst
+			return keys(tumAttrSet)
+				.filter(attr => !attrSet[attr] && (!t || t[attr]))
 		}
-		let className_listBox = 'listBox', ustHeight = '50px', contentTop = '13px';
-		let solWidth = '230px', ortaWidth = `calc(var(--full) - (${solWidth} + 10px))`;
-		let ortaHeight_grup = '35%', ortaHeight_icerik = `calc(var(--full) - (${ortaHeight_grup} + 5px))`; /*ortaHeight = 'calc((var(--full) / 2) - 5px)'*/;
-		if ($(window).width() >= 700) { ortaHeight_grup = ortaHeight_icerik = 'calc(var(--full) - 50px)' }
-		tanimForm.addStyle(e => `$elementCSS { --ustHeight: ${ustHeight} }`);
-		kaForm.yanYana().addStyle(e => `$elementCSS { --ozetMax-width: 80px; --sag-width: calc(var(--ozetMax-width) + 230px); margin: 10px 0 0 0 !important; padding 0 !important }`);
-		kaForm.id2Builder.aciklama.addStyle_wh(`calc(var(--full) - var(--sag-width)) !important`).addStyle(e => `$elementCSS { max-width: unset !important }`);
-		kaForm.addNumberInput('ozetMax', 'İlk ... kayıt').addStyle_wh('var(--ozetMax-width)')
-			.setVisibleKosulu(({ builder: fbd }) => rapor.rapor.class.ozetVarmi ? true : 'jqx-hidden');
-		let form = kaForm.addFormWithParent('kullanim');
-			form.addModelKullan('yatayAnaliz', 'Çapraz').setInst(null).dropDown().noMF().kodsuz().listedenSecilemez()
+		let className_listBox = 'listBox', ustHeight = '70px', contentTop = '3px'
+		let solWidth = '230px', ortaWidth = `calc(var(--full) - (${solWidth} + 10px))`
+		let ortaHeight_grup = '35%', ortaHeight_icerik = `calc(var(--full) - (${ortaHeight_grup} + 10px))`
+		// ortaHeight = 'calc((var(--full) / 2) - 5px)'
+		if ($(window).width() >= 700)
+			ortaHeight_grup = ortaHeight_icerik = 'calc(var(--full) - 50px)'
+		tanimForm.addStyle(e => `$elementCSS { --ustHeight: ${ustHeight} }`)
+		kaForm.yanYana().addStyle(
+			`$elementCSS {
+				--ozetMax-width: 80px;
+				--sag-width: calc(var(--ozetMax-width) + 250px);
+				margin: 10px 0 0 0 !important; padding 0 !important
+			}`)
+		fbd_aciklama
+			.addStyle_wh(`calc(var(--full) - var(--sag-width)) !important`)
+			.addStyle(`$elementCSS { max-width: unset !important }`)
+		
+		kaForm.addNumberInput('ozetMax', 'İlk ... kayıt')
+			.addStyle_wh('var(--ozetMax-width)')
+			.setVisibleKosulu(({ builder: fbd }) =>
+				rapor.rapor.class.ozetVarmi ? true : 'jqx-hidden')
+		{
+			let form = kaForm.addFormWithParent('kullanim').yanYana()
+				.addStyle_wh(200)
+				.addStyle(`$elementCSS { margin-left: 10px }`)
+			form.addModelKullan('yatayAnaliz', 'Çapraz')
+				.addStyle_wh(200).addCSS('relative')
+				.setInst(null).dropDown().noMF()
+				.kodsuz().listedenSecilemez()
 				.setSource(e => {
-					let result = [new CKodVeAdi(['', ''])];
-					for (let [kod, {text: aciklama}] of entries(DRapor_AraSeviye_Main.yatayTip2Bilgi)) {
-						result.push(new CKodVeAdi({ kod, aciklama })) }
+					let result = [ new CKodVeAdi(['', '']) ]
+					for (let [kod, {text: aciklama}] of entries(DRapor_AraSeviye_Main.yatayTip2Bilgi))
+						result.push(new CKodVeAdi({ kod, aciklama }))
 					return result
 				})
-				.setValue(kullanim.yatayAnaliz).degisince(({ value }) => kullanim.yatayAnaliz = value)
-				.setVisibleKosulu(({ builder: fbd }) => rapor.rapor.class.yatayAnalizVarmi ? true : 'jqx-hidden')
-		let fbd_content = tanimForm.addFormWithParent('content').yanYana().addStyle_fullWH(null, 'calc(var(--full) - var(--ustHeight) - var(--top) + 8px)').addStyle([e =>
-			`$elementCSS { --top: ${contentTop}; position: relative; top: var(--top); z-index: 100 }
-			 $elementCSS > div .${className_listBox} { --label-height: 30px; --label-margin-bottom: 20px }
-			 $elementCSS > div .${className_listBox} > label { font-size: 180%; color: #999; height: var(--label-height); padding-bottom: var(--label-margin-bottom) }
-			 $elementCSS > div .${className_listBox} > :not(label) { vertical-align: top; height: calc(var(--full) - var(--label-height) - var(--label-margin-bottom)) !important }
-			 $elementCSS > div .${className_listBox} > .jqx-listbox .jqx-listitem-element { font-size: 110% }`]);
+				.setValue(kullanim.yatayAnaliz)
+				.degisince(({ value: v }) =>
+					kullanim.yatayAnaliz = v)
+				.setVisibleKosulu(({ builder: fbd }) =>
+					rapor.rapor.class.yatayAnalizVarmi ? true : 'jqx-hidden')
+			form.addCheckBox('filtreKaydedilirmi', 'Filtre Kaydet')
+				.addStyle_wh(100).addCSS('relative')
+				.addStyle(`$elementCSS { min-width: unset !important; margin-top: 10px !important }`)
+			form.addCheckBox('favorimi', 'Favori')
+				.addStyle_wh(100).addCSS('relative')
+				.addStyle(`$elementCSS { min-width: unset !important; margin-top: 10px !important }`)
+				.setAltInst(inst)
+		}
+		let fbd_content = tanimForm.addFormWithParent('content').yanYana()
+			.addStyle_fullWH(null, 'calc(var(--full) - var(--ustHeight) - var(--top) + 8px)')
+			.addStyle(...[
+				`$elementCSS { --top: ${contentTop}; position: relative; top: var(--top); z-index: 100 }
+				 $elementCSS > div .${className_listBox} { --label-height: 30px; --label-margin-bottom: 20px }
+				 $elementCSS > div .${className_listBox} > label { font-size: 180%; color: #999; height: var(--label-height); padding-bottom: var(--label-margin-bottom) }
+				 $elementCSS > div .${className_listBox} > :not(label) { vertical-align: top; height: calc(var(--full) - var(--label-height) - var(--label-margin-bottom)) !important }
+				 $elementCSS > div .${className_listBox} > .jqx-listbox .jqx-listitem-element { font-size: 110% }`
+			])
 		let kalanlarSourceDuzenlenmis = _source => {
-			if (_source?.length) { _source = _source.filter(({ kod }) => grupVeToplam[kod] && !grupVeToplam[kod].isHidden ) }
-			_source = [..._source, ...(new Array(10).fill(null).map(x => ({ /*group: ' ',*/ disabled: true })))];
+			if (_source?.length) 
+				_source = _source.filter(({ kod }) => grupVeToplam[kod] && !grupVeToplam[kod].isHidden )
+			_source = [
+				..._source,
+				...( new Array(10).fill(null).map(x => ({ /*group: ' ',*/ disabled: true })) )
+			]
 			/*for (let item of _source) {
 				let kod = item?.kod; if (kod == null) { continue }
 				item.group = `${tabloYapi.grup[kod] ? '- Grup -' : tabloYapi.toplam[kod] ? '- Toplam -' : ''}`
 			}*/
 			return _source
 		};
-		let updateKalanlarDS = listBox => listBox.jqxListBox('source', kalanlarSourceDuzenlenmis(getKalanlarSource(listBox.data('selector')).map(kod => kaDict[kod])));
+		let updateKalanlarDS = listBox =>
+			listBox.jqxListBox('source',
+			   kalanlarSourceDuzenlenmis(getKalanlarSource(listBox.data('selector')).map(kod => kaDict[kod])))
 		let initListBox = e => {
-			let {builder, source} = e, {id, altInst, input, userData} = builder, selector = userData?.selector;
-			if (source == null) { source = (id.startsWith('kalanlar') ? getKalanlarSource(selector) : altInst[id] ?? []).map(kod => kaDict[kod]) }
-			if (source?.length && typeof source[0] != 'object') { source = source.map(kod => new CKodVeAdi({ kod, aciklama: kod })) }
-			if (id.startsWith('kalanlar')) { source = kalanlarSourceDuzenlenmis(source) } if (source) { source = source.filter(x => !!x) }
-			if (source?.length) { source = source.filter(({ kod }) => grupVeToplam[kod] && !grupVeToplam[kod].isHidden ) }
-			let width = '100%', height = width, valueMember = 'kod', displayMember = 'aciklama';
-			let allowDrop = true, allowDrag = allowDrop, autoHeight = false, itemHeight = 36, scrollBarSize = 20;
-			let filterable = true, filterHeight = 40, filterPlaceHolder = 'Bul', searchMode = 'containsignorecase';
-			input.prop('id', id); if (selector != null) { input.data('selector', selector) }
-			input.jqxListBox({ theme, width, height, valueMember, displayMember, source, allowDrag, allowDrop, autoHeight, itemHeight, scrollBarSize, filterable, filterHeight, filterPlaceHolder, searchMode });
-			let changeHandler = evt => {
-				let target = evt.currentTarget, {id} = target, args = evt.args ?? {}, {owner, type} = args, {vScrollInstance} = owner ?? {};
+			let {builder, source} = e
+			let {id, altInst, input, userData} = builder
+			let selector = userData?.selector
+			if (source == null)
+				source = (id.startsWith('kalanlar') ? getKalanlarSource(selector) : altInst[id] ?? []).map(kod => kaDict[kod])
+			if (source?.length && !isObject(source[0]))
+				source = source.map(kod => new CKodVeAdi({ kod, aciklama: kod }))
+			if (id.startsWith('kalanlar'))
+				source = kalanlarSourceDuzenlenmis(source)
+			source = source?.filter(Boolean)
+			if (!empty(source))
+				source = source.filter(({ kod }) => grupVeToplam[kod] && !grupVeToplam[kod].isHidden )
+			let width = '100%', height = width, valueMember = 'kod', displayMember = 'aciklama'
+			let allowDrop = true, allowDrag = allowDrop, autoHeight = false, itemHeight = 36, scrollBarSize = 20
+			let filterable = true, filterHeight = 40, filterPlaceHolder = 'Bul', searchMode = 'containsignorecase'
+			input.prop('id', id)
+			if (selector != null)
+				input.data('selector', selector)
+			input.jqxListBox({
+				theme, width, height, valueMember, displayMember, source, allowDrag, allowDrop, autoHeight,
+				itemHeight, scrollBarSize, filterable, filterHeight, filterPlaceHolder, searchMode
+			})
+			let changeHandler = ({ currentTarget: target, args = {} }) => {
+				let { type, owner = {} } = args
+				let { vScrollInstance } = owner
 				if (id.startsWith('kalanlar')) {
 					if (!type || type == 'none') {
-						if (vScrollInstance?.value) { owner._lastScrollValue = vScrollInstance.value }
-						clearTimeout(this._timer_kalanlarTazele); this._timer_kalanlarTazele = setTimeout(() => {
+						if (vScrollInstance?.value)
+							owner._lastScrollValue = vScrollInstance.value
+						clearTimeout(this._timer_kalanlarTazele)
+						this._timer_kalanlarTazele = setTimeout(() => {
 							try {
-								updateKalanlarDS($(target)); let {_lastScrollValue} = owner ?? {};
-								if (_lastScrollValue) { owner.scrollTo(0, _lastScrollValue) }
+								updateKalanlarDS($(target))
+								let {_lastScrollValue} = owner
+								if (_lastScrollValue)
+									owner.scrollTo(0, _lastScrollValue)
 							}
 							finally { delete this._timer_kalanlarTazele }
 						}, 20)
 					}
 				}
-				else { let items = $(target).jqxListBox('getItems'); altInst[id] = items.map(item => item.value) }
+				else {
+					let items = $(target).jqxListBox('getItems')
+					altInst[id] = items.map(_ => _.value)
+				}
 			};
-			input.on('change', changeHandler); input.on('dragEnd', changeHandler);
-			if (id.startsWith('kalanlar')) { setTimeout(input => updateKalanlarDS(input), 10, input) }
+			input.on('change', changeHandler)
+			input.on('dragEnd', changeHandler)
+			if (id.startsWith('kalanlar'))
+				setTimeout(input => updateKalanlarDS(input), 10, input)
 		};
-		let fbd_sol = fbd_content.addFormWithParent('sol').altAlta().addStyle_fullWH(solWidth);
-		let fbd_tabs = fbd_sol.addTabPanel('kalanlar').addStyle_fullWH().tabPageChangedHandler(e => {
-			for (let fbd_tabPage of e.builder.builders) {
-				let {input} = fbd_tabPage.builders[0];
-				if (input?.length) { setTimeout(input => { updateKalanlarDS(input) /*input.jqxListBox('refresh')*/ }, 20, input) } }
-		});
-		fbd_tabs.addTab('grup', 'Sabitler').addStyle_fullWH().addDiv('kalanlar_grup').setEtiket('Kalanlar').etiketGosterim_yok().addCSS(className_listBox).addStyle_fullWH().setUserData({ selector: 'grup' }).onAfterRun(e => initListBox(e));
-		fbd_tabs.addTab('toplam', 'Toplamlar').addStyle_fullWH().addDiv('kalanlar_toplam').setEtiket('Kalanlar').etiketGosterim_yok().addCSS(className_listBox).addStyle_fullWH().setUserData({ selector: 'toplam' }).onAfterRun(e => initListBox(e));
-		let fbd_orta = fbd_content.addFormWithParent('orta').yanYana().addStyle_fullWH(ortaWidth)
-			.addStyle(e => `$elementCSS > .formBuilder-element { max-width: 250px !important; min-width: 150px !important; min-height: 200px !important }`)
-		fbd_orta.addDiv('grupListe').setEtiket('Grup').addCSS(className_listBox).addStyle_fullWH(null, ortaHeight_grup).onAfterRun(e => initListBox(e));
-		fbd_orta.addDiv('icerikListe').setEtiket('İçerik').addCSS(className_listBox).addStyle_fullWH(null, ortaHeight_icerik).onAfterRun(e => initListBox(e));
+		let fbd_sol = fbd_content.addFormWithParent('sol').altAlta().addStyle_fullWH(solWidth)
+		let fbd_tabs = fbd_sol.addTabPanel('kalanlar')
+			.addStyle_fullWH()
+			.tabPageChangedHandler(({ builder: { builders } }) => {
+				for (let fbd_tabPage of builders) {
+					let {input} = fbd_tabPage.builders[0]
+					if (input?.length) 
+						setTimeout(input => updateKalanlarDS(input), 20, input)
+				}
+			})
+		fbd_tabs.addTab('grup', 'Sabitler').addStyle_fullWH().addDiv('kalanlar_grup')
+			.setEtiket('Kalanlar') .etiketGosterim_yok()
+			.addCSS(className_listBox).addStyle_fullWH()
+			.setUserData({ selector: 'grup' })
+			.onAfterRun(e => initListBox(e))
+		fbd_tabs.addTab('toplam', 'Toplamlar').addStyle_fullWH().addDiv('kalanlar_toplam')
+			.setEtiket('Kalanlar').etiketGosterim_yok()
+			.addCSS(className_listBox).addStyle_fullWH()
+			.setUserData({ selector: 'toplam' })
+			.onAfterRun(e => initListBox(e))
+		let fbd_orta = fbd_content.addFormWithParent('orta').yanYana()
+			.addStyle_fullWH(ortaWidth)
+			.addStyle(`$elementCSS > .formBuilder-element { max-width: 250px !important; min-width: 150px !important; min-height: 200px !important }`)
+		fbd_orta.addDiv('grupListe')
+			.setEtiket('Grup').addCSS(className_listBox)
+			.addStyle_fullWH(null, ortaHeight_grup)
+			.onAfterRun(e => initListBox(e))
+		fbd_orta.addDiv('icerikListe')
+			.setEtiket('İçerik').addCSS(className_listBox)
+			.addStyle_fullWH(null, ortaHeight_icerik)
+			.onAfterRun(e => initListBox(e))
 		rfb.onAfterRun(({ builder: fbd }) => {
 			setTimeout(() => {
-				let {wnd_raporTanim: wnd} = fbd.inst.rapor;
+				let { rapor: { wnd_raporTanim: wnd }} = fbd.inst
 				wnd?.jqxWindow('resize')
 			}, 1)
 		})
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
-		super.orjBaslikListesiDuzenle(...arguments); liste.push(
-			new GridKolon({ belirtec: 'grupbelirtecler', text: 'Gruplar', maxWidth: 500 }), new GridKolon({ belirtec: 'icerikbelirtecler', text: 'İçerikler', maxWidth: 500 }),
+		super.orjBaslikListesiDuzenle(...arguments)
+		liste.push(
+			new GridKolon({ belirtec: 'grupbelirtecler', text: 'Gruplar', maxWidth: 500 }),
+			new GridKolon({ belirtec: 'icerikbelirtecler', text: 'İçerikler', maxWidth: 500 }),
 			new GridKolon({ belirtec: 'ilkxsayi', text: 'Özet Sayı', genislikCh: 10 }).tipNumerik(),
+			new GridKolon({ belirtec: 'bfavori', text: 'Favori?', genislikCh: 10 }).tipBool(),
 			new GridKolon({ belirtec: 'xuserkod', text: 'Kullanıcı', genislikCh: 10 }),
-			new GridKolon({ belirtec: 'kullanim', text: 'Kullanım', genislikCh: 100 })
+			new GridKolon({ belirtec: 'kullanim', text: 'Kullanım', genislikCh: 100 }),
+			new GridKolon({ belirtec: 'id', text: 'ID', genislikCh: 40 })
 		)
 	}
 	static loadServerData_queryDuzenle(e) {
@@ -179,7 +281,8 @@ class DMQRapor extends DMQSayacliKA {
 	}
 	async dataDuzgunmu(e) { await super.dataDuzgunmu(e); return await this.dataDuzgunmuDevam(e) }
 	dataDuzgunmuDevam(e) {
-		let {rapor} = this, {tabloYapi} = rapor, {toplam} = tabloYapi, {grup, icerik, kullanim} = this, {yatayAnaliz} = kullanim;
+		let {rapor} = this, {tabloYapi} = rapor, {toplam} = tabloYapi, {grup, icerik, kullanim} = this
+		let {yatayAnaliz} = kullanim
 		let normalIcerikVarmi = false, toplanabilirVarmi = false, grupUygunmu = true;
 		for (let key in grup) { if (toplam[key]) { grupUygunmu = false; break } }
 		for (let key in icerik) {
@@ -226,7 +329,7 @@ class DMQRapor extends DMQSayacliKA {
 	keySetValues({ rec }) {
 		super.keySetValues(...arguments)
 		let {class: { adiSaha }} = this
-		$.extend(this, { aciklama: rec[adiSaha] })
+		$.extend(this, { id: rec.id, aciklama: rec[adiSaha] })
 	}
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments)
@@ -235,15 +338,25 @@ class DMQRapor extends DMQSayacliKA {
 			return isArray(value) ? value.filter(x => !!x).map(x => x.trim()).join(delimWS) : (value?.trim() || '')
 		}
 		$.extend(hv, {
+			// id: this.id,
 			/*raportip: this.raporKod, xuserkod: this.encUser || '',*/
 			grupbelirtecler: liste2HV(this.grup), icerikbelirtecler: liste2HV(this.icerik),
-			ilkxsayi: this.ozetMax, kullanim: toJSONStr(this.kullanim ?? {})
+			ilkxsayi: this.ozetMax, bfavori: asInteger(this.favorimi),
+			kullanim: toJSONStr(this.kullanim ?? {})
 		})
+		let {secimler, filtreKaydedilirmi} = this
+		if (secimler && filtreKaydedilirmi) {
+			let {asObject: data} = secimler
+			data = data ? Base64.encode(JSON.stringify(data)) : ''
+			if (data)
+				hv.secimlerstr = data
+		}
 	}
 	setValues({ rec }) {
 		super.setValues(...arguments)
 		let getListe = value =>
-			value ? asSet(value.split(delimWS).filter(x => !!x).map(x => x.trim())) : {}
+			value ? asSet(value.split(delimWS)
+						.filter(Boolean).map(x => x.trim())) : {}
 		let kullanim
 		try {
 			let {kullanim: value} = rec
@@ -252,19 +365,39 @@ class DMQRapor extends DMQSayacliKA {
 		}
 		catch (ex) { cerr(ex) }
 		kullanim ??= {}
+		kullanim.filtreKaydedilirmi ??= false
 		$.extend(this, {
 			encUser: rec.xuserkod || '',
 			grup: getListe(rec.grupbelirtecler),
 			icerik: getListe(rec.icerikbelirtecler),
-			ozetMax: rec.ilkxsayi, kullanim
+			ozetMax: rec.ilkxsayi, favorimi: asBool(rec.bfavori),
+			kullanim
 		})
+		let {secimler, filtreKaydedilirmi} = this
+		if (secimler && filtreKaydedilirmi) {
+			let {secimlerstr: data} = rec
+			try { data = data ? JSON.parse(Base64.decode(data)) : null }
+			catch (ex) {
+				data = null
+				hConfirm(getErrorText(ex))
+				cerr(ex)
+			}
+			if (data) {
+				secimler.readFromObject(data)
+				this.secimlerPart?.destroyPart()
+			}
+		}
 	}
 	addGrup(...liste) { return this.addSaha('grup', ...liste) }
 	addIcerik(...liste) { return this.addSaha('icerik', ...liste) }
 	addSaha(selector, ...liste) {
 		let target = this[selector]; for (let kod of liste) {
-			if (isArray(kod)) { this.addSaha(selector, ...kod); continue }
-			if (kod) { target[kod] = true }
+			if (isArray(kod)) {
+				this.addSaha(selector, ...kod)
+				continue
+			}
+			if (kod)
+				target[kod] = true
 		}
 		return this
 	}

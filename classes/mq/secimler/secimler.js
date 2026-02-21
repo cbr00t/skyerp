@@ -32,9 +32,9 @@ class Secimler extends CIO {
 	}
 	get asObject() {
 		let _e = { _reduce: true }
-		this.writeTo(_e)
+		this.writeToObject(_e)
 		delete _e._reduce
-		for (let key of Object.keys(_e)) {
+		for (let key of keys(_e)) {
 			if (key[0] == '_') {
 				delete _e[key]
 				continue
@@ -86,7 +86,7 @@ class Secimler extends CIO {
 		return true
 	}
 	readFromObject(e, _disabled) {
-		let data = isObject(e) ? e.data : e
+		let data = e?.data ?? e
 		let disabled = isObject(e) ? e.disabled : _disabled
 		let key2Sec = data
 		if (isString(key2Sec)) {
@@ -111,8 +111,26 @@ class Secimler extends CIO {
 				}
 				if (disabled)
 					sec.hidden()
+				else
+					sec.visible()
 			}
 			catch (ex) { cerr(ex) }
+		}
+		return this
+	}
+	writeToObject(e = {}) {
+		let target = e?.target ?? e
+		delete target._reduce
+		let {liste} = this
+		for (let [key, sec] of entries(liste)) {
+			if (!sec)
+				continue
+			let item = sec.asObject
+			if (item)
+				delete item._reduce
+			if (empty(item))
+				continue
+			target[key] = item
 		}
 		return this
 	}
@@ -313,7 +331,7 @@ class DonemselSecimler extends Secimler {
 						result.push(e.value?.aciklama ?? kod)
 					return result
 				}),
-			tarihAralik: new SecimDate({ etiket: 'Tarih', grupKod }).hidden()
+			tarihAralik: new SecimDate({ etiket: 'Tarih', grupKod })
 		});
 		super.listeOlustur(...arguments)
 	}
@@ -321,14 +339,14 @@ class DonemselSecimler extends Secimler {
 		super.initHTMLElements_son(...arguments);
 		let part = secim2Info?.donem?.element?.find('.ddList')?.data('part')
 		let {donem: sec_donem, tarihAralik: sec_tarihBS} = secim2Info
-		let {tarihAralikmi} = sec_donem.secim.tekSecim
+		let {isHidden: tarihBS_wasHidden} = sec_tarihBS.secim
 		if (part) {
 			let updateVisible = () =>
-				sec_tarihBS.element[tarihAralikmi ? 'removeClass' : 'addClass']('jqx-hidden')
-			if (!sec_tarihBS.secim.isHidden)
+				sec_tarihBS.element[sec_donem.secim.tekSecim.tarihAralikmi ? 'removeClass' : 'addClass']('jqx-hidden')
+			if (!tarihBS_wasHidden)
 				updateVisible()
 			part.degisince(e => {
-				if (!sec_tarihBS.secim.isHidden)
+				if (!tarihBS_wasHidden)
 					updateVisible()
 			})
 		}

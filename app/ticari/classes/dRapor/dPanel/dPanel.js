@@ -277,7 +277,10 @@ class DPanel extends Part {
 		return timer
 	}
 	otoTazele_timerProc(e) {
-		let {_otoTazeleDk: otoTazeleDk, _inTazeleProc} = this, {appActivatedFlag} = window
+		let { _otoTazeleDk: otoTazeleDk, _inTazeleProc, _otoTazeleDisabled, builder: { part: rootPart } } = this
+		let { activeWndPart } = app, { appActivatedFlag } = window
+		if (_otoTazeleDisabled || activeWndPart != rootPart)
+			return
 		if (!otoTazeleDk)
 			otoTazeleDk = Math.max(otoTazeleDk, .05)
 		if (!(otoTazeleDk && window.appActivatedFlag) || _inTazeleProc)

@@ -26,9 +26,12 @@ class SecimText extends SecimOzel {
 		let cssClasses = e.cssClasses || e.css || []; if (cssClasses && typeof cssClasses == 'string') { cssClasses = cssClasses.split(' ').filter(x => !!x) }
 		this.cssClasses = cssClasses; return true
 	}
-	writeTo(e) {
-		e = e || {}; if (!super.writeTo(e)) { return false }
-		let {cssClasses} = this; if (!$.isEmptyObject(cssClasses)) { e.cssClasses = cssClasses } return true
+	writeTo(e = {}) {
+		if (!super.writeTo(e)) { return false }
+		let {cssClasses} = this
+		if (!empty(cssClasses))
+			e.cssClasses = cssClasses
+		return true
 	}
 	buildHTMLElementStringInto(e) {
 		super.buildHTMLElementStringInto(e); let cssClasses = this.cssClasses || [], cssStr = $.isEmptyObject(cssClasses) ? '' : ` ${cssClasses.join(' ')}`;
@@ -218,8 +221,10 @@ class SecimTekSecim extends SecimOzel {
 		}
 		this.tekSecim = tekSecim
 		let {value, defaultValue} = this
-		if (value == null && defaultValue != null) { value = defaultValue }
-		if (value != null) { tekSecim.char = value }
+		if (value == null && defaultValue != null)
+			value = defaultValue
+		if (value != null)
+			tekSecim.char = value
 		this.autoBindFlag = e.autoBind ?? e.autoBindFlag ?? false
 		this.disindakilermi = e.disindakilermi ?? e.disindakiler ?? false
 		return true
@@ -228,11 +233,12 @@ class SecimTekSecim extends SecimOzel {
 		if (!super.writeTo(e))
 			return false
 		let {_reduce: reduce} = e, {disindakilermi, kaListe} = this
-		e.birKismimi = true
 		if (disindakilermi)
 			e.disindakilermi = true
 		if (!reduce && kaListe != null)
 			e.kaListe = kaListe
+		if (reduce && keys(e).length > 1)
+			e.b = true
 		return true
 	}
 	temizle(e) { 
@@ -355,7 +361,8 @@ class SecimBirKismi extends SecimTekSecim {
 	readFrom(e) {
 		if (!super.readFrom(e))
 			return false
-		this.hepsimi = e.hepsimi ?? true
+		let birKismimi = e.b ?? e.birKismi ?? e.birKismimi
+		this.hepsimi = e.hepsimi ?? (birKismimi == null ? true : !birKismimi)
 		return true
 	}
 	writeTo(e) {
@@ -363,7 +370,9 @@ class SecimBirKismi extends SecimTekSecim {
 			return false
 		let {hepsimi} = this
 		if (!hepsimi)
-			e.hepsimi = false
+			e.b = true
+		if (e._reduce && (e.b ?? e.birKismimi) && keys(e).length == 2)
+			deleteKeys(e, 'b', 'birKismimi')
 		return true
 	}
 	temizle(e) { 
@@ -372,18 +381,20 @@ class SecimBirKismi extends SecimTekSecim {
 		return this
 	}
 	uygunmuDevam(kod) {
-		if (this.hepsimi) { return true } let values = $.makeArray(this.value);
-		for (let value of values) { if (value == kod) { return true } }
+		if (this.hepsimi) { return true }
+		let _values = $.makeArray(this.value)
+		for (let value of _values) { if (value == kod) { return true } }
 		return false
 	}
 	uiSetValues(e) {
 		super.uiSetValues(e); let {parent} = e; if (!parent?.length) { return false }
-		let {hepsimi} = this; parent.find('.hepsimi').val(hepsimi); this.hepsimiDegisti(e);
-		$.extend(e, { value: this.getConvertedValue(this.value) }); this.class.uiSetValues_birKismi(e)
+		let {hepsimi} = this; parent.find('.hepsimi').val(hepsimi); this.hepsimiDegisti(e)
+		$.extend(e, { value: this.getConvertedValue(this.value) })
+		this.class.uiSetValues_birKismi(e)
 	}
 	static uiSetValues_birKismi(e) {
 		let {parent} = e; if (!parent?.length) { return false }
-		let birKismiParent = parent.find('.birKismi-parent'), ddList = birKismiParent.find('.ddList'), value = e.value ?? null;
+		let birKismiParent = parent.find('.birKismi-parent'), ddList = birKismiParent.find('.ddList'), value = e.value ?? null
 		if (value != null) { ddList.val(value) } else { parent.jqxDropDownList('uncheckAll') }
 	}
 	initHTMLElements(e) {

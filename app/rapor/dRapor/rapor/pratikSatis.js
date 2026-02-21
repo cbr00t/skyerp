@@ -115,16 +115,30 @@ class DRapor_PratikSatis extends DRaporMQ {
 					this._acc_initCollapsedContent_ortak({ ...e, item, layout, rfb: getRFB(layout) })
 			})
 			.add({
-				id: 'tahsilatVeKdv', title: 'Tahsilat ve KDV', expanded: false,
+				id: 'tahsilat', title: 'Tahsilat', expanded: false,
 				content: ({ item, item: { contentLayout: layout } }) =>
-					setTimeout(() => this.acc_initContent_tahsilatVeKdv({ ...e, item, layout, rfb: getRFB(layout) }), 100),
+					setTimeout(() => this.acc_initContent_tahsilat({ ...e, item, layout, rfb: getRFB(layout) }), 100),
 				collapsedContent: ({ sender: acc, item, item: { contentLayout: layout } }) => 
 					this._acc_initCollapsedContent_ortak({ ...e, item, layout, rfb: getRFB(layout) })
 			})
 			.add({
-				id: 'diger', title: 'Diğer', expanded: false,
+				id: 'kdv', title: 'KDV', expanded: false,
 				content: ({ item, item: { contentLayout: layout } }) =>
-					setTimeout(() => this.acc_initContent_diger({ ...e, item, layout, rfb: getRFB(layout) }), 100),
+					setTimeout(() => this.acc_initContent_kdv({ ...e, item, layout, rfb: getRFB(layout) }), 100),
+				collapsedContent: ({ sender: acc, item, item: { contentLayout: layout } }) => 
+					this._acc_initCollapsedContent_ortak({ ...e, item, layout, rfb: getRFB(layout) })
+			})
+			.add({
+				id: 'kasiyer', title: 'Kasiyer', expanded: false,
+				content: ({ item, item: { contentLayout: layout } }) =>
+					setTimeout(() => this.acc_initContent_kasiyer({ ...e, item, layout, rfb: getRFB(layout) }), 100),
+				collapsedContent: ({ sender: acc, item, item: { contentLayout: layout } }) => 
+					this._acc_initCollapsedContent_ortak({ ...e, item, layout, rfb: getRFB(layout) })
+			})
+			.add({
+				id: 'sube', title: 'Şube', expanded: false,
+				content: ({ item, item: { contentLayout: layout } }) =>
+					setTimeout(() => this.acc_initContent_sube({ ...e, item, layout, rfb: getRFB(layout) }), 100),
 				collapsedContent: ({ sender: acc, item, item: { contentLayout: layout } }) => 
 					this._acc_initCollapsedContent_ortak({ ...e, item, layout, rfb: getRFB(layout) })
 			})
@@ -322,7 +336,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 		
 		rfb.run()
 	}
-	async acc_initContent_tahsilatVeKdv({ tanimPart, islem, acc, item, layout, rfb }) {
+	async acc_initContent_tahsilat({ tanimPart, islem, acc, item, layout, rfb }) {
 		// rfb.addStyle_fullWH()
 		let form = rfb.addFormWithParent().yanYana()
 			.addStyle(`$elementCSS > div { overflow-y: auto !important }`)
@@ -330,7 +344,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 		// tahsilat
 		;{
 			form.addGridliGosterici('tahsilat')
-				.addStyle_fullWH(450, 200)
+				.addStyle_fullWH(450, 500)
 				.rowNumberOlmasin().notAdaptive()
 				.setToplamYapi({ etiket: { belirtec: 'aciklama' } })
 				.widgetArgsDuzenleIslemi(({ args }) =>
@@ -367,11 +381,18 @@ class DRapor_PratikSatis extends DRaporMQ {
 					return recs
 				})
 		}
+		
+		rfb.run()
+	}
+	async acc_initContent_kdv({ tanimPart, islem, acc, item, layout, rfb }) {
+		// rfb.addStyle_fullWH()
+		let form = rfb.addFormWithParent().yanYana()
+			.addStyle(`$elementCSS > div { overflow-y: auto !important }`)
 
 		// matrah ve kdv
 		;{
 			form.addGridliGosterici('matrahKdv')
-				.addStyle_fullWH(450, 200)
+				.addStyle_fullWH(450, 500)
 				.rowNumberOlmasin().notAdaptive()
 				.setToplamYapi({ etiket: { belirtec: 'text' } })
 				.widgetArgsDuzenleIslemi(({ args }) =>
@@ -413,7 +434,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 		
 		rfb.run()
 	}
-	async acc_initContent_diger({ tanimPart, islem, acc, item, layout, rfb }) {
+	async acc_initContent_kasiyer({ tanimPart, islem, acc, item, layout, rfb }) {
 		// rfb.addStyle_fullWH()
 		let form = rfb.addFormWithParent().yanYana()
 			// .addStyle_fullWH()
@@ -422,7 +443,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 		// kasiyer
 		;{
 			form.addGridliGosterici('kasiyer')
-				.addStyle_fullWH(450, 250)
+				.addStyle_fullWH(450, 500)
 				.rowNumberOlmasin().notAdaptive()
 				.setToplamYapi({ etiket: { belirtec: 'aciklama' } })
 				.widgetArgsDuzenleIslemi(({ args }) =>
@@ -458,11 +479,19 @@ class DRapor_PratikSatis extends DRaporMQ {
 					return recs
 				})
 		}
+		
+		rfb.run()
+	}
+	async acc_initContent_sube({ tanimPart, islem, acc, item, layout, rfb }) {
+		// rfb.addStyle_fullWH()
+		let form = rfb.addFormWithParent().yanYana()
+			// .addStyle_fullWH()
+			.addStyle(`$elementCSS > div { overflow-y: auto !important }`)
 
 		// şube
 		;{
 			form.addGridliGosterici('sube')
-				.addStyle_fullWH(450, 250)
+				.addStyle_fullWH(450, 300)
 				.rowNumberOlmasin().notAdaptive()
 				.setToplamYapi({ etiket: { belirtec: 'aciklama' } })
 				.widgetArgsDuzenleIslemi(({ args }) =>
