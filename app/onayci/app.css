@@ -6,12 +6,22 @@
 .MQOnayci.masterListe.part .header .islemTuslari button#red.jqx-fill-state-normal { background: indianred }
 .MQOnayci.masterListe.part .header .islemTuslari button#red { margin-left: 3px }
 .MQOnayci.masterListe.part .header .islemTuslari button#eIslemIzle { margin-left: 15px; margin-right: 8px }
-
+.MQOnayci.masterListe.part .jqx-grid [role = row] > div > div { font-size: 90% !important; padding-top: 3px !important }
+.MQOnayci.masterListe.part .jqx-grid [role = row] > div > div,
+	.MQOnayci.masterListe.part .jqx-grid [role = row] > div > div > div { line-height: 18px !important }
 @media (max-width: 1000px) {
 	.MQOnayci.masterListe.part .header .islemTuslari { --width-sag: 400px !important }
 	.MQOnayci.masterListe.part .header .islemTuslari button#onay,
 		.masterListe.part .header .islemTuslari button#red { width: 60px }
-	.MQOnayci.masterListe.part .jqx-grid [role = row] > div > div { font-size: 87% !important }
+	.MQOnayci.masterListe.part .jqx-grid [role = row] > div > div { font-size: 87% !important; padding-top: 3px !important }
+	.MQOnayci.masterListe.part .jqx-grid [role = row] > div > div,
+		.MQOnayci.masterListe.part .jqx-grid [role = row] > div > div > div { line-height: 16px !important }
+}
+@media (max-width: 800px) {
+	.MQOnayci.masterListe.part .header .islemTuslari { --width-sag: 350px !important }
+	.MQOnayci.masterListe.part .header .islemTuslari button#onay,
+		.masterListe.part .header .islemTuslari button#red { width: 55px }
+	.MQOnayci.masterListe.part .jqx-grid [role = row] > div > div { font-size: 90% !important; padding-top: 2px !important }
 	.MQOnayci.masterListe.part .jqx-grid [role = row] > div > div,
 		.MQOnayci.masterListe.part .jqx-grid [role = row] > div > div > div { line-height: 15px !important }
 }

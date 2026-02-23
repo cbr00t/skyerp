@@ -352,9 +352,12 @@ class HizmetHareketci extends Hareketci {
 						/* dbSent.js: yeni method:
 								fis2DegAdresBagla(e) { this.fromIliski('degiskenadres dadr', 'fis.degiskenvknox = dadr.vknox'); return this } */
 						sent.fisHareket('piffis', 'pifhizmet').fis2CariBagla().har2KatDetayBagla().fis2DegAdresBagla()
-						let {where: wh} = sent; wh.fisSilindiEkle()
+						let {where: wh} = sent
+						wh.fisSilindiEkle()
 						wh.inDizi(pifTipleri, 'fis.piftipi')
-						if (ayrimTipEkClauses.length) { wh.add(...ayrimTipEkClauses) }
+						wh.add(`fis.ayrimtipi <> 'IN'`)
+						if (ayrimTipEkClauses.length)
+							wh.add(...ayrimTipEkClauses)
 					})
 					.hvDuzenleIslemi(({ hv }) => {
 						$.extend(hv, {
@@ -385,8 +388,12 @@ class HizmetHareketci extends Hareketci {
 							(giderPusula || perakende ? 'P' : null)
 						].filter(x => x != null);
 						sent.fisHareket('piffis', 'piftaksit').fis2CariBagla().x2TahSekliBagla({ kodClause: 'har.taktahsilsekli' });
-						let {where: wh} = sent; wh.fisSilindiEkle();
-						wh.inDizi(pifTipleri, 'fis.piftipi').degerAta('HZ', 'tsek.tahsiltipi')
+						let {where: wh} = sent
+						wh.fisSilindiEkle()
+						wh
+							.add(`fis.ayrimtipi <> 'IN'`)
+							.inDizi(pifTipleri, 'fis.piftipi')
+							.degerAta('HZ', 'tsek.tahsiltipi')
 					})
 					.hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
 						$.extend(hv, {
@@ -404,15 +411,16 @@ class HizmetHareketci extends Hareketci {
 				/* 3) Fatura Dip Hizmetleri */
 				new Hareketci_UniBilgi()
 					.sentDuzenleIslemi(({ sent }) => {
+						let {where: wh} = sent
 						let {fatura, giderPusula, perakende} = uygunluk
 						let pifTipleri = [
 							(fatura ? 'F' : null),
 							(giderPusula || perakende ? 'P' : null)
-						].filter(x => x != null);
-						sent.fisHareket('piffis', 'pifdiphizmet').fis2CariBagla();
-						let {where: wh} = sent; wh.fisSilindiEkle();
-						wh.inDizi(pifTipleri, 'fis.piftipi');
-						wh.add(`har.anatip <> 'II'`)    /* dip kisma atilan satir iskonto alinmaz */
+						].filter(Boolean);
+						sent.fisHareket('piffis', 'pifdiphizmet').fis2CariBagla()
+						wh.fisSilindiEkle()
+						wh.inDizi(pifTipleri, 'fis.piftipi')
+						wh.add(`har.anatip <> 'II'`, `fis.ayrimtipi <> 'IN'`)    // dip kisma atilan satir iskonto alinmaz, intaç olmayanlar
 					})
 					.hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
 						$.extend(hv, {
@@ -469,9 +477,13 @@ class HizmetHareketci extends Hareketci {
             taksitliKredi: [
                 new Hareketci_UniBilgi()
 					.sentDuzenleIslemi(({ sent }) => {
-						sent.fromAdd('kredifis fis').fis2KrediBankaHesapBagla();
-	                    let {where: wh} = sent; wh.fisSilindiEkle();
-						wh.degerAta('A', 'fis.fistipi').degerAta('H', 'fis.hedeftipi')    /* Hizmet Karşılığı Alınan Kredi ise */
+						let {where: wh} = sent
+						sent.fromAdd('kredifis fis')
+							.fis2KrediBankaHesapBagla()
+	                    wh.fisSilindiEkle()
+						wh
+							.degerAta('A', 'fis.fistipi')
+							.degerAta('H', 'fis.hedeftipi')    /* Hizmet Karşılığı Alınan Kredi ise */
 	                })
 					.hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
 	                    $.extend(hv, {

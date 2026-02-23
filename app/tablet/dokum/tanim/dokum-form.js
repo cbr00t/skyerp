@@ -62,7 +62,7 @@ class TabDokumForm extends MQKA {
 
 	async dataDuzenle(e = {}) {
 		let { inst = {} } = e
-		let { detaylar = [] } = inst
+		let { dokumDetaylar = [] } = inst
 		let { kolonBaslik, tekDetaySatirSayisi, dipYok, sayfaBoyut: { x: maxX, y: maxY } = {} } = this
 		let { sabit, detay: detSahalar, oto } = this
 		maxX ??= 0; maxY ??= 0; tekDetaySatirSayisi ??= 1
@@ -108,7 +108,7 @@ class TabDokumForm extends MQKA {
 
 		// detay yBas -> ySon tanım olabilir veya kaldığı yerden
 		_e.tip = 'detay'
-		for (let det of detaylar) {
+		for (let det of dokumDetaylar) {
 			_e.inst = det
 			for (let y of keys(y2DetaySahalar).map(Number).sort()) {
 				// y = asInteger(y)
@@ -140,6 +140,17 @@ class TabDokumForm extends MQKA {
 			_e.chars = data[curY - 1] ??= new Array(maxX).fill(' ')
 			await s.satirDuzenle(_e)
 			curY++
+		}
+
+		for (let chars of data) {
+			if (!isArray(chars))
+				continue
+			if (empty(chars))
+				chars.push(' ')
+			else {
+				for (let i = 0; i < chars.length; i++)
+					chars[i] ??= ' '
+			}
 		}
 		
 		return data

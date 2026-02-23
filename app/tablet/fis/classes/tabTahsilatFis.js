@@ -5,6 +5,9 @@ class TabTahsilatFis extends TabFis {
 	static get onlineFisSinif() { return CariTahsilatFis }
 	static get bedelKullanilirmi() { return true }
 	static get tahsilatmi() { return true }
+	get dokumDetaylar() {
+		return super.dokumDetaylar.filter(_ => _.bedel)
+	}
 	get tahsilBedel() {
 		let {detaylar} = this
 		return roundToBedelFra(topla(_ => _.bedel, detaylar))
@@ -67,6 +70,33 @@ class TabTahsilatFis extends TabFis {
 			throw { isError: true, errorText: `Bu Tahsilat bir Ticari Belgeye bağlıdır ve silinemez. Lütfen önce Ticari Belgeyi siliniz` }
 		await super.silmeOncesiIslemler(e)
 	}
+	
+	getDokumForm(e) {
+		let bedelX = 22
+		let data = ({
+			dipYok: false, dipX: bedelX - 20,
+			// sayfaBoyut: { x: 60, y: 58 },
+			otoYBasiSonu: { x: 8 },
+			sabit: [
+				{ key: 'fisTipText', pos: { x: 5, y: 2 }, length: 19 },
+				{ text: '[islemTarih] [islemZaman]', pos: { x: 40, y: 3 } },
+				{ text: 'SAYIN [mustUnvan],', pos: { x: 1, y: 5 }, length: 55 },
+				{ text: '[vergiDairesi] [vergiNo]', pos: { x: 5, y: 6 }, length: 40 },
+				{ text: '** BİLGİ FİŞİ **', pos: { x: 5, y: -1 }, length: 50 }
+			],
+			detay: [
+				{ key: 'tahSekliAdi', pos: { x: 2, y: 1 }, length: 18 },
+				{ key: 'bedel', pos: { x: bedelX, y: 1 }, length: 15, right: true }
+			],
+			oto: [
+				{ key: 'yalnizText', x: 2 },
+				{ key: 'bakiyeText', x: 2 },
+				{ key: 'notlar', x: 2 }
+			]
+		})
+		return new TabDokumForm(data)
+	}
+	
 	noCheck() { this._noCheck = true; return this }
 
 	static async rootFormBuilderDuzenle_tablet(e) {

@@ -12,7 +12,9 @@ class MQOnayci extends MQCogul {
 			otoTazeleDisabled: false
 		})
 	}
-	static listeEkrani_afterRun({ sender: gridPart }) { super.listeEkrani_afterRun(...arguments) }
+	static listeEkrani_afterRun({ sender: gridPart }) {
+		super.listeEkrani_afterRun(...arguments)
+	}
 	static listeEkrani_destroyPart({ sender: gridPart } = {}) {
 		let e = arguments[0]
 		super.listeEkrani_destroyPart(e)
@@ -31,24 +33,49 @@ class MQOnayci extends MQCogul {
 		liste.push(...items)
 		$.extend(sagSet, asSet(items.map(_ => _.id)))
 	}
+	static rootFormBuilderDuzenle_listeEkrani({ sender: gridPart, rootBuilder: rfb }) {
+		super.rootFormBuilderDuzenle_listeEkrani(...arguments)
+		this.fbd_listeEkrani_addCheckBox(rfb, {
+			id: 'hepsiniGoster', text: '+ Onaylı',
+			value: gridPart.hepsiniGoster,
+			handler: ({ builder: { layout } }) => {
+				let input = layout.children('input')
+				gridPart.hepsiniGoster = input.is(':checked')
+				gridPart.tazele()
+			}
+		 })
+	}
 	static orjBaslikListesi_argsDuzenle({ args }) {
 		super.orjBaslikListesi_argsDuzenle(...arguments)
-		$.extend(args, { groupsExpandedByDefault: true, rowsHeight: isMiniDevice() ? 70 : 60 })
+		let mini = isMiniDevice()
+		$.extend(args, {
+			columnsMenu: !mini, groupsExpandedByDefault: true,
+			rowsHeight: mini ? 75 : 65
+		})
 	}
-	static orjBaslikListesi_groupsDuzenle({ liste }) {
+	static orjBaslikListesi_groupsDuzenle({ sender: gridPart, liste }) {
 		super.orjBaslikListesi_groupsDuzenle(...arguments)
+		let {hepsiniGoster} = gridPart
+		if (hepsiniGoster)
+			liste.push('onayText')
 		liste.push('_db', 'tipText')
 	}
-	static orjBaslikListesiDuzenle({ liste }) {
+	static orjBaslikListesiDuzenle({ sender: gridPart, liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
 		let {tableAlias: alias} = this
+		let mini = isMiniDevice()
 		liste.push(...[
 			// new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 13, filterType: 'checkedlist' }).tipDate(),
-			new GridKolon({ belirtec: '_text', text: ' ' }),
-			new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 16 }).tipDecimal_bedel(),
-			new GridKolon({ belirtec: '_db', text: 'Veritabanı', genislikCh: 15, filterType: 'checkedlist' }),
-			new GridKolon({ belirtec: 'tipText', text: 'Tip', genislikCh: 20, filterType: 'checkedlist' })
-		])
+			new GridKolon({ belirtec: '_text', text: ' ', minWidth: 25 * katSayi_ch2Px }),
+			new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 13 }).tipDecimal_bedel(),
+			new GridKolon({ belirtec: '_db', text: 'Veritabanı', genislikCh: 13, filterType: 'checkedlist', hidden: mini }),
+			...this.getKAKolonlar(
+				new GridKolon({ belirtec: 'onayTS', text: 'O/R Zaman', genislikCh: 14, filterType: 'checkedlist' }),
+				new GridKolon({ belirtec: 'onayRedNedeni', text: 'Neden Açıklama', genislikCh: mini ? 10 : 20, filterType: 'checkedlist' })
+			),
+			new GridKolon({ belirtec: 'onayText', text: 'Durum', genislikCh: 13, filterType: 'checkedlist', hidden: mini }),
+			new GridKolon({ belirtec: 'tipText', text: 'Tip', genislikCh: 20, filterType: 'checkedlist', hidden: mini })
+		].filter(Boolean))
 	}
 	static async loadServerDataDogrudan({ sender: gridPart }) {
 		gridPart.otoTazeleDisabled = true
@@ -58,8 +85,10 @@ class MQOnayci extends MQCogul {
 	static async _loadServerDataDogrudan({ sender: gridPart }) {
 		let {encUser, user /*, dbName: db*/} = config.session
 		let {ay: buAy, yil2: buKisaYil} = today()
-		let _cache = this._cache ??= await (async () => {
-			let kurallar = [], kuralKey2Kural = {}, tip2Kural = {}, dbSet = {}
+		let {hepsiniGoster} = gridPart
+		let _cache = /*this._cache ??=*/ await (async () => {
+			// let kurallar = [], kuralKey2Kural = {}
+			let tip2Kural = {}, dbSet = {}
 			let kisaYilSet = {}
 			{
 				let {onayYili} = app.params?.ortak ?? {}
@@ -74,7 +103,7 @@ class MQOnayci extends MQCogul {
 				'k.firmaadi firmaAdi', 'k.tip',
 				`(case when COALESCE(k.onayno, 0) = 0 then 1 else k.onayno end) onayNo`
 			)
-			kurallar = await this.sqlExecSelect(sent)
+			let kurallar = await this.sqlExecSelect(sent)
 			let allDBNames = await app.wsDBListe()
 			let ignoreProgBelirtecSet = ['BR', 'MH', 'IS', 'AK']
 			allDBNames = allDBNames.filter(_ => 
@@ -83,7 +112,7 @@ class MQOnayci extends MQCogul {
 			)
 			for (let rec of kurallar) {
 				let {tip, firmaAdi} = rec
-				kuralKey2Kural[this.getKey(rec)] = rec
+				// kuralKey2Kural[this.getKey(rec)] = rec
 				tip2Kural[tip] = rec
 				for (let db of allDBNames) {
 					let db_firmaAdi = db.substr(4)
@@ -107,7 +136,7 @@ class MQOnayci extends MQCogul {
 						delete dbSet[db]
 				})
 			}
-			return ({ kurallar, kuralKey2Kural, tip2Kural, dbSet })
+			return ({ tip2Kural, dbSet })  // , kurallar, kuralKey2Kural
 		})()
 		let {kurallar, kuralKey2Kural, tip2Kural, dbSet} = _cache
 		$.extend(gridPart, { kurallar, kuralKey2Kural, dbSet })
@@ -124,7 +153,7 @@ class MQOnayci extends MQCogul {
 							.fromAdd(`${db}..${table} fis`)
 						wh.inDizi(['', 'E'], 'fis.efbelge')
 						sahalar.add(
-							`'${db}' _db`, `'${table}' _table`, `'${harTable}' _harTable`,
+							`1 oncelik`, `'${db}' _db`, `'${table}' _table`, `'${harTable}' _harTable`,
 							`'${tip}' tip`, 'fis.efbelge eIslTip', 'fis.efuuid uuid', 
 							`'Geçici Alım e-İşlem' tipText`,
 							`'' mustKod`, 'fis.efmustunvan mustUnvan'
@@ -138,6 +167,7 @@ class MQOnayci extends MQCogul {
 				{
 					// Siparişler
 					let almSat2Tip = { 'A': 'AlimSip', 'T': 'SatisSip' }
+					let oncelik = 2
 					for (let [almSat, tip] of entries(almSat2Tip)) {
 						let table = 'sipfis', harTable = 'sipstok', psTip = 'S'
 						if (tip2Kural[tip]) {
@@ -149,7 +179,7 @@ class MQOnayci extends MQCogul {
 							wh.degerAta(almSat, 'fis.almsat')
 							wh.add(`fis.ayrimtipi = ''`)
 							sahalar.add(
-								`'${db}' _db`, `'${table}' _table`, `'${harTable}' _harTable`,
+								`${oncelik.sqlServerDegeri()} oncelik`, `'${db}' _db`, `'${table}' _table`, `'${harTable}' _harTable`,
 								`'${tip}' tip`, 'fis.efayrimtipi eIslTip', 'fis.efatuuid uuid',
 								'(' +
 									`(case fis.almsat when 'A' then 'Alım ' when 'T' then 'Satış ' else '' end) + ` +
@@ -160,23 +190,49 @@ class MQOnayci extends MQCogul {
 							sahalar.addWithAlias('fis',
 								'kaysayac sayac', 'tarih', 'fisnox fisNox', 'net bedel', 'cariaciklama ekBilgi')
 							uni.add(sent)
+							oncelik++
 						}
 					}
 				}
 			}
 			if (!uni.liste.length)
 				return []
+			let userSql = user.sqlServerDegeri()
 			for (let sent of uni) {
 				let {where: wh, sahalar} = sent
-				wh.add(new MQOrClause([
-					new MQAndClause([`fis.bw1onay IS NULL`, { degerAta: user, saha: 'fis.w1onayuser' } ]),
-					new MQAndClause([`fis.bw1onay = 1`, `fis.bw2onay IS NULL`, { degerAta: user, saha: 'fis.w2onayuser' } ])
-				]))
-				sahalar.add(`(case when fis.bw1onay IS NULL then 1 when fis.bw2onay IS NULL then 2 else NULL end) onayNo`)
+				let or = new MQOrClause().add(
+					new MQAndClause([
+						{ degerAta: user, saha: 'fis.w1onayuser' },
+						( hepsiniGoster ? null : `fis.bw1onay IS NULL` )
+					].filter(Boolean)),
+					new MQAndClause([
+						{ degerAta: user, saha: 'fis.w2onayuser' },
+						`fis.bw1onay = 1`,
+						( hepsiniGoster ? null : `fis.bw2onay IS NULL` )
+					].filter(Boolean))
+				)
+				wh.add(or)
+				sahalar.add(
+					`(case
+							when (fis.bw1onay IS NULL OR fis.w2onayuser = ${userSql} AND fis.bw2onay IS NULL)
+								then '<span class=forestgreen>Cevap Bekleyenler</span>'
+							else '<span class=orangered>Cevaplananlar</span>'
+						end) onayText`,
+					`(case
+							when fis.w2onayuser = ${userSql} AND fis.bw2onay IS NOT NULL then fis.w2onayredts
+							when fis.w1onayuser = ${userSql} AND fis.bw1onay IS NOT NULL then fis.w1onayredts
+						else NULL end) onayTS`,
+					`fis.wredtext onayRedNedeni`,
+					`(case
+							when fis.w1onayuser = ${userSql} AND fis.bw1onay IS NULL then 1
+							when fis.w2onayuser = ${userSql} AND fis.bw2onay IS NULL then 2
+					else NULL end) onayNo`
+				)
 			}
-			let stm = new MQStm({ sent: uni })
+			let stm = new MQStm({ sent: uni, orderBy: ['onayText', 'oncelik'] })
 			let recs = await this.sqlExecSelect(stm)
-			recs = recs.filter(rec => kuralKey2Kural[this.getKey(rec)])
+			/*let uymayanRecs = recs.filter(rec => !kuralKey2Kural[this.getKey(rec)])
+			recs = recs.filter(rec => kuralKey2Kural[this.getKey(rec)])*/
 
 			;{
 				let db2GecAlimSayacListe = {}
@@ -230,9 +286,12 @@ class MQOnayci extends MQCogul {
 		}
 	}
 	static gridVeriYuklendi({ sender: gridPart }) {
-		let {gridWidget: w, gridWidget: { groups }, prevRecs, boundRecs} = gridPart
+		let { gridWidget: w, gridWidget: { groups } } = gridPart
+		let { hepsiniGoster, prevRecs, boundRecs } = gridPart
 		groups.forEach(g =>
 			w.hidecolumn(g))
+		;['onayRedNedeni', 'onayTS'].forEach(k =>
+			w[hepsiniGoster ? 'showcolumn' : 'hidecolumn'](k))
 		let degistimi = false
 		if (!prevRecs)
 			prevRecs = boundRecs
@@ -265,11 +324,12 @@ class MQOnayci extends MQCogul {
 
 	static async onayRedIstendi({ sender: gridPart, state: onaymi }) {
 		let islemAdi = `${onaymi ? 'ONAY' : 'RED'} İşlemi`
+		let styledIslemAdi = `${onaymi ? '<b class=forestgreen>ONAY</b>' : '<b class=orangered>RED</b>'} İşlemi`
 		try {
 			let {selectedRecs: recs, kuralKey2Kural, gridWidget: w} = gridPart
-			recs = recs.filter(rec => kuralKey2Kural[this.getKey(rec)] && rec.onayNo)
+			recs = recs.filter(rec => rec.onayNo /*&& kuralKey2Kural[this.getKey(rec)] */)
 			if (empty(recs)) {
-				hConfirm('Onaylanacak uygun belge bulunamadı', islemAdi)
+				hConfirm('Cevaplanacak uygun belge bulunamadı', islemAdi)
 				return
 			}
 			let aktarilmamisIrsaliyeSayi = recs.filter(_ => _.irsNox && !_.irsVarmi).length
@@ -278,25 +338,34 @@ class MQOnayci extends MQCogul {
 					(
 						`<b class=firebrick>${aktarilmamisIrsaliyeSayi}</b> adet belgenin İrsaliye bağlantısı, Alım İrsaliye kısmında yok.<br/><br/>` +
 						`Yine de devam edilsin mi?`
-					), islemAdi
+					), styledIslemAdi
 				)
 				if (!rdlg)
 					return
 			}
+			let {
+				onayci_onayNedenIstenir: onayNedenIstenir, onayci_redNedenIstenir: redNedenIstenir,
+				onayci_nedenZorunludur: nedenZorunludur
+			} = app.params.web ?? {}
+			let nedenIstenir = onaymi ? onayNedenIstenir : redNedenIstenir
+			nedenIstenir ??= !onaymi
+			nedenZorunludur ??= !onaymi
 			let nedenText
-			if (onaymi) {
-				let middleText = onaymi ? `<b class=forestgreen>ONAYLAMAK</b>` : `<b class=firebrick>REDDETMEK</b>`
-				let rdlg = await ehConfirm(`<b class=royalblue>${recs.length}</b> adet kaydı ${middleText} istediğinize emin misiniz?`, islemAdi)
-				if (!rdlg)
-					return
-			}
-			else {
+			if (nedenIstenir) {
 				nedenText = await jqxPrompt({
-					etiket: 'RED Nedeni giriniz', title: islemAdi,
+					etiket: `${styledIslemAdi} Nedeni giriniz`,
+					// title: styledIslemAdi,
 					duzenle: ({ fbd_value: fbd }) =>
 						fbd.setMaxLength(40)
 				})
-				if (!nedenText)
+				nedenText = nedenText?.trim()
+				if (nedenZorunludur && !nedenText)
+					return
+			}
+			else {
+				let middleText = onaymi ? `<b class=forestgreen>ONAYLAMAK</b>` : `<b class=firebrick>REDDETMEK</b>`
+				let rdlg = await ehConfirm(`<b class=royalblue>${recs.length}</b> adet kaydı ${middleText} istediğinize emin misiniz?`, styledIslemAdi)
+				if (!rdlg)
 					return
 			}
 			let key2Sayaclar = {}
@@ -332,8 +401,12 @@ class MQOnayci extends MQCogul {
 			w?.clearselection()
 			gridPart.tazele()
 			{
-				let middleText = onaymi ? `<b class=forestgreen>ONAYLANDI</b>` : `<b class=firebrick>REDDEDİLDİ</b>`
-				eConfirm(`<b class=royalblue>${recs.length}</b> adet kayıt ${middleText}!`, islemAdi)
+				let middleText = onaymi ? `<b class=forestgreen>ONAYLANDI</b>` : `<b class=orangered>REDDEDİLDİ</b>`
+				window[onaymi ? 'eConfirm' : 'wConfirm']({
+					content: `<b class=royalblue>${recs.length}</b> adet kayıt ${middleText}!`,
+					title: islemAdi,
+					autotimeout: 4_000
+				})
 			}
 		}
 		catch (ex) {
@@ -498,7 +571,7 @@ class MQOnayci extends MQCogul {
 						)
 						.setTabloKolonlari([
 							...this.getKAKolonlar(
-								new GridKolon({ belirtec: 'stokKod', text: 'Ürün', genislikCh: 13, filterType: 'checkedlist' }),
+								new GridKolon({ belirtec: 'stokKod', text: 'Ürün', genislikCh: 16, filterType: 'checkedlist' }),
 								new GridKolon({ belirtec: 'stokAdi', text: 'Ürün Adı', genislikCh: 30, filterType: 'checkedlist' }),
 							),
 							new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 9, filterType: 'checkedlist' }).tipDecimal(),

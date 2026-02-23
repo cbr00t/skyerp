@@ -81,13 +81,14 @@ class DMQRapor extends DMQSayacliKA {
 			return keys(tumAttrSet)
 				.filter(attr => !attrSet[attr] && (!t || t[attr]))
 		}
-		let className_listBox = 'listBox', ustHeight = '70px', contentTop = '3px'
+		let className_listBox = 'listBox', ustHeight = '50px', contentTop = '3px'
 		let solWidth = '230px', ortaWidth = `calc(var(--full) - (${solWidth} + 10px))`
-		let ortaHeight_grup = '35%', ortaHeight_icerik = `calc(var(--full) - (${ortaHeight_grup} + 10px))`
-		// ortaHeight = 'calc((var(--full) / 2) - 5px)'
+		let list_height = `calc(var(--full) - (var(--ustHeight) + 50px))`
+		// list_height = 'calc((var(--full) / 2) - 5px)'
 		if ($(window).width() >= 700)
-			ortaHeight_grup = ortaHeight_icerik = 'calc(var(--full) - 50px)'
-		tanimForm.addStyle(e => `$elementCSS { --ustHeight: ${ustHeight} }`)
+			list_height = `calc(var(--full) - (var(--ustHeight) + 80px))`
+		let sol_height = `calc(${list_height} + 50px)`
+		tanimForm.addStyle(`$elementCSS { --ustHeight: ${ustHeight} }`)
 		kaForm.yanYana().addStyle(
 			`$elementCSS {
 				--ozetMax-width: 80px;
@@ -130,7 +131,7 @@ class DMQRapor extends DMQSayacliKA {
 				.setAltInst(inst)
 		}
 		let fbd_content = tanimForm.addFormWithParent('content').yanYana()
-			.addStyle_fullWH(null, 'calc(var(--full) - var(--ustHeight) - var(--top) + 8px)')
+			.addStyle_fullWH(null, 'calc(var(--full) - var(--ustHeight) - var(--top) + 20px)')
 			.addStyle(...[
 				`$elementCSS { --top: ${contentTop}; position: relative; top: var(--top); z-index: 100 }
 				 $elementCSS > div .${className_listBox} { --label-height: 30px; --label-margin-bottom: 20px }
@@ -221,21 +222,23 @@ class DMQRapor extends DMQSayacliKA {
 			.addCSS(className_listBox).addStyle_fullWH()
 			.setUserData({ selector: 'grup' })
 			.onAfterRun(e => initListBox(e))
+			.addStyle_fullWH(null, sol_height)
 		fbd_tabs.addTab('toplam', 'Toplamlar').addStyle_fullWH().addDiv('kalanlar_toplam')
 			.setEtiket('Kalanlar').etiketGosterim_yok()
 			.addCSS(className_listBox).addStyle_fullWH()
 			.setUserData({ selector: 'toplam' })
 			.onAfterRun(e => initListBox(e))
+			.addStyle_fullWH(null, sol_height)
 		let fbd_orta = fbd_content.addFormWithParent('orta').yanYana()
-			.addStyle_fullWH(ortaWidth)
+			.addStyle_fullWH(ortaWidth, list_height)
 			.addStyle(`$elementCSS > .formBuilder-element { max-width: 250px !important; min-width: 150px !important; min-height: 200px !important }`)
 		fbd_orta.addDiv('grupListe')
 			.setEtiket('Grup').addCSS(className_listBox)
-			.addStyle_fullWH(null, ortaHeight_grup)
+			.addStyle_fullWH()
 			.onAfterRun(e => initListBox(e))
 		fbd_orta.addDiv('icerikListe')
 			.setEtiket('İçerik').addCSS(className_listBox)
-			.addStyle_fullWH(null, ortaHeight_icerik)
+			.addStyle_fullWH()
 			.onAfterRun(e => initListBox(e))
 		rfb.onAfterRun(({ builder: fbd }) => {
 			setTimeout(() => {

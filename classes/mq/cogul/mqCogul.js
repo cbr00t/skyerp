@@ -212,7 +212,8 @@ class MQCogul extends MQYapi {
 	getRootFormBuilder_listeEkrani(e) { return this.class.getRootFormBuilder_listeEkrani(e) }
 	static fbd_listeEkrani_addCheckBox(_rfb, e, _text, _value, _handler, _onAfterRun, _styles) {
 		let rfb = _rfb ?? (typeof e == 'object' ? e.rfb ?? e.builder : null);
-		let id = typeof e == 'object' ? e.id : e, text = typeof e == 'object' ? e.text : _text;
+		let id = typeof e == 'object' ? e.id : e
+		let text = typeof e == 'object' ? e.text : _text;
 		let handler = typeof e == 'object' ? e.handler : _handler;
 		let value = typeof e == 'object' ? e.value : _value;
 		let onAfterRun = typeof e == 'object' ? e.onAfterRun : _onAfterRun;
@@ -233,7 +234,8 @@ class MQCogul extends MQYapi {
 			if (value != null) input.children('input').attr('checked', value)
 			/* input.appendTo(builder.parent); */
 			if (handler) { input.on('change', evt => { let _e = $.extend({}, e, { event: evt, builder }); getFuncValue.call(this, handler, _e) }) }
-			if ($.isFunction(onAfterRun)) getFuncValue.call(this, onAfterRun, e)
+			if (isFunction(onAfterRun))
+				getFuncValue.call(this, onAfterRun, e)
 		})
 		return fbd
 	}

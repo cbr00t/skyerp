@@ -26,6 +26,19 @@ class TabTahsilatDetay extends TabDetay {
 		let {tahsekliadi: tahSekliAdi} = rec
 		$.extend(this, { tahSekliAdi })
 	}
+	async dokumGetValue({ tip, key } = {}) {
+		let e = arguments[0]
+		switch (key) {
+			case 'tahSekliNo':
+			case 'tahSekliKodNo':
+				return this.tahSekliNo
+			case 'tahSekliAdi':
+				return await MQTabTahsilSekli.getGloKod2Adi(this.tahSekliNo)
+			case 'bedel':
+				return this.bedel
+		}
+		return null
+	}
 
 	getHTML(e) {
 		let _ = super.getHTML(e) ?? ''

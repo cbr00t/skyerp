@@ -74,9 +74,22 @@ class OnayciApp extends TicariApp {
 		}
 		if (dev && isAdmin) {
 			items.push(
-				new FRMenuChoice({
-					mne: 'EISLPARAM', text: 'e-İşlem Parametreleri',
-					block: e => this.params.eIslem.tanimla(e)
+				new FRMenuCascade({
+					mne: 'PARAM', text: 'Parametreler',
+					items: [
+						new FRMenuChoice({
+							mne: 'EISLPARAM', text: 'e-İşlem Parametreleri',
+							block: e => this.params.eIslem.tanimla(e)
+						}),
+						new FRMenuChoice({
+							mne: 'WEBPARAM', text: 'Web Parametreleri',
+							block: e => this.params.web.tanimla(e)
+						}),
+						new FRMenuChoice({
+							mne: 'ORTAKPARAM', text: 'Ortak Parametreler',
+							block: e => this.params.ortak.tanimla(e)
+						})
+					]
 				})
 			)
 		}

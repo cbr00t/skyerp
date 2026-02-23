@@ -535,7 +535,10 @@ class MQWebParam extends MQTicariParamBase {
 	constructor(e = {}) {
 		super(e)
 		let {sablonSip_degisiklik, sablonSip_eMail, ekOzellikKodlari, yerKodListe} = e
-		$.extend(this, { sablonSip_degisiklik: sablonSip_degisiklik ?? true, sablonSip_eMail: sablonSip_eMail ?? true, ekOzellikKodlari: ekOzellikKodlari ?? [], yerKodListe: yerKodListe ?? [] })
+		$.extend(this, {
+			sablonSip_degisiklik: sablonSip_degisiklik ?? true, sablonSip_eMail: sablonSip_eMail ?? true,
+			ekOzellikKodlari: ekOzellikKodlari ?? [], yerKodListe: yerKodListe ?? []
+		})
 	}
 	static paramYapiDuzenle({ paramci }) {
 		super.paramYapiDuzenle(...arguments)
@@ -545,9 +548,10 @@ class MQWebParam extends MQTicariParamBase {
 				else { form.addString('pesinMustKod', 'Peşin Müşteri') };
 			form.addML('ekOzellikKodlariStr', 'Ek Özellik Kodları').noRowAttr().setRowCount(5).addStyle_wh(200);
 		form = paramci.addFormWithParent()
-			form.addBool('stokResim', 'Stok Resim Kullanılır');
-		let tabPage = paramci.addTabPage('webSiparis', 'Web Sipariş');
-		let grup = tabPage.addGrup().setEtiket('Şablonlu Sipariş');
+			form.addBool('stokResim', 'Stok Resim Kullanılır')
+
+		let tabPage = paramci.addTabPage('webSiparis', 'Web Sipariş')
+		let grup = tabPage.addGrup().setEtiket('Şablonlu Sipariş')
 		form = grup.addFormWithParent()
 			form.addBool('sablonSip_eMail', 'e-Mail Gönderilir');
 		form = tabPage.addAltObject('sablonDefKisit').addGrup().setEtiket('Def.Kısıt').addFormWithParent();
@@ -561,13 +565,13 @@ class MQWebParam extends MQTicariParamBase {
 				// .filter(name => !dbNamePrefix || name.startsWith(dbNamePrefix))
 				.map(adi => new CKodVeAdi([adi, adi]))
 		};
-		form = tabPage.addFormWithParent().yanYana();
+		form = tabPage.addFormWithParent().yanYana()
 			form.addBool('webSiparis_sonStokGosterilirmi', 'Son Stok Gösterilir');
 			form.addModelKullan('webSiparis_sonStokDB', 'Son Stok Veritabanı')
 				.comboBox().autoBind().noMF().kodsuz().setSource(source_dbList);
 			form.addModelKullan('webSiparis_konDBListe', 'Kon. Ek Veritabanları')
 				.comboBox().autoBind().noMF().kodsuz().coklu().setSource(source_dbList);
-		form = tabPage.addFormWithParent();
+		form = tabPage.addFormWithParent()
 			form.addModelKullan('webSiparis_yerKodListe', 'Depolar')
 				.comboBox().autoBind().coklu().setMFSinif(MQStokYer)
 				.ozelQueryDuzenleIslemi(({ builder: fbd, sent }) => {
@@ -580,11 +584,19 @@ class MQWebParam extends MQTicariParamBase {
 						}
 					}
 				})
-				.setPlaceHolder('(A) Merkez Ambarı');
+				.setPlaceHolder('(A) Merkez Ambarı')
 			form.addNumberInput('otoTeslimTarihi_gunEk', 'Teslim Tarihi<br/><center>(+ Gün)</center>', '(+ Gün)')
 				.setFra(0).addStyle_wh(150);
 			form.addNumberInput('webSiparis_ayOnceSayisi', 'Örnekleme<br/>Ay Sayısı')
 				.setFra(0).addStyle_wh(150)
+
+		{
+			let tabPage = paramci.addTabPage('onayci', 'Onaycı')
+			let form = tabPage.addGrup().setEtiket('Onaycı').addFormWithParent()
+			form.addBool('onayci_onayNedenIstenir', 'Onay için Neden İstenir')
+			form.addBool('onayci_redNedenIstenir', 'RED için Neden İstenir')
+			form.addBool('onayci_nedenZorunludur', 'Neden Girişi Zorunludur')
+		}
 	}
 	paramHostVarsDuzenle({ hv }) {
 		super.paramHostVarsDuzenle(...arguments)

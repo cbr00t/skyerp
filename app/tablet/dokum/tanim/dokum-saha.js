@@ -77,7 +77,7 @@ class TabDokumSaha extends CObject {
 	}
 	async getValue(e = {}) {
 		let { inst, key, text = e.value } = e
-		let { right, ozelIsaret, iade } = this
+		let { right, ozelIsaret, iade, length: fullLength } = this
 		if (key === undefined)
 			key = this.key
 		if (text === undefined)
@@ -128,9 +128,12 @@ class TabDokumSaha extends CObject {
 		
 		let length = this.getActualLength({ ...e, text: null, value: text })
 		if (length) {
+			// let targetLength = fullLength || length
 			text = right
-				? text.padStart(length, ' ')
+				? text.padStart(fullLength, ' ')
 				: text.slice(0, length)
+			//if (text.length < targetLength)
+			//	text = text.padEnd(targetLength, ' ')
 		}
 		
 		return text

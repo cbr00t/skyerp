@@ -84,10 +84,10 @@ class TabDetay extends MQDetay {
 				return this.stokKod
 			case 'stokAdi':
 			case 'shAdi':
-				return MQTabStok.getGloKod2Adi(this.stokKod)
+				return await MQTabStok.getGloKod2Adi(this.stokKod)
 			case 'shText':
 			case 'stokText':
-				return new CKodVeAdi(this.stokKod, MQTabStok.getGloKod2Adi(this.stokKod)).parantezliOzet()
+				return new CKodVeAdi(this.stokKod, await MQTabStok.getGloKod2Adi(this.stokKod)).parantezliOzet()
 			case 'miktar':
 				return this.miktar
 			case 'fiyat':

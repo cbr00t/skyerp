@@ -68,6 +68,7 @@ class TabFis extends MQDetayliGUID {
 		return dipIslemci?.sonuc ?? this.fisTopBrut
 	}
 	get sonucBedel() { return this.fisTopNet }
+	get dokumDetaylar() { return this.detaylar.filter(Boolean) }
 
 	constructor({ isCopy, offlineBuildQuery } = {}) {
 		super(...arguments)
@@ -512,7 +513,7 @@ class TabFis extends MQDetayliGUID {
 	}
 	async yazdir(e) {
 		let bedelX = 33
-		let data = ({
+		/*let data = ({
 			nakil: false, tekDetaySatirSayisi: 2,
 			dipYok: false, dipX: bedelX - 20,
 			sayfaBoyut: { x: 60, y: 58 },
@@ -543,9 +544,12 @@ class TabFis extends MQDetayliGUID {
 				{ key: 'bakiyeText', _comment: 'gizli' },
 				{ key: 'notlar', _comment: 'gizli' }
 			]
-		})
+		})*/
 		let {tablet: { dokumEkrana } = {}} = app.params
-		let form = this.getDokumForm(e) ?? new TabDokumForm(data)
+		// let form = this.getDokumForm(e) ?? new TabDokumForm(data)
+		let form = this.getDokumForm(e) ?? new TabDokumForm()
+		if (isPlainObject(form))
+			form = new TabDokumForm(form)
 		let device = TabDokumDevice.newDefault(e)
 		let yontem = TabDokumYontemi.newDefault()
 		let dokumcu = new TabDokumcu()
@@ -553,7 +557,7 @@ class TabFis extends MQDetayliGUID {
 			.setYontem(yontem)
 		if (dokumEkrana)
 			dokumcu.ekrana()
-		dokumcu.setPrefix('\nMUHTELİF MÜŞTERİLERE GÖNDERMEK ÜZERE\nSİPARİŞLER AŞAĞIDAKİ GİBİDİR:\n\n\n')
+		// dokumcu.setPrefix('\nMUHTELİF MÜŞTERİLERE GÖNDERMEK ÜZERE\nSİPARİŞLER AŞAĞIDAKİ GİBİDİR:\n\n\n')
 		let inst = this
 		await dokumcu.yazdir({ inst })
 	}
