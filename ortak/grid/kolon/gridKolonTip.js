@@ -292,15 +292,20 @@ class GridKolonTip_Date extends GridKolonTip {
 	/* get jqxCellsFormat() { return DateFormat } */ get jqxCellsFormat() { return super.jqxCellsFormat }
 
 	get cellsRenderer() {
-		let buYil = today().getFullYear();
+		let buYil = today().getFullYear()
 		return ((colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
 			if (value != null) {
-				if (rec?.totalsrow) { return GridKolonTip.getHTML_groupsTotalRow(value) }
-				let {gridWidget} = colDef?.gridPart;
-				rec = (gridWidget?.getboundrows ? gridWidget.getboundrows()[rowIndex] : null) ?? rec; rec = rec?.originalRecord ?? rec;
-				let _value = value; value = typeof value == 'number' || value?.constructor?.name == 'Number' ? new Date(asFloat(value)) : asDate(value);
-				if (value?.getFullYear) { value = (value.getFullYear() == buYil && value.getMonth() == today().getMonth() ? dateKisaString(value) : dateToString(value)) }
-				if (value != _value) { html = changeTagContent(html, value) }
+				if (rec?.totalsrow)
+					return GridKolonTip.getHTML_groupsTotalRow(value)
+				let {gridWidget} = colDef?.gridPart
+				rec = (gridWidget?.getboundrows ? gridWidget.getboundrows()[rowIndex] : null) ?? rec
+				rec = rec?.originalRecord ?? rec
+				let _value = value
+				value = isNumber(value) || value?.constructor?.name == 'Number' ? new Date(asFloat(value)) : asDate(value)
+				if (value?.getFullYear)
+					value = (value.getFullYear() == buYil && value.getMonth() == today().getMonth() ? dateKisaString(value) : dateToString(value))
+				if (value != _value)
+					html = changeTagContent(html, value ?? '')
 			}
 			return html
 		})

@@ -41,6 +41,7 @@ class TabletApp extends TicariApp {
 		}
 		return result
 	}
+	get dokumFormlar() { return this.params.tablet?.dokumFormlar }
 	get offlineBilgiYukleGonderOrtakSiniflar() {
 		let {cache, cache: { _offlineBilgiYukleGonderOrtakSiniflar: result }} = this
 		if (!result)
@@ -150,7 +151,7 @@ class TabletApp extends TicariApp {
 		items.push(new FRMenuChoice({ mne: 'BILGIGONDER', text: 'Bilgi Gönder', block: e => this.bilgiGonderIstendi(e) }))
 		{
 			let mfSinif = MQTabletParam, {kodListeTipi: mne, sinifAdi: text} = mfSinif
-			items.push(new FRMenuChoice({ mne, text, block: e => app.params.tablet.tanimla(e) }))
+			items.push(new FRMenuChoice({ mne, text, block: e => this.params.tablet.tanimla(e) }))
 		}
 		// addMenuSubItems(null, null, [MQTest])
 		return new FRMenu({ items })
@@ -175,7 +176,7 @@ class TabletApp extends TicariApp {
 		let db = e.db ??= dbMgr?.main
 		let name = e.name ??= db?.name
 		super.dbMgr_tabloEksikleriTamamla(e)
-		let {main} = app.dbMgr ?? {}
+		let {main} = this.dbMgr ?? {}
 		if (db == main) {
 			classes ??= this.offlineCreateTableSiniflar ?? []
 			for (let cls of classes) {
@@ -224,7 +225,7 @@ class TabletApp extends TicariApp {
 				if (clearClasses?.length) {
 					await MQCogul.sqlExecNone({ offlineRequest, offlineMode, query: 'BEGIN TRANSACTION' })
 					await Promise.allSettled( clearClasses.map(cls => cls.offlineDropTable?.({ ...e, offlineRequest, offlineMode, internal })) )
-					await app.dbMgr_tablolariOlustur({ ...e, offlineRequest, offlineMode, internal, classes: [MQParam] })
+					await this.dbMgr_tablolariOlustur({ ...e, offlineRequest, offlineMode, internal, classes: [MQParam] })
 					await MQCogul.sqlExecNone({ offlineMode, query: 'COMMIT' })
 					pm.progressStep(1)
 				}
@@ -250,7 +251,7 @@ class TabletApp extends TicariApp {
 					clearClasses.filter(cls => cls != MQParam).map(cls =>
 						cls.offlineDropTable?.({ ...e, offlineRequest, offlineMode, internal }))
 				)
-				await app.dbMgr_tablolariOlustur({ ...e, offlineRequest, offlineMode, internal })
+				await this.dbMgr_tablolariOlustur({ ...e, offlineRequest, offlineMode, internal })
 				await MQCogul.sqlExecNone({ offlineMode, query: 'COMMIT' })
 				pm.progressStep(1)
 			}

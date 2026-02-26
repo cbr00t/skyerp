@@ -410,7 +410,7 @@ class MQCogul extends MQYapi {
 						}).tipDate(),
 						new GridKolon({
 							belirtec: gonderimTSSaha.toLowerCase().replace('ts', 'saat'),
-							text: 'Gnd.Saat', genislikCh: 8, sql: `${alias}.${gonderimTSSaha}`
+							text: 'Gnd.Sa', genislikCh: 8, sql: `${alias}.${gonderimTSSaha}`
 						}).tipTime_noSecs()
 					)
 				)

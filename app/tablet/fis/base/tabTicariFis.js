@@ -9,6 +9,8 @@ class TabTicariFis extends TabTSFis {
 	static get iademi() { return false } static get siparismi() { return false }
 	static get faturami() { return false } static get irsaliyemi() { return false }
 	static get ticariCikisGibimi() { return this.alimmi == this.iademi }
+	static get dokumFormTip_normal() { return '3FA' }
+	// static get dokumFormTip_eIslem() { return this.dokumFormTip_normal }
 	static get defaultEIslTip() { return '' }
 	get defaultEIslTip() {
 		return (app.params.tablet.efatKullanirmi ?? true) && !this.yildizlimi

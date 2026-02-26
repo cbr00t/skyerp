@@ -65,7 +65,7 @@ class DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main extends DRapor_Hareketci_Mai
 		}
 		//{ let {TUMMALIYET: item} = toplam; if (item) { item.ka.aciklama = item.colDefs[0].text = 'Tüm Maliyet' } }
 		let baKeys = ['BORCBEDEL', 'ALACAKBEDEL', 'BORCBAKIYE', 'ALACAKBAKIYE']
-		deleteKeys(toplam, ...baKeys, 'TUMMALIYET')
+		deleteKeys(toplam, ...baKeys)
 		{
 			let removeKeys = asSet(baKeys)
 			for (let k of keys(toplam)) {

@@ -113,8 +113,10 @@ body > .app-titlebar {
 }
 body > .app-titlebar > div { text-align: right }
 body > .app-titlebar .db-name { color: var(--s-white); margin-right: 8px; z-index: -2 !important }
-@media (max-width: 850px) {
+@media (max-width: 800px) {
 	body > .app-titlebar { padding-top: 8px; line-height: 13px !important }
+}
+@media (max-width: 600px) {
 	body > .app-titlebar .db-name { display: none }
 }
 body > .app-titlebar .app-title { margin-left: 0 }

@@ -39,10 +39,11 @@ class TabDokumSaha extends CObject {
 	setValues({ rec }) {
 		let {ioKeys} = this.class
 		;ioKeys.forEach(k =>  {
-			let v = this[k]
+			let v = rec[k]
 			this[k] = v ?? null
 		})
-		this.length ??= 0; this.right ??= false
+		this.length ??= 0
+		this.right ??= false
 		let {kosul} = rec
 		if (!empty(kosul))
 			extend(this, kosul)

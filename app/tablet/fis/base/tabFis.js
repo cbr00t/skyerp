@@ -13,11 +13,14 @@ class TabFis extends MQDetayliGUID {
 	static get gonderildiDesteklenirmi() { return true }
 	static get offlineFis() { return true } static get almSat() { return null }
 	static get satismi() { return this.almSat == 'T' } static get alimmi() { return this.almSat == 'A' }
-	static get numTipKod() { return 'TB' } static get numKod() { return 'TB' }
+	static get numTipKod() { return this.fisTipi || 'TB' }
+	static get numKod() { return 'TB' }
 	static get defaultSeri() { return 'TAB' } static get _bedelKullanilirmi() { return false }
 	static get mustZorunlumu() { return true }
 	static get dokumFormTip_normal() { return null }
 	static get dokumFormTip_eIslem() { return this.dokumFormTip_normal }
+	get dokumFormTip_normal() { return this.class.dokumFormTip_normal }
+	get dokumFormTip_eIslem() { return this.class.dokumFormTip_normal }
 	static get bedelKullanilirmi() {
 		let {_bedelKullanilirmi: result} = this
 		if (result) {
@@ -275,10 +278,12 @@ class TabFis extends MQDetayliGUID {
 			if (!fisNo && num) {
 				if (!num.sayac)
 					await num.kaydet()
-				do {
+				while (true) {
 					await num.kesinlestir()
 					this.fisNo = num.sonNo
-				} while (await this.varmi())
+					if (!await this.varmi())
+						break
+				}
 			}
 		}
 		await this.dipIslemci?.kaydetOncesiIslemler(...arguments)
@@ -317,6 +322,10 @@ class TabFis extends MQDetayliGUID {
 		let id = this.id ||= newGUID()
 		hv[idSaha] = id
 	}
+	alternateKeyHostVarsDuzenle({ hv }) {
+		let { fisTipi: fistipi, almSat: almsat, iade, seri, fisNo: fisno } = this
+		extend(hv, { fistipi, almsat, iade, seri, fisno })
+	}
 	kopyaIcinDuzenle(e) {
 		super.kopyaIcinDuzenle(e)
 		$.extend(this, { fisNo: null, tarih: today() })
@@ -340,7 +349,7 @@ class TabFis extends MQDetayliGUID {
 	static getTanimPartMenuItems(e = {}) {
 		let {sender: tanimPart} = e, {acc} = tanimPart
 		return [
-			{ id: 'yazdir', text: 'Yazdır', handler: _e => { this.yazdirIstendi({ ...e, ..._e, tanimPart }); _e.close?.() } },
+			{ id: 'yazdir', text: 'Yazdır', handler: _e => { this.yazdir({ ...e, ..._e, tanimPart }); _e.close?.() } },
 			{ id: 'duzenle', text: 'Düzenle', handler: _e => { acc.expand('duzenle'); _e.close() } },
 			{ id: 'temizle', text: 'Temizle', handler: _e => this.temizleIstendi({ ...e, ..._e, tanimPart }) }
 		]
@@ -386,6 +395,23 @@ class TabFis extends MQDetayliGUID {
 
 	tarihDegisti({ value = this.tarih }) {
 		this.satisKosullariOlusturWithReset(...arguments)
+	}
+	async seriDegisti({ builder: fbd, input, altInst, oldValue = this._prev.seri?.toUpperCase(), value = this.seri?.toUpperCase() }) {
+		if (oldValue == value)
+			return
+		input?.val(value)
+		this.seri = value
+		let { numarator: num } = this
+		if (num) {
+			let { sonNo } = num
+			num.seri = value
+			await num.yukle()
+			if (num.sonNo != sonNo && fbd) {
+				let { fisNo: { input: txtFisNo } = {} } = fbd.parentBuilder ?? {}
+				txtFisNo?.attr('placeholder', sonNo)
+			}
+		}
+		this._prev.seri = value
 	}
 	plasiyerDegisti({ oldValue = this._prev.plasiyerKod, value = this.plasiyerKod }) {
 		this._prev.plasiyerKod = value
@@ -570,7 +596,7 @@ class TabFis extends MQDetayliGUID {
 	}
 	getDokumFormTip(e) {
 		let eIslemmi = !this.yildizlimi && this.eIslTip
-		return this.class[`dokumFormTip_${eIslemmi ? 'eIslem' : 'normal'}`]
+		return this[`dokumFormTip_${eIslemmi ? 'eIslem' : 'normal'}`]
 	}
 	async dokumGetValue({ tip, key } = {}) {
 		switch (key) {
@@ -607,11 +633,11 @@ class TabFis extends MQDetayliGUID {
 	static getRootFormBuilder_fis(e) { return null }
 	static rootFormBuilderDuzenle_listeEkrani({ sender: gridPart, rootBuilder: rfb }) {
 		super.rootFormBuilderDuzenle_listeEkrani(...arguments)
-		rfb.addStyle(`$elementCSS .header > .islemTuslari > div #sil { margin-left: 50px }`)
+		rfb.addStyle(`$elementCSS .header > .islemTuslari > div #sil { margin-left: 10px }`)
 	}
 	static rootFormBuilderDuzenle_islemTuslari({ fbd_islemTuslari: fbd }) {
 		super.rootFormBuilderDuzenle_islemTuslari(...arguments)
-		fbd.addStyle(`$elementCSS > div #tamam { margin-left: 50px }`)
+		fbd.addStyle(`$elementCSS > div #tamam { margin-left: 20px }`)
 	}
 	static tanimPart_islemTuslariDuzenle({ parentPart: tanimPart, part, liste }) {
 		super.tanimPart_islemTuslariDuzenle(...arguments)
@@ -690,18 +716,17 @@ class TabFis extends MQDetayliGUID {
 							.addCSS('center')
 							.addStyle(`$elementCSS { max-width: 90px }`)
 							.setMaxLength(3)
-							.degisince(({ builder: { id, input, altInst } }) => {
-								let oldValue = altInst[id]
+							.readOnly()
+							.degisince(({ builder, builder: { id, input, altInst }, ...rest }) => {
+								let oldValue = altInst[id]?.toUpperCase()
 								let value = oldValue?.toUpperCase()
-								if (value != oldValue) {
-									input.val(value)
-									altInst[id] = value
-								}
+								inst.seriDegisti({ ...rest, ...e, builder, id, input, altInst, value })
 							})
 						form.addNumberInput('fisNo', 'No', undefined, num?.sonNo).etiketGosterim_yok()
 							.addStyle(`$elementCSS { max-width: 200px }`)
 							.setMin(0).setMax(999999999).setMaxLength(9)
-							.degisince(({ value }) => inst.fisNo = value || null)
+							.degisince(({ value }) =>
+								inst.fisNo = value || null)
 					}
 					await this.rootFormBuilderDuzenle_tablet_acc_baslik({ ...e, rfb, item, layout })
 					{
