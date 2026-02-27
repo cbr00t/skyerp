@@ -546,8 +546,8 @@ class CariHareketci extends Hareketci {
 						althesapkod: 'fis.cariitn', takipno: 'fis.orttakipno', fisaciklama: 'fis.cariaciklama'
 					})
 				}) : null)
-			].filter(x => !!x)
-		});
+			].filter(Boolean)
+		})
 		return this
 	}
 	uniDuzenle_sutAlimMakbuz({ uygunluk, liste }) {
@@ -652,7 +652,7 @@ class CariHareketci extends Hareketci {
 						.fromIliski('sytahgrup tgrp', 'fis.tahgrupkod = tgrp.kod')
 				}).hvDuzenleIslemi(({ hv, sqlEmpty, sqlZero }) => {
 					$.extend(hv, {
-						kaysayac: 'har.kaysayac', ozelisaret: sqlEmpty, oncelik: 2, bizsubekod: sqlEmpty, kayittipi: `'SYON'`, unionayrim: `'SYonet'`,
+						kaysayac: 'har.kaysayac', ozelisaret: sqlEmpty, oncelik: '2', bizsubekod: sqlEmpty, kayittipi: `'SYON'`, unionayrim: `'SYonet'`,
 						anaislemadi: 'tgrp.aciklama', fistipi: sqlEmpty, must: 'har.must', fisnox: sqlEmpty, althesapkod: 'fis.althesapkod',
 						ba: `'B'`, isladi: 'tgrp.aciklama', bedel: 'har.bedel', dvbedel: sqlZero
 					})

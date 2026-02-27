@@ -117,7 +117,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	tabloYapiDuzenle({ result }) {
 		let e = arguments[0]
 		super.tabloYapiDuzenle(e)
-		let {ticarimi} = this.class
+		let {ticarimi, totalmi} = this.class
 		if (ticarimi)
 			result.addKAPrefix('althesap', 'ref')
 		this.tabloYapiDuzenle_ozelIsaret(e)
@@ -138,6 +138,8 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 			this.tabloYapiDuzenle_baBakiye(e)
 			this.tabloYapiDuzenle_dovizli_baBedel(e)
 			this.tabloYapiDuzenle_dovizli_baBakiye(e)
+			if (!totalmi)
+				result.addGrupBasit('ACIKLAMA', 'Açıklama', 'aciklama', null, null, ({ item }) => item.setSql_hv())
 		}
 	}
 	super_tabloYapiDuzenle(e) { super.tabloYapiDuzenle(e) }
@@ -214,23 +216,24 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		for (let [selectorStr, unionBilgiListe] of entries(uygunluk2UnionBilgiListe)) {
 			let uygunmu = true
 			if (uygunlukVarmi) {
-				let keys = selectorStr.split('$').filter(x => !!x)
-				uygunmu = !!keys.find(key => uygunluk[key])
+				let _keys = selectorStr.split('$').filter(x => !!x)
+				uygunmu = !!_keys.find(key => uygunluk[key])
 				if (!uygunmu)
 					continue
-				keys.forEach(key =>
+				_keys.forEach(key =>
 					calcUygunluk[key] = true)
 			}
 			unionBilgiListe = unionBilgiListe
 				.map(item => getFuncValue.call(this, item, e))
-				.filter(_ => !!_)
+				.filter(Boolean)
 			for (let uniBilgi of unionBilgiListe) {
 				let {sent, hv: hrkHV} = uniBilgi
 				$.extend(_e, {
 					sent, hrkHV, hv: hrkHV,
-					hvDegeri: key => this.hrkHVDegeri({ ..._e, key }),
-					sentHVEkle: (...keys) => {
-						for (let key of keys)
+					hvDegeri: key =>
+						this.hrkHVDegeri({ ..._e, key }),
+					sentHVEkle: (..._keys) => {
+						for (let key of _keys)
 							this.hrkSentHVEkle({ ..._e, key })
 					}
 				})
@@ -278,7 +281,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		}
 	}
 	loadServerData_queryDuzenle_hkrSent_son(e) {
-		this.loadServerData_queryDuzenle_son_araIslem_sentDuzenleyiciIslemleri(e)
+		this.loadServerData_queryDuzenle_son_araIslem_sentDuzenleyiciIslemleri({ ...e, stm: null })
 	}
 	loadServerData_queryDuzenle_ek(e) {
 		this.loadServerData_queryDuzenle_hrkStm_sonIslemler(e)
@@ -293,43 +296,51 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	loadServerData_queryDuzenle_ek_hareket(e) {
 		let {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs
 		let {devir: devirmi, attrSet, stm, donemBS} = e
-		let {tabloYapi, raporTanim} = this, {grupVeToplam} = tabloYapi
 		let {basi: tarih} = donemBS ?? {}, tarihDegerClause = tarih?.sqlServerDegeri() ?? sqlNull
+		if  (devirmi && !tarih)
+			return
+		let {tabloYapi, raporTanim} = this, {grupVeToplam} = tabloYapi
 		attrSet = attrSet ?? raporTanim.attrSet; let attrListe = keys(attrSet);
 		let alias2Key = {}
 		for (let [key, { kaYapimi, colDefs }] of entries(grupVeToplam)) {
-			let {belirtec: alias} = colDefs?.[0] ?? {}; if (!alias) { continue }
-			alias2Key[alias] = key; if (kaYapimi) { for (let postfix of ['kod', 'adi']) { alias2Key[`${alias}${postfix}`] = key } }
+			let {belirtec: alias} = colDefs?.[0] ?? {}
+			if (!alias)
+				continue
+			alias2Key[alias] = key
+			if (kaYapimi) {
+				for (let postfix of ['kod', 'adi'])
+					alias2Key[`${alias}${postfix}`] = key
+			}
 		}
 		let kirilmaSet = asSet(attrListe.filter(key => raporTanim.grup[key]))
 		let toplamSet = asSet(attrListe.filter(key => tabloYapi.toplam[key]))
 		let leafSabitSet = asSet(attrListe.filter(key => grupVeToplam[key] && !(kirilmaSet[key] || toplamSet[key])))
-		let cnv = {}; if (devirmi) {
-			cnv.TARIH = tarihDegerClause || sqlNull;
+		let cnv = {}
+		if (devirmi) {
+			cnv.TARIH = tarihDegerClause || sqlNull
 			cnv[keys(leafSabitSet)[0]] = `'DEVİR =>'`
 		}
 		stm = e.stm = stm.deepCopy()
 		deleteKeys(e, 'sent', 'uni')
 		for (let sent of stm) {
-			let {where: wh, sahalar, alias2Deger} = sent, {tarih: tarihClause} = alias2Deger;
-			for (let [alias, deger] of entries(alias2Deger)) {
-				if (deger.sqlBosDegermi()) { continue }
-				let key = alias2Key[alias]; if (!key) { continue }
+			let {where: wh, sahalar, alias2Deger} = sent, {tarih: tarihClause} = alias2Deger
+			for (let [alias, clause] of entries(alias2Deger)) {
+				let key = alias2Key[alias]
+				if (!(key && clause))
+					continue
 				alias2Deger[alias] =
 					(devirmi && leafSabitSet[key]) ? (cnv[key] || sqlNull) :
-					deger    // Kayıtların içinde DEVİR de olabilir
-					// toplamSet[key] ? deger.sumOlmaksizin() : deger
+					clause    // Kayıtların içinde DEVİR de olabilir
+					// toplamSet[key] ? clause.sumOlmaksizin() : clause
 			}
-			{
-				let wrongKey = 'fis.tarih)', correctKey = 'tarih'
-				if (alias2Deger[wrongKey]) {
-					alias2Deger[correctKey] = `${alias2Deger[wrongKey]} ${wrongKey}`
-					delete alias2Deger[wrongKey]
-				}
+			let wrongKey = 'fis.tarih)', correctKey = 'tarih'
+			if (alias2Deger[wrongKey]) {
+				alias2Deger[correctKey] = `${alias2Deger[wrongKey]} ${wrongKey}`
+				delete alias2Deger[wrongKey]
 			}
-			for (let aMQAliasliYapi of sahalar.liste) {
-				aMQAliasliYapi.deger = alias2Deger[aMQAliasliYapi.alias] }
-			if (tarihClause && !MQSQLOrtak.sqlBosDegermi(tarihDegerClause))
+			for (let aMQAliasliYapi of sahalar.liste)
+				aMQAliasliYapi.deger = alias2Deger[aMQAliasliYapi.alias]
+			if (tarihDegerClause?.sqlDoluDegermi())
 				wh.add(`(${tarihClause} IS NULL OR ${tarihClause} ${devirmi ? '<' : '>='} ${tarihDegerClause})`)
 			sent.groupByOlustur()
 		}

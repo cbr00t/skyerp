@@ -4,8 +4,12 @@
 .part .islemTuslari #dosyadanYukle.jqx-fill-state-normal { }
 .part .islemTuslari #ticariFiseDonustur { background-image: url(../../../../../../../images/kaydet.png) }
 .part .islemTuslari #ticariFiseDonustur.jqx-fill-state-normal { }
-.part .islemTuslari #eIslemIzle { background-image: url(../../../../../../../images/izle.png) }
-.part .islemTuslari #eIslemIzle.jqx-fill-state-normal { background-color: #979f97 }
+.part .islemTuslari #eIslemIzle {
+	background-image: url(../../../../../../../images/izle.png);
+	background-size: 40px !important;
+	filter: brightness(.8) contrast(5) !important
+}
+.part .islemTuslari #eIslemIzle.jqx-fill-state-normal { background-color: #888; filter: brightness(.8) contrast(5) invert(1) !important }
 .part .islemTuslari #sil { background-image: url(../../../../../../../images/eIslemKaldir.png) }
 .part .islemTuslari #sil.jqx-fill-state-normal { background-color: #9f9797 }
 .part .jqx-grid div[role=row] > div.tamamDurum.tamamlandi:not(.jqx-grid-cell-selected) { background-color: #d0e5cf }

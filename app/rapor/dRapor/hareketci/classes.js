@@ -416,7 +416,7 @@ class DRapor_Hareketci_Kasa_Main extends DRapor_Hareketci_Main {
 	static get raporClass() { return DRapor_Hareketci_Kasa }
 	static get ticarimi() { return true }
 	tabloYapiDuzenle({ result }) {
-		result.addKAPrefix('kasa').addGrupBasit('KASA', 'Kasa', 'kasa', DMQKasa);
+		result.addKAPrefix('kasa').addGrupBasit('KASA', 'Kasa', 'kasa', DMQKasa)
 		super.tabloYapiDuzenle(...arguments)
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {

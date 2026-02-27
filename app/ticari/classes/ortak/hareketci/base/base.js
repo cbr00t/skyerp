@@ -196,8 +196,9 @@ class Hareketci extends CObject {
 			isladi: ({ hv }) => hv.islemadi || hv.anaislemadi, fistarih: ({ hv }) => hv.tarih,
 			karsiodemetarihi: ({ hv }) => hv.vade, isaretlibedel: ({ hv }) => hv.bedel,
 			aciklama: ({ hv }) => {
-                let withCoalesce = clause => (clause?.sqlDoluDegermi ?? false) ? `COALESCE(${clause}, '')` : sqlEmpty
-                let {fisaciklama: fisAciklama, detaciklama: detAciklama} = hv;
+                let withCoalesce = clause =>
+					(clause?.sqlDoluDegermi() ?? false) ? `COALESCE(${clause}, '')` : sqlEmpty
+                let {fisaciklama: fisAciklama, detaciklama: detAciklama} = hv
                 return fisAciklama && detAciklama
                     ? `${withCoalesce(fisAciklama)} + ' ' + ${withCoalesce(detAciklama)}` 
                     : withCoalesce(detAciklama || fisAciklama || sqlEmpty)
@@ -222,12 +223,18 @@ class Hareketci extends CObject {
 		let allKeys = {}
 		for (let {hv} of liste)
 			$.extend(allKeys, asSet(keys(hv))) 
-		for (let {hv: _hv} of liste) {
-			let hv = liste.hv = {}
+		let sender = this, {hareketci} = this
+		for (let item of liste) {
+			let {hv: _hv} = item
+			let hv = {}
 			for (let key in allKeys) {
-				let value = _hv[key] ?? defHV[key] ?? 'NULL'
+				let value = _hv[key] ?? defHV[key]
+				if (isFunction(value))
+					value = value?.call(this, { ...e, sender, hareketci, key, hv: _hv, defHV })
+				value ||= 'NULL'
 				hv[key] = value
 			}
+			item.hv = hv
 		}
 	}
 	static extListeDuzenle(e) {
