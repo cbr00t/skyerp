@@ -220,11 +220,26 @@ class MQKontorHareket extends MQSayacli {
 		return true
 	}
 }
+
 class MQKontorHareket_EBelge extends MQKontorHareket {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kontorSinif() { return MQKontor_EBelge }
 }
+
 class MQKontorHareket_Turmob extends MQKontorHareket {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kontorSinif() { return MQKontor_Turmob }
+}
+
+class MQKontorHareket_TokenliOrtak extends MQKontorHareket {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kontorSinif() { return MQKontor_Turmob }
+}
+class MQKontorHareket_ZamanDamgasi extends MQKontorHareket_TokenliOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kontorSinif() { return MQKontor_ZamanDamgasi }
+}
+class MQKontorHareket_SMS extends MQKontorHareket_TokenliOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kontorSinif() { return MQKontor_SMS }
 }

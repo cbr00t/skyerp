@@ -28,7 +28,8 @@ class MQEMutOnay extends MQCogul {
 		await super.uiGirisOncesiIslemler(e)
 		let { sender: tanimPart } = e, islem = 'izle'
 		let { class: { sinifAdi: title } } = this
-		extend(e, { title, islem })
+		extend(e, { islem })
+		extend(tanimPart, { title })
 		/*setTimeout(() => app.enterKioskMode(), 100)
 		tanimPart.kapaninca(() =>
 			app.exitKioskMode())*/
@@ -76,13 +77,14 @@ class MQEMutOnay extends MQCogul {
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e)
 		let { sender: tanimPart, islem, inst, rootBuilder: rfb, tanimFormBuilder: tanimForm, kaForm } = e
-		let { wsResult } = inst, { onayTipi } = wsResult
+		let { wsResult } = inst, { onayTipi } = wsResult ?? {}
 		let uygunmu = wsResult && !wsResult.cevapTS
 		let receiverTipAdi
 		if (onayTipi) {
 			onayTipi = onayTipi.toLowerCase()
 			let araText
 			switch (onayTipi) {
+				case 'yok': onayTipi = null; break
 				case 'sms': receiverTipAdi = 'Tel No'; break
 				case 'email': receiverTipAdi = 'e-Mail'; break
 			}
@@ -206,36 +208,38 @@ class MQEMutOnay extends MQCogul {
 			if (onayTipi)
 				tanimForm.addTextInput('receiver', receiverTipAdi)
 			tanimForm.addTextInput('notlar', 'Notlar')
-			tanimForm.addDiv('_dosyaAdi', 'Dosya Eki')
-				.onBuildEk(({ builder: { input: parent } }) => {
-					parent.addClass('full-wh')
-					let accept = [
-					    // Text
-					    'text/plain',
-					    'text/rtf',
-					    'text/csv',
-						'text/markdown',
-						// HTML
-						'text/html',
-						'text/mhtml',
-						'application/x-mhtml',
-						// FastReport
-						'application/x-frx',
-						'application/x-fpx',
-					    // PDF
-					    'application/pdf',
-					    // Office
-					    'application/msword',                                                      // .doc
-					    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
-					    'application/vnd.ms-excel',                                                // .xls
-					    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',       // .xlsx
-					    // Images
-					    'image/*'
-					]
-					let elm = $(`<input type="file" class="full-wh" accept="${accept.join(', ')}">`).appendTo(parent)
-					elm.on('change', event =>
-						inst.dosyaSecildi({ ...e, event, file: event.currentTarget.files?.[0] }))
-				})
+			if (uygunmu) {
+				tanimForm.addDiv('_dosyaAdi', 'Dosya Eki')
+					.onBuildEk(({ builder: { input: parent } }) => {
+						parent.addClass('full-wh')
+						let accept = [
+						    // Text
+						    'text/plain',
+						    'text/rtf',
+						    'text/csv',
+							'text/markdown',
+							// HTML
+							'text/html',
+							'text/mhtml',
+							'application/x-mhtml',
+							// FastReport
+							'application/x-frx',
+							'application/x-fpx',
+						    // PDF
+						    'application/pdf',
+						    // Office
+						    'application/msword',                                                      // .doc
+						    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+						    'application/vnd.ms-excel',                                                // .xls
+						    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',       // .xlsx
+						    // Images
+						    'image/*'
+						]
+						let elm = $(`<input type="file" class="full-wh" accept="${accept.join(', ')}">`).appendTo(parent)
+						elm.on('change', event =>
+							inst.dosyaSecildi({ ...e, event, file: event.currentTarget.files?.[0] }))
+					})
+			}
 		}
 	}
 	async dosyaSecildi({ sender: tanimPart, file }) {
@@ -265,17 +269,17 @@ class MQEMutOnay extends MQCogul {
 			return
 		}
 
+		if (onayTipi == 'yok')
+			onayTipi = null
+
 		let onayKodu = '', receiverTipAdi
 		if (onayTipi) {
 			onayTipi = onayTipi.toLowerCase()
 			let araText
 			switch (onayTipi) {
-				case 'sms':
-					araText = `nolu telefona gelen SMS`
-					break
-				case 'email':
-					araText = `e-Mail adresine gelen`
-					break
+				case 'yok': onayTipi = null; break
+				case 'sms': araText = `nolu telefona gelen SMS`; break
+				case 'email': araText = `e-Mail adresine gelen`; break
 			}
 			showProgress()
 			try {
@@ -286,9 +290,9 @@ class MQEMutOnay extends MQCogul {
 					maxLength: 6,
 					// placeHolder: '______',
 					validate: ({ value: v }) => {
-						if (asInteger(v) >= 100000 && asInteger(v) <= 999999)
-							return true
-						return hConfirm('Onay Kodu 6 haneli bir sayı olmalıdır')
+						if (!Array.from(v).filter(isDigit).length == 6)
+							return hConfirm('Onay Kodu 6 haneli bir sayı olmalıdır')
+						return true
 					},
 					buildEk: ({ wnd, builder: rfb, builder: { id2Builder: { value: fbd } } }) => {
 						let close = () =>

@@ -3,13 +3,13 @@ class MQStm extends MQDbCommand {
 	static get toplamTable() { return 'toplam' }
 	get unionSahaListe() { return this.sent.unionSahaListe } get unionAliasListe() { return this.sent.unionAliasListe }
 	get siraliSahaVeDegerler() { let result = []; for (let sent of this.getSentListe()) { result.push(sent.alias2Deger) }; return result }
-	get siraliSahalar() { return this.siraliSahaVeDegerler.map(dict => Object.keys(dict)) }
+	get siraliSahalar() { return this.siraliSahaVeDegerler.map(dict => keys(dict)) }
 	get debugListe() { return this.sent.liste.map(sent => ({ from: sent.from.toString(), sahalar: sent.sahalar.toString(), where: sent.where.liste.join(' ') })) }
 	constructor(e) {
 		e = e || {}; super(e); $.extend(this, {
-			with: ($.isPlainObject(e.with) ? new MQWith(e.with) : e.with) || new MQWith(),
-			sent: ($.isPlainObject(e.sent) ? new MQSent(e.sent) : e.sent) || new MQSent(),
-			orderBy: (($.isArray(e.orderBy) || $.isPlainObject(e.orderBy) || typeof e.orderBy == 'string' ? new MQOrderByClause(e.orderBy) : e.orderBy)) || new MQOrderByClause(),
+			with: (isPlainObject(e.with) ? new MQWith(e.with) : e.with) || new MQWith(),
+			sent: (isPlainObject(e.sent) ? new MQSent(e.sent) : e.sent) || new MQSent(),
+			orderBy: ((isArray(e.orderBy) || isPlainObject(e.orderBy) || typeof e.orderBy == 'string' ? new MQOrderByClause(e.orderBy) : e.orderBy)) || new MQOrderByClause(),
 			limit: e.limit, offset: e.offset
 		})
 	}
@@ -74,15 +74,15 @@ class MQTmpTable extends MQDbCommand {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) {
 		e = e || {}; super(e);
-		if ($.isArray(e)) { e = { sahalar: e } } else if (typeof e != 'object') { e = { sahalar: [e] } }
+		if (isArray(e)) { e = { sahalar: e } } else if (typeof e != 'object') { e = { sahalar: [e] } }
 		this.sahalar = []; const _liste = e.sahalar || e.liste; if (!$.isEmptyObject(_liste)) { this.addAll(_liste) }
-		$.extend(this, { table: e.table, sent: ($.isPlainObject(e.sent) ? new MQSent(e.sent) : e.sent ) || new MQSent() })
+		$.extend(this, { table: e.table, sent: (isPlainObject(e.sent) ? new MQSent(e.sent) : e.sent ) || new MQSent() })
 	}
 	add(e) { if (e || (typeof e == 'number')) { this.sahalar.push(e) } return this }
 	addAll(coll) {
 		const _liste = coll ? (coll.sahalar || coll.liste) : null; if (_liste) { coll = _liste }
-		if ($.isPlainObject(coll) && !$.isArray(coll)) { coll = Object.keys(coll) }
-		if (!$.isArray(coll)) { coll = arguments }
+		if (isPlainObject(coll) && !isArray(coll)) { coll = keys(coll) }
+		if (!isArray(coll)) { coll = arguments }
 		for (const item of coll) { this.add(item) }
 		return this
 	}

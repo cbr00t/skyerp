@@ -28,7 +28,7 @@ class MQClause extends MQSQLOrtak {
 	}
 	addAll(coll) {
 		if (coll && coll.liste) { coll = coll.liste }
-		if ($.isPlainObject(coll) && !isArray(coll))
+		if (isPlainObject(coll) && !isArray(coll))
 			coll = keys(coll)
 		if (!isArray(coll))
 			coll = arguments
@@ -281,7 +281,7 @@ class MQSubWhereClause extends MQClause {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get baglac() { return `${CrLf}	  AND	 ` }
 	constructor(e) {
 		e = e || {}; let initBlock = e => {
-			if (!$.isPlainObject(e)) { this.add(e); return true }
+			if (!isPlainObject(e)) { this.add(e); return true }
 			let value = e.inDizi; if (value !== undefined) { this.inDizi({ liste: value, saha: e.saha, not: e.not ?? e.disindakilermi ?? e.disindakiler }); return true }
 			value = e.notInDizi; if (value !== undefined) { this.notInDizi({ liste: value, saha: e.saha }); return true; }
 			value = e.degerAta; if (value !== undefined) { this.degerAta({ deger: value, saha: e.saha, not: e.not }); return true }
@@ -585,7 +585,7 @@ class MQXJoinTable extends MQAliasliYapi {
 	static get onEk() { return null }
 	constructor(e) {
 		e = e || {}; super(e);
-		this.on = ((!e.on || $.isPlainObject(e.on) || typeof e.on == 'string' || isArray(e.on))
+		this.on = ((!e.on || isPlainObject(e.on) || typeof e.on == 'string' || isArray(e.on))
 							? new MQOnClause(e.on)
 							: e.on
 						) || new MQOnClause();
