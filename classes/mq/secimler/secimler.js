@@ -161,11 +161,13 @@ class Secimler extends CIO {
 		}
 		return this
 	}
-	grupEkle(e, _aciklama, _kapalimi, _renk, _zeminRenk, _css, _ekBilgi) {
-		e = e || {}; let kod = e.kod ?? e.key ?? e.belirtec ?? e, {grupListe} = this;
+	grupEkle(e = {}, _aciklama, _kapalimi, _renk, _zeminRenk, _css, _ekBilgi) {
+		let kod = e.kod ?? e.key ?? e.belirtec ?? e
+		let {grupListe} = this
 		if (!grupListe[kod]) {
-			let aciklama = (e.aciklama ?? e.adi ?? e.etiket ?? e.text ?? _aciklama) ?? kod, kapalimi = e.kapali ?? e.kapalimi ?? _kapalimi;
-			let renk = e.renk ?? _renk, zeminRenk = e.zeminRenk ?? _zeminRenk, css = e.css ?? _css, ekBilgi = e.ekBilgi ?? _ekBilgi;
+			let aciklama = (e.aciklama ?? e.adi ?? e.etiket ?? e.text ?? _aciklama) ?? kod
+			let kapalimi = e.kapali ?? e.kapalimi ?? _kapalimi
+			let renk = e.renk ?? _renk, zeminRenk = e.zeminRenk ?? _zeminRenk, css = e.css ?? _css, ekBilgi = e.ekBilgi ?? _ekBilgi
 			grupListe[kod] = { kod, aciklama, kapalimi, renk, zeminRenk, css, ekBilgi }
 		}
 		return this

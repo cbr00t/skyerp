@@ -1,44 +1,82 @@
 class ESEApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'MAIN' } get kioskmuDogrudan() { return config.session?.loginTipi == 'eseLogin' }
-	get isLoginRequired() { return true } get defaultLoginTipi() { return this.isAdmin ? Session.DefaultLoginTipi : 'eseLogin' }
-	get defaultWSPath() { return `${super.superDefaultWSPath}/ese` } get yerelParamSinif() { return MQYerelParamTicari } get configParamSinif() { return MQYerelParamConfig_App }
+    static { window[this.name] = this; this._key2Class[this.name] = this } 
+	get autoExecMenuId() { return 'MAIN' }
+	get isLoginRequired() { return true }
+	get kioskmuDogrudan() { return config.session?.loginTipi == 'eseLogin' }
+	get defaultLoginTipi() { return this.isAdmin ? Session.DefaultLoginTipi : 'eseLogin' }
+	get defaultWSPath() { return `${super.superDefaultWSPath}/ese` }
+	get yerelParamSinif() { return MQYerelParamTicari }
+	get configParamSinif() { return MQYerelParamConfig_App }
+
 	constructor(e) { e = e || {}; super(e); this.isAdmin = qs.admin ?? false }
 	async init(e) { await super.init(e); if (!config.colorScheme) { config.colorScheme = 'dark' } }
 	async runDevam(e) {
-		let {isAdmin} = this; if (isAdmin) { $('body').addClass('admin') } await super.runDevam(e);
-		if (!isAdmin) { let {session} = config; await app.wsLogout(); await app.wsLogin({ session }) }
-		await this.anaMenuOlustur(e); this.show()
+		let {isAdmin} = this
+		if (isAdmin)
+			$('body').addClass('admin')
+		await super.runDevam(e)
+		if (!isAdmin) {
+			let {session} = config
+			await app.wsLogout()
+			await app.wsLogin({ session })
+		}
+		await this.anaMenuOlustur(e)
+		this.show()
 	}
-	loginTipleriDuzenle(e) {
-		let {loginTipleri} = e; loginTipleri.push(...[
+	loginTipleriDuzenle({ loginTipleri }) {
+		loginTipleri.push(...[
 			(this.isAdmin ? { kod: 'login', aciklama: 'Yönetici' } : null),
 			{ kod: 'eseLogin', aciklama: 'Normal Giriş' }
-		].filter(x => !!x))
+		].filter(Boolean))
 	}
-	paramsDuzenle(e) { super.paramsDuzenle(e); $.extend(e.params, { localData: MQLocalData.getInstance(), ese: MQParam_ESE.getInstance() }) }
+	paramsDuzenle({ params }) {
+		super.paramsDuzenle(...arguments)
+		extend(params, {
+			localData: MQLocalData.getInstance(),
+			ese: MQParam_ESE.getInstance()
+		})
+	}
 	async getAnaMenu(e) {
 		let {noMenuFlag} = this; if (noMenuFlag) { return new FRMenu() }
 		let {isAdmin, params} = this, {ese} = params, sablon = ese?.sablon ?? {};
 		let items = []; if (isAdmin) {
 			let addMenuSubItems = (mne, text, ...classes) => {
-				let subItems = classes.flat().map(cls => new FRMenuChoice({ mne: cls.kodListeTipi, text: cls.sinifAdi, block: e => cls.listeEkraniAc(e) }));
-				let menuItems = []; if (subItems?.length) { menuItems = mne ? [new FRMenuCascade({ mne, text, items: subItems })] : subItems; items.push(...menuItems) }
+				let subItems = classes
+					.flat()
+					.map(cls =>
+						new FRMenuChoice({ mne: cls.kodListeTipi, text: cls.sinifAdi, block: e => cls.listeEkraniAc(e) }))
+				let menuItems = []
+				if (subItems?.length) {
+					menuItems = mne ? [new FRMenuCascade({ mne, text, items: subItems })] : subItems
+					items.push(...menuItems)
+				}
 				return menuItems
 			};
-			addMenuSubItems('TANIM', 'Sabit Tanımlar', [MQCariUlke, MQCariIl, MQYerlesim, MQKurum, MQOkulTipi, MQYasGrup, MQESEUser, MQYetki, MQCari]);
-			addMenuSubItems(null, null, [MQHasta, MQDoktor]);
-			addMenuSubItems('SABLON', 'Şablonlar', [MQSablonCPT, MQSablonAnket]);
-			addMenuSubItems(null, null, [MQMuayene]);
+			addMenuSubItems('TANIM', 'Sabit Tanımlar', [MQCariUlke, MQCariIl, MQYerlesim, MQKurum, MQOkulTipi, MQYasGrup, MQESEUser, MQYetki, MQCari])
+			addMenuSubItems(null, null, [MQHasta, MQDoktor])
+			addMenuSubItems('SABLON', 'Şablonlar', [MQSablonCPT, MQSablonAnket])
+			addMenuSubItems(null, null, [MQMuayene])
 			for (let cls of [MQTest]) {
-				let {sablonTip, sablonSinif, kodListeTipi: mne, sinifAdi: text} = cls;
-				let sablonId = sablon[sablonTip]?.[0]?.sablonId, sablonAdi = sablonId ? await sablonSinif.getGloKod2Adi(sablonId) : null;
-				if (sablonAdi) { text += `<div class="royalblue" style="font-weight: normal; font-size: 90%; padding-top: 10px">${sablonAdi}</div>` }
+				let {sablonTip, sablonSinif, kodListeTipi: mne, sinifAdi: text} = cls
+				let sablonId = sablon[sablonTip]?.[0]?.sablonId
+				let sablonAdi = sablonId ? await sablonSinif.getGloKod2Adi(sablonId) : null
+				if (sablonAdi)
+					text += `<div class="royalblue" style="font-weight: normal; font-size: 90%; padding-top: 10px">${sablonAdi}</div>`
 				items.push(new FRMenuChoice({ mne, text, block: e => cls.listeEkraniAc(e) }))
 			}
-			/*let raporItems = [];*/ for (let cls of [MQTest]) {
-				let {raporSinif} = cls; if (!raporSinif) { continue } let mne = 'RAPOR', {sinifAdi: text} = cls; if (!text) { continue }
-				text += ' Raporu'; items.push(new FRMenuChoice({ mne, text, block: e => raporSinif.goster(e) }))
-			} /*if (raporItems?.length) { items.push(new FRMenuCascade({ mne: 'RAPOR', text: 'Raporlar', items: raporItems })) }*/
+			//let raporItems = [];
+			for (let cls of [MQTest]) {
+				let {raporSinif} = cls
+				if (!raporSinif)
+					continue
+				let mne = 'RAPOR', {sinifAdi: text} = cls
+				if (!text)
+					continue
+				text += ' Raporu'
+				items.push(new FRMenuChoice({ mne, text, block: e => raporSinif.goster(e) }))
+			}
+			addMenuSubItems(null, null, [MQTestSonuc])
+			//if (raporItems?.length) { items.push(new FRMenuCascade({ mne: 'RAPOR', text: 'Raporlar', items: raporItems })) }
 			items.push(
 				new FRMenuChoice({ mne: MQParam_ESE.paramKod, text: MQParam_ESE.sinifAdi, block: e => ese.tanimla(e) }),
 				new FRMenuChoice({ mne: 'TEST_YUKLE', text: 'Dosyadan Test Yükle', block: e => this.dosyadanTestYukleIstendi(e) }),
@@ -46,26 +84,39 @@ class ESEApp extends App {
 			)
 		}
 		else {
-			let {testId} = config.session, sablonId2Adi = ese.sablonId2Adi ?? {};
-			let {tableAlias: alias, idSaha} = MQTest, rec, tipVeSablonId2Yapildi = {};
-			try { rec = (await MQTest.loadServerData({ ozelQueryDuzenle: ({ sent }) => sent.where.degerAta(testId, `${alias}.${idSaha}`) }))?.[0] } catch (ex) { console.error(getErrorText(ex)) }
+			let {testId} = config.session, sablonId2Adi = ese.sablonId2Adi ?? {}
+			let {tableAlias: alias, idSaha} = MQTest, rec, tipVeSablonId2Yapildi = {}
+			try {
+				rec = (await MQTest.loadServerData({
+					ozelQueryDuzenle: ({ sent }) =>
+						sent.where.degerAta(testId, `${alias}.${idSaha}`)
+				}))?.[0]
+			}
+			catch (ex) { cerr(ex) }
 			if (rec) {
 				for (let {tip, belirtec, sablonId} of ese.getIter()) {
-					let tipVeBelirtec = `${tip}${belirtec}`, key = `b${tipVeBelirtec}yapildi`, flag = rec[key];
-					let tipVeSablonId = `${tip}-${sablonId}`; tipVeSablonId2Yapildi[tipVeSablonId] = asBool(flag)
+					let tipVeBelirtec = `${tip}${belirtec}`
+					let key = `b${tipVeBelirtec}yapildi`, flag = rec[key]
+					let tipVeSablonId = `${tip}-${sablonId}`
+					tipVeSablonId2Yapildi[tipVeSablonId] = asBool(flag)
 				}
 			}
 			for (let cls of MQTest.subClasses) {
-				let {sablonTip, sablonSinif} = cls; let _items = sablon[sablonTip] ?? [];
+				let {sablonTip, sablonSinif} = cls
+				let _items = sablon[sablonTip] ?? []
 				for (let i = 0; i < _items.length; i++) {
-					let {belirtec, sablonId, etiket: text} = _items[i]; if (!sablonId) { continue }
-					let {tip, testUyariText} = cls, tipVeSablonId = `${tip}-${sablonId}`, sablonAdi = sablonId2Adi[sablonId];
-					if (sablonAdi) { text += `<div class="royalblue" style="font-weight: normal; font-size: 90%; padding-top: 10px">${sablonAdi}</div>` }
-					let disabled = false, tamamlandimi = false, cssColor = 'green';
+					let {belirtec, sablonId, etiket: text} = _items[i]
+					if (!sablonId)
+						continue
+					let {tip, testUyariText} = cls, tipVeSablonId = `${tip}-${sablonId}`, sablonAdi = sablonId2Adi[sablonId]
+					if (sablonAdi)
+						text += `<div class="royalblue" style="font-weight: normal; font-size: 90%; padding-top: 10px">${sablonAdi}</div>`
+					let disabled = false, tamamlandimi = false, cssColor = 'green'
 					if (tipVeSablonId2Yapildi[tipVeSablonId]) {
-						/*disabled = true;*/ tamamlandimi = true; cssColor = 'firebrick';
+						//disabled = true
+						tamamlandimi = true; cssColor = 'firebrick'
 						testUyariText = `<div class="bold firebrick" style="margin-top: 25px">[ TAMAMLANDI ]</div>`;
-						/*text += `<div class="bold firebrick" style="margin-top: 8px">[ TAMAMLANDI ]</div>`*/
+						//text += `<div class="bold firebrick" style="margin-top: 8px">[ TAMAMLANDI ]</div>`
 					}
 					text = (
 						`<div class="full-wh" style="border: 2px solid ${cssColor}; box-shadow: 0 0 5px 0px ${cssColor}">` +
@@ -73,10 +124,13 @@ class ESEApp extends App {
 							(testUyariText ? `<div style="font-size: 120%; margin-top: 15px">${testUyariText}</div>` : '') +
 						`</div>`
 					);
-					let mne = `${tip.toUpperCase()}-${i + 1}`;
+					let mne = `${tip.toUpperCase()}-${i + 1}`
 					items.push(new FRMenuChoice({ mne, text, disabled, block: e => {
-						/*let {menuItemElement: item} = e;*/
-						if (tamamlandimi) { hConfirm('Bu test tamamlandığı için işlem yapılamaz', 'Test'); return }
+						//let {menuItemElement: item} = e
+						if (tamamlandimi) {
+							hConfirm('Bu test tamamlandığı için işlem yapılamaz', 'Test')
+							return
+						}
 						this.testBaslat({ tip, belirtec, testId, sablonId })
 					} }))
 				}
@@ -84,11 +138,19 @@ class ESEApp extends App {
 		}
 		return new FRMenu({ items })
 	}
-	testBaslat(e) {
-		e = e || {}; let {session} = config, testTip = e.testTip ?? e.tip, testId = e.testId ?? e.id ?? session.testId, {belirtec, sablonId} = e;
-		if (!(testId && sablonId)) { return null } let testSinif = MQTest.getClass(testTip); if (!testSinif) { return null }
-		try { requestFullScreen() } catch (ex) { } return testSinif.baslat({ testId, belirtec, sablonId })
+	
+	testBaslat(e = {}) {
+		let {session} = config, testTip = e.testTip ?? e.tip
+		let testId = e.testId ?? e.id ?? session.testId, {belirtec, sablonId} = e
+		if (!(testId && sablonId))
+			return null
+		let testSinif = MQTest.getClass(testTip)
+		if (!testSinif)
+			return null
+		try { requestFullScreen() } catch (ex) { }
+		return testSinif.baslat({ testId, belirtec, sablonId })
 	}
+	
 	dehbmi(e) {
 	    let d = {
 	        de: { skor: e.deskor ?? 0, belirti: e.debelirtisayi ?? 0 },

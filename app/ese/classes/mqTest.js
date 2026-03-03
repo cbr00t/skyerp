@@ -62,7 +62,8 @@ class MQTest extends MQGuidOrtak {
 		})
 	}
 	static ekCSSDuzenle(e) {
-		super.ekCSSDuzenle(e); let {dataField: belirtec, rec, result} = e;
+		super.ekCSSDuzenle(e)
+		let {dataField: belirtec, rec, result} = e
 		if (belirtec == 'onaykodu') { result.push('center bold royalblue') }
 		if ((belirtec == 'bdehbvarmi' || belirtec == 'bdehbvarmiklinik') && asBool(rec.bdehbvarmi) || (belirtec == 'bdehbmiozel') && asBool(rec.bdehbmiozel))
 			result.push('dehb')
@@ -75,7 +76,7 @@ class MQTest extends MQGuidOrtak {
 		super.orjBaslikListesiDuzenle(e); let {tableAlias: alias} = this, {dev} = config;
 		let {liste} = e; liste.push(...[
 			(dev ? new GridKolon({ belirtec: 'muayeneid', text: 'Muayene ID', genislikCh: 40 }) : null),
-			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 10, sql: `${alias}.tarihsaat` }).tipDate(),
+			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 12, sql: `${alias}.tarihsaat` }).tipDate(),
 			new GridKolon({ belirtec: 'saat', text: 'Saat', genislikCh: 9, sql: `${alias}.tarihsaat` }).tipTime()
 		].filter(x => !!x));
 		for (let {prefix, kisaEtiket, sablonId} of app.params.ese) {
@@ -293,31 +294,34 @@ class MQTest extends MQGuidOrtak {
 			}
 		})
 	}
-	static async testIslemleriIstendi(e) {
-		e = e ?? {}; let title = 'Test İşlemleri', {forcedRecs} = e, {ese} = app.params;
-		let gridPart = e.gridPart ?? e.parentPart ?? e.sender ?? {};
-		(gridPart ?? app.activeWndPart)?.openContextMenu({
+	static async testIslemleriIstendi(e = {}) {
+		let title = 'Test İşlemleri', {forcedRecs} = e, {ese} = app.params
+		let gridPart = e.gridPart ?? e.parentPart ?? e.sender ?? {}
+		;(gridPart ?? app.activeWndPart)?.openContextMenu({
 			gridPart, title, forcedRecs,
-			argsDuzenle: _e => $.extend(_e.wndArgs, { width: Math.min(1000, $(window).width() - 50), height: 270 }),
+			argsDuzenle: ({ wndArgs }) =>
+				extend(wndArgs, { width: Math.min(1000, $(window).width() - 50), height: 270 }),
 			formDuzenleyici: async _e => {
 				delete _e.recs
 				let {form: ustForm, close, gridPart} = _e
 				let recs = _e.forcedRecs ?? e.recs ?? gridPart.selectedRecs
-				let idListe = recs.map(rec => rec.id), testId = idListe[0];
-				if (!idListe?.length) { return }
-				if (idListe?.length > 1) {
+				let idListe = recs.map(rec => rec.id), testId = idListe[0]
+				if (empty(idListe))
+					return false
+				let coklumu = idListe.length > 1
+				/*if (coklumu) {
 					wConfirm('Sadece bir tane Test seçilmelidir', title)
 					return false
-				}
-				let bitenTestKeySet = {}
-				for (let rec of recs) {
-					for (let {prefix: key} of ese) {
-						let value = rec[`b${key}yapildi`];
-						if (value)
-							bitenTestKeySet[key] = true
+				}*/
+				if (!coklumu) {
+					let bitenTestKeySet = {}
+					for (let rec of recs) {
+						for (let {prefix: key} of ese) {
+							let value = rec[`b${key}yapildi`];
+							if (value)
+								bitenTestKeySet[key] = true
+						}
 					}
-				}
-				{
 					let form = ustForm.addFormWithParent().yanYana(2.85)
 						.addStyle_wh('var(--full)')
 						.addStyle(e => `$elementCSS { padding-top: 40px }`)
@@ -325,7 +329,10 @@ class MQTest extends MQGuidOrtak {
 					for (let {tip, belirtec, prefix, seq, etiket, sablonId} of ese) {
 						let altForm = form.addFormWithParent(prefix).altAlta()
 						altForm.addForm().setLayout(e => $(
-							`<h5 class="bold center royalblue" style="padding-bottom: 13px; margin-right: 10px; border-bottom: 1px solid royalblue">${etiket || ''}</h5>`))
+							`<h5 class="bold center royalblue" style="padding-bottom: 13px; margin-right: 10px; border-bottom: 1px solid royalblue">
+								${etiket || ''}
+							</h5>`
+						))
 						let handler = __e => {
 							let {id} = __e.builder, parts = id.split('_')
 							let [tip, belirtec, selector] = parts, seq = asInteger(parts[2])
@@ -340,11 +347,24 @@ class MQTest extends MQGuidOrtak {
 					}
 				}
 				{
-					let form = ustForm.addFormWithParent().altAlta()
+					let form = ustForm.addFormWithParent().yanYana()
 						.addStyle_wh(`calc(var(--full) - 27px)`)
-					form.addButton('testSonucGoster', 'TEST SONUÇ GÖSTER')
-						.addStyle_fullWH()
-						.onClick(__e => this.testSonucGosterIstendi({ ...e, ..._e, ...__e }))
+					if (coklumu)
+						form.addStyle(`$elementCSS { padding-top: 70px; padding-left: 15px }`)
+					{
+						let fbd = form.addButton('testSonucGoster', 'TEST SONUÇ GÖSTER')
+							.addStyle_fullWH('calc(var(--full) - 370px)')
+							.onClick(__e => this.testSonucGosterIstendi({ ...e, ..._e, ...__e }))
+						if (coklumu)
+							fbd.disable()
+					}
+					{
+						let fbd = form.addButton('testDetayGoster', 'ANKET CEVAPLARI GÖSTER')
+							.addStyle_fullWH('350px')
+							.onClick(__e => this.testAnketCevaplariGosterIstendi({ ...e, ..._e, ...__e }))
+						if (empty(recs))
+							fbd.disable()
+					}
 				}
 			}
 		})
@@ -381,6 +401,22 @@ class MQTest extends MQGuidOrtak {
 		// let {selectedRec: rec} = gridPart
 		gridPart.degistirIstendi(...arguments)
 	}
+	static testAnketCevaplariGosterIstendi({ gridPart, wnd }) {
+		if (wnd?.length)
+			wnd.jqxWindow('close')
+		let { selectedRecs: recs } = gridPart
+		if (empty(recs))
+			return
+		let idListe = recs.map(_ => _.id)
+		MQTestSonuc.listeEkraniAc({
+			secimlerDuzenle: ({ secimler: { testId } }) => {
+				extend(testId, {
+					birKismimi: true,
+					value: idListe
+				})
+			}
+		})
+	}
 	static async eMailGonder(e) {
 		let recs = e.recs || [], {pAborted} = e, TopluSayi = 2;
 		let promises = [], allResults = { total: 0, send: 0, error: 0 };
@@ -409,7 +445,7 @@ class MQTest extends MQGuidOrtak {
 		return allResults
 	}
 	static async getHTML_testGiris({ rec }) {
-		let {ese} = app.params, sablonDosya = ese.eMailSablonDosya_testGiris || '/VioData/ESE/ESE.TestGiris.Sablon.htm';
+		let {ese} = app.params, sablonDosya = ese.eMailSablonDosya_testGiris || 'c:/VioData/ESE/ESE.TestGiris.Sablon.htm';
 		let dokumcu = await HTMLDokum.FromDosya(sablonDosya);
 		let {DefaultWSHostName_SkyServer: wsHostName} = config.class, {email: to, hastaadi: HASTAADI, onaykodu: onayKodu} = rec;
 		let URL = `https://${wsHostName}:90/skyerp/app/ese/?ssl&hostname=${wsHostName}&user=${to}&pass=${onayKodu}&`;
@@ -420,7 +456,7 @@ class MQTest extends MQGuidOrtak {
 	}
 	static async getHTML_testSonuc({ rec, gosterimmi }) {
 		let {isAdmin, params: { ese }} = app
-		let sablonDosya = ese.eMailSablonDosya_testGiris || '/VioData/ESE/ESE.TestSonuc.Sablon.htm'
+		let sablonDosya = ese.eMailSablonDosya_testGiris || 'c:/VioData/ESE/ESE.TestSonuc.Sablon.htm'
 		let dokumcu = await HTMLDokum.FromDosya(sablonDosya)
 		let {gecerliTekrarSayi, digerTekrarSayi, toplamTekrarSayi} = MQSablonCPT
 		let testTip2Bilgi = {}, uni = new MQUnionAll()

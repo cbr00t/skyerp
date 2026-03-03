@@ -3,6 +3,7 @@ class MQOnayci extends MQCogul {
 	static get kodListeTipi() { return 'ONAYCI' } static get sinifAdi() { return 'Onay İşlemleri' }
 	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false }
 	static get secimSinif() { return null } static get kolonFiltreKullanilirmi() { return false }
+	static get gridIslemTuslariKullanilirmi() { return false }
 
 	static listeEkrani_init({ sender: gridPart }) {
 		super.listeEkrani_init(...arguments)
