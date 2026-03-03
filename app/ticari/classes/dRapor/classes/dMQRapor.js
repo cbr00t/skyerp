@@ -3,9 +3,13 @@ class DMQRapor extends DMQSayacliKA {
 	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, 'rapor'] }
 	static get kodListeTipi() { return 'DMQRAPOR' } static get sinifAdi() { return 'Rapor' }
 	static get table() { return 'wgruprapor' } static get tableAlias() { return 'rap' }
-	static get tanimlanabilirmi() { return true } static get silinebilirmi() { return true } static get inExpKullanilirmi() { return true }
+	static get tanimlanabilirmi() { return true }
+	static get silinebilirmi() { return true }
+	static get inExpKullanilirmi() { return true }
 	static get tanimUISinif() { return ModelTanimPart } static get secimSinif() { return Secimler }
-	static get kodKullanilirmi() { return false } static get idSaha() { return this.sayacSaha }
+	static get kodKullanilirmi() { return false }
+	static get idSaha() { return this.sayacSaha }
+	static get sayacSaha() { return 'id' }
 	get raporKod() { let result = this._raporKod; if (result === undefined) { result = this.class.getRaporKod(this.rapor) }; return result }
 	get secimler() { return this.rapor?.secimler }
 	get secimlerPart() { return this.rapor?.secimlerPart }

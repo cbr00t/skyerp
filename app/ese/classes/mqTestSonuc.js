@@ -24,7 +24,7 @@ class MQTestSonuc extends MQCogul {
 		sec
 			.grupEkle({ kod: grupKod, aciklama: 'Genel', kapali: false })
 			.secimTopluEkle({
-				tarih: new SecimDate({ etiket: 'Tarih' })
+				tarih: new SecimDate({ grupKod, etiket: 'Tarih' })
 			})
 			.addKA('test', MQTestAnket, 'tst.id', 'tst.tarihsaat')
 			.addKA('hasta', MQHasta, 'has.id', 'has.aciklama')

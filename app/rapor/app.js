@@ -193,15 +193,15 @@ class SkyRaporApp extends TicariApp {
 					.add(`COALESCE(xuserkod, '') = ''`)
 					.degerAta(encUser, 'xuserkod')
 			)
-			sahalar.add('raportip tip', 'kaysayac sayac', 'aciklama raporAdi')
+			sahalar.add('raportip tip', 'id', 'aciklama raporAdi')
 			let stm = new MQStm({ sent, orderBy: ['tip', 'raporAdi'] })
 			let favItems = []
-			for (let { tip, sayac, raporAdi: text } of await app.sqlExecSelect(stm)) {
+			for (let { tip, id, raporAdi: text } of await app.sqlExecSelect(stm)) {
 				let raporSinif = kod2Sinif[tip]
 				if (!raporSinif)
 					continue
 				let {vioAdim} = raporSinif
-				let mne = `${tip}_${sayac}`
+				let mne = `${tip}_${id}`
 				favItems.push(new FRMenuChoice({
 					mne, vioAdim, text,
 					block: async e => {
@@ -217,7 +217,7 @@ class SkyRaporApp extends TicariApp {
 						let rapor = new raporSinif().otoTazeleYapilir()
 						if (raporTanimSinif) {
 							rapor.on('raporTanim', async () => {
-								let inst = await new raporTanimSinif({ sayac, rapor })
+								let inst = await new raporTanimSinif({ sayac: id, rapor })
 								inst = await inst.oku()
 								return inst
 							})

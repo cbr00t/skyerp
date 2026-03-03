@@ -201,14 +201,16 @@ class DRaporOzel extends DRapor {
 		let { isPanelItem } = this, { rfb } = e
 		let { part: rootPart, part: { layout }, id2Builder: { islemTuslari } } = rfb
 		let resizeHandler = this._resizeHandler = event => this.onResize({ ...e, event })
-		$.extend(rootPart, { builder: rfb, inst: this })
-		rootPart.builder = rfb
+		if (rootPart) {
+			$.extend(rootPart, { builder: rfb, inst: this })
+			rootPart.builder = rfb
+		}
 		if (!layout)
 			layout = rootPart.layout = rfb.layout
-		layout.prop('id', rfb.id)
+		layout?.prop('id', rfb.id)
 		if (!isPanelItem)
 			$(window).on('resize', resizeHandler)    // !! because this f..ks the grid
-		rootPart.kapaninca(e =>
+		rootPart?.kapaninca?.(e =>
 			this.destroyPart(e))
 	}
 	destroyPart(e) {
