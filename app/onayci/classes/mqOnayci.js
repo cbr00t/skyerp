@@ -4,6 +4,43 @@ class MQOnayci extends MQCogul {
 	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false }
 	static get secimSinif() { return null } static get kolonFiltreKullanilirmi() { return false }
 	static get gridIslemTuslariKullanilirmi() { return false }
+	static get tip2TableYapi() {
+		let {_tip2TableYapi: result} = this
+		if (result == null) {
+			result = this._tip2TableYapi = {
+				GeciciAlimEFat: {
+					oncelik: 1, tipText: 'Gecici Alım e-İşlem', idVarmi: true,
+					table: 'efgecicialfatfis', harTable: 'efgecicialfatdetay',
+					eIslTipClause: ({ alias }) => `${alias}.efbelge`,
+					uuidClause: ({ alias }) => `${alias}.efuuid`,
+					mustUnvanClause: ({ alias }) => `${alias}.efmustunvan`,
+					tarihClause: ({ alias }) => `${alias}.tarih`,
+					fisNox: ({ alias }) => `${alias}.effatnox`,
+					bedel: ({ alias }) => `${alias}.bedel`,
+					sentDuzenle: ({ alias, sent, sent: { where: wh } }) =>
+						wh.inDizi(['', 'E'], `${alias}.efbelge`)
+				},
+				Siparis: {
+					oncelik: 2, tipText: 'Sipariş',
+					table: 'sipfis', harTable: ['sipstok', 'siphizmet'],
+					eIslTipClause: ({ alias }) => `${alias}.efayrimtipi`,
+					uuidClause: ({ alias }) => `${alias}.efatuuid`,
+					mustKodClause: ({ alias }) => `${alias}.must`,
+					mustUnvanClause: ({ alias }) => `${alias}_car.birunvan`,
+					tarihClause: ({ alias }) => `${alias}.tarih`,
+					fisNox: ({ alias }) => `${alias}.fisnox`,
+					bedel: ({ alias }) => `${alias}.net`,
+					ekBilgi: ({ alias }) => `${alias}.aciklama`,
+					sentDuzenle: ({ alias, sent, sent: { where: wh } }) => {
+						sent.innerJoin(alias, `carmst ${alias}_car`, `${alias}.must = ${alias}_car.must`)
+						wh.fisSilindiEkle({ alias })
+						wh.add(`${alias}.ozeltip = ''`)
+					}
+				}
+			}
+		}
+		return result
+	}
 
 	static listeEkrani_init({ sender: gridPart }) {
 		super.listeEkrani_init(...arguments)
@@ -58,7 +95,7 @@ class MQOnayci extends MQCogul {
 		super.orjBaslikListesi_groupsDuzenle(...arguments)
 		let {hepsiniGoster} = gridPart
 		if (hepsiniGoster)
-			liste.push('onayText')
+			liste.push('onayDurumText')
 		liste.push('_db', 'tipText')
 	}
 	static orjBaslikListesiDuzenle({ sender: gridPart, liste }) {
@@ -74,7 +111,7 @@ class MQOnayci extends MQCogul {
 				new GridKolon({ belirtec: 'onayTS', text: 'O/R Zaman', genislikCh: 14, filterType: 'checkedlist' }),
 				new GridKolon({ belirtec: 'onayRedNedeni', text: 'Neden Açıklama', genislikCh: mini ? 10 : 20, filterType: 'checkedlist' })
 			),
-			new GridKolon({ belirtec: 'onayText', text: 'Durum', genislikCh: 13, filterType: 'checkedlist', hidden: mini }),
+			new GridKolon({ belirtec: 'onayDurumText', text: 'Durum', genislikCh: 13, filterType: 'checkedlist', hidden: mini }),
 			new GridKolon({ belirtec: 'tipText', text: 'Tip', genislikCh: 20, filterType: 'checkedlist', hidden: mini })
 		].filter(Boolean))
 	}
@@ -89,8 +126,7 @@ class MQOnayci extends MQCogul {
 		let {hepsiniGoster} = gridPart
 		let _cache = /*this._cache ??=*/ await (async () => {
 			// let kurallar = [], kuralKey2Kural = {}
-			let tip2Kural = {}, dbSet = {}
-			let kisaYilSet = {}
+			let kisaYilSet = {}, tip2Kurallar = {}, dbSet = {}
 			{
 				let {onayYili} = app.params?.ortak ?? {}
 				kisaYilSet[onayYili || buKisaYil] = true
@@ -114,7 +150,7 @@ class MQOnayci extends MQCogul {
 			for (let rec of kurallar) {
 				let {tip, firmaAdi} = rec
 				// kuralKey2Kural[this.getKey(rec)] = rec
-				tip2Kural[tip] = rec
+				;(tip2Kurallar[tip] ??= []).push(rec)
 				for (let db of allDBNames) {
 					let db_firmaAdi = db.substr(4)
 					if (db_firmaAdi == firmaAdi)
@@ -125,11 +161,7 @@ class MQOnayci extends MQCogul {
 				// eksik tablolu db'leri listeden at
 				let dbListe = keys(dbSet)
 				let results = await Promise.allSettled(
-					dbListe.map(db =>
-						app.sqlHasColumn(`${db}..sipfis`, 'bw1onay') &&
-						app.sqlHasColumn(`${db}..efgecicialfatfis`, 'bw1onay')
-					)
-				)
+					dbListe.map(db => app.sqlHasColumn(`${db}..webonay`, 'id')))
 				dbListe.forEach((db, i) => {
 					let {status, value} = results[i]
 					let uygunmu = status == 'fulfilled' && value    // promise hata almadı ve result == true
@@ -137,154 +169,236 @@ class MQOnayci extends MQCogul {
 						delete dbSet[db]
 				})
 			}
-			return ({ tip2Kural, dbSet })  // , kurallar, kuralKey2Kural
+			return ({ kurallar, tip2Kurallar, dbSet })  // , kurallar, kuralKey2Kural
 		})()
-		let {kurallar, kuralKey2Kural, tip2Kural, dbSet} = _cache
-		$.extend(gridPart, { kurallar, kuralKey2Kural, dbSet })
-		{
-			let uni = new MQUnionAll()
-			for (let db in dbSet) {
-				// /efgecicialfatfis, sipfis
-				{
-					// Alım e-İşlem
-					let table = 'efgecicialfatfis', harTable = 'efgecicialfatdetay', tip = 'GeciciAlimEFat'
-					if (tip2Kural[tip]) {
+	
+		let { kurallar, tip2Kurallar, dbSet } = _cache
+		extend(gridPart, { kurallar, tip2Kurallar, dbSet })
+
+		let { tip2TableYapi } = this
+		let userSql = user.sqlServerDegeri()
+		let uni = new MQUnionAll()
+		for (let db in dbSet) {
+			let sent = new MQSent(), {where: wh, sahalar} = sent
+			uni.add(sent)
+			
+			sent.fromAdd(`${db}..webonay ony`)
+			let or = new MQOrClause().add(
+				new MQAndClause([
+					{ degerAta: user, saha: 'ony.w1onayuser' },
+					( hepsiniGoster ? null : `ony.bw1onay IS NULL` )
+				].filter(Boolean)),
+				new MQAndClause([
+					{ degerAta: user, saha: 'ony.w2onayuser' },
+					`ony.bw1onay = 1`,
+					( hepsiniGoster ? null : `ony.bw2onay IS NULL` )
+				].filter(Boolean))
+			)
+			wh.add(or)
+			
+			sahalar.add(...[
+				`'${db}' _db`, 'ony.adimtipi tip', 'ony.id onayId',
+				'ony.adimsayac sayac', 'ony.adimid id',
+				`(case
+						when ony.w2onayuser = ${userSql} AND ony.bw2onay IS NULL then 2
+						when ony.w1onayuser = ${userSql} AND ony.bw1onay IS NULL then 1
+					else NULL end) onayNo`,
+				`(case
+						when (ony.bw1onay IS NULL OR ony.w2onayuser = ${userSql} AND ony.bw2onay IS NULL)
+							then '<span class=forestgreen>Cevap Bekleyenler</span>'
+							else '<span class=orangered>Cevaplananlar</span>'
+					end) onayDurumText`,
+				`(case
+						when ony.w2onayuser = ${userSql} AND ony.bw2onay IS NOT NULL then ony.w2onayredts
+						when ony.w1onayuser = ${userSql} AND ony.bw1onay IS NOT NULL then ony.w1onayredts
+					else NULL end) onayTS`,
+				`(case
+						when ony.w2onayuser = ${userSql} AND ony.bw2onay IS NOT NULL then ony.w2onayredtext
+						when ony.w1onayuser = ${userSql} AND ony.bw1onay IS NOT NULL then ony.w1onayredtext
+					else NULL end) onayRedNedeni`,
+			])
+			
+			let cases = {}
+			{
+				let _keys = [
+					'oncelik', 'tipText', '_table', '_harTable',
+					'eIslTip', 'uuid', 'mustKod', 'mustUnvan',
+					'tarih', 'fisNox', 'bedel', 'ekBilgi'
+				]
+				_keys.forEach(k =>
+					cases[k] = [])
+			}
+
+			let sqlNull = 'NULL', sqlEmpty = `''`
+			for (let [tip, item] of entries(tip2TableYapi)) {
+				let { oncelik, tipAdi, table, harTable } = item
+				let alias = `fis_${tip}`
+				let tipClause = tip.sqlServerDegeri()
+				let harTables = makeArray(harTable)
+				
+				cases._table.push(`WHEN ${tipClause} THEN ${table.sqlServerDegeri()}`)
+				;harTables.forEach((t, i) => {
+					(cases._harTable[i] ??= [])
+						.push(`WHEN ${tipClause} THEN ${t.sqlServerDegeri()}`)
+				})
+				;['oncelik', 'tipText'].forEach(k =>
+					cases[k].push(`WHEN ${tipClause} THEN ${item[k].sqlServerDegeri()}`))
+				;['eIslTip', 'uuid', 'mustKod', 'mustUnvan', 'tarih', 'fisNox', 'bedel', 'ekBilgi'].forEach(key => {
+					let clause = item[`${key}Clause`]
+					if (isFunction(clause))
+						clause = clause.call(this, { ...arguments[0], tip, ...item, harTables, key, alias })
+					clause ||= sqlEmpty
+					cases[key].push(`WHEN ${tipClause} THEN ${clause}`)
+				})
+			}
+			for (let [tip, item] of entries(tip2TableYapi)) {
+				let { oncelik, tipAdi, table, idVarmi, sentDuzenle } = item
+				let alias = `fis_${tip}`
+				let fisIliskiClause = idVarmi
+					? `ony.adimid = ${alias}.id`
+					: `ony.adimsayac = ${alias}.kaysayac`
+				sent.leftJoin('ony', `${table} ${alias}`, fisIliskiClause)
+				sentDuzenle?.call?.(this, { ...arguments[0], ...item, tip, alias, sent })
+			}
+			
+			let clauseEkle = (alias, whenThenListe) => {
+				let clause = [
+					`(CASE ony.adimtipi`, ...whenThenListe, 'END)',
+					alias
+				].join(' ')
+				sahalar.add(clause)
+			}
+			for (let [key, whenThenListe] of entries(cases)) {
+				// (CASE ony.adimtipi WHEN ... THEN ... END) oncelik`
+				if (key == '_harTable') {
+					// array
+					let whenThenListeler = whenThenListe
+					let maxWhenThenCount = Math.max(...whenThenListeler.map(_ => _.length))
+					for (let i = 1; i <= maxWhenThenCount; i++) {
+						let whenThenListe = whenThenListeler[i]
+						if (whenThenListe) {
+							let _key = i == 1 ? key : `${key}_${i}`
+							clauseEkle(`${_key}`, whenThenListe)
+						}
+						else
+							sahalar.add(`NULL ${key}`)
+					}
+				}
+				else
+					clauseEkle(key, whenThenListe)
+			}
+		}
+		if (!uni.liste.length)
+			return []
+		
+		let stm = new MQStm({ sent: uni, orderBy: ['onayDurumText', 'oncelik'] })
+		let recs = await this.sqlExecSelect(stm)
+		
+		if (false) {
+			{
+				// Alım e-İşlem
+				let tip = 'GeciciAlimEFat', table = 'efgecicialfatfis', harTable = 'efgecicialfatdetay'
+				if (!empty(tip2Kurallar[tip])) {
+					let sent = new MQSent(), {where: wh, sahalar} = sent
+					sent
+						.fromAdd(`${db}..${table} fis`)
+					wh.inDizi(['', 'E'], 'fis.efbelge')
+					sahalar.add(
+						`1 oncelik`, `'${db}' _db`, `'${table}' _table`, `'${harTable}' _harTable`,
+						`'${tip}' tip`, 'fis.efbelge eIslTip', 'fis.efuuid uuid', 
+						`'Geçici Alım e-İşlem' tipText`,
+						`'' mustKod`, 'fis.efmustunvan mustUnvan'
+					)
+					sahalar.addWithAlias('fis',
+						'kaysayac sayac', 'tarih', 'effatnox fisNox', 'efsonuc bedel')
+					sahalar.add(`'' ekBilgi`)
+					uni.add(sent)
+				}
+			}
+			{
+				// Siparişler
+				let almSat2Tip = { 'A': 'AlimSip', 'T': 'SatisSip' }
+				let oncelik = 2
+				for (let [almSat, tip] of entries(almSat2Tip)) {
+					let table = 'sipfis', harTable = 'sipstok', psTip = 'S'
+					if (!empty(tip2Kurallar[tip])) {
 						let sent = new MQSent(), {where: wh, sahalar} = sent
 						sent
 							.fromAdd(`${db}..${table} fis`)
-						wh.inDizi(['', 'E'], 'fis.efbelge')
+							.fromIliski(`${db}..carmst car`, 'fis.must = car.must')
+						wh.fisSilindiEkle()
+						wh.degerAta(almSat, 'fis.almsat')
+						wh.add(`fis.ayrimtipi = ''`)
 						sahalar.add(
-							`1 oncelik`, `'${db}' _db`, `'${table}' _table`, `'${harTable}' _harTable`,
-							`'${tip}' tip`, 'fis.efbelge eIslTip', 'fis.efuuid uuid', 
-							`'Geçici Alım e-İşlem' tipText`,
-							`'' mustKod`, 'fis.efmustunvan mustUnvan'
+							`${oncelik.sqlServerDegeri()} oncelik`, `'${db}' _db`, `'${table}' _table`, `'${harTable}' _harTable`,
+							`'${tip}' tip`, 'fis.efayrimtipi eIslTip', 'fis.efatuuid uuid',
+							'(' +
+								`(case fis.almsat when 'A' then 'Alım ' when 'T' then 'Satış ' else '' end) + ` +
+								`'Sipariş'` +
+							') tipText',
+							'fis.must mustKod', 'car.birunvan mustUnvan'
 						)
 						sahalar.addWithAlias('fis',
-							'kaysayac sayac', 'tarih', 'effatnox fisNox', 'efsonuc bedel')
-						sahalar.add(`'' ekBilgi`)
+							'kaysayac sayac', 'tarih', 'fisnox fisNox', 'net bedel', 'cariaciklama ekBilgi')
 						uni.add(sent)
-					}
-				}
-				{
-					// Siparişler
-					let almSat2Tip = { 'A': 'AlimSip', 'T': 'SatisSip' }
-					let oncelik = 2
-					for (let [almSat, tip] of entries(almSat2Tip)) {
-						let table = 'sipfis', harTable = 'sipstok', psTip = 'S'
-						if (tip2Kural[tip]) {
-							let sent = new MQSent(), {where: wh, sahalar} = sent
-							sent
-								.fromAdd(`${db}..${table} fis`)
-								.fromIliski(`${db}..carmst car`, 'fis.must = car.must')
-							wh.fisSilindiEkle()
-							wh.degerAta(almSat, 'fis.almsat')
-							wh.add(`fis.ayrimtipi = ''`)
-							sahalar.add(
-								`${oncelik.sqlServerDegeri()} oncelik`, `'${db}' _db`, `'${table}' _table`, `'${harTable}' _harTable`,
-								`'${tip}' tip`, 'fis.efayrimtipi eIslTip', 'fis.efatuuid uuid',
-								'(' +
-									`(case fis.almsat when 'A' then 'Alım ' when 'T' then 'Satış ' else '' end) + ` +
-									`'Sipariş'` +
-								') tipText',
-								'fis.must mustKod', 'car.birunvan mustUnvan'
-							)
-							sahalar.addWithAlias('fis',
-								'kaysayac sayac', 'tarih', 'fisnox fisNox', 'net bedel', 'cariaciklama ekBilgi')
-							uni.add(sent)
-							oncelik++
-						}
+						oncelik++
 					}
 				}
 			}
-			if (!uni.liste.length)
-				return []
-			let userSql = user.sqlServerDegeri()
-			for (let sent of uni) {
-				let {where: wh, sahalar} = sent
-				let or = new MQOrClause().add(
-					new MQAndClause([
-						{ degerAta: user, saha: 'fis.w1onayuser' },
-						( hepsiniGoster ? null : `fis.bw1onay IS NULL` )
-					].filter(Boolean)),
-					new MQAndClause([
-						{ degerAta: user, saha: 'fis.w2onayuser' },
-						`fis.bw1onay = 1`,
-						( hepsiniGoster ? null : `fis.bw2onay IS NULL` )
-					].filter(Boolean))
-				)
-				wh.add(or)
-				sahalar.add(
-					`(case
-							when (fis.bw1onay IS NULL OR fis.w2onayuser = ${userSql} AND fis.bw2onay IS NULL)
-								then '<span class=forestgreen>Cevap Bekleyenler</span>'
-							else '<span class=orangered>Cevaplananlar</span>'
-						end) onayText`,
-					`(case
-							when fis.w2onayuser = ${userSql} AND fis.bw2onay IS NOT NULL then fis.w2onayredts
-							when fis.w1onayuser = ${userSql} AND fis.bw1onay IS NOT NULL then fis.w1onayredts
-						else NULL end) onayTS`,
-					`fis.wredtext onayRedNedeni`,
-					`(case
-							when fis.w1onayuser = ${userSql} AND fis.bw1onay IS NULL then 1
-							when fis.w2onayuser = ${userSql} AND fis.bw2onay IS NULL then 2
-					else NULL end) onayNo`
-				)
-			}
-			let stm = new MQStm({ sent: uni, orderBy: ['onayText', 'oncelik'] })
-			let recs = await this.sqlExecSelect(stm)
-			/*let uymayanRecs = recs.filter(rec => !kuralKey2Kural[this.getKey(rec)])
-			recs = recs.filter(rec => kuralKey2Kural[this.getKey(rec)])*/
-
-			;{
-				let db2GecAlimSayacListe = {}
-				;recs.forEach(({ _db: db, tip, eIslTip, sayac }) => {
-					if (tip == 'GeciciAlimEFat' && eIslTip != 'IR')
-						(db2GecAlimSayacListe[db] ??= []).push(sayac)
-				})
-				if (!empty(db2GecAlimSayacListe)) {
-					let db2Sayac2RecDurum = {}, promises = []
-					for (let [db, gecAlimSayacListe] of entries(db2GecAlimSayacListe)) {
-						let sent = new MQSent(), {where: wh, sahalar} = sent
-						sent
-							.fromAdd(`${db}..efgecicialfatirs irs`)
-							.innerJoin('irs', `${db}..efgecicialfatfis fis`, 'irs.fissayac = fis.kaysayac')
-							.leftJoin('fis', `${db}..carmst car`, `fis.vkno = (case when car.sahismi = '' then car.vnumara else car.tckimlikno end)`)
-							.leftJoin('car', `${db}..piffis virs`, [
-								`virs.piftipi = 'I'`, `virs.almsat = 'A'`, `virs.iade = ''`,
-								'car.must = virs.must', 'irs.irsseri = virs.seri',
-								'irs.irsnoyil = virs.noyil', 'irs.irsno = virs.no'
-							])
-						wh.inDizi(gecAlimSayacListe, 'irs.fissayac')
-						sahalar.add('irs.fissayac sayac', 'irs.efirsnobilgi nox', 'COUNT(virs.kaysayac) sayi')
-						sent.groupByOlustur()
-						promises.push(new Promise(async (r, f) => {
-							try {
-								db2Sayac2RecDurum[db] ??= fromEntries(
-									(await app.sqlExecSelect(sent))
-										.map(_ => [_.sayac, { irsNox: _.nox, irsVarmi: !!_.sayi }])
-								)
-								r()
-							}
-							catch (ex) { f(ex) }
-						}))
-					}
-					if (!empty(promises))
-						await Promise.all(promises)
-					if (!empty(db2Sayac2RecDurum)) {
-						recs.forEach(rec => {
-							let {_db: db, sayac} = rec
-							let durum = db2Sayac2RecDurum[db]?.[sayac]
-							if (durum)
-								extend(rec, durum)
-						})
-					}
-				}
-			}
-			
-			for (let rec of recs)
-				rec._text = this.getHTML({ rec })
-			return recs
 		}
+			
+		/*let uymayanRecs = recs.filter(rec => !kuralKey2Kural[this.getKey(rec)])
+		recs = recs.filter(rec => kuralKey2Kural[this.getKey(rec)])*/
+
+		let db2GecAlimSayacListe = {}
+		;recs.forEach(({ _db: db, tip, eIslTip, sayac }) => {
+			if (tip == 'GeciciAlimEFat' && eIslTip != 'IR')
+				(db2GecAlimSayacListe[db] ??= []).push(sayac)
+		})
+		
+		if (!empty(db2GecAlimSayacListe)) {
+			let db2Sayac2RecDurum = {}, promises = []
+			for (let [db, gecAlimSayacListe] of entries(db2GecAlimSayacListe)) {
+				let sent = new MQSent(), {where: wh, sahalar} = sent
+				sent
+					.fromAdd(`${db}..efgecicialfatirs irs`)
+					.innerJoin('irs', `${db}..efgecicialfatfis fis`, 'irs.fissayac = fis.kaysayac')
+					.leftJoin('fis', `${db}..carmst car`, `fis.vkno = (case when car.sahismi = '' then car.vnumara else car.tckimlikno end)`)
+					.leftJoin('car', `${db}..piffis virs`, [
+						`virs.piftipi = 'I'`, `virs.almsat = 'A'`, `virs.iade = ''`,
+						'car.must = virs.must', 'irs.irsseri = virs.seri',
+						'irs.irsnoyil = virs.noyil', 'irs.irsno = virs.no'
+					])
+				wh.inDizi(gecAlimSayacListe, 'irs.fissayac')
+				sahalar.add('irs.fissayac sayac', 'irs.efirsnobilgi nox', 'COUNT(virs.kaysayac) sayi')
+				sent.groupByOlustur()
+				promises.push(new Promise(async (r, f) => {
+					try {
+						db2Sayac2RecDurum[db] ??= fromEntries(
+							(await app.sqlExecSelect(sent))
+								.map(_ => [_.sayac, { irsNox: _.nox, irsVarmi: !!_.sayi }])
+						)
+						r()
+					}
+					catch (ex) { f(ex) }
+				}))
+			}
+			if (!empty(promises))
+				await Promise.all(promises)
+			if (!empty(db2Sayac2RecDurum)) {
+				recs.forEach(rec => {
+					let {_db: db, sayac} = rec
+					let durum = db2Sayac2RecDurum[db]?.[sayac]
+					if (durum)
+						extend(rec, durum)
+				})
+			}
+		}
+		
+		for (let rec of recs)
+			rec._text = this.getHTML({ rec })
+		
+		return recs
 	}
 	static gridVeriYuklendi({ sender: gridPart }) {
 		let { gridWidget: w, gridWidget: { groups } } = gridPart
@@ -369,30 +483,32 @@ class MQOnayci extends MQCogul {
 				if (!rdlg)
 					return
 			}
-			let key2Sayaclar = {}
+			let key2OnayIdListe = {}
 			for (let rec of recs) {
-				let {_db, _table, onayNo, sayac} = rec
-				let key = [_db, _table, onayNo].join(delimWS)
-				; (key2Sayaclar[key] ??= []).push(sayac)
+				let { _db, _table, onayNo, onayId } = rec
+				let key = [ _db, _table, onayNo ].join(delimWS)
+				; (key2OnayIdListe[key] ??= []).push(onayId)
 			}
+			
 			let {user} = config, _now = now()
 			let toplu = new MQToplu().withTrn()
-			for (let [key, sayaclar] of entries(key2Sayaclar)) {
-				let [db, table, onayNo] = key.split(delimWS)
+			for (let [key, onayIdListe] of entries(key2OnayIdListe)) {
+				let [ db, table, onayNo ] = key.split(delimWS)
 				onayNo = asInteger(onayNo)
 				toplu.add(
 					new MQIliskiliUpdate({
-						from: `${db}..${table}`,
+						from: `${db}..webonay`,
 						where: [
-							{ inDizi: sayaclar, saha: 'kaysayac' }
+							{ inDizi: onayIdListe, saha: 'id' }
 						],
 						set: [
 							{ degerAta: bool2Int(onaymi), saha: `bw${onayNo}onay` },
 							{ degerAta: _now, saha: `w${onayNo}onayredts` },
-							(onaymi ? null : { degerAta: nedenText, saha: 'wredtext' })
+							{ degerAta: nedenText, saha: `w${onayNo}onayredtext` }
 						].filter(Boolean)
 					})
 				)
+				
 				// ...
 				// bw1onay, w1onayuser, w1onayredts ... wredtext
 				// /efgecicialfatfis, sipfis)
@@ -528,6 +644,8 @@ class MQOnayci extends MQCogul {
 					if (!(table && sayac) || empty(harTables))
 						continue
 					let uni = new MQUnionAll()
+					if (harTables.length > 1)
+						harTables = [harTables[0]]
 					for (let harTable of harTables) {
 						let sent = new MQSent(), {where: wh, sahalar} = sent
 						sent
