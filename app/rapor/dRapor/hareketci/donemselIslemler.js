@@ -247,7 +247,8 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 			let fisAliasVarmi = !!from.liste.find(({ alias }) => alias == 'fis');
 			let logZamaniClause = fisAliasVarmi ? 'fis.sonzamants' : sqlNull
 			sahalar.add(`${logZamaniClause} logTS`)
-			if (fisAliasVarmi) { wh.basiSonu(sec.logTS, logZamaniClause) }
+			if (fisAliasVarmi)
+				wh.basiSonu(sec.logTS, logZamaniClause)
 			sent.groupByOlustur().gereksizTablolariSil()
 		}
 		let stm = new MQStm({ sent: uni, orderBy })

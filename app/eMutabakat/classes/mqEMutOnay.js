@@ -174,14 +174,15 @@ class MQEMutOnay extends MQCogul {
 					 $elementCSS .veri .ek-bilgi { font-size: 90%; color: mediumpurple; margin-left: 10px }
 					 $elementCSS .veri.bakiye-var { color: forestgreen !important }
 					 $elementCSS .veri.bakiye-yok { color: orangered !important }
-					 $elementCSS .warn, $elementCSS .info { font-weight: bold; font-size: 100% }
+					 $elementCSS .warn, $elementCSS .info { font-size: 100% }
 					 $elementCSS .warn-etiket { font-weight: bolder; color: orange !important }
-					 $elementCSS .warn { color: red !important }
+					 $elementCSS .warn { color: #553333 !important }
 					 $elementCSS .info { color: #888 !important }
 					 $elementCSS .isyeri,
 						 $elementCSS .musteri { min-height: 70px !important }
 					 $elementCSS .isyeri .etiket { font-size: 90% }
 					 $elementCSS .isyeri .veri { font-size: unset; color: violetred !important }
+					 $elementCSS > .tarih, $elementCSS > .bakiye { padding: 5px 0 }
 					 $elementCSS .footer { margin-top: 10px }
 					 $elementCSS .logo {
 						position: absolute !important;
@@ -398,18 +399,18 @@ class MQEMutOnay extends MQCogul {
 	getHeaderHTML({ sender: tanimPart }) {
 		let {wsResult} = this
 		wsResult ??= {}
-		let {cevapTS, onayTipi, state, isyeri = {}, must = {}, bakiye, dvKod, zamanDamgasi, logoData} = wsResult
+		let {cevapTS, onayTipi, state, isyeri = {}, must = {}, tarih, bakiye, dvKod, zamanDamgasi, logoData} = wsResult
 		dvKod ||= 'TL'
 		bakiye = bakiye ? roundToBedelFra(bakiye) : null
 
 		let cevaplandimi = !!cevapTS
 		let stateHTML = !cevaplandimi ? '' :
-			( state ? `<span class=forestgreen>ONAYLANMIŞTIR</span>` : `<span class=firebrick>RED EDİLMİŞTİR</span>` )
+			( state ? `<b class=forestgreen>ONAYLANMIŞTIR</b>` : `<b class=firebrick>RED EDİLMİŞTİR</b>` )
 		let tsUyariHTML = zamanDamgasi || cevaplandimi
 			? [
 				`<p> <span class="warn-etiket">⚠ Uyarı</span>:`,
 					(cevaplandimi
-						? `<span class="warn">Bu mutabakat ${dateTimeAsKisaString(cevapTS)} tarihinde ${stateHTML}</span>`
+						? `<span class="warn">Bu mutabakat <b class=royalblue>${dateTimeAsKisaString(cevapTS)}</b> tarihinde ${stateHTML}</span>`
 						: onayTipi
 							 ? `<span class="warn">Onay veya Red butonuna tıklandığında Zaman Damgası için <b class=royalblue>${onayTipi.toLocaleUpperCase()} Onayı</b> alınacaktır</span>`
 							 : null
@@ -433,14 +434,20 @@ class MQEMutOnay extends MQCogul {
 						`<span class="veri ek-bilgi">(${must.vkn || ''}),<span>`,
 					`</div>`,
 				`</div>`,
+				`<div class="tarih">`,
+					`<div>`,
+						`<span class="etiket">Tarih&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: </span>`,
+						`<span class="veri orangered">${dateToString(tarih)} <span>`,
+					`</div>`,
+				`</div>`,
 				`<div class="bakiye">`,
 					`<div>`,
-						`<span class="etiket">Bakiyeniz </span>`,
+						`<span class="etiket">Bakiyeniz &nbsp;: </span>`,
 						`<span class="veri ${bakiye ? 'bakiye-var' : 'bakiye-yok'}">${bakiye ? `${numberToString(bakiye)} ${dvKod}'dir` : 'YOKTUR'} <span>`,
 					`</div>`,
 				`</div>`,
 				`<div class="footer">`,
-					( cevaplandimi ? '' : `<span class="info">Onay veya Red vermeniz rica olunur.</span>` ),
+					( cevaplandimi ? '&nbsp;' : `<span class="info">Onay veya Red vermeniz rica olunur.</span>` ),
 				`</div>`,
 				tsUyariHTML,
 				`<hr>`,

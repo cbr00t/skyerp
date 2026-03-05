@@ -224,8 +224,10 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	tabloKolonlariDuzenle(e) { }
 	async getDataAdapter(e) {
 		try {
-			let recs = await (this.loadServerData_ozel?.(e) ?? this.loadServerData(e)); if (!recs) { return null }
-			let tRec = recs?.[0] || {}, key_items = 'detaylar';		/*key_id = 'id',*/
+			let recs = await (this.loadServerData_ozel?.(e) ?? this.loadServerData(e))
+			if (!recs)
+				return null
+			let tRec = recs?.[0] || {}, key_items = 'detaylar'		/*key_id = 'id',*/
 			return new $.jqx.dataAdapter({
 				hierarchy: { root: key_items }, dataType: 'array', localData: recs, /* hierarchy: { keyDataField: { name: key_id }, parentDataField: { name: 'parentId' } }, */
 				dataFields: keys(tRec).map(name => ({ name, type: typeof tRec[name] == 'object' ? 'array' : (typeof tRec[name] || 'string') })),
@@ -447,9 +449,14 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				fixKA(rec, prefix)
 			rec.id = id++
 		}
-		if (sortAttr)
-			recs.sort((a, b) => { a = a[sortAttr] || 0; b = b[sortAttr] || 0; return a > b ? -1 : a < b ? 1 : 0 })
-		e.recs = recs; return super.loadServerData_recsDuzenleIlk(e)
+		if (sortAttr) {
+			recs.sort((a, b) => { 
+				a = a[sortAttr] || 0; b = b[sortAttr] || 0
+				return a > b ? -1 : a < b ? 1 : 0
+			})
+		}
+		e.recs = recs
+		return super.loadServerData_recsDuzenleIlk(e)
 	}
 	loadServerData_recsDuzenle_seviyelendir(e) {
 		super.loadServerData_recsDuzenle_seviyelendir(e)
@@ -515,10 +522,11 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				gtTip2AttrListe[selector].push(colDef.belirtec)
 			}
 		}
+		let { konsolideVarmi } = this
 		if (recs && yatayAnaliz) {
 			let yatayBelirtec = tabloYapi.grup[DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod]?.colDefs?.[0]?.belirtec
 			if (yatayBelirtec) {
-				/*let orj_toplamAttrSet = asSet(gtTip2AttrListe.toplam);
+				/*let orj_toplamAttrSet = asSet(gtTip2AttrListe.toplam)
 				let toplamAttrListe = jqxCols.map(({ datafield }) => datafield).filter(belirtec => orj_toplamAttrSet[belirtec.split('_')[0]]);*/
 				let item = grupVeToplam[yatayBelirtec] ?? grupVeToplam[yatayBelirtec.toUpperCase()]
 				let {kodsuzmu} = item || {}
@@ -793,8 +801,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			}
 			window.progressManager?.progressStep(1)
 			try {
-				let jqzCols = colDefs.flatMap(colDef => colDef.jqxColumns)
-				grid.jqxTreeGrid('columns', jqzCols)
+				let jqxCols = colDefs.flatMap(colDef => colDef.jqxColumns)
+				grid.jqxTreeGrid('columns', jqxCols)
 			}
 			catch (ex) { cerr(ex) }
 			window.progressManager?.progressStep(2)

@@ -19,6 +19,7 @@ class DRapor_EldekiVarliklar extends DRapor_AraSeviye {
 		)
 	}
 }
+
 class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get eldekiVarliklarmi() { return true } 
 	static get mstEtiket() { return '' } static get borderColor() { return '' }
@@ -248,23 +249,19 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 				(onc1 - onc2) || (grup1 - grup2) || (mst1 - mst2)
 		)
 	}*/
-	loadServerData_recsDuzenleSon({ recs }) {
-		let {recsDvKodSet, rapor: { tazeleCount }, gridPart} = this
+	loadServerData_recsDuzenle_seviyelendir({ recs }) {
+		let { gridPart, recsDvKodSet, rapor: { tazeleCount } } = this
 		if (!empty(recsDvKodSet)) {
-			for (let sev of recs) {                                         // sev: anatip
-				let mst2Detay = sev.mst2Detay = {}
-				for (let rec of sev.detaylar) {
-					let {mstkod: mst = '', dvkod: dvKod, bedel} = rec
-					if (!this.getDovizmi(dvKod))
-						dvKod = ''
-					let newRec = mst2Detay[mst] ??= { ...rec, bedel: 0 }
-					newRec[dvKod ? `bedel_${dvKod}` : 'bedel'] = bedel
-				}
-				sev.detaylar = values(mst2Detay)
-				sev.toplamYapiOlustur()
+			for (let rec of recs) {                                         // sev: anatip
+				let {dvkod: dvKod, bedel} = rec
+				if (!this.getDovizmi(dvKod))
+					dvKod = ''
+				rec[dvKod ? `bedel_${dvKod}` : 'bedel'] = bedel
+				if (dvKod)
+					rec.bedel = 0
 			}
 		}
-		return super.loadServerData_recsDuzenleSon({ ...arguments[0], recs })
+		return super.loadServerData_recsDuzenle_seviyelendir({ ...arguments[0], recs })
 	}
 	gridVeriYuklendi(e) {
 		super.gridVeriYuklendi(e)
@@ -273,7 +270,11 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 			let {dvKodListe, recsDvKodSet, gridPart, gridPart: { gridWidget, gridWidget: { base: w } }} = this
 			for (let dvKod of dvKodListe) {
 				let dvKodVarmi = recsDvKodSet[dvKod]
-				w[dvKodVarmi ? 'showColumn' : 'hideColumn'](`bedel_${dvKod}`)
+				let fields = w.columns.records
+					.map(_ => _.datafield)
+					.filter(_ => _.startsWith(`bedel_${dvKod}`))
+				;fields.forEach(k =>
+					w[dvKodVarmi ? 'showColumn' : 'hideColumn'](k))
 			}
 			let {boundRecs: recs} = e
 			gridPart.expandedRowsSet = {}
@@ -301,7 +302,8 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		}
 	}
 }
-class DRapor_EldekiVarliklar_Sol extends DAltRapor_EldekiVarliklar_Ortak {
+
+;class DRapor_EldekiVarliklar_Sol extends DAltRapor_EldekiVarliklar_Ortak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get mstEtiket() { return 'VARLIKLAR VE ALACAKLARIMIZ' } static get borderColor() { return '#96cd96' }
 	/*async loadServerDataInternal(e) {
@@ -320,7 +322,8 @@ class DRapor_EldekiVarliklar_Sol extends DAltRapor_EldekiVarliklar_Ortak {
 	}*/
 	ozetBilgiRecsOlustur(e) { }
 }
-class DRapor_EldekiVarliklar_Sag extends DAltRapor_EldekiVarliklar_Ortak {
+
+;class DRapor_EldekiVarliklar_Sag extends DAltRapor_EldekiVarliklar_Ortak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get kod() { return 'sag' }
 	static get mstEtiket() { return 'BORÇLARIMIZ' } static get borderColor() { return '#bc9d9d' }
 	static get yon() { return 'sag' } static get sagmi() { return true }

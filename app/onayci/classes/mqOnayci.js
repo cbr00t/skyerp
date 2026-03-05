@@ -17,8 +17,8 @@ class MQOnayci extends MQCogul {
 					tarihClause: ({ alias }) => `${alias}.tarih`,
 					fisNox: ({ alias }) => `${alias}.effatnox`,
 					bedel: ({ alias }) => `${alias}.bedel`,
-					sentDuzenle: ({ alias, sent, sent: { where: wh } }) =>
-						wh.inDizi(['', 'E'], `${alias}.efbelge`)
+					fisBaglantiDuzenle: ({ alias, clauses }) =>
+						clauses.push(`${alias}.efbelge IN ('', 'E')`)
 				},
 				Siparis: {
 					oncelik: 2, tipText: 'Sipariş',
@@ -31,11 +31,10 @@ class MQOnayci extends MQCogul {
 					fisNox: ({ alias }) => `${alias}.fisnox`,
 					bedel: ({ alias }) => `${alias}.net`,
 					ekBilgi: ({ alias }) => `${alias}.aciklama`,
-					sentDuzenle: ({ alias, sent, sent: { where: wh } }) => {
-						sent.innerJoin(alias, `carmst ${alias}_car`, `${alias}.must = ${alias}_car.must`)
-						wh.fisSilindiEkle({ alias })
-						wh.add(`${alias}.ozeltip = ''`)
-					}
+					fisBaglantiDuzenle: ({ alias, clauses }) =>
+						clauses.push(`${alias}.silindi = ''`, `${alias}.ozeltip = ''`),
+					sentDuzenle: ({ alias, sent, sent: { where: wh } }) =>
+						sent.leftJoin(alias, `carmst ${alias}_car`, `${alias}.must = ${alias}_car.must`)
 				}
 			}
 		}
@@ -46,7 +45,7 @@ class MQOnayci extends MQCogul {
 		super.listeEkrani_init(...arguments)
 		let {dev} = config
 		$.extend(gridPart, {
-			otoTazeleSecs: qs.otoTazeleYok ? null : (dev ? 60: 300),
+			otoTazeleSecs: qs.otoTazeleYok ? null : qs.otoTazeleSecs || (dev ? 20: 60),
 			otoTazeleDisabled: false
 		})
 	}
@@ -121,6 +120,7 @@ class MQOnayci extends MQCogul {
 		finally { gridPart.otoTazeleDisabled = false }
 	}
 	static async _loadServerDataDogrudan({ sender: gridPart }) {
+		let e = arguments[0]
 		let {encUser, user /*, dbName: db*/} = config.session
 		let {ay: buAy, yil2: buKisaYil} = today()
 		let {hepsiniGoster} = gridPart
@@ -221,12 +221,13 @@ class MQOnayci extends MQCogul {
 			let cases = {}
 			{
 				let _keys = [
-					'oncelik', 'tipText', '_table', '_harTable',
+					'oncelik', 'tipText', '_table',
 					'eIslTip', 'uuid', 'mustKod', 'mustUnvan',
 					'tarih', 'fisNox', 'bedel', 'ekBilgi'
 				]
 				_keys.forEach(k =>
 					cases[k] = [])
+				// cases._harTable = {}
 			}
 
 			let sqlNull = 'NULL', sqlEmpty = `''`
@@ -236,29 +237,28 @@ class MQOnayci extends MQCogul {
 				let tipClause = tip.sqlServerDegeri()
 				let harTables = makeArray(harTable)
 				
-				cases._table.push(`WHEN ${tipClause} THEN ${table.sqlServerDegeri()}`)
-				;harTables.forEach((t, i) => {
-					(cases._harTable[i] ??= [])
+				/*;harTables.forEach(t => {
+					(cases._harTable[table] ??= [])
 						.push(`WHEN ${tipClause} THEN ${t.sqlServerDegeri()}`)
-				})
+				})*/
+				cases._table.push(`WHEN ${tipClause} THEN ${table.sqlServerDegeri()}`)
 				;['oncelik', 'tipText'].forEach(k =>
 					cases[k].push(`WHEN ${tipClause} THEN ${item[k].sqlServerDegeri()}`))
 				;['eIslTip', 'uuid', 'mustKod', 'mustUnvan', 'tarih', 'fisNox', 'bedel', 'ekBilgi'].forEach(key => {
 					let clause = item[`${key}Clause`]
 					if (isFunction(clause))
-						clause = clause.call(this, { ...arguments[0], tip, ...item, harTables, key, alias })
+						clause = clause.call(this, { ...e, tip, ...item, harTables, key, alias })
 					clause ||= sqlEmpty
 					cases[key].push(`WHEN ${tipClause} THEN ${clause}`)
 				})
 			}
 			for (let [tip, item] of entries(tip2TableYapi)) {
-				let { oncelik, tipAdi, table, idVarmi, sentDuzenle } = item
+				let { oncelik, tipAdi, table, idVarmi, fisBaglantiDuzenle, sentDuzenle } = item
 				let alias = `fis_${tip}`
-				let fisIliskiClause = idVarmi
-					? `ony.adimid = ${alias}.id`
-					: `ony.adimsayac = ${alias}.kaysayac`
-				sent.leftJoin('ony', `${table} ${alias}`, fisIliskiClause)
-				sentDuzenle?.call?.(this, { ...arguments[0], ...item, tip, alias, sent })
+				let fisIliskiClauses = [idVarmi ? `ony.adimid = ${alias}.id` : `ony.adimsayac = ${alias}.kaysayac`]
+				fisBaglantiDuzenle?.call?.(this, { ...e, ...item, tip, alias, sent, clauses: fisIliskiClauses })
+				sent.leftJoin('ony', `${db}..${table} ${alias}`, fisIliskiClauses)
+				sentDuzenle?.call?.(this, { ...e, ...item, tip, alias, sent })
 			}
 			
 			let clauseEkle = (alias, whenThenListe) => {
@@ -294,59 +294,6 @@ class MQOnayci extends MQCogul {
 		let stm = new MQStm({ sent: uni, orderBy: ['onayDurumText', 'oncelik'] })
 		let recs = await this.sqlExecSelect(stm)
 		
-		if (false) {
-			{
-				// Alım e-İşlem
-				let tip = 'GeciciAlimEFat', table = 'efgecicialfatfis', harTable = 'efgecicialfatdetay'
-				if (!empty(tip2Kurallar[tip])) {
-					let sent = new MQSent(), {where: wh, sahalar} = sent
-					sent
-						.fromAdd(`${db}..${table} fis`)
-					wh.inDizi(['', 'E'], 'fis.efbelge')
-					sahalar.add(
-						`1 oncelik`, `'${db}' _db`, `'${table}' _table`, `'${harTable}' _harTable`,
-						`'${tip}' tip`, 'fis.efbelge eIslTip', 'fis.efuuid uuid', 
-						`'Geçici Alım e-İşlem' tipText`,
-						`'' mustKod`, 'fis.efmustunvan mustUnvan'
-					)
-					sahalar.addWithAlias('fis',
-						'kaysayac sayac', 'tarih', 'effatnox fisNox', 'efsonuc bedel')
-					sahalar.add(`'' ekBilgi`)
-					uni.add(sent)
-				}
-			}
-			{
-				// Siparişler
-				let almSat2Tip = { 'A': 'AlimSip', 'T': 'SatisSip' }
-				let oncelik = 2
-				for (let [almSat, tip] of entries(almSat2Tip)) {
-					let table = 'sipfis', harTable = 'sipstok', psTip = 'S'
-					if (!empty(tip2Kurallar[tip])) {
-						let sent = new MQSent(), {where: wh, sahalar} = sent
-						sent
-							.fromAdd(`${db}..${table} fis`)
-							.fromIliski(`${db}..carmst car`, 'fis.must = car.must')
-						wh.fisSilindiEkle()
-						wh.degerAta(almSat, 'fis.almsat')
-						wh.add(`fis.ayrimtipi = ''`)
-						sahalar.add(
-							`${oncelik.sqlServerDegeri()} oncelik`, `'${db}' _db`, `'${table}' _table`, `'${harTable}' _harTable`,
-							`'${tip}' tip`, 'fis.efayrimtipi eIslTip', 'fis.efatuuid uuid',
-							'(' +
-								`(case fis.almsat when 'A' then 'Alım ' when 'T' then 'Satış ' else '' end) + ` +
-								`'Sipariş'` +
-							') tipText',
-							'fis.must mustKod', 'car.birunvan mustUnvan'
-						)
-						sahalar.addWithAlias('fis',
-							'kaysayac sayac', 'tarih', 'fisnox fisNox', 'net bedel', 'cariaciklama ekBilgi')
-						uni.add(sent)
-						oncelik++
-					}
-				}
-			}
-		}
-			
 		/*let uymayanRecs = recs.filter(rec => !kuralKey2Kural[this.getKey(rec)])
 		recs = recs.filter(rec => kuralKey2Kural[this.getKey(rec)])*/
 
@@ -474,7 +421,7 @@ class MQOnayci extends MQCogul {
 						fbd.setMaxLength(40)
 				})
 				nedenText = nedenText?.trim()
-				if (nedenZorunludur && !nedenText)
+				if (nedenText == null || (nedenZorunludur && !nedenText))
 					return
 			}
 			else {

@@ -56,7 +56,8 @@ class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
                     $.extend(hv, {
                         kaysayac: 'har.kaysayac', kayittipi: `'BNDEV'`, banhesapkod: 'har.banhesapkod',
                         oncelik: '0', ba: 'fis.ba', islemadi: `'Devir'`, anaislemadi: `'Devir'`,
-                        detaciklama: 'har.aciklama', takipno: '', dvkur: 'har.dvkur', bedel: 'har.bedel', dvbedel: 'har.dvbedel'
+                        detaciklama: 'har.aciklama', takipno: '', dvkur: 'har.dvkur',
+						bedel: 'har.bedel', dvbedel: 'har.dvbedel'
                     })
                 })
             ]
@@ -104,10 +105,11 @@ class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
 						sent.fromIliski('yatirimtipi ytip', 'har.yatirimtipkod = ytip.kod')
 						wh.fisSilindiEkle()
 						wh.add(`fis.fistipi = 'YG'`, 'har.kredifaiz <> 0')
-					}).hvDuzenleIslemi(({ hv }) => {
+					}).hvDuzenleIslemi(({ hv, sqlZero }) => {
 						$.extend(hv, {
 							kaysayac: 'har.kaysayac', kayittipi: `'BNYGDON'`, banhesapkod: 'har.banhesapkod', oncelik: '21', ba: `'B'`,
-							anaislemadi: `'Yatırım'`, islemadi: `'Yatırım-Faiz'`, detaciklama: 'har.aciklama', bedel: 'har.kredifaiz',
+							anaislemadi: `'Yatırım'`, islemadi: `'Yatırım-Faiz'`, detaciklama: 'har.aciklama',
+							bedel: 'har.kredifaiz', dvbedel: 'har.kredidvfaiz',
 							refkod: 'har.yatirimtipkod', refadi: 'ytip.aciklama'
 						})
 					})
@@ -154,10 +156,11 @@ class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
 						anaislemadi: `(case fis.fistipi when 'TP' then 'Toplu Havale/EFT/POS' when 'GL' then 'Müşteriden Havale/EFT'
 											else (case when fis.fistipi in ('BN', 'BE', 'BS') then 'Kendimize Havale/EFT' else '' end)
 											end)`,
-						detaciklama: 'har.aciklama', dvkur: 'har.dvkur', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
+						dvkur: 'har.dvkur', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
 						tarih: 'coalesce(har.belgetarih, fis.tarih)', fisnox: '(case when har.belgeno = 0 then fis.fisnox else har.belgenox end)',
 						refkod: `(case when fis.fistipi in ('BE', 'BH', 'BS') then har.bizhesapkod else har.ticmustkod end)`,
-						refadi: `(case when fis.fistipi in ('BE', 'BH', 'BS') then dhes.aciklama else car.birunvan end)`
+						refadi: `(case when fis.fistipi in ('BE', 'BH', 'BS') then dhes.aciklama else car.birunvan end)`,
+						detaciklama: 'har.aciklama'
                     })
                 }),
 				/* hav/eft masraf */
@@ -196,8 +199,10 @@ class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
                     $.extend(hv, {
                         kaysayac: 'har.kaysayac', kayittipi: `'BBNHE'`, banhesapkod: 'har.bizhesapkod', oncelik: '12', ba: `'B'`, anaislemadi: `'Kendimize Havale/EFT'`,
 						islemadi: `(case fis.fistipi when 'BH' then 'Kendimize Havale' when 'BE' then 'Kendimize EFT' when 'BS' then 'Kendimize Swift' else '' end)`,
-						detaciklama: 'har.aciklama', dvkur: 'har.dvkur', bedel: '(har.bedel - har.kredifaiz)', dvbedel: 'har.dvbedel',
-						takipno: 'har.takipno', refkod: 'fis.banhesapkod', refadi: `(case when fis.fistipi in ('BE', 'BH', 'BS') then dhes.aciklama else '' end)`
+						dvkur: 'har.dvkur', bedel: '(har.bedel - har.kredifaiz)', dvbedel: '(har.dvbedel - har.kredidvfaiz)',
+						takipno: 'har.takipno', refkod: 'fis.banhesapkod',
+						refadi: `(case when fis.fistipi in ('BE', 'BH', 'BS') then dhes.aciklama else '' end)`,
+						detaciklama: 'har.aciklama'
                     })
                 })
             ]
@@ -212,14 +217,15 @@ class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
                     let {where: wh} = sent;
 					sent.fisHareket('piffis', 'piftaksit').fis2CariBagla().har2TahSekliBagla({ kodClause: 'har.taktahsilsekli' });
                     wh.fisSilindiEkle().inDizi(['I', 'F', 'P'], 'fis.piftipi').inDizi(['HV', 'HG'], 'tsek.tahsiltipi')
-                }).hvDuzenleIslemi(({ hv }) => {
+                }).hvDuzenleIslemi(({ hv, sqlEmpty }) => {
                     $.extend(hv, {
                         kaysayac: 'har.kaysayac', kayittipi: `'PIFTAK'`, banhesapkod: 'tsek.mevduathesapkod',
                         oncelik: `(case when fis.almsat = 'A' then 140 else 20 end)`, anaislemadi: `'Fatura Havale'`,
                         ba: `(case when fis.almsat + RTRIM(fis.iade) in ('A', 'M', 'TI') then 'A' else 'B' end)`,
                         islemadi: `(case when fis.almsat + RTRIM(fis.iade) in ('A', 'M', 'TI') then 'Fat.Gön.Havale' else 'Fat.Gelen Havale' end)`,
-                        fisaciklama: 'fis.cariaciklama', dvkur: 'fis.dvkur', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
-                        takipno: 'fis.orttakipno', refkod: 'fis.must', refadi: 'car.birunvan'
+                        dvkur: 'fis.dvkur', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
+                        takipno: 'fis.orttakipno', refkod: 'fis.must', refadi: 'car.birunvan',
+						fisaciklama: 'fis.cariaciklama', detaciklama: sqlEmpty
                     })
                 }),
 				/* Cari Tahsil Yoluyla */
@@ -364,11 +370,13 @@ class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
 					let {where: wh, sahalar} = sent;
 					sent.fisHareket('posfis', 'posdigerhar');
 					wh.fisSilindiEkle().degerAta('TE', 'fis.fistipi')
-                }).hvDuzenleIslemi(({ hv }) => {
+                }).hvDuzenleIslemi(({ hv, sqlEmpty }) => {
                     $.extend(hv, {
 						kaysayac: 'har.kaysayac', kayittipi: `'POS'`, banhesapkod: 'har.banhesapkod', oncelik: '1',
-						ba: `(case when fis.almsat = 'T' then 'B' else 'A' end)`, bedel: 'har.brutbedel',
-						islemadi: `(case when fis.almsat = 'A' then 'Kr.Kart Ödeme(Eski)' else 'POS Nakde Dönüşüm(Eski)' end)`
+						ba: `(case when fis.almsat = 'T' then 'B' else 'A' end)`,
+						bedel: 'har.brutbedel',
+						islemadi: `(case when fis.almsat = 'A' then 'Kr.Kart Ödeme(Eski)' else 'POS Nakde Dönüşüm(Eski)' end)`,
+						detaciklama: sqlEmpty
                     })
                 }),
 				/* POS Komisyon */
@@ -377,11 +385,13 @@ class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
 					sent.fisHareket('posfis', 'posdigerhar');
 					wh.fisSilindiEkle().degerAta('TE', 'fis.fistipi')
 						.add(`(har.komisyon + har.katkipayi) <> 0`)
-                }).hvDuzenleIslemi(({ hv }) => {
+                }).hvDuzenleIslemi(({ hv, sqlEmpty }) => {
                     $.extend(hv, {
 						kaysayac: 'har.kaysayac', kayittipi: `'POS'`, banhesapkod: 'har.banhesapkod', oncelik: '81',
-						ba: `(case when fis.almsat = 'T' then 'A' else 'B' end)`, bedel: `(har.komisyon + har.katkipayi)`,
-						islemadi: `'POS Komisyon ve Katkı'`, anaislemadi: `'POS Nakde Dönüşüm'`
+						islemadi: `'POS Komisyon ve Katkı'`, anaislemadi: `'POS Nakde Dönüşüm'`,
+						ba: `(case when fis.almsat = 'T' then 'A' else 'B' end)`,
+						bedel: `(har.komisyon + har.katkipayi)`,
+						detaciklama: sqlEmpty
                     })
                 })
             ]
@@ -434,8 +444,9 @@ class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
 					                when 'BS' then (LTRIM(STR(bel.belgeyil)) + '-' + LTRIM(STR(bel.belgeno)))
 					                else '' end)
 					            + ' ' + RTRIM(har.aciklama))`,
-					        dvkur: 'fis.dvkur', bedel: '(case when har.bedel = 0 then bel.bedel else har.bedel end)',
-					        dvbedel: `(case when har.bedel = 0 then bel.dvbedel else har.dvbedel end)`,
+					        dvkur: 'fis.dvkur',
+							bedel: '(case when har.bedel = 0 then bel.bedel else har.bedel end)',
+					        dvbedel: `(case when har.dvbedel = 0 then bel.dvbedel else har.dvbedel end)`,
 					        takipno: 'fis.takipno', refkod: 'car.must', refadi: 'car.birunvan'
 	                    })
 	                })
@@ -459,8 +470,9 @@ class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
                         kaysayac: 'fis.kaysayac', kayittipi: `'CSDIG'`, banhesapkod: 'fis.refhesapkod',
 						oncelik: '50', ba: `(case when fis.belgetipi IN ('AC', 'AS') then 'B' else 'A' end)`,
 						islemadi: `(case when fis.belgetipi IN ('AC', 'AS') then 'Ç/S. Elden Tahsil' else 'Ç/S. Elden Ödeme' end)`,
-						dvkur: 'fis.dvkur', bedel: `(case when har.bedel = 0 then bel.bedel else har.bedel end)`,
-						dvbedel: `(case when har.bedel = 0 then bel.dvbedel else har.dvbedel end)`,
+						dvkur: 'fis.dvkur',
+						bedel: `(case when har.bedel = 0 then bel.bedel else har.bedel end)`,
+						dvbedel: `(case when har.dvbedel = 0 then bel.dvbedel else har.dvbedel end)`,
 						takipno: 'fis.takipno', refkod: 'bel.ciranta', refadi: 'car.birunvan',
 						detaciklama: `('No:' + LTRIM(STR(bel.belgeno)))`
                     })

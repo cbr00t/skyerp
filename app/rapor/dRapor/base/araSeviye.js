@@ -553,7 +553,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return await super.loadServerData_recsDuzenle({ ...arguments })
 	}
 	loadServerData_recsDuzenleSon(e) {
-		return super.loadServerData_recsDuzenleSon(e) /* let {attrSet} = this.raporTanim, {toplam} = this.tabloYapi, avgBelirtec2ColDef = {};
+		return super.loadServerData_recsDuzenleSon(e)
+		/* let {attrSet} = this.raporTanim, {toplam} = this.tabloYapi, avgBelirtec2ColDef = {}
 		for (let key in attrSet) {
 			if (!toplam[key]) { continue } let avgColDefs = toplam[key]?.colDefs?.filter(colDef => colDef?.aggregates?.includes('avg')); if (!avgColDefs?.length) { continue }
 			for (let colDef of avgColDefs) { avgBelirtec2ColDef[colDef.belirtec] = colDef }

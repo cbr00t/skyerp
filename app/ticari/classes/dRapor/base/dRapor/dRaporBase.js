@@ -334,7 +334,7 @@ class DPanelRapor extends DRaporOzel {
 				.setLayout(e => $(`<div class="${id}"><label class="item-sortable">${raporAdi || ''}</label></div>`))
 				.addStyle(e => `$elementCSS { overflow: hidden !important; z-index: ${this.altRapor_lastZIndex++} !important }`)
 			;let _e = { ...e, id, builder: fbd }
-			altRapor.subFormBuilderDuzenle(_e)
+			;altRapor.subFormBuilderDuzenle(_e)
 			let {width, height} = altRapor
 			if (isPanelItem) { fbd.addStyle_fullWH(yataymi ? width : null, yataymi ? null : height) }
 			else if (width || height) { fbd.addStyle_wh(width, height) }
