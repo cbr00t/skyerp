@@ -212,10 +212,10 @@ class MQKA extends MQKod {
 					belirtec: adiSaha, text: adiEtiket, cellsRenderer,
 					minWidth: Math.min(200, asInteger($(window).width() / 4)),
 					width: micro
-						? '80%'
+						? '70%'
 						: mini
-							? Math.min(600, asInteger($(window).width() / 1.3))
-							: Math.min(700, asInteger($(window).width() / 2))
+							? Math.min(400, asInteger($(window).width() / 1.3))
+							: Math.min(500, asInteger($(window).width() / 2))
 				})
 				liste[mini ? 'unshift' : 'push'](colDef)
 			}

@@ -1,5 +1,6 @@
 class MQKontor extends MQDetayliMaster {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return this != MQKontor }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get uygunmu() { return this != MQKontor }
 	static get tip() { return null } static get tipAdi() { return KontorTip.kaDict[this.tip]?.aciklama ?? '' }
 	static get kodListeTipi() { return `KNT-${this.tip}` } static get sinifAdi() { return `${this.tipAdi} Kontör` }
 	static get table() { return 'muskontor' } static get tableAlias() { return 'knt' } static get sayacSaha() { return 'kaysayac' }
@@ -980,6 +981,7 @@ class MQKontorDetay_Turmob extends MQKontorDetay {
 
 class MQKontor_TokenliOrtak extends MQKontor {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get uygunmu() { return super.uygunmu && this != MQKontor_TokenliOrtak }
 	static get detaySinif() { return MQKontorDetay_TokenliOrtak }
 }
 class MQKontorDetay_TokenliOrtak extends MQKontorDetay {

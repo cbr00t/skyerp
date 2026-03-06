@@ -76,11 +76,14 @@ class MQTest extends MQGuidOrtak {
 		super.orjBaslikListesiDuzenle(e); let {tableAlias: alias} = this, {dev} = config;
 		let {liste} = e; liste.push(...[
 			(dev ? new GridKolon({ belirtec: 'muayeneid', text: 'Muayene ID', genislikCh: 40 }) : null),
-			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 12, sql: `${alias}.tarihsaat` }).tipDate(),
-			new GridKolon({ belirtec: 'saat', text: 'Saat', genislikCh: 9, sql: `${alias}.tarihsaat` }).tipTime()
+			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 11, sql: `${alias}.tarihsaat` }).tipDate(),
+			new GridKolon({ belirtec: 'saat', text: 'Saat', genislikCh: 9, sql: `${alias}.tarihsaat` }).tipTime_noSecs().alignCenter()
 		].filter(x => !!x));
 		for (let {prefix, kisaEtiket, sablonId} of app.params.ese) {
-			liste.push(new GridKolon({ belirtec: `b${prefix}yapildi`, text: `${kisaEtiket}?`, genislikCh: 10, filterType: 'checkedlist' }).tipBool()) }
+			liste.push(
+				new GridKolon({ belirtec: `b${prefix}yapildi`, text: `${kisaEtiket}?`, genislikCh: 10, filterType: 'checkedlist' }).tipBool()
+			)
+		}
 		liste.push(...[
 			new GridKolon({ belirtec: 'bdehbvarmi', text: 'DEHB?', genislikCh: 8 }).tipBool(),
 			new GridKolon({ belirtec: 'bdehbvarmiklinik', text: 'Kln.DEHB?', genislikCh: 8 }).tipBool(),
@@ -97,26 +100,34 @@ class MQTest extends MQGuidOrtak {
 			new GridKolon({ belirtec: 'debelirtisayi', text: 'DE Belirti', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'hiskor', text: 'HI Skor', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'hibelirtisayi', text: 'HI Belirti', genislikCh: 10 }).tipNumerik(),
-			new GridKolon({ belirtec: 'hastaadi', text: 'Hasta Adı', genislikCh: 40, sql: 'has.aciklama' }),
-			new GridKolon({ belirtec: 'doktoradi', text: 'Doktor Adı', genislikCh: 40, sql: 'dok.aciklama' }),
+			new GridKolon({ belirtec: 'hastaadi', text: 'Hasta Adı', genislikCh: 35, sql: 'has.aciklama' }),
+			new GridKolon({ belirtec: 'doktoradi', text: 'Doktor Adı', genislikCh: 25, sql: 'dok.aciklama' }),
 			new GridKolon({ belirtec: 'seri', text: 'Seri', genislikCh: 5, sql: 'mua.seri' }),
 			new GridKolon({ belirtec: 'fisno', text: 'No', genislikCh: 17, sql: 'mua.fisno' }).tipNumerik(),
 			new GridKolon({ belirtec: 'uygulanmayeritext', text: 'Uygulanma Yeri', genislikCh: 15, sql: MQTestUygulanmaYeri.getClause(`${alias}.uygulanmayeri`) }),
 			new GridKolon({ belirtec: 'notlar', text: 'Notlar', genislikCh: 100 })
 		].filter(x => !!x))
 	}
-	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); let {sent} = e, {sahalar} = sent, {tip, tableAlias: alias, sablonSinif, pTanim} = this;
+	static loadServerData_queryDuzenle({ stm, sent, sent: { where: wh, sahalar } }) {
+		super.loadServerData_queryDuzenle(...arguments)
+		let {tip, tableAlias: alias, sablonSinif, pTanim} = this
 		sent.leftJoin({ alias, from: 'esehasta has', on: `${alias}.hastaid = has.id` })
 			.leftJoin({ alias, from: 'esemuayene mua', on: `${alias}.muayeneid = mua.id` })
 			.leftJoin({ alias: 'mua', from: 'esedoktor dok', on: 'mua.doktorid = dok.id' });
 		sahalar.add(
-			`${alias}.muayeneid`, `${alias}.hastaid`, 'has.aciklama hastaadi', `${alias}.uygulanmayeri`, `${alias}.onaykodu`, `${alias}.cinsiyet`, 'has.email',
+			`${alias}.muayeneid`, `${alias}.hastaid`, 'has.aciklama hastaadi',
+			`${alias}.uygulanmayeri`, `${alias}.onaykodu`, `${alias}.cinsiyet`, 'has.email',
 			'mua.doktorid', 'dok.aciklama doktoradi'
 		);
-		for (let {prefix} of app.params.ese) { sahalar.add(`b${prefix}yapildi`) }
-		if (e.tekilOku) { sahalar.liste = sahalar.liste.filter(({ deger }) => !deger.includes('SUM(')) }
-		else { sent.groupByOlustur() }
+		for (let {prefix} of app.params.ese)
+			sahalar.add(`b${prefix}yapildi`)
+		if (e.tekilOku)
+			sahalar.liste = sahalar.liste.filter(({ deger }) => !deger.includes('SUM('))
+		else {
+			sent.groupByOlustur()
+			if (empty(stm.orderBy.liste))
+				stm.orderBy.liste = [`${alias}.tarihsaat DESC`]
+		}
 	}
 	static islemTuslariDuzenle_listeEkrani(e) {
 		super.islemTuslariDuzenle_listeEkrani(e); let removeIdSet = asSet(['yeni', 'kopya']);
@@ -409,8 +420,8 @@ class MQTest extends MQGuidOrtak {
 			return
 		let idListe = recs.map(_ => _.id)
 		MQTestSonuc.listeEkraniAc({
-			secimlerDuzenle: ({ secimler: { testId } }) => {
-				extend(testId, {
+			secimlerDuzenle: ({ secimler: { testKod } }) => {
+				extend(testKod, {
 					birKismimi: true,
 					value: idListe
 				})

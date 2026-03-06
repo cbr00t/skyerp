@@ -31,12 +31,14 @@ class MQMuayene extends MQGuidOrtak {
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); let {tableAlias: alias} = this;
 		let {liste} = e; liste.push(
-			new GridKolon({ belirtec: 'hastaid', text: 'Hasta ID', genislikCh: 40 }), new GridKolon({ belirtec: 'hastaadi', text: 'Hasta Adı', genislikCh: 30, sql: 'has.aciklama' }),
-			new GridKolon({ belirtec: 'doktorid', text: 'Doktor ID', genislikCh: 40 }), new GridKolon({ belirtec: 'doktoradi', text: 'Doktor Adı', genislikCh: 30, sql: 'dok.aciklama' }),
+			new GridKolon({ belirtec: 'hastaid', text: 'Hasta ID', genislikCh: 40 }),
+			new GridKolon({ belirtec: 'hastaadi', text: 'Hasta Adı', genislikCh: 35, sql: 'has.aciklama' }),
+			new GridKolon({ belirtec: 'doktorid', text: 'Doktor ID', genislikCh: 30 }),
+			new GridKolon({ belirtec: 'doktoradi', text: 'Doktor Adı', genislikCh: 20, sql: 'dok.aciklama' }),
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 10, sql: `${alias}.tarihsaat` }).tipDate(),
+			new GridKolon({ belirtec: 'saat', text: 'Saat', genislikCh: 9, sql: `${alias}.tarihsaat` }).tipTime_noSecs().alignCenter(),
 			new GridKolon({ belirtec: 'dogumtarihi', text: 'Doğum Tarihi', genislikCh: 13, sql: 'has.dogumtarihi' }).tipDate(),
-			new GridKolon({ belirtec: 'cinsiyettext', text: 'Cinsiyet', genislikCh: 8, sql: Cinsiyet.getClause('has.cinsiyet') }),
-			new GridKolon({ belirtec: 'saat', text: 'Saat', genislikCh: 9, sql: `${alias}.tarihsaat` }).tipTime(),
+			new GridKolon({ belirtec: 'cinsiyettext', text: 'Cinsiyet', genislikCh: 9, sql: Cinsiyet.getClause('has.cinsiyet') }),
 			new GridKolon({ belirtec: 'seri', text: 'Seri', genislikCh: 5, filterType: 'checkedlist' }), new GridKolon({ belirtec: 'fisno', text: 'No', genislikCh: 15, filterType: 'checkedlist' }).tipNumerik(),
 			new GridKolon({ belirtec: 'tani', text: 'Tanı', genislikCh: 50 })
 		);

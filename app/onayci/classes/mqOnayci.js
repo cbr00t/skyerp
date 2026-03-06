@@ -4,37 +4,64 @@ class MQOnayci extends MQCogul {
 	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false }
 	static get secimSinif() { return null } static get kolonFiltreKullanilirmi() { return false }
 	static get gridIslemTuslariKullanilirmi() { return false }
-	static get tip2TableYapi() {
-		let {_tip2TableYapi: result} = this
+	static get table2Yapi() {
+		let { _table2Yapi: result } = this
 		if (result == null) {
-			result = this._tip2TableYapi = {
-				GeciciAlimEFat: {
-					oncelik: 1, tipText: 'Gecici Alım e-İşlem', idVarmi: true,
-					table: 'efgecicialfatfis', harTable: 'efgecicialfatdetay',
+			result = this._table2Yapi = {
+				efgecicialfatfis: {
+					oncelik: 1, idVarmi: true,
+					tipler: {
+						GeciciAlimEFat: { tipText: 'Gecici Alım e-İşlem' }
+					},
+					harTable: 'efgecicialfatdetay',
 					eIslTipClause: ({ alias }) => `${alias}.efbelge`,
 					uuidClause: ({ alias }) => `${alias}.efuuid`,
 					mustUnvanClause: ({ alias }) => `${alias}.efmustunvan`,
 					tarihClause: ({ alias }) => `${alias}.tarih`,
-					fisNox: ({ alias }) => `${alias}.effatnox`,
-					bedel: ({ alias }) => `${alias}.bedel`,
+					fisNoxClause: ({ alias }) => `${alias}.effatnox`,
+					bedelClause: ({ alias }) => `${alias}.efsonuc`,
 					fisBaglantiDuzenle: ({ alias, clauses }) =>
 						clauses.push(`${alias}.efbelge IN ('', 'E')`)
 				},
-				Siparis: {
-					oncelik: 2, tipText: 'Sipariş',
-					table: 'sipfis', harTable: ['sipstok', 'siphizmet'],
+				sipfis: {
+					oncelik: 2,
+					tipler: {
+						AlimSip: { tipText: 'Alım Sipariş' },
+						SatisSip: { tipText: 'Satış Sipariş' }
+					},
+					harTable: ['sipstok', 'siphizmet'],
 					eIslTipClause: ({ alias }) => `${alias}.efayrimtipi`,
 					uuidClause: ({ alias }) => `${alias}.efatuuid`,
 					mustKodClause: ({ alias }) => `${alias}.must`,
 					mustUnvanClause: ({ alias }) => `${alias}_car.birunvan`,
 					tarihClause: ({ alias }) => `${alias}.tarih`,
-					fisNox: ({ alias }) => `${alias}.fisnox`,
-					bedel: ({ alias }) => `${alias}.net`,
-					ekBilgi: ({ alias }) => `${alias}.aciklama`,
+					fisNoxClause: ({ alias }) => `${alias}.fisnox`,
+					bedelClause: ({ alias }) => `${alias}.net`,
+					ekBilgiClause: ({ alias }) => `${alias}.cariaciklama`,
 					fisBaglantiDuzenle: ({ alias, clauses }) =>
 						clauses.push(`${alias}.silindi = ''`, `${alias}.ozeltip = ''`),
 					sentDuzenle: ({ alias, sent, sent: { where: wh } }) =>
 						sent.leftJoin(alias, `carmst ${alias}_car`, `${alias}.must = ${alias}_car.must`)
+				}
+			}
+			for (let [table, item] of entries(result))
+				item.table = table
+		}
+		return result
+	}
+	static get tip2Yapi() {
+		let { _tip2Yapi: result } = this
+		if (result == null) {
+			let { table2Yapi } = this
+			result = this._tip2Yapi = {}
+			for (let item of values(table2Yapi)) {
+				let { tipler } = item
+				if (empty(tipler))
+					continue
+				for (let [tip, subItem] of entries(tipler)) {
+					let newItem = { ...item, ...subItem }
+					delete newItem.tipler
+					result[tip] = newItem
 				}
 			}
 		}
@@ -175,7 +202,7 @@ class MQOnayci extends MQCogul {
 		let { kurallar, tip2Kurallar, dbSet } = _cache
 		extend(gridPart, { kurallar, tip2Kurallar, dbSet })
 
-		let { tip2TableYapi } = this
+		let { table2Yapi, tip2Yapi } = this
 		let userSql = user.sqlServerDegeri()
 		let uni = new MQUnionAll()
 		for (let db in dbSet) {
@@ -197,7 +224,7 @@ class MQOnayci extends MQCogul {
 			wh.add(or)
 			
 			sahalar.add(...[
-				`'${db}' _db`, 'ony.adimtipi tip', 'ony.id onayId',
+				`'${db}' _db`, 'ony.asiltablo _table', 'ony.adimtipi tip', 'ony.id onayId',
 				'ony.adimsayac sayac', 'ony.adimid id',
 				`(case
 						when ony.w2onayuser = ${userSql} AND ony.bw2onay IS NULL then 2
@@ -215,83 +242,74 @@ class MQOnayci extends MQCogul {
 				`(case
 						when ony.w2onayuser = ${userSql} AND ony.bw2onay IS NOT NULL then ony.w2onayredtext
 						when ony.w1onayuser = ${userSql} AND ony.bw1onay IS NOT NULL then ony.w1onayredtext
-					else NULL end) onayRedNedeni`,
+					else NULL end) onayRedNedeni`
 			])
-			
+
+			let caseDegerKeys = ['oncelik']
+			let caseClauseKeys = ['eIslTip', 'uuid', 'mustKod', 'mustUnvan', 'tarih', 'fisNox', 'bedel', 'ekBilgi']
 			let cases = {}
 			{
-				let _keys = [
-					'oncelik', 'tipText', '_table',
-					'eIslTip', 'uuid', 'mustKod', 'mustUnvan',
-					'tarih', 'fisNox', 'bedel', 'ekBilgi'
-				]
-				_keys.forEach(k =>
+				[...caseDegerKeys, ...caseClauseKeys].forEach(k =>
 					cases[k] = [])
-				// cases._harTable = {}
 			}
 
 			let sqlNull = 'NULL', sqlEmpty = `''`
-			for (let [tip, item] of entries(tip2TableYapi)) {
-				let { oncelik, tipAdi, table, harTable } = item
-				let alias = `fis_${tip}`
-				let tipClause = tip.sqlServerDegeri()
-				let harTables = makeArray(harTable)
-				
-				/*;harTables.forEach(t => {
-					(cases._harTable[table] ??= [])
-						.push(`WHEN ${tipClause} THEN ${t.sqlServerDegeri()}`)
-				})*/
-				cases._table.push(`WHEN ${tipClause} THEN ${table.sqlServerDegeri()}`)
-				;['oncelik', 'tipText'].forEach(k =>
-					cases[k].push(`WHEN ${tipClause} THEN ${item[k].sqlServerDegeri()}`))
-				;['eIslTip', 'uuid', 'mustKod', 'mustUnvan', 'tarih', 'fisNox', 'bedel', 'ekBilgi'].forEach(key => {
+			for (let [table, item] of entries(table2Yapi)) {
+				let alias = `fis_${table}`
+				let tableClause = table.sqlServerDegeri()
+				// cases._table.push(`WHEN ${tableClause} THEN ${table.sqlServerDegeri()}`)
+				for (let k of caseDegerKeys)
+					cases[k].push(`WHEN ${tableClause} THEN ${item[k].sqlServerDegeri()}`)
+				for (let key of caseClauseKeys) {
 					let clause = item[`${key}Clause`]
+					if (!clause)
+						continue
 					if (isFunction(clause))
-						clause = clause.call(this, { ...e, tip, ...item, harTables, key, alias })
+						clause = clause.call(this, { ...e, ...item, table, key, alias })
 					clause ||= sqlEmpty
-					cases[key].push(`WHEN ${tipClause} THEN ${clause}`)
-				})
+					cases[key].push(`WHEN ${tableClause} THEN ${clause}`)
+				}
 			}
-			for (let [tip, item] of entries(tip2TableYapi)) {
-				let { oncelik, tipAdi, table, idVarmi, fisBaglantiDuzenle, sentDuzenle } = item
-				let alias = `fis_${tip}`
+			for (let [table, item] of entries(table2Yapi)) {
+				let { oncelik, idVarmi, fisBaglantiDuzenle } = item
+				let alias = `fis_${table}`
+				let _e = { ...e, ...item, table, alias, sent }
 				let fisIliskiClauses = [idVarmi ? `ony.adimid = ${alias}.id` : `ony.adimsayac = ${alias}.kaysayac`]
-				fisBaglantiDuzenle?.call?.(this, { ...e, ...item, tip, alias, sent, clauses: fisIliskiClauses })
+				fisBaglantiDuzenle?.call?.(this, { ..._e, clauses: fisIliskiClauses })
 				sent.leftJoin('ony', `${db}..${table} ${alias}`, fisIliskiClauses)
-				sentDuzenle?.call?.(this, { ...e, ...item, tip, alias, sent })
+				;['sentDuzenle', 'tipIcinSentDuzenle'].forEach(selector =>
+					item[selector]?.call?.(this, _e))
 			}
 			
-			let clauseEkle = (alias, whenThenListe) => {
+			for (let [key, whenThenListe] of entries(cases)) {
+				// (CASE ony.asiltablo WHEN ... THEN ... END) oncelik`
 				let clause = [
-					`(CASE ony.adimtipi`, ...whenThenListe, 'END)',
-					alias
+					...(empty(whenThenListe)
+						? [sqlEmpty]
+						: [`(CASE ony.asiltablo`, ...whenThenListe, 'END)']),
+					key
 				].join(' ')
 				sahalar.add(clause)
 			}
-			for (let [key, whenThenListe] of entries(cases)) {
-				// (CASE ony.adimtipi WHEN ... THEN ... END) oncelik`
-				if (key == '_harTable') {
-					// array
-					let whenThenListeler = whenThenListe
-					let maxWhenThenCount = Math.max(...whenThenListeler.map(_ => _.length))
-					for (let i = 1; i <= maxWhenThenCount; i++) {
-						let whenThenListe = whenThenListeler[i]
-						if (whenThenListe) {
-							let _key = i == 1 ? key : `${key}_${i}`
-							clauseEkle(`${_key}`, whenThenListe)
-						}
-						else
-							sahalar.add(`NULL ${key}`)
-					}
+
+			{
+				let or = new MQOrClause()
+				for (let [table, { idVarmi }] of entries(table2Yapi)) {
+					let keySaha = idVarmi ? 'id' : 'kaysayac'
+					let alias = `fis_${table}`
+					or.add(
+						new MQAndClause()
+							.degerAta(table, 'ony.asiltablo')
+							.add(`${alias}.${keySaha} IS NOT NULL`)
+					)
 				}
-				else
-					clauseEkle(key, whenThenListe)
+				wh.add(or)
 			}
 		}
 		if (!uni.liste.length)
 			return []
 		
-		let stm = new MQStm({ sent: uni, orderBy: ['onayDurumText', 'oncelik'] })
+		let stm = new MQStm({ sent: uni, orderBy: ['onayDurumText', '_db', 'oncelik'] })
 		let recs = await this.sqlExecSelect(stm)
 		
 		/*let uymayanRecs = recs.filter(rec => !kuralKey2Kural[this.getKey(rec)])
@@ -330,14 +348,22 @@ class MQOnayci extends MQCogul {
 					catch (ex) { f(ex) }
 				}))
 			}
+			
 			if (!empty(promises))
 				await Promise.all(promises)
+			
 			if (!empty(db2Sayac2RecDurum)) {
 				recs.forEach(rec => {
-					let {_db: db, sayac} = rec
+					let { _db: db, tip, sayac } = rec
 					let durum = db2Sayac2RecDurum[db]?.[sayac]
 					if (durum)
 						extend(rec, durum)
+					
+					let item = tip2Yapi[tip]
+					if (item) {
+						let { tipText } = item
+						extend(rec, { tipText })
+					}
 				})
 			}
 		}
@@ -388,7 +414,7 @@ class MQOnayci extends MQCogul {
 		let islemAdi = `${onaymi ? 'ONAY' : 'RED'} İşlemi`
 		let styledIslemAdi = `${onaymi ? '<b class=forestgreen>ONAY</b>' : '<b class=orangered>RED</b>'} İşlemi`
 		try {
-			let {selectedRecs: recs, kuralKey2Kural, gridWidget: w} = gridPart
+			let { selectedRecs: recs, kuralKey2Kural, gridWidget: w } = gridPart
 			recs = recs.filter(rec => rec.onayNo /*&& kuralKey2Kural[this.getKey(rec)] */)
 			if (empty(recs)) {
 				hConfirm('Cevaplanacak uygun belge bulunamadı', islemAdi)
@@ -432,15 +458,15 @@ class MQOnayci extends MQCogul {
 			}
 			let key2OnayIdListe = {}
 			for (let rec of recs) {
-				let { _db, _table, onayNo, onayId } = rec
-				let key = [ _db, _table, onayNo ].join(delimWS)
+				let { _db, onayNo, onayId } = rec
+				let key = [ _db, onayNo ].join(delimWS)
 				; (key2OnayIdListe[key] ??= []).push(onayId)
 			}
 			
 			let {user} = config, _now = now()
 			let toplu = new MQToplu().withTrn()
 			for (let [key, onayIdListe] of entries(key2OnayIdListe)) {
-				let [ db, table, onayNo ] = key.split(delimWS)
+				let [ db, onayNo ] = key.split(delimWS)
 				onayNo = asInteger(onayNo)
 				toplu.add(
 					new MQIliskiliUpdate({
@@ -462,6 +488,7 @@ class MQOnayci extends MQCogul {
 			}
 			if (toplu?.bosDegilmi)
 				await this.sqlExecNone(toplu)
+			
 			w?.clearselection()
 			gridPart.tazele()
 			{
@@ -491,13 +518,15 @@ class MQOnayci extends MQCogul {
 			let eDocs = [], eDocCount = 0, aborted = false
 			let pm = showProgress('Belge İçeriği hazırlanıyor...', islemAdi, true, () => aborted = true)
 			pm.setProgressMax(xmlFileNames.length * 3)
+			
+			let { tip2Yapi } = this
 			let errors = []
 			for (let rec of recs) {
 				if (!rec)
 					continue
-				let {tip, db} = rec
+				let { tip } = rec
 				if (tip == 'GeciciAlimEFat') {
-					let {uuid, eIslTip} = rec
+					let { uuid, eIslTip } = rec
 					if (!uuid)
 						continue
 					eIslTip ||= 'E'
@@ -585,7 +614,10 @@ class MQOnayci extends MQCogul {
 					}
 				}
 				else {
-					let {_table: table, _harTable: harTables, sayac, fisNox, _text: headerHTML} = rec
+					let { tip, sayac, fisNox, _text: headerHTML } = rec
+					let { table, harTable: harTables } = tip2Yapi[tip]
+					harTables = makeArray(harTables ?? [])
+					// _table: table, _harTable: harTables
 					if (isString(harTables))
 						harTables = harTables ? harTables.split(delimWS) : null
 					if (!(table && sayac) || empty(harTables))
@@ -678,9 +710,10 @@ class MQOnayci extends MQCogul {
 		return [tip, onayNo || 1].filter(_ => _).join('|')
 	}
 	static getHTML({ rec }) {
-		let {dev} = config
-		let {tarih, mustUnvan, fisNox, uuid, irsNox = '', irsVarmi, ekBilgi = ''} = rec
+		let { dev } = config
+		let { tarih, mustUnvan, fisNox, uuid, irsNox, irsVarmi, ekBilgi } = rec
 		uuid = uuid?.toLowerCase() ?? ''
+		irsNox ??= ''; ekBilgi ??= ''
 		return [
 			`<div class="flex-row" style="gap: 0 10px">`,
 				`<template class="sort-data">${dateToString(tarih)}|${fisNox}|${mustUnvan}</template>`,

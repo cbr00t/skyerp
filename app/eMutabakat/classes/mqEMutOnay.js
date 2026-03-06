@@ -174,6 +174,8 @@ class MQEMutOnay extends MQCogul {
 					 $elementCSS .veri .ek-bilgi { font-size: 90%; color: mediumpurple; margin-left: 10px }
 					 $elementCSS .veri.bakiye-var { color: forestgreen !important }
 					 $elementCSS .veri.bakiye-yok { color: orangered !important }
+					 $elementCSS .veri.borc { color: orangered !important }
+					 $elementCSS .veri.alacak { color: limegreen !important }
 					 $elementCSS .warn, $elementCSS .info { font-size: 100% }
 					 $elementCSS .warn-etiket { font-weight: bolder; color: orange !important }
 					 $elementCSS .warn { color: #553333 !important }
@@ -182,12 +184,12 @@ class MQEMutOnay extends MQCogul {
 						 $elementCSS .musteri { min-height: 70px !important }
 					 $elementCSS .isyeri .etiket { font-size: 90% }
 					 $elementCSS .isyeri .veri { font-size: unset; color: violetred !important }
-					 $elementCSS > .tarih, $elementCSS > .bakiye { padding: 5px 0 }
+					 $elementCSS > .tarihVeBakiyeBilgi { padding: 5px 0 }
 					 $elementCSS .footer { margin-top: 10px }
 					 $elementCSS .logo {
 						position: absolute !important;
 						width: 150px; height: 100px;
-						top: 120px; right: -30px;
+						top: 150px; right: -10px;
 						opacity: .8; pointer-events: none;
 						background-size: contain;
 						background-repeat: no-repeat;
@@ -405,12 +407,12 @@ class MQEMutOnay extends MQCogul {
 
 		let cevaplandimi = !!cevapTS
 		let stateHTML = !cevaplandimi ? '' :
-			( state ? `<b class=forestgreen>ONAYLANMIŞTIR</b>` : `<b class=firebrick>RED EDİLMİŞTİR</b>` )
+			`${state ? `<b class=forestgreen>ONAY</b>` : `<b class=firebrick>RED</b>`} cevabı verilmiştir`
 		let tsUyariHTML = zamanDamgasi || cevaplandimi
 			? [
 				`<p> <span class="warn-etiket">⚠ Uyarı</span>:`,
 					(cevaplandimi
-						? `<span class="warn">Bu mutabakat <b class=royalblue>${dateTimeAsKisaString(cevapTS)}</b> tarihinde ${stateHTML}</span>`
+						? `<span class="warn">Bu mutabakat <b class=royalblue>${dateTimeAsKisaString(cevapTS)}</b> tarih-saatinde ${stateHTML}</span>`
 						: onayTipi
 							 ? `<span class="warn">Onay veya Red butonuna tıklandığında Zaman Damgası için <b class=royalblue>${onayTipi.toLocaleUpperCase()} Onayı</b> alınacaktır</span>`
 							 : null
@@ -434,16 +436,19 @@ class MQEMutOnay extends MQCogul {
 						`<span class="veri ek-bilgi">(${must.vkn || ''}),<span>`,
 					`</div>`,
 				`</div>`,
-				`<div class="tarih">`,
+				`<div class="tarihVeBakiyeBilgi">`,
 					`<div>`,
-						`<span class="etiket">Tarih&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: </span>`,
-						`<span class="veri orangered">${dateToString(tarih)} <span>`,
+						`<span class="etiket">İşletmemizdeki Cari hesabınız:</span> &nbsp;`,
 					`</div>`,
-				`</div>`,
-				`<div class="bakiye">`,
 					`<div>`,
-						`<span class="etiket">Bakiyeniz &nbsp;: </span>`,
-						`<span class="veri ${bakiye ? 'bakiye-var' : 'bakiye-yok'}">${bakiye ? `${numberToString(bakiye)} ${dvKod}'dir` : 'YOKTUR'} <span>`,
+						`<span class="veri orangered">${dateToString(tarih)}<span> `,
+						`<span class="ek-bilgi">tarihi itibariyle</span> &nbsp;`,
+						`<span class="veri ${bakiye ? 'bakiye-var' : 'bakiye-yok'}">
+							${bakiye ? `${numberToString(Math.abs(bakiye))} ${dvKod}` : 'YOKTUR'}
+						</span> &nbsp;`,
+						`<span class="veri ${bakiye ? `bakiye-var ${bakiye < 0 ? 'alacak' : 'borc'}` : 'bakiye-yok'}">
+							${bakiye ? `${bakiye < 0 ? 'ALACAKTIR' : 'BORÇTUR'}` : 'YOKTUR'}
+						</span>`,
 					`</div>`,
 				`</div>`,
 				`<div class="footer">`,

@@ -233,6 +233,7 @@ class MQKontorHareket_Turmob extends MQKontorHareket {
 
 class MQKontorHareket_TokenliOrtak extends MQKontorHareket {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get uygunmu() { return super.uygunmu && this != MQKontorHareket_TokenliOrtak }
 	static get kontorSinif() { return MQKontor_Turmob }
 }
 class MQKontorHareket_ZamanDamgasi extends MQKontorHareket_TokenliOrtak {

@@ -117,9 +117,12 @@ class MQOkulTipi extends MQGuidVeAdiOrtak {
 	static get kodListeTipi() { return 'OKULTIPI' } static get table() { return 'eseokultipi' } static get tableAlias() { return 'okt' }
 }
 class MQHasta extends MQGuidVeAdiOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Hasta' } static get yakinSayi() { return 2 }
-	static get kodListeTipi() { return 'HASTA' } static get table() { return 'esehasta' } static get tableAlias() { return 'has' } static get adiEtiket() { return 'Hasta Adı-Soyadı' }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'HASTA' } static get sinifAdi() { return 'Hasta' } 
+	static get table() { return 'esehasta' } static get tableAlias() { return 'has' }
+	static get adiEtiket() { return 'İsim' } static get yakinSayi() { return 2 }
 	static get ignoreBelirtecSet() { return {...super.ignoreBelirtecSet, ...asSet(['okultipid']) } }
+
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e, {yakinSayi} = this; $.extend(pTanim, {
 			tcKimlikNo: new PInstStr('tcno'), cinsiyet: new PInstTekSecim('cinsiyet', Cinsiyet),
@@ -133,11 +136,14 @@ class MQHasta extends MQGuidVeAdiOrtak {
 	}
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {tableAlias: alias, yakinSayi} = this, {liste} = e; liste.push(
-			new GridKolon({ belirtec: 'tcno', text: 'TC Kimlik No', genislikCh: 13 }), new GridKolon({ belirtec: 'dogumtarihi', text: 'Doğum Tarihi', genislikCh: 13 }).tipDate(),
-			new GridKolon({ belirtec: 'cinsiyettext', text: 'Cinsiyet', genislikCh: 8, sql: Cinsiyet.getClause(`${alias}.cinsiyet`) }),
-			new GridKolon({ belirtec: 'okultipid', text: 'Okul Tip ID', genislikCh: 36 }), new GridKolon({ belirtec: 'okultipadi', text: 'Okul Tip Adı', genislikCh: 10, sql: 'okt.aciklama' }),
+			new GridKolon({ belirtec: 'tcno', text: 'TC Kimlik No', genislikCh: 15 }),
+			new GridKolon({ belirtec: 'dogumtarihi', text: 'Doğum Tarihi', genislikCh: 13 }).tipDate(),
+			new GridKolon({ belirtec: 'cinsiyettext', text: 'Cinsiyet', genislikCh: 9, sql: Cinsiyet.getClause(`${alias}.cinsiyet`) }),
+			new GridKolon({ belirtec: 'okultipid', text: 'Okul Tip ID', genislikCh: 36 }),
+			new GridKolon({ belirtec: 'okultipadi', text: 'Okul Tip Adı', genislikCh: 10, sql: 'okt.aciklama' }),
 			new GridKolon({ belirtec: 'tel', text: 'Telefon', genislikCh: 10 }), new GridKolon({ belirtec: 'email', text: 'e-mail', genislikCh: 50 }),
-			new GridKolon({ belirtec: 'yerlesimkod', text: 'Yerleşim', genislikCh: 10, filterType: 'checkedlist' }), new GridKolon({ belirtec: 'yerlesimadi', text: 'Yerleşim Adı', genislikCh: 30, sql: 'yer.aciklama' }),
+			new GridKolon({ belirtec: 'yerlesimkod', text: 'Yerleşim', genislikCh: 10, filterType: 'checkedlist' }),
+			new GridKolon({ belirtec: 'yerlesimadi', text: 'Yerleşim Adı', genislikCh: 30, sql: 'yer.aciklama' }),
 			new GridKolon({ belirtec: 'acikadres', text: 'Açık Adres' })
 		);
 		for (let i = 1; i <= yakinSayi; i++) {
