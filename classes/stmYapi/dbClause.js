@@ -398,16 +398,32 @@ class MQSubWhereClause extends MQClause {
 	}
 	notBasiSonu(e, _saha) { e = e.saha ? $.extend({}, e) : { deger: e, saha: _saha }; e.not = true; return this.basiSonu(e) }
 	ozellik(e, _saha) {
-		e = e?.saha ? e : { deger: e, saha: _saha };
-		let isNot = typeof e == 'object' && asBool(e.not); let deger = e.deger || '';
-		let {disindakilermi, yazildigiGibimi} = deger || {};
-		if (disindakilermi) { isNot = true }
-		if (deger?.value !== undefined) deger = deger.value
-		if (deger?.ozellik !== undefined) deger = deger.ozellik
-		let {saha} = e, or = new MQOrClause(), parts = deger ? deger.split(' ') : null;
-		if (parts) { for (let part of parts) { part = part.trim(); if (part) { or.like({ deger: part, saha, yazildigiGibimi }) } } }
-		let text = or.toString(); if (isNot) { text = text ? `NOT(${text})` : '1 = 2' }
-		if (text) { this.addDogrudan(text) }
+		e = e?.saha ? e : { deger: e, saha: _saha }
+		let isNot = isObject(e) && asBool(e.not)
+		let deger = e.deger ?? ''
+		let {disindakilermi, yazildigiGibimi} = deger || {}
+		if (disindakilermi)
+			isNot = true
+		if (deger?.value !== undefined)
+			deger = deger.value
+		if (deger?.ozellik !== undefined)
+			deger = deger.ozellik
+		let {saha} = e
+		let and = new MQAndClause()
+		let tokens = deger ? deger.split(' ') : null
+		if (tokens) {
+			for (let token of tokens) {
+				token = token?.trim()
+				if (!token)
+					continue
+				and.like({ deger: token, saha, yazildigiGibimi })
+			}
+		}
+		let text = and.toString()
+		if (isNot)
+			text = text ? `NOT(${text})` : '1 = 2'
+		if (text)
+			this.addDogrudan(text)
 		return this
 	}
 	notOzellik(e, _saha) { e = e.saha ? $.extend({}, e) : { deger: e, saha: _saha }; e.not = true; return this.ozellik(e) }

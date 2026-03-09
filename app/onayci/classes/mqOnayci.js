@@ -554,12 +554,22 @@ class MQOnayci extends MQCogul {
 						let docRefs = Array.from(xml.documentElement.querySelectorAll(`AdditionalDocumentReference`))
 						let xsltData
 						{
-							let xbinDoc, subName = 'EmbeddedDocumentBinaryObject'
-							xbinDoc = docRefs.find(elm => elm.querySelector('DocumentType')?.innerHTML?.toUpperCase() == 'XSLT' && elm.querySelector(subName))
-							if (!xbinDoc)
-								xbinDoc = docRefs.find(elm => elm.querySelector(subName))
-							if (xbinDoc)
-								xsltData = xbinDoc.querySelector(subName)?.textContent
+							let xbinDocs, subName = 'EmbeddedDocumentBinaryObject'
+							xbinDocs = docRefs.filter(elm =>
+								(
+									elm.querySelector('DocumentType')?.innerHTML?.toUpperCase() == 'XSLT' ||
+									elm.querySelector('DocumentTypeCode')?.innerHTML?.toUpperCase() == 'XSLT' ||
+									elm.querySelector('ID')?.innerHTML?.toUpperCase() == 'XSLT'
+								) && elm.querySelector(subName)
+							  )
+							if (empty(xbinDocs))
+								xbinDocs = docRefs.map(elm => elm.querySelector(subName))
+							if (!empty(xbinDocs)) {
+								xbinDocs = xbinDocs
+									.map(x => x.querySelector(subName))
+									.filter(x => x?.getAttribute('mimeCode')?.toLowerCase() == 'application/xml')
+							}
+							xsltData = xbinDocs?.at(-1)?.textContent
 						}
 						if (!xsltData)
 							throw { isError: true, rc: 'noXSLT', errorText: 'XSLT (e-İşlem Görüntü) bilgisi belirlenemedi' }
