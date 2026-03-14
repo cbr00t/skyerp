@@ -64,7 +64,7 @@ class DRapor_HizmetMuhKontrol extends DRaporMQ {
 		)
 	}
 	static async loadServerDataDogrudan({ gridPart, secimler: sec, secimler: { tarihBSVeyaCariDonem: tarihBS } }) {
-		let {hizmetVeMuhKarsilastirma_ozelIsaret: ozelIsaretBakilirmi} = app.params?.dRapor ?? {}
+		let {hizmetVeMuhKarsilastirma_ozelIsaret: ozelIsaretAlinir} = app.params?.dRapor ?? {}
 		let {muhHesapKod: sec_muhHesapKod, muhHesapAdi: sec_muhHesapAdi} = sec
 		let recs
 		{
@@ -74,7 +74,7 @@ class DRapor_HizmetMuhKontrol extends DRaporMQ {
 				wh.basiSonu(tarihBS, hv.tarih)
 				wh.basiSonu(sec_muhHesapKod, 'hiz.muhhesap')
 				// hareketci wh.fisSilindiEkle() kendisi yapıyor olabilir
-				if (ozelIsaretBakilirmi)
+				if (!ozelIsaretAlinir)
 					wh.add(`${hv.ozelisaret} <> '*'`)                                                      // sadece muhasebeleşenler
 				sent.sahalarVeGroupByVeHavingReset()
 				let {sahalar} = sent, {ba, bedel} = hv
@@ -93,7 +93,7 @@ class DRapor_HizmetMuhKontrol extends DRaporMQ {
 				let sent = new MQSent(), {where: wh, sahalar} = sent
 				sent.fisHareket('muhfis', 'muhhar')
 				wh.fisSilindiEkle()
-				if (ozelIsaretBakilirmi)
+				if (!ozelIsaretAlinir)
 					wh.add(`fis.ozelisaret <> '*'`)
 				wh.basiSonu(tarihBS, 'fis.tarih')
 				wh.basiSonu(sec_muhHesapKod, 'har.hesapkod')

@@ -827,26 +827,45 @@ class HatYonetimiPart extends Part {
 		if (!hatKod && rec) { hatKod = rec.hatkod } let inst = new MQEkNotlar({ hatKod, tezgahKod });
 		return inst.tanimla({ islem: 'yeni' })
 	}
-	dokumanYukleIstendi(e) {
-		e = e || {}; let rec = e.rec ?? this.selectedTezgahRecs[0] ?? {}, {hatKod} = e; if (!hatKod) { return }
-		let resimId = `hat-${hatKod}-01`, islemAdi = 'Hat Resim Yükleme';
-		let elm = $(`<input type="file" capture="environment" accept="image/*, application/pdf, video/*">`).appendTo('body'); elm.addClass('jqx-hidden');
+	dokumanYukleIstendi(e = {}) {
+		let rec = e.rec ?? this.selectedTezgahRecs[0] ?? {}
+		let {hatKod} = e
+		if (!hatKod)
+			return
+		let resimId = `hat-${hatKod}-01`, islemAdi = 'Hat Resim Yükleme'
+		let elm = $(`<input type="file" capture="environment" accept="image/*, application/pdf, video/*">`)
+		elm.appendTo('body')
+		elm.addClass('jqx-hidden')
 		elm.on('change', async evt => {
 			try {
-				let file = evt.target.files[0]; let fileName = file.name.replaceAll(' ', '_'), ext = fileName.split('.').slice(-1)[0] ?? '';
-				let data = file ? new Uint8Array(await file.arrayBuffer()) : null; if (!data?.length) { return }
-				let result = await app.wsResimDataKaydet({ resimId, ext, data }); if (!result.result) { throw { isError: true, errorText: `${islemAdi} sorunu` } }
-				this.tazele(e); setTimeout(() => eConfirm(`Hat Resim Görüntüsünün güncellenmesi için uygulamadan çıkıp yeniden girilmesi gerekebilir`, islemAdi))
+				let file = evt.target.files[0], fileName = file.name.replaceAll(' ', '_')
+				let ext = fileName.split('.').slice(-1)[0] ?? ''
+				let data = file ? new Uint8Array(await file.arrayBuffer()) : null
+				if (!data?.length)
+					return
+				let result = await app.wsResimDataKaydet({ resimId, ext, data })
+				if (!result.result)
+					throw { isError: true, errorText: `${islemAdi} sorunu` }
+				this.tazele(e)
+				setTimeout(() => eConfirm(`Hat Resim Görüntüsünün güncellenmesi için uygulamadan çıkıp yeniden girilmesi gerekebilir`, islemAdi))
 			} finally { $(evt.target).remove() }
-		});
+		})
 		elm.click()
 	}
-	async dokumanSilIstendi(e) {
-		e = e || {}; let rec = e.rec ?? this.selectedTezgahRecs[0] ?? {}, {hatKod} = e; if (!hatKod) { return }
-		let resimId = `hat-${hatKod}`, islemAdi = `<b color="indianred">Resim SİL</b>`;
-		let rdlg = await ehConfirm(`<b class="royalblue">${hatKod}</b><b class="indianred"> hattına ait Resim silinecek, emin misiniz?</b>`, islemAdi); if (!rdlg) { return }
-		let result = await app.wsResimDataSil({ resimId }); if (!result.result) { throw { isError: true, errorText: `${islemAdi} sorunu` } }
-		this.tazele(e); setTimeout(() => eConfirm(`Hat Resim Görüntüsünün güncellenmesi için uygulamadan çıkıp yeniden girilmesi gerekebilir`, islemAdi))
+	async dokumanSilIstendi(e = {}) {
+		let rec = e.rec ?? this.selectedTezgahRecs[0] ?? {}
+		let {hatKod} = e
+		if (!hatKod)
+			return
+		let resimId = `hat-${hatKod}`, islemAdi = `<b color="indianred">Resim SİL</b>`
+		let rdlg = await ehConfirm(`<b class="royalblue">${hatKod}</b><b class="indianred"> hattına ait Resim silinecek, emin misiniz?</b>`, islemAdi)
+		if (!rdlg)
+			return
+		let result = await app.wsResimDataSil({ resimId })
+		if (!result.result)
+			throw { isError: true, errorText: `${islemAdi} sorunu` }
+		this.tazele(e)
+		setTimeout(() => eConfirm(`Hat Resim Görüntüsünün güncellenmesi için uygulamadan çıkıp yeniden girilmesi gerekebilir`, islemAdi))
 	}
 	async ekBilgiSilItendi(e) {
 		let recs = e.recs ?? this.selectedTezgahRecs; if (!recs?.length) { return } let tezgahIdListe = recs.map(rec => rec.tezgahKod);

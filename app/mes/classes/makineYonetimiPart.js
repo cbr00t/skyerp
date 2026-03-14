@@ -1,37 +1,62 @@
 class MakineYonetimiPart extends Part {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get isWindowPart() { return true } static get partName() { return 'makineYonetimi' } static get sinifAdi() { return 'Makine Yönetimi' }
-	constructor(e) { e = e || {}; super(e); $.extend(this, { tezgahKod: (e.tezgahKod ?? e.tezgahId)?.trimEnd() }); const {tezgahKod} = this }
+	constructor(e) { e = e || {}; super(e); $.extend(this, { tezgahKod: (e.tezgahKod ?? e.tezgahId)?.trimEnd() }); let {tezgahKod} = this }
 	init(e) {
-		e = e || {}; super.init(e); const {layout} = this; this.updateTitle(e); 
-		const header = this.header = layout.children('.header'), subContent = this.subContent = layout.children('.content');
-		const tblOEMBilgileri = this.tblOEMBilgileri = subContent.find('#oemBilgileri')
+		e = e || {}; super.init(e); let {layout} = this; this.updateTitle(e); 
+		let header = this.header = layout.children('.header'), subContent = this.subContent = layout.children('.content');
+		let tblOEMBilgileri = this.tblOEMBilgileri = subContent.find('#oemBilgileri')
 	}
 	run(e) {
-		e = e || {}; super.run(e); const {layout} = this, builder = this.builder = this.getRootFormBuilder(e);
-		if (builder) { const {inst} = this; $.extend(builder, { part: this, inst }); builder.autoInitLayout().run(e) }
+		e = e || {}; super.run(e); let {layout} = this, builder = this.builder = this.getRootFormBuilder(e);
+		if (builder) { let {inst} = this; $.extend(builder, { part: this, inst }); builder.autoInitLayout().run(e) }
 		this.tazele(e)
 	}
 	destroyPart(e) { super.destroyPart(e) }
 	activated(e) { super.activated(e); this.tazeleBasit(e) }
-	async tazele(e) {
-		e = e ?? {}; let basitmi = e.basit ?? e.basitmi;
+	async tazele(e = {}) {
+		let basitmi = e.basit ?? e.basitmi
+		let inst
 		try {
-			let {tezgahKod} = this, recs, lastError; for (let i = 0; i < 3; i++) {
-				try { recs = tezgahKod ? await app.wsTekilTezgahBilgi({ tezgahKod }) : {}; lastError = null; break }
-				catch (ex) { lastError = ex; if (i) { await new $.Deferred(p => setTimeout(p.resolve(), i * 500) ) } }
+			let {tezgahKod} = this
+			let recs, lastError
+			for (let i = 0; i < 3; i++) {
+				try {
+					recs = tezgahKod ? await app.wsTekilTezgahBilgi({ tezgahKod }) : {}
+					lastError = null
+					break
+				}
+				catch (ex) {
+					lastError = ex
+					if (i)
+						await new $.Deferred(p => setTimeout(p.resolve(), i * 500) )
+				}
 			}
-			if (lastError) { if (basitmi) { console.error(lastError) } else { throw lastError } } app.sonSyncTS = now();
-			this.ekNotlarYapi = await app.wsEkNotlar({ tip: 'TZ', kod: tezgahKod || '' });
-			let inst; if (recs?.length) {
-				const {durumKod2Aciklama} = app, donusum = { hatID: 'hatKod', hatAciklama: 'hatAdi', id: 'tezgahKod', aciklama: 'tezgahAdi' };
-				for (const rec of recs) { for (const [key, newKey] of Object.entries(donusum)) { if (rec[newKey] == null) { rec[newKey] = rec[key]?.trimEnd(); delete rec[key] } } }
-				inst = this.inst = $.extend({}, recs[0]); const isListe = inst.isListe = [];
-				for (const rec of recs) {
-					const {isID} = rec; if (isID) {
-						/*const {isToplamOlasiSureSn, isToplamBrutSureSn, isToplamDuraksamaSureSn} = rec;
+			if (lastError) {
+				if (basitmi)
+					cerr(lastError)
+				else
+					throw lastError
+			}
+			app.sonSyncTS = now()
+			this.ekNotlarYapi = await app.wsEkNotlar({ tip: 'TZ', kod: tezgahKod || '' })
+			if (recs?.length) {
+				let {durumKod2Aciklama} = app
+				let donusum = { hatID: 'hatKod', hatAciklama: 'hatAdi', id: 'tezgahKod', aciklama: 'tezgahAdi' }
+				for (let rec of recs)
+				for (let [key, newKey] of entries(donusum)) {
+					if (rec[newKey] == null) {
+						rec[newKey] = rec[key]?.trimEnd()
+						delete rec[key]
+					}
+				}
+				inst = this.inst = extend({}, recs[0])
+				let isListe = inst.isListe = []
+				for (let rec of recs) {
+					let {isID} = rec; if (isID) {
+						/*let {isToplamOlasiSureSn, isToplamBrutSureSn, isToplamDuraksamaSureSn} = rec;
 						rec.oee = isToplamOlasiSureSn ? Math.min(Math.round((isToplamBrutSureSn - isToplamDuraksamaSureSn) * 100 / isToplamOlasiSureSn), 100) : 0*/
-						const {oemgerceklesen, oemistenen} = rec; rec.oee = oemistenen ? roundToFra(Math.max(oemgerceklesen * 100 / oemistenen, 0), 2) : 0;
+						let {oemgerceklesen, oemistenen} = rec; rec.oee = oemistenen ? roundToFra(Math.max(oemgerceklesen * 100 / oemistenen, 0), 2) : 0;
 						isListe.push(rec)
 					}
 					inst.isSaymaInd = (inst.isSaymaInd || 0) + (rec.isSaymaInd || 0); inst.isSaymaSayisi = (inst.isSaymaSayisi || 0) + (rec.isSaymaSayisi || (isID ? 1 : 0));
@@ -76,32 +101,45 @@ class MakineYonetimiPart extends Part {
 					}, 200)
 				}
 				if (!basitmi) {
-					try { let {isID: isId} = inst, rec = isId ? await app.wsGorevZamanEtuduVeriGetir({ isId }) : null; if (rec?.bzamanetudu) { inst.zamanEtuduVarmi = true } }
-					catch (ex) { console.error(getErrorText(ex)) }
+					try {
+						let {isID: isId} = inst
+						let rec = isId ? await app.wsGorevZamanEtuduVeriGetir({ isId }) : null
+						if (rec?.bzamanetudu)
+							inst.zamanEtuduVarmi = true
+					}
+					catch (ex) { cerr(ex) }
 				}
 			}
-			this.updateTitle(e); const {subContent} = this, html_oemBilgileri = this.getLayout_tblOEMBilgileri(e), layout = html_oemBilgileri ? $(html_oemBilgileri) : null;
-			subContent.children().remove(); if (layout?.length) { layout.appendTo(subContent); this.initEvents_tblOEMBilgileri({ layout }); makeScrollable(subContent.find('.isListe > .parent')) }
+			this.updateTitle(e)
+			let {subContent} = this
+			let html_oemBilgileri = this.getLayout_tblOEMBilgileri(e)
+			let layout = html_oemBilgileri ? $(html_oemBilgileri) : null
+			subContent.children().remove()
+			if (layout?.length) {
+				layout.appendTo(subContent)
+				this.initEvents_tblOEMBilgileri({ layout })
+				makeScrollable(subContent.find('.isListe > .parent'))
+			}
 		}
-		catch (ex) { hConfirm(getErrorText(ex)); throw ex }
+		catch (ex) { cerr(ex); throw ex }
 		return this
 	}
 	tazeleBasit(e) { return this.tazele({ ...e, basit: true }) }
 	tazeleWithSignal() { app.signalChange(); return this }
 	onSignalChange(e) { this.tazeleBasit(e); return this }
 	updateTitle(e) {
-		const {sinifAdi} = this.class, {inst} = this; let tezgahText; if (inst) {
-			const {tezgahKod, tezgahAdi} = inst; if (tezgahKod) {
+		let {sinifAdi} = this.class, {inst} = this; let tezgahText; if (inst) {
+			let {tezgahKod, tezgahAdi} = inst; if (tezgahKod) {
 				tezgahText = `<u class="gray">${tezgahKod || ''}</u>`;
 				if (tezgahAdi) { tezgahText += ` <span class="royalblue">${tezgahAdi}</span>` }
 			}
 		}
-		const title = this.title = `${sinifAdi} ${tezgahText ? `[ ${tezgahText} ]` : ''}`; this.updateWndTitle(title)
+		let title = this.title = `${sinifAdi} ${tezgahText ? `[ ${tezgahText} ]` : ''}`; this.updateWndTitle(title)
 	}
 	getRootFormBuilder(e) {
-		const rfb = new RootFormBuilder(), {header, tblOEMBilgileri} = this;
+		let rfb = new RootFormBuilder(), {header, tblOEMBilgileri} = this;
 		rfb.addIslemTuslari('islemTuslari').setParent(header).addStyle_fullWH().addCSS('islemTuslari')
-			.onAfterRun(({ builder: fbd }) => { const {id, rootPart, input} = fbd; rootPart.islemTuslari = input })
+			.onAfterRun(({ builder: fbd }) => { let {id, rootPart, input} = fbd; rootPart.islemTuslari = input })
 			.setButonlarIlk([
 				{ id: 'tazele', handler: e => e.builder.rootBuilder.part.tazele(e) },
 				{ id: 'vazgec', handler: e => e.builder.rootBuilder.part.close(e) }
@@ -110,7 +148,7 @@ class MakineYonetimiPart extends Part {
 		return rfb
 	}
 	tblOEMBilgileri_butonTiklandi(e) {
-		const {id} = e, evt = e.event, target = evt?.currentTarget; switch (id) {
+		let {id} = e, evt = e.event, target = evt?.currentTarget; switch (id) {
 			case 'isAtaKaldir': case 'siradakiIsler': this.isAtaKaldirIstendi(e); break
 			case 'personelSec': this.personelSecIstendi(e); break
 			case 'baslatDurdur': this.baslatDurdurIstendi(e); break
@@ -122,13 +160,13 @@ class MakineYonetimiPart extends Part {
 			case 'isBitti': this.isBittiIstendi(e); break
 		}
 	}
-	isAtaKaldirIstendi(e) { const {tezgahKod, tezgahAdi} = this.inst; return MQSiradakiIsler.listeEkraniAc({ args: { tezgahKod, tezgahAdi } }) }
+	isAtaKaldirIstendi(e) { let {tezgahKod, tezgahAdi} = this.inst; return MQSiradakiIsler.listeEkraniAc({ args: { tezgahKod, tezgahAdi } }) }
 	baslatDurdurIstendi(e) {
-		const {inst} = this, {tezgahKod, durumKod, sinyalKritik} = inst;
+		let {inst} = this, {tezgahKod, durumKod, sinyalKritik} = inst;
 		if (durumKod == 'DV' || (durumKod == 'DR' && sinyalKritik)) {
 			return MQDurNeden.listeEkraniAc({
 				tekil: true, args: { tezgahKod }, secince: async e => {
-					const {sender, value: durNedenKod} = e, {tezgahKod} = sender; if (!(tezgahKod && durNedenKod)) { return false }
+					let {sender, value: durNedenKod} = e, {tezgahKod} = sender; if (!(tezgahKod && durNedenKod)) { return false }
 					try { await app.wsBaslatDurdur({ tezgahKod, durNedenKod }); this.tazeleWithSignal() } catch (ex) { hConfirm(getErrorText(ex)) }
 				}
 			})
@@ -136,10 +174,10 @@ class MakineYonetimiPart extends Part {
 		else { (async () => { try { await app.wsBaslatDurdur({ tezgahKod }); this.tazeleWithSignal() } catch (ex) { hConfirm(getErrorText(ex)) } })() }
 	}
 	personelSecIstendi(e) {
-		const {tezgahKod} = this.inst; return MQPersonel.listeEkraniAc({
+		let {tezgahKod} = this.inst; return MQPersonel.listeEkraniAc({
 			tekil: true, args: { tezgahKod }, secince: async e => {
-				const {sender} = e, {tezgahKod} = sender; if (!tezgahKod) { return false }
-				const perKod = e.value; try { await app.wsPersonelAta({ tezgahKod, perKod }); this.tazeleWithSignal() } catch (ex) { hConfirm(getErrorText(ex)) }
+				let {sender} = e, {tezgahKod} = sender; if (!tezgahKod) { return false }
+				let perKod = e.value; try { await app.wsPersonelAta({ tezgahKod, perKod }); this.tazeleWithSignal() } catch (ex) { hConfirm(getErrorText(ex)) }
 			}
 		})
 	}
@@ -152,19 +190,19 @@ class MakineYonetimiPart extends Part {
 	}
 	tersKesmeIstendi_begin(e) { this._tersKesme_startTS = now() }
 	tersKesmeIstendi_end(e) {
-		const {tezgahKod, ip} = this.inst, {_tersKesme_startTS: startTS} = this; delete this._tersKesme_startTS;
+		let {tezgahKod, ip} = this.inst, {_tersKesme_startTS: startTS} = this; delete this._tersKesme_startTS;
 		return this.gcsYapIstendi({ ...e, tezgahKod, ip, api: 'wsTersKesmeYap', delayMS: (now() - startTS) })
 	}
 	gcsYapIstendi(e) {
-		const {tezgahKod, ip} = this.inst, {api, delayMS} = e;
+		let {tezgahKod, ip} = this.inst, {api, delayMS} = e;
 		(app[api])({ tezgahKod, ip, delayMS }).then(() => this.tazeleWithSignal()).catch(ex => { this.tazeleBasit(e); hConfirm(getErrorText(ex)); console.error(ex) })
 	}
 	async isBittiIstendi(e) {
 		let rdlg = await ehConfirm(`Makine için <b class="darkred">İş Bitti</b> yapılacak, devam edilsin mi?`, this.title); if (!rdlg) { return }
-		const {tezgahKod} = this.inst; try { await app.wsIsBittiYap({ tezgahKod }); this.tazeleWithSignal() } catch(ex) { this.tazeleBasit(e); hConfirm(getErrorText(ex)); console.error(ex) }
+		let {tezgahKod} = this.inst; try { await app.wsIsBittiYap({ tezgahKod }); this.tazeleWithSignal() } catch(ex) { this.tazeleBasit(e); hConfirm(getErrorText(ex)); console.error(ex) }
 	}
 	getLayoutInternal(e) {
-		const html_oemBilgileri = this.getLayout_tblOEMBilgileri(e); return $(
+		let html_oemBilgileri = this.getLayout_tblOEMBilgileri(e); return $(
 			`<div>
 				<div class="header full-width"></div>
 				<div class="content">${html_oemBilgileri}</div>
@@ -172,10 +210,10 @@ class MakineYonetimiPart extends Part {
 		)
 	}
 	getLayout_tblOEMBilgileri(e) {
-		e = e ?? {}; const inst = e.rec = this.inst ?? {}, isListe = inst.isListe ?? [], {sonLEDDurum} = this, isBilgiHTML = HatYonetimiPart.getLayout_isBilgileri(e);
-		const {sinyalKritik, duraksamaKritik, durNedenKod, durumKod, durumAdi, ip, zamanEtuduVarmi, siradakiIsSayi, sinyalSayilar} = inst, {kritikDurNedenKodSet} = app.params.mes;
-		const kritikDurNedenmi = kritikDurNedenKodSet && durNedenKod ? kritikDurNedenKodSet[durNedenKod] : false, bostami = !durumKod || durumKod == '?' || durumKod == 'KP' || durumKod == 'BK';
-		let topSaymaInd = 0, topSaymaSayisi = 0; for (const is of isListe) { topSaymaInd += (is.isSaymaInd || 0); topSaymaSayisi += (is.isSaymaSayisi || 0) }
+		e = e ?? {}; let inst = e.rec = this.inst ?? {}, isListe = inst.isListe ?? [], {sonLEDDurum} = this, isBilgiHTML = HatYonetimiPart.getLayout_isBilgileri(e);
+		let {sinyalKritik, duraksamaKritik, durNedenKod, durumKod, durumAdi, ip, zamanEtuduVarmi, siradakiIsSayi, sinyalSayilar} = inst, {kritikDurNedenKodSet} = app.params.mes;
+		let kritikDurNedenmi = kritikDurNedenKodSet && durNedenKod ? kritikDurNedenKodSet[durNedenKod] : false, bostami = !durumKod || durumKod == '?' || durumKod == 'KP' || durumKod == 'BK';
+		let topSaymaInd = 0, topSaymaSayisi = 0; for (let is of isListe) { topSaymaInd += (is.isSaymaInd || 0); topSaymaSayisi += (is.isSaymaSayisi || 0) }
 		return (
 			`<table id="oemBilgileri" class="${sinyalKritik ? ' sinyal-kritik' : ''}${duraksamaKritik && kritikDurNedenmi ? ' duraksama-kritik' : ''}${kritikDurNedenmi ? ' kritik-durNeden' : ''}"><tbody>
 				<tr class="hat">
@@ -264,11 +302,12 @@ class MakineYonetimiPart extends Part {
 		)
 	}
 	initEvents_tblOEMBilgileri(e) {
-		const {layout} = e, buttons = layout.find(`td button`).jqxButton({ theme });
+		let {layout} = e
+		let buttons = layout.find(`td button`).jqxButton({ theme })
 		if (buttons?.length) {
 			buttons.off('click').on('click', evt => {
-				const elm = evt.currentTarget, id = elm.id, parentId = $(elm).parents('td')[0].id;
-				this.tblOEMBilgileri_butonTiklandi($.extend({}, e, { event: evt, id, parentId }))
+				let elm = evt.currentTarget, id = elm.id, parentId = $(elm).parents('td')[0].id
+				this.tblOEMBilgileri_butonTiklandi({ ...e, event: evt, id, parentId })
 			})
 		}
 	}

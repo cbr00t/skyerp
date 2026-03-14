@@ -423,10 +423,22 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		}
 	}
 	gridArgsDuzenle({ args }) { super.gridArgsDuzenle(...arguments) }
-	ekCSSDuzenle(e) { this.ekCSSDuzenle_ozel?.(e) }
+	ekCSSDuzenle({ colDefs, belirtec, colDef, rowIndex, value, rec, result }) {
+		let { userData: { son: sonmu } = {} } = colDef
+		if (belirtec.endsWith('_TOPLAM'))
+			result.push('yatay-toplam')
+		if (sonmu)
+			result.push('son-kolon')
+		this.ekCSSDuzenle_ozel?.(...arguments)
+	}
 	cellsRenderer(e) {
-		let result = this.cellsRenderer_ozel?.(e); if (result != null) { return result }
-		let {html, rec, belirtec: key, value} = e; result = getTagContent(html) == 'null' ? `<span>${value ?? rec?.[key] ?? ''}</span>` : html;
+		let result = this.cellsRenderer_ozel?.(e)
+		if (result != null)
+			return result
+		let {html, rec, belirtec: key, value} = e
+		result = getTagContent(html) == 'null'
+			? `<span>${value ?? rec?.[key] ?? ''}</span>`
+			: html
 		return result
 	}
 	async loadServerData(e) {
@@ -697,6 +709,11 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				if (toplammi && !colDef?.aggregates)
 					colDef.aggregates = ['sum']
 			}
+			if (!empty(colDefs)) {
+				let colDef = colDefs.findLast(_ => tabloYapi.toplam[_.userData?.kod])
+				if (colDef)
+					colDef.userData.son = true
+			}
 			window.progressManager?.progressStep(1)
 			if (yatayAnaliz) {
 				let _attrSet = asSet([DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod].filter(x => !!x))
@@ -708,7 +725,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 					let tumYatayAttrSet = e.tumYatayAttrSet = {}
 					let recs = await this.loadServerDataInternal({ yatayAnaliz: true, internal: true, attrSet: _attrSet })
 					window.progressManager?.progressStep(3)
-					let liste = []
+					let liste = {}
 					for (let rec of recs) {
 						let value = rec[belirtec]?.trimEnd?.()
 						if (value === undefined) {
@@ -724,25 +741,31 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 							}
 						}
 						if (value)
-							liste.push(value)
+							liste[value] = true
 					} 
+					liste = keys(liste)
 					if (!(keys(_attrSet).length == 1 && _attrSet.DB)) {
 						// Yatay Analiz, VT liste çekme için veri sort edilmez 
-						liste.sort().reverse()
+						liste.sort()
+						// liste.sort().reverse()
 					}
-					liste.unshift('TOPLAM');
+					liste.unshift('TOPLAM')
 					colDefs = [...gtTip2ColDefs.sabit]
-					for (let _colDef of gtTip2ColDefs.toplam) {
-						for (let yatayText of liste) {
+					let toplamColDefs = gtTip2ColDefs.toplam
+					for (let yatayText of liste) {
+						yatayText = yatayText?.toString()
+						let yatayToplammi = yatayText?.toUpperCase() == 'TOPLAM'
+						for (let _colDef of toplamColDefs) {
 							let colDef = _colDef.deepCopy()
-							colDefs.push(colDef)
 							colDef.belirtec += `_${yatayText}`
-							let colText = yatayText?.toString()
-							let tokens = colText.split?.(') ')
+							let tokens = yatayText.split?.(') ')
 							if (tokens?.length > 1)
-								colText = tokens[1] || colText
-							// colDef.text += `<br/>[ <span class=royalblue>${colText}</span> ]`
-							colDef.text += `<br/><span class=royalblue>${colText}</span>`
+								yatayText = tokens[1] || yatayText
+							colDef.text = [
+								`<span class=${yatayToplammi ? 'forestgreen' : 'royalblue'}>${yatayText}</span>`,
+								`<span>${colDef.text}</span>`
+							].join('<br>')
+							colDefs.push(colDef)
 							tumYatayAttrSet[colDef.belirtec] = true
 						}
 					}

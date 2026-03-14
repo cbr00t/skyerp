@@ -7,11 +7,14 @@ class Hareketci extends CObject {
 	static get finAnaliz_baIcinTersIslemYapilirmi() { return true }
 	static get defaultYon() { return 'sol' }
 	static get kod2Sinif() {
-		let {_kod2Sinif: result} = this; if (result == null) {
-			result = {}; let {subClasses} = this;
+		let {_kod2Sinif: result} = this
+		if (result == null) {
+			result = {}
+			let {subClasses} = this
 			for (let cls of subClasses) {
-				let {uygunmu, araSeviyemi, kod} = cls;
-				if (uygunmu && !araSeviyemi && kod) { result[kod] = cls }
+				let {uygunmu, araSeviyemi, kod} = cls
+				if (uygunmu && !araSeviyemi && kod)
+					result[kod] = cls
 			}
 			this._kod2Sinif = result
 		}
@@ -22,58 +25,84 @@ class Hareketci extends CObject {
 		return new TekSecim({ kaListe })
 	}
 	static get anaTipKAListe() {
-		let cacheSelector = '_anaTipKAListe', result = this[cacheSelector]
+		let cacheSelector = '_anaTipKAListe'
+		let result = this[cacheSelector]
 		if (result == null) {
-			let {kod2Sinif} = this; result = this[cacheSelector] = []
+			let {kod2Sinif} = this
+			result = this[cacheSelector] = []
 			for (let [kod, cls] of entries(kod2Sinif))
 				result.push(new CKodAdiVeEkBilgi({ kod, aciklama: cls.aciklama, ekBilgi: cls }))
 		}
 		return result
 	}
 	static get hareketTipSecim() {
-		let cacheSelector = '_hareketTipSecim', result = this[cacheSelector];
-		if (result === undefined) { result = this[cacheSelector] = this.hareketTipSecimInternal } return result
+		let cacheSelector = '_hareketTipSecim'
+		let result = this[cacheSelector]
+		if (result === undefined)
+			result = this[cacheSelector] = this.hareketTipSecimInternal
+		return result
 	}
 	static get hareketTipSecimInternal() {
 		let cls = this.hareketTipSecimSinif
 		return cls ? new cls() : null
 	}
 	static get hareketTipSecimSinif() {
-		let $this = this; return class extends TekSecim {
+		let $this = this
+		return class extends TekSecim {
 			kaListeDuzenle(e) {
-				super.kaListeDuzenle(e); let _e = { ...e, kaListe: [] }
-				$this.hareketTipSecim_kaListeDuzenle(_e); let {kaListe} = _e
+				super.kaListeDuzenle(e)
+				let _e = { ...e, kaListe: [] }
+				$this.hareketTipSecim_kaListeDuzenle(_e)
+				let {kaListe} = _e
 				if (kaListe)
-					this.kaListe = kaListe = kaListe.filter(ka => !!ka)
+					this.kaListe = kaListe = kaListe.filter(Boolean)
 			}
 		}
 	}
 	get defaultAttrSet() {
-		let result = this._defaultAttrSet; if (result === undefined) {
+		let {_defaultAttrSet: result} = this
+		if (result === undefined) {
 			let {class: { varsayilanHV }, uygunluk2UnionBilgiListe} = this
-			result = asSet(keys(varsayilanHV));
+			result = asSet(keys(varsayilanHV))
 			for (let uniBilgi of values(uygunluk2UnionBilgiListe)) {
-				let hv = uniBilgi?.hv; if (hv) {
-					for (let key in hv) { if (!result[key]) { result[key] = true } } }
+				let hv = uniBilgi?.hv
+				if (hv) {
+					for (let key in hv) {
+						if (!result[key])
+							result[key] = true
+					}
+				}
 			}
 			this._defaultAttrSet = result
 		}
 		return result
 	}
 	static get zorunluAttrSet() {
-		let {_zorunluAttrSet: result} = this;
-		if (result == null) { result = this._zorunluAttrSet = asSet(['oncelik', 'seq']) }
+		let {_zorunluAttrSet: result} = this
+		if (result == null)
+			result = this._zorunluAttrSet = asSet(['oncelik', 'seq'])
 		return result
 	}
 	get attrSet() {
-		let {_attrSet: result} = this; if (result == null) { result = this._attrSet = { ...this.defaultAttrSet } }
-		if (isArray(result)) { result = this.attrSet = asSet(result) }
+		let {_attrSet: result} = this
+		if (result == null)
+			result = this._attrSet = { ...this.defaultAttrSet }
+		if (isArray(result))
+			result = this.attrSet = asSet(result)
 		return result
 	}
-	set attrSet(value) { if (isArray(value)) { value = asSet(value) } this._attrSet = value }
+	set attrSet(value) {
+		if (isArray(value))
+			value = asSet(value)
+		this._attrSet = value
+	}
 	get uygunluk() {
-		let {_uygunluk: result} = this; if (result == null) { result = asSet(this.class.hareketTipSecim?.kaListe.map(ka => ka.kod)) }
-		result = result?.value ?? result; if (isArray(result)) { result = asSet(result) }
+		let {_uygunluk: result} = this
+		if (result == null)
+			result = asSet(this.class.hareketTipSecim?.kaListe.map(ka => ka.kod))
+		result = result?.value ?? result
+		if (isArray(result))
+			result = asSet(result)
 		return result
 	}
 	set uygunluk(value) { this._uygunluk = value }
@@ -89,9 +118,10 @@ class Hareketci extends CObject {
 		return result
 	}
 	get uygunluk2UnionBilgiListe() {
-		let {uygunluk} = this, {zorunluAttrSet} = this.class, e
+		let e, {uygunluk} = this, {zorunluAttrSet} = this.class
 		this.uygunluk2UnionBilgiListeDuzenle(e = { uygunluk, zorunluAttrSet, liste: {} })
-		let {liste} = e; this.uniBilgiAllHVFix({ liste })
+		let {liste} = e
+		this.uniBilgiAllHVFix({ liste })
 		return liste
 	}
 	/*get uygunluk2UnionBilgiListe() {
@@ -111,13 +141,15 @@ class Hareketci extends CObject {
 			result = this._varsayilanHV = hv = e.hv
 		}
 		return result
-	
 	}
+
 	constructor(e = {}) {
 		super(e)
-		$.extend(this, {
-			_attrSet: e.attrListe ?? e.attrSet, _uygunluk: e.uygunluk, whereYapi: e.whereYapi ?? {}, ekDuzenleyiciler: e.ekDuzenleyiciler ?? e.ekDuzenleyici ?? {},
-			sonIslem: e.sonIslem ?? (e => this.defaultSonIslem(e)), gereksizTablolariSilFlag: e.gereksizTablolariSil ?? e.gereksizTablolariSilFlag ?? false,
+		extend(this, {
+			_attrSet: e.attrListe ?? e.attrSet, _uygunluk: e.uygunluk, whereYapi: e.whereYapi ?? {},
+			ekDuzenleyiciler: e.ekDuzenleyiciler ?? e.ekDuzenleyici ?? {},
+			sonIslem: e.sonIslem ?? (e => this.defaultSonIslem(e)),
+			gereksizTablolariSilFlag: e.gereksizTablolariSil ?? e.gereksizTablolariSilFlag ?? false,
 			sonIslem_whereBaglanmazFlag: e.sonIslem_whereBaglanmaz ?? e.sonIslem_whereBaglanmazFlag ?? false
 		})
 		let {ekDuzenleyiciler, whereYapi} = this
@@ -129,7 +161,7 @@ class Hareketci extends CObject {
 		}
 	}
 	static getClass(e) {
-		let kod = typeof e == 'object' ? (e.kod ?? e.tip) : e
+		let kod = isObject(e) ? (e.kod ?? e.tip) : e
 		return this.kod2Sinif[kod]
 	}
 	/*static altTipYapilarDuzenle(e) {
@@ -142,8 +174,11 @@ class Hareketci extends CObject {
 	}
 	static mstYapiDuzenle(e) { }
 	static hareketTipSecim_kaListeDuzenle(e) {
-		e.hareketci = this; if (!this.uygunmu) { return }
-		for (let ext of this.getExtIter()) { ext.hareketTipSecim_kaListeDuzenle(e) }
+		e.hareketci = this
+		if (!this.uygunmu)
+			return
+		for (let ext of this.getExtIter())
+			ext.hareketTipSecim_kaListeDuzenle(e)
 	}
 	static ilkIslemler(e) { }
 	ilkIslemler(e) { }

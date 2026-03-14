@@ -204,8 +204,8 @@ class MQEkNotlar extends MQSayacliOrtak {
 			if (rec && belirtec?.startsWith('resim') && (focusURL = rec[belirtec.replace('resim', 'url')]?.trim())) { this.dokumanGosterIstendi({ ...e, focusURL }) }
 		}, 100)
 	}
-	static dokumanGosterIstendi(e) {
-		e = e || {}; let islemAdi = 'Döküman Göster'; try {
+	static dokumanGosterIstendi(e = {}) {
+		let islemAdi = 'Döküman Göster'; try {
 			let {builder, focusURL} = e, gridPart = e.gridPart ?? builder?.rootPart ?? e.sender ?? app.activeWndPart, recs = gridPart.selectedRecs, {urlCount} = this;
 			let urlListe = []; for (let rec of recs) { for (let i = 1; i <= urlCount; i++) { let value = rec[`url${i}`]; if (value) { urlListe.push(value.trim()) } } }
 			if (!urlListe.length) { return } if (focusURL) { urlListe.sort((a, b) => a == focusURL ? -1 : 0) }
@@ -213,36 +213,54 @@ class MQEkNotlar extends MQSayacliOrtak {
 		}
 		catch (ex) { hConfirm(getErrorText(ex), islemAdi); throw ex }
 	}
-	static async dokumanYukleIstendi(e) {
-		e = e || {}; let PrefixURL = 'url', islemAdi = 'Döküman Yükle'; try {
+	static async dokumanYukleIstendi(e = {}) {
+		let PrefixURL = 'url', islemAdi = 'Döküman Yükle'
+		try {
 			let {builder} = e, gridPart = e.gridPart ?? builder?.rootPart ?? e.sender ?? app.activeWndPart;
-			let id = e.id ?? builder?.id; let i = asInteger(e.seq ?? e.index ?? id?.slice(PrefixURL.length)); let key = `${PrefixURL}${i}`;
-			let elm = $(`<input type="file" capture="environment" accept="image/*, application/pdf, video/*">`).appendTo('body'); elm.addClass('jqx-hidden');
+			let id = e.id ?? builder?.id
+			let i = asInteger(e.seq ?? e.index ?? id?.slice(PrefixURL.length))
+			let key = `${PrefixURL}${i}`
+			let elm = $(`<input type="file" capture="environment" accept="image/*, application/pdf, video/*">`)
+			elm.appendTo('body')
+			elm.addClass('jqx-hidden')
 			elm.on('change', async evt => {
 				try {
-					let file = evt.target.files[0]; let fileName = file.name.replaceAll(' ', '_'), ext = fileName.split('.').slice(-1)[0] ?? '';
-					let resimId = ext ? fileName.slice(0, -(ext.length + 1)) : fileName, data = file ? new Uint8Array(await file.arrayBuffer()) : null;
+					let file = evt.target.files[0]; let fileName = file.name.replaceAll(' ', '_'), ext = fileName.split('.').slice(-1)[0] ?? ''
+					let resimId = ext ? fileName.slice(0, -(ext.length + 1)) : fileName, data = file ? new Uint8Array(await file.arrayBuffer()) : null
 					if (!data?.length) { return }
 					resimId = newGUID();
-					let urlBase = app.getWSUrlBase({ wsPath: 'vio-resim' }).replace('https:', 'http:').replace(':8200', '').replace(':9200', '').replace(':80', '').replace(':443', '');
-					let url = `${urlBase}/${[resimId, ext].join('.')}`;
+					let urlBase = app.getWSUrlBase({ wsPath: 'vio-resim' })
+						.replace('https:', 'http:')
+						.replace(':8200', '')
+						.replace(':9200', '')
+						.replace(':80', '')
+						.replace(':443', '')
+					let url = `${urlBase}/${[resimId, ext].join('.')}`
 					try { await ajaxPost({ url, data, contentType: 'application/octet-stream' }) }
 					catch (ex) {
 						console.error(ex);
 						let result = await app.wsResimDataKaydet({ resimId, ext, data });
-						if (!result?.result) { throw { isError: true, errorText: 'Resim Kayıt Sorunu' } }
+						if (!result?.result)
+							throw { isError: true, errorText: 'Resim Kayıt Sorunu' }
 					}
 					if (builder) {
-						let {altInst, input} = builder;
+						let {altInst, input} = builder
 						/* let url = `${urlBase}/stokResim/?id=${resimId}&ext=${ext}`; */
-						builder.value = altInst[id] = url; input?.focus()
+						builder.value = altInst[id] = url
+						input?.focus()
 					}
 					gridPart?.tazeleDefer?.(e)
 				}
 				catch (ex) { hConfirm(getErrorText(ex), islemAdi); throw ex }
 				finally { $(evt.target).remove() }
-			}); elm.click()
+			})
+			elm.click()
 		}
-		catch (ex) { if (ex instanceof DOMException) { return } hConfirm(getErrorText(ex), islemAdi); throw ex }
+		catch (ex) {
+			if (ex instanceof DOMException)
+				return
+			hConfirm(getErrorText(ex), islemAdi)
+			throw ex
+		}
 	}
 }

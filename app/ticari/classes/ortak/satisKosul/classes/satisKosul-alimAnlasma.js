@@ -4,7 +4,7 @@ class SatisKosul_AlimAnlasma extends SatisKosul {
 	static get table() { return 'alimanlasma' }
 	static get detayTables() { return { stok: 'anlastarife', grup: 'anlastargrup' } }
 	static get detayMustTable() { return 'fiymust' }
-	yukle_queryDuzenle({ stm, sent, mustKod }) {  /* edt: a!cbr00t-CGP */
+	yukle_queryDuzenle({ stm, sent, mustKod }) {  /* edt: a!cbr00t-CGPR */
 		let {kapsam} = this, {table} = this.class;
 		let {where: wh, sahalar} = sent, {orderBy} = stm, alias = 'fis';
 		let tipListe = ['tarih'], {tip2RowAttrListe} = SatisKosulKapsam;

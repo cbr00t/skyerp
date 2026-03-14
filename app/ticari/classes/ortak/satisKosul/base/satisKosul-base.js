@@ -135,7 +135,7 @@ class SatisKosul extends CKodVeAdi {
 		}
 		return uygunmu
     }
-	static yukle_queryDuzenle({ stm, sent, mustKod, kapsam: istenenKapsam = this.kapsam, offlineMode }) {  /* edt: a!cbr00t-CGP */
+	static yukle_queryDuzenle({ stm, sent, mustKod, kapsam: istenenKapsam = this.kapsam, offlineMode }) {  /* edt: a!cbr00t-CGPR */
 		offlineMode ??= MQCogul.isOfflineMode
 		let {alimmi, table, kapsamSinif} = this
 		let {where: wh, sahalar} = sent, {orderBy} = stm

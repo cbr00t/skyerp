@@ -92,6 +92,17 @@ body.dark-theme .dRapor.part #items > .item.hasFocus .secimBilgi > * { color: gh
 .dRapor.masterListe.part .jqx-grid [role = row],
 	.dRapor.part #items > .item .jqx-grid .jqx-grid-cell.toplam { font-weight: bold }
 .dRapor.part #items > .item .jqx-grid .jqx-grid-cell:not(.jqx-grid-cell-selected).toplam { background-color: #f1fff1 }
+.dRapor.part #items > .item .jqx-grid .jqx-grid-cell:not(.jqx-grid-cell-selected).toplam.yatay-toplam { background-color: #d5f2d5 }
+body.dark-theme .dRapor.part #items > .item .jqx-grid .jqx-grid-cell:not(.jqx-grid-cell-selected).toplam.yatay-toplam {
+	filter: invert(1) hue-rotate(180deg) !important;
+	background-color: #081012 !important
+}
+.dRapor.part #items > .item .jqx-grid .jqx-grid-cell:not(.jqx-grid-cell-selected).toplam.son-kolon:not(:last-child) {
+	border-right: 3px solid orange !important
+}
+body.dark-theme .dRapor.part #items > .item .jqx-grid .jqx-grid-cell:not(.jqx-grid-cell-selected).toplam.son-kolon:not(:last-child) {
+	border-right: 3px solid royalblue !important
+}
 .dRapor.part #items > .item .jqx-grid .jqx-grid-cell.zero  { color: lightgray /*; opacity: 1*/ }
 .dRapor.part #items > .item .jqx-grid .jqx-grid-cell.toplam { color: forestgreen }
 .dRapor.part #items > .item .jqx-grid .jqx-grid-cell.negative { font-weight: bolder; color: lightcoral !important }

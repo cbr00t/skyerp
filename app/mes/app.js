@@ -36,7 +36,7 @@ class MESApp extends App {
 		super(e)
 		$.extend(this, {
 			otoTazeleFlag: ((e.otoTazele ?? e.otoTazeleFlag ?? qs.otoTazele) && !(e.disableRefresh ?? e.disableRefreshFlag ?? asBool(qs.disableRefresh))) ?? null,
-			tazeleKontrolSn: asFloat(e.tazeleKontrolSn ?? qs.tazeleKontrolSn ?? e.kontrolSn ?? qs.kontrolSn ?? 8)
+			tazeleKontrolSn: asFloat(e.tazeleKontrolSn ?? qs.tazeleKontrolSn ?? e.kontrolSn ?? qs.kontrolSn ?? 30)
 		})
 	}
 	async runDevam(e) { await super.runDevam(e); await this.anaMenuOlustur(e) }
@@ -93,23 +93,49 @@ class MESApp extends App {
 		return result
 	}
 	tazele_startTimer(e) {
-		let {evtSource} = this; if (evtSource) { return this }
-		const wsPath = `${this.defaultWSPath}/makineDurum`, url = this.getEventStreamURL('tezgahBilgileri', wsPath); if (!url) { return this }
-		evtSource = this.evtSource = new EventSource(url);
-		evtSource.onmessage = ({ data }) => { try { if (this.otoTazeleYapilirmi) { this.signalChange({ ...e, data }) } } catch (ex) { console.error(ex) } };
-		evtSource.onerror = evt => this.tazeleTimerKontrol_proc({ ...e, evt });
-		let {tazeleKontrolSn} = this; if (tazeleKontrolSn) { this.timer_tazeleKontrol = setInterval(() => this.tazeleTimerKontrol_proc(e), tazeleKontrolSn * 1000) }
+		let {evtSource} = this
+		if (evtSource)
+			return this
+		let wsPath = `${this.defaultWSPath}/makineDurum`
+		let url = this.getEventStreamURL('tezgahBilgileri', wsPath)
+		if (!url)
+			return this
+		evtSource = this.evtSource = new EventSource(url)
+		evtSource.onmessage = ({ data }) => {
+			try {
+				if (this.otoTazeleYapilirmi)
+					this.signalChange({ ...e, data })
+			}
+			catch (ex) { console.error(ex) }
+		}
+		evtSource.onerror = evt =>
+			this.tazeleTimerKontrol_proc({ ...e, evt })
+		let {tazeleKontrolSn} = this
+		if (tazeleKontrolSn)
+			this.timer_tazeleKontrol = setInterval(() => this.tazeleTimerKontrol_proc(e), tazeleKontrolSn * 1000) 
 		return this
 	}
 	tazele_stopTimer(e) {
-		let {evtSource, timer_tazeleKontrol} = this; if (evtSource) { evtSource.close(); evtSource = this.evtSource = null }
-		if (timer_tazeleKontrol) { clearInterval(timer_tazeleKontrol); timer_tazeleKontrol = this.timer_tazeleKontrol = null }
+		let {evtSource, timer_tazeleKontrol} = this
+		if (evtSource) {
+			evtSource.close()
+			evtSource = this.evtSource = null
+		}
+		if (timer_tazeleKontrol) {
+			clearInterval(timer_tazeleKontrol)
+			timer_tazeleKontrol = this.timer_tazeleKontrol = null
+		}
 		return this
 	}
 	tazeleTimerKontrol_proc(e) {
-		let {otoTazeleYapilirmi, evtSource, sonSyncTS, tazeleKontrolSn} = this; if (!otoTazeleYapilirmi) { return this }
-		let {readyState} = evtSource ?? {}; if (readyState == null || readyState == EventSource.CLOSED) { this.tazele_stopTimer(e).tazele_startTimer(e) }
-		if (sonSyncTS && now() - sonSyncTS > tazeleKontrolSn * 1000) { this.tazele_stopTimer(e).tazele_startTimer(e) }
+		let {otoTazeleYapilirmi, evtSource, sonSyncTS, tazeleKontrolSn} = this
+		if (!otoTazeleYapilirmi)
+			return this
+		let {readyState} = evtSource ?? {}
+		if (readyState == null || readyState == EventSource.CLOSED)
+			this.tazele_stopTimer(e).tazele_startTimer(e)
+		if (sonSyncTS && now() - sonSyncTS > tazeleKontrolSn * 1000)
+			this.tazele_stopTimer(e).tazele_startTimer(e)
 		return this
 	}
 	signalChange(e) {

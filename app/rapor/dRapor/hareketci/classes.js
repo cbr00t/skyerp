@@ -111,7 +111,7 @@ class DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main extends DRapor_Hareketci_Mai
 		for (let key in attrSet) {
 			switch (key) {
 				case 'SHTIP': {
-					let sh = hvDegeri('sh')
+					let sh = hvDegeri('shTipi') ?? hvDegeri('sh')
 					let clause = `(case when ${sh} = 'H' then 'Hizmet' else 'Stok' end)`
 					sahalar.add(`${clause} shtiptext`)
 				}
@@ -207,6 +207,7 @@ class DRapor_Hareketci_AlimSatisSipOrtak_Main extends DRapor_Hareketci_AlimSatis
 				if (!beklemeDurumu.hepsimi)
 					wh.add(beklemeDurumu.getTersBoolBitClause('fis.kapandi'))
 			})*/
+			//sec.liste.tip?.hidden()
 		}
 	}
 	tabloYapiDuzenle({ result }) {
@@ -251,9 +252,15 @@ class DRapor_Hareketci_AlimSatisSipOrtak_Main extends DRapor_Hareketci_AlimSatis
 			}
 		}
 	}
-	loadServerData_queryDuzenle_hrkStm_sonIslemler({  attrSet }) {
+	loadServerData_queryDuzenle_hrkStm_sonIslemler({ attrSet, secimler }) {
 		let e = arguments[0]
 		super.loadServerData_queryDuzenle_hrkStm_sonIslemler(e)
+		let { tip: { value: tip } } = secimler
+		/*if (tip)
+			tip = asSet(tip)
+		if (!(empty(tip) || (tip.stok && tip.hizmet)))
+			return*/
+		
 		let sevkMiktarBedelKeys = ['SEVKMIKTAR', 'SEVKMIKTAR2', 'KALANMIKTAR', 'KALANMIKTAR2', 'SEVKBEDEL', 'KALANBEDEL']
 		let sevkBelgeKeys = ['SEVKTARIHX', 'SEVKNOX']
 		let gereksinim = e.gereksinim = {
@@ -264,11 +271,12 @@ class DRapor_Hareketci_AlimSatisSipOrtak_Main extends DRapor_Hareketci_AlimSatis
 			this.loadServerData_queryDuzenle_hrkStm_sonIslemler_sevkBaglanti(e)
 	}
 	loadServerData_queryDuzenle_hrkStm_sonIslemler_sevkBaglanti({ secimler: sec, stm, uni, attrSet, gereksinim }) {
-		let {class: { almSat }} = this
-		let {tip: { value: shTip } = {}} = sec
+		let e = arguments[0]
+		let { class: { almSat } } = this
+		let { tip: { value: shTip } = {}, beklemeDurumu: { tekSecim: beklemeDurumu } = {} } = sec
 		if (isArray(shTip))
 			shTip = asSet(shTip)
-		let {beklemeDurumu: { tekSecim: beklemeDurumu }} = sec
+		
 		let {with: _with} = stm
 		let withEkle = hizmetmi => {
 			let sh = hizmetmi ? 'hizmet' : 'stok'
@@ -299,10 +307,8 @@ class DRapor_Hareketci_AlimSatisSipOrtak_Main extends DRapor_Hareketci_AlimSatis
 			_with.add(sent.asTmpTable(`sipvedonusum_${sh}`))
 		}
 		; {
-			if (!shTip || shTip.stok)
-				withEkle(false)
-			if (!shTip || shTip.hizmet)
-				withEkle(true)
+			withEkle(false)
+			withEkle(true)
 		}
 		let mc = { miktar: 'har.miktar', sevk: `COALESCE(sdon.sevkmiktar, 0)` }
 		extend(mc, { kalan: `${mc.miktar} - ${mc.sevk}` })

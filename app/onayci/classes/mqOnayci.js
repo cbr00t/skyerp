@@ -556,14 +556,14 @@ class MQOnayci extends MQCogul {
 						{
 							let xbinDocs, subName = 'EmbeddedDocumentBinaryObject'
 							xbinDocs = docRefs.filter(elm =>
-								(
+								elm.querySelector(subName) && (
 									elm.querySelector('DocumentType')?.innerHTML?.toUpperCase() == 'XSLT' ||
 									elm.querySelector('DocumentTypeCode')?.innerHTML?.toUpperCase() == 'XSLT' ||
 									elm.querySelector('ID')?.innerHTML?.toUpperCase() == 'XSLT'
-								) && elm.querySelector(subName)
+								)
 							  )
 							if (empty(xbinDocs))
-								xbinDocs = docRefs.map(elm => elm.querySelector(subName))
+								xbinDocs = docRefs.filter(elm => elm.querySelector(subName))
 							if (!empty(xbinDocs)) {
 								xbinDocs = xbinDocs
 									.map(x => x.querySelector(subName))

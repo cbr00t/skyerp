@@ -105,14 +105,21 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	superSuper_secimlerDuzenle(e) { super.super_secimlerDuzenle(e) }
 	secimlerInitEvents(e) {
 		super.secimlerInitEvents(e)
-		let {secimlerPart} = this, {secim2Info} = secimlerPart || {}
-		if (!secim2Info)
-			return
-		let part = secim2Info?.tip?.element?.find('.ddList')?.data('part');
-		part?.degisince(e => {
-			let {hareketci} = this, {value} = secim2Info.tip.secim
-			hareketci.uygunluk = empty(value) ? null : asSet(value)
-		})
+		let { secimlerPart } = this
+		secimlerPart?.acilinca(({ sender: secimlerPart }) => setTimeout(() => {
+			let { secim2Info } = secimlerPart
+			if (!secim2Info)
+				return
+			let {hareketci} = this
+			let part = secim2Info?.tip?.element?.find('.ddList')?.data('part')
+			let timer_set
+			part?.degisince(({ value }) => {
+				clearTimeout(timer_set)
+				timer_set = setTimeout(() => 
+					hareketci.uygunluk = empty(value) ? null : asSet(value),
+					1)
+			})
+		}, 50))
 	}
 	tabloYapiDuzenle({ result }) {
 		let e = arguments[0]

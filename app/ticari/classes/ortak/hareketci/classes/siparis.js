@@ -15,23 +15,28 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 			yon: `(case ctip.satmustip when 'S' then 'sag' else 'sol' end)`
 		}*/
 	}
-	ilkIslemler(e = {}) { super.ilkIslemler(e) }
+	ilkIslemler(e = {}) {
+		super.ilkIslemler(e)
+	}
 	sonIslemler({ stm, attrSet: raporAttrSet } = {}) {
 		super.sonIslemler(...arguments)
 	}
     /* Hareket tiplerini (işlem türlerini) belirleyen seçim listesi */
     static hareketTipSecim_kaListeDuzenle({ kaListe }) {
         super.hareketTipSecim_kaListeDuzenle(arguments)
+		let { dRapor: { trfVeAlimSipBirlesik } = {} } = app.params
 		kaListe.push(...[
 			new CKodVeAdi(['stok', 'Stok']),
-			new CKodVeAdi(['hizmet', 'Hizmet'])
-		])
+			new CKodVeAdi(['hizmet', 'Hizmet']),
+			( trfVeAlimSipBirlesik ? new CKodVeAdi(['trfSip', 'Trf. Sipariş']) : null )
+		].filter(Boolean))
     }
     /** Varsayılan değer atamaları (host vars) – temel sınıfa eklemeler.
 		Hareketci.varsayilanHVDuzenle değerleri aynen alınır, sadece eksikler eklenir */
     static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
         super.varsayilanHVDuzenle(...arguments)
-		for (let key of ['fisaciklama', 'detaciklama']) { hv[key] = sqlEmpty }
+		for (let key of ['fisaciklama', 'detaciklama'])
+			hv[key] = sqlEmpty
 		// for (let key of ['dvbedel']) { hv[key] = sqlZero }
 		$.extend(hv, {
 			aciklama: ({ hv }) => {
@@ -54,26 +59,42 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 		/*if (!from.aliasIcinTable('sub')) { sent.fis2SubeBagla() }
 		if (!from.aliasIcinTable('igrp')) { sent.sube2GrupBagla() }*/
 		// ... diğerleri stok/hizmet durumuna göre 'uniDuzenle_stokHizmet()' kısmında bağlanıyor
-		if (!from.aliasIcinTable('car')) { sent.fis2CariBagla() }
-		if (!from.aliasIcinTable('isl')) { sent.fis2StokIslemBagla() }
+		if (!from.aliasIcinTable('car'))
+			sent.x2CariBagla({ kodClause: hv?.refkod ?? 'fis.must' })
+		if (!from.aliasIcinTable('isl'))
+			sent.fis2StokIslemBagla()
 	}
     /** UNION sorgusu hazırlama – hareket tipleri için */
     uygunluk2UnionBilgiListeDuzenleDevam(e) {
+		let { dRapor: { trfVeAlimSipBirlesik } = {} } = app.params
         super.uygunluk2UnionBilgiListeDuzenleDevam(e)
         this.uniDuzenle_stokHizmet(e)
+		if (trfVeAlimSipBirlesik)
+			this.uniDuzenle_trfSip(e)
     }
     /** (Ticari Stok/Hizmet) için UNION */
     uniDuzenle_stokHizmet(e) {
-		let {uygunluk, liste} = e, {maliTablo = {}, class: { almSat }} = this
-		let {dRapor: { ihracatIntacdanmi } = {}} = app.params
-		let {det, det: { hesapTipi, veriTipi, shStokHizmet = {}, shIade, shAyrimTipi, shAyrimTipi: { ihracatmi } = {} } = {}} = maliTablo
-		let ekUygunluk = this.ekUygunluk ?? {
+		let { uygunluk, liste } = e
+		let { dRapor: { ihracatIntacdanmi } = {} } = app.params
+		let { maliTablo = {}, class: { almSat } } = this
+		let { det = {} } = maliTablo, { shStokHizmet, shAyrimTipi } = det ?? {}
+		shStokHizmet ??= {}; shAyrimTipi ??= {}
+		let { ihracatmi } = shAyrimTipi
+		// let ekUygunluk = this.ekUygunluk ?? {
+		let ekUygunluk = {
 			stokmu: e.stokmu ?? (shStokHizmet?.stokmu || shStokHizmet?.birliktemi) ?? true,
 			hizmetmi: e.hizmetmi ?? (shStokHizmet?.hizmetmi || shStokHizmet?.birliktemi) ?? true
 		}
-		// let veriTipi_kaListe = veriTipi?.kaListe?.filter(({ ekBilgi: _ }) => _.sentUygunluk?.call(this, { ...e, maliTablo, det, hesapTipi, veriTipi }));
+		/* let veriTipi_kaListe = veriTipi?.kaListe?.filter(({ ekBilgi: _ }) =>
+			_.sentUygunluk?.call(this, { ...e, maliTablo, det, hesapTipi, veriTipi })) */
 		let getUniBilgi = hizmetmi => {
 			let stokmu = !hizmetmi
+			if (uygunluk) {
+				if (stokmu && !uygunluk.stok)
+					return false
+				if (hizmetmi && !uygunluk.hizmet)
+					return false
+			}
 			if (ekUygunluk) {
 				if (stokmu && !ekUygunluk.stokmu)
 					return null
@@ -87,14 +108,13 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 					sent.fisHareket('sipfis', harTable)
 					wh.fisSilindiEkle()
 					wh.add(`fis.ozeltip = ''`)
+					wh.notInDizi(['ON', 'OG', 'RD'], 'fis.onaytipi')
 					if (almSat)
 						wh.degerAta(almSat, 'fis.almsat')
-					if (shIade?.secilen && !shIade.birliktemi)
-						wh.degerAta(shIade.iademi ? 'I' : '', 'fis.iade')
 					let ayrimYapi = {
 						in: {},
 						notIn: { [ihracatIntacdanmi ? 'IH' : 'IN']: true }
-					};
+					}
 					if (shAyrimTipi?.secilen && !shAyrimTipi.birliktemi) {
 						if (ihracatmi) {
 							let inEk = ihracatIntacdanmi ? 'IN' : 'IH'
@@ -108,10 +128,8 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 						ayrimYapi.notIn[ihracatIntacdanmi ? 'IH': 'IN'] = true
 						let addAyrimTipiKosul = key => {
 							let set = ayrimYapi[key]
-							if (empty(set))
-								return
-							let selector = `${key}Dizi`
-							wh[selector](keys(set), 'fis.ayrimtipi')
+							if (!empty(set))
+								wh[`${key}Dizi`](keys(set), 'fis.ayrimtipi')
 						};
 						addAyrimTipiKosul('in')
 						addAyrimTipiKosul('notIn')
@@ -119,11 +137,13 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 					sent[`har2${hizmetmi ? 'Hizmet' : 'Stok'}Bagla`]()
 					sent[`${hizmetmi ? 'hizmet' : 'stok'}2GrupBagla`]()
 					sent[`${hizmetmi ? 'hizmet' : 'stok'}2IstGrupBagla`]()
-				}).hvDuzenleIslemi(({ hv, sqlEmpty, sqlZero }) => {
-					$.extend(hv, {
+				})
+				.hvDuzenleIslemi(({ hv, sqlEmpty, sqlZero }) => {
+					extend(hv, {
 						oncelik: '1', ba: `'B'`, fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac',
 						kayittipi: `'AS'`, anaislemadi: hizmetmi ? `'Hizmet'` : `'Stok'`,
-						islemadi: `'Alım/Satış'`, bizsubekod: 'fis.bizsubekod',
+						islemadi: (almSat == 'A' ? `'Alım'` : `'Satış'`),
+						bizsubekod: 'fis.bizsubekod',
 						ozelisaret: 'fis.ozelisaret', tarih: 'fis.tarih', fisnox: 'fis.fisnox',
 						refkod: 'fis.must', refadi: 'car.birunvan', dvkod: 'fis.dvkod', dvkur: 'fis.dvkur',
 						fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama',
@@ -142,14 +162,62 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 					})
 				})
 		}
-		$.extend(liste, {
+		extend(liste, {
 			stok$hizmet: [
 				getUniBilgi(false),         // stok
 				getUniBilgi(true)           // hizmet
-			].filter(x => !!x)
+			].filter(Boolean)
 		})
         return this
     }
+	uniDuzenle_trfSip(e) {
+		let { uygunluk, liste } = e
+		let { maliTablo = {}, class: { almSat } } = this
+		let { det = {} } = maliTablo, { shStokHizmet, shAyrimTipi } = det ?? {}
+		shStokHizmet ??= {}; shAyrimTipi ??= {}
+		let { ihracatmi } = shAyrimTipi
+		let ekUygunluk = {
+			stokmu: e.stokmu ?? (shStokHizmet?.stokmu || shStokHizmet?.birliktemi) ?? true,
+			hizmetmi: e.hizmetmi ?? (shStokHizmet?.hizmetmi || shStokHizmet?.birliktemi) ?? true
+		}
+		
+		if (almSat != 'T' || ihracatmi || !ekUygunluk.stokmu)
+			return
+		
+		extend(liste, {
+			trfSip: [
+				new Hareketci_UniBilgi()
+					.sentDuzenleIslemi(({ sent, sent: { where: wh, sahalar } }) => {
+						sent
+							.fisHareket('stfis', 'ststok')
+							.har2StokBagla()
+							.stok2GrupBagla()
+							.stok2IstGrupBagla()
+						wh.fisSilindiEkle()
+						wh.add(`fis.ozeltip = 'IR'`, `fis.gctipi = 'S'`)
+						wh.notInDizi(['ON', 'OG', 'RD'], 'fis.onaytipi')
+					})
+					.hvDuzenleIslemi(({ hv, sqlEmpty, sqlZero }) => {
+						extend(hv, {
+							oncelik: '2', ba: `'B'`, fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac',
+							kayittipi: `'TS'`, anaislemadi: `'Stok'`,
+							islemadi: `'Transfer Sipariş'`, bizsubekod: 'fis.bizsubekod',
+							ozelisaret: 'fis.ozelisaret', tarih: 'fis.tarih', fisnox: 'fis.fisnox',
+							refkod: 'fis.irsmust', refadi: 'car.birunvan', dvkod: 'fis.dvkod', dvkur: 'fis.dvkur',
+							fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama',
+							brm: 'stk.brm', brm2: 'stk.brm2', brmorani: 'har.brmorani',
+							miktar: 'har.miktar', miktar2: 'har.miktar2',
+							brutbedel: 'har.brutbedel', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
+							satiriskonto: sqlZero, dipiskonto: sqlZero, harciro: 'har.bedel', topkdv: sqlZero,
+							fmalhammadde: 'har.fmalhammadde', fmalmuh: 'har.fmalmuh',
+							shTipi: `'S'`, shkod: 'har.stokkod', shadi: 'stk.aciklama',
+							grupkod: 'stk.grupkod', istgrupkod: 'stk.sistgrupkod',
+							takipno: `(case when fis.takiportakdir = '' then har.dettakipno else fis.orttakipno end)`
+						})
+					})
+			]
+		})
+	}
 	static maliTablo_secimlerYapiDuzenle({ tip2SecimMFYapi, result }) {
 		super.maliTablo_secimlerYapiDuzenle(...arguments)
 		for (let cls of [StokHareketci, HizmetHareketci]) {
@@ -158,14 +226,15 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 			cls.maliTablo_secimlerYapiDuzenle(e)
 			tip2SecimMFYapi[tip] = e.result
 		}
-		/*$.extend(tip2SecimMFYapi, {
+		/*extend(tip2SecimMFYapi, {
 			S: { ...ortakSecimMFYapi, mst: DMQStok, grup: DMQStokGrup, anaGrup: DMQStokAnaGrup, istGrup: DMQStokIstGrup, tip: DMQStokTip, isl: DMQStokIslem },
 			H: { ...ortakSecimMFYapi, mst: DMQHizmet, grup: DMQHizmetGrup, anaGrup: DMQHizmetAnaGrup, istGrup: DMQHizmetIstGrup, isl: DMQMuhIslem, muhHesap: DMQMuhHesap }
 		})*/
 	}
 	static maliTablo_secimlerSentDuzenle({ detSecimler: sec, sent, sent: { from }, where: wh, hv, mstClause, maliTablo }) {
 		super.maliTablo_secimlerSentDuzenle(...arguments)
-		let {det: { shStokHizmet = {} } = {}} = maliTablo ?? {}, {stokmu, hizmetmi} = shStokHizmet
+		let { shStokHizmet = {} } = maliTablo?.det ?? {}
+		let { stokmu, hizmetmi }  = shStokHizmet ?? {}
 		let mstAlias = hizmetmi ? 'hiz' : 'stk', prefix = hizmetmi ? 'h' : 's'
 		let grpClause = hv.grupkod || `${mstAlias}.grupkod`, aGrpClause = hv.anaGrupkod || 'grp.anagrupkod'
 		let iGrpClause = hv.istgrupkod || `${mstAlias}.${prefix}istgrupkod`, iGrpAlias = `${prefix}igrp`
@@ -175,7 +244,10 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 		if (sec && shStokHizmet.secilen && !shStokHizmet.birliktemi) {
 			let harStokmu = from.aliasIcinTable('har')?.deger == 'sipstok'
 			let harHizmetmi = from.aliasIcinTable('har')?.deger == 'siphizmet'
-			if (!(stokmu == harStokmu && hizmetmi == harHizmetmi)) { wh.add('1 = 2'); return }
+			if (!(stokmu == harStokmu && hizmetmi == harHizmetmi)) {
+				wh.add('1 = 2')
+				return
+			}
 			wh.basiSonu(sec.mstKod, mstClause).ozellik(sec.mstAdi, `${mstAlias}.aciklama`)
 			wh.basiSonu(sec.grupKod, grpClause).ozellik(sec.grupAdi, 'grp.aciklama')
 			wh.basiSonu(sec.anaGrupKod, aGrpClause).ozellik(sec.anaGrupAdi, 'agrp.aciklama')

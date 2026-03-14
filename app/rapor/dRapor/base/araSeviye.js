@@ -255,9 +255,10 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		let {attrSet, yatayAnaliz} = e;
 		if (yatayAnaliz && keys(attrSet).length == 1 && attrSet.DB) {
 			let {session} = config, {dbName: buDBName} = session, {ekDBListe} = app.params?.dRapor ?? {}, alias_db = 'db';
-			let {secimler: sec} = this, {value: filtreDBListe} = sec.db, filtreDBSet = filtreDBListe?.length ? asSet(filtreDBListe) : null;
-			let result = filtreDBListe?.length ? filtreDBListe : [buDBName, ...(ekDBListe ?? [])];
-			let getDBText = db => db == buDBName ? `(<span class=forestgreen>${db}</span>)` : db;
+			let {secimler: sec} = this, {value: filtreDBListe} = sec.db ?? {}
+			let filtreDBSet = filtreDBListe?.length ? asSet(filtreDBListe) : null
+			let result = filtreDBListe?.length ? filtreDBListe : [buDBName, ...(ekDBListe ?? [])]
+			let getDBText = db => db == buDBName ? `(<span class=forestgreen>${db}</span>)` : db
 			return result.map(db => ({ db: getDBText(db) }))
 		}
 	}
@@ -956,7 +957,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		let {from, where: wh, sahalar} = sent
 		let alias = (
 			from.aliasIcinTable('hiz') ? 'hiz' :
-			from.aliasIcinTable('stk') ? 'stk' : null
+			'stk'
 		)
 		let stokmu = alias == 'stk'
 		let hizmetmi = alias == 'hiz'
