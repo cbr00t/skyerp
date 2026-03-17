@@ -223,7 +223,8 @@ class Hareketci extends CObject {
 			'kdetay', 'takipno', 'aciklama', 'ekaciklama', 'odgunkod', 'iade', 'dovizsanalmi', 'belgetipi',
 			'portftipi', 'portfkod', 'portfadi', 'portfkisatiptext', 'refportftipi', 'refportfkod', 'refportfadi', 'refportfkisatiptext'
 		]) { hv[key] = sqlEmpty }
-		for (let key of [ 'yilay', 'yilhafta', 'haftano', 'oncelik', 'seq', 'belgeno', 'noyil', 'dvkur' ]) { hv[key] = sqlZero }
+		for (let key of [ 'yilay', 'yilhafta', 'haftano', 'oncelik', 'seq', 'belgeno', 'noyil', 'dvkur' ])
+			hv[key] = sqlZero
 		$.extend(hv, {
 			fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac', ozelisaret: 'fis.ozelisaret', bizsubekod: 'fis.bizsubekod', tarih: 'fis.tarih',
 			seri: 'fis.seri', fisno: 'fis.no', fisnox: 'fis.fisnox', disfisnox: 'fis.fisnox', ba: 'fis.ba', bedel: 'har.bedel', dvbedel: 'har.dvbedel',

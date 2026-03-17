@@ -446,6 +446,9 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	x2HizmetBagla(e) { let kodClause = e?.kodClause; this.fromIliski('hizmst hiz', `${kodClause} = hiz.kod`); return this }
 	fis2HizmetBagla(e) { return this.x2HizmetBagla({ ...e, kodClause: 'fis.hizmetkod' }) }
 	har2HizmetBagla(e) { return this.x2HizmetBagla({ ...e, kodClause: 'har.hizmetkod' }) }
+	x2DemBagla(e) { let kodClause = e?.kodClause; this.fromIliski('demmst dem', `${kodClause} = dem.kod`); return this }
+	fis2DemBagla(e) { return this.x2DemBagla({ ...e, kodClause: 'fis.demirbaskod' }) }
+	har2DemBagla(e) { return this.x2DemBagla({ ...e, kodClause: 'har.demirbaskod' }) }
 	fis2TicCariBagla(e) { this.fromIliski('carmst car', 'fis.ticmust = car.must'); return this }
 	fis2AltHesapBagla(e) { this.fromIliski('althesap alth', 'fis.althesapkod = alth.kod'); return this }
 	fis2AltHesapBagla_eski(e) { this.fromIliski('althesap alth', 'fis.cariitn = alth.kod'); return this }
@@ -557,23 +560,59 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		let alias = e?.alias ?? 'stk', aliasVeNokta = alias + '.';
 		this.fromIliski('stkgtip gtip', `${aliasVeNokta}gtipkod = gtip.kod`); return this
 	}
-	hizmetHepsiBagla(e) { this.hizmetYardimciBagla(e); this.hizmetAyrimBagla(e); return this }
+	hizmetHepsiBagla(e) {
+		this
+			.hizmetYardimciBagla(e)
+			.hizmetAyrimBagla(e)
+		return this
+	}
 	hizmetYardimciBagla(e) {
-		let alias = e?.alias ?? 'hiz', aliasVeNokta = alias + '.';
-		this.hizmet2GrupBagla(e); this.hizmetGrup2AnaGrupBagla(e); this.hizmet2IstGrupBagla(e); return this
+		let alias = e?.alias ?? 'hiz', aliasVeNokta = alias + '.'
+		this
+			.hizmet2GrupBagla(e)
+			.hizmetGrup2AnaGrupBagla(e)
+			.hizmet2IstGrupBagla(e)
+		return this
 	}
 	hizmetAyrimBagla(e) { /* tamamlanacak */ let alias = e?.alias ?? 'hiz', aliasVeNokta = alias + '.'; return this }
 	hizmet2GrupBagla(e) {
-		let alias = e?.alias ?? 'hiz',  aliasVeNokta = alias + '.';
+		let alias = e?.alias ?? 'hiz', aliasVeNokta = alias + '.';
 		this.fromIliski('hizgrup grp', `${aliasVeNokta}grupkod = grp.kod`); return this
 	}
 	hizmetGrup2AnaGrupBagla(e) {
-		let alias = e?.alias ?? 'grp',  aliasVeNokta = alias + '.';
+		let alias = e?.alias ?? 'grp', aliasVeNokta = alias + '.';
 		this.fromIliski('hizanagrup agrp', `${aliasVeNokta}anagrupkod = agrp.kod`); return this
 	}
 	hizmet2IstGrupBagla(e) {
-		let alias = e?.alias ?? 'hiz',  aliasVeNokta = alias + '.';
+		let alias = e?.alias ?? 'hiz', aliasVeNokta = alias + '.';
 		this.fromIliski('hizistgrup higrp', `${aliasVeNokta}histgrupkod = higrp.kod`); return this
+	}
+	dem2GrupBagla(e) {
+		let alias = e?.alias ?? 'dem', aliasVeNokta = alias + '.'
+		this.fromIliski('demgrup grp', `${aliasVeNokta}grupkod = grp.kod`)
+		return this
+	}
+	demGrup2AnaGrupBagla(e) {
+		let alias = e?.alias ?? 'grp', aliasVeNokta = alias + '.'
+		this.fromIliski('demanagrup agrp', `${aliasVeNokta}anagrupkod = agrp.kod`)
+		return this
+	}
+	dem2MasrafBagla(e) {
+		let alias = e?.alias ?? 'dem', aliasVeNokta = alias + '.'
+		this.fromIliski('stkmasraf mas', `${aliasVeNokta}masrafkod = mas.kod`)
+		return this
+	}
+	demHepsiBagla(e) {
+		this.demYardimciBagla(e)
+		return this
+	}
+	demYardimciBagla(e) {
+		let alias = e?.alias ?? 'dem', aliasVeNokta = alias + '.'
+		this
+			.dem2GrupBagla(e)
+			.demGrup2AnaGrupBagla(e)
+			.dem2MasrafBagla(e)
+		return this
 	}
 	bankaHesap2BankaBagla(e) { this.fromIliski('banmst ban', 'bhes.bankakod = ban.kod'); return this }
 	bankaHesap2GrupBagla(e) { this.fromIliski('banhesapgrup bhgrp', 'bhes.grupkod = bhgrp.kod'); return this }

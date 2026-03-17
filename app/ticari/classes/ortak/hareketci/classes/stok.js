@@ -9,6 +9,7 @@ class StokHareketci extends Hareketci {
 	static get donemselIslemlerIcinUygunmu() { return false }
 	static get eldekiVarliklarIcinUygunmu() { return this.gercekmi && app.params?.finans?.eldekiVarlikStokDegerlemesiYapilir }
 	static get finAnaliz_baIcinTersIslemYapilirmi() { return false }
+
 	static get clausecu() {
 		let {_clausecu: result} = this;
 		if (result == null) {

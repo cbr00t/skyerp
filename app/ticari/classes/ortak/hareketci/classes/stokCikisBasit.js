@@ -41,8 +41,8 @@ class StokCikisBasitHareketci extends Hareketci {
 		$.extend(liste, {
 			stokCikis: [new Hareketci_UniBilgi()
 				.sentDuzenleIslemi(({ sent, sent: { where: wh, sahalar } }) => {
-					sent.fisHareket('stfis', 'ststok');
-					wh.fisSilindiEkle().add(`fis.gctipi = 'C'`, `fis.ozeltip = ''`, `fis.ozelisaret <> 'X'`);
+					sent.fisHareket('stfis', 'ststok')
+					wh.fisSilindiEkle().add(`fis.gctipi = 'C'`, `fis.ozeltip = ''`, `fis.ozelisaret <> 'X'`)
 				}).hvDuzenleIslemi(({ hv }) => {
 					$.extend(hv, {
 						oncelik: '1', ba: `'A'`, kayittipi: `'SC'`,
@@ -66,9 +66,11 @@ class StokCikisBasitHareketci extends Hareketci {
 	static maliTablo_secimlerSentDuzenle({ detSecimler: sec, sent, sent: { from }, where: wh, hv, mstClause, maliTablo }) {
 		super.maliTablo_secimlerSentDuzenle(...arguments)
 		mstClause ||= hv.shkod || 'har.stokkod'
-		let grpClause = hv.grupkod || 'stk.grupkod',  aGrpClause = hv.anaGrupkod || 'grp.anagrupkod'
+		let grpClause = hv.grupkod || 'stk.grupkod'
+		let aGrpClause = hv.anaGrupkod || 'grp.anagrupkod'
 		let iGrpClause = hv.istgrupkod || 'stk.istgrupkod'
-		let tipClause = hv.tipkod || 'stk.stoktipi', islClause = hv.islkod || 'fis.islkod'
+		let tipClause = hv.tipkod || 'stk.stoktipi'
+		let islClause = hv.islkod || 'fis.islkod'
 		if (sec) {
 			wh.basiSonu(sec.subeKod, 'fis.bizsubekod').ozellik(sec.subeAdi, 'sub.aciklama')
 			wh.basiSonu(sec.subeGrupKod, 'sub.isygrupkod').ozellik(sec.subeGrupAdi, 'igrp.aciklama')

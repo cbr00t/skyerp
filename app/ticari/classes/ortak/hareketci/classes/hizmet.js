@@ -2,7 +2,13 @@ class HizmetHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 35 }
 	static get kisaKod() { return 'H' } static get kod() { return 'hizmet' } static get aciklama() { return 'Hizmet' }
 	static get donemselIslemlerIcinUygunmu() { return false }
-	static altTipYapilarDuzenle(e) { super.altTipYapilarDuzenle(e); e.def.sol() }
+	
+	static getAltTipAdiVeOncelikClause({ hv }) {
+		return {
+			...super.getAltTipAdiVeOncelikClause(...arguments),
+			yon: `'sol'`
+		}
+	}
 	static mstYapiDuzenle({ result }) {
 		super.mstYapiDuzenle(...arguments)
 		result.set('hizmetkod', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
@@ -18,6 +24,7 @@ class HizmetHareketci extends Hareketci {
 			new CKodVeAdi(['hizmetDevir', 'Devir']), new CKodVeAdi(['kasa', 'Kasa Hizmet']),
 			new CKodVeAdi(['banka', 'Banka Hizmet']), new CKodVeAdi(['cari', 'Cari Hizmet']),
 			new CKodVeAdi(['pos', 'POS Hizmet']), new CKodVeAdi(['tahsilatOdeme', 'Cari Tahsilat/Ödeme']),
+			new CKodVeAdi(['tahminiHizmet', 'Tahmini Hizmet']),
 			new CKodVeAdi(['fatura', 'Fatura Hizmet']), new CKodVeAdi(['perakende', 'Perakende Hizmet']),
 			new CKodVeAdi(['genelDekont', 'Genel Dekont']), new CKodVeAdi(['ekMasraf', 'Ek Masraf']),
 			(alim.hizmetGiderPusulasi ? new CKodVeAdi(['giderPusula', 'Gider Pusulası']) : null),
@@ -29,8 +36,13 @@ class HizmetHareketci extends Hareketci {
 			(ticGenel.demirbas ? new CKodVeAdi(['demAktif', 'Demirbaş Aktifleştirme']) : null),
 			(aktarim.yazarKasa ? new CKodVeAdi(['kasiyer', 'Kasiyer İşlem']) : null),
 			(aktarim.guleryuzOnline ? new CKodVeAdi(['goMaliyet', 'Güleryüz Maliyet']) : null)
-		].filter(x => !!x))
+		].filter(Boolean))
     }
+	ilkIslemler({ secimler: sec }) {
+		super.ilkIslemler(...arguments)
+		let { uygunluk } = this
+		this.tahminiHizmetAlinmasin = sec.tahminiHizmetAlinmasin.value
+	}
 	uniOrtakSonIslem({ hvDegeri, sent, sent: { from } }) {
 		super.uniOrtakSonIslem(...arguments)
 		let kodClause = hvDegeri('hizmetkod') || 'har.hizmetkod'
@@ -71,10 +83,10 @@ class HizmetHareketci extends Hareketci {
     }
     /** UNION sorgusu hazırlama – hareket tipleri için */
     uygunluk2UnionBilgiListeDuzenleDevam(e) {
-        super.uygunluk2UnionBilgiListeDuzenleDevam(e);
-        this.uniDuzenle_devir(e).uniDuzenle_finansalIslemler(e).uniDuzenle_tahsilatOdeme(e);
-		this.uniDuzenle_pos(e);this.uniDuzenle_dekont(e).uniDuzenle_ekMasraf(e).uniDuzenle_goMaliyet(e);
-		this.uniDuzenle_fatura_giderPusula_perakende(e).uniDuzenle_fasonFatura(e);
+        super.uygunluk2UnionBilgiListeDuzenleDevam(e)
+        this.uniDuzenle_devir(e).uniDuzenle_finansalIslemler(e).uniDuzenle_tahsilatOdeme(e)
+		this.uniDuzenle_pos(e);this.uniDuzenle_dekont(e).uniDuzenle_ekMasraf(e).uniDuzenle_goMaliyet(e)
+		this.uniDuzenle_fatura_giderPusula_perakende(e).uniDuzenle_fasonFatura(e)
 		this.uniDuzenle_taksitliKredi(e).uniDuzenle_krediFaizi(e).uniDuzenle_yatirimGeliri(e)
     }
     /** (Hizmet Devir) için UNION */
@@ -100,22 +112,25 @@ class HizmetHareketci extends Hareketci {
     }
 	/** (Finansal İşlemler) için UNION */
     uniDuzenle_finansalIslemler({ uygunluk, liste }) {
-        let kodClause = 'har.banhesapkod'; $.extend(liste, {
-            kasa$banka$cari$serbestMeslek: [
+        let kodClause = 'har.banhesapkod'
+		extend(liste, {
+            kasa$banka$cari$serbestMeslek$tahminiHizmet: [
                 new Hareketci_UniBilgi()
 					.sentDuzenleIslemi(({ sent }) => {
 						let tipListe = [
 							(uygunluk.kasa ? 'KH' : ''), (uygunluk.banka ? 'HH' : ''),
-							(uygunluk.cari ? 'CH' : ''), (uygunluk.serbestMeslek ? 'SM' : '')
-						].filter(x => !!x);
+							(uygunluk.cari ? 'CH' : ''), (uygunluk.serbestMeslek ? 'SM' : ''),
+							(!this.tahminiHizmetAlinmasin && uygunluk.tahminiHizmet ? 'TH' : '')
+						].filter(Boolean)
 						sent.fisHareket('finansfis', 'finanshar')
 							.har2HizmetBagla().har2KatDetayBagla()
 							.fis2KasaBagla().har2BankaHesapBagla().har2CariBagla()
 							.fromIliski('carmst fiscar', 'fis.fismustkod = fiscar.must');
-	                    let {where: wh} = sent; wh.fisSilindiEkle().inDizi(tipListe, 'fis.fistipi')
+	                    let {where: wh} = sent
+						wh.fisSilindiEkle().inDizi(tipListe, 'fis.fistipi')
 	                })
 					.hvDuzenleIslemi(({ hv }) => {
-	                    $.extend(hv, {
+	                    extend(hv, {
 							kayittipi: `(case fis.fistipi when 'KH' then 'KSHIZ' when 'HH' then 'BNHIZ' when 'CH' then 'CHIZ' when 'SM' then 'SRBMES' else '' end)`,
 							depkod: 'har.depkod', masrafkod: 'har.masrafkod', plasiyerkod: 'fis.plasiyerkod', althesapkod: 'har.cariitn',
 							tarih: 'coalesce(har.belgetarih, fis.tarih)', vade: 'har.vade',
@@ -557,7 +572,7 @@ class HizmetHareketci extends Hareketci {
         });
         return this
     }
-	/* (Taksitli Kredi) için UNION */
+	/* (Yatırım Geliri) için UNION */
     uniDuzenle_yatirimGeliri({ uygunluk, liste }) {
         $.extend(liste, {
             yatirimGeliri: [

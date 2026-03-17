@@ -32,7 +32,8 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		super.secimlerDuzenle(...arguments)
 		let {eldekiVarlikStokDegerlemesiKDVlidir: degKDVlimi} = app?.params?.finans
 		{
-			let harClasses = values(Hareketci.kod2Sinif).filter(cls => cls.eldekiVarliklarIcinUygunmu)
+			let harClasses = values(Hareketci.kod2Sinif)
+				.filter(cls => cls.eldekiVarliklarIcinUygunmu)
 			let anaTip_kaListe = []
 			for (let {kod, aciklama} of harClasses)
 				anaTip_kaListe.push(new CKodVeAdi([kod, aciklama]))
@@ -176,7 +177,7 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 					sahalar.add(`${mstAdiClause} ${mstAdiAlias}`)
 				else {
 					mstYapi.duzenle({ sender: this, secimler: sec, sent: harSent, wh, kodClause: mstKodClause, hv: alias2Deger })
-					$.extend(alias2Deger, { ...harSent.alias2Deger })
+					extend(alias2Deger, { ...harSent.alias2Deger })
 					mstKodAlias = mstYapi.hvAlias; mstAdiAlias = mstYapi.hvAdiAlias || mstAdiAlias; mstAdiAlias2 = mstYapi.hvAdiAlias2 || mstAdiAlias2
 					mstKodClause = alias2Deger[mstKodAlias]; mstAdiClause = alias2Deger[mstAdiAlias]; mstAdiClause2 = alias2Deger[mstAdiAlias2]
 				}

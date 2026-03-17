@@ -6,6 +6,7 @@
 <script src="<?=$_partRoot?>/bankaYatirim.js?<?=$appVersion?>"></script> <script src="<?=$_partRoot?>/bankaYatirimKalan.js?<?=$appVersion?>"></script> 
 <script src="<?=$_partRoot?>/akreditif.js?<?=$appVersion?>"></script> <script src="<?=$_partRoot?>/teminatMektup.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/cekSenet.js?<?=$appVersion?>"></script> <script src="<?=$_partRoot?>/hizmet.js?<?=$appVersion?>"></script>
+<script src="<?=$_partRoot?>/demirbas.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/masraf.js?<?=$appVersion?>"></script> <script src="<?=$_partRoot?>/takip.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/stok.js?<?=$appVersion?>"></script> <script src="<?=$_partRoot?>/stokCikisBasit.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/tahsilat.js?<?=$appVersion?>"></script> <script src="<?=$_partRoot?>/odeme.js?<?=$appVersion?>"></script>

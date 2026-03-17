@@ -437,64 +437,134 @@ class DRapor_Hareketci_Kasa_Main extends DRapor_Hareketci_Main {
 
 class DRapor_Hareketci_Hizmet extends DRapor_Hareketci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kategoriKod() { return 'Hizmet' } static get kategoriAdi() { return 'Hizmet' }
+	static get kategoriKod() { return 'HIZMET' } static get kategoriAdi() { return 'Hizmet' }
 	static get vioAdim() { return 'HZ-TT' } static get hareketciSinif() { return HizmetHareketci }
 }
 class DRapor_Hareketci_Hizmet_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Hareketci_Hizmet }
 	static get ticarimi() { return true }
+	
 	secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments)
 		sec.secimTopluEkle({
-			hizmetTipi: new SecimBirKismi({ etiket: 'Hizmet Tipi', tekSecimSinif: HizmetTipi, grupKod: 'HIZMET' }).birKismi()
+			hizmetTipi: new SecimBirKismi({ etiket: 'Hizmet Tipi', tekSecimSinif: HizmetTipi, grupKod: 'HIZMET' }).birKismi(),
+			tahminiHizmetAlinmasin: new SecimBool({ grupKod: 'donemVeTarih', etiket: 'Tahmini Hizmetler AlınMAsın' })
 		})
-		sec.whereBlockEkle(({ secimler: sec, where: wh }) => { wh.birKismi(sec.hizmetTipi, 'hiz.tip') })
+		sec.whereBlockEkle(({ secimler: sec, where: wh }) =>
+			wh.birKismi(sec.hizmetTipi, 'hiz.tip'))
 	}
 	tabloYapiDuzenle({ result }) {
 		result
 			.addKAPrefix('anagrup', 'grup', 'histgrup', 'kategori')
-			.addGrup(new TabloYapiItem().setKA('HZANAGRP', 'Hizmet Ana Grup').secimKullanilir().setMFSinif(DMQHizmetAnaGrup)
-				.addColDef(new GridKolon({ belirtec: 'anagrup', text: 'Hizmet Ana Grup', maxWidth: 450, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('HZGRP', 'Hizmet Grup').secimKullanilir().setMFSinif(DMQHizmetGrup)
-				.addColDef(new GridKolon({ belirtec: 'grup', text: 'Hizmet Grup', maxWidth: 450, filterType: 'checkedlist' })))
-			.addGrup(new TabloYapiItem().setKA('HZISTGRP', 'Hizmet İst. Grup').secimKullanilir().setMFSinif(DMQHizmetIstGrup)
-				.addColDef(new GridKolon({ belirtec: 'sistgrup', text: 'Hizmet İst. Grup', maxWidth: 450, filterType: 'checkedlist' })));
-		this.tabloYapiDuzenle_hizmet(...arguments);
+			.addGrupBasit('HZANAGRP', 'Hizmet Ana Grup', 'anagrup', DMQHizmetAnaGrup)
+			.addGrupBasit('HZGRP', 'Hizmet Grup', 'grup', DMQHizmetGrup)
+			.addGrupBasit('HZISTGRP', 'Hizmet İst. Grup', 'histgrup', DMQHizmetIstGrup)
+		this.tabloYapiDuzenle_hizmet(...arguments)
 		result
-			.addGrup(new TabloYapiItem().setKA('KATEGORI', 'Kategori').secimKullanilir().setMFSinif(DMQKategori)
-				.addColDef(new GridKolon({ belirtec: 'kategori', text: 'Kategori', maxWidth: 600, filterType: 'input' })))
-			.addGrup(new TabloYapiItem().setKA('KATDETAY', 'Kategori Detay')
-				.addColDef(new GridKolon({ belirtec: 'katdetay', text: 'Kat. Detay', maxWidth: 600, filterType: 'input' })));
+			.addGrupBasit('KATEGORI', 'Kategori', 'kategori', DMQKategori)
+			.addGrupBasit('KATDETAY', 'Kat. Detay', 'katdetay')
 		super.tabloYapiDuzenle(...arguments)
 	}
 	loadServerData_queryDuzenle_hrkSent({ sent, attrSet, hvDegeri }) {
 		super.loadServerData_queryDuzenle_hrkSent(...arguments)
-		let {sqlNull} = Hareketci_UniBilgi.ortakArgs;
-		let {from, sahalar, where: wh} = sent, kDetayClause;
-		let kodClause = hvDegeri('hizmetkod'); this.loadServerData_queryDuzenle_hizmet({ ...arguments[0], kodClause });
+		let {sqlNull} = Hareketci_UniBilgi.ortakArgs
+		let {from, sahalar, where: wh} = sent
+		let kDetayClause, kodClause = hvDegeri('hizmetkod')
+		this.loadServerData_queryDuzenle_hizmet({ ...arguments[0], kodClause })
 		if (attrSet.HZANAGRP) { sent.hizmet2GrupBagla() }
 		if (attrSet.HZANAGRP || attrSet.HZGRP || attrSet.HZISTGRP) { sent.x2HizmetBagla({ kodClause }) }
 		if (attrSet.KATEGORI || attrSet.KATDETAY) {
-			kDetayClause = hvDegeri('kdetaysayac');
-			if (kDetayClause?.sqlDoluDegermi()) { sent.har2KatDetayBagla({ kodClause: kDetayClause }) }
-			else { sent.x2KatDetayBagla({ alias: 'fis', kodClause: sqlNull }) }
+			kDetayClause = hvDegeri('kdetaysayac')
+			if (kDetayClause?.sqlDoluDegermi())
+				sent.har2KatDetayBagla({ kodClause: kDetayClause })
+			else
+				sent.x2KatDetayBagla({ alias: 'fis', kodClause: sqlNull })
 		}
-		for (const key in attrSet) {
+		for (let key in attrSet) {
 			switch (key) {
-				case 'HZANAGRP': sent.hizmetGrup2AnaGrupBagla(); sahalar.add('grp.anagrupkod', 'agrp.aciklama anagrupadi'); wh.icerikKisitDuzenle_hizmetAnaGrup({ ...arguments[0], saha: 'grp.anagrupkod' }); break
-				case 'HZGRP': sent.hizmet2GrupBagla(); sahalar.add('hiz.grupkod', 'grp.aciklama grupadi'); wh.icerikKisitDuzenle_hizmetGrup({ ...arguments[0], saha: 'hiz.grupkod' }); break
-				case 'HZISTGRP': sent.hizmet2IstGrupBagla(); sahalar.add('hiz.histgrupkod', 'higrp.aciklama histgrupadi'); wh.icerikKisitDuzenle_hizmetIstGrup({ ...arguments[0], saha: 'grp.histgrupkod' }); break
-				case 'KATDETAY': sahalar.add('kdet.kdetay katdetay'); break
+				case 'HZANAGRP':
+					sent.hizmetGrup2AnaGrupBagla()
+					sahalar.add('grp.anagrupkod', 'agrp.aciklama anagrupadi')
+					wh.icerikKisitDuzenle_hizmetAnaGrup({ ...arguments[0], saha: 'grp.anagrupkod' })
+					break
+				case 'HZGRP':
+					sent.hizmet2GrupBagla()
+					sahalar.add('hiz.grupkod', 'grp.aciklama grupadi')
+					wh.icerikKisitDuzenle_hizmetGrup({ ...arguments[0], saha: 'hiz.grupkod' })
+					break
+				case 'HZISTGRP':
+					sent.hizmet2IstGrupBagla()
+					sahalar.add('hiz.histgrupkod', 'higrp.aciklama histgrupadi')
+					wh.icerikKisitDuzenle_hizmetIstGrup({ ...arguments[0], saha: 'grp.histgrupkod' })
+					break
+				case 'KATDETAY':
+					sahalar.add('kdet.kdetay katdetay')
+						break
 				case 'KATEGORI':
-					sent.leftJoin('kdet', 'kategori kat', 'kdet.fissayac = kat.kaysayac');
-					sahalar.add('kat.kod kategorikod', 'kat.aciklama kategoriadi');
+					sent.leftJoin('kdet', 'kategori kat', 'kdet.fissayac = kat.kaysayac')
+					sahalar.add('kat.kod kategorikod', 'kat.aciklama kategoriadi')
 					break
 			}
 		}
 		return this
 	}
 	tabloYapiDuzenle_odemeGun(e) { super.super_tabloYapiDuzenle_odemeGun(e) }
+}
+
+class DRapor_Hareketci_Demirbas extends DRapor_Hareketci {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kategoriKod() { return 'DEMIRBAS' } static get kategoriAdi() { return 'Demirbaş' }
+	static get vioAdim() { return 'DM-TT' } static get hareketciSinif() { return DemirbasHareketci }
+}
+class DRapor_Hareketci_Demirbas_Main extends DRapor_Hareketci_Main {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get raporClass() { return DRapor_Hareketci_Demirbas }
+	// static get ticarimi() { return true }
+	
+	secimlerDuzenle({ secimler: sec }) {
+		super.secimlerDuzenle(...arguments)
+		/*sec.secimTopluEkle({
+		})
+		sec.whereBlockEkle(({ secimler: sec, where: wh }) =>
+			wh.birKismi(sec.hizmetTipi, 'hiz.tip'))*/
+	}
+	tabloYapiDuzenle({ result }) {
+		result
+			.addKAPrefix('anagrup', 'grup', 'masraf')
+			.addGrupBasit('DEMANAGRP', 'Dem. Ana Grup', 'anagrup', DMQDemirbasAnaGrup)
+			.addGrupBasit('DEMGRP', 'Dem. Grup', 'grup', DMQDemirbasGrup)
+			.addGrupBasit_fiyat('FIYAT', 'Fiyat', 'fiyat', null, null, ({ item }) => item.setSql_hv())
+		this.tabloYapiDuzenle_demirbasVeMasraf(...arguments)                                                // demirbas + masraf
+		result.addToplamBasit('MIKTAR', 'Miktar', 'miktar', null, null, ({ item }) => item.setSql_hv())
+		super.tabloYapiDuzenle(...arguments)
+	}
+	loadServerData_queryDuzenle_hrkSent({ sent, attrSet, hvDegeri }) {
+		super.loadServerData_queryDuzenle_hrkSent(...arguments)
+		let {sqlNull} = Hareketci_UniBilgi.ortakArgs
+		let {from, sahalar, where: wh} = sent
+		let kodClause = hvDegeri('shkod')
+		this.loadServerData_queryDuzenle_demirbasVeMasraf({ ...arguments[0], kodClause })
+		if (attrSet.DEMANAGRP)
+			sent.dem2GrupBagla()
+		if (attrSet.DEMANAGRP || attrSet.DEMGRP)
+			sent.x2DemBagla({ kodClause })
+		for (let key in attrSet) {
+			switch (key) {
+				case 'DEMANAGRP':
+					sent.demGrup2AnaGrupBagla()
+					sahalar.add('grp.anagrupkod', 'agrp.aciklama anagrupadi')
+					wh.icerikKisitDuzenle_demAnaGrup({ ...arguments[0], saha: 'grp.anagrupkod' })
+					break
+				case 'DEMGRP':
+					sent.dem2GrupBagla()
+					sahalar.add('dem.grupkod', 'grp.aciklama grupadi')
+					wh.icerikKisitDuzenle_demGrup({ ...arguments[0], saha: 'dem.grupkod' })
+					break
+			}
+		}
+		return this
+	}
 }
 
 class DRapor_Hareketci_BankaOrtak extends DRapor_Hareketci {

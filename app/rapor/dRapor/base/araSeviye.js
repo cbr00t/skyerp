@@ -926,14 +926,73 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return this
 	}
 	loadServerData_queryDuzenle_hizmet({ stm, sent, attrSet, kodClause }) {
-		if (!kodClause) { return this } sent = sent ?? stm.sent; let {where: wh, sahalar} = sent;
-		if (attrSet.HIZMET || attrSet.HIZMETTIP) { sent.x2HizmetBagla({ kodClause }) }
+		if (!kodClause) 
+			return this
+		sent = sent ?? stm.sent
+		let {where: wh, sahalar} = sent
+		if (attrSet.HIZMET || attrSet.HIZMETTIP)
+			sent.x2HizmetBagla({ kodClause })
 		for (let key in attrSet) {
 			switch (key) {
 				case 'HIZMET':
 					sahalar.add(`${kodClause} hizmetkod`, 'hiz.aciklama hizmetadi'); wh.icerikKisitDuzenle_hizmet({ ...arguments[0], saha: kodClause });
 					break
 				case 'HIZMETTIP': sahalar.add(`${HizmetTipi.getClause('hiz.tip')} hizmettiptext`); break
+			}
+		}
+		return this
+	}
+	tabloYapiDuzenle_demirbasVeMasraf(e) {
+		return this
+			.tabloYapiDuzenle_demirbas(e)
+			.tabloYapiDuzenle_masraf(e)
+	}
+	loadServerData_queryDuzenle_demirbasVeMasraf(e) {
+		let { attrSet, kodClause, sent } = e
+		if (attrSet.MASRAF)
+			sent.x2DemBagla({ kodClause })
+		return this
+			.loadServerData_queryDuzenle_demirbas(e)
+			.loadServerData_queryDuzenle_masraf({ ...e, kodClause: 'dem.masrafkod' })
+	}
+	tabloYapiDuzenle_demirbas({ result }) {
+		result.addKAPrefix('sh')
+			.addGrupBasit('DEMIRBAS', 'Demirbaş', 'sh', DMQDemirbas)
+		return this
+	}
+	loadServerData_queryDuzenle_demirbas({ stm, sent, attrSet, kodClause }) {
+		if (!kodClause) 
+			return this
+		sent = sent ?? stm.sent
+		let {where: wh, sahalar} = sent
+		if (attrSet.DEM)
+			sent.x2DemBagla({ kodClause })
+		for (let key in attrSet) {
+			switch (key) {
+				case 'DEMIRBAS':
+					sahalar.add(`${kodClause} shkod`, 'dem.aciklama shadi')
+					wh.icerikKisitDuzenle_demirbas({ ...arguments[0], saha: kodClause })
+					break
+			}
+		}
+		return this
+	}
+	tabloYapiDuzenle_masraf({ result }) {
+		result.addKAPrefix('masraf')
+			.addGrupBasit('MASRAF', 'Masraf', 'masraf', DMQMasraf)
+		return this
+	}
+	loadServerData_queryDuzenle_masraf({ stm, sent, attrSet, kodClause }) {
+		if (!kodClause) 
+			return this
+		sent = sent ?? stm.sent
+		let {where: wh, sahalar} = sent
+		for (let key in attrSet) {
+			switch (key) {
+				case 'MASRAF':
+					sahalar.add(`${kodClause} masrafkod`, 'mas.aciklama masrafadi')
+					wh.icerikKisitDuzenle_x({ ...arguments[0], belirtec: 'masraf', saha: kodClause })
+					break
 			}
 		}
 		return this

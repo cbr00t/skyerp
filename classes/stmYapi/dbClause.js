@@ -580,6 +580,9 @@ class MQSubWhereClause extends MQClause {
 	icerikKisitDuzenle_hizmetGrup(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'hizmetGrup' }) }
 	icerikKisitDuzenle_hizmetAnaGrup(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'hizmetAnaGrup' }) }
 	icerikKisitDuzenle_hizmetIstGrup(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'hizmetIstGrup' }) }
+	icerikKisitDuzenle_demirbas(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'demirbas' }) }
+	icerikKisitDuzenle_demGrup(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'demGrup' }) }
+	icerikKisitDuzenle_demAnaGrup(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'demAnaGrup' }) }
 	icerikKisitDuzenle_kasa(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'kasa' }) }
 	icerikKisitDuzenle_banka(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'banka' }) }
 	icerikKisitDuzenle_bankaHesap(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'bankaHesap' }) }

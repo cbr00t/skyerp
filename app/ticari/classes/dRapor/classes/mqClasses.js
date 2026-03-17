@@ -45,16 +45,39 @@ class DMQStok extends DMQKA {
 	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.stok2GrupBagla(); sent.stokGrup2AnaGrupBagla(); sent.stok2IstGrupBagla() }
 }
 class DMQStokMarka extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok Marka' }
-	static get kodListeTipi() { return 'STKMARKA' } static get table() { return 'stokmarka' } static get tableAlias() { return 'smar' }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'STKMARKA' } static get sinifAdi() { return 'Stok Marka' }
+	static get table() { return 'stokmarka' } static get tableAlias() { return 'smar' }
 }
-class DMQHizmetAnaGrup extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Hizmet Ana Grup' }
-	static get kodListeTipi() { return 'HIZANAGRP' } static get table() { return 'hizanagrup' } static get tableAlias() { return 'agrp' }
+class DMQHizmet extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'HIZ' } static get sinifAdi() { return 'Hizmet' }
+	static get table() { return 'hizmst' } static get tableAlias() { return 'hiz' }
+	static get zeminRenkDesteklermi() { return true }
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		liste.push(
+			new GridKolon({ belirtec: 'brm', text: 'Br', genislikCh: 6 }),
+			new GridKolon({ belirtec: 'grupkod', text: 'Grup', genislikCh: 10 }),
+			new GridKolon({ belirtec: 'grupadi', text: 'Grup Adı', genislikCh: 25, sql: 'grp.aciklama' }),
+			new GridKolon({ belirtec: 'anagrupkod', text: 'Ana Grup', genislikCh: 10, sql: 'grp.anagrupkod' }),
+			new GridKolon({ belirtec: 'anagrupadi', text: 'Ana Grup Adı', genislikCh: 20, sql: 'agrp.aciklama' }),
+			new GridKolon({ belirtec: 'histgrupkod', text: 'İst. Grup', genislikCh: 10 }),
+			new GridKolon({ belirtec: 'histgrupadi', text: 'İst. Grup Adı', genislikCh: 20, sql: 'higrp.aciklama' })
+		)
+	}
+	static loadServerData_queryDuzenle({ sent }) {
+		super.loadServerData_queryDuzenle(...arguments)
+		sent
+			.hizmet2GrupBagla()
+			.hizmetGrup2AnaGrupBagla()
+			.hizmet2IstGrupBagla()
+	}
 }
 class DMQHizmetGrup extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Hizmet Grup' }
-	static get kodListeTipi() { return 'HIZGRP' } static get table() { return 'hizgrup' } static get tableAlias() { return 'grp' }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'HIZGRP' } static get sinifAdi() { return 'Hizmet Grup' }
+	static get table() { return 'hizgrup' } static get tableAlias() { return 'grp' }
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
 		liste.push(
@@ -62,24 +85,62 @@ class DMQHizmetGrup extends DMQKA {
 			new GridKolon({ belirtec: 'anagrupadi', text: 'Ana Grup Adı', genislikCh: 20, sql: 'agrp.aciklama' })
 		)
 	}
-	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.hizmetGrup2AnaGrupBagla() }
+	static loadServerData_queryDuzenle({ sent }) {
+		super.loadServerData_queryDuzenle(...arguments)
+		sent.hizmetGrup2AnaGrupBagla()
+	}
+}
+class DMQHizmetAnaGrup extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'HIZANAGRP' } static get sinifAdi() { return 'Hizmet Ana Grup' }
+	static get table() { return 'hizanagrup' } static get tableAlias() { return 'agrp' }
 }
 class DMQHizmetIstGrup extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Hizmet İst. Grup' }
 	static get kodListeTipi() { return 'HIZISTGRP' } static get table() { return 'hizistgrup' } static get tableAlias() { return 'higrp' }
 }
-class DMQHizmet extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Hizmet' } static get zeminRenkDesteklermi() { return true }
-	static get kodListeTipi() { return 'HIZ' } static get table() { return 'hizmst' } static get tableAlias() { return 'hiz' }
-	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(
+class DMQDemirbas extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'DEM' } static get sinifAdi() { return 'Demirbaş' }
+	static get table() { return 'demmst' } static get tableAlias() { return 'dem' }
+	static get zeminRenkDesteklermi() { return true }
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		liste.push(
 			new GridKolon({ belirtec: 'brm', text: 'Br', genislikCh: 6 }),
-			new GridKolon({ belirtec: 'grupkod', text: 'Grup', genislikCh: 10 }), new GridKolon({ belirtec: 'grupadi', text: 'Grup Adı', genislikCh: 25, sql: 'grp.aciklama' }),
-			new GridKolon({ belirtec: 'anagrupkod', text: 'Ana Grup', genislikCh: 10, sql: 'grp.anagrupkod' }), new GridKolon({ belirtec: 'anagrupadi', text: 'Ana Grup Adı', genislikCh: 20, sql: 'agrp.aciklama' }),
-			new GridKolon({ belirtec: 'histgrupkod', text: 'İst. Grup', genislikCh: 10 }), new GridKolon({ belirtec: 'histgrupadi', text: 'İst. Grup Adı', genislikCh: 20, sql: 'higrp.aciklama' })
+			new GridKolon({ belirtec: 'grupkod', text: 'Grup', genislikCh: 10 }),
+			new GridKolon({ belirtec: 'grupadi', text: 'Grup Adı', genislikCh: 25, sql: 'grp.aciklama' }),
+			new GridKolon({ belirtec: 'anagrupkod', text: 'Ana Grup', genislikCh: 10, sql: 'grp.anagrupkod' }),
+			new GridKolon({ belirtec: 'anagrupadi', text: 'Ana Grup Adı', genislikCh: 20, sql: 'agrp.aciklama' })
 		)
 	}
-	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.hizmet2GrupBagla(); sent.hizmetGrup2AnaGrupBagla(); sent.hizmet2IstGrupBagla() }
+	static loadServerData_queryDuzenle({ sent }) {
+		super.loadServerData_queryDuzenle(...arguments)
+		sent
+			.dem2GrupBagla()
+			.demGrup2AnaGrupBagla()
+	}
+}
+class DMQDemirbasGrup extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'DEMGRP' } static get sinifAdi() { return 'Demirbaş Grup' }
+	static get table() { return 'demgrup' } static get tableAlias() { return 'grp' }
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		liste.push(
+			new GridKolon({ belirtec: 'anagrupkod', text: 'Ana Grup', genislikCh: 10 }),
+			new GridKolon({ belirtec: 'anagrupadi', text: 'Ana Grup Adı', genislikCh: 20, sql: 'agrp.aciklama' })
+		)
+	}
+	static loadServerData_queryDuzenle({ sent }) {
+		super.loadServerData_queryDuzenle(...arguments)
+		sent.demGrup2AnaGrupBagla()
+	}
+}
+class DMQDemirbasAnaGrup extends DMQKA {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'DEMANAGRP' } static get sinifAdi() { return 'Demirbaş Ana Grup' }
+	static get table() { return 'demanagrup' } static get tableAlias() { return 'agrp' }
 }
 class DMQCariTip extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Cari Tip' }
