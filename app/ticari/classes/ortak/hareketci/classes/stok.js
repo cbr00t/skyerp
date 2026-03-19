@@ -118,10 +118,12 @@ class StokHareketci extends Hareketci {
 		}
 	}
 	static mstYapiDuzenle({ result }) {
-		super.mstYapiDuzenle(...arguments); let defHVAlias = 'stokkod'
-		result.set(defHVAlias, ({ mstYapi, secimler: { stokTipi = {} } = {}, sent: { sahalar }, kodClause, mstAlias, mstAdiAlias }) => {
+		super.mstYapiDuzenle(...arguments)
+		let defHVAlias = 'stokkod'
+		result.set(defHVAlias, ({ mstYapi, secimler = {}, sent: { sahalar }, kodClause, mstAlias, mstAdiAlias }) => {
 			let hvAlias, adiClause
-			stokTipi = stokTipi?.tekSecim ?? stokTipi
+			let { stokTipi = {} } = secimler
+			stokTipi = stokTipi.tekSecim ?? stokTipi
 			if (stokTipi.grupmu) { hvAlias = 'grupkod'; adiClause = 'grp.aciklama' }
 			else if (stokTipi.anaGrupmu) { hvAlias = 'anagrupkod'; adiClause = 'agrp.aciklama' }
 			else if (stokTipi.istGrupmu) { hvAlias = 'sistgrupkod'; adiClause = 'sigrp.aciklama' }
@@ -129,6 +131,7 @@ class StokHareketci extends Hareketci {
 			else { hvAlias = defHVAlias; adiClause = 'stk.aciklama' }
 			if (hvAlias)
 				mstYapi.hvAlias = hvAlias
+			// sent.fromIliski(`stkmst ${mstAlias}`, `${kodClause} = ${mstAlias}.kod`)
 			sahalar.add(`${adiClause} ${mstAdiAlias}`)
 		})
 	}

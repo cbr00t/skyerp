@@ -531,9 +531,11 @@ class DRapor_Hareketci_Demirbas_Main extends DRapor_Hareketci_Main {
 	}
 	tabloYapiDuzenle({ result }) {
 		result
-			.addKAPrefix('anagrup', 'grup', 'masraf')
+			.addKAPrefix('anagrup', 'grup', 'masraf', 'demcinsi')
 			.addGrupBasit('DEMANAGRP', 'Dem. Ana Grup', 'anagrup', DMQDemirbasAnaGrup)
 			.addGrupBasit('DEMGRP', 'Dem. Grup', 'grup', DMQDemirbasGrup)
+			.addGrupBasit('DEMCINSI', 'Dem. Cinsi', 'demcinsi', DemirbasCinsi, null, ({ item }) =>
+				item.kodsuz().noOrderBy().setSql_hv())
 			.addGrupBasit_fiyat('FIYAT', 'Fiyat', 'fiyat', null, null, ({ item }) => item.setSql_hv())
 		this.tabloYapiDuzenle_demirbasVeMasraf(...arguments)                                                // demirbas + masraf
 		result.addToplamBasit('MIKTAR', 'Miktar', 'miktar', null, null, ({ item }) => item.setSql_hv())

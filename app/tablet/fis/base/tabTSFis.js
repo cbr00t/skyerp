@@ -21,14 +21,14 @@ class TabTSFis extends TabFis {
 		super.pTanimDuzenle(...arguments)
 		$.extend(pTanim, { yerKod: new PInstStr('yerkod') })
 	}
-	static async loadServerDataDogrudan({ offlineRequest, offlineMode }) {
+	static async loadServerDataDogrudan({ offlineRequest, offlineMode } = {}) {
 		/*if (!offlineRequest) {
 			let cacheClasses = [MQTabStok]
 			await Promise.allSettled(cacheClasses.map(_ => _.getGloKod2Rec()))
 		}*/
 		return await super.loadServerDataDogrudan(...arguments)
 	}
-	static async loadServerData_detaylar({ offlineRequest, offlineMode }) {
+	static async loadServerData_detaylar({ offlineRequest, offlineMode } = {}) {
 		if (!offlineRequest) {
 			let cacheClasses = [MQTabStok]
 			await Promise.allSettled(cacheClasses.map(_ => _.getGloKod2Rec()))

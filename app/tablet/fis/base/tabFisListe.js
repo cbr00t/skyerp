@@ -23,7 +23,8 @@ class TabFisListe extends TabFis {
 			fisTipi = false
 			let {tip2Sinif} = this
 			let p = new $.Deferred()
-			let secince = ({ value: fisTipi }) => p.resolve(fisTipi)
+			let secince = ({ value: fisTipi }) =>
+				p.resolve(fisTipi)
 			let kapaninca = () => p.resolve()
 			MQTabBelgeTipi.listeEkraniAc({ secince, kapaninca })
 			fisTipi = await p ?? false
@@ -34,7 +35,6 @@ class TabFisListe extends TabFis {
 				return null
 			throw { rc: 'fisTipi', errorText: 'Fiş Tipi belirlenemedi' }
 		}
-			// return null
 		let inst = new fisSinif({ ...args })
 		if (rec) {
 			await inst.keySetValues({ ...arguments, rec, sayac: undefined })

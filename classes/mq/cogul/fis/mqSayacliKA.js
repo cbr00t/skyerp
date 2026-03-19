@@ -3,7 +3,7 @@ class MQSayacliKA extends MQSayacli {
 	static get idSaha() { return this.kodKullanilirmi ? this.kodSaha : super.idSaha }
 	static get kodKullanilirmi() { return true } static get adiKullanilirmi() { return true }
 	static logRecDonusturucuDuzenle({ result }) {
-		super.logRecDonusturucuDuzenle(...arguments);
+		super.logRecDonusturucuDuzenle(...arguments)
 		let {kodSaha} = this.class
 		result[kodSaha] = 'xkod'
 	}

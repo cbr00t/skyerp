@@ -246,4 +246,21 @@ class SkyRaporApp extends TicariApp {
 		}*/
 		return new FRMenu({ items })
 	}
+	async getNavBarMenu(e) {
+		await super.getNavBarMenu(e)
+		let { frMenu_nav: orjMenu, frMenu_nav: { items } } = this
+		let frMenu = new FRMenu()
+		let sabitIdSet_ilk = asSet(['FAV'])
+		let sabitIdSet_son = asSet(['DRAPOR_PARAM'])
+		let sabitIdSet = { ...sabitIdSet_ilk, ...sabitIdSet_son }
+		let moveItems = items.filter(_ => !sabitIdSet[_.id])
+		if (!empty(moveItems)) {
+			items = frMenu.items = [
+				...items.filter(_ => sabitIdSet_ilk[_.id]),
+				new FRMenuCascade({ mne: 'SUB', text: 'Raporlar', items: moveItems }),
+				...items.filter(_ => sabitIdSet_son[_.id])
+			]
+		}
+		return frMenu
+	}
 }

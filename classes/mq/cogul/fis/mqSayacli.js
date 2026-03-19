@@ -76,8 +76,11 @@ class MQSayacli extends MQCogul {
 		if (zeminRenkDesteklermi)
 			sahalar.add(`${aliasVeNokta}oscolor`)
 	}
-	tekilOku_queryDuzenle(e) {
+	tekilOku_queryDuzenle(e = {}) {
 		super.tekilOku_queryDuzenle(e)
+		let { keyHV } = e
+		if (!empty(keyHV))
+			return
 		let {sayac, kod, class: { aliasVeNokta, sayacSaha, kodKullanilirmi, kodSaha}} = this
 		let {sent, sent: { where: wh }} = e
 		if (sayacSaha && sayac) { wh.liste = []; wh.degerAta(sayac, `${aliasVeNokta}${sayacSaha}`) }

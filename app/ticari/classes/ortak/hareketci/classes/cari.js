@@ -30,6 +30,7 @@ class CariHareketci extends Hareketci {
 			else { hvAlias = defHVAlias; adiClause = 'car.birunvan' }
 			if (hvAlias)
 				mstYapi.hvAlias = hvAlias
+			// sent.fromIliski(`carmst ${mstAlias}`, `${kodClause} = ${mstAlias}.must`)
 			sahalar.add(`${adiClause} ${mstAdiAlias}`)
 		})
 	}

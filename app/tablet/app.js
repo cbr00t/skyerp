@@ -3,10 +3,27 @@ class TabletApp extends TicariApp {
 	static get yerelParamSinif() { return MQYerelParam } get configParamSinif() { return MQYerelParamConfig_App }
 	get offlineMode() { return super.offlineMode ?? true } set offlineMode(value) { super.offlineMode = value }
 	get dbMgrClass() { return SqlJS_DBMgr } get defaultOfflineRequestChunkSize() { return 4 } // get autoExecMenuId() { return MQTest.kodListeTipi }
-	get sicakVeyaSogukmu() { return this.sicakmi || this.sogukmu } get rotaKullanilirmi() { return this.sicakVeyaSogukmu }
+	get sicakVeyaSogukmu() { return this.sicakmi || this.sogukmu }
+	get rotaKullanilirmi() { return this.sicakVeyaSogukmu }
 	get defaultLoginTipi() { return this.sicakVeyaSogukmu ? 'plasiyerLogin' : super.defaultLoginTipi }
 	get cache() { return this._cache }
 	set cache(value) { this._cache = value }
+	get uygunFisTipleri() {
+		let { cache, cache: { _uygunFisTipleri: result } } = this
+		if (result === undefined) {
+			result = cache._uygunFisTipleri = []
+			this.uygunFisTipleriDuzenle({ result })
+		}
+		return result
+	}
+	get numYapilar() {
+		let { cache, cache: { _numYapilar: result } } = this
+		if (result === undefined) {
+			result = cache._numYapilar = {}
+			this.numYapilarDuzenle({ result })
+		}
+		return result
+	}
 	get subeKod() {
 		let {cache, cache: { _subeKod: result }} = this
 		if (result === undefined) {
@@ -46,7 +63,8 @@ class TabletApp extends TicariApp {
 		let {cache, cache: { _offlineBilgiYukleGonderOrtakSiniflar: result }} = this
 		if (!result)
 			result = cache._offlineBilgiYukleGonderOrtakSiniflar = [
-				MQTicNumarator, MQTabStok, MQTabCari
+				// MQTicNumarator,
+				MQTabStok, MQTabCari
 			]
 		return result
 	}
@@ -54,7 +72,7 @@ class TabletApp extends TicariApp {
 		let {cache, cache: { _offlineBilgiYukleSiniflar: result }} = this
 		if (!result) {
 			result = cache._offlineBilgiYukleSiniflar = [
-				MQParam, MQTabDokumForm, MQTabCariBakiye,
+				MQParam, MQTabDokumForm, MQTabNum, MQTabCariBakiye,
 				MQTabTahsilSekli, MQTabSube, MQTabYer, MQTabNakliyeSekli,
 				MQTabCariTip, MQTabSevkAdres, MQPaket, MQUrunPaket, MQTabUgramaNeden,
 				MQTabKasa, MQTabStokAnaGrup, MQTabStokGrup, MQTabStokMarka,
@@ -104,7 +122,7 @@ class TabletApp extends TicariApp {
 		loginTipleri.push(...[
 			(sicakVeyaSogukmu ? null : { kod: 'login', aciklama: 'VIO Kullanıcısı' }),
 			{ kod: 'plasiyerLogin', aciklama: 'Plasiyer' }
-		].filter(x => !!x))
+		].filter(Boolean))
 	}
 	paramsDuzenle({ params }) {
 		super.paramsDuzenle(...arguments)
@@ -149,6 +167,7 @@ class TabletApp extends TicariApp {
 			items.push(new FRMenuChoice({ mne, text, block: e => mfSinif.listeEkraniAc(e) }))
 		}
 		items.push(new FRMenuChoice({ mne: 'BILGIGONDER', text: 'Bilgi Gönder', block: e => this.bilgiGonderIstendi(e) }))
+		addMenuSubItems(null, null, [MQTabNum])
 		{
 			let mfSinif = MQTabletParam, {kodListeTipi: mne, sinifAdi: text} = mfSinif
 			items.push(new FRMenuChoice({ mne, text, block: e => this.params.tablet.tanimla(e) }))
@@ -189,6 +208,26 @@ class TabletApp extends TicariApp {
 				}
 			}
 		}
+	}
+	uygunFisTipleriDuzenle(e) {
+		this.uygunFisTipleriDuzenle_ilk(e)
+		this.uygunFisTipleriDuzenle_ara(e)
+		this.uygunFisTipleriDuzenle_son(e)
+	}
+	uygunFisTipleriDuzenle_ilk({ result }) {
+		result.push(...[
+            TabUgramaFis
+        ].map(_ => _.kodListeTipi))
+	}
+	uygunFisTipleriDuzenle_ara({ result }) { }
+	uygunFisTipleriDuzenle_son({ result }) {
+		result.push(...[
+            TabTahsilatFis
+        ].map(_ => _.kodListeTipi))
+	}
+	numYapilarDuzenle({ result }) {
+		let { uygunFisTipleri } = this
+		debugger
 	}
 	async bilgiYukleIstendi(e) {
 		let {offlineBilgiYukleSiniflar: classes, offlineClearTableSiniflar: clearClasses} = this

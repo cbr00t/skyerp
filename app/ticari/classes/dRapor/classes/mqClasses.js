@@ -105,20 +105,24 @@ class DMQDemirbas extends DMQKA {
 	static get table() { return 'demmst' } static get tableAlias() { return 'dem' }
 	static get zeminRenkDesteklermi() { return true }
 	static orjBaslikListesiDuzenle({ liste }) {
+		let { tableAlias: alias } = this
 		super.orjBaslikListesiDuzenle(...arguments)
 		liste.push(
 			new GridKolon({ belirtec: 'brm', text: 'Br', genislikCh: 6 }),
 			new GridKolon({ belirtec: 'grupkod', text: 'Grup', genislikCh: 10 }),
 			new GridKolon({ belirtec: 'grupadi', text: 'Grup Adı', genislikCh: 25, sql: 'grp.aciklama' }),
 			new GridKolon({ belirtec: 'anagrupkod', text: 'Ana Grup', genislikCh: 10, sql: 'grp.anagrupkod' }),
-			new GridKolon({ belirtec: 'anagrupadi', text: 'Ana Grup Adı', genislikCh: 20, sql: 'agrp.aciklama' })
+			new GridKolon({ belirtec: 'anagrupadi', text: 'Ana Grup Adı', genislikCh: 20, sql: 'agrp.aciklama' }),
+			new GridKolon({ belirtec: 'cinstext', text: 'Dem. Cinsi', genislikCh: 20, sql: DemirbasCinsi.getClause(`${alias}.demcinsi`) })
 		)
 	}
-	static loadServerData_queryDuzenle({ sent }) {
+	static loadServerData_queryDuzenle({ sent, sent: { sahalar } }) {
+		let { tableAlias: alias } = this
 		super.loadServerData_queryDuzenle(...arguments)
 		sent
 			.dem2GrupBagla()
 			.demGrup2AnaGrupBagla()
+		sahalar.add(`${alias}.demcinsi`)
 	}
 }
 class DMQDemirbasGrup extends DMQKA {

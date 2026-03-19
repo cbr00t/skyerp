@@ -1,5 +1,7 @@
 class DRapor_AraSeviye extends DGrupluPanelRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get tekilBuildCount() { return 1 }
+
 	/* static get altRaporClassPrefix() { return this.name } */
 	get dvKodListe() {
 		let {_dvKodListe: result} = this
@@ -229,13 +231,24 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	async loadServerDataInternal(e) {
 		await super.loadServerDataInternal(e)
-		let {raporTanim, secimler} = this, attrSet = e.attrSet ?? raporTanim.attrSet
-		let {maxRow, donemBS} = e
-		let _e = { ...e, stm: new MQStm(), attrSet, donemBS, raporTanim, secimler, maxRow, donemBS }
-		let recs = await this.loadServerData_ilk(_e); if (recs !== undefined) { return recs }
-		if (this.loadServerData_queryDuzenle_tekil(_e) === false) { return null }
-		if (this.loadServerData_queryDuzenle_tekilSonrasi(_e) === false) { return null }
-		if (this.loadServerData_queryDuzenle_genelSon(_e) === false) { return null }
+		let { rapor, raporTanim, secimler } = this
+		let { tekilBuildCount } = rapor.class
+		let attrSet = e.attrSet ?? raporTanim.attrSet
+		let { maxRow, donemBS } = e
+		let _e = { ...e, attrSet, donemBS, raporTanim, secimler, maxRow, donemBS }
+		let recs = await this.loadServerData_ilk(_e)
+		if (recs !== undefined)
+			return recs
+		tekilBuildCount ||= 1    // eldeki varlıklarda ilk query düzenlemede temp değişkenlerle alakalı muhtemel sorun yüzünden ilk tazelede sapıtıyor
+		for (let i = 0; i < tekilBuildCount; i++) {
+			_e.stm = new MQStm()
+			if (this.loadServerData_queryDuzenle_tekil(_e) === false)
+				return null
+			if (this.loadServerData_queryDuzenle_tekilSonrasi(_e) === false)
+				return null
+			if (this.loadServerData_queryDuzenle_genelSon(_e) === false)
+				return null
+		}
 		let {stm: query} = _e
 		try {
 			recs = e.recs = query ? await app.sqlExecSelect({ query, maxRow }) : null
@@ -252,7 +265,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	super_loadServerDataInternal(e) { return super.loadServerDataInternal(e) }
 	async loadServerData_ilk(e) {
-		let {attrSet, yatayAnaliz} = e;
+		let {attrSet, yatayAnaliz} = e
 		if (yatayAnaliz && keys(attrSet).length == 1 && attrSet.DB) {
 			let {session} = config, {dbName: buDBName} = session, {ekDBListe} = app.params?.dRapor ?? {}, alias_db = 'db';
 			let {secimler: sec} = this, {value: filtreDBListe} = sec.db ?? {}

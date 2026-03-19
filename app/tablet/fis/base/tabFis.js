@@ -2,7 +2,8 @@ class TabFis extends MQDetayliGUID {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, '_dipIslemci'] }
 	static get araSeviyemi() { return this == TabFis }
-	static get fisTipi() {return this.kodListeTipi } static get sinifAdi() { return 'Tablet Fiş' }
+	static get fisTipi() { return this.kodListeTipi }
+	static get sinifAdi() { return 'Tablet Fiş' }
 	static get table() { return 'tabfis' } static get tableAlias() { return 'fis' }
 	static get detaySinif() { return TabDetay } static get sayacSaha() { return 'id' }
 	static get tanimUISinif() { return TabFisGirisPart } static get secimSinif() { return null }
@@ -13,9 +14,10 @@ class TabFis extends MQDetayliGUID {
 	static get gonderildiDesteklenirmi() { return true }
 	static get offlineFis() { return true } static get almSat() { return null }
 	static get satismi() { return this.almSat == 'T' } static get alimmi() { return this.almSat == 'A' }
-	static get numTipKod() { return this.fisTipi || 'TB' }
-	static get numKod() { return 'TB' }
-	static get defaultSeri() { return 'TAB' } static get _bedelKullanilirmi() { return false }
+	get numTipKod() { return this.fisTipi || 'TB' }
+	get numBelirtec() { return this.class.getNumKod(this.numTipKod, this.eIslTip, this.yildizlimi) }
+	get defaultSeri() { return 'TAB' }
+	static get _bedelKullanilirmi() { return false }
 	static get mustZorunlumu() { return true }
 	static get dokumFormTip_normal() { return null }
 	static get dokumFormTip_eIslem() { return this.dokumFormTip_normal }
@@ -42,10 +44,11 @@ class TabFis extends MQDetayliGUID {
 		return result
 	}
 	get numYapi() {
-		let {numTipKod: tip, numKod: belirtec, defaultSeri: seri} = this.class
+		let { defaultSeri: seri, numTipKod: tip, numBelirtec: belirtec } = this
 		let aciklama = 'Sky Tablet'
-		return tip ? new MQTicNumarator({ tip, belirtec, aciklama, seri }) : null
+		return tip ? new MQTabNum({ tip, belirtec, aciklama, seri }) : null
 	}
+	get onlineOtoNumKullanilirmi() { return true }
 	get kosulYapilar() { return this._kosulYapilar }
 	set kosulYapilar(value) { this._kosulYapilar = value }
 	get fisNox() { return this.tsn?.asText() }
@@ -193,6 +196,33 @@ class TabFis extends MQDetayliGUID {
 		}
 		return recs
 	}
+
+	static getNumKod(e, _eIslTip, _yildizlimi) {
+		let objmi = isObject(e)
+		let tip = objmi ? e.tip : e
+		let eIslTip = objmi ? e.eIslTip : _eIslTip
+		let yildizlimi = objmi ? e.yildizli ?? e.yildizlimi : _yildizlimi
+		let yildizText = isString(yildizlimi) ? yildizlimi : (yildizlimi ? '!' : '')
+		// TF, TF|E, TF|A|!, TI|IR, BT, ...
+		return [tip, eIslTip, yildizText]
+			.join(delimWS)
+			.trimEnd(delimWS)
+	}
+	async numaratorBelirle(e = {}) {
+		let { numarator: num, numYapi } = this
+		if (!numYapi)
+			return this
+		if (num && num.tip == numYapi.tip && num.kod == numYapi.kod)
+			return this
+		num = this.numarator = numYapi.deepCopy()
+		await (num._promise = num.yukle())
+		if (this.seri != num.seri) {
+			this.seri = num.seri
+			this.fisNo = null
+		}
+		return this
+	}
+	
 	async uiGirisOncesiIslemler(e) {
 		this._promise_ready = new $.Deferred()
 		await super.uiGirisOncesiIslemler(e)
@@ -417,8 +447,10 @@ class TabFis extends MQDetayliGUID {
 		this._prev.plasiyerKod = value
 	}
 	async mustDegisti({ oldValue = this._prev.mustKod, value = this.mustKod }) {
-		if (!(oldValue && value == oldValue))
+		if (!(oldValue && value == oldValue)) {
 			await this.satisKosullariOlusturWithReset(...arguments)
+			await this.numaratorBelirle(...arguments)
+		}
 		this._prev.mustKod = value
 	}
 
@@ -461,15 +493,17 @@ class TabFis extends MQDetayliGUID {
 	async satisKosullariOlustur(e) { return this }
 	static async yeniInstOlustur(e = {}) {
 		let { gridPart = e.sender, islem, rec, rowIndex, args = {} } = e
-		let {gonderildiDesteklenirmi, gonderimTSSaha} = this
-		let {fisTipi} = rec ?? {}
+		let { gonderildiDesteklenirmi, gonderimTSSaha } = this
+		let { fisTipi } = rec ?? {}
 		let degistirmi = islem == 'degistir'
 		let silmi = islem == 'sil'
 		let gonderimTS = gonderildiDesteklenirmi ? rec?.[gonderimTSSaha] : null
-		if (silmi) {let gonderimTS = rec[gonderimTSSaha]
+		if (silmi) {
+			let gonderimTS = rec[gonderimTSSaha]
 			if (gonderimTS)
 				throw { isError: true, errorText: 'Merkeze gönderilmiş belgeler silinemez' }
-			let {tip2Sinif} = this, cls = tip2Sinif[fisTipi]
+			let { tip2Sinif } = this
+			let cls = tip2Sinif[fisTipi]
 			if (cls?.tahsilatmi) {
 				let {dev, session: { isAdmin } = {}} = config
 				if (!(dev && isAdmin))
@@ -491,8 +525,8 @@ class TabFis extends MQDetayliGUID {
 		oFis = _e.oFis
 		if (!oFis)
 			return null
-		let {numarator: num} = oFis
-		if (num) {
+		let { numarator: num } = oFis
+		if (num && fis.onlineOtoNumKullanilirmi) {
 			let fis = this
 			app.online()
 			try {
@@ -706,6 +740,7 @@ class TabFis extends MQDetayliGUID {
 					rfb.run()
 				},
 				content: async ({ item, layout }) => {
+					let sonNo = num?.sonNo ?? 0
 					let rfb = getBuilder(layout)
 					// rfb.addStyle_fullWH(null, 350)
 					{
@@ -722,7 +757,7 @@ class TabFis extends MQDetayliGUID {
 								let value = oldValue?.toUpperCase()
 								inst.seriDegisti({ ...rest, ...e, builder, id, input, altInst, value })
 							})
-						form.addNumberInput('fisNo', 'No', undefined, num?.sonNo).etiketGosterim_yok()
+						form.addNumberInput('fisNo', 'No', undefined, sonNo + 1).etiketGosterim_yok()
 							.addStyle(`$elementCSS { max-width: 200px }`)
 							.setMin(0).setMax(999999999).setMaxLength(9)
 							.degisince(({ value }) =>

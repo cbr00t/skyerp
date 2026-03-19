@@ -116,8 +116,10 @@ class MQKod extends MQCogul {
 		if (zeminRenkDesteklermi)
 			sahalar.add(`${aliasVeNokta}oscolor`)
 	}
-	tekilOku_queryDuzenle({ sent, sent: { where: wh, sahalar } }) {
+	tekilOku_queryDuzenle({ keyHV, sent, sent: { where: wh, sahalar } }) {
 		super.tekilOku_queryDuzenle(...arguments)
+		if (!empty(keyHV))
+			return
 		let {kodUyarlanmis: kod, class: { aliasVeNokta, kodSaha }} = this
 		if (kodSaha && kod)
 			wh.degerAta(kod, aliasVeNokta + kodSaha)

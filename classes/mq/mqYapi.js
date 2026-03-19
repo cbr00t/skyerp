@@ -40,11 +40,11 @@ class MQYapi extends CIO {
 		e.islem ||= 'yeni'
 		let keyHV = this.alternateKeyHostVars(e);
 		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e, _e = { offlineMode, trnId };
-		if (!$.isEmptyObject(keyHV)) {
+		if (!empty(keyHV)) {
 			$.extend(_e, { keyHV }); let result = await this.varmi(_e); delete _e.keyHV;
 			if (result) { throw { isError: true, rc: 'duplicateRecord', errorText: 'Kayıt tekrarlanıyor' } }
 		}
-		await this.yeniOncesiIslemler(e); let hv = this.hostVars(e); if (!$.isEmptyObject(keyHV)) { $.extend(hv, keyHV) }
+		await this.yeniOncesiIslemler(e); let hv = this.hostVars(e); if (!empty(keyHV)) { $.extend(hv, keyHV) }
 		let {table} = this.class; let query = _e.query = new MQInsert({ table, hv });
 		let result = await this.sqlExecNone(_e); await this.yeniSonrasiIslemler({ ...e, ..._e }); return result
 	}
@@ -52,11 +52,11 @@ class MQYapi extends CIO {
 		if (!isPlainObject(e)) { e = { islem: 'degistir', eskiInst: e } }
 		await this.degistirOncesiIslemler(e)
 		let {table} = this.class; let keyHV = this.keyHostVars({ ...e, varsayilanAlma: true }) ?? {};
-		let altKeyHV = this.alternateKeyHostVars({ ...e, varsayilanAlma: true }); if (!$.isEmptyObject(altKeyHV)) { $.extend(keyHV, altKeyHV) }
+		let altKeyHV = this.alternateKeyHostVars({ ...e, varsayilanAlma: true }); if (!empty(altKeyHV)) { $.extend(keyHV, altKeyHV) }
 		let sent = new MQSent({ from: table, where: { birlestirDict: keyHV }, sahalar: '*' });
 		let basRec = await this.sqlExecTekil(sent), hv = this.hostVars(e), degisenHV = degisimHV(hv, basRec);
 		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e, _e = { offlineMode, trnId }; 
-		let result = true; if (!$.isEmptyObject(degisenHV)) {
+		let result = true; if (!empty(degisenHV)) {
 			let query = _e.query = new MQIliskiliUpdate({ from: table, where: { birlestirDict: keyHV }, set: { birlestirDict: degisenHV } });
 			result = await this.sqlExecNone(_e)
 		}
@@ -64,12 +64,22 @@ class MQYapi extends CIO {
 	}
 	async sil(e = {}) {
 		e.islem ||= 'sil'
-		let keyHV = this.keyHostVars({ ...e, varsayilanAlma: true }) ?? {};
-		let altKeyHV = this.alternateKeyHostVars({ ...e, varsayilanAlma: true }); if (!$.isEmptyObject(altKeyHV)) { $.extend(keyHV, altKeyHV) }
-		if ($.isEmptyObject(keyHV)) { return true }
-		await this.silmeOncesiIslemler(e); let {table} = this.class; let query = new MQIliskiliDelete({ from: table, where: { birlestirDict: keyHV } });
-		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e, _e = { offlineMode, trnId, query }; let result = await this.sqlExecNone(_e);
-		await this.silmeSonrasiIslemler({ ...e, ..._e }); return result
+		let keyHV = this.keyHostVars({ ...e, varsayilanAlma: true }) ?? {}
+		if (empty(keyHV)) {
+			let altKeyHV = this.alternateKeyHostVars({ ...e, varsayilanAlma: true })
+			if (!empty(altKeyHV))
+				extend(keyHV, altKeyHV)
+		}
+		if (empty(keyHV))
+			return true
+		await this.silmeOncesiIslemler(e)
+		let {table} = this.class
+		let query = new MQIliskiliDelete({ from: table, where: { birlestirDict: keyHV } })
+		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode
+		let {trnId} = e, _e = { offlineMode, trnId, query }
+		let result = await this.sqlExecNone(_e)
+		await this.silmeSonrasiIslemler({ ...e, ..._e })
+		return result
 	}
 	static async oku(e) {
 		let inst = new this(e);
@@ -111,7 +121,7 @@ class MQYapi extends CIO {
 		return true
 	}
 	async kayitSayisi(e) {
-		e = e || {}; let keyHV = e.keyHV || this.alternateKeyHostVars(e); if ($.isEmptyObject(keyHV)) { return 0 }
+		e = e || {}; let keyHV = e.keyHV || this.alternateKeyHostVars(e); if (empty(keyHV)) { return 0 }
 		let {table} = this.class; let query = new MQSent({ from: table, where: { birlestirDict: keyHV }, sahalar: 'COUNT(*) sayi' });
 		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e, _e = { offlineMode, trnId, query };
 		let result = await this.sqlExecTekilDeger(_e); return result
@@ -149,8 +159,8 @@ class MQYapi extends CIO {
 		let {islem} = e; if (islem == 'degistir') {
 			let {isOfflineMode, gonderildiDesteklenirmi, gonderimTSSaha} = this.class;
 			if (isOfflineMode && gonderildiDesteklenirmi && gonderimTSSaha) {
-				let keyHV = this.alternateKeyHostVars(e); if ($.isEmptyObject(keyHV)) { keyHV = this.keyHostVars(e) }
-				if (!$.isEmptyObject(keyHV)) {
+				let keyHV = this.alternateKeyHostVars(e); if (empty(keyHV)) { keyHV = this.keyHostVars(e) }
+				if (!empty(keyHV)) {
 					let {table} = this.class, {trnId} = e;
 					let query = new MQSent({ from: table, where: [`${gonderimTSSaha} <> ''`, { birlestirDict: keyHV }], sahalar: 'count(*) sayi' });
 					let _e = { trnId, isOfflineMode, query }; let result = await this.sqlExecTekilDeger(_e);
@@ -238,8 +248,8 @@ class MQYapi extends CIO {
 	alternateKeyHostVars(e) {
 		let _e = { ...e, hv: {} }; this.class.varsayilanKeyHostVarsDuzenle(_e); let hv = _e.hv;
 		_e.hv = {}; this.alternateKeyHostVarsDuzenle(_e); let _hv = _e.hv;
-		if ($.isEmptyObject(_hv)) { _hv = _e.hv = this.keyHostVars(e) }
-		if (!$.isEmptyObject(_hv)) { $.extend(hv, _hv) }
+		if (empty(_hv)) { _hv = _e.hv = this.keyHostVars(e) }
+		if (!empty(_hv)) { $.extend(hv, _hv) }
 		return hv
 	}
 	alternateKeyHostVarsDuzenle(e) { }
@@ -263,7 +273,7 @@ class MQYapi extends CIO {
 	static gonderildiIsaretiKaldir(e = {}) { return this.gonderildiIsaretiKoyKaldir({ ...e, flag: false }) }
 	static async gonderildiIsaretiKoyKaldir(e = {}) {
 		let {gonderildiDesteklenirmi, gonderimTSSaha} = this, {keyHV, flag} = e
-		if (!(flag != null && gonderildiDesteklenirmi && gonderimTSSaha && !$.isEmptyObject(keyHV)))
+		if (!(flag != null && gonderildiDesteklenirmi && gonderimTSSaha && !empty(keyHV)))
 			return false
 		let {table} = this
 		let query = new MQIliskiliUpdate({
@@ -586,17 +596,21 @@ class MQYapi extends CIO {
 			if (v !== undefined)
 				hv[k] = v
 		}
-		let autoIncSet = asSet(['sayac', 'kaysayac'])
-		if (primaryKeys && $.isArray(primaryKeys))
+		if (primaryKeys && isArray(primaryKeys))
 			primaryKeys = asSet(primaryKeys)
 		if (!primaryKeys)
 			primaryKeys = asSet(keys(priHV))
-		for (let [k, v] of entries(hv)) {
-			let autoInc = autoIncSet[k]
-			if (!autoInc)
-				continue
-			primaryKeys = asSet([k])
-			break
+		
+		// let autoIncSet = asSet(['sayac', 'kaysayac'])
+		let autoIncSet = {}
+		if (empty(primaryKeys)) {
+			for (let [k, v] of entries(hv)) {
+				let autoInc = autoIncSet[k]
+				if (!autoInc)
+					continue
+				primaryKeys = asSet([k])
+				break
+			}
 		}
 		let hasMultiPK = keys(primaryKeys)?.length > 1
 		let atFirst = true, i = 0, c = keys(hv).length

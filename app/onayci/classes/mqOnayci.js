@@ -518,6 +518,13 @@ class MQOnayci extends MQCogul {
 			let eDocs = [], eDocCount = 0, aborted = false
 			let pm = showProgress('Belge İçeriği hazırlanıyor...', islemAdi, true, () => aborted = true)
 			pm.setProgressMax(xmlFileNames.length * 3)
+
+			if (!window.XSLTProcessor) {
+				showProgress('XSLT İşleyicisi modülü yükleniyor...')
+				try { await loadLib_xslt() }
+				catch (ex) { cerr(ex) }
+				finally { hideProgress() }
+			}
 			
 			let { tip2Yapi } = this
 			let errors = []
@@ -537,7 +544,7 @@ class MQOnayci extends MQCogul {
 					let remoteFile = [eIslAltBolum, subDirName, xmlDosyaAdi].filter(_ => _).join('/')
 					if (aborted)
 						break
-					
+
 					let xsltProcessor
 					try { xsltProcessor = new XSLTProcessor() }
 					catch (ex) { cerr(ex) }

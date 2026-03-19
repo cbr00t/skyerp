@@ -14,7 +14,8 @@ class MQTicNumarator extends MQNumarator {
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		extend(pTanim, {
-			sayac: new PInstNum(this.sayacSaha), tip: new PInstStr('tip'),
+			sayac: new PInstNum(this.sayacSaha),
+			tip: new PInstStr('tip'),
 			noYil: new PInstNum({ rowAttr: 'noyil' /*, init: e => app.params.zorunlu.cariYil || today().getYear() */ })
 		})
 	}

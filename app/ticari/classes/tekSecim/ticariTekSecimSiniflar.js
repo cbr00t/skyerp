@@ -139,14 +139,36 @@ class FisHesapSekli extends TekSecim {
 }
 class StokTip extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kodListeTipi() { return 'STKTIP' } static get sinifAdi() { return 'Stok Tipi' }
+	static get kodListeTipi() { return 'STKTIP' }
+	static get sinifAdi() { return 'Stok Tipi' }
 	static get defaultChar() { return 'TC' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)
 		kaListe.push(
-			new CKodVeAdi(['M', 'Mamul']), new CKodVeAdi(['H', 'Hammadde']), new CKodVeAdi(['Y', 'Yarı Mamul']),
-			new CKodVeAdi(['A', 'Ambalaj']), new CKodVeAdi(['U', 'Hurda']), new CKodVeAdi(['SR', 'Sarj Malzemesi']),
-			new CKodVeAdi(['YM', 'Yardımcı Malzeme']), new CKodVeAdi(['TC', 'Ticari Mal']), new CKodVeAdi([' ', 'Diğer'])
+			new CKodVeAdi(['M', 'Mamul']),
+			new CKodVeAdi(['H', 'Hammadde']),
+			new CKodVeAdi(['Y', 'Yarı Mamul']),
+			new CKodVeAdi(['A', 'Ambalaj']),
+			new CKodVeAdi(['U', 'Hurda']),
+			new CKodVeAdi(['SR', 'Sarj Malzemesi']),
+			new CKodVeAdi(['YM', 'Yardımcı Malzeme']),
+			new CKodVeAdi(['TC', 'Ticari Mal']),
+			new CKodVeAdi([' ', 'Diğer'])
+		)
+	}
+}
+class DemirbasCinsi extends TekSecim {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'DEMCINS' }
+	static get sinifAdi() { return 'Demirbaş Cinsi' }
+	static get defaultChar() { return ' ' }
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		kaListe.push(
+			new CKodVeAdi([' ', 'Gayrımenkul']),
+			new CKodVeAdi(['M', 'Menkul']),
+			new CKodVeAdi(['B', 'Binek Oto']),
+			new CKodVeAdi(['X', 'Amortisman Dışı'])
 		)
 	}
 }

@@ -82,7 +82,9 @@ class MQNumarator extends MQKA {
 	async yukle(e) {
 		e = e || {}; let {rec} = e;
 		if (!rec) {
-			let {kod, seri} = this; if (!kod && seri == null) { return false }
+			let {kod, seri} = this
+			if (!kod && seri == null)
+				return false
 			let sent = new MQSent({
 				from: this.class.table, sahalar: 'sonno',
 				where: seri == null ? { birlestirDict: this.keyHostVars(e) } : { birlestirDict: this.alternateKeyHostVars(e) }

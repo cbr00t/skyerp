@@ -77,7 +77,7 @@ class Hareketci_MstYapi extends CObject {
 		delete _e.where
 		if (_e.mstKodClause && !_e.kodClause) { _e.kodClause = _e.mstKodClause; delete _e.mstKodClause }
 		if (_e.mstAdiClause && !_e.adiClause) { _e.adiClause = _e.mstAdiClause; delete _e.mstAdiClause }
-		getFuncValue.call(this, handler, _e);
+		handler?.call?.(this, _e)
 		sent = _e.sent; wh = _e.where ?? sent?.where; $.extend(e, { sent, wh })
 		return this
 	}

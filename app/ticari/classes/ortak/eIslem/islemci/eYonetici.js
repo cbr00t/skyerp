@@ -136,7 +136,14 @@ class EYonetici extends CObject {
 		for (let rec of recs) { let {pstip, uuid} = rec; if (uuid) { (ps2Recs[pstip] = ps2Recs[pstip] || []).push(rec) } }
 		let uuid2Result = e.uuid2Result = e.uuid2Result || {};
 		if (!empty(ps2Recs)) {
-			let divContainer = $(`<div/>`)[0]; let eDocCount = 0;
+			if (!window.XSLTProcessor) {
+				showProgress('XSLT İşleyicisi modülü yükleniyor...')
+				try { await loadLib_xslt() }
+				catch (ex) { cerr(ex) }
+				finally { hideProgress() }
+			}
+			let divContainer = $(`<div/>`)[0]
+			let eDocCount = 0
 			for (let psTip in ps2Recs) {
 				let _recs = ps2Recs[psTip];
 				for (let rec of _recs) {
@@ -169,9 +176,18 @@ class EYonetici extends CObject {
 						if (Base64.isValid(xsltData))
 							xsltData = Base64.decode(xsltData)
 						let xslt = $.parseXML(xsltData)
-						let xsltProcessor = new XSLTProcessor()
-						xsltProcessor.importStylesheet(xslt)
-						let eDoc = xsltProcessor.transformToFragment(xml, document);
+						let xsltProcessor, eDoc
+						try {
+							(xsltProcessor = new XSLTProcessor()).importStylesheet(xslt)
+							eDoc = xsltProcessor.transformToFragment(xml, document)
+						}
+						catch (ex) {
+							xsltProcessor = 'api'
+							let xmlURL = remoteFile
+							let html = await app.wsXSLTTransformAsStream({ data: { xmlData, xsltData } })
+							if (html)
+								eDoc = $(html)
+						}
 						if (!eDoc) {
 							console.error({ isError: true, rc: 'xsltTransform', errorText: 'XSLT Görüntüsü oluşturulamadı', source: xsltProcessor })
 							continue

@@ -669,6 +669,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		}
 		if (promises.length) {
 			let results = await Promise.allSettled(promises)
+			mfSinif?.globalleriSil()
 			let errors = results
 				.filter(_ => _.status != 'fulfilled')
 				.map(_ => `<li>${getErrorText(_.reason)}</li>`)
