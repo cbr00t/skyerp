@@ -9,7 +9,7 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 	get yatayAnalizVarmi() { return !!this.yatayAnaliz?.char }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
-		$.extend(pTanim, {
+		extend(pTanim, {
 			devreDisimi: new PInstBitBool('bdevredisi'),
 			yatayAnaliz: new PInstTekSecim('yatayanaliz', SBTabloYatayAnaliz)
 		})
@@ -106,21 +106,23 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 				let {secimler} = det
 				for (let [key, _secim] of entries(data)) {
 					let secim = secimler?.[key]
-					if (secim) { $.extend(secim, _secim) }
+					if (secim) { extend(secim, _secim) }
 				}
 			}
 			catch (ex) { console.error('SBTablo::yukleSonrasiIslemler', 'secimler json', 'bozuk veri', data, ex) }
 		}
 	}
 	async kaydetSonrasiIslemler({ trnId }) {
-		await super.kaydetSonrasiIslemler(...arguments); let yDetaylar = [...this.detaylar]
-		await this.detaylariYukle(...arguments); let {detaylar} = this
+		await super.kaydetSonrasiIslemler(...arguments)
+		let yDetaylar = [...this.detaylar]
+		await this.detaylariYukle(...arguments)
+		let {detaylar} = this
 		// detayların 'okunanHarSayac' bilgilerine ihtiyaç var, yazma sonrası detaylara atanmaz
-		detaylar.forEach((det, i) =>
+		;detaylar.forEach((det, i) =>
 			yDetaylar[i].okunanHarSayac = det.okunanHarSayac)
-		let harID2SecimData = {};
+		let harID2SecimData = {}
 		for (let {okunanHarSayac: harid, secimler} of yDetaylar) {
-			secimler ??= {}; let {asObject: data} = secimler;
+			secimler ??= {}; let {asObject: data} = secimler
 			harID2SecimData[harid] = empty(data) ? null : Base64.encode(toJSONStr(data))
 		}
 		let hvListe = []; for (let [harid, data] of entries(harID2SecimData)) {
@@ -173,7 +175,7 @@ class SBTabloDetay extends MQDetay {
 			let value = this[key]
 			// value = value?.kod ?? value
 			if (typeof value == 'object')
-				value = value?.deepCopy?.() ?? $.extend(true, {}, value) ?? value
+				value = value?.deepCopy?.() ?? extend(true, {}, value) ?? value
 			if (value !== undefined)
 				result[key] = value
 		}
@@ -251,7 +253,7 @@ class SBTabloDetay extends MQDetay {
 		this.secimlerOlustur(e)
 	}
 	static pTanimDuzenle({ pTanim }) {
-		$.extend(pTanim, {
+		extend(pTanim, {
 			aciklama: new PInstStr('aciklama'), tersIslemmi: new PInstBitBool('bnegated'),
 			seviyeNo: new PInstTekSecim('seviyeno', SBTabloSeviye), hesapTipi: new PInstTekSecim('hesaptipi', SBTabloHesapTipi),
 			veriTipi: new PInstTekSecim('shveritipi', SBTabloVeriTipi), shStokHizmet: new PInstTekSecim('shstokhizmet', SBTabloStokHizmet),
@@ -269,7 +271,7 @@ class SBTabloDetay extends MQDetay {
 			[KasaHareketci.kisaKod]: { mst: DMQKasa, grup: DMQKasaGrup },
 			[BankaMevduatHareketci.kisaKod]: { mst: DMQBankaHesap, grup: DMQBankaHesapGrup }*/
 		}
-		$.extend(e, { tip2Secimler, tip2SecimMFYapi })
+		extend(e, { tip2Secimler, tip2SecimMFYapi })
 		let harSiniflar = SBTabloHesapTipi.kaListe.map( ({ ekBilgi }) => ekBilgi?.harSinif ).filter(x => x)
 		{
 			for (let harSinif of harSiniflar)
@@ -288,7 +290,7 @@ class SBTabloDetay extends MQDetay {
 			if (secimler)
 				continue
 			secimler = tip2Secimler[tip] = e.secimler = new Secimler()
-			$.extend(secimler, { secimEkWhereDuzenle: tip2EkWhereDuzenleyici[tip] })
+			extend(secimler, { secimEkWhereDuzenle: tip2EkWhereDuzenleyici[tip] })
 			secimler.beginUpdate()
 			SBRapor_Main.maliTablo_basSecimlerDuzenle({ ...e, secimler })
 			for (let [key, mfSinif] of entries(yapi)) {
@@ -321,13 +323,13 @@ class SBTabloDetay extends MQDetay {
 	}
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments); let {okunanHarSayac: id} = this
-		id ||= newGUID(); $.extend(hv, { id })
+		id ||= newGUID(); extend(hv, { id })
 		let {hesapTipi: { formulmu, ekBilgi: { querymi } = {} } = {}} = this
 		if (!(querymi || formulmu)) { hv.bnegated = false }
 	}
 	setValues({ rec }) {
 		super.setValues(...arguments)
-		/* $.extend(this, { satirListeStr }) */
+		/* extend(this, { satirListeStr }) */
 	}
 	inExp_hostVarsDuzenle(e) {
 		super.inExp_hostVarsDuzenle(e); let {hv} = e
@@ -345,7 +347,7 @@ class SBTabloDetay extends MQDetay {
 			return
 		let {detayli, raporTanim, subeKodlari, sentDuzenle: genelSentDuzenle, yatayAnalizVarmi, yatayAnaliz} = e
 		let {rapor, rapor: { tabloYapi, sahaAlias: bedelAlias } = {}, secimler = rapor?.secimler, donemBS = rapor.tarihBS} = e
-		if ($.isPlainObject(donemBS))
+		if (isPlainObject(donemBS))
 			donemBS = new CBasiSonu(donemBS)
 		let durum = e.durum = {
 			stokmu: querymi && (!hareketcimi || ticarimi) && (shStokHizmet.birliktemi || shStokHizmet.stokmu),
@@ -361,7 +363,7 @@ class SBTabloDetay extends MQDetay {
 		let {ekBilgi = {}, donemTipi} = veriTipi
 		let {sentUygunluk, sentDuzenle: icerikSentDuzenle} = ekBilgi
 		let sumSahalar = asSet([bedelAlias, 'fmalhammadde', 'fmalmuh', 'malhammadde', 'malmuh'])
-		$.extend(e, {
+		extend(e, {
 			rapor, raporTanim, aciklama, hesapTipi, veriTipi, shStokHizmet, hareketcimi, maliTablomu: true,
 			bedelAlias, donemTipi, donemBS, secimler, detSecimler, sumSahalar
 		})
@@ -371,7 +373,7 @@ class SBTabloDetay extends MQDetay {
 				sec.secimEkWhereDuzenle?.({ ...e, secimler: sec, where: wh, harSinif }))
 			; {
 				(secimler = secimler.deepCopy()).beginUpdate()
-				$.extend(secimler.liste, { ...detSecimler.liste })
+				extend(secimler.liste, { ...detSecimler.liste })
 				let whereBlockListe = secimler.whereBlockListe ??= []
 				let {whereBlockListe: detWhereBlockListe} = detSecimler
 				if (detWhereBlockListe)
@@ -403,15 +405,16 @@ class SBTabloDetay extends MQDetay {
 					let {alias2Deger} = sent, {shTipi: shTipiClause} = alias2Deger
 					if (shTipiClause) {
 						let shTipiStr = shTipiClause.replaceAll(`'`, '')
-						$.extend(e, { stokmu: shTipiStr == 'S', hizmetmi: shTipiStr == 'H' })
+						extend(e, { stokmu: shTipiStr == 'S', hizmetmi: shTipiStr == 'H' })
 					}
 					basitHV = alias2Deger
-					$.extend(hv, { ...basitHV })
+					extend(hv, { ...basitHV })
 				}
 				let {where: wh, sahalar} = sent
 				let donemBSVarmi = e.donemBSVarmi = donemBS?.bosDegilmi ?? false
 				if (donemBSVarmi) {
-					let tarihBS = e.tarihBS = donemBS.deepCopy(); if (donemTipi) {
+					let tarihBS = e.tarihBS = donemBS.deepCopy()
+					if (donemTipi) {
 						tarihBS.basi = null
 						if (donemTipi == 'B')
 							tarihBS.sonu = donemBS.basi.clone().addDays(-1)
@@ -422,7 +425,7 @@ class SBTabloDetay extends MQDetay {
 					wh.inDizi(subeKodlari, (hv.bizsubekod || 'fis.bizsubekod'))
 				wh.add(`${hv.ozelisaret ?? 'fis.ozelisaret'} <> 'X'`)
 				sent.sahalarReset()
-				$.extend(e, { sent, where: wh, sahalar, hv })
+				extend(e, { sent, where: wh, sahalar, hv })
 				if (detayli) {
 					let {sahalar} = sent
 					for (let [alias, deger] of entries(basitHV)) {
@@ -434,7 +437,7 @@ class SBTabloDetay extends MQDetay {
 				sent = e.sent; wh = sent.where
 				{
 					let alias2Deger = e.alias2Deger = sent.alias2Deger
-					$.extend(hv, { ...alias2Deger })
+					extend(hv, { ...alias2Deger })
 					for (let sahaAlias of sahaAliases)
 						// detaylı ise orj hv değerini override yap, toplam ise sadece yoksa ekle
 						if (!alias2Deger[sahaAlias])
@@ -536,7 +539,7 @@ class SBTabloDetay extends MQDetay {
 			if (sent.sahalar.liste.length)
 				uni.add(sent)
 		}
-		$.extend(e, { har, defHV, attrSet })
+		extend(e, { har, defHV, attrSet })
 		return this
 	}
 	async hareketKartiGoster({ rapor, raporTanim }) {
@@ -559,7 +562,7 @@ class SBTabloDetay extends MQDetay {
 			let colDefs = cls.orjBaslikListesi.filter(_ => _.belirtec != kodSaha)
 			{
 				let _ = colDefs.find(_ => _.belirtec == adiSaha)
-				$.extend(_, { text: yatayEtiket, genislikCh: null })
+				extend(_, { text: yatayEtiket, genislikCh: null })
 			}
 			let recs = yatayDegerler.map(_ => new CKodVeAdi([_, _]))
 			let promise = new $.Deferred()
@@ -605,7 +608,7 @@ class SBTabloDetay extends MQDetay {
 			fbd_content.addGridliGosterici('grid').addStyle_fullWH()
 				.rowNumberOlmasin().notAdaptive()
 				.setTabloKolonlari(colDefs).setSource(recs)
-				.widgetArgsDuzenleIslemi(({ args }) => $.extend(args, { columnsResize: false, showFilterRow: true, selectionMode: 'checkbox', columnsHeight: 18 }))
+				.widgetArgsDuzenleIslemi(({ args }) => extend(args, { columnsResize: false, showFilterRow: true, selectionMode: 'checkbox', columnsHeight: 18 }))
 				/*.veriYukleninceIslemi(() => {
 					let {recs, gridWidget: w} = gridPart
 					for (let i = 0; i < recs.length; i++)
@@ -672,7 +675,7 @@ class SBTabloDetay extends MQDetay {
 				sahalar.add(`'${db}' db`)
 			}*/
 		}
-		$.extend(e, { konsolide, detayli: true, detay: this, ekAttrListe, sentDuzenle })
+		extend(e, { konsolide, detayli: true, detay: this, ekAttrListe, sentDuzenle })
 		let cls = class extends MQCogul {
 			static get kodListeTipi() { return harSinif.kod } static get sinifAdi() { return `${harSinif.aciklama} Hareket Kartı` }
 			static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false } static get secimSinif() { return null }
@@ -682,7 +685,7 @@ class SBTabloDetay extends MQDetay {
 			}
 			static orjBaslikListesi_argsDuzenle({ args }) {
 				super.orjBaslikListesi_argsDuzenle(...arguments)
-				$.extend(args, {
+				extend(args, {
 					showGroupsHeader: true, showStatusBar: true,
 					showAggregates: true, showGroupAggregates: true, groupsExpandedByDefault: true
 				})
@@ -800,7 +803,7 @@ class SBTabloGridci extends GridKontrolcu {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	gridArgsDuzenle({ args }) {
 		super.gridArgsDuzenle(...arguments);
-		$.extend(args, { selectionMode: 'checkbox', groupable: false, sortable: false, filterable: false })
+		extend(args, { selectionMode: 'checkbox', groupable: false, sortable: false, filterable: false })
 	}
 	ekCSSDuzenle({ belirtec, rec, result }) {
 		if (rec.seviyeNo.seviye1mi) { result.push('bold fs-130') }
@@ -862,7 +865,7 @@ class SBTabloGridci extends GridKontrolcu {
 				.onClick(({ gridRec }) => {
 					let {secimler} = gridRec, {activeWndPart: parentPart} = app;
 					let part = secimler.duzenlemeEkraniAc({ parentPart: '', tamamIslemi: e => {} });
-					$.extend(part, { parentPart });
+					extend(part, { parentPart });
 					defineProperty(part, 'canDestroy', { get: () => true })
 				})*/
 		].filter(x => !!x))
@@ -1107,7 +1110,7 @@ class SBTabloGridci extends GridKontrolcu {
 				let {gridWidget} = this, {altInst} = fbd, {char: mevcutSeviye} = altInst.seviyeNo;
 				let recs = gridWidget.getboundrows(), buRec = e?.args?.row?.bounddata;
 				return recs.filter(rec => rec != buRec /*&& rec.seviyeNo?.char == mevcutSeviye*/)
-					.map(rec => rec.deepCopy?.() ?? $.extend(true, {}, rec))
+					.map(rec => rec.deepCopy?.() ?? extend(true, {}, rec))
 			})
 			.veriYukleninceIslemi(({ builder: fbd }) => {
 				let {part: gridPart, altInst: inst} = fbd, {grid, gridWidget} = gridPart;

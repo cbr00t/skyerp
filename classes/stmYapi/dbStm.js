@@ -5,48 +5,68 @@ class MQStm extends MQDbCommand {
 	get siraliSahaVeDegerler() { let result = []; for (let sent of this.getSentListe()) { result.push(sent.alias2Deger) }; return result }
 	get siraliSahalar() { return this.siraliSahaVeDegerler.map(dict => keys(dict)) }
 	get debugListe() { return this.sent.liste.map(sent => ({ from: sent.from.toString(), sahalar: sent.sahalar.toString(), where: sent.where.liste.join(' ') })) }
-	constructor(e) {
-		e = e || {}; super(e); $.extend(this, {
+	constructor(e = {}) {
+		super(e)
+		extend(this, {
 			with: (isPlainObject(e.with) ? new MQWith(e.with) : e.with) || new MQWith(),
 			sent: (isPlainObject(e.sent) ? new MQSent(e.sent) : e.sent) || new MQSent(),
-			orderBy: ((isArray(e.orderBy) || isPlainObject(e.orderBy) || typeof e.orderBy == 'string' ? new MQOrderByClause(e.orderBy) : e.orderBy)) || new MQOrderByClause(),
+			orderBy: ((isArray(e.orderBy) || isPlainObject(e.orderBy) || typeof e.orderBy == 'string'
+					   ? new MQOrderByClause(e.orderBy)
+					   : e.orderBy)) || new MQOrderByClause(),
 			limit: e.limit, offset: e.offset
 		})
 	}
-	asToplamStm(e) {
-		e = e ?? {}; let {with: buWith, sent} = this;
-		let {toplamTable} = this.class, orjToplamTable = toplamTable, i;
-		while (!!buWith.hasTable(toplamTable)) { i = i || 1; toplamTable = `${orjToplamTable}${++i}` }
-		$.extend(e, { toplamTable, toplamInd: i });
-		let stm = sent.asToplamStm(e), {with: newWith} = stm;
-		if (buWith?.liste?.length) { newWith.liste.unshift(...buWith.liste) }
+	asToplamStm(e = {}) {
+		let {with: buWith, sent} = this
+		let {toplamTable} = this.class
+		let i, orjToplamTable = toplamTable
+		while (!!buWith.hasTable(toplamTable)) {
+			i ||= 1
+			toplamTable = `${orjToplamTable}${++i}`
+		}
+		extend(e, { toplamTable, toplamInd: i })
+		let stm = sent.asToplamStm(e), {with: newWith} = stm
+		if (!empty(buWith?.liste))
+			newWith.liste.unshift(...buWith.liste)
 		return stm
 	}
-	asToplamStmWithOrderBy(e) { return this.sent.asToplamStmWithOrderBy(e) }
+	asToplamStmWithOrderBy(e) {
+		return this.sent.asToplamStmWithOrderBy(e)
+	}
 	birlestir(stmOrSent) {
-		let digerSent = stmOrSent?.sent ?? stmOrSent, digerWith = stmOrSent?.with;
+		let digerSent = stmOrSent?.sent ?? stmOrSent
+		let digerWith = stmOrSent?.with
 		if (digerSent) {
-			let {sent} = this; sent = this.sent = sent.asUnionAll();
-			if (digerSent.liste === undefined || digerSent.liste.length) { sent.add(digerSent?.liste ?? digerSent) }
+			let {sent} = this; sent = this.sent = sent.asUnionAll()
+			if (digerSent.liste === undefined || !empty(digerSent.liste))
+				sent.add(digerSent?.liste ?? digerSent)
 		}
-		if (digerWith?.liste) { this.with.add(digerWith.liste) }
+		if (digerWith?.liste)
+			this.with.add(digerWith.liste)
 		return this
 	}
 	birlestirWithOrderBy(stmOrSent) {
-		this.birlestir(stmOrSent); let digerOrderBy = stmOrSent.orderBy;
-		if (digerOrderBy?.liste?.length) { this.orderBy.add(digerOrderBy.liste) }
+		this.birlestir(stmOrSent)
+		let { orderBy } = this, { orderBy: digerOrderBy } = stmOrSent
+		if (!empty(digerOrderBy?.liste))
+			orderBy.add(digerOrderBy.liste)
 		return this
 	}
-	fromGridWSArgs(e) {
-		e = e || {}; for (let sent of this) { sent.fromGridWSArgs(e) }
-		this.orderBy.fromGridWSArgs(e);
-		let pageNum = e.pagenum || e.pageNum || e.pageIndex || 0, pageSize = e.pagesize || e.pageSize;
+	fromGridWSArgs(e = {}) {
+		for (let sent of this)
+			sent.fromGridWSArgs(e)
+		this.orderBy.fromGridWSArgs(e)
+		let pageNum = e.pagenum || e.pageNum || e.pageIndex || 0
+		let pageSize = e.pagesize || e.pageSize
 		if (pageNum != null && pageSize && !asBool(e.rowCountOnly)) {
-			let offset /*= this.offset*/ = (e.recordstartindex ?? e.recordStartIndex ?? e.startindex ?? e.startIndex ?? pageNum * pageSize);
-			let limit /*= this.limit*/ = offset == null ? null : (pageSize || 0); if (limit != null) { limit += 5 }
-			let top = limit == null ? null : (offset || 0) + limit;
-			this.limit = top == null ? null : top * 2;
-			if (top != null && this.top == null) { this.top = top }
+			let offset = (e.recordstartindex ?? e.recordStartIndex ?? e.startindex ?? e.startIndex ?? pageNum * pageSize)
+			let limit = offset == null ? null : (pageSize || 0)
+			if (limit != null)
+				limit += 5
+			let top = limit == null ? null : (offset || 0) + limit
+			this.limit = top == null ? null : top * 2
+			if (top != null && this.top == null)
+				this.top = top
 		}
 	}
 	getSentListe(e) { return this.sent.getSentListe(e) }
@@ -76,7 +96,7 @@ class MQTmpTable extends MQDbCommand {
 		e = e || {}; super(e);
 		if (isArray(e)) { e = { sahalar: e } } else if (typeof e != 'object') { e = { sahalar: [e] } }
 		this.sahalar = []; const _liste = e.sahalar || e.liste; if (!$.isEmptyObject(_liste)) { this.addAll(_liste) }
-		$.extend(this, { table: e.table, sent: (isPlainObject(e.sent) ? new MQSent(e.sent) : e.sent ) || new MQSent() })
+		extend(this, { table: e.table, sent: (isPlainObject(e.sent) ? new MQSent(e.sent) : e.sent ) || new MQSent() })
 	}
 	add(e) { if (e || (typeof e == 'number')) { this.sahalar.push(e) } return this }
 	addAll(coll) {

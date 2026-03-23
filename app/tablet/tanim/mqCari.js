@@ -83,7 +83,7 @@ class MQTabCari extends MQKAOrtak {
 		super.orjBaslikListesiDuzenle(...arguments); let {tableAlias: alias} = this
 		liste.push(
 			...this.getKAKolonlar(
-				new GridKolon({ belirtec: 'tipkod', text: 'Tip', genislikCh: 5, filterType: 'checkedlist' }),
+				new GridKolon({ belirtec: 'tipkod', text: 'Tip', genislikCh: 8, filterType: 'checkedlist' }),
 				new GridKolon({ belirtec: 'tipadi', text: 'Tip Adı', genislikCh: 13, sql: 'ctip.aciklama', filterType: 'checkedlist' })
 			),
 			new GridKolon({ belirtec: 'yore', text: 'Yöre', genislikCh: 20 }),
@@ -255,7 +255,8 @@ class MQTabCari extends MQKAOrtak {
 			let kodSet = asSet(kodListe)
 			recs = recs.filter(_ => kodSet[_.kod])
 		}
-		let kod2RiskKod = fromEntries(recs.map(_ => [_.kod, _.kontipkod == 'S' ? _.konsolidemusterikod : _.kod]))
+		let kod2RiskKod = fromEntries(recs.map(({ kod, kontipkod, konsolidemusterikod }) =>
+			[kod, kontipkod == 'S' ? konsolidemusterikod : kod]))
 		let kod2Rec = fromEntries(recs.map(_ => [_.kod, _]))
 		if (bakiyeRisk) {
 			let riskKodListe = keys(asSet(values(kod2RiskKod)))
@@ -268,7 +269,9 @@ class MQTabCari extends MQKAOrtak {
 		return kod2Rec
 	}
 	static async getCariEkBilgi(e = {}) {
-		let {kod} = e
+		if (!isObject(e))
+			e = { kod: e }
+		let { kod } = e
 		if (!kod)
 			return null
 		let {[kod]: rec} = await this.getCariEkBilgiler(e)

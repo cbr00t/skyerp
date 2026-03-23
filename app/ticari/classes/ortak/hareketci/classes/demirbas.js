@@ -270,8 +270,8 @@ class DemirbasHareketci extends Hareketci {
 			sube: DMQSube,
 			subeGrup: DMQSubeGrup,
 			mst: DMQDemirbas,
-			grup: DMQDemGrup,
-			anaGrup: DMQDemAnaGrup,
+			grup: DMQDemirbasGrup,
+			anaGrup: DMQDemirbasAnaGrup,
 			masraf: DMQMasraf
 		})
 	}

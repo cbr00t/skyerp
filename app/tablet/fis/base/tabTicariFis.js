@@ -13,7 +13,7 @@ class TabTicariFis extends TabTSFis {
 	// static get dokumFormTip_eIslem() { return this.dokumFormTip_normal }
 	static get defaultEIslTip() { return '' }
 	get defaultEIslTip() {
-		return (app.params.tablet.efatKullanirmi ?? true) && !this.yildizlimi
+		return !this.yildizlimi && (app.params.tablet.efatKullanirmi ?? true)
 			? this.class.defaultEIslTip
 			: ''
 	}
@@ -141,8 +141,7 @@ class TabTicariFis extends TabTSFis {
 
 	async mustDegisti({ oldValue = this._prev.mustKod, value = this.mustKod }) {
 		if (!(oldValue && value == oldValue)) {
-			await this.satisKosullariOlusturWithReset(...arguments)
-			let {efaturakullanirmi: efatmi} = await MQTabCari.getCariEkBilgi({ kod: value })
+			let { efaturakullanirmi: efatmi } = await MQTabCari.getCariEkBilgi({ kod: value })
 			this.eIslTip = this.defaultEIslTip
 		}
 		await super.mustDegisti(...arguments)

@@ -41,7 +41,7 @@ class HizmetHareketci extends Hareketci {
 	ilkIslemler({ secimler: sec }) {
 		super.ilkIslemler(...arguments)
 		let { uygunluk } = this
-		this.tahminiHizmetAlinmasin = sec.tahminiHizmetAlinmasin.value
+		this.tahminiHizmetAlinmasin = sec.tahminiHizmetAlinmasin?.value
 	}
 	uniOrtakSonIslem({ hvDegeri, sent, sent: { from } }) {
 		super.uniOrtakSonIslem(...arguments)

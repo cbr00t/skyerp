@@ -568,7 +568,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			let {kaydedince: _kaydedince} = e ?? {}, kaydedince = e => { this.tazele(e); _kaydedince?.call(this, e) };
 			return inst.tanimla({ parentPart: this, islem: _e.islem, listePart: _e.listePart, tanimOncesiEkIslemler, kaydedince })
 		}
-		catch (ex) { hConfirm(getErrorText(ex), 'Yeni'); throw ex }
+		catch (ex) { throw ex }
 	}
 	async degistirIstendi(e) {
 		e ??= {}; let {tanimOncesiEkIslemler, gridWidget} = this;

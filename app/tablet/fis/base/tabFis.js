@@ -14,9 +14,11 @@ class TabFis extends MQDetayliGUID {
 	static get gonderildiDesteklenirmi() { return true }
 	static get offlineFis() { return true } static get almSat() { return null }
 	static get satismi() { return this.almSat == 'T' } static get alimmi() { return this.almSat == 'A' }
-	get numTipKod() { return this.fisTipi || 'TB' }
-	get numBelirtec() { return this.class.getNumKod(this.numTipKod, this.eIslTip, this.yildizlimi) }
+	get numTipKod() { return this.class.fisTipi || 'TB' }
+	get numKod() { return this.class.getNumKod(this.numTipKod, this.eIslTip, this.yildizlimi) }
 	get defaultSeri() { return 'TAB' }
+	get eIslemmi() { return !this.yildizlimi && this.eIslTip }
+	get eFatmi() { return this.eIslemmi && this.eIslTip != 'A' }
 	static get _bedelKullanilirmi() { return false }
 	static get mustZorunlumu() { return true }
 	static get dokumFormTip_normal() { return null }
@@ -44,9 +46,9 @@ class TabFis extends MQDetayliGUID {
 		return result
 	}
 	get numYapi() {
-		let { defaultSeri: seri, numTipKod: tip, numBelirtec: belirtec } = this
+		let { defaultSeri: seri, numKod: kod } = this
 		let aciklama = 'Sky Tablet'
-		return tip ? new MQTabNum({ tip, belirtec, aciklama, seri }) : null
+		return kod ? new MQTabNum({ kod, aciklama, seri }) : null
 	}
 	get onlineOtoNumKullanilirmi() { return true }
 	get kosulYapilar() { return this._kosulYapilar }
@@ -86,8 +88,6 @@ class TabFis extends MQDetayliGUID {
 		else {
 			if (!offlineBuildQuery) {
 				let num = this.numarator ??= this.numYapi?.deepCopy()
-				if (num)
-					num._promise = num.yukle()
 				this.dvKod ||= 'TL'
 				this.fisNo ||= null
 				;['subeKod', 'mustKod', 'plasiyerKod'].forEach(k => {
@@ -101,7 +101,7 @@ class TabFis extends MQDetayliGUID {
 	}
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
-		$.extend(pTanim, {
+		extend(pTanim, {
 			plasiyerKod: new PInstStr('plasiyerkod'),
 			tarih: new PInstDateToday('tarih'),
 			subeKod: new PInstStr('bizsubekod'),
@@ -208,17 +208,19 @@ class TabFis extends MQDetayliGUID {
 			.join(delimWS)
 			.trimEnd(delimWS)
 	}
-	async numaratorBelirle(e = {}) {
+	async numaratorBelirle({ sender: tanimPart } = {}) {
 		let { numarator: num, numYapi } = this
-		if (!numYapi)
-			return this
-		if (num && num.tip == numYapi.tip && num.kod == numYapi.kod)
-			return this
-		num = this.numarator = numYapi.deepCopy()
-		await (num._promise = num.yukle())
-		if (this.seri != num.seri) {
-			this.seri = num.seri
-			this.fisNo = null
+		if (!(num && num.kod == numYapi.kod))
+			num = this.numarator = numYapi?.deepCopy()
+		if (num) {
+			let res = await (num._promise = num.yukle())
+			if (!res)
+				await num.kaydet()
+			if (num.seri != this.seri) {
+				this.seri = num.seri
+				this.fisNo = null
+				tanimPart?.txtFisNo?.attr('placeholder', num.sonNo + 1)
+			}
 		}
 		return this
 	}
@@ -239,25 +241,15 @@ class TabFis extends MQDetayliGUID {
 	async yeniTanimOncesiIslemler(e) {
 		await this.topluHesapla(e)
 		await super.yeniTanimOncesiIslemler(e)
-		let fis = this, {numarator: num} = this
-		if (num) {
-			await num?._promise
-			if (!this.fisNo) {
-				$.extend(this, {
-					seri: num.seri ?? this.seri,
-					noYil: num.noYil ?? this.noYil,
-					fisNo: null
-				})
-			}
-		}
+		await this.mustDegisti({ ...e })
 	}
 	async yukleSonrasiIslemler({ islem }) {
 		// this.dipOlustur()
 		let e = arguments[0]
 		await super.yukleSonrasiIslemler(e)
+		this.noYil = this.eIslemmi ? today().yil : 0
 		this.topluHesapla(e)
-		let fis = this, {detaylar} = this
-		detaylar.forEach(det =>
+		this.detaylar.forEach(det =>
 			det.htmlOlustur?.())
 	}
 	async uiKaydetOncesiIslemler(e) {
@@ -299,14 +291,14 @@ class TabFis extends MQDetayliGUID {
 		await this._promise_topluHesapla
 		await super.kaydetOncesiIslemler(e)
 		let yeniVeyaKopyami = islem == 'yeni' || islem == 'kopya'
-		let {eIslTip, fisNo, numarator: num} = this
-		if (eIslTip)
+		let { eIslemmi, fisNo, numarator: num } = this
+		if (eIslemmi)
 			this.uuid ||= newGUID()
 		this.fisSonuc = this.fisTopNet		
 		if (yeniVeyaKopyami) {
 			this.sayac = null
 			if (!fisNo && num) {
-				if (!num.sayac)
+				if (!num.id)
 					await num.kaydet()
 				while (true) {
 					await num.kesinlestir()
@@ -344,7 +336,7 @@ class TabFis extends MQDetayliGUID {
 		super.varsayilanKeyHostVarsDuzenle(...arguments)
 		let {fisTipi} = this
 		if (fisTipi != null)
-			$.extend(hv, { fisTipi })
+			extend(hv, { fisTipi })
 	}
 	keyHostVarsDuzenle({ hv }) {
 		super.keyHostVarsDuzenle(...arguments)
@@ -358,7 +350,7 @@ class TabFis extends MQDetayliGUID {
 	}
 	kopyaIcinDuzenle(e) {
 		super.kopyaIcinDuzenle(e)
-		$.extend(this, { fisNo: null, tarih: today() })
+		extend(this, { fisNo: null, tarih: today() })
 		if (this.sevkTS)
 			this.sevkTS = now()
 	}
@@ -426,7 +418,7 @@ class TabFis extends MQDetayliGUID {
 	tarihDegisti({ value = this.tarih }) {
 		this.satisKosullariOlusturWithReset(...arguments)
 	}
-	async seriDegisti({ builder: fbd, input, altInst, oldValue = this._prev.seri?.toUpperCase(), value = this.seri?.toUpperCase() }) {
+	async seriDegisti({ tanimPart, builder: fbd, input, altInst, oldValue = this._prev.seri?.toUpperCase(), value = this.seri?.toUpperCase() }) {
 		if (oldValue == value)
 			return
 		input?.val(value)
@@ -436,20 +428,20 @@ class TabFis extends MQDetayliGUID {
 			let { sonNo } = num
 			num.seri = value
 			await num.yukle()
-			if (num.sonNo != sonNo && fbd) {
-				let { fisNo: { input: txtFisNo } = {} } = fbd.parentBuilder ?? {}
-				txtFisNo?.attr('placeholder', sonNo)
-			}
+			if (num.sonNo != sonNo && fbd)
+				tanimPart?.txtFisNo?.attr('placeholder', sonNo)
 		}
 		this._prev.seri = value
 	}
 	plasiyerDegisti({ oldValue = this._prev.plasiyerKod, value = this.plasiyerKod }) {
 		this._prev.plasiyerKod = value
 	}
-	async mustDegisti({ oldValue = this._prev.mustKod, value = this.mustKod }) {
+	async mustDegisti({ acc, oldValue = this._prev.mustKod, value = this.mustKod }) {
 		if (!(oldValue && value == oldValue)) {
 			await this.satisKosullariOlusturWithReset(...arguments)
 			await this.numaratorBelirle(...arguments)
+			this.noYil = this.eIslemmi ? today().yil : 0
+			acc?.render()
 		}
 		this._prev.mustKod = value
 	}
@@ -629,21 +621,68 @@ class TabFis extends MQDetayliGUID {
 		return dokumFormlar[tip]
 	}
 	getDokumFormTip(e) {
-		let eIslemmi = !this.yildizlimi && this.eIslTip
+		let { eIslemmi } = this
 		return this[`dokumFormTip_${eIslemmi ? 'eIslem' : 'normal'}`]
 	}
 	async dokumGetValue({ tip, key } = {}) {
+		let e = arguments[0]
 		switch (key) {
+			case 'musteriKod': case 'mustKod':
+				return this.mustKod
+			case 'mustUnvan': case 'mustUnvan1': case 'mustUnvan2':
+			case 'musteriUnvan': case 'musteriUnvan1': case 'musteriUnvan2':
+				return MQTabCari.getGloKod2Rec().then(d => d[this.mustKod]?.aciklama)
+			case 'musteriAdres': case 'musteriAdres1': case 'musteriAdres2':
+				return MQTabCari.getGloKod2Rec().then(d => d[this.mustKod]?.adres)
+			case 'mustYore': case 'musteriYore':
+				return MQTabCari.getGloKod2Rec().then(d => d[this.mustKod]?.yore)
+			case 'mustIl': case 'musteriIl':
+				let { ilkod: kod } = await MQTabCari.getGloKod2Rec().then(d => d[this.mustKod]) ?? {}
+				if (!kod)
+					return ''
+				return MQTabIl.getGloKod2Rec().then(d => d[kod]?.aciklama)
+			case 'mustYoreVeIl': case 'musteriYoreVeIl': {
+				let yore = await this.dokumGetValue({ ...e, key: 'mustYore' })
+				let ilAdi = await this.dokumGetValue({ ...e, key: 'mustIl' })
+				return [yore, ilAdi]
+					.filter(Boolean)
+					.join('/')
+			}
+			case 'mustVergiDaire': case 'musteriVergiDaire':
+				return MQTabCari.getGloKod2Rec().then(d => d[this.mustKod]?.vdaire)
+			case 'mustVKN': case 'musteriVKN':
+				return MQTabCari.getGloKod2Rec().then(d => {
+					let { sahismi, tckimlikno: tckn, vnumara: vkn } = d[this.mustKod] ?? {}
+					return asBool(sahismi) ? tckn : vkn
+				})
+			case 'mustVergiDaireVeVKN': case 'musteriVergiDaireVeVKN': {
+				let vDaire = await this.dokumGetValue({ ...e, key: 'mustVergiDaire' })
+				let vkn = await this.dokumGetValue({ ...e, key: 'mustVKN' })
+				return [vDaire, vkn]
+					.filter(Boolean)
+					.join(' - ')
+			}
+			case 'efSenaryoTipi': {
+				let { eIslTip, class: { satismi, iademi } } = this
+				let { efatKullanirmi: efatVarmi } = app.params.tablet
+				efatVarmi ??= true
+				if (!efatVarmi)
+					return ''
+				return (
+					eIslTip == 'IR' ? 'TEMELIRSALIYE' :
+					eIslTip == 'E' ? (satismi == iademi ? 'IADE' : 'SATIS') :
+					'EARSIVFATURA'
+				)
+			}
 			case 'fisTipText':
 				return this.class.sinifAdi
 			case 'eIslText': {
-				let {efatKullanirmi} = app.params.tablet
-				let {eIslTip: _} = this
-				efatKullanirmi ??= true
+				let { eIslTip: _ } = this, { efatKullanirmi: efatVarmi } = app.params.tablet
+				efatVarmi ??= true
 				return (
 					_ == 'E' ? 'e-Fatura' :
 					_ == 'IR' ? 'e-İrsaliye' :
-					_ ? (efatKullanirmi ? 'e-Arşiv' : '')
+					_ ? (efatVarmi ? 'e-Arşiv' : '')
 					: eIslTip
 				)
 			}
@@ -762,6 +801,8 @@ class TabFis extends MQDetayliGUID {
 							.setMin(0).setMax(999999999).setMaxLength(9)
 							.degisince(({ value }) =>
 								inst.fisNo = value || null)
+							.onAfterRun(({ builder: { input } }) =>
+								tanimPart.txtFisNo = input)
 					}
 					await this.rootFormBuilderDuzenle_tablet_acc_baslik({ ...e, rfb, item, layout })
 					{
@@ -784,7 +825,7 @@ class TabFis extends MQDetayliGUID {
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_baslikOncesi({ sender: tanimPart, inst: fis, rfb }) { }
 	static async rootFormBuilderDuzenle_tablet_acc_baslikCollapsed({ sender: tanimPart, inst: fis, rfb }) {
-		let {mustKod, eIslTip} = fis
+		let { mustKod, eFatmi } = fis
 		if (mustKod) {
 			/*let {adiSaha} = MQTabCari
 			let {[mustKod]: { [adiSaha]: aciklama } = {}} = await MQTabCari.getGloKod2Rec() ?? {}
@@ -803,7 +844,7 @@ class TabFis extends MQDetayliGUID {
 				`</div>`
 			].join(CrLf)))
 		}
-		if (eIslTip) {
+		if (eFatmi) {
 			rfb.addForm().setLayout(() => $([
 				`<div class="flex-row" style="gap: 5px">`,
 					`<div class="bold red">e-İşlem</div>`,
@@ -885,11 +926,11 @@ class TabFis extends MQDetayliGUID {
 		return [
 			`<div class="flex-row" style="gap: 0 10px">`,
 				`<template class="sort-data">${dateToString(tarih) ?? ''}|${seri}|${noyil}|${fisno}|${mustunvan}</template>`,
-				`<div class="ek-bilgi bold float-right">${dateKisaString(asDate(tarih)) ?? ''}</div>`,
-				`<div class="asil">${tsnText}</div>`,
-				`<div class="asil orangered">${mustunvan || ''}</div>`,
+				`<div class="tarih ek-bilgi bold float-right">${dateKisaString(asDate(tarih)) ?? ''}</div>`,
+				`<div class="fisNox asil royalblue">${tsnText}</div>`,
+				`<div class="mustUnvan asil orangered">${mustunvan || ''}</div>`,
+				`<div class="ek-bilgi bold float-right">${must ? `(${must})` : ''}</div>`,
 				(eisltip ? `<div class="ek-bilgi bold red">e-İşl.</div>` : null),
-				`<div class="ek-bilgi bold float-right">${must || ''}</div>`,
 				(fisSinif ? `<div class="ek-bilgi float-right">${fisSinif.sinifAdi || ''}</div>` : null),
 			`</div>`
 		].filter(_ => _).join(CrLf)

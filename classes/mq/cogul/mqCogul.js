@@ -958,10 +958,9 @@ class MQCogul extends MQYapi {
 	static gridKolonlarDuzenle(e) { this.forAltYapiClassesDo('gridKolonlarDuzenle', e) }
 	static getGridKolonGrup(e) { }
 	static globalleriSil() {
-		let {mqGlobals, classKey} = this
-		let result = mqGlobals[classKey]
-		if (result)
-			delete result[classKey]
+		let { mqGlobals, classKey } = this
+		let { [classKey]: result } = mqGlobals
+		deleteKeys(mqGlobals, classKey)
 		deleteKeys(this, '_online_sqlColDefs')
 		return result
 	}

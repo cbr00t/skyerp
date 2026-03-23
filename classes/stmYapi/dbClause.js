@@ -10,8 +10,14 @@ class MQClause extends MQSQLOrtak {
 		let value = e.birlestir; if (value) { this.birlestir(value) }
 	}
 	add(...sahalar) {
-		let {liste} = this; for (let saha of sahalar) {
-			if (saha == null) { continue } if (isArray(saha)) { this.add(...saha); continue }
+		let {liste} = this
+		for (let saha of sahalar) {
+			if (saha == null)
+				continue
+			if (isArray(saha)) {
+				this.add(...saha)
+				continue
+			}
 			let value = this.donusmusDeger(saha)
 			if (this.addIcinUygunmu(value))
 				liste.push(value)
@@ -19,7 +25,8 @@ class MQClause extends MQSQLOrtak {
 		return this
 	}
 	addDogrudan(...sahalar) {
-		let {liste} = this; for (let saha of sahalar) {
+		let {liste} = this
+		for (let saha of sahalar) {
 			if (saha == null) { continue } if (isArray(saha)) { this.add(...saha); continue }
 			let value = this.donusmusDeger(saha)
 			liste.push(value)
@@ -27,7 +34,8 @@ class MQClause extends MQSQLOrtak {
 		return this
 	}
 	addAll(coll) {
-		if (coll && coll.liste) { coll = coll.liste }
+		if (coll?.liste)
+			coll = coll.liste
 		if (isPlainObject(coll) && !isArray(coll))
 			coll = keys(coll)
 		if (!isArray(coll))
@@ -315,7 +323,7 @@ class MQSubWhereClause extends MQClause {
 		return super.addIcinUygunmu(item) && !this.liste.includes(item)
 	}
 	birlestirDict(e, _alias, _not) {
-		e = e || {}; let dict = e.dict || e.birlestirDict || e.liste || e, not = e.not ?? _not;
+		e = e || {}; let dict = e.dict || e.birlestirDict || e.liste || e, not = e.not ?? _not
 		let alias = e.alias ?? e.tableAlias ?? _alias, aliasVeNokta = alias ? `${alias}.` : '';
 		let isSetClause = e.isSetClause ?? this.class.isSetClause, isValuesClause = e.isValuesClause ?? this.class.isValuesClause;
 		if (!empty(dict)) {
@@ -326,30 +334,34 @@ class MQSubWhereClause extends MQClause {
 		return this
 	}
 	notBirlestirDict(e, _alias) {
-		e = e || {}; if (typeof e == 'object') { e.not = true }
+		e = e || {}; if (isObject(e)) { e.not = true }
 		return this.birlestirDict(e, _alias, true)
 	}
 	degerAta(e, _saha) {
 		e = e?.saha ? e : { deger: e, saha: _saha }; let isSetClause = e.isSetClause ?? this.class.isSetClause; 
-		let isNot = typeof e == 'object' && asBool(e.not), {saha, deger} = e;
+		let isNot = isObject(e) && asBool(e.not), {saha, deger} = e;
 		/*if (deger != null) { let operand = '='; return this.operand({ saha, operand, deger, not: isNot }) }*/
 		let clause = deger == null && !isSetClause ? `${saha} IS${isNot ? ' NOT' : ''} NULL` : `${saha} ${isNot ? '<>' : '='} ${MQSQLOrtak.sqlServerDegeri(deger)}`
 		return this.addDogrudan(clause)
 	}
-	notDegerAta(e, _saha) { e = e.saha ? $.extend({}, e) : { deger: e, saha: _saha }; e.not = true; return this.degerAta(e) }
+	notDegerAta(e, _saha) {
+		e = e.saha ? { ...e } : { deger: e, saha: _saha }
+		e.not = true
+		return this.degerAta(e)
+	}
 	inDizi(e, _saha) {
 		e = e?.saha ? e : { liste: e, saha: _saha }
 		let liste = e.liste = e.liste || e.deger
 		delete e.deger
-		if (!liste)
+		if (!(liste && e.saha))
 			return this
 		let inClause = liste.liste ? liste : new MQInClause({ liste, saha: e.saha })
-		inClause.isNot = typeof e == 'object' && asBool(e.not ?? e.disindakilermi ?? e.disindakiler)
+		inClause.isNot = isObject(e) && asBool(e.not ?? e.disindakilermi ?? e.disindakiler)
 		return this.addDogrudan(inClause)
 	}
 	notInDizi(e, _saha) { e = e.saha ? $.extend({}, e) : { liste: e, saha: _saha }; e.not = true; return this.inDizi(e) }
 	like(e, _saha, _aynenAlinsinmi, _yazildigiGibimi) {
-		e = e.saha ? e : { deger: e, saha: _saha }; let isNot = typeof e == 'object' && asBool(e.not);		
+		e = e.saha ? e : { deger: e, saha: _saha }; let isNot = isObject(e) && asBool(e.not);		
 		let aynenAlinsinmi = e.aynenAlinsinmi ?? e.aynenAlinsin ?? _aynenAlinsinmi,  yazildigiGibimi = e.yazildigiGibimi ?? e.yazildigiGibi ?? _yazildigiGibimi;
 		let deger = (e.deger || '').toString().replaceAll('*', '%');
 		if (!aynenAlinsinmi) { if (deger && deger.slice(-1) != '%') { deger += '%' } if (deger[0] != '%') { deger = '%' + deger } }
@@ -363,7 +375,7 @@ class MQSubWhereClause extends MQClause {
 	notLike(e, _saha, _yazildigiGibimi) { e = e.saha ? $.extend({}, e) : { deger: e, saha: _saha }; e.not = true; return this.like(e) }
 	operand(e, _operand, _deger) {
 		e = e.saha ? e : { saha: e, operand: _operand, deger: _deger }; let {saha, operand, deger} = e;
-		let isNot = typeof e == 'object' && asBool(e.not); if (!operand) {
+		let isNot = isObject(e) && asBool(e.not); if (!operand) {
 			let result = MQOperandClause.newForText(e); if (isNot) { result.asNot() }
 			this.addDogrudan(result); return this
 		}
@@ -376,8 +388,8 @@ class MQSubWhereClause extends MQClause {
 		let {saha, deger: bs, deger: { birKismimi, disindakilermi = e.disindakiler } = {}} = e
 		birKismimi = bs?.birKismimi ?? birKismimi
 		disindakilermi = bs?.disindakilermi ?? bs?.disindakiler ?? disindakilermi
-		let isNot = typeof e == 'object' && asBool(e.not ?? disindakilermi)
-		if (birKismimi)
+		let isNot = isObject(e) && asBool(e.not ?? disindakilermi)
+		if (birKismimi && bs.value)
 			this.birKismi({ liste: bs.value, saha, not: isNot })
 		let sub = new MQAndClause()
 		if (bs) {
@@ -429,7 +441,7 @@ class MQSubWhereClause extends MQClause {
 	notOzellik(e, _saha) { e = e.saha ? $.extend({}, e) : { deger: e, saha: _saha }; e.not = true; return this.ozellik(e) }
 	tekSecim(e, _saha) {
 		e = e?.saha? e : { deger: e, saha: _saha }
-		let isNot = typeof e == 'object' && asBool(e.not ?? e.disindakilermi ?? e.disindakiler)
+		let isNot = isObject(e) && asBool(e.not ?? e.disindakilermi ?? e.disindakiler)
 		let deger = e.deger ?? e.value
 		if (deger?.value !== undefined) { deger = deger.value }
 		if (deger?.tekSecim !== undefined) { deger = deger.tekSecim } if (deger) { deger = deger.char ?? deger }
@@ -439,7 +451,7 @@ class MQSubWhereClause extends MQClause {
 	notTekSecim(e, _saha) { e = e.saha ? $.extend({}, e) : { deger: e, saha: _saha }; e.not = true; return this.tekSecim(e) }
 	birKismi(e, _saha) {
 		e = e?.saha? e : { liste: e, saha: _saha }
-		let isNot = typeof e == 'object' && asBool(e.not ?? e.disindakilermi ?? e.disindakiler)
+		let isNot = isObject(e) && asBool(e.not ?? e.disindakilermi ?? e.disindakiler)
 		let liste = e.liste ?? e.deger ?? e.value; delete e.deger
 		if (liste?.value !== undefined) { liste = liste.value }
 		if (liste && typeof liste != 'object') { liste = $.makeArray(liste) }
@@ -471,7 +483,7 @@ class MQSubWhereClause extends MQClause {
 		return this
 	}
 	notTicariGC(e, _fisAlias) {
-		e = e || {}; let args = ( typeof e == 'object' ? [$.extend({}, e, { not: true })] : [e, _fisAlias, true] );
+		e = e || {}; let args = ( isObject(e) ? [$.extend({}, e, { not: true })] : [e, _fisAlias, true] );
 		return this.ticariGC(...args)
 	}
 	ticariTSN(e, _fisAlias, _noSahaAdi, _notFlag) {
@@ -483,7 +495,7 @@ class MQSubWhereClause extends MQClause {
 		this.degerAta(tsn.no, `${aliasVeNokta}${noSahaAdi}`); return this
 	}
 	notTicariTSN(e, _fisAlias, _noSahaAdi) {
-		e = e || {}; let args = typeof e == 'object' ? [$.extend({}, e, { not: true })] : [e, _fisAlias, _noSahaAdi, true];
+		e = e || {}; let args = isObject(e) ? [$.extend({}, e, { not: true })] : [e, _fisAlias, _noSahaAdi, true];
 		return this.ticariTSN(...args)
 	}
 	fromGridWSArgs(e) {
@@ -548,7 +560,7 @@ class MQSubWhereClause extends MQClause {
 	}
 	//ext
 	fisSilindiEkle(e) {
-		e = e || {}; let alias = (typeof e == 'object' ? e.alias : e) ?? 'fis', aliasVeNokta = alias ? `${alias}.` : '';
+		e = e || {}; let alias = (isObject(e) ? e.alias : e) ?? 'fis', aliasVeNokta = alias ? `${alias}.` : '';
 		this.add(`${aliasVeNokta}silindi = ''`); return this
 	}
 	subeGecerlilikWhereEkle(e) {

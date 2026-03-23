@@ -78,7 +78,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			this._timer_progress = setTimeout(() => showProgress(), 1_000)
 		try {
 			await super.tazele(_e)    /* super.tazele() ==> this.loadServerData() işlemini çağıracak */
-			$.extend(_e, { liste: _e.tabloKolonlari ?? _e.kolonTanimlari ?? [], recs: gridWidget.getRows() })
+			extend(_e, { liste: _e.tabloKolonlari ?? _e.kolonTanimlari ?? [], recs: gridWidget.getRows() })
 			Object.defineProperty(_e, 'flatRecs', {
 				get: function() {
 					return this.recs.flatMap(rec =>
@@ -168,14 +168,14 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			}
 		}
 		for (let colDef of colDefs)
-			$.extend(colDef, { cellClassName, cellsRenderer })
+			extend(colDef, { cellClassName, cellsRenderer })
 	}
 	async loadServerData(e) {
 		let {session: { dbName: aktifDB } = {}} = config
 		let {dRapor: { konsolideCikti, ekDBListe} = {}} = app.params
 		ekDBListe = konsolideCikti && aktifDB && ekDBListe?.length
 				? ekDBListe.filter(x => x != aktifDB) : null
-		$.extend(e, { konsolideCikti, ekDBListe, aktifDB })
+		extend(e, { konsolideCikti, ekDBListe, aktifDB })
 		let sevRecs = await this.loadServerDataDevam(e)
 		return sevRecs
 	}
@@ -219,14 +219,18 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 				if (selector) { formulYapilari[selector]?.push(det) }
 				continue
 			}
-			if (donemTipi == 'B' && !donemBS?.basi) { continue }
-			let sonucUni = new MQUnionAll(), stm = new MQStm({ sent: sonucUni })
-			$.extend(_e, { stm, uni: sonucUni })
+			if (donemTipi == 'B' && !donemBS?.basi)
+				continue
+			
+			let sonucUni = new MQUnionAll()
+			let stm = new MQStm({ sent: sonucUni })
+			extend(_e, { stm, uni: sonucUni })
 
 			// asıl union oluşturma işlemi
 			det.raporQueryDuzenle(_e)
 
-			stm = _e.stm ?? {}; sonucUni = stm.sent
+			stm = _e.stm ?? {}
+			sonucUni = stm.sent
 			let {with: _with = {}, sent = {}} = stm
 			if (!(_with.liste?.length || sent.liste?.length)) {
 				id2Promise[id] = null
@@ -311,8 +315,8 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		if (yatayAnalizVarmi && !yatayDBmi && !empty(yatayDegerSet))
 			yatayDegerler = Object.keys(yatayDegerSet).sort()
 		yatayDegerSet = yatayDegerler ? asSet(yatayDegerler) : {}
-		$.extend(e, { yatayDegerler, yatayDegerSet })
-		$.extend(this, { yatayDegerler, yatayDegerSet })
+		extend(e, { yatayDegerler, yatayDegerSet })
+		extend(this, { yatayDegerler, yatayDegerSet })
 		return recs
 		/* return [ { aciklama: 'SONUÇ', detaylar: recs } ] */
 	}
