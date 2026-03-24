@@ -537,6 +537,7 @@ class MQYapi extends CIO {
 				}
 			}
 			finally {
+				app.resetOfflineStatus()
 				if (okIdList?.length) {
 					let query
 					if (await app.sqlHasColumn(offlineTable, idSaha)) {
@@ -549,7 +550,6 @@ class MQYapi extends CIO {
 					if (query)
 						await this.sqlExecNone({ trnId, offlineMode: !offlineMode, query })
 				}
-				app.resetOfflineStatus()
 				window.progressManager?.progressStep(5)
 			}
 		}

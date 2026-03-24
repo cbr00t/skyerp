@@ -1,8 +1,8 @@
 class TabFisListe extends TabFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get fisTipi() { return null } static get detaySinif() { return TabFisListeDetay }
+	static get fisTipi() { return null } static get araSeviyemi() { return true }
 	static get kodListeTipi() { return 'FISLISTE' } static get sinifAdi() { return 'Fiş' }
-	static get araSeviyemi() { return true }
+	static get detaySinif() { return TabFisListeDetay }
 
 	static fisSinifFor(e) {
 		let _ = isObject(e) ? e.fisTipi ?? e.fistipi : e
@@ -11,23 +11,22 @@ class TabFisListe extends TabFis {
 		return this.tip2Sinif[fisTipi] ?? null
 	}
 	static detaySinifFor(e) { return this.fisSinifFor(e)?.detaySinif }
-	static async yeniInstOlustur({ sender: gridPart, islem, rec, rowIndex, args = {} }) {
-		let e = arguments[0]
+	static async yeniInstOlustur(e = {}) {
+		let { gridPart = e.sender, islem, rec, rowIndex, args = {} } = e
 		let result = await super.yeniInstOlustur(e)
 		islem = e.islem
 		if (result != null)
 			return result
+		
 		let {fisTipi} = rec ?? {}
 		let yenimi = islem == 'yeni'
 		if (yenimi) {
-			fisTipi = false
-			let {tip2Sinif} = this
-			let p = new $.Deferred()
-			let secince = ({ value: fisTipi }) =>
-				p.resolve(fisTipi)
-			let kapaninca = () => p.resolve()
-			MQTabBelgeTipi.listeEkraniAc({ secince, kapaninca })
-			fisTipi = await p ?? false
+			fisTipi = await new Promise(r =>
+				MQTabBelgeTipi.listeEkraniAc({
+					secince: ({ value: fisTipi }) => r(fisTipi),
+					kapaninca: () => r(null)
+				})
+			) ?? false
 		}
 		let fisSinif = fisTipi === false ? false : this.fisSinifFor(fisTipi)
 		if (!fisSinif) {
@@ -37,7 +36,7 @@ class TabFisListe extends TabFis {
 		}
 		let inst = new fisSinif({ ...args })
 		if (rec) {
-			await inst.keySetValues({ ...arguments, rec, sayac: undefined })
+			await inst.keySetValues({ ...e, rec, sayac: undefined })
 			let {plasiyerkod: plasiyerKod, must: mustKod} = rec
 			if (plasiyerKod && !inst.plasiyerKod)
 				inst.plasiyerKod = plasiyerKod
@@ -45,7 +44,7 @@ class TabFisListe extends TabFis {
 				inst.mustKod = mustKod
 			if (!yenimi) {
 				inst.sayac = rec.sayac
-				await inst.yukle()
+				await inst.yukle({ ...e, rec: undefined })
 			}
 		}
 		return inst
@@ -63,8 +62,6 @@ class TabFisListe extends TabFis {
 		if (offlineRequest)
 			return await super.loadServerData_detaylar(...arguments)
 		let fisSinif = this.fisSinifFor(fisTipi)
-		if (!fisSinif)
-			return []
-		return await fisSinif.loadServerData_detaylar(...arguments)
+		return fisSinif ? await fisSinif.loadServerData_detaylar(...arguments) : []
 	}
 }

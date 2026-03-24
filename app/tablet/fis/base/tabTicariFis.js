@@ -141,7 +141,8 @@ class TabTicariFis extends TabTSFis {
 
 	async mustDegisti({ oldValue = this._prev.mustKod, value = this.mustKod }) {
 		if (!(oldValue && value == oldValue)) {
-			let { efaturakullanirmi: efatmi } = await MQTabCari.getCariEkBilgi({ kod: value })
+			let { efaturakullanirmi: efatmi } = await MQTabCari.getCariEkBilgi({ kod: value }) ?? {}
+			efatmi = asBoolQ(efatmi)
 			this.eIslTip = this.defaultEIslTip
 		}
 		await super.mustDegisti(...arguments)

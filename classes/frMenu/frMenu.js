@@ -19,25 +19,37 @@ class FRMenu extends CObject {
 		this.items = items; this.id2Item = id2Item; this.mne2Item = mne2Item;
 		return true
 	}
-	jqxMenuLayoutOlustur(e) {
-		let {parent} = e; if (!parent?.length) { return false } let yataymi = e.yatay;
+	jqxMenuLayoutOlustur({ parent, yatay: yataymi } = {}) {
+		if (!parent?.length)
+			return false
+		let e = arguments[0]
 		parent.jqxMenu({
-			theme, mode: yataymi ? 'horizontal' : 'vertical', animationShowDuration: 100, animationHideDuration: 100,
-			autoOpen: true, autoOpenPopup: true, autoCloseOnClick: false, source: this.getJQXMenuSource()
-		});
+			theme, mode: yataymi ? 'horizontal' : 'vertical',
+			animationShowDuration: 100, animationHideDuration: 100,
+			autoOpen: true, autoOpenPopup: true, autoCloseOnClick: false,
+			source: this.getJQXMenuSource()
+		})
 		parent.on('itemclick', evt => {
-			let menuItemElement = evt.args, {id} = menuItemElement;
-			let item = this.id2Item[id]; if (item) { item.run({ event: evt, menuItemElement }) }
-		});
+			let menuItemElement = evt.args, {id} = menuItemElement
+			let item = this.id2Item[id]
+			if (item)
+				item.run({ ...e, event: evt, menuItemElement })
+		})
 		return true
 	}
-	menuLayoutOlustur(e) {
-		let {parent} = e; if (!parent?.length) { return false }
-		this.menuSourceDuzenle(e); this.menuLayoutDuzenle(e); return true
+	menuLayoutOlustur({ parent } = {}) {
+		let e = arguments[0]
+		if (!parent?.length)
+			return false
+		this.menuSourceDuzenle(e)
+		this.menuLayoutDuzenle(e)
+		return true
 	}
-	menuLayoutDuzenle(e) {
-		e = e || {}; let content = e.parent, sender = this, {parentPart} = this, _e = { ...e };
-		let part = this.part = new MenuPart({ parentPart, sender, content, source: this.getMenuSource(_e) }); part.run()
+	menuLayoutDuzenle(e = {}) {
+		let _e = { ...e }
+		let sender = this, {parentPart} = this, {parent: content} = e
+		let part = this.part = new MenuPart({ parentPart, sender, content, source: this.getMenuSource(_e) })
+		part.run()
 	}
 	navLayoutOlustur(e) {
 		let {parent} = e
@@ -47,7 +59,8 @@ class FRMenu extends CObject {
 		for (let item of items)
 			item.navLayoutOlustur(_e)
 		this.navLayoutOlustur_araIslem(_e)
-		parent.children().remove(); ul.appendTo(parent)
+		parent.children().remove()
+		ul.appendTo(parent)
 	}
 	navLayoutOlustur_araIslem(e) {
 		app?.navLayoutOlustur_araIslem?.(e)

@@ -143,7 +143,7 @@ body #ust-parent > #nav {
 body #ust-parent > #nav[style = ""] { }
 body #ust-parent > #nav[style = ""] + #parent main#content,
 body #ust-parent > #nav[style = ""] + #parent #windows.part {
-	pointer-events: none; background: linear-gradient(90deg, #dfdfdf 50%, #becbff 90%) !important;
+	pointer-events: none; background: linear-gradient(90deg, #dfdfdf 50%, #becbff 90%) !important
 	opacity: .5 !important; filter: blur(.8px) brightness(.5)
 	/*animation: nav-open*/
 }
@@ -152,7 +152,7 @@ body.dark-theme #ust-parent > #nav[style = ""] + #parent main#content,
 body.dark-theme #ust-parent > #nav[style = ""] + #parent #windows.part {
 	filter: blur(2px) brightness(.9); opacity: 1 !important
 }
-body #ust-parent > #nav ul > li ul { animation: 200ms 1 nav-item-open }
+body #ust-parent > #nav ul > li ul { animation: 100ms 1 nav-item-open }
 @keyframes nav-open { 100% { opacity: .5 !important; filter: blur(.8px) brightness(.5) } }
 @keyframes nav-item-open {
 	  0% { opacity: 0 }
@@ -194,17 +194,16 @@ body #ust-parent > #parent > main { position: absolute; top: calc(var(--appTitle
 .part > .header { width: calc(var(--full) - 13px); /* text-align: right; */ padding-right: 0 }
 #windows .tabs .tabPage.nav-item .header .wnd-title.sinifAdi { /* font-size: 110% */ }
 body #ust-parent > #parent .part.wnd-content { /* height: var(--full); */ box-sizing: border-box }
-body #ust-parent > #nav,
-	body #ust-parent > #nav ul,
-	/*body #ust-parent > #parent > main > div,*/
-	body #ust-parent > #parent .part.wnd-content:not(.slow-animation),
-	/*.jqx-window > div { animation: 200ms cubic-bezier(0, -0.34, 1, 0.17) 0ms 1 normal animation--wnd-content }*/
-	.animate-wnd-content { animation: 300ms ease-out 0ms 1 normal animation--wnd-content }
+body #ust-parent > #parent .part.wnd-content:not(.slow-animation),
+	.animate-wnd-content { animation: 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms 1 normal animation--wnd-content }
 body #ust-parent > #parent .part.wnd-content.slow-animation,
-	.animate-wnd-content-slow { animation: 600ms ease-out 0ms 1 normal animation--wnd-content }
+	.animate-wnd-content-slow { animation: 500ms cubic-bezier(0.4, 0, 0.2, 1) 0ms 1 normal animation--wnd-content }
+body #ust-parent > #nav {
+	animation: 150ms ease-in-out 0ms 1 normal animation--wnd-content
+}
 @keyframes animation--wnd-content {
-    0% { opacity: .01; filter: blur(2px) }
-   80% { opacity: .01; filter: blur(1px) }
+    0% { opacity: .01; filter: blur(3px) }
+   50% { opacity: .05 }
   100% { opacity: 1; filter: blur(0px) }
 }
 body > #root-parent > #ust-parent { border-top: 4px solid #9fc79f; border-left: 4px solid #6455b7; border-radius: 10px }

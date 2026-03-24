@@ -518,8 +518,7 @@ class TabFis extends MQDetayliGUID {
 		if (!oFis)
 			return null
 		let { numarator: num } = oFis
-		if (num && fis.onlineOtoNumKullanilirmi) {
-			let fis = this
+		if (num && this.onlineOtoNumKullanilirmi) {
 			app.online()
 			try {
 				while (await oFis.varmi()) {
@@ -528,16 +527,16 @@ class TabFis extends MQDetayliGUID {
 				}
 			}
 			finally { app.resetOfflineStatus() }
-			let seriDegisti = fis.seri != oFis.seri
-			let noDegisti = fis.fisNo != oFis.fisNo
+			let seriDegisti = this.seri != oFis.seri
+			let noDegisti = this.fisNo != oFis.fisNo
 			if (seriDegisti || noDegisti) {
-				let {id, class: { idSaha, seriSaha, fisNoSaha, table: from }} = fis
+				let {id, class: { idSaha, seriSaha, fisNoSaha, table: from }} = this
 				let upd = new MQIliskiliUpdate({ from }), {where: wh, set} = upd
 				wh.degerAta(id, idSaha)
 				if (seriDegisti)
-					set.degerAta(fis.seri = seri, 'seri')
+					set.degerAta(this.seri = seri, 'seri')
 				if (noDegisti)
-					set.degerAta(fis.fisNo = fisNo, 'fisno')
+					set.degerAta(this.fisNo = fisNo, 'fisno')
 				this.sqlExecNone(upd)    // async - no await
 			}
 		}
