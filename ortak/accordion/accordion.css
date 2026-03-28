@@ -1,15 +1,17 @@
 .accordion.part {
-	--item-pad-x: 2px; --item-pad-y: 2px;
+	--item-pad-x: 1px; --item-pad-y: 1px;
 	--acc-header-height: 40px;
-	--border-size: 3px;
-	width: calc(var(--full) - var(--item-pad-x) * 3);
+	--acc-header-collapsed-lineHeight: 20px;
+	--border-size: 2px;
+	width: calc(var(--full) - var(--item-pad-x) * 2);
 	height: calc(var(--full) - var(--item-pad-y) * 2)
 }
 .accordion.part .accordion.item {
 	position: relative;
 	width: calc(var(--full) - 0px);
 	margin: var(--item-pad-y) var(--item-pad-x);
-	border-radius: 10px; border: var(--border-size) solid rgba(0, 0, 0, .10);
+	border-radius: 10px;
+	border: var(--border-size) solid rgba(0, 0, 0, .10);
 	box-sizing: content-box; transition: 200ms ease
 }
 .accordion.part.fullScreen:has(> .accordion.item.expanded) .accordion.item:not(.expanded) { display: none }
@@ -17,9 +19,10 @@
 .accordion.part .accordion.item:not(.expanded) > .content { display: none }
 .accordion.part .accordion > .header {
 	font-size: 110%; user-select: none; cursor: pointer;
-	height: var(--acc-header-height); padding: 0 10px;
+	height: var(--acc-header-height); padding: 0 8px;
 	border: 1px solid #ccc; border-bottom: 1px solid rgba(0, 0, 0, 0.15);
 	background: #f7f7f7; align-items: center;
+	overflow-y: auto !important
 }
 .accordion.part .accordion.item:not(.expanded) > .header { background: #cecececc }
 .accordion.part .accordion.item.expanded { }
@@ -43,9 +46,16 @@
 	overflow: hidden; text-overflow: ellipsis
 }
 .accordion.part .accordion.item > .header > .collapsed-content {
-	font-size: 85%; color: #777;
-	margin-left: auto; white-space: nowrap;
-	overflow-y: auto !important
+	font-size: 83%; color: #777;
+	margin-left: auto; margin-top: -8px;
+	padding-right: 5px;
+	line-height: var(--acc-header-collapsed-lineHeight)
+}
+.accordion.part .accordion.item > .header > .collapsed-content > div {
+}
+.accordion.part .accordion.item > .header > .collapsed-content,
+.accordion.part .accordion.item > .header > .collapsed-content > div {
+	white-space: nowrap
 }
 .accordion.part .accordion > .content {
 	width: var(--full);
@@ -60,9 +70,9 @@
 }
 
 @media (max-width: 800px) {
-	.accordion.part { --acc-header-height: 35px }
+	.accordion.part { --acc-header-height: 35px; --acc-header-collapsed-lineHeight: 16px }
 	.accordion.part .accordion.item > .header { line-height: 15px }
 }
 @media (max-width: 600px) {
-	.accordion.part { --acc-header-height: 45px }
+	.accordion.part { --acc-header-height: 45px; --acc-header-collapsed-lineHeight: 18px }
 }

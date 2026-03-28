@@ -41,7 +41,9 @@ class TabDokumDevice_Ekran extends TabDokumDevice {
 		let {part} = this
 		if (!part || part.isDestroyed) {
 			let HeaderHeight = 60
-			let rfb = new RootFormBuilder().asWindow('Döküm Önizleme').setInst(this)
+			let rfb = new RootFormBuilder()
+				.asWindow('Döküm Önizleme')
+				.setInst(this)
 			rfb
 				.addStyle(
 					`$elementCSS [data-builder-id = 'data'] > :not(label) {
@@ -59,7 +61,7 @@ class TabDokumDevice_Ekran extends TabDokumDevice {
 				.addStyle_fullWH(null, HeaderHeight)
 				.setId2Handler({
 					yazdir: async () => {
-						let device = this, {data, part, yazdirIslemi} = this
+						let device = this, { data, part, yazdirIslemi } = this
 						if (!data)
 							return false
 						yazdirIslemi ??= ({ device, data }) => {
@@ -68,11 +70,19 @@ class TabDokumDevice_Ekran extends TabDokumDevice {
 						let result = await yazdirIslemi?.call(this, { ...e, device, data })
 						if (!result)
 							return false
-						part?.close()
+						
+						setTimeout(() => {
+							part?.close()
+							$('body').removeClass('bg-modal')
+						}, 100)
 						return true
 					},
-					vazgec: () =>
-						this.part?.close()
+					vazgec: () => {
+						setTimeout(() => {
+							this.part?.close()
+							$('body').removeClass('bg-modal')
+						}, 100)
+					}
 				})
 			rfb.addTextArea('data')
 				.setCols(10000)

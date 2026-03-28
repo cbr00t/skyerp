@@ -19,8 +19,17 @@ body > * { font-size: 100% }
 .masterListe.part .jqx-grid [role = row] > .resim:focus {
 	box-shadow: 0 0 8px 2px royalblue !important
 }
+
 .TabFisListe.masterListe.part .detay-grid.jqx-grid [role = row] > div > div > div {
 	line-height: 12px
+}
+
+.masterListe.part .jqx-grid [role = row] div > .aligned > div > *:not(:first-child) {
+	margin-left: 5px !important
+}
+
+.part .header > .islemTuslari {
+	--width-sag-ek: 20px
 }
 
 /*.jqx-grid [role = row] > div * { }*/

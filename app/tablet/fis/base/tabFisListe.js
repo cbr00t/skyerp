@@ -1,7 +1,8 @@
 class TabFisListe extends TabFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get fisTipi() { return null } static get araSeviyemi() { return true }
-	static get kodListeTipi() { return 'FISLISTE' } static get sinifAdi() { return 'Fiş' }
+	static get uygunmu() { return true } static get notCacheable() { return true }
+	static get araSeviyemi() { return true } static get fisTipi() { return null }
+	static get kodListeTipi() { return 'FIS' } static get sinifAdi() { return 'Fiş' }
 	static get detaySinif() { return TabFisListeDetay }
 
 	static fisSinifFor(e) {
@@ -18,7 +19,8 @@ class TabFisListe extends TabFis {
 		if (result != null)
 			return result
 		
-		let {fisTipi} = rec ?? {}
+		let { fisTipi } = rec ?? {}
+		let { mustKod } = gridPart
 		let yenimi = islem == 'yeni'
 		if (yenimi) {
 			fisTipi = await new Promise(r =>
@@ -36,15 +38,17 @@ class TabFisListe extends TabFis {
 		}
 		let inst = new fisSinif({ ...args })
 		if (rec) {
-			await inst.keySetValues({ ...e, rec, sayac: undefined })
-			let {plasiyerkod: plasiyerKod, must: mustKod} = rec
+			let _e = { ...e }; delete _e.sayac
+			await inst.keySetValues(_e); delete _e.rec
+			let { plasiyerkod: plasiyerKod } = rec
+			mustKod ||= rec.must
 			if (plasiyerKod && !inst.plasiyerKod)
 				inst.plasiyerKod = plasiyerKod
 			if (mustKod && !inst.mustKod)
 				inst.mustKod = mustKod
 			if (!yenimi) {
 				inst.sayac = rec.sayac
-				await inst.yukle({ ...e, rec: undefined })
+				await inst.yukle(_e)
 			}
 		}
 		return inst
@@ -55,7 +59,7 @@ class TabFisListe extends TabFis {
 			await Promise.allSettled(cacheClasses.map(_ => _.getGloKod2Rec()))
 		}
 		let recs = await super.loadServerDataDogrudan(...arguments)
-		recs.reverse()
+		// recs.reverse()
 		return recs
 	}
 	static async loadServerData_detaylar({ parentRec: { fisTipi } = {}, offlineRequest, offlineMode }) {
@@ -63,5 +67,56 @@ class TabFisListe extends TabFis {
 			return await super.loadServerData_detaylar(...arguments)
 		let fisSinif = this.fisSinifFor(fisTipi)
 		return fisSinif ? await fisSinif.loadServerData_detaylar(...arguments) : []
+	}
+
+	static rootFormBuilderDuzenle_listeEkrani({ sender: gridPart, rootBuilder: rfb }) {
+		let e = arguments[0]
+		super.rootFormBuilderDuzenle_listeEkrani(e)
+		let { layout, header, islemTuslari } = gridPart
+		;{
+			let parent = rfb.addForm('header', header)
+			let ustBilgiForm = parent.addForm('ustBilgi')
+				.addStyle_fullWH(null, 35)
+				.addStyle(...[
+					`$elementCSS { font-size: 80%; padding: 10px 5px; overflow-y: auto !important }
+					 $elementCSS > .item > div { gap: 10px; line-height: 10px }`
+				])
+				.setLayout(({ builder: fbd }) => {
+					let { id } = fbd
+					let result = $(`<div class="${id}"></div>`)
+					;(async () => {
+						let html = await this.getUstBilgiHTML({ ...e, gridPart, rfb, fbd })
+						if (html?.html)
+							html.appendTo(result)
+						else if (html)
+							result.html(html)
+					})()
+					return result
+				})
+		}
+	}
+
+	static async getUstBilgiHTML(e = {}) {
+		let { gridPart = e.sender } = e
+		let { mustKod } = gridPart
+		let mustRec = ( mustKod ? (await MQTabCari.getGloKod2Rec())?.[mustKod] : null ) ?? {}
+		let result = []
+		if (mustKod) {
+			let { aciklama: unvan, yore, iladi: ilAdi } = mustRec
+			let { sahismi, vnumara: vkn, tckimlikno: tckn } = mustRec
+			let vkno = sahismi ? tckn : vkn
+			result.push(...[
+				`<div class="mustBilgi item">`,
+				`	<div class="flex-row">`,
+				`		<div class="adi royalblue">${unvan || ''}</div>`,
+				`		<div class="kod lightgray">${mustKod}</div>`,
+				`		<div class="yoreVeIl lightgray">${[yore, ilAdi].filter(Boolean).join('/')}</div>`,
+		( vkn ? `		<div class="vkno"><span class="lightgray">VKN:</span> <span class="orangered bold">${vkno || ''}</span></div>` : null ),
+				`	</div>`,
+				`</div>`
+			].filter(Boolean))
+		}
+		result = result.filter(Boolean).join(CrLf)
+		return result
 	}
 }

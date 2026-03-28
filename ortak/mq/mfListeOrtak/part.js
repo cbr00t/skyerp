@@ -406,6 +406,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 				return
 			try { wnd.jqxWindow('close'); wnd = null }
 			catch (ex) { console.error(ex); hConfirm(getErrorText(ex), title) }
+			finally { setTimeout(() => $('body').removeClass('bg-modal'), 5)}
 		};
 		let rfb = new RootFormBuilder({ parentPart: gridPart, layout: wndContent }).autoInitLayout()
 		let form = rfb.addFormWithParent('islemTuslari').altAlta().addStyle(

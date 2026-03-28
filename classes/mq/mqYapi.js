@@ -15,8 +15,10 @@ class MQYapi extends CIO {
 		let result = [...keys(this.hostVars(e) ?? {}), ...keys(this.keyHostVars(e) ?? {})]
 		return result
 	}
-	static get offlineTemp() { return !this.offlineFis } static get offlineFis() { return false }
-	static get offlineDirect() { return true } static get offlineGonderYapilirmi() { return false }
+	static get offlineTemp() { return !this.offlineFis }
+	static get offlineFis() { return false }
+	static get offlineDirect() { return true }
+	static get offlineGonderYapilirmi() { return false }
 	static get offline2OnlineSaha() { return {} }
 	static get online2OfflineSaha() { return asReverseDict(this.offline2OnlineSaha) }
 	static get logKullanilirmi() { return !(app.offlineMode || this.isOfflineMode) }
@@ -164,7 +166,8 @@ class MQYapi extends CIO {
 					let {table} = this.class, {trnId} = e;
 					let query = new MQSent({ from: table, where: [`${gonderimTSSaha} <> ''`, { birlestirDict: keyHV }], sahalar: 'count(*) sayi' });
 					let _e = { trnId, isOfflineMode, query }; let result = await this.sqlExecTekilDeger(_e);
-					if (!!result) { throw { isError: true, errorText: 'Bu kayıt merkeze gönderildiği için üzerinde değişiklik yapılamaz' } }
+					if (!!result)
+						throw { isError: true, errorText: 'Bu kayıt merkeze gönderildiği için üzerinde değişiklik yapılamaz' }
 				}
 			}
 		}

@@ -181,11 +181,12 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	}
 	innerJoin(e, _from, _iliskiDizi) { return this.innerVeyaLeftJoin(e, _from, _iliskiDizi, true) }
 	leftJoin(e, _from, _iliskiDizi) { return this.innerVeyaLeftJoin(e, _from, _iliskiDizi, false) }
-	innerVeyaLeftJoin(e, _from, _iliskiDizi, innermi) {
-		if (typeof e != 'object') { e = { alias: e, from: _from, on: _iliskiDizi } };
-		let {alias} = e; let fromText = e.from || e.leftJoin || e.fromText || e.table;
-		let iliskiDizi = e.on || e.iliskiDizi || e.iliskiText || e.iliski;
-		if (iliskiDizi && !isArray(iliskiDizi)) { iliskiDizi = [iliskiDizi] }
+	innerVeyaLeftJoin(e = {}, _from, _iliskiDizi, innermi) {
+		if (!isObject(e))
+			e = { alias: e, from: _from, on: _iliskiDizi }
+		let {alias} = e
+		let fromText = e.from || e.leftJoin || e.fromText || e.table
+		let iliskiDizi = makeArray(e.on || e.iliskiDizi || e.iliskiText || e.iliski)
 		let joinClass = innermi ? MQInnerJoin : MQLeftJoin;
 		let {from} = this, xJoin = joinClass.newForFromText({ text: fromText, on: iliskiDizi })
 		let tableYapi = from.aliasIcinTable(alias)
@@ -206,9 +207,10 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		}
 		return this
 	}
-	outerApply(e, _name, _liste) {
+	outerApply(e = {}, _name, _liste) {
 		if (!isObject(e))
 			e = { alias: e, name: _name, liste: _liste }
+		
 		let {alias, name = e.outerApply ?? e.table ?? e.from, liste} = e
 		liste = makeArray(liste)
 		let outer = new MQOuterApply({ name, liste })

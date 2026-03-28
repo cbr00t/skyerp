@@ -17,6 +17,7 @@ class TabTicariFis extends TabTSFis {
 			? this.class.defaultEIslTip
 			: ''
 	}
+	get dovizlimi() { return !!this.dvKod }
 
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
@@ -24,6 +25,7 @@ class TabTicariFis extends TabTSFis {
 			yildizlimi: new PInstBool(),
 			eIslTip: new PInstStr('eisltip'),
 			uuid: new PInstStr('uuid'),
+			dvKod: new PInstStr(''),
 			sevkYerKod: new PInstStr('sevkyerkod'),
 			sevkTS: new PInstDateTimeNow('sevkts'),
 			tahSekliNo: new PInstNum('tahseklino'),

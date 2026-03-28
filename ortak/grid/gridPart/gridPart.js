@@ -135,12 +135,13 @@ class GridPart extends Part {
 		let args = {
 			theme: _theme, localization: localizationObj, width: '99.9%', height: '99.6%', editMode: 'selectedcell', sortMode: 'many', autoHeight: false,
 			autoShowLoadElement: true, altRows: true, enableTooltips: true,
-			columnsMenuWidth: 60, columnsResize: true, columnsReorder: !mini, columnsMenu: true,
+			columnsResize: true, columnsReorder: !mini, columnsMenu: true, columnsMenuWidth: 30,
 			autoRowHeight: false, rowsHeight: mini ? 60 : 50, columnsHeight: mini ? 25 : 30,
 			autoShowColumnsMenuButton: true, sortable: true, /* compact: false, */ filterable: true,
 			filterRowHeight: 40, filterMode: 'default', showFilterRow: false, groupable: true, columnsResize: true,
-			showGroupsHeader: false, groupIndentWidth: 30, groupsHeaderHeight: 33, groupsExpandedByDefault: false,
-			enableBrowserSelection: false, selectionMode: 'multiplecellsextended', pageable: false, pagermode: 'advanced', adaptive: undefined, virtualMode: false, updatedelay: 0,
+			showGroupsHeader: false, groupIndentWidth: 25, groupsHeaderHeight: 33, groupsExpandedByDefault: false,
+			enableBrowserSelection: false, selectionMode: 'multiplecellsextended',
+			pageable: false, pagermode: 'advanced', adaptive: undefined, virtualMode: false, updatedelay: 0,
 			scrollbarsize: 13, scrollMode: 'logical',		/* default | logical | deferred */
 			renderGridRows: ({ data = {} }) => {
 				let recs = data?.records ?? data

@@ -6,7 +6,12 @@ class TabDokumDevice extends CObject {
 	static get chunkSize() { return null } static get chunkDelayMS() { return 0 }
 	// static get dokumEncoding() { return 'iso-8859-1' }    // trDonusum?.encodingmi => parametrede verilmezse varsayılan encoding değer
 	static get trYontem() { return app.params.tablet?.trYontem }
-	static get defaultDeviceKod() { return app.params.tablet?.dokumDevice?.char || TabDokumDevice_Console.kod }
+	// static get defaultDeviceKod() { return app.params.tablet?.dokumDevice?.char || TabDokumDevice_Console.kod }
+	static get defaultDeviceKod() {
+		return app.params.tablet?.dokumDevice?.char || (
+			( config.dev ? TabDokumDevice_Console : TabDokumDevice_QuickPrinter ).kod
+		)
+	}
 	static get defaultDeviceClass() { return this.getClass(this.dokumDeviceKod) }
 	static get kod2Sinif() {
 		let {_kod2Sinif: result} = this
@@ -86,14 +91,14 @@ class TabDokumDevice extends CObject {
 	static classFor(tip) { return this.kod2Sinif[tip] }
 	static newFor(e) {
 		e = isObject(e) ? e : { kod: e }
-		let {kod = e.cls} = e
+		let { kod = e.cls } = e
 		if (isInstance(kod))
 			return kod
 		let cls = isClass(kod) ? kod : this.classFor(kod)
 		return cls ? new cls(e) : null
 	}
 	static newDefault(e) {
-		let {defaultDeviceKod} = this
+		let { defaultDeviceKod } = this
 		return this.newFor(defaultDeviceKod)
 	}
 	async open() {

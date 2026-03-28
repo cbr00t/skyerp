@@ -16,9 +16,9 @@ class RotaTipi extends TekSecim {
 	static get defaultChar() { return 'TN' }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); const {kaListe} = e; kaListe.push(
-			new CKodVeAdi(['TN', 'Tnk.']),
+			new CKodVeAdi(['TN', 'Tanker']),
 			new CKodVeAdi(['TP', 'Toplycı']),
-			new CKodVeAdi(['MS', 'Müst.'])
+			new CKodVeAdi(['MS', 'Müstahsil'])
 		)
 	}
 }

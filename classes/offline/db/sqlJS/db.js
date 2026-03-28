@@ -279,24 +279,27 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 	getTables(...names) {
 		// PRAGMA table_info()
 		//  {cid: 0, name: 'kod', type: 'TEXT', pk: 1, notnull: 1, dflt_value: null, …}
+		names = names?.flat?.()
 		let sent = new MQSent({
 			from: 'sqlite_master', sahalar: ['*'],
 			where: { degerAta: 'table', saha: 'type' }
 		})
 		let {where: wh} = sent
-		if (names?.length) { wh.inDizi(names, 'name') }
+		if (!empty(names))
+			wh.inDizi(names, 'name')
 		let recs = this.execute(sent) ?? []
 		return fromEntries(recs.map(_ => [_.name, _]))
 	}
 	hasTables(...names) { return !empty(this.getTables(...names)) }
 	hasTable(...names) { return this.hasTables(...names) }
 	getColumns(table, ...names) {
+		names = names?.flat?.()
 		let nameSet = empty(names) ? null : asSet(names)
 		let recs = this.execute(`PRAGMA table_info(${table})`) ?? []
 		let result = {}
 		for (let rec of recs) {
 			let {name} = rec
-			if (!nameSet?.[name])
+			if (!nameSet || nameSet[name])
 				result[name] = rec
 		}
 		return result

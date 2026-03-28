@@ -122,7 +122,7 @@ class TabFis extends MQDetayliGUID {
 				try {
 					let args = await this.getDefaultContextMenuArgs(_e)
 					if (args) {
-						let {selectedRecs: recs} = gridPart
+						let { selectedRecs: recs } = gridPart
 						extend(_e, { recs, ...args })
 						gridPart.openContextMenu(_e)
 					}
@@ -136,9 +136,11 @@ class TabFis extends MQDetayliGUID {
 			extend(set, asSet(items.map(_ => _.id)))
 		}
 	}
-	static orjBaslikListesi_argsDuzenle(e) {
+	static orjBaslikListesi_argsDuzenle({ args }) {
+		let e = arguments[0]
 		super.orjBaslikListesi_argsDuzenle(e)
 		MQMasterOrtak.orjBaslikListesi_argsDuzenle(e)
+		extend(args, { groupable: false })
 	}
 	static ekCSSDuzenle({ dataField: belirtec, rec, result }) {
 		super.ekCSSDuzenle(...arguments)
@@ -151,27 +153,44 @@ class TabFis extends MQDetayliGUID {
 		)
 	}
 	static async loadServerDataDogrudan({ offlineRequest, offlineMode }) {
+		let e = arguments[0]
 		if (!offlineRequest) {
 			let cacheClasses = [MQTabCari]
 			await Promise.allSettled(cacheClasses.map(_ => _.getGloKod2Rec()))
 		}
 		let recs = await super.loadServerDataDogrudan(...arguments)
 		if (!offlineRequest) {
-			for (let rec of recs)
-				rec._html = this.getHTML({ ...e, rec })
+			recs.forEach(rec =>
+				rec._html = this.getHTML({ ...e, rec }))
 		}
 		return recs
 	}
-	static loadServerData_queryDuzenle({ offlineRequest, offlineMode, stm }) {
-		let e = arguments[0]; super.loadServerData_queryDuzenle(e)
-		let {tableAlias: alias} = this
+	static loadServerData_queryDuzenle(e = {}) {
+		let { gridPart = e.parentPart ?? e.sender, offlineRequest, offlineMode, stm } = e
+		let { plasiyerKod } = app, { mustKod } = gridPart ?? {}
+		super.loadServerData_queryDuzenle(e)
+		let { tableAlias: alias } = this
 		let unvanSaha = offlineMode === false ? 'birunvan' : MQTabCari.adiSaha
 		for (let sent of stm) {
-			let {from, where: wh, sahalar, alias2Deger} = sent
+			let { from, where: wh, sahalar, alias2Deger } = sent
 			if (!from.aliasIcinTable('car'))
 				sent.leftJoin(alias, 'carmst car', 'fis.must = car.kod')
-			if (!offlineRequest || offlineMode)
+			if (!offlineRequest || offlineMode) {
+				// tablet local
 				wh.add(`${alias}.silindi = ''`)
+				if (plasiyerKod) {
+					let or = new MQOrClause()
+						.add(`${alias}.plasiyerkod = ''`)
+						.degerAta(plasiyerKod, `${alias}.plasiyerkod`)
+					wh.add(or)
+				}
+				if (mustKod) {
+					let or = new MQOrClause()
+						.add(`${alias}.must = ''`)
+						.degerAta(mustKod, `${alias}.must`)
+					wh.add(or)
+				}
+			}
 			if (!alias2Deger.mustunvan)
 				sahalar.add(`car.${unvanSaha} mustunvan`)
 			if (!alias2Deger['*'])
@@ -181,6 +200,8 @@ class TabFis extends MQDetayliGUID {
 		orderBy.liste = orderBy.liste
 			.filter(_ => !_.startsWith('_'))
 			.map(_ => _.toUpperCase().endsWith('DESC') ? _ : `${_} DESC`)
+		if (empty(orderBy.liste))
+			orderBy.add('tarih DESC', 'seri DESC', 'fisno DESC')
 	}
 	static async loadServerData_detaylar({ parentRec: { fisTipi } = {}, offlineRequest, offlineMode }) {
 		let recs = await super.loadServerData_detaylar(...arguments)
@@ -195,6 +216,12 @@ class TabFis extends MQDetayliGUID {
 			rec._html = det.html
 		}
 		return recs
+	}
+	static async gridVeriYuklendi({ sender: gridPart, sender: { gridWidget: w } }) {
+		super.gridVeriYuklendi(...arguments)
+		let { boundRecs: recs, selectedRec: rec } = gridPart
+		if (!(empty(recs) || rec))
+			setTimeout(() => w.selectrow(0), 100)
 	}
 
 	static getNumKod(e, _eIslTip, _yildizlimi) {
@@ -369,7 +396,8 @@ class TabFis extends MQDetayliGUID {
 		]
 	}
 	static getTanimPartMenuItems(e = {}) {
-		let {sender: tanimPart} = e, {acc} = tanimPart
+		super.getTanimPartMenuItems(e)
+		let { sender: tanimPart } = e, { acc } = tanimPart
 		return [
 			{ id: 'yazdir', text: 'Yazdır', handler: _e => { this.yazdir({ ...e, ..._e, tanimPart }); _e.close?.() } },
 			{ id: 'duzenle', text: 'Düzenle', handler: _e => { acc.expand('duzenle'); _e.close() } },
@@ -676,7 +704,8 @@ class TabFis extends MQDetayliGUID {
 			case 'fisTipText':
 				return this.class.sinifAdi
 			case 'eIslText': {
-				let { eIslTip: _ } = this, { efatKullanirmi: efatVarmi } = app.params.tablet
+				let { eIslTip: _ } = this
+				let { efatKullanirmi: efatVarmi } = app.params.tablet
 				efatVarmi ??= true
 				return (
 					_ == 'E' ? 'e-Fatura' :
@@ -705,7 +734,7 @@ class TabFis extends MQDetayliGUID {
 	static getRootFormBuilder_fis(e) { return null }
 	static rootFormBuilderDuzenle_listeEkrani({ sender: gridPart, rootBuilder: rfb }) {
 		super.rootFormBuilderDuzenle_listeEkrani(...arguments)
-		rfb.addStyle(`$elementCSS .header > .islemTuslari > div #sil { margin-left: 10px }`)
+		rfb.addStyle(`$elementCSS .header > .islemTuslari > div #menu { margin-right: 15px }`)
 	}
 	static rootFormBuilderDuzenle_islemTuslari({ fbd_islemTuslari: fbd }) {
 		super.rootFormBuilderDuzenle_islemTuslari(...arguments)
@@ -913,26 +942,43 @@ class TabFis extends MQDetayliGUID {
 			.setLayout(layout).setPart(tanimPart)
 			.setInst(inst)
 	}
-	static getHTML({ rec }) {
-		let {fisTipi, tarih, seri, noyil, fisno, must, mustunvan, eisltip} = rec
+	static getHTML({ rec } = {}) {
+		let { fisTipi, tarih, seri, noyil, fisno, must, mustunvan } = rec
 		let fisSinif = TabFisListe.fisSinifFor(fisTipi)
 		// let {kod2Rec: kod2Must} = MQTabCari.globals
+		let tarihStr = dateToString(tarih) ?? ''
+		
 		let tsnText = [
 			seri || '',
 			noyil ? noyil.toString().padStart(4, '0') : '',
 			fisno?.toString() || '0'
 		].filter(_ => _).join(' ')
+		
+		let { efatKullanirmi: efatVarmi } = app.params.tablet
+		efatVarmi ??= true
+		let { eisltip: _ } = rec
+		let eIslText = (
+			_ == 'E' ? 'e-Fat' :
+			_ == 'IR' ? 'e-İrs' :
+			_ ? ( efatVarmi ? 'e-Arş' : '' )
+			: _
+		)
+		
 		return [
-			`<div class="flex-row" style="gap: 0 10px">`,
-				`<template class="sort-data">${dateToString(tarih) ?? ''}|${seri}|${noyil}|${fisno}|${mustunvan}</template>`,
-				`<div class="tarih ek-bilgi bold float-right">${dateKisaString(asDate(tarih)) ?? ''}</div>`,
-				`<div class="fisNox asil royalblue">${tsnText}</div>`,
-				`<div class="mustUnvan asil orangered">${mustunvan || ''}</div>`,
-				`<div class="ek-bilgi bold float-right">${must ? `(${must})` : ''}</div>`,
-				(eisltip ? `<div class="ek-bilgi bold red">e-İşl.</div>` : null),
-				(fisSinif ? `<div class="ek-bilgi float-right">${fisSinif.sinifAdi || ''}</div>` : null),
+			`<div class="aligned full-width relative" style="gap: 0 10px">`,
+				`<template class="sort-data">${tarihStr}|${seri}|${noyil}|${fisno}|${mustunvan}</template>`,
+				`<div class="sol float-left">`,
+					`<span class="tarih ek-bilgi bold">${dateKisaString(asDate(tarih)) ?? ''}</span>`,
+					`<span class="fisNox asil royalblue">${tsnText}</span>`,
+					`<span class="mustUnvan asil orangered">${mustunvan || ''}</span>`,
+					`<span class="ek-bilgi bold">${must ? `(${must})` : ''}</span>`,
+				`</div>`,
+				`<div class="sag float-right">`,
+					( eIslText ? `<span class="ek-bilgi bold red">${eIslText}</span>` : null ),
+					( fisSinif ? `<span class="royalblue ek-bilgi">${fisSinif.sinifAdi || ''}</span>` : null ),
+				`</div>`,
 			`</div>`
-		].filter(_ => _).join(CrLf)
+		].filter(Boolean).join(CrLf)
 	}
 
 	shallowCopy(e) {

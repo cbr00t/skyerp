@@ -23,7 +23,8 @@ class MQCogul extends MQYapi {
 	static get orjBaslikListesi_panelUstSeviyeAttrListe() { let _e = { liste: [] }; this.orjBaslikListesi_panelUstSeviyeAttrListeDuzenle(_e); return _e.liste }
 	static get orjBaslikListesi_defaultRowsHeight() { return null } static get orjBaslikListesi_maxColCount() { return 5 }
 	static get orjBaslikListesi_defaultColCount() { return null }
-	static get yerelParam() { return app.params.yerel } static get notCacheable() { return false }
+	static get yerelParam() { return app.params.yerel }
+	static get notCacheable() { return false }
 	static get mqGlobals() { return app.mqGlobals = app.mqGlobals || {} }
 	static get mqTemps() { return app.mqTemps = app.mqTemps || {} }
 	static get globals() {
@@ -120,15 +121,15 @@ class MQCogul extends MQYapi {
 		if (gonderimTSSaha && !!rec[gonderimTSSaha]) { result.push('gonderildi') }
 	}
 	static listeEkrani_init(e) { this.forAltYapiClassesDo('listeEkrani_init', e) }
+	static listeEkrani_afterRun(e) { this.forAltYapiClassesDo('listeEkrani_afterRun', e) }
+	static listeEkrani_destroyPart(e) { this.forAltYapiClassesDo('listeEkrani_destroyPart', e) }
+	static listeEkrani_activated(e) { this.forAltYapiClassesDo('listeEkrani_activated', e) }
+	static listeEkrani_deactivated(e) { this.forAltYapiClassesDo('listeEkrani_deactivated', e) }
 	static async listeEkrani_vazgecOncesi(e) {
 		let result = await this.forAltYapiClassesDoAsync('listeEkrani_vazgecOncesi', e);
 		result = result ? result[result.length - 1] : undefined; if (result !== undefined) { return result }
 		return true
 	}
-	static listeEkrani_afterRun(e) { this.forAltYapiClassesDo('listeEkrani_afterRun', e) }
-	static listeEkrani_destroyPart(e) { this.forAltYapiClassesDo('listeEkrani_destroyPart', e) }
-	static listeEkrani_activated(e) { this.forAltYapiClassesDo('listeEkrani_activated', e) }
-	static listeEkrani_deactivated(e) { this.forAltYapiClassesDo('listeEkrani_deactivated', e) }
 	static islemTuslariDuzenle_listeEkrani_ilk(e) { this.forAltYapiClassesDo('islemTuslariDuzenle_listeEkrani_ilk', e) }
 	static islemTuslariDuzenle_listeEkrani(e) { this.forAltYapiClassesDo('islemTuslariDuzenle_listeEkrani', e) }
 	static async getRootFormBuilder(e = {}) {
@@ -201,11 +202,13 @@ class MQCogul extends MQYapi {
 	static rootFormBuilderDuzenle_islemTuslari(e) { }
 	static tanimPart_islemTuslariArgsDuzenle(e) { }
 	static tanimPart_islemTuslariDuzenle(e) { }
-	static getRootFormBuilder_listeEkrani(e) {
-		e = e || {}; let rootBuilder = new RootFormBuilder(); let _e = $.extend({}, e, { mfSinif: this, rootBuilder });
-		$.extend(rootBuilder, { part: _e.sender, parent: _e.parent, layout: _e.layout, mfSinif: this });
-		this.rootFormBuilderDuzenle_listeEkrani(_e); this.rootFormBuilderDuzenleSonrasi_listeEkrani(_e);
-		rootBuilder = _e.rootBuilder; return rootBuilder
+	static getRootFormBuilder_listeEkrani(e = {}) {
+		let rootBuilder = new RootFormBuilder()
+		let _e = { ...e, mfSinif: this, rootBuilder }
+		$.extend(rootBuilder, { part: _e.sender, parent: _e.parent, layout: _e.layout, mfSinif: this })
+		this.rootFormBuilderDuzenle_listeEkrani(_e)
+		this.rootFormBuilderDuzenleSonrasi_listeEkrani(_e)
+		return rootBuilder = _e.rootBuilder
 	}
 	static rootFormBuilderDuzenle_listeEkrani(e) { }
 	static rootFormBuilderDuzenleSonrasi_listeEkrani(e) { }
@@ -310,14 +313,13 @@ class MQCogul extends MQYapi {
 		items ??= await this.getDefaultContextMenuItems(e)
 		return items ? { title, items } : null
 	}
+	static getDefaultContextMenuItems(e) { return null }
 	static async getTanimPartMenuArgs(e = {}) {
 		let {items} = e
 		items ??= await this.getTanimPartMenuItems(e)
 		return this.getDefaultContextMenuArgs({ ...e, items })
 	}
-	static getDefaultContextMenuItems(e) {
-		return null
-	}
+	static getTanimPartMenuItems(e) { return null }
 	static get newSecimler() {
 		let {secimSinif} = this; if (!secimSinif) { return null }
 		let _e = { secimler: new secimSinif() }; _e.secimler.beginUpdate(); this.secimlerDuzenle(_e); this.secimlerDuzenleSon(_e);
@@ -348,7 +350,7 @@ class MQCogul extends MQYapi {
 		if (gridPart) {
 			let args = await this.getDefaultContextMenuArgs(e)
 			if (args) {
-				let {gridContextMenuIstendiBlock: handler} = gridPart
+				let { gridContextMenuIstendiBlock: handler } = gridPart
 				gridPart.gridContextMenuIstendiBlock = ({ event, ...rest }) => {
 					try {
 						let {selectedRecs: recs} = gridPart
@@ -506,7 +508,8 @@ class MQCogul extends MQYapi {
 	static async loadServerData({ offlineRequest, offlineMode = this.isOfflineMode } = {}) {
 		let e = arguments[0]
 		if (!offlineRequest && offlineMode && !(this.notCacheable || this.offlineFis)) {
-			let {globals} = this, {cachedRecs: result} = globals
+			let { globals } = this
+			let { cachedRecs: result } = globals
 			if (empty(result)) {
 				result = await this.loadServerDataDogrudan(e)
 				if (!empty(result))
@@ -886,76 +889,118 @@ class MQCogul extends MQYapi {
 	tanimla(e) { e = e || {}; e.inst = e.inst || this; return this.class.tanimla(e) }
 	cacheOlustur(e) { }
 	static async getGloAdi2KodListe(e) {
-		let {globals} = this; let result = globals.adi2KodListe;
+		let { globals } = this
+		let { adi2KodListe: result } = globals
 		if (!result) {
-			let kod2Adi = await this.getGloKod2Adi(e); result = globals.adi2KodListe = {};
-			for (let kod in kod2Adi) { let adi = kod2Adi[kod]; if (adi) { adi = adi.toLocaleUpperCase().trim(); (result[adi] = result[adi] || []).push(kod) } }
+			let kod2Adi = await this.getGloKod2Adi(e)
+			result = globals.adi2KodListe = {}
+			for (let kod in kod2Adi) {
+				let adi = kod2Adi[kod]?.toLocaleUpperCase()?.trim()
+				if (adi)
+					(result[adi] ??= []).push(kod)
+			}
 		}
 		return result
 	}
-	static async getGloKod2Adi(e) {
-		e = e || {}; if (typeof e != 'object') e = { kod: e }
-		let {kod} = e, {globals} = this, {kod2Adi: result} = globals; delete e.kod;
+	static async getGloKod2Adi(e = {}) {
+		e = isObject(e) ? e : { kod: e }
+		let { globals } = this, { kod2Adi: result } = globals
+		let { kod, adiSaha } = e
+		delete e.kod
 		if (!result) {
-			let kod2Rec = await this.getGloKod2Rec(e), adiSaha = e.adiSaha ?? this.adiSaha;
-			result = globals.kod2Adi = {}; for (let kod in kod2Rec) {
-				result[kod] = kod2Rec[kod][adiSaha] }
+			let kod2Rec = await this.getGloKod2Rec(e)
+			result = globals.kod2Adi = {}
+			adiSaha ??= this.adiSaha
+			for (let [kod, rec] of entries(kod2Rec))
+				result[kod] = rec[adiSaha]
 		}
-		return kod ? result[kod] : result
+		return kod == null ? result : result[kod]
 	}
 	static async getGloKod2Rec(e) {
-		let {globals} = this, {kod2Rec: result} = globals;
-		if (result == null) { result = globals.kod2Rec = await this.getKod2Rec(e) }
+		let { globals } = this
+		let { kod2Rec: result } = globals
+		if (result == null)
+			result = globals.kod2Rec = await this.getKod2Rec(e)
 		return result
 	}
 	static async getKod2Rec(e) {
-		let basit = true, kodSaha = e?.kodSaha ?? this.kodSaha;
-		let recs = (await this.loadServerData({ ...e, basit })) || [];
-		let result = {}; for (let rec of recs) {
-			let kod = rec[kodSaha]; result[kod] = rec }
+		let basit = true, kodSaha = e?.kodSaha ?? this.kodSaha
+		let recs = (await this.loadServerData({ ...e, basit })) || []
+		let result = fromEntries(recs.map(rec =>
+			[rec[kodSaha], rec]))
 		return result
 	}
 	static async getGloKod2Inst(e) {
-		let {globals} = this, {kod2Inst: result} = globals;
-		if (result == null) { result = globals.kod2Inst = await this.getKod2Inst(e) }
+		let { globals } = this
+		let { kod2Inst: result } = globals
+		if (result == null)
+			result = globals.kod2Inst = await this.getKod2Inst(e)
 		return result
 	}
 	static async getKod2Inst(e) {
-		let kod2Rec = await this.getKod2Rec(e) ?? {};
-		let result = {}; for (let [kod, rec] of Object.entries(kod2Rec)) {
-			let inst = new this();
-			if (await inst.yukle({ rec })) { result[kod] = rec }
+		let kod2Rec = await this.getKod2Rec(e) ?? {}
+		let result = {}
+		for (let [kod, rec] of entries(kod2Rec)) {
+			let inst = new this()
+			if (await inst.yukle({ rec }))
+				result[kod] = inst
 		}
 		return result
 	}
 	static kodVarmi(e, _zorunlumu) {
-		e = e || {}; let kod = typeof e == 'object' ? e.kod : e;
-		let zorunlumu = _zorunlumu ?? (typeof e == 'object' ? e.zorunlu ?? e.zorunlumu : null);
-		if (zorunlumu && !kod) { return false }
+		let kod = isObject(e) ? e.kod : e
+		let zorunlumu = _zorunlumu ?? (isObject(e) ? e.zorunlu ?? e.zorunlumu : null)
+		if (zorunlumu && !kod)
+			return false
 		return !kod || new this({ kod }).varmi(e)
 	}
 	static partLayoutDuzenle(e) {
-		let {sender, layout, fis, argsDuzenle} = e, noAutoWidth = e.noAutoWidth ?? false, isDropDown = e.dropDown ?? false, mfSinif = e.mfSinif || this;
-		let _e = $.extend({}, e, { args: { sender: sender, layout, dropDown: isDropDown, mfSinif, noAutoWidth, dropDownWidth: '200%', value: getFuncValue.call(this, e.value ?? e.kod, { sender, fis }) } });
-		if (argsDuzenle) getFuncValue.call(this, argsDuzenle, _e.args);
-		let part = e.result = new ModelKullanPart(_e.args); part.run(); return part
+		let {sender, layout, fis, argsDuzenle} = e, noAutoWidth = e.noAutoWidth ?? false, isDropDown = e.dropDown ?? false, mfSinif = e.mfSinif || this
+		let _e = {
+			...e,
+			args: {
+				sender: sender, layout, dropDown: isDropDown, mfSinif, noAutoWidth, dropDownWidth: '200%',
+				value: getFuncValue.call(this, e.value ?? e.kod, { sender, fis })
+			}
+		}
+		argsDuzenle?.call?.(this, _e.args)
+		let part = e.result = new ModelKullanPart(_e.args)
+		part.run()
+		return part
 	}
-	static getGridKolonlar(e) {
-		e = e || {}; let {belirtec} = e, gridKolonGrupcu = e.gridKolonGrupcu || 'getGridKolonGrup', {duzenleyici} = e, stmDuzenleyici = e.stmDuzenle ?? e.stmDuzenleyici;
-		let _e = { ...e, mfSinif: this, belirtec, liste: [], kodEtiket: e.kodEtiket, adiEtiket: e.adiEtiket, stmDuzenleyici };
-		let colDef = $.isFunction(gridKolonGrupcu) ? gridKolonGrupcu.call(this, _e) : this[gridKolonGrupcu].call(this, _e);
+	static getGridKolonlar(e = {}) {
+		let { belirtec, duzenleyici, stmDuzenleyici = e.stmDuzenle } = e
+		let { kodEtiket, adiEtiket } = e
+		let gridKolonGrupcu = e.gridKolonGrupcu || 'getGridKolonGrup'
+		let mfSinif = this
+		let _e = {
+			...e, mfSinif, belirtec, liste: [],
+			kodEtiket, adiEtiket, stmDuzenleyici
+		}
+		let colDef = (gridKolonGrupcu?.call ?? this[gridKolonGrupcu]?.call)?.(this, _e)
 		if (colDef) {
-			let sabitleFlag = e.sabitle ?? e.sabitleFlag, hiddenFlag = e.hidden ?? e.hiddenFlag, autoBind = e.autoBind ?? e.autoBindFlag;
-			let readOnly = e.readOnly ?? e.readOnlyFlag, kodsuzFlag = e.kodsuz ?? e.kodsuzFlag;
-			if (sabitleFlag) { colDef.sabitle() } if (hiddenFlag) { colDef.hidden() }
-			if (autoBind) { colDef.autoBind() } if (readOnly) { colDef.readOnly() }
-			if (kodsuzFlag) { colDef.kodsuz() }
-			_e.colDef = colDef; duzenleyici?.call(this, _e);
+			let { sabitleFlag = e.sabitle, hiddenFlag = e.hidden, autoBind = e.autoBindFlag } = e
+			let { readOnly = e.readOnlyFlag, kodsuzFlag = e.kodsuz } = e
+			if (sabitleFlag)
+				colDef.sabitle()
+			if (hiddenFlag)
+				colDef.hidden()
+			if (autoBind)
+				colDef.autoBind()
+			if (readOnly)
+				colDef.readOnly()
+			if (kodsuzFlag)
+				colDef.kodsuz()
+			_e.colDef = colDef
+			duzenleyici?.call(this, _e)
 			_e.liste.push(colDef)
 		}
-		this.gridKolonlarDuzenle(_e); return _e.liste
+		this.gridKolonlarDuzenle(_e)
+		return _e.liste
 	}
-	static gridKolonlarDuzenle(e) { this.forAltYapiClassesDo('gridKolonlarDuzenle', e) }
+	static gridKolonlarDuzenle(e) {
+		this.forAltYapiClassesDo('gridKolonlarDuzenle', e)
+	}
 	static getGridKolonGrup(e) { }
 	static globalleriSil() {
 		let { mqGlobals, classKey } = this

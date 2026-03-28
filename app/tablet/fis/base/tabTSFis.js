@@ -171,23 +171,58 @@ class TabTSFis extends TabFis {
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_dipCollapsed({ sender: tanimPart, inst: fis, rfb }) {
 		await super.rootFormBuilderDuzenle_tablet_acc_dipCollapsed(...arguments)
-		let {dipIslemci = {}, detaylar: { length: topSatir }} = fis
-		let {brut, topIskBedel, topKdv, sonuc} = dipIslemci
-		if (topSatir) {
-			rfb.addForm().setLayout(() => $([
-				`<div class="flex-row" style="gap: 10px">`,
+		let { mustKod, dvKod, dipIslemci = {}, detaylar: { length: topSatir } } = fis
+		let mustRec = ( mustKod ? (await MQTabCari.getGloKod2Rec())?.[mustKod] : null ) ?? {}
+		let { brut, topIskBedel, topKdv, sonuc } = dipIslemci
+		dvKod ||= 'TL'
+		let layoutList = []
+		if (mustRec) {
+			let uni = new MQUnionAll()
+			;{
+				let sent = new MQSent(), { where: wh, sahalar } = sent
+				sent.fromAdd('carbakiye')
+				wh.degerAta(mustKod, 'kod')
+				sahalar.add(`'bakiye' tip`, 'bakiye bedel')
+				uni.add(sent)
+			}
+			// ;{ ... }
+			let recs = await uni.execSelect()
+			let tip2Bedel = fromEntries(recs.map(r => [r.tip, r.bedel]))
+			let { bakiye } = tip2Bedel
+			let bakiyeRenk = bakiye ? ( bakiye ? 'orangered' : 'forestgreen' ) : '_'
+			layoutList.push(...[
+				`<div class="item flex-row" style="gap: 10px">`,
+					`<span class="etiket lightgray">Bak: </span>`,
+					`<span class="veri ${bakiyeRenk} bold">${bakiye ? `${bedelToString(bakiye)} ${dvKod}` : '-Yok-'}</span>`,
+					(topSatir ? `<div class="royalblue"><b>${numberToString(topSatir)}</b> satır</div>` : null),
+				`</div>`
+			].filter(Boolean))
+		}
+		if (sonuc) {
+			layoutList.push(...[
+				`<div class="item flex-row" style="gap: 10px">`,
 					(topIskBedel || topKdv ? `<div>` +
 						 `<span class="lightgray">BR: </span>` +
-						 `<span>${toStringWithFra(brut)}</span>` +
-					 `</div>` : ''),
+						 `<span>${bedelToString(brut)}</span>` +
+					 `</div>` : null),
 					(topKdv ? `<div>` +
 						 `<span class="lightgray">KD: </span>` +
-						 `<span>${toStringWithFra(topKdv)}</span>` +
-					 `</div>` : ''),
-					(sonuc ? `<div class="orangered"><b>${toStringWithFra(sonuc)}</b> TL</div>` : ''),
-					(topSatir ? `<div class="royalblue"><b>${numberToString(topSatir)}</b> satır</div>` : ''),
+						 `<span>${bedelToString(topKdv)}</span>` +
+					 `</div>` : null),
+					(sonuc ? `<div class="orangered"><b>${bedelToString(sonuc)}</b> ${dvKod}</div>` : null),
 				`</div>`
-			].join(CrLf)))
+			].filter(Boolean))
+		}
+		layoutList = layoutList?.filter(Boolean)
+		if (!empty(layoutList)) {
+			rfb.addForm().setLayout(() => {
+				layoutList = [
+					`<div style="gap: 10px">`,
+					...layoutList,
+					`</div>`
+				]
+				return $(layoutList.join(CrLf))
+			})
 		}
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_dip({ sender: tanimPart, inst: fis, rfb }) {

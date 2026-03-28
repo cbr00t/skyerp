@@ -72,7 +72,7 @@ class TabletApp extends TicariApp {
 		let {cache, cache: { _offlineBilgiYukleSiniflar: result }} = this
 		if (!result) {
 			result = cache._offlineBilgiYukleSiniflar = [
-				MQParam, MQTabDokumForm, MQTabNum, MQTabCariBakiye,
+				MQParam, MQTabDokumForm, MQTabNum, MQTabRota, MQTabCariBakiye,
 				MQTabTahsilSekli, MQTabSube, MQTabYer, MQTabNakliyeSekli,
 				MQTabCariTip, MQTabSevkAdres, MQPaket, MQUrunPaket, MQTabUgramaNeden,
 				MQTabKasa, MQTabStokAnaGrup, MQTabStokGrup, MQTabStokMarka,
@@ -158,14 +158,16 @@ class TabletApp extends TicariApp {
 		items.push(new FRMenuChoice({ mne: 'BILGIYUKLE', text: 'Bilgi Yükle', block: e => this.bilgiYukleIstendi(e) }))
 		addMenuSubItems('TANIM', 'Tanımlar', [
 			MQTabStok, MQTabCari, MQTabCariBakiye, MQTabPlasiyer, MQTabSube, MQTabYer,
-			MQTabStokGrup, MQTabStokAnaGrup, MQTabStokMarka, MQTabNakliyeSekli,
+			MQTabRota, MQTabStokGrup, MQTabStokAnaGrup, MQTabStokMarka, MQTabNakliyeSekli,
 			MQTabTahsilSekli, MQTabBarkodReferans, MQTabBarkodAyrisim,
 			MQCariSatis, MQTabUgramaNeden, MQTabCariTip, MQTabSevkAdres
 		])
-		{
-			let mfSinif = TabFisListe, {kodListeTipi: mne, sinifAdi: text} = mfSinif
-			items.push(new FRMenuChoice({ mne, text, block: e => mfSinif.listeEkraniAc(e) }))
-		}
+		;[TabRotaListe, TabFisListe]
+			.filter(_ => _.uygunmu)
+			.forEach(mfSinif => {
+				let { kodListeTipi: mne, sinifAdi: text } = mfSinif
+				items.push(new FRMenuChoice({ mne, text, block: e => mfSinif.listeEkraniAc(e) }))
+			})
 		items.push(new FRMenuChoice({ mne: 'BILGIGONDER', text: 'Bilgi Gönder', block: e => this.bilgiGonderIstendi(e) }))
 		addMenuSubItems(null, null, [MQTabNum])
 		{
@@ -467,3 +469,5 @@ let fisCls = (class extends MQGenelFis {
 fis = new fisCls()
 await fis.tanimla({ islem: 'yeni' })
 */
+
+

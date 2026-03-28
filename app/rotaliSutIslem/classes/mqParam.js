@@ -20,12 +20,12 @@ class MQSutParam extends MQTicariParamBase {
 	}
 	kaydetOncesiIslemler(e) {
 		const {sender} = e, {inst, fbd_postalar} = sender;
-		let {gridWidget} = fbd_postalar.part; inst.postalar = asSet(gridWidget.getboundrows().map(rec => rec.kod));
+		let {gridWidget} = fbd_postalar.part; inst.postalar = asSet(gridWidget.getboundrows().map(rec => rec.kod))
 		return super.kaydetOncesiIslemler(e)
 	}
 	paramSetValues(e) {
 		/* postalar: { F:Şafak, S:Sabah, K:kuşluk, O:öğle, I:ikindi, A:Akşam, G:gece }  kesafet: "1 kg kaç lt’dir değeridir" */
-		const {rec} = e, {kullanim} = this; $.extend(this, { postalar: asSet(rec.postalar), kesafet: asFloat(rec.kesafet) });
+		const {rec} = e, {kullanim} = this; $.extend(this, { postalar: asSet(rec.postalar), kesafet: asFloat(rec.kesafet) })
 		$.extend(kullanim, { sutToplama: rec.sutToplama });
 		this.initDefaults(e)
 	}

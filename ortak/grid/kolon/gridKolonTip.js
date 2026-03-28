@@ -230,7 +230,8 @@ class GridKolonTip_Number extends GridKolonTip {
 			let input = editor.hasClass('formul') ? editor : editor.find('input.formul');
 			value = input?.length ? asFloat(eval((input.val() ?? 0).replaceAll(',', '.'))) : asFloat(editor.val());
 			if (value?.constructor?.name == 'Number') { value = asFloat(value) }
-			let rec = colDef.gridPart.gridWidget.getboundrows()[rowIndex], fra = this.getFra({ rec });
+			let rec = colDef.gridPart.gridWidget?.getboundrows()?.[rowIndex]
+			let fra = this.getFra({ rec })
 			if (fra != null) { value = roundToFra(value, fra) }
 			return value
 		})

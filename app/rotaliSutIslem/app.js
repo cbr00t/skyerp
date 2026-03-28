@@ -78,7 +78,7 @@ class RotaliSutIslemApp extends App {
 		}
 		catch (ex) {
 			await new $.Deferred(p => setTimeout(() => { hideProgress(); p.resolve() }, 200)); const errorText = getErrorText(ex);
-			if (errorText) { hConfirm(errorText, `${appName}: <span class="bold ek-bilgi">Bilgi Yükle</span>`) } throw ex
+			if (errorText) { hConfirm(errorText, `${appName}: Bilgi Yükle`) } throw ex
 		}
 	}
 	async bilgiGonderIstendi(e) {
@@ -88,19 +88,19 @@ class RotaliSutIslemApp extends App {
 		}
 		try {
 			showProgress('İnternet bağlantısı kontrol ediliyor...', null, true); await new $.Deferred(p => setTimeout(() => p.resolve(), 100))
-			try { if (!navigator.onLine) { throw { isError: true, rc: 'noInternet', errorText: 'Bu işlem için İnternet Bağlantısı gereklidir' } } } finally { hideProgress() }
-			const recs = e.recs = this.gonderilmemisVeriler; if ($.isEmptyObject(recs)) { hideProgress(); throw { isError: true, rc: 'noData', errorText: 'Gönderilmeyi bekleyen veri yok' } }
+			try { if (!navigator.onLine) { throw { isError: true, errorText: 'Bu işlem için İnternet Bağlantısı gereklidir' } } } finally { hideProgress() }
+			const recs = e.recs = this.gonderilmemisVeriler; if ($.isEmptyObject(recs)) { hideProgress(); throw { isError: true, errorText: 'Gönderilmeyi bekleyen veri yok' } }
 			if ((await ehConfirm(`<div class="bold"><span class="green">${recs.length} adet belge</span> merkeze gönderilsin mi?</div>`, appName)) != true) return; showProgress(' ', null, true, e => { e.abortFlag = true });
 			const result = await this.bilgiGonder(e); progressManager?.progressEnd(); await new $.Deferred(p => setTimeout(() => { hideProgress(); p.resolve() }, 200));
 			if (result !== false) eConfirm('Bilgi Gönderim işlemi bitti', appName)
 		}
 		catch (ex) {
 			await new $.Deferred(p => setTimeout(() => { hideProgress(); p.resolve() }, 1000)); const errorText = getErrorText(ex);
-			if (errorText) { hConfirm(errorText, `${appName}: <span class="bold ek-bilgi">Bilgi Gönder</span>`) } throw ex
+			if (errorText) { hConfirm(errorText, `${appName}: Bilgi Gönder`) } throw ex
 		}
 	}
 	async bilgiYukle(e) {
-		e = e || {}; if (!navigator.onLine) { throw { isError: true, rc: 'noInternet', errorText: 'Bu işlem için İnternet Bağlantısı gereklidir' } }
+		e = e || {}; if (!navigator.onLine) { throw { isError: true, errorText: 'Bu işlem için İnternet Bağlantısı gereklidir' } }
 		const TotalCount = 4; if (progressManager) progressManager.progressMax = TotalCount; if (e.abortFlag) return false
 		if (progressManager) progressManager.text = `SkyWS Erişimi kontrol ediliyor...`; try { await this.wsGetSessionInfo() } catch (ex) { console.error(ex); return false } progressManager?.progressStep()
 		progressManager.text = `Yerel Veriler siliniyor...`; progressManager?.progressStep(); await new $.Deferred(p => setTimeout(() => { progressManager?.progressReset(); p.resolve() }, 50)); await this.verileriSil(e);

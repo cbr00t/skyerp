@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS tabfis (
 	brut REAL NOT NULL DEFAULT 0,
 	topkdv REAL NOT NULL DEFAULT 0,
 	sonuc REAL NOT NULL DEFAULT 0,
+	dvkod TEXT NOT NULL DEFAULT '',
 	gonderimts TEXT NOT NULL DEFAULT '',
 -- ugrama fis
 	nedenkod TEXT NOT NULL DEFAULT '',

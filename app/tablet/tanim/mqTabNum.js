@@ -4,6 +4,7 @@ class MQTabNum extends MQKAOrtak {
 	static get table() { return 'tnumara' } static get tableAlias() { return 'num' }
 	static get primaryKeys() { return [this.idSaha] }
 	static get silinebilirmi() { return true }
+	static get offlineGonderYapilirmi() { return false }
 
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)

@@ -6,7 +6,7 @@ class TabDokumcu extends CObject {
 		let {tablet = {}} = app.params
 		let {dokumEkranami = e.dokumEkrana ?? e.ekranami ?? e.ekrana ?? e.ekran ?? this.dokumEkranami} = e
 		let {device: orjDevice = this.device, yontem = this.yontem} = e
-		dokumEkranami ??= tablet.dokumEkranami ?? tablet.dokumEkrana
+		dokumEkranami ??= tablet.dokumEkranami ?? tablet.dokumEkrana ?? true
 		orjDevice ??= TabDokumDevice.newDefault()
 		yontem ??= TabDokumYontemi.newDefault()
 		extend(this, { orjDevice, device: orjDevice, yontem, dokumEkranami })

@@ -4,6 +4,7 @@
 <script src="<?=$_partRoot?>/tabFis.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/tabFisListeDetay.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/tabFisListe.js?<?=$appVersion?>"></script>
+<script src="<?=$_partRoot?>/tabRotaListe.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/tabTSDetay.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/tabTSFis.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/tabTicariDetay.js?<?=$appVersion?>"></script>
