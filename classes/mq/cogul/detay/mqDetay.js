@@ -36,14 +36,15 @@ class MQDetay extends MQSayacli {
 		let {aliasVeNokta, idSaha, fisSayacSaha, seqSaha} = this
 		let {sent, sent: { sahalar, where: wh }, stm, stm: { orderBy }} = e
 		let parentRec = e.parentRec ?? e.rec ?? {}
-		let fisSayac = (
-			e.sayac || e.fisSayac || e.fissayac || e.kaySayac || e.kaysayac | e.fisid ||
-			parentRec[idSaha] || parentRec[idSaha] || parentRec.fissayac || parentRec.kaysayac || parentRec.id
+		let fisSayacListe = makeArray(
+			e.sayac || e.fisSayac || e.fissayac || e.kaySayac || e.kaysayac || e.fisid || e.fisID || e.fisId ||
+			parentRec[idSaha] || parentRec[idSaha] || parentRec.fissayac || parentRec.kaysayac || parentRec.id ||
+			e.id
 		)
 		if (fisSayacSaha) {
-			if (fisSayac)
-				wh.degerAta(fisSayac, `${aliasVeNokta}${fisSayacSaha}`)
-			else
+			if (!empty(fisSayacListe))
+				wh.inDizi(fisSayacListe, `${aliasVeNokta}${fisSayacSaha}`)
+			if (fisSayacListe?.length != 1)
 				orderBy.add(`${aliasVeNokta}${fisSayacSaha}`)
 			sahalar.add(`${aliasVeNokta}${fisSayacSaha}`)
 		}

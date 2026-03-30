@@ -4,8 +4,9 @@ class TabletApp extends TicariApp {
 	get offlineMode() { return super.offlineMode ?? true } set offlineMode(value) { super.offlineMode = value }
 	get dbMgrClass() { return SqlJS_DBMgr } get defaultOfflineRequestChunkSize() { return 4 } // get autoExecMenuId() { return MQTest.kodListeTipi }
 	get sicakVeyaSogukmu() { return this.sicakmi || this.sogukmu }
-	get rotaKullanilirmi() { return this.sicakVeyaSogukmu }
-	get defaultLoginTipi() { return this.sicakVeyaSogukmu ? 'plasiyerLogin' : super.defaultLoginTipi }
+	get sicakSogukVeyaSutAlimmi() { return this.sicakVeyaSogukmu || this.sutAlimmi }
+	get rotaKullanilirmi() { return this.sicakSogukVeyaSutAlimmi }
+	get defaultLoginTipi() { return this.sicakSogukVeyaSutAlimmi ? 'plasiyerLogin' : super.defaultLoginTipi }
 	get cache() { return this._cache }
 	set cache(value) { this._cache = value }
 	get uygunFisTipleri() {
@@ -25,17 +26,15 @@ class TabletApp extends TicariApp {
 		return result
 	}
 	get subeKod() {
-		let {cache, cache: { _subeKod: result }} = this
+		let { cache, cache: { _subeKod: result } } = this
 		if (result === undefined) {
-			let {session: { loginTipi, subeKod } = {}} = config
-			let {DefaultLoginTipi: def} = Session
-			loginTipi ||= def
-			result = cache._subeKod = loginTipi == def && subeKod != null ? subeKod : null
+			let { session: {  subeKod } = {} } = config
+			result = cache._subeKod = subeKod
 		}
 		return result
 	}
 	get yerKod() {
-		let {cache, cache: { _yerKod: result }} = this
+		let { cache, cache: { _yerKod: result } } = this
 		if (result === undefined) {
 			let {subeKod} = this
 			result = cache._yerKod = null   // ??
@@ -43,7 +42,7 @@ class TabletApp extends TicariApp {
 		return result
 	}
 	get plasiyerKod() {
-		let {cache, cache: { _plasiyerKod: result }} = this
+		let { cache, cache: { _plasiyerKod: result } } = this
 		if (result === undefined) {
 			let {session: { loginTipi, user: plasiyerKod } = {}} = config
 			result = cache._plasiyerKod = loginTipi == 'plasiyerLogin' ? plasiyerKod : null
@@ -58,7 +57,9 @@ class TabletApp extends TicariApp {
 		}
 		return result
 	}
+	get eIslemKullanilirmi() { return this.param?.tablet?.eIslem }
 	get dokumFormlar() { return this.params.tablet?.dokumFormlar }
+	
 	get offlineBilgiYukleGonderOrtakSiniflar() {
 		let {cache, cache: { _offlineBilgiYukleGonderOrtakSiniflar: result }} = this
 		if (!result)
@@ -69,15 +70,21 @@ class TabletApp extends TicariApp {
 		return result
 	}
 	get offlineBilgiYukleSiniflar() {
-		let {cache, cache: { _offlineBilgiYukleSiniflar: result }} = this
+		let { cache, params: { tablet = {} } = {} } = this
+		let { _offlineBilgiYukleSiniflar: result } = cache
 		if (!result) {
+			let { sutToplama } = tablet
+			sutToplama ||= this.sutAlimmi
 			result = cache._offlineBilgiYukleSiniflar = [
 				MQParam, MQTabDokumForm, MQTabNum, MQTabRota, MQTabCariBakiye,
 				MQTabTahsilSekli, MQTabSube, MQTabYer, MQTabNakliyeSekli,
 				MQTabCariTip, MQTabSevkAdres, MQPaket, MQUrunPaket, MQTabUgramaNeden,
 				MQTabKasa, MQTabStokAnaGrup, MQTabStokGrup, MQTabStokMarka,
-				MQTabBolge, MQTabIl, MQTabUlke, MQTabPlasiyer
+				MQTabBolge, MQTabIl, MQTabUlke,
+				MQTabPlasiyer
 			]
+			if (sutToplama) 
+				result.push(MQTabMustahsil, MQTabSutSira)
 			for (let {kami, mfSinif} of HMRBilgi) {
 				if (kami && mfSinif)
 					result.push(mfSinif)
@@ -91,7 +98,8 @@ class TabletApp extends TicariApp {
 		return result
 	}
 	get offlineBilgiGonderSiniflar() {
-		let {cache, cache: { _offlineBilgiGonderSiniflar: result }} = this
+		let { cache } = this
+		let { _offlineBilgiGonderSiniflar: result } = cache
 		if (!result) {
 			result = cache._offlineBilgiGonderSiniflar = [
 				...this.offlineBilgiYukleGonderOrtakSiniflar,
@@ -104,7 +112,7 @@ class TabletApp extends TicariApp {
 		let fisSiniflar = TabFis.subClasses.filter(_ => !_.araSeviyemi)
 		let detSiniflar = fisSiniflar.map(_ => _.detaySinif).flat().filter(_ => !!_)
 		return [
-			...this.offlineBilgiYukleSiniflar.filter(_ => _ != MQTabPlasiyer),
+			...this.offlineBilgiYukleSiniflar.filter(_ => !_.createTableYapilmazmi),
 			...fisSiniflar, ...detSiniflar
 		]
 	}
@@ -118,23 +126,28 @@ class TabletApp extends TicariApp {
 		this.cache = {}
 	}
 	loginTipleriDuzenle({ loginTipleri }) {
-		let {sicakVeyaSogukmu} = this
+		let { sicakSogukVeyaSutAlimmi } = this
 		loginTipleri.push(...[
-			(sicakVeyaSogukmu ? null : { kod: 'login', aciklama: 'VIO Kullanıcısı' }),
+			(sicakSogukVeyaSutAlimmi ? null : { kod: 'login', aciklama: 'VIO Kullanıcısı' }),
 			{ kod: 'plasiyerLogin', aciklama: 'Plasiyer' }
 		].filter(Boolean))
 	}
 	paramsDuzenle({ params }) {
 		super.paramsDuzenle(...arguments)
-		$.extend(params, { localData: MQLocalData.getInstance(), tablet: MQTabletParam.getInstance() })
+		extend(params, {
+			localData: MQLocalData.getInstance(),
+			tablet: MQTabletParam.getInstance()
+		})
 	}
 	async afterRun(e) {
 		await super.afterRun(e)
 		this.cacheReset()
 	}
 	async getAnaMenu(e) {
-		let {noMenuFlag, params} = this
-		if (noMenuFlag) { return new FRMenu() }
+		let { noMenuFlag, params } = this
+		if (noMenuFlag)
+			return new FRMenu()
+		
 		let items = []
 		let addMenuSubItems = (mne, text, ...classes) => {
 			let subItems = classes.flat().map(cls =>
@@ -155,7 +168,12 @@ class TabletApp extends TicariApp {
 			}
 			return menuItems
 		}
-		items.push(new FRMenuChoice({ mne: 'BILGIYUKLE', text: 'Bilgi Yükle', block: e => this.bilgiYukleIstendi(e) }))
+		items.push(
+			new FRMenuChoice({
+				mne: 'BILGIYUKLE', text: 'Bilgi Yükle',
+				block: e => this.bilgiYukleIstendi(e)
+			})
+		)
 		addMenuSubItems('TANIM', 'Tanımlar', [
 			MQTabStok, MQTabCari, MQTabCariBakiye, MQTabPlasiyer, MQTabSube, MQTabYer,
 			MQTabRota, MQTabStokGrup, MQTabStokAnaGrup, MQTabStokMarka, MQTabNakliyeSekli,
@@ -168,11 +186,21 @@ class TabletApp extends TicariApp {
 				let { kodListeTipi: mne, sinifAdi: text } = mfSinif
 				items.push(new FRMenuChoice({ mne, text, block: e => mfSinif.listeEkraniAc(e) }))
 			})
-		items.push(new FRMenuChoice({ mne: 'BILGIGONDER', text: 'Bilgi Gönder', block: e => this.bilgiGonderIstendi(e) }))
+		items.push(
+			new FRMenuChoice({
+				mne: 'BILGIGONDER', text: 'Bilgi Gönder',
+				block: e => this.bilgiGonderIstendi(e)
+			})
+		)
 		addMenuSubItems(null, null, [MQTabNum])
-		{
+		;{
 			let mfSinif = MQTabletParam, {kodListeTipi: mne, sinifAdi: text} = mfSinif
-			items.push(new FRMenuChoice({ mne, text, block: e => this.params.tablet.tanimla(e) }))
+			items.push(
+				new FRMenuChoice({
+					mne, text,
+					block: e => this.params.tablet.tanimla(e)
+				})
+			)
 		}
 		// addMenuSubItems(null, null, [MQTest])
 		return new FRMenu({ items })
@@ -219,13 +247,13 @@ class TabletApp extends TicariApp {
 	uygunFisTipleriDuzenle_ilk({ result }) {
 		result.push(...[
             TabUgramaFis
-        ].map(_ => _.kodListeTipi))
+        ].map(_ => _.fisTipi))
 	}
 	uygunFisTipleriDuzenle_ara({ result }) { }
 	uygunFisTipleriDuzenle_son({ result }) {
 		result.push(...[
             TabTahsilatFis
-        ].map(_ => _.kodListeTipi))
+        ].map(_ => _.fisTipi))
 	}
 	numYapilarDuzenle({ result }) {
 		let { uygunFisTipleri } = this
@@ -257,6 +285,7 @@ class TabletApp extends TicariApp {
 		let offlineRequest = true, offlineMode = true, internal = true
 		let pm = showProgress('Veriler yükleniyor...', null, true)
 		pm.setProgressMax(classes.length * 130 + 500).progressReset()
+		app.resetOfflineStatus()
 		try {
 			let {belirtecListe: hmrBelirtecler_eski} = HMRBilgi
 			if (!withClear)
@@ -339,6 +368,7 @@ class TabletApp extends TicariApp {
 			return
 		let pm = showProgress('Veriler gönderiliyor...', null, true)
 		pm.setProgressMax(classes.length * 70).progressReset()
+		app.resetOfflineStatus()
 		for (let _classes of arrayIterChunks(classes, chunkSize)) {
 			for (let cls of _classes) {
 				try { await cls.offlineSaveToRemoteTable() }
@@ -381,7 +411,7 @@ class TabletApp extends TicariApp {
 	static get table() { return 'testhar' }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
-		$.extend(pTanim, {
+		extend(pTanim, {
 			stokKod: new PInstStr('shkod'),
 			stokAdi: new PInstStr(),
 			bedel: new PInstNum('bedel')
@@ -429,7 +459,7 @@ let fisCls = (class extends MQGenelFis {
 	static get detaySinif() { return detCls }
 	static get gridKontrolcuSinif() { return gridciCls }
 	static pTanimDuzenle({ pTanim }) {
-		$.extend(pTanim, {
+		extend(pTanim, {
 			mustKod: new PInstStr('must'),
 			aciklama: new PInstStr('aciklama')
 		})

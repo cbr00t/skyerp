@@ -13,15 +13,22 @@ class TabTicariFis extends TabTSFis {
 	// static get dokumFormTip_eIslem() { return this.dokumFormTip_normal }
 	static get defaultEIslTip() { return '' }
 	get defaultEIslTip() {
-		return !this.yildizlimi && (app.params.tablet.efatKullanirmi ?? true)
+		return !this.yildizlimi && (app.params.tablet.eIslem ?? true)
 			? this.class.defaultEIslTip
 			: ''
 	}
 	get dovizlimi() { return !!this.dvKod }
 
+	constructor(e) {
+		super(e)
+		let { eIslemKullanilirmi: eIslem } = this.class
+		eIslem &&= app.eIslemKullanilirmi
+		if (!eIslem)
+			this.eIslTip = this.uuid = ''
+	}
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
-		$.extend(pTanim, {
+		extend(pTanim, {
 			yildizlimi: new PInstBool(),
 			eIslTip: new PInstStr('eisltip'),
 			uuid: new PInstStr('uuid'),
@@ -37,7 +44,7 @@ class TabTicariFis extends TabTSFis {
 		let {_dipIslemci: d, sevkTS: sevkts, yildizlimi} = this
 		if (isDate(sevkts))
 			sevkts = dateTimeToString(sevkts)
-		$.extend(hv, { sevkts })
+		extend(hv, { sevkts })
 		for (let k of ['dipIskOran1', 'dipIskOran2', 'dipIskBedel'])
 			hv[k.toLowerCase()] = d?.[k] ?? 0
 		hv.ozelisaret = bool2FileStr(yildizlimi)
@@ -213,7 +220,7 @@ class TabTicariFis extends TabTSFis {
 						subDetListe
 							.filter(_ => !_.ozelFiyat)
 							.forEach(det => {
-								$.extend(det, { fiyatKosulKod: kod, ozelFiyat: true, fiyat })
+								extend(det, { fiyatKosulKod: kod, ozelFiyat: true, fiyat })
 								if (iskontoYokmu)                                                  // isk hesaplanmaması için flag set
 									det.ozelIsk = true
 								det.bedelHesapla().htmlOlustur()
@@ -237,7 +244,7 @@ class TabTicariFis extends TabTSFis {
 						subDetListe
 							.filter(_ => !_.ozelIsk)
 							.forEach(det => {
-								$.extend(det, { iskKosulKod: kod, ozelIsk: true, iskOran1 })
+								extend(det, { iskKosulKod: kod, ozelIsk: true, iskOran1 })
 								det.bedelHesapla().htmlOlustur()
 								w?.updaterow(det.uid, det)
 							})
@@ -390,7 +397,7 @@ class TabTicariFis extends TabTSFis {
 			if (!iskontoYokmu) { iskontoArastirStokSet[stokKod] = true }
 			let fiyat = det.fiyat || kosulRec.fiyat; if (fiyat) {
 				let miktar = det.miktar || 0, netBedel = roundToBedelFra(miktar * fiyat);
-				$.extend(det, { fiyat, netBedel })
+				extend(det, { fiyat, netBedel })
 			}
 		}
 		let iskYapilar = await SatisKosul_Iskonto.stoklarIcinOranlar(Object.keys(iskontoArastirStokSet), kosulYapilar?.SB);

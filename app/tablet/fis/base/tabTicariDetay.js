@@ -1,5 +1,10 @@
 class TabTicariDetay extends TabTSDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	constructor(e = {}) {
+		super(e)
+		for (let k of ['fiyat', 'kdvOrani', 'kdv', 'brutBedel', 'bedel', 'dagitDipIskBedel'])
+			this[k] ??= 0
+	}
 	static io2RowAttrOlustur({ result }) {
 		super.io2RowAttrOlustur(...arguments)
 		let _keys = [
@@ -12,6 +17,47 @@ class TabTicariDetay extends TabTSDetay {
 		for (let {ioAttr: i, rowAttr: r} of TicIskYapi)
 			result[i] = r
 	}
+	async detayEkIslemler({ fis } = {}) {
+		await super.detayEkIslemler(...arguments)
+		let { stokKod } = this
+		if (stokKod) {
+			let { stokSinif } = this.class ?? {}
+			let { alimmi } = fis.class ?? {}
+			let { [stokKod]: rec } = await stokSinif.getGloKod2Rec() ?? {}
+			if (rec) {
+				let bosDegilseAktar = (i, r) => {
+					let rv = rec[r]
+					if (rv)
+						this[i] = rv
+				}
+				bosDegilseAktar('fiyat', 'fiyat')
+				bosDegilseAktar('kdvOrani', stokSinif.getKdvOraniSaha(alimmi))
+			}
+		}
+		this.bedelHesapla({ fis })
+		return this
+	}
+	brutBedelHesapla({ fis } = {}) {
+		super.brutBedelHesapla(...arguments)
+		let miktar = this.miktar ??= 0
+		let fiyat = this.fiyat ??= 0
+		this.brutBedel = roundToBedelFra(miktar * fiyat)
+		return this
+	}
+	netBedelHesapla({ fis } = {}) {
+		super.netBedelHesapla(...arguments)
+		let { brutBedel: bedel } = this
+		for (let {ioAttr} of TicIskYapi.getIskIter()) {
+			let oran = this[ioAttr] ?? 0
+			if (!oran)
+				continue
+			let iskBedel = roundToBedelFra(bedel * oran / 100)
+			bedel -= iskBedel
+		}
+		this.bedel = bedel = roundToBedelFra(bedel)
+		return this
+	}
+	
 	getHTML(e) {
 		let _ = super.super_getHTML(e) ?? '', {dev} = config
 		let {bedelKullanilirmi} = TabTicariFis

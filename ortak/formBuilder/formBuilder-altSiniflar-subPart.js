@@ -1215,6 +1215,7 @@ class FBuilder_SimpleComboBox extends FBuilder_TextInput {
 				for (let k of ['layout', 'input'])
 					this[k] = part[k] ?? this[k]
 			}
+			this.addStyle(`$elementCSS > input { height: var(--full) }`)
         }
     }
 	postBuild(e) {
@@ -1273,6 +1274,8 @@ class FBuilder_SimpleComboBox extends FBuilder_TextInput {
     setMaxRows(v) { this.maxRows = v; this.part?.setMaxRows(v); return this }
 	autoClear() { this.autoClearFlag = true; this.part?.autoClear(); return this }
 	noAutoClear() { this.autoClearFlag = false; this.part?.noAutoClear(); return this }
+	comboBox() { return this } dropDown() { return this }
+	autoBind() { return this } noAutoBind() { return this }
 	kodlu() { this.kodsuzmu = false; this.part?.kodlu(); return this }
 	kodsuz() { this.kodsuzmu = true; this.part?.kodsuz(); return this }
     setUserData(v) { this.userData = v; this.part?.setUserData(v); return this }

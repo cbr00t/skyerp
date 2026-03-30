@@ -14,11 +14,15 @@ class MQTabRota extends MQGuidVeAdiOrtak {
 		sent.fromAdd(this.table)
 		if (plasiyerKod)
 			wh.degerAta(plasiyerKod, 'plasiyerKod')
-		wh.degerAta(gunKisaAdi, 'gunKod')
+		{
+			let or = new MQOrClause()
+			or.inDizi(['', 'HER', gunKod], 'gunKod')
+			wh.add(or)
+		}
 		wh.add(`mustKod <> ''`)
 		sahalar.add('seq', 'mustKod')
 
-		let orderBy = ['plasiyerKod', 'gunKod', 'seq']
+		let orderBy = ['tip', 'plasiyerKod', 'gunKod', 'ekKod', 'seq']
 		let stm = new MQStm({ sent, orderBy })
 
 		let recs = await this.sqlExecSelect(stm)
@@ -29,15 +33,18 @@ class MQTabRota extends MQGuidVeAdiOrtak {
 		super.offlineBuildSQLiteQuery(...arguments)
 		r[r.length - 1] = ');'
 		r.push(
-			'CREATE INDEX IF NOT EXISTS idx_rota_plasGun ON rota (plasiyerKod, gunKod);',
-			'CREATE UNIQUE INDEX IF NOT EXISTS idx_rota_plasGunSeq ON rota (plasiyerKod, gunKod, seq)'
+			'CREATE INDEX IF NOT EXISTS idx_rota_plasGun ON rota (tip, plasiyerKod, gunKod, ekKod);',
+			'CREATE UNIQUE INDEX IF NOT EXISTS idx_rota_plasGunSeq ON rota (tip, plasiyerKod, gunKod, ekKod, seq)'
 		)
 	}
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		extend(pTanim, {
+			vioID: new PInstNum('vioID'),
 			plasiyerKod: new PInstStr('plasiyerKod'),
+			tip: new PInstStr('tip'),
 			gunKod: new PInstStr('gunKod'),
+			ekKod: new PInstStr('ekKod'),
 			seq: new PInstNum('seq'),
 			mustKod: new PInstNum('mustKod')
 		})
@@ -75,22 +82,6 @@ class MQTabRota extends MQGuidVeAdiOrtak {
 		)
 		super.orjBaslikListesiDuzenle(...arguments)
 	}
-	static async loadServerDataDogrudan(e) {
-		let recs = await super.loadServerDataDogrudan(e)
-		;recs
-			?.filter(({ plasiyerKod, gunKod, kod }) =>
-				plasiyerKod || kod?.split('-')?.length == 2)
-			?.forEach(rec => {
-				let { plasiyerKod, kod } = rec
-				rec.id ||= newGUID()
-				if (!plasiyerKod && kod) {
-					let tokens = kod.split('-')
-					rec.plasiyerKod = tokens[0].trimEnd()
-					rec.gunKod = tokens[1].trimEnd()
-				}
-			})
-		return recs
-	}
 	static loadServerData_queryDuzenle_son(e) {
 		super.loadServerData_queryDuzenle_son(e)
 		let { subeKod, plasiyerKod } = app
@@ -102,20 +93,68 @@ class MQTabRota extends MQGuidVeAdiOrtak {
 		if (offlineRequest && !offlineMode) {
 			// Bilgi Yükle
 			sent.innerJoin(alias, 'rotadetay har', ['rot.kaysayac = har.fissayac', `har.devredisi = ''`, `har.must <> ''`])
-			wh.add(`${alias}.silindi = ''`, `${alias}.tipkod = 'T'`)
+			wh.add(`${alias}.silindi = ''`)
+			wh.inDizi(['T', 'M'], `${alias}.tipkod`)
 			if (subeKod != null)
 				wh.degerAta(subeKod, `${alias}.bizsubekod`)
-			if (plasiyerKod)
-				wh.like(`${plasiyerKod}-*`, `${alias}.kod`, true)
-			sahalar.addWithAlias(alias, 'kod')
-			sahalar.addWithAlias('har', 'seq', 'must mustKod')
+			if (plasiyerKod) {
+				let or = new MQOrClause()
+				;{
+					let and = new MQAndClause()
+					and.degerAta('T', `${alias}.tipkod`)
+					and.like(`${plasiyerKod}-*`, `${alias}.kod`, true)
+					or.add(and)
+				}
+				;{
+					let and = new MQAndClause()
+					and.degerAta('M', `${alias}.tipkod`)
+					and.degerAta(plasiyerKod, `${alias}.musplasiyerkod`)
+					// and.inDizi(['', plasiyerKod], `${alias}.musplasiyerkod`)
+					or.add(and)
+				}
+				wh.add(or)
+			}
+			sahalar.addWithAlias(alias, 'tipkod tipKod', 'kod', 'musplasiyerkod plasiyerKod')
+			sahalar.addWithAlias('har', 'kaysayac vioID', 'seq', 'must mustKod')
 		}
 		else {
 			// Yerel
 			sent.innerJoin(alias, 'carmst car', `${alias}.mustKod = car.kod`)
-			sahalar.addWithAlias(alias, idSaha, 'plasiyerKod', 'gunKod', 'seq', 'mustKod')
-			orderBy.liste = ['plasiyerKod', 'gunKod', 'seq']
+			sahalar.addWithAlias(alias, idSaha, 'vioID', 'plasiyerKod', 'gunKod', 'seq', 'mustKod')
+			orderBy.liste = ['tip', 'plasiyerKod', 'gunKod', 'ekKod', 'seq']
 		}
+	}
+	static async loadServerDataDogrudan({ offlineBuildSQLiteQuery, offlineRequest, offlineMode } = {}) {
+		let e = arguments[0]
+		let recs = await super.loadServerDataDogrudan(e)
+		if (!offlineRequest)
+			return recs
+		
+		recs = recs?.filter(({ plasiyerKod, gunKod, kod }) =>
+			!plasiyerKod || kod)
+		if (empty(recs))
+			return recs
+		
+		for (let rec of recs) {
+			let { tipKod, plasiyerKod, gunKod, kod } = rec
+			tipKod ||= 'T'
+			rec.id ||= newGUID()
+			gunKod ||= rec.gunKod = 'HER'
+			switch (tipKod) {
+				case 'T': {
+					let tokens = kod.split('-')
+					rec.plasiyerKod = tokens[0].trimEnd()
+					rec.gunKod = tokens[1]?.trimEnd() || gunKod
+					break
+				}
+				case 'M': {
+					// 'musplasiyerkod plasiyerKod' alias ile zaten gelmiş olmalı
+					rec.ekKod = kod
+					break
+				}
+			}
+		}
+		return recs
 	}
 	alternateKeyHostVarsDuzenle({ hv }) {
 		super.alternateKeyHostVarsDuzenle(...arguments)

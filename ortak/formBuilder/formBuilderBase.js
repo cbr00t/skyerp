@@ -460,7 +460,8 @@ class FormBuilderBase extends CObject {
 		this.add(builder);
 		return builder
 	}
-	addSelectElement(e, _etiket, _value, _source, _kodAttr, _adiAttr) {
+	addSelectElement() { return this.addSelect(...arguments) }
+	addSelect(e, _etiket, _value, _source, _kodAttr, _adiAttr) {
 		e = e || {};
 		let id = isObject(e) ? e.id : e;
 		let etiket = isObject(e) ? e.etiket : _etiket;

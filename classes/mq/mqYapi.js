@@ -388,11 +388,11 @@ class MQYapi extends CIO {
 							}
 							else {
 								cerr(ex)
-								return this
+								return false
 							}
 						}
 						if (!result)
-							return this
+							return false
 						window.progressManager?.progressStep(10)
 						if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha)
 							okIdList.push(_recs.map(rec => rec[idSaha]))
@@ -437,16 +437,18 @@ class MQYapi extends CIO {
 	static async offlineSaveToRemoteTable(e = {}) {
 		if (!this.dbMgr_db)
 			return false
-		let {offlineGonderYapilirmi} = this
+		let { offlineGonderYapilirmi } = this
 		if (!offlineGonderYapilirmi)
 			return false
 		let noLocalTable = e.noLocalTable ?? this.noLocalTable
 		let offlineTable = e.table ?? e.offlineTable ?? this.table
 		if (!(noLocalTable || offlineTable))
 			return false
-		let {offlineDirect: directFlag, offlineSahaListe: attrListe, idSaha, onlineIdSaha = idSaha, sayacSaha, gonderildiDesteklenirmi, gonderimTSSaha} = this
+		
+		let { trnId } = e
+		let { offlineDirect: directFlag, offlineSahaListe: attrListe } = this
+		let { idSaha, onlineIdSaha = idSaha, sayacSaha, gonderildiDesteklenirmi, gonderimTSSaha } = this
 		let offlineMode = false, offlineRequest = true, offlineGonderRequest = true
-		let {trnId} = e
 		let recs = await this.loadServerData({ ...e, offlineMode: !offlineMode, offlineRequest, offlineGonderRequest })
 		window.progressManager?.progressStep(20)
 		if (attrListe && onlineIdSaha && onlineIdSaha != idSaha && !attrListe.includes(onlineIdSaha))
@@ -461,7 +463,8 @@ class MQYapi extends CIO {
 					if (recs?.length) {
 						// let priKeys = idSaha ? null : keys(new this().keyHostVars({ offlineRequest, offlineMode: true }))
 						if (onlineIdSaha && !empty(recs)) {
-							let idList = keys(asSet(recs.map(rec => rec[onlineIdSaha] ?? rec[idSaha]).filter(_ => _ != null)))
+							let idList = keys(asSet(recs.map(rec =>
+								rec[onlineIdSaha] ?? rec[idSaha]).filter(_ => _ != null)))
 							let sent = new MQSent(), {where: wh, sahalar} = sent
 							sent.fromAdd(offlineTable)
 							wh.inDizi(idList, onlineIdSaha)
@@ -490,7 +493,8 @@ class MQYapi extends CIO {
 							mevcutIdSet = asSet(_recs.map(rec => rec[onlineIdSaha]))
 							window.progressManager?.progressStep(5)
 						}
-						let attrSet = asSet(attrListe), {online2OfflineSaha} = this
+						let attrSet = asSet(attrListe)
+						let { online2OfflineSaha } = this
 						let hvListe = []
 						for (let rec of recs) {
 							let hv = {}, _empty = true
@@ -516,7 +520,7 @@ class MQYapi extends CIO {
 							for (let _hvListe of arrayIterChunks(hvListe, 500)) {
 								let query = new MQInsert({ table: offlineTable, hvListe: _hvListe })
 								if (!await this.sqlExecNone({ ...e, trnId, offlineMode, query }))
-									return this
+									return false
 								if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha)
 									okIdList.push(recs.map(rec => rec[idSaha]))
 								window.progressManager?.progressStep(2)
@@ -528,11 +532,14 @@ class MQYapi extends CIO {
 					for (let rec of recs) {
 						let inst = new this()
 						await inst.setValues({ rec })
-						if (!await inst.yukle({ offlineMode: !offlineMode, offlineRequest, offlineGonderRequest })) { continue }
+						if (!await inst.yukle({ offlineMode: !offlineMode, offlineRequest, offlineGonderRequest }))
+							continue
 						inst = await inst.asOnlineFis?.({ ...e, rec }) ?? inst
 						if (inst.sayac) { inst.sayac = null }
-						if (await inst.varmi({ trnId, offlineMode, offlineRequest, offlineGonderRequest })) { continue }
-						if (!await inst.yaz({ trnId, offlineMode, offlineRequest, offlineGonderRequest })) { continue }
+						if (await inst.varmi({ trnId, offlineMode, offlineRequest, offlineGonderRequest }))
+							continue
+						if (!await inst.yaz({ trnId, offlineMode, offlineRequest, offlineGonderRequest }))
+							continue
 						if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha)
 							okIdList.push(rec[idSaha])
 						window.progressManager?.progressStep()

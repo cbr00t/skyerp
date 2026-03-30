@@ -3,6 +3,7 @@ class MQDetayli extends MQSayacli {
 	static get detaylimi() { return true } static get detayliMastermi() { return false }
 	static get gridKontrolcuSinif() { return null } get gridKontrolcuSinif() { return this.class.gridKontrolcuSinif }
 	static get offlineDirect() { return !(this.detayliMastermi || this.guidmi) }
+	static get seviyeAcKapatKullanilirmi() { return false }
 	static get detaySiniflar() {
 		let _e = { liste: [] }; this.detaySiniflarDuzenle(_e); let {liste} = _e;
 		if (empty(liste)) { let {detaySinif} = this; if (detaySinif) { liste.push(detaySinif) } }
@@ -221,8 +222,8 @@ class MQDetayli extends MQSayacli {
 		if (detaySiniflar) { for (let detaySinif of detaySiniflar) detaySinif.gridVeriYuklendi(e) }
 	}
 	getYazmaIcinDetaylar(e) {
-		let detSinif = this.class.detaySinifFor?.({ }) ?? this.class.detaySinif;
-		return this.detaylar.map(det => $.isPlainObject(det) ? new detSinif(det) : det)
+		let detSinif = this.class.detaySinifFor?.({ }) ?? this.class.detaySinif
+		return this.detaylar.map(det => isPlainObject(det) ? new detSinif(det) : det)
 	}
 	async yukle(e) {
 		e = e || {}; let result = await this.baslikYukle(e); if (result === false) { return result }

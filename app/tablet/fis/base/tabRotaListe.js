@@ -1,9 +1,13 @@
 class TabRotaListe extends MQMasterOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get uygunmu() { return config.dev || app.sicakVeyaSogukmu }
+	static get uygunmu() { return config.dev || app.rotaKullanilirmi }
 	static get araSeviyemi() { return true } static get notCacheable() { return true }
 	static get kodListeTipi() { return 'ROTA' } static get sinifAdi() { return 'Rota' }
 	static get table() { return 'rota' } static get tableAlias() { return 'rot' }
+	// static get gridIslemTuslariKullanilirmi() { return false }
+	static get kolonFiltreKullanilirmi() { return false }
+	static get raporKullanilirmi() { return false }
+	static get tumKolonlarGosterilirmi() { return true }
 
 	static fisSinifFor(e) { return TabFisListe.fisSinifFor(e) }
 	static detaySinifFor(e) { return TabFisListe.detaySinifFor(e) }
@@ -18,7 +22,7 @@ class TabRotaListe extends MQMasterOrtak {
 	}
 	static orjBaslikListesi_groupsDuzenle({ liste }) {
 		super.orjBaslikListesi_groupsDuzenle(...arguments)
-		liste.push('durumText')
+		liste.push('durumText', 'aciklama')
 	}
 	static ekCSSDuzenle({ dataField: belirtec, rec, result }) {
 		super.ekCSSDuzenle(...arguments)
@@ -28,6 +32,7 @@ class TabRotaListe extends MQMasterOrtak {
 		liste.push(
 			new GridKolon({ belirtec: '_html', text: 'Belge' }).noSql(),
 			new GridKolon({ belirtec: 'islemVarmi', text: 'İşl?', genislikCh: 4 }).noSql().tipBool(),
+			new GridKolon({ belirtec: 'aciklama', text: 'Rota Adı', genislikCh: 4 }).noSql(),
 			new GridKolon({ belirtec: 'durumText', text: 'İşlem Durumu', genislikCh: 15 }).noSql().hidden()
 		)
 	}
@@ -68,8 +73,8 @@ class TabRotaListe extends MQMasterOrtak {
 				durumText: ( islemVarmi ? `<b class=orangered>İşlem Görenler</b>` : `<b class=forestgreen>Bekleyenler</b>` )
 			})
 			rec._html = this.getHTML({ ...e, rec })
-			let selector = islemVarmi ? 'ilk' : 'son'
-			//mustKod2Rec[selector][mustKod] = rec
+			// let selector = islemVarmi ? 'son' : 'ilk'
+			// mustKod2Rec[selector][mustKod] = rec
 			mustKod2Rec.hepsi[mustKod] = rec             // öncelik sırasız
 		}
 		return values(mustKod2Rec.hepsi)
@@ -102,7 +107,7 @@ class TabRotaListe extends MQMasterOrtak {
 			}
 			sahalar
 				.addWithAlias(alias,
-					'plasiyerKod', 'seq', 'mustKod')
+					'tip', 'plasiyerKod', 'gunKod', 'ekKod', 'aciklama', 'seq', 'mustKod')
 				.addWithAlias('car',
 					'aciklama mustUnvan', 'kontipkod konTipkod', `konsolidemusterikod ticMustKod`,
 					'efaturakullanirmi eFatmi', 'oscolor', 'yore', 'ilkod ilKod'
@@ -119,7 +124,7 @@ class TabRotaListe extends MQMasterOrtak {
 			.filter(_ => !_.startsWith('_'))
 			.map(v => v.toUpperCase().endsWith('DESC') ? v : `${v} DESC`)
 		if (empty(orderBy.liste))
-			orderBy.add('oncelik', 'seq', 'mustUnvan')
+			orderBy.add('tip', 'plasiyerKod', 'ekKod', 'oncelik', 'seq')
 	}
 	static async gridVeriYuklendi({ sender: gridPart, sender: { gridWidget: w } }) {
 		super.gridVeriYuklendi(...arguments)
@@ -127,7 +132,7 @@ class TabRotaListe extends MQMasterOrtak {
 		;{
 			let key = 'durumText'
 			if (groups.includes(key))
-				w.sortby(key, false)
+				w.sortby(key, true)
 		}
 
 		let { boundRecs: recs, selectedRec: rec } = gridPart
@@ -183,11 +188,11 @@ class TabRotaListe extends MQMasterOrtak {
 	static fisListesiIstendi(e = {}) {
 		let { gridPart = e.parentPart ?? e.sender } = e
 		let { rec = gridPart?.selectedRec } = e
-		let { mustKod } = rec ?? {}
+		let { mustKod, vioID: rotaSayac } = rec ?? {}
 		if (!mustKod)
 			return
 
-		let args = { mustKod }
+		let args = { mustKod, rotaSayac }
 		let { part } = TabFisListe.listeEkraniAc({ args })
 		if (gridPart && part)
 			part.kapaninca(() => gridPart.tazele())
@@ -201,16 +206,15 @@ class TabRotaListe extends MQMasterOrtak {
 	}
 	static getHTML({ rec = {} }) {
 		let { mustKod, mustUnvan, eFatmi, bedel, dvKod, sayi } = rec
-		let { efatKullanirmi: efatVarmi } = app.params.tablet
-		
+		let { eIslemKullanilirmi: eIslem } = app
 		dvKod ||= 'TL'
-		efatVarmi ??= true
+		eIslem ??= true
 		let eIslText = (
-			!efatVarmi ? '' :
+			!eIslem ? '' :
 			eFatmi ? 'e-Fat' : 'e-Arş'
 		)
 		let eIslCSS = (
-			!efatVarmi ? '' :
+			!eIslem ? '' :
 			eFatmi ? ' firebrick' : ' forestgreen'
 		)
 		

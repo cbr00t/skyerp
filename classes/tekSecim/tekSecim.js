@@ -21,6 +21,7 @@ class TekSecim extends CIO {
 	get kod() { return this.char } get aciklama() { return this.secilen?.aciklama }
 	get question() { return this.secilen?.question }
 	get ekBilgi() { return this.secilen?.ekBilgi }
+
 	constructor(e) {
 		if (e != null && typeof e != 'object') { e = { char: e } } e = e || {}; super(e);
 		this.init(e); this.kaListeOlustur(e); const defaultChar = this.defaultChar = e.defaultChar ?? this.class.defaultChar;
@@ -65,5 +66,6 @@ class TekSecim extends CIO {
 	}
 	toString(e) { const {coklumu, secilen} = this; return secilen ? (coklumu ? secilen.map(x => x.kod).join(',') : secilen).toString(e) : '' }
 	secimYok() { this.char = null; return this }
+	setDefault() { this.char = this.class.defaultChar; return this }
 }
 

@@ -850,9 +850,9 @@ class GridPart extends Part {
 		this.gridVeriDegistiBlock?.call(this, e); this.getKontrolcu(e)?.gridVeriDegisti?.(e);
 		let gridWidget = e.event?.args.owner ?? this.gridWidget, {rowIndex, belirtec} = e;
 		if (rowIndex != null && belirtec) {
-			let cell = gridWidget.getselectedcell();
-			let rec = gridWidget.getrowdata(cell?.rowindex);
-			if (rec) { setTimeout(() => gridWidget.updaterow(rec.uid, rec), 0) }
+			let { selectedRec: rec } = this
+			if (rec)
+				setTimeout(() => gridWidget.updaterow(rec.uid, rec), 0)
 		}
 	}
 	gridGroupsChanged(e) {
@@ -1257,6 +1257,24 @@ class GridPart extends Part {
 	selectPrevEditableCell(e) {
 		e = typeof e == 'object' ? { ...e  } : {};
 		e.prev = true; return this.selectEditableCell(e)
+	}
+	seviyeAc(e) { return this.seviyeAcKapat({ ...e, flag: true }) }
+	seviyeKapat(e) { return this.seviyeAcKapat({ ...e, flag: false }) }
+	seviyeAcKapat({ flag } = {}) {
+		let { gridWidget: w } = this
+		w.beginupdate()
+		try {
+			w[flag ? 'expandallgroups' : 'collapseallgroups'](1)
+			if (!flag) {
+				let l0Groups = w.dataview.loadedgroups.filter(_ => _.level === 0)
+				if (!empty(l0Groups)) {
+					l0Groups.forEach((_, i) =>
+						w.expandgroup(i))
+				}
+			}
+		}
+		finally { w.endupdate() }
+		return this
 	}
 	addRow(e) {
 		e = e ?? {}; let {gridWidget, builder, totalRecs} = this, sender = this, owner = gridWidget, {rec} = e;

@@ -32,40 +32,46 @@ class MQTabCari extends MQKAOrtak {
 		})
 	}
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e)
-		let {rootBuilder: rfb, tabPage_genel: tabPage} = e
+		super.rootFormBuilderDuzenle(e)
+		this.formBuilder_addTabPanelWithGenelTab(e)
+		let { rootBuilder: rfb, tabPanel: tabs, tabPage_genel: tabPage } = e
 		{
-			let form = tabPage.addFormWithParent().yanYana(5)
+			let form = tabPage.addFormWithParent().yanYana(2)
 			form.addCheckBox('efatmi', 'e-Fat?')
-			form.addTextInput('yore', 'Yöre')
+			form.addSelect('tipKod', 'Tip')
+				.setSource(_e => MQTabCariTip.loadServerData({ ...e, ..._e }))
 		}
 		{
-			let form = tabPage.addFormWithParent().yanYana(5)
-			form.addModelKullan('tipKod', 'Tip').dropDown().setMFSinif(MQTabCariTip).autoBind()
-			form.addModelKullan('bolgeKod', 'Bölge').comboBox().setMFSinif(MQTabBolge).autoBind()
-			form.addModelKullan('ilKod', 'İl').comboBox().setMFSinif(MQTabIl).autoBind()
-			form.addModelKullan('ulkeKod', 'Ülke').comboBox().setMFSinif(MQTabUlke).autoBind()
-		}
-		{
-			let form = tabPage.addFormWithParent().yanYana(5)
-			form.addTextInput('tel1', 'Tel 1')
-			form.addTextInput('tel2', 'Tel 2')
-			form.addTextInput('tel3', 'Tel 3')
-		}
-		{
-			let form = tabPage.addFormWithParent().yanYana(5)
+			let form = tabPage.addFormWithParent().yanYana(2)
 			form.addCheckBox('sahismi', 'Şahıs?')
 				.degisince(({ builder: { parentBuilder: { builders } } }) =>
 					builders.forEach(fbd => fbd.updateVisible()))
-			form.addTextInput('vergiDaire', 'Vergi Dairesi')
-			form.addTextInput('vergiNo', 'Vergi No')
-			form.addTextInput('tcKimlikNo', 'TC Kimlik No')
+			form.addTextInput('vergiDaire', 'Vergi Dairesi').etiketGosterim_yok()
+			form.addTextInput('vergiNo', 'Vergi No').etiketGosterim_yok()
+			form.addTextInput('tcKimlikNo', 'TC Kimlik No').etiketGosterim_yok()
 				.setVisibleKosulu(({ builder: { altInst: { sahismi } }}) => sahismi)
 		}
+
+		tabPage = tabs.addTab('adresVeIletisim', 'Adres-İletişim')
 		{
-			let form = tabPage.addBaslik('gps', 'Konum').yanYana(5)
-			form.addNumberInput('gpsLat', 'GPS Enlem').addCSS('center')
-			form.addNumberInput('gpsLong', 'GPS Boylam').addCSS('center')
+			let form = tabPage.addFormWithParent().yanYana(2)
+			form.addTextInput('yore', 'Yöre').etiketGosterim_yok()
+			form.addSimpleComboBox('bolgeKod', 'Bölge').etiketGosterim_yok().kodsuz().setMFSinif(MQTabBolge)
+			form.addSimpleComboBox('ilKod', 'İl').etiketGosterim_yok().setMFSinif(MQTabIl)
+			form.addSimpleComboBox('ulkeKod', 'Ülke').etiketGosterim_yok().kodsuz().setMFSinif(MQTabUlke)
+		}
+		{
+			let form = tabPage.addFormWithParent().yanYana(2)
+			form.addTextInput('tel1', 'Tel 1').etiketGosterim_yok()
+			form.addTextInput('tel2', 'Tel 2').etiketGosterim_yok()
+			form.addTextInput('tel3', 'Tel 3').etiketGosterim_yok()
+		}
+		
+		tabPage = tabs.addTab('konum', 'Konum')
+		{
+			let form = tabPage.addBaslik('gps', 'Konum').addFormWithParent().yanYana(2)
+			form.addNumberInput('gpsLat', 'GPS Enlem').etiketGosterim_yok().addCSS('center')
+			form.addNumberInput('gpsLong', 'GPS Boylam').etiketGosterim_yok().addCSS('center')
 		}
 		{
 			let form = tabPage.addFormWithParent().altAlta()
@@ -184,7 +190,7 @@ class MQTabCari extends MQKAOrtak {
 		sahalar.addWithAlias(alias, 'kontipkod', 'ekstremustkod')
 		sahalar.addWithAlias('csat', 'tavsiyeplasiyerkod', 'odemegunkodu', 'standartiskonto')
 	}
-	static loadServerData_queryDuzenle_son_bilgiYukle_rotaIcinDuzenle({ stm, ortakSentDuzenle }) {
+	static loadServerData_queryDuzenle_son_bilgiYukle_rotaIcinDuzenle({ alias = this.tableAlias, stm, ortakSentDuzenle }) {
 		let {plasiyerKod, params: { tablet: { rotaDisiMusteriAlinirmi } = {} }} = app
 		if (!plasiyerKod)
 			return
@@ -222,15 +228,15 @@ class MQTabCari extends MQKAOrtak {
 		}
 		{
 			// asil sent'e geçtik
-			let {sent, sent: { sahalar }} = stm
-			sent.fromIliski('rotabilgi rbil', 'rbil.mustkod = car.must')
+			let { sent, sent: { sahalar } } = stm
+			sent.innerJoin(alias, 'rotabilgi rbil', 'rbil.mustkod = car.must')
 			sahalar.addWithAlias('rbil', 'seq', 'rotadisimi', /*'rotaicisayi',*/ 'rotadevredisimi', 'hermi')
 		}
 	}
 	static varsayilanKeyHostVarsDuzenle({ hv }) {
 		super.varsayilanKeyHostVarsDuzenle(...arguments)
-		let {kayitTipi: kayittipi} = this
-		$.extend(hv, { kayittipi })
+		let { kayitTipi: kayittipi } = this
+		extend(hv, { kayittipi })
 	}
 	hostVarsDuzenle({ hv, offlineRequest, offlineMode, queryBuild }) {
 		super.hostVarsDuzenle(...arguments)
@@ -276,108 +282,5 @@ class MQTabCari extends MQKAOrtak {
 			return null
 		let {[kod]: rec} = await this.getCariEkBilgiler(e)
 		return rec
-	}
-}
-
-class MQTabPlasiyer extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kodListeTipi() { return 'PLASIYER' } static get sinifAdi() { return 'Plasiyer' }
-	static get table() { return MQTabCari.table } static get tableAlias() { return 'pls' }
-	static get onlineIdSaha() { return MQTabCari.onlineIdSaha } static get kayitTipi() { return 'X' }
-	static get offlineSahaListe() { return [...super.offlineSahaListe, ...this.offlineEkSahaListe] }
-	static get offlineEkSahaListe() { return ['kayittipi'] }
-	static varsayilanKeyHostVarsDuzenle({ hv }) {
-		super.varsayilanKeyHostVarsDuzenle(...arguments)
-		let {kayitTipi: kayittipi} = this
-		$.extend(hv, { kayittipi })
-	}
-	static loadServerData_queryDuzenle_son(e) {
-		super.loadServerData_queryDuzenle_son(e)
-		let { alias = this.tableAlias, offlineRequest, offlineMode, stm, sent } = e
-		let { where: wh, sahalar } = sent
-		let { kodSaha, adiSaha, onlineIdSaha, offlineEkSahaListe } = this
-		sahalar.add(offlineEkSahaListe.map(saha => `${alias}.${saha}`))
-		if (offlineRequest) {
-			if (offlineMode) {
-				// Bilgi Gönder
-				sahalar.add(
-					`${alias}.${kodSaha} ${onlineIdSaha}`,
-					`SUBSTRING(${alias}.${adiSaha}, 50) unvan1`,
-					`SUBSTRING(${alias}.${adiSaha}, 51, 100) unvan2`
-				)
-			}
-			else {
-				// Bilgi Yükle
-				let {session: { loginTipi, user } = {}} = config
-				{
-					let match = `${alias}.${kodSaha}`
-					let replace = `${alias}.${onlineIdSaha}`
-					let {liste} = wh
-					liste.forEach((clause, i) => {
-						if (clause?.includes?.(match))
-							liste[i] = clause = clause.replaceAll(match, replace)
-					})
-				}
-				wh.add(
-					`${alias}.silindi = ''`, `${alias}.calismadurumu <> ''`,
-					`${alias}.satilamazfl = ''`
-				)
-				if (loginTipi == 'plasiyerLogin' && user)
-					wh.degerAta(user, `${alias}.${onlineIdSaha}`)
-				sahalar.add(
-					`${alias}.${onlineIdSaha} ${kodSaha}`,
-					`RTRIM(LTRIM(${alias}.unvan1 + ' ' + ${alias}.unvan2)) ${adiSaha}`
-				)
-			}
-		}
-		stm = e.stm
-		sent = wh = sahalar = null
-	}
-}
-
-class MQTabCariBakiye extends MQKodOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kodListeTipi() { return 'CARBAKIYE' } static get sinifAdi() { return 'Cari Bakiye' }
-	static get table() { return 'carbakiye' } static get tableAlias() { return 'bak' }
-	static get onlineIdSaha() { return 'must' }
-
-	static pTanimDuzenle({ pTanim }) {
-		super.pTanimDuzenle(...arguments)
-		extend(pTanim, {
-			orjBakiye: new PInstNum('orjbakiye'),
-			bakiye: new PInstNum('bakiye'),
-			vadeliAlacak: new PInstNum('vadelialacak')
-		})
-	}
-	static orjBaslikListesiDuzenle({ liste }) {
-		super.orjBaslikListesiDuzenle(...arguments)
-		liste.push(
-			new GridKolon({ belirtec: 'unvan', text: 'Ünvan', sql: 'car.aciklama' }),
-			new GridKolon({ belirtec: 'bakiye', text: 'Bakiye', genislikCh: 17 }).tipDecimal(),
-			new GridKolon({ belirtec: 'vadelialacak', text: 'Vadeli Alacak', genislikCh: 17 }).tipDecimal()
-		)
-	}
-	static loadServerData_queryDuzenle_son(e) {
-		super.loadServerData_queryDuzenle_son(e)
-		let { alias = this.tableAlias, offlineRequest, offlineMode, stm, sent } = e
-		let { where: wh, sahalar } = sent
-		let { kodSaha, adiSaha, onlineIdSaha } = this
-		if (offlineRequest && !offlineMode) {
-			// Bilgi Yükle
-			sahalar.liste = []
-			sent.fromIliski('carmst car', `${alias}.must = car.must`)
-			wh
-				// .add(`${alias}.must <> ''`)    // MQKod yapı onlineIdSaha için ekledi
-				.inDizi(['', 'M'], 'car.kontipkod')
-			sahalar.add(
-				`${alias}.must ${kodSaha}`, `SUM(${alias}.bakiye) orjbakiye`, `SUM(${alias}.bakiye) bakiye`,
-				`0 vadelialacak`
-			)
-			sent.groupByOlustur()
-		}
-		else
-			sent.fromIliski('carmst car', `${alias}.${kodSaha} = car.kod`)
-	}
-	static async bakiyeRiskDuzenle(e) {
 	}
 }

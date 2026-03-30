@@ -4,6 +4,12 @@ class TabTSFis extends TabFis {
 	static get araSeviyemi() { return super.araSeviyemi || this == TabTSFis }
 	static get kodListeTipi() { return 'TABTS' } static get sinifAdi() { return 'Ticari/Stok Fiş' }
 	static get detaySinif() { return TabTSDetay } static get almSat() { return 'T' }
+	static get barkodGirisYapi() {
+		return {
+			etiket: 'Barkod',
+			placeholder: 'Yeni Satır eklemek için Barkod giriniz veya Ürün seçiniz'
+		}
+	}
 
 	constructor(e = {}) {
 		super(e)
@@ -30,7 +36,8 @@ class TabTSFis extends TabFis {
 	}
 	static async loadServerData_detaylar({ offlineRequest, offlineMode } = {}) {
 		if (!offlineRequest) {
-			let cacheClasses = [MQTabStok]
+			let { stokSinif } = this.detaySinif
+			let cacheClasses = [stokSinif]
 			await Promise.allSettled(cacheClasses.map(_ => _.getGloKod2Rec()))
 		}
 		return await super.loadServerData_detaylar(...arguments)
@@ -149,21 +156,21 @@ class TabTSFis extends TabFis {
 		let e = arguments[0]
 		await super.rootFormBuilderDuzenle_tablet_acc_baslik(e)
 		{
-			let {wndId} = tanimPart.wndPart
+			let { wndId } = tanimPart.wndPart
 			let mfSinif = MQTabYer.getMFSinif_subeFiltreli(() => fis.subeKod, wndId)
-			let {sinifAdi: etiket} = mfSinif
+			let { sinifAdi: etiket } = mfSinif
 			let form = rfb.addFormWithParent().altAlta()
 			form.addSimpleComboBox('yerKod', etiket, etiket)
 				.etiketGosterim_yok()
 				.kodsuz().setMFSinif(mfSinif)
 				.degisince(({ type, events, ...rest }) => {
-					if (type != 'batch')
-						return
-					let _e = { type, events, ...rest, oldValue: fis.yerKod, value: events.at(-1).value?.trimEnd() }
-					setTimeout(() => {
-						fis.yerDegisti({ ...e, ..._e, tanimPart })
-						acc?.render()
-					}, 5)
+					if (type == 'batch') {
+						let _e = { type, events, ...rest, oldValue: fis.yerKod, value: events.at(-1).value?.trimEnd() }
+						setTimeout(() => {
+							fis.yerDegisti({ ...e, ..._e, tanimPart })
+							acc?.render()
+						}, 5)
+					}
 				})
 				.onAfterRun(({ builder: { part } }) =>
 					tanimPart.ddYer = part)
@@ -227,12 +234,13 @@ class TabTSFis extends TabFis {
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_dip({ sender: tanimPart, inst: fis, rfb }) {
 		await super.rootFormBuilderDuzenle_tablet_acc_dip(...arguments)
-		let {acc} = tanimPart, {dvKod, dipIslemci, detaylar} = fis
+		let { acc } = tanimPart
+		let { dvKod, dipIslemci, detaylar } = fis
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_detayCollapsed({ sender: tanimPart, inst: fis, rfb }) {
 		await super.rootFormBuilderDuzenle_tablet_acc_detayCollapsed(...arguments)
-		let {gridPart: { selectedRec: det } = {}} = tanimPart
-		let {length: topSayi} = fis.detaylar
+		let { gridPart: { selectedRec: det } = {} } = tanimPart
+		let { length: topSayi } = fis.detaylar
 		if (det) {
 			rfb.addForm().setLayout(() => $([
 				`<div class="flex-row" style="gap: 10px">`,
@@ -245,21 +253,22 @@ class TabTSFis extends TabFis {
 	static async rootFormBuilderDuzenle_tablet_acc_detay({ sender: tanimPart, inst: fis, rfb }) {
 		let e = arguments[0]
 		await super.rootFormBuilderDuzenle_tablet_acc_detay(e)
-		let {depomu} = app, {tablet: { depoBedelGorur } = {}} = app.params
-		let {acc} = tanimPart, {class: { bedelKullanilirmi }} = fis
+		let { depomu } = app, { tablet: { depoBedelGorur } = {} } = app.params
+		let { acc } = tanimPart, { detaySinif, bedelKullanilirmi } = fis.class
+		let { stokSinif } = detaySinif
 		bedelKullanilirmi &&= !(depomu && depoBedelGorur === false)
 		rfb.addSimpleComboBox('barkod', 'Barkod', 'Barkod giriniz veya Ürün seçiniz')
 			.addStyle(`$elementCSS { max-width: 800px }`)
 			.etiketGosterim_yok()
 			// .autoClear()
-			.setMFSinif(MQTabStok)
+			.setMFSinif(stokSinif)
 			//.noMF()
 			.degisince(({ type, events = [], ...rest }) => {
-				if (type != 'batch')
-					return
-				let barkodlar = events.map(_ => _.value).filter(_ => _)
-				this.barkodOkundu({ ...arguments, ...rest, tanimPart, barkodlar })
-				tanimPart.sonEklemeDuzenleEkranindanmi = false
+				if (type == 'batch') {
+					let barkodlar = events.map(_ => _.value).filter(_ => _)
+					this.barkodOkundu({ ...arguments, ...rest, tanimPart, barkodlar })
+					tanimPart.sonEklemeDuzenleEkranindanmi = false
+				}
 			})
 			.onAfterRun(({ builder: { rootPart, part } }) => {
 				rootPart.barkodPart = part
@@ -336,12 +345,14 @@ class TabTSFis extends TabFis {
 		tanimPart.sonEklemeDuzenleEkranindanmi = false
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_duzenle(e) {
-		let {params: { zorunlu, tablet }} = app
-		let {fiyatFra, bedelFra} = zorunlu
-		let {fiyatDegistirir, iskDegistirir, iskMaxSayi} = tablet
-		let {sender: tanimPart, inst: fis, rfb, item} = e
-		let {bedelKullanilirmi} = fis.class
-		let {acc, gridPart, gridPart: { gridWidget: w, selectedRec: det } = {}} = tanimPart
+		let { params: { zorunlu, tablet } } = app
+		let { fiyatFra, bedelFra } = zorunlu
+		let { fiyatDegistirir, iskDegistirir, iskMaxSayi } = tablet
+		let { sender: tanimPart, inst: fis, rfb, item } = e
+		let { bedelKullanilirmi, detaySinif } = fis.class
+		let { stokSinif } = detaySinif
+		let { acc, gridPart = {}, barkodGirisYapi = {} } = tanimPart
+		let { gridWidget: w, selectedRec: det } = gridPart
 		fiyatFra ??= 5; bedelFra ||= 2
 		let getDetay = () => gridPart?.selectedRec
 		let initFlag = !getDetay()
@@ -394,24 +405,27 @@ class TabTSFis extends TabFis {
 		}
 		{
 			let timer
-			rfb.addSimpleComboBox('stokKod', 'Barkod', 'Yeni Satır eklemek için Barkod giriniz veya Ürün seçiniz')
+			rfb.addSimpleComboBox('stokKod',
+				barkodGirisYapi.etiket ?? 'Barkod',
+				barkodGirisYapi.placeholder ?? 'Yeni Satır eklemek için Barkod giriniz veya Ürün seçiniz'
+			)
 				.addStyle(`$elementCSS { max-width: 800px }`)
 				.etiketGosterim_yok()
 				// .autoClear()
-				.setMFSinif(MQTabStok)
+				.setMFSinif(stokSinif)
 				.degisince(({ type, events = [], ...rest }) => {
-					if (type != 'batch')
-						return
-					if (!initFlag) {                                      // prevent first async event trigger
-						initFlag = true
-						return
+					if (type == 'batch') {
+						if (!initFlag) {                                      // prevent first async event trigger
+							initFlag = true
+							return
+						}
+						let barkodlar = events.map(_ => _.value).filter(_ => _)
+						clearTimeout(timer)
+						this.barkodOkundu({ ...e, ...rest, tanimPart, barkodlar }).then(() => {
+							tanimPart.sonEklemeDuzenleEkranindanmi = true
+							timer = setTimeout(() => updateUI(), 10)
+						})
 					}
-					let barkodlar = events.map(_ => _.value).filter(_ => _)
-					clearTimeout(timer)
-					this.barkodOkundu({ ...e, ...rest, tanimPart, barkodlar }).then(() => {
-						tanimPart.sonEklemeDuzenleEkranindanmi = true
-						timer = setTimeout(() => updateUI(), 10)
-					})
 				})
 				.onAfterRun(({ builder: { rootPart, part } }) => {
 					rootPart.dBarkodPart = part

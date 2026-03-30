@@ -4,7 +4,9 @@ class TabletDepoApp extends TabletApp {
 
     uygunFisTipleriDuzenle_ilk({ result }) {
         super.uygunFisTipleriDuzenle_ilk(...arguments)
-        let ignoreSet = asSet(['TABTAH', 'TABUGR'])
+        let ignoreSet = asSet([
+            TabUgramaFis, TabTahsilatFis, TabSutAlimFis
+        ].map(_ => _.fisTipi))
         result.push(
             ...keys(TabFis.tip2Sinif)
                 .filter(k => !ignoreSet[k])

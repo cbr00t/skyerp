@@ -19,7 +19,7 @@ class TabTahsilatFis extends TabFis {
 
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
-		$.extend(pTanim, {
+		extend(pTanim, {
 			tahFisId: new PInstStr('tahfisid'),
 			hedefBedel: new PInstNum()
 		})
@@ -46,16 +46,24 @@ class TabTahsilatFis extends TabFis {
 	async yukleSonrasiIslemler({ islem }) {
 		let e = arguments[0]
 		await super.yukleSonrasiIslemler(e)
-		let {_noCheck, tahFisId: asilFisId} = this
+		let { _noCheck, tahFisId: asilFisId } = this
 		if (!_noCheck && asilFisId && islem == 'degistir') {    // Ticari belgeye bağlı Tahsilat değiştirilemez
 			islem = e.islem = 'izle'
 			setTimeout(() => wConfirm(`Bu Tahsilat, Ticari belgeye bağlı olduğu için değişiklik yapılamaz`, 'UYARI'), 200)
 		}
 	}
-	async kaydetOncesiIslemler(e) {
-		this.detaylar = this.detaylar.filter(_ => _.bedel)
-		return await super.kaydetOncesiIslemler(e)
+	getYazmaIcinDetaylar(e) {
+		return this.detaylar.filter(_ => _.bedel)
 	}
+	/*async kaydetOncesiIslemler(e) {
+		let { detaylar: orjDetaylar } = this
+		this.detaylar = orjDetaylar.filter(_ => _.bedel)
+		try { return await super.kaydetOncesiIslemler(e) }
+		finally {
+			if (orjDetaylar)
+				setTimeout(() => this.detaylar = orjDetaylar, 500)
+		}
+	}*/
 	async silmeOncesiIslemler(e = {}) {
 		let {_noCheck, tahFisId: asilFisId} = this
 		if (!(_noCheck || asilFisId)) {
@@ -96,20 +104,18 @@ class TabTahsilatFis extends TabFis {
 		})
 		return new TabDokumForm(data)
 	}
-	
-	noCheck() { this._noCheck = true; return this }
 
 	static async rootFormBuilderDuzenle_tablet(e) {
 		await super.rootFormBuilderDuzenle_tablet(e)
-		// let {sender: tanimPart, inst, rootBuilder: rfb, kaForm, tanimFormBuilder: tanimForm, acc} = e
+		// let { sender: tanimPart, inst, rootBuilder: rfb, kaForm, tanimFormBuilder: tanimForm, acc } = e
 	}
 	static async rootFormBuilderDuzenle_tablet_acc(e) {
 		await super.rootFormBuilderDuzenle_tablet_acc(e)
-		// let {sender: tanimPart, acc, getBuilder} = e
+		// let { sender: tanimPart, acc, getBuilder } = e
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_dipCollapsed({ sender: tanimPart, inst: fis, rfb }) {
 		await super.rootFormBuilderDuzenle_tablet_acc_dipCollapsed(...arguments)
-		let {kalanBedel, sonucBedel, detaylar} = fis
+		let { kalanBedel, sonucBedel, detaylar } = fis
 		let topSatir = detaylar.filter(_ => _.bedel).length
 		rfb.addForm().setLayout(() => $([
 			`<div class="flex-row" style="gap: 10px">`,
@@ -121,8 +127,8 @@ class TabTahsilatFis extends TabFis {
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_detayCollapsed({ sender: tanimPart, inst: fis, rfb }) {
 		await super.rootFormBuilderDuzenle_tablet_acc_detayCollapsed(...arguments)
-		let {gridPart: { selectedRec: det } = {}} = tanimPart
-		let {length: topSayi} = fis.detaylar
+		let { gridPart: { selectedRec: det } = {} } = tanimPart
+		let { length: topSayi } = fis.detaylar
 		if (det) {
 			rfb.addForm().setLayout(() => $([
 				`<div class="flex-row" style="gap: 10px">`,
@@ -134,7 +140,7 @@ class TabTahsilatFis extends TabFis {
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_detay({ sender: tanimPart, inst: fis, rfb }) {
 		await super.rootFormBuilderDuzenle_tablet_acc_detay(...arguments)
-		let {acc} = tanimPart, {detaylar} = fis
+		let { acc } = tanimPart, { detaylar } = fis
 		let gridPart
 		{
 			let cellClassName = (sender, rowIndex, belirtec, value, rec) => {
@@ -146,21 +152,26 @@ class TabTahsilatFis extends TabFis {
 			rfb.addGridliGiris_sabit('grid')
 				.addStyle_fullWH(null, `calc(var(--full) - 20px)`)
 				.rowNumberOlmasin().notAdaptive()
-				.widgetArgsDuzenleIslemi(({ args }) => $.extend(args, {
+				.widgetArgsDuzenleIslemi(({ args }) => extend(args, {
 					rowsHeight: 70, selectionMode: 'singlerow',
 					editMode: 'selectedcell'
 				}))
+				.setSource(detaylar)
 				.setTabloKolonlari([
-					new GridKolon({ belirtec: 'tahSekliAdi', text: 'Tahsil Şekli', cellClassName }).readOnly(),
+					new GridKolon({
+						belirtec: 'tahSekliAdi', text: 'Tahsil Şekli',
+						cellClassName
+					}).readOnly(),
 					new GridKolon({
 						belirtec: 'bedel', text: 'Bedel', genislikCh: 15, cellClassName,
 						cellValueChanged: ({ belirtec, rowIndex, value, gridWidget: w, gridRec: det }) =>  {
-							det._degisti = true
+							// det._degisti = true
 							w.updaterow(det.uid, det)
 							acc?.render()
 							if (gridPart) {
 								setTimeout(() => {
-									let {selectedBelirtec: newBelirtec, selectedRowIndex: newRowIndex, gridWidget: w} = gridPart
+									let { selectedBelirtec: newBelirtec, selectedRowIndex: newRowIndex } = gridPart
+									let { gridWidget: w } = gridPart
 									if (newBelirtec == belirtec && newRowIndex != rowIndex) {
 										if (!gridPart.editing)
 											w.begincelledit(newRowIndex, belirtec)
@@ -178,14 +189,30 @@ class TabTahsilatFis extends TabFis {
 							acc?.render()
 						})
 				])
-				.setSource(detaylar)
+				.veriYukleninceIslemi(({ builder: { part: gridPart } }) => {
+					let { boundRecs: recs, gridWidget: w } = gridPart
+					let ind = recs.findLastIndex(_ => _.bedel) + 1
+					if (ind > -1) {
+						let ekSatir = -8
+						w.ensurerowvisible(Math.max(Math.min(ind + ekSatir, recs.length - 1), 0))
+						setTimeout(() => {
+							// w.selectcell(ind, 'bedel')
+							w.selectrow(ind)
+							setTimeout(() => {
+								if (!gridPart.editing)
+									w.begincelledit(ind, 'bedel')
+							}, 200)
+						}, 50)
+					}
+					setTimeout(() => w.focus(), 10)
+				})
 				.onAfterRun(({ builder: { rootPart, part } }) => {
 					gridPart = rootPart.gridPart = part
-					$.extend(part, {
+					extend(part, {
 						gridSatirCiftTiklandiBlock: ({ sender: tanimPart = {}, event: { args = {} } = {} }) => {
-							let {gridWidget: w, selectedRec: det} = tanimPart
-							let {row: { bounddata: _det } = {}} = args
-							let {uid} = det ?? {}
+							let { gridWidget: w, selectedRec: det } = tanimPart
+							let { row: { bounddata: _det } = {} } = args
+							let { uid } = det ?? {}
 							if (det && det != _det) {
 								let ind = w.getrowboundindexbyid(uid)
 								w.clearselection()
@@ -194,7 +221,7 @@ class TabTahsilatFis extends TabFis {
 							}
 						},
 						gridContextMenuIstendiBlock: ({ sender: { gridWidget: w }}) => {
-							let {clickedrow: tr} = w.mousecaptureposition ?? {}
+							let { clickedrow: tr } = w.mousecaptureposition ?? {}
 							let uid = $(tr).attr('row-id')                                   // tr = null ==> skinti yok, sadece undefined alır
 							if (uid == null)
 								return true                                                  // continue next events
@@ -205,7 +232,7 @@ class TabTahsilatFis extends TabFis {
 							let {kalanBedel} = fis
 							if (kalanBedel > 0) {
 								let det = w.getrowdatabyid(uid)
-								$.extend(det, { _degisti: true, bedel: kalanBedel })
+								extend(det, { _degisti: true, bedel: kalanBedel })
 								det.htmlOlustur?.()
 								w.updaterow(uid, det)
 								acc?.render()
@@ -218,7 +245,7 @@ class TabTahsilatFis extends TabFis {
 	}
 	static rootFormBuilderDuzenle_tablet_acc_onExpand({ sender: { parentPart: tanimPart = {} }, acc, id, item }) {
 		super.rootFormBuilderDuzenle_tablet_acc_onExpand(...arguments)
-		let {gridPart} = tanimPart
+		let { gridPart } = tanimPart
 		if (id == 'detay')
 			gridPart?.focus()
 	}
@@ -227,4 +254,6 @@ class TabTahsilatFis extends TabFis {
 		if (id != 'detay' && !acc.hasActivePanel)
 			acc.expand('detay')
 	}
+
+	noCheck() { this._noCheck = true; return this }
 }

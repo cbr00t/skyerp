@@ -197,7 +197,13 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 				{ id: 'excel', handler: _e => this.gridExport_excel({ ...e, ..._e }) }
 			)
 		}
-		let _e = $.extend({}, e, { mfSinif, secimler, orjListe: yListe });
+		if (!panelDuzenleyici && (!mfSinif || mfSinif?.seviyeAcKapatKullanilirmi)) {
+			yListe.push(
+				{ id: 'seviyeAc', handler: e => this.seviyeAc({ ...e, ..._e }) },
+				{ id: 'seviyeKapat', handler: e => this.seviyeKapat({ ...e, ..._e }) }
+			)
+		}
+		let _e = { ...e, mfSinif, secimler, orjListe: yListe }
 		let tanimlanabilirmi = this.getTanimlanabilirmi(_e), degistirilebilirmi = this.getDegistirilebilirmi(_e)
 		let silinebilirmi = this.getSilinebilirmi(_e), inExpKullanilirmi = this.getInExpKullanilirmi(_e)
 		if (tanimlanabilirmi)

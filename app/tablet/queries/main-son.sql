@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS tabfis (
 	id TEXT NOT NULL PRIMARY KEY,
 	fisTipi TEXT NOT NULL DEFAULT '',
 	silindi TEXT NOT NULL DEFAULT '',
+	gecici TEXT NOT NULL DEFAULT '',
 	tarih TEXT NOT NULL DEFAULT '',
 	plasiyerkod TEXT NOT NULL DEFAULT '',
 	bizsubekod TEXT NOT NULL DEFAULT '',
@@ -32,7 +33,10 @@ CREATE TABLE IF NOT EXISTS tabfis (
 	tahseklino INTEGER NOT NULL DEFAULT 0,
 	tahfisid TEXT NOT NULL DEFAULT '',
 -- stok fis
-	refyerkod TEXT NOT NULL DEFAULT ''
+	refyerkod TEXT NOT NULL DEFAULT '',
+-- sut alim fis
+	rotasayac INTEGER,
+	posta TEXT NOT NULL DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS idx_tabfis_fisTipi ON tabfis (fisTipi);
 CREATE INDEX IF NOT EXISTS idx_tabfis_tarih ON tabfis (tarih);

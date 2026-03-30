@@ -11,6 +11,7 @@ class MQCogul extends MQYapi {
 	static get tanimlanabilirmi() { return !!this.tanimUISinif } static get degistirilebilirmi() { return this.tanimlanabilirmi }
 	static get silinebilirmi() { return true } static get raporKullanilirmi() { return false } static get silindiDesteklenirmi() { return false }
 	static get kolonDuzenlemeYapilirmi() { return true } static get kolonFiltreKullanilirmi() { return !isMiniDevice() }
+	static get seviyeAcKapatKullanilirmi() { return true }
 	static get gridIslemTuslariKullanilirmi() { return !isMiniDevice() }
 	static get yerelParamBelirtec() { return this.classKey } static get sayacSahaGosterilirmi() { return false }
 	static get tumKolonlarGosterilirmi() { return false } static get gridDetaylimi() { return this.detaylimi }
@@ -529,12 +530,12 @@ class MQCogul extends MQYapi {
 		return await this.loadServerData_querySonucu(e)
 	}
 	static loadServerData_queryOlustur(e = {}) {
-		let {offlineRequest, secimler: sec} = e
+		let { offlineRequest, secimler: sec } = e
 		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? e.offline ?? this.isOfflineMode
-		let {gonderildiDesteklenirmi, gonderimTSSaha, gereksizTablolariSilYapilirmi} = this
+		let { gonderildiDesteklenirmi, gonderimTSSaha, gereksizTablolariSilYapilirmi } = this
 		let tabloKolonlari = e.tabloKolonlari ??= offlineRequest ? this.orjBaslikListesi : this.listeBasliklari
 		let sahalarAlinmasinFlag = e.sahalarAlinmasinFlag ?? e.sahalarAlinmasin
-		let {table} = this, alias = e.alias || this.tableAlias
+		let { table } = this, alias = e.alias || this.tableAlias
 		let tableAndAlias = alias ? `${table} ${alias}` : table, aliasVeNokta = alias ? `${alias}.` : ''
 		let sent = new MQSent({ from: tableAndAlias }), {where: wh, sahalar} = sent
 		if (!sahalarAlinmasinFlag) {
@@ -564,8 +565,9 @@ class MQCogul extends MQYapi {
 		this.loadServerData_queryDuzenle(e)
 		stm = e.query ?? e.stm
 		if (offlineRequest) {
-			let {_online_sqlColDefs: cd} = this
-			for (let {where: wh, sahalar, alias2Deger} of stm) {
+			let { idSaha, _online_sqlColDefs: cd } = this
+			let { orderBy } = stm
+			for (let { where: wh, sahalar, alias2Deger } of stm) {
 				/* offlineMode == true : bilgi aktar  |  offlineMode == false : bilgi yükle */
 				if (offlineMode && gonderildiDesteklenirmi && gonderimTSSaha)  // offline - gonderimTSSaha (sadece gönderilmeyenler gönderilir)
 					wh.add(`${alias}.${gonderimTSSaha} = ''`)
@@ -578,6 +580,11 @@ class MQCogul extends MQYapi {
 					for (let [alias, deger] of entries(alias2Deger))
 						sahalar.add(new MQAliasliYapi({ alias, deger }))
 				}
+			}
+			if (offlineMode && idSaha) {
+				// Bilgi Gönder için Yerelden Okuma
+				let idClause = stm.at(0).alias2Deger[idSaha]
+				orderBy.liste = [idClause]
 			}
 		}
 		this.loadServerData_queryDuzenle_son(e)
@@ -597,7 +604,7 @@ class MQCogul extends MQYapi {
 			sender.stmDuzenle ?? sender.stmDuzenleyici
 		let mfSinif = this, {kod, value, stm, stm: { sent, orderBy }, maxRow, wsArgs, tekilOku, basit, modelKullanmi} = e
 		let {gonderildiDesteklenirmi, gonderimTSSaha, table, tableAlias: alias, aliasVeNokta} = this
-		let {kodKullanilirmi, adiKullanilirmi, kodSaha, adiSaha} = this
+		let { kodKullanilirmi, adiKullanilirmi, idSaha, kodSaha, adiSaha } = this
 		if (wsArgs)
 			stm.fromGridWSArgs(wsArgs)
 		/* if (value) value = value.toUpperCase() */
@@ -656,7 +663,7 @@ class MQCogul extends MQYapi {
 			}
 		}
 		this.forAltYapiClassesDo('loadServerData_queryDuzenle', e)
-		; {
+		;{
 			let colDef = e.colDef ?? sender?.colDef ?? parentPart?.belirtec ? parentPart : null
 			let {stmDuzenleyiciler} = parentPart ?? {}
 			let _e = { ...e, sender, colDef, mfSinif, alias, aliasVeNokta, stm, sent }
@@ -977,7 +984,7 @@ class MQCogul extends MQYapi {
 			...e, mfSinif, belirtec, liste: [],
 			kodEtiket, adiEtiket, stmDuzenleyici
 		}
-		let colDef = (gridKolonGrupcu?.call ?? this[gridKolonGrupcu]?.call)?.(this, _e)
+		let colDef = (isFunction(gridKolonGrupcu) ? gridKolonGrupcu : this[gridKolonGrupcu])?.call?.(this, _e)
 		if (colDef) {
 			let { sabitleFlag = e.sabitle, hiddenFlag = e.hidden, autoBind = e.autoBindFlag } = e
 			let { readOnly = e.readOnlyFlag, kodsuzFlag = e.kodsuz } = e

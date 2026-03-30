@@ -23,12 +23,17 @@ class TabFisListe extends TabFis {
 		let { mustKod } = gridPart
 		let yenimi = islem == 'yeni'
 		if (yenimi) {
-			fisTipi = await new Promise(r =>
-				MQTabBelgeTipi.listeEkraniAc({
-					secince: ({ value: fisTipi }) => r(fisTipi),
-					kapaninca: () => r(null)
-				})
-			) ?? false
+			fisTipi = await new Promise(async r => {
+				let recs = await MQTabBelgeTipi.loadServerData(e)
+				if (recs?.length > 1) {
+					await MQTabBelgeTipi.listeEkraniAc({
+						secince: ({ value: fisTipi }) => r(fisTipi),
+						kapaninca: () => r(null)
+					})
+				}
+				else
+					r(recs[0]?.kod)
+			}) ?? false
 		}
 		let fisSinif = fisTipi === false ? false : this.fisSinifFor(fisTipi)
 		if (!fisSinif) {
@@ -53,7 +58,7 @@ class TabFisListe extends TabFis {
 		}
 		return inst
 	}
-	static async loadServerDataDogrudan({ offlineRequest, offlineMode }) {
+	static async loadServerDataDogrudan({ offlineRequest, offlineMode } = {}) {
 		if (!offlineRequest) {
 			let cacheClasses = [MQTabStok, MQTabTahsilSekli]
 			await Promise.allSettled(cacheClasses.map(_ => _.getGloKod2Rec()))
@@ -62,7 +67,7 @@ class TabFisListe extends TabFis {
 		// recs.reverse()
 		return recs
 	}
-	static async loadServerData_detaylar({ parentRec: { fisTipi } = {}, offlineRequest, offlineMode }) {
+	static async loadServerData_detaylar({ parentRec: { fisTipi } = {}, offlineRequest, offlineMode } = {}) {
 		if (offlineRequest)
 			return await super.loadServerData_detaylar(...arguments)
 		let fisSinif = this.fisSinifFor(fisTipi)
@@ -77,6 +82,7 @@ class TabFisListe extends TabFis {
 			let parent = rfb.addForm('header', header)
 			let ustBilgiForm = parent.addForm('ustBilgi')
 				.addStyle_fullWH(null, 35)
+				.addCSS('jqx-hidden')
 				.addStyle(...[
 					`$elementCSS { font-size: 80%; padding: 10px 5px; overflow-y: auto !important }
 					 $elementCSS > .item > div { gap: 10px; line-height: 10px }`
@@ -86,10 +92,16 @@ class TabFisListe extends TabFis {
 					let result = $(`<div class="${id}"></div>`)
 					;(async () => {
 						let html = await this.getUstBilgiHTML({ ...e, gridPart, rfb, fbd })
-						if (html?.html)
-							html.appendTo(result)
-						else if (html)
+						if (html?.html) {
+							if (html.children().length) {
+								ustBilgiForm.layout.removeClass('jqx-hidden basic-hidden')
+								html.appendTo(result)
+							}
+						}
+						else if (html) {
+							ustBilgiForm.layout.removeClass('jqx-hidden basic-hidden')
 							result.html(html)
+						}
 					})()
 					return result
 				})
@@ -99,7 +111,14 @@ class TabFisListe extends TabFis {
 	static async getUstBilgiHTML(e = {}) {
 		let { gridPart = e.sender } = e
 		let { mustKod } = gridPart
-		let mustRec = ( mustKod ? (await MQTabCari.getGloKod2Rec())?.[mustKod] : null ) ?? {}
+		let { params: { tablet }, sutAlimmi } = app
+		sutAlimmi ||= tablet.sutToplama
+
+		let mustRec = mustKod ? (
+			(await MQTabCari.getGloKod2Rec())?.[mustKod] ??
+			( sutAlimmi ? (await MQTabMustahsil.getGloKod2Rec())?.[mustKod] : null )
+		) : null
+		
 		let result = []
 		if (mustKod) {
 			let { aciklama: unvan, yore, iladi: ilAdi } = mustRec
@@ -120,3 +139,8 @@ class TabFisListe extends TabFis {
 		return result
 	}
 }
+
+class TabFisListeDetay extends TabDetay {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+}
+

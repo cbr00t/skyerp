@@ -2,6 +2,7 @@ class TabDetay extends MQDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'tabhar' }
 	static get sayacSaha() { return null } static get fisSayacSaha() { return 'fisid' }
+	static get bedelKullanilirmi() { return true }
 	static get io2RowAttr() {
 		let cache = TabDetay._io2RowAttr ??= {}
 		let key = this.name, result = cache[key]
@@ -42,17 +43,25 @@ class TabDetay extends MQDetay {
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
-		let {bedelKullanilirmi} = TabTicariFis
+		let { bedelKullanilirmi } = this
 		liste.push(...[
 			new GridKolon({ belirtec: '_html', text: ' ' }).noSql(),
-			(bedelKullanilirmi ? new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 11 }).noSql().tipDecimal_bedel() : null)
+			( bedelKullanilirmi ? new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 11 }).noSql().tipDecimal_bedel() : null )
 		].filter(Boolean))
-		
 	}
+
 	async detayEkIslemler({ fis }) { }
+	bedelHesapla(e = {}) {
+		this.brutBedelHesapla(e)
+		this.netBedelHesapla(e)
+		return this
+	}
+	brutBedelHesapla(e) { return this }
+	netBedelHesapla(e) { return this }
+
 	hostVarsDuzenle({ fis, hv }) {
 		super.hostVarsDuzenle(...arguments)
-		let {class: { io2RowAttr }} = this
+		let { class: { io2RowAttr } } = this
 		for (let [i, r] of entries(io2RowAttr)) {
 			if (r != null)
 				hv[r] = this[i] ?? ''
@@ -60,7 +69,7 @@ class TabDetay extends MQDetay {
 	}
 	setValues({ fis, rec }) {
 		super.setValues(...arguments)
-		let {class: { io2RowAttr }} = this
+		let { class: { io2RowAttr } } = this
 		for (let [i, r] of entries(io2RowAttr)) {
 			if (r == null)
 				continue
@@ -70,7 +79,7 @@ class TabDetay extends MQDetay {
 		}
 	}
 	static uiKaydetOncesiIslemler({ fis, eskiInst: eskiFis, parentPart, gridPart, result }) {
-		let {detaylar} = fis
+		let detaylar = fis.getYazmaIcinDetaylar(...arguments)
 		if (empty(detaylar))
 			result.push(`Detay girişi yapılmalıdır`)
 	}

@@ -1,5 +1,7 @@
 class TabTSDetay extends TabDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get stokSinif() { return MQTabStok }
+	static get stokKodGosterilirmi() { return true }
 	/*get dipHesabaEsasDegerler() {
 		let result = super.dipHesabaEsasDegerler || {}
 		$.extend(result, {
@@ -12,9 +14,9 @@ class TabTSDetay extends TabDetay {
 
 	constructor(e = {}) {
 		super(e)
-		this.miktar ??= 1; this.brm ||= 'AD'
-		for (let k of ['fiyat', 'kdvOrani', 'kdv', 'brutBedel', 'bedel', 'dagitDipIskBedel'])
-			this[k] ??= 0
+		let { defaultBrm } = this.class
+		this.miktar ??= 1
+		this.brm ??= defaultBrm
 		/*let {carpan} = e
 		if (carpan && carpan != 1)
 			this.miktar *= carpan*/
@@ -28,10 +30,10 @@ class TabTSDetay extends TabDetay {
 	}
 	static loadServerData_queryDuzenle({ sent, sent: { from, sahalar } }) {
 		super.loadServerData_queryDuzenle(...arguments)
-		let {tableAlias: alias} = this
+		let { tableAlias: alias, stokSinif } = this
 		if (!from.aliasIcinTable('stk'))
-			sent.x2StokBagla({ alias })
-		sahalar.add('stk.aciklama stokadi')
+			sent.innerJoin(alias, `${stokSinif.table} stk`, `${alias}.stokkod = stk.kod`)
+		sahalar.add('stk.aciklama stokAdi')
 	}
 	hostVarsDuzenle({ fis, hv }) {
 		super.hostVarsDuzenle(...arguments)
@@ -39,80 +41,62 @@ class TabTSDetay extends TabDetay {
 	}
 	setValues({ fis, rec }) {
 		super.setValues(...arguments)
-		$.extend(this, { stokAdi: rec.stokadi })
+		let { stokAdi } = rec
+		extend(this, { stokAdi })
 	}
-	static async uiKaydetOncesiIslemler({ fis, fis: { detaylar }, result }) {
-		detaylar = fis.detaylar = detaylar.filter(_ => _.miktar)
-		await super.uiKaydetOncesiIslemler(...arguments)
+	static getYazmaIcinDetaylar(e) {
+		return this.detaylar.filter(_ => _.miktar)
 	}
 	async dataDuzgunmuDuzenle({ fis, seq, result }) {
 		await super.dataDuzgunmuDuzenle(...arguments)
-		let {stokKod} = this
-		if (!stokKod)
-			result.push(`<b class=royalblue>${seq}.</b> satırdaki <b class=firebrick>Ürün</b> belirtilmelidir`)
-		if (stokKod && !await MQTabStok.kodVarmi(stokKod))
-			result.push(`<b class=royalblue>${seq}.</b> satırdaki <b>Ürün [<span class=firebrick>${stokKod}</span>]</b> hatalıdır`)
+		let { stokKod, class: { stokSinif } } = this
+		let { sinifAdi: stokEtiket } = stokSinif ?? {}
+		if (stokSinif) {
+			if (!stokKod)
+				result.push(`<b class=royalblue>${seq}.</b> satırdaki <b class=firebrick>${stokEtiket}</b> belirtilmelidir`)
+			if (stokKod && !await stokSinif.kodVarmi(stokKod))
+				result.push(`<b class=royalblue>${seq}.</b> satırdaki <b>${stokEtiket} [<span class=firebrick>${stokKod}</span>]</b> hatalıdır`)
+		}
 		return null
 	}
 
 	async detayEkIslemler({ fis } = {}) {
 		await super.detayEkIslemler(...arguments)
-		let {stokKod} = this
+		let { stokKod } = this
+		let { stokSinif, defaultBrm } = this.class
 		if (stokKod) {
-			let mfSinif = MQTabStok, {class: { alimmi } = {}} = fis
-			let {[stokKod]: rec} = await mfSinif.getGloKod2Rec() ?? {}
+			let { [stokKod]: rec } = await stokSinif.getGloKod2Rec() ?? {}
 			if (rec) {
 				let bosDegilseAktar = (i, r) => {
 					let rv = rec[r]
 					if (rv)
 						this[i] = rv
 				}
+				bosDegilseAktar('stokAdi', 'aciklama')
 				bosDegilseAktar('brm', 'brm')
-				bosDegilseAktar('fiyat', 'fiyat')
-				bosDegilseAktar('kdvOrani', mfSinif.getKdvOraniSaha(alimmi))
 			}
+			this.brm ||= defaultBrm
 		}
-		this.bedelHesapla({ fis })
-		return this
-	}
-	bedelHesapla(e = {}) {
-		this.brutBedelHesapla(e)
-		this.netBedelHesapla(e)
-		return this
-	}
-	brutBedelHesapla({ fis } = {}) {
-		let miktar = this.miktar ??= 0
-		let fiyat = this.fiyat ??= 0
-		this.brutBedel = roundToBedelFra(miktar * fiyat)
-		return this
-	}
-	netBedelHesapla({ fis } = {}) {
-		let {brutBedel: bedel} = this
-		for (let {ioAttr} of TicIskYapi.getIskIter()) {
-			let oran = this[ioAttr] ?? 0
-			if (!oran)
-				continue
-			let iskBedel = roundToBedelFra(bedel * oran / 100)
-			bedel -= iskBedel
-		}
-		this.bedel = bedel = roundToBedelFra(bedel)
 		return this
 	}
 
 	getHTML(e) {
 		let _ = super.getHTML(e) ?? ''
-		let {stokAdi, stokKod, barkod, miktar, brm} = this
+		let { stokAdi, stokKod, barkod, miktar, brm } = this
+		brm ??= ''
 		return [
 			_,
 			`<div class="asil flex-row" style="gap: 0 10px">`,
-				`<div class="stokAdi">${stokAdi}</div>`,
-				`<div class="stokKod orangered">${stokKod}</div>`,
-				(stokKod == barkod ? null : `<div class="barkod bold float-right">${barkod}</div>`),
+				( stokAdi ? `<div class="stokAdi">${stokAdi}</div>` : null ),
+				( stokKod ? `<div class="stokKod orangered">${stokKod}</div>` : null ),
+				( !barkod || stokKod == barkod ? null : `<div class="barkod bold float-right">${barkod}</div>` ),
 			`</div>`,
-			`<div class="miktarFiyat ek-bilgi float-right" style="gap: 0 10px">`,
-				`<span class="miktar bold forestgreen">${miktar} ${brm}</span>`,
-			`</div>`
-		].filter(_ => _).join(CrLf)
+			( miktar ?
+				`<div class="miktarFiyat ek-bilgi float-right" style="gap: 0 10px">` +
+					`<span class="miktar bold forestgreen">${miktar} ${brm}</span>` +
+				`</div>`
+			: null)
+		].filter(Boolean).join(CrLf)
 	}
 	super_getHTML(e) { return super.getHTML(e) }
 }

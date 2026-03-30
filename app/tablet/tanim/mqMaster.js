@@ -10,7 +10,7 @@ class MQTabStokGrup extends MQKAOrtak {
 
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
-		$.extend(pTanim, { anaGrupKod: new PInstStr('anagrupkod') })
+		extend(pTanim, { anaGrupKod: new PInstStr('anagrupkod') })
 	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e)
@@ -42,7 +42,7 @@ class MQTabBolge extends MQKAOrtak {
 	static get table() { return 'carbolge' } static get tableAlias() { return 'bol' }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
-		$.extend(pTanim, { subeKod: new PInstStr('bizsubekod') })
+		extend(pTanim, { subeKod: new PInstStr('bizsubekod') })
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
@@ -55,7 +55,8 @@ class MQTabBolge extends MQKAOrtak {
 		)
 	}
 	static loadServerData_queryDuzenle_son({ sent, sent: { sahalar, where: wh }, offlineRequest, offlineMode, alias = this.tableAlias }) {
-		let e = arguments[0]; super.loadServerData_queryDuzenle_son(e)
+		let e = arguments[0]
+		super.loadServerData_queryDuzenle_son(e)
 		sent.x2SubeBagla({ alias })
 		/*if (offlineRequest && !offlineMode) {
 			// Bilgi Yükle
@@ -87,7 +88,7 @@ class MQTabSube extends MQKAOrtak {
 	static get bosKodAlinirmi() { return true }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
-		$.extend(pTanim, { grupKod: new PInstStr('isygrupkod') })
+		extend(pTanim, { grupKod: new PInstStr('isygrupkod') })
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
@@ -100,7 +101,8 @@ class MQTabSube extends MQKAOrtak {
 		)
 	}
 	static loadServerData_queryDuzenle_son({ sent, sent: { sahalar, where: wh }, offlineRequest, offlineMode, alias = this.tableAlias }) {
-		let e = arguments[0]; super.loadServerData_queryDuzenle_son(e)
+		let e = arguments[0]
+		super.loadServerData_queryDuzenle_son(e)
 		if (offlineRequest && !offlineMode) {
 			// Bilgi Yükle
 			let {adminmi, sefmi, session: { subeKod } = {}} = config
@@ -122,7 +124,7 @@ class MQTabYer extends MQKAOrtak {
 	static get table() { return 'stkyer' } static get tableAlias() { return 'yer' }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
-		$.extend(pTanim, {
+		extend(pTanim, {
 			aum: new PInstStr('aum'),
 			subeKod: new PInstStr('bizsubekod')
 		})
@@ -146,7 +148,8 @@ class MQTabYer extends MQKAOrtak {
 		)
 	}
 	static loadServerData_queryDuzenle_son({ sent, sent: { sahalar, where: wh }, offlineRequest, offlineMode, alias = this.tableAlias }) {
-		let e = arguments[0]; super.loadServerData_queryDuzenle_son(e)
+		let e = arguments[0]
+		super.loadServerData_queryDuzenle_son(e)
 		sent.x2SubeBagla({ alias })
 		sahalar.addWithAlias(alias, 'aum')
 		if (offlineRequest && !offlineMode) {
@@ -188,7 +191,7 @@ class MQTabTahsilSekli extends MQKAOrtak {
 	static get kodSaha() { return 'kodno' } static get emptyKodValue() { return 0 }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
-		$.extend(pTanim, {
+		extend(pTanim, {
 			tip: new PInstTekSecim('tahsiltipi', TahsilSekliTip),
 			altTip: new PInstTekSecim('ahalttipi', TahsilSekliAltTip),
 			gunKodu: new PInstStr('ahgunkodu')
@@ -212,7 +215,8 @@ class MQTabTahsilSekli extends MQKAOrtak {
 		)
 	}
 	static loadServerData_queryDuzenle_son({ sent, sent: { sahalar, where: wh }, offlineRequest, offlineMode, alias = this.tableAlias }) {
-		let e = arguments[0]; super.loadServerData_queryDuzenle_son(e)
+		let e = arguments[0]
+		super.loadServerData_queryDuzenle_son(e)
 		sahalar.addWithAlias(alias, 'tahsiltipi', 'ahalttipi')
 		if (offlineRequest && !offlineMode) {
 			// Bilgi Yükle
@@ -244,7 +248,7 @@ class MQPaket extends MQSayacliKAOrtak {
 
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
-		$.extend(pTanim, {
+		extend(pTanim, {
 			anaCins: new PInstStr('anacins'),
 			refSayac: new PInst('refsayac')
 		})
@@ -259,7 +263,7 @@ class MQUrunPaket extends MQSayacliOrtak {
 
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
-		$.extend(pTanim, {
+		extend(pTanim, {
 			urunKod: new PInstStr('urunkod'),
 			miktar: new PInstNum('urunmiktari'),
 			varsayilanmi: new PInstBool('varsayilan'),
@@ -277,7 +281,7 @@ class MQCariSatis extends MQMasterOrtak {
 
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
-		$.extend(pTanim, {
+		extend(pTanim, {
 			satisTipKod: new PInstStr('satistipkod'),
 			mustKod: new PInstStr('must'),
 			odemeGunKod: new PInstStr('odemegunkodu'),
@@ -308,7 +312,8 @@ class MQCariSatis extends MQMasterOrtak {
 		)
 	}
 	static loadServerData_queryDuzenle_son({ sent, sent: { sahalar, where: wh }, offlineRequest, offlineMode, alias = this.tableAlias }) {
-		let e = arguments[0]; super.loadServerData_queryDuzenle_son(e)
+		let e = arguments[0]
+		super.loadServerData_queryDuzenle_son(e)
 		sahalar.addWithAlias(alias, 'satistipkod', 'must')
 		wh.add(`${alias}.must <> ''`)
 		if (offlineRequest && !offlineMode) {
@@ -334,12 +339,12 @@ class MQCariSatis extends MQMasterOrtak {
 	keyHostVarsDuzenle({ hv }) {
 		super.keyHostVarsDuzenle(...arguments)
 		let {satisTipKod: satistipkod, mustKod: must} = this
-		$.extend(hv, { satistipkod, must })
+		extend(hv, { satistipkod, must })
 	}
 	keySetValues({ rec }) {
 		super.keySetValues(...arguments)
 		let {satistipkod: satisTipKod, must: mustKod} = rec
-		$.extend(this, { satisTipKod, mustKod })
+		extend(this, { satisTipKod, mustKod })
 	}
 }
 
@@ -348,20 +353,23 @@ class MQTabKasa extends MQKAOrtak {
 	static get kodListeTipi() { return 'KASA' } static get sinifAdi() { return 'Kasa' }
 	static get table() { return 'kasmst' } static get tableAlias() { return 'kas' }
 }
+
 class MQTabUgramaNeden extends MQKAOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'UGRNEDEN' } static get sinifAdi() { return 'Uğrama Nedeni' }
 	static get table() { return 'ssugramasebep' } static get tableAlias() { return 'ned' }
 }
+
 class MQTabSevkAdres extends MQKAOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListetipi() { return 'SEVKADRES' } static get sinifAdi() { return 'Sevk Adresi' }
 	static get table() { return 'carsevkadres' } static get tableAlias() { return 'sadr' }
 	get unvan() { return birlestirBosluk(this.unvan1, this.unvan2) }
 	get adres() { return birlestirBosluk(this.adres1, this.adres2) }
+	
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
-		$.extend(pTanim, { mustKod: new PInstStr('must')  })
+		extend(pTanim, { mustKod: new PInstStr('must')  })
 	}
 	static secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments)
@@ -382,10 +390,60 @@ class MQTabSevkAdres extends MQKAOrtak {
 			)
 		])
 	}
-	static loadServerData_queryDuzenle({ sent }) {
+	static loadServerData_queryDuzenle_son({ sent, sent: { sahalar, where: wh }, offlineRequest, offlineMode, alias = this.tableAlias }) {
 		super.loadServerData_queryDuzenle(...arguments)
-		let {tableAlias: alias} = this
 		sent.fromIliski('carmst car', `${alias}.must = car.kod`)
 			.cari2IlBagla()
+	}
+}
+
+class MQTabSutSira extends MQKAOrtak {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'SUTSIRA' } static get sinifAdi() { return 'Süt' }
+	static get table() { return 'sutsira' } static get tableAlias() { return 'sut' }
+	static get kodEtiket() { return 'Süt' } static get adiEtiket() { return 'Süt Adı' }
+
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
+		extend(pTanim, { seq: new PInstNum('seq') })
+	}
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		liste.push(
+			new GridKolon({ belirtec: 'seq', text: 'Sıra', genislikCh: 8 }).noSql()
+		)
+	}
+	static loadServerData_queryDuzenle_son({ stm, sent, offlineRequest, offlineMode, alias = this.tableAlias }) {
+		let e = arguments[0]
+		let { from, where: wh, sahalar, groupBy } = sent, { orderBy } = stm
+		super.loadServerData_queryDuzenle_son(e)
+		orderBy.liste = []
+		if (offlineRequest && !offlineMode) {
+			// Bilgi Yükle
+			let { kodSaha, adiSaha } = this
+			;[from, wh, sahalar, groupBy].forEach(_ =>
+				_.liste = [])
+			sent
+				.fromAdd(`stdetay ${alias}`)
+				.innerJoin(alias, 'stkmst stk', `${alias}.stokkod = stk.kod`)
+			sahalar.add(`${alias}.seq`, `${alias}.stokkod ${kodSaha}`)
+			;{
+				let clause = `dbo.emptycoalesce(${alias}.kisaadi, stk.aciklama)`
+				let saha = sahalar.find(_ => _.alias == adiSaha)
+				if (saha)
+					saha.deger = clause
+				else
+					sahalar.add(`${clause} ${adiSaha}`)
+			}
+			wh
+				.add(`${alias}.stokkod <> ''`, `${alias}.devredisi = ''`)
+				.degerAta('M', `${alias}.tipkod`)
+			orderBy.add('seq')
+		}
+		else {
+			wh.add(`${alias}.kod <> ''`)
+			orderBy.add(`${alias}.seq`)
+		}
+		sahalar.addWithAlias(alias, 'seq')
 	}
 }

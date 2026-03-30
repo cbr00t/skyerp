@@ -15,13 +15,14 @@ class TabBelgeTipi extends TekSecim {
 	
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)
-		let uygunFisTipSet = asSet(app.uygunFisTipleri)
-		kaListe.push(
-			...entries(TabFis.tip2Sinif)
-				.filter(([kod, cls]) =>
-					!uygunFisTipSet || uygunFisTipSet[kod])
-				.map(([kod, cls]) =>
-					new CKodAdiVeEkBilgi({ kod, aciklama: cls.sinifAdi, ekBilgi: cls }))
-		)
+		let { tip2Sinif } = TabFis
+		let uygunFisTipler = keys(asSet(app.uygunFisTipleri))
+		;uygunFisTipler.forEach(kod => {
+			let ekBilgi = tip2Sinif[kod]
+			if (ekBilgi) {
+				let { sinifAdi: aciklama } = ekBilgi
+				kaListe.push(new CKodAdiVeEkBilgi({ kod, aciklama, ekBilgi }))
+			}
+		})
 	}
 }

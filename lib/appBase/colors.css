@@ -43,8 +43,9 @@
 .deeppink { color: deeppink !important }
 .hotpink { color: hotpink !important }
 .blueviolet { color: blueviolet !important }
-.violet { color: violet !important }
 .darkviolet { color: darkviolet !important }
+.violet { color: violet !important }
+.mediumvioletred { color: mediumvioletred !important }
 .palevioletred { color: palevioletred !important }
 
 :not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-black { background-color: black !important }

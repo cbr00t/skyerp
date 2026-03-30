@@ -196,7 +196,7 @@ class TSOrtakFis extends MQTicariGenelFis {
 	async satisKosulYapiOlustur(e) { return this }
 	uiSatirBedelHesaplaSonrasi(e) { }
 	async cariDegisti(e) {
-		e = e || {}; let rec = e.item ?? e.rec ?? {}, eFatmi = asBoolQ(rec.efaturakullanirmi);
+		e = e || {}; let rec = e.item ?? e.rec ?? {}, eFatmi = asBoolQ(rec.efaturakullanirmi)
 		if (eFatmi != null) {
 			let {faturami} = this.class;
 			let efAyrimTipi = (faturami ? (eFatmi ? EIslFatura.tip : null) : null);

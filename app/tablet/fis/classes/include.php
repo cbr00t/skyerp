@@ -4,3 +4,4 @@
 <script src="<?=$_partRoot?>/tabTahsilatDetay.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/tabTahsilatFis.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/tabUgramaFis.js?<?=$appVersion?>"></script>
+<script src="<?=$_partRoot?>/tabSutAlimFis.js?<?=$appVersion?>"></script>

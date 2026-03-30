@@ -628,6 +628,8 @@ class MQTabletParam extends MQTicariParamBase {
 			form.addBool('depoBedelGorur', 'Bedel Görür')
 			form.addBool('fiyatDegistirir', 'Fiyat Değiştirir')
 			form.addBool('iskDegistirir', 'İsk. Değiştirir')
+			form.addBool('sutToplama', 'Süt Toplama')
+			form.addBool('eIslem', 'e-İşlem')
 			form.addNumber('iskMaxSayi', 'İsk. Max Sayı')
 			form.addAltObject('dokumFormlar')
 		}

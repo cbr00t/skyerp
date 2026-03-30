@@ -368,3 +368,11 @@ button#import {
 .islemTuslari > div > button#import {
 	margin-left: 30px
 }
+
+.islemTuslari button#seviyeAc { background-image: url(../../images/seviye_ac.png); background-color: #eef9f3; margin-left: 10px }
+.islemTuslari button#seviyeKapat { background-image: url(../../images/seviye_kapat.png); background-color: #f9f2ee}
+.islemTuslari button#seviyeAc, .islemTuslari button#seviyeKapat { background-size: 38px !important }
+body.dark-theme .islemTuslari button#seviyeAc,
+	body.dark-theme .islemTuslari button#seviyeKapat { filter: invert(1) hue-rotate(180deg) !important }
+.islemTuslari button#seviyeAc:hover, .islemTuslari button#seviyeKapat:hover { background-color: aliceblue }
+.islemTuslari button#seviyeAc:focus:active, .islemTuslari button#seviyeKapat:focus:active { background-color: #acc1ff }
