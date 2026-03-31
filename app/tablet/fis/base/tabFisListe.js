@@ -13,16 +13,16 @@ class TabFisListe extends TabFis {
 	}
 	static detaySinifFor(e) { return this.fisSinifFor(e)?.detaySinif }
 	static async yeniInstOlustur(e = {}) {
-		let { gridPart = e.sender, islem, rec, rowIndex, args = {} } = e
+		let { gridPart = e.sender ?? {}, islem, rec = {}, rowIndex, args = {} } = e
+		let { fisTipi: orjFisTipi, mustKod = gridPart.mustKod } = e
 		let result = await super.yeniInstOlustur(e)
 		islem = e.islem
 		if (result != null)
 			return result
 		
-		let { fisTipi } = rec ?? {}
-		let { mustKod } = gridPart
 		let yenimi = islem == 'yeni'
-		if (yenimi) {
+		let fisTipi = orjFisTipi ?? rec.fisTipi
+		if (yenimi && !orjFisTipi) {
 			fisTipi = await new Promise(async r => {
 				let recs = await MQTabBelgeTipi.loadServerData(e)
 				if (recs?.length > 1) {
@@ -84,7 +84,7 @@ class TabFisListe extends TabFis {
 				.addStyle_fullWH(null, 35)
 				.addCSS('jqx-hidden')
 				.addStyle(...[
-					`$elementCSS { font-size: 80%; padding: 10px 5px; overflow-y: auto !important }
+					`$elementCSS { font-size: 110%; padding: 15px 5px !important; overflow-y: auto !important }
 					 $elementCSS > .item > div { gap: 10px; line-height: 10px }`
 				])
 				.setLayout(({ builder: fbd }) => {
@@ -127,8 +127,8 @@ class TabFisListe extends TabFis {
 			result.push(...[
 				`<div class="mustBilgi item">`,
 				`	<div class="flex-row">`,
-				`		<div class="adi royalblue">${unvan || ''}</div>`,
-				`		<div class="kod lightgray">${mustKod}</div>`,
+				`		<div class="adi bold royalblue">${unvan || ''}</div>`,
+				`		<div class="kod bold lightgray">${mustKod}</div>`,
 				`		<div class="yoreVeIl lightgray">${[yore, ilAdi].filter(Boolean).join('/')}</div>`,
 		( vkn ? `		<div class="vkno"><span class="lightgray">VKN:</span> <span class="orangered bold">${vkno || ''}</span></div>` : null ),
 				`	</div>`,

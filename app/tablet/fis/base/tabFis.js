@@ -111,6 +111,7 @@ class TabFis extends MQDetayliGUID {
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		extend(pTanim, {
+			kayitTS: new PInstDateTimeNow('kayitTS'),
 			plasiyerKod: new PInstStr('plasiyerkod'),
 			tarih: new PInstDateToday('tarih'),
 			subeKod: new PInstStr('bizsubekod'),
@@ -158,19 +159,40 @@ class TabFis extends MQDetayliGUID {
 		super.orjBaslikListesiDuzenle(...arguments)
 		liste.push(
 			new GridKolon({ belirtec: '_html', text: 'Belge' }).noSql(),
-			new GridKolon({ belirtec: 'sonuc', text: 'Fiş Bedeli', genislikCh: 11 }).noSql().tipDecimal_bedel().sifirGosterme()
+			new GridKolon({ belirtec: 'sonucText', text: 'Fiş Sonuç', genislikCh: 11 }).noSql().alignRight()
 		)
 	}
 	static async loadServerDataDogrudan({ offlineRequest, offlineMode } = {}) {
 		let e = arguments[0]
 		if (!offlineRequest) {
+			let { sutAlimmi, params: { tablet } } = app
 			let cacheClasses = [MQTabCari]
+			if ( sutAlimmi || tablet.sutToplama )
+				cacheClasses.push(MQTabRota)
 			await Promise.allSettled(cacheClasses.map(_ => _.getGloKod2Rec()))
 		}
 		let recs = await super.loadServerDataDogrudan(...arguments)
 		if (!offlineRequest) {
-			recs.forEach(rec =>
-				rec._html = this.getHTML({ ...e, rec }))
+			let { tip2Sinif } = TabFis
+			recs.forEach(rec => {
+				let { fisTipi: tip, dvKod, sonuc, brm, topMiktar } = rec
+				dvKod ||= 'TL'
+				if (!sonuc && topMiktar && !brm) {
+					let { detaySinif: { defaultBrm } = {} } = tip2Sinif[tip]
+					brm = defaultBrm || 'AD'
+				}
+				rec.sonucText = (
+					sonuc ? (
+						`<span class="bedel asil bold orangered">${bedelToString(sonuc)}</span> ` +
+						`<span class="bedel ek-bilgi gray">${dvKod}</span>`
+					) : topMiktar ? (
+						`<span class="miktar asil bold forestgreen">${numberToString(topMiktar)}</span> ` +
+						`<span class="miktar ek-bilgi gray">${brm}</span>`
+					) :
+					''
+				)
+				rec._html = this.getHTML({ ...e, rec })
+			})
 		}
 		return recs
 	}
@@ -345,7 +367,7 @@ class TabFis extends MQDetayliGUID {
 		let { eIslemmi, fisNo, numarator: num } = this
 		if (eIslemmi)
 			this.uuid ||= newGUID()
-		this.fisSonuc = this.fisTopNet		
+		this.fisSonuc = this.fisTopNet
 		if (yeniVeyaKopyami) {
 			this.sayac = null
 			if (!fisNo && num) {
@@ -398,6 +420,14 @@ class TabFis extends MQDetayliGUID {
 	alternateKeyHostVarsDuzenle({ hv }) {
 		let { fisTipi: fistipi, almSat: almsat, iade, seri, fisNo: fisno } = this
 		extend(hv, { fistipi, almsat, iade, seri, fisno })
+	}
+	hostVarsDuzenle({ hv }) {
+		super.hostVarsDuzenle(...arguments)
+		let { tarih, kayitTS } = hv
+		if ('tarih' in hv)
+			hv.tarih = tarih = asReverseDateString(kayitTS || now())
+		if ('kayitTS' in hv)
+			hv.kayitTS = kayitTS = asReverseDateTimeString(kayitTS || now())
 	}
 	kopyaIcinDuzenle(e) {
 		super.kopyaIcinDuzenle(e)
@@ -972,7 +1002,11 @@ class TabFis extends MQDetayliGUID {
 	}
 	static getHTML({ rec } = {}) {
 		let e = arguments[0]
-		let { fisTipi, tarih, seri, noyil, fisno, must, mustunvan, posta } = rec
+		let { fisTipi, tarih, seri, noyil, fisno, must, mustunvan, rotaID, posta } = rec
+		let rotaAdi = rotaID
+			? MQTabRota.globals?.cachedRecs?.find(r =>
+				r.vioID == rotaID)?.aciklama || rotaID
+			: null
 		let postaAdi = posta ? new TabPosta(posta)?.aciklama : null
 		let fisSinif = TabFisListe.fisSinifFor(fisTipi)
 		// let {kod2Rec: kod2Must} = MQTabCari.globals
@@ -1005,7 +1039,8 @@ class TabFis extends MQDetayliGUID {
 					`<span class="fisNox asil royalblue">${tsnText}</span>`,
 					`<span class="mustUnvan asil orangered">${mustunvan || ''}</span>`,
 					`<span class="ek-bilgi bold">${must ? `(${must})` : ''}</span>`,
-					( postaAdi ? `<span class="ek-bilgi bold blueviolet">${postaAdi}</span>` : null ),
+					( rotaAdi ? `<span class="ek-bilgi">R:</span> <span class="rotaAdi asil blueviolet">${rotaAdi}</span>` : null ),
+					( postaAdi ? `<span class="ek-bilgi">P:</span> <span class="asil bold darkyellow">${postaAdi}</span>` : null ),
 					...(ekHTMLLines.sol ?? []),
 				`</div>`,
 				`<div class="sag float-right">`,

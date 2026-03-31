@@ -264,6 +264,7 @@ class TabletApp extends TicariApp {
 		let {params, dbMgr, dbMgr: { main: db, main: { name } }, defaultOfflineRequestChunkSize: chunkSize} = this
 		if (!classes?.length)
 			return
+		
 		let withClear = true
 		{
 			let args = { noClear: false }
@@ -356,16 +357,19 @@ class TabletApp extends TicariApp {
 			}
 			finally { pm.progressStep() }
 		}*/
+		app.activeWndPart?.tazele?.()
 		setTimeout(() => pm.progressEnd(), 50)
 		eConfirm('Veri Yükleme tamamlandı')
 		setTimeout(() => hideProgress(), 150)
 	}
 	async bilgiGonderIstendi(e) {
-		let {offlineBilgiGonderSiniflar: classes, defaultOfflineRequestChunkSize: chunkSize} = this
+		let { offlineBilgiGonderSiniflar: classes, defaultOfflineRequestChunkSize: chunkSize } = this
 		if (!classes?.length)
 			return
+		
 		if (!await ehConfirm('Tabletteki veriler merkeze gönderilsin mi?', appName))
 			return
+		
 		let pm = showProgress('Veriler gönderiliyor...', null, true)
 		pm.setProgressMax(classes.length * 70).progressReset()
 		app.resetOfflineStatus()
@@ -380,6 +384,7 @@ class TabletApp extends TicariApp {
 				finally { pm.progressStep() }
 			}
 		}
+		app.activeWndPart?.tazele?.()
 		pm.progressEnd()
 		eConfirm('Veri Gönderimi tamamlandı')
 		setTimeout(() => hideProgress(), 200)

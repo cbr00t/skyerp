@@ -14,7 +14,7 @@ class MQTabRota extends MQGuidVeAdiOrtak {
 		sent.fromAdd(this.table)
 		if (plasiyerKod)
 			wh.degerAta(plasiyerKod, 'plasiyerKod')
-		{
+		;{
 			let or = new MQOrClause()
 			or.inDizi(['', 'HER', gunKod], 'gunKod')
 			wh.add(or)
@@ -40,7 +40,6 @@ class MQTabRota extends MQGuidVeAdiOrtak {
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		extend(pTanim, {
-			vioID: new PInstNum('vioID'),
 			plasiyerKod: new PInstStr('plasiyerKod'),
 			tip: new PInstStr('tip'),
 			gunKod: new PInstStr('gunKod'),
@@ -92,7 +91,7 @@ class MQTabRota extends MQGuidVeAdiOrtak {
 		sahalar.addWithAlias(alias, adiSaha)
 		if (offlineRequest && !offlineMode) {
 			// Bilgi Yükle
-			sent.innerJoin(alias, 'rotadetay har', ['rot.kaysayac = har.fissayac', `har.devredisi = ''`, `har.must <> ''`])
+			sent.innerJoin(alias, 'rotadetay har', [`${alias}.kaysayac = har.fissayac`, `har.devredisi = ''`, `har.must <> ''`])
 			wh.add(`${alias}.silindi = ''`)
 			wh.inDizi(['T', 'M'], `${alias}.tipkod`)
 			if (subeKod != null)
@@ -114,13 +113,13 @@ class MQTabRota extends MQGuidVeAdiOrtak {
 				}
 				wh.add(or)
 			}
-			sahalar.addWithAlias(alias, 'tipkod tipKod', 'kod', 'musplasiyerkod plasiyerKod')
-			sahalar.addWithAlias('har', 'kaysayac vioID', 'seq', 'must mustKod')
+			sahalar.addWithAlias(alias, 'kaysayac id', 'tipkod tipKod', 'kod', 'musplasiyerkod plasiyerKod')
+			sahalar.addWithAlias('har', 'seq', 'must mustKod')
 		}
 		else {
 			// Yerel
 			sent.innerJoin(alias, 'carmst car', `${alias}.mustKod = car.kod`)
-			sahalar.addWithAlias(alias, idSaha, 'vioID', 'plasiyerKod', 'gunKod', 'seq', 'mustKod')
+			sahalar.addWithAlias(alias, idSaha, 'plasiyerKod', 'gunKod', 'seq', 'mustKod')
 			orderBy.liste = ['tip', 'plasiyerKod', 'gunKod', 'ekKod', 'seq']
 		}
 	}

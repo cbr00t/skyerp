@@ -13,13 +13,13 @@ class TabSutAlimFis extends TabFis {
 		extend(pTanim, {
 			yerKod: new PInstStr('yerkod'),
 			plasiyerKod: new PInstStr('plasiyerkod'),
-			rotaSayac: new PInstNum('rotasayac'),
+			rotaID: new PInstNum('rotaID'),
 			posta: new PInstStr({ rowAttr: 'posta', init: () => TabPosta.defaultChar })
 		})
 	}
 	async onlineFisDuzenle({ oFis } = {}) {
 		super.onlineFisDuzenle(...arguments)
-		;['yerKod', 'rotaSayac', 'posta'].forEach(k => {
+		;['yerKod', 'rotaID', 'posta'].forEach(k => {
 			let v = this[k]
 			if (v)
 				oFis[k] = v
@@ -43,24 +43,42 @@ class TabSutAlimFis extends TabFis {
 	getYazmaIcinDetaylar(e) {
 		return this.detaylar.filter(_ => _.miktar)
 	}
-	/*async kaydetOncesiIslemler(e) {
-		let { detaylar: orjDetaylar } = this
-		this.detaylar = orjDetaylar.filter(_ => _.miktar)
-		try { return await super.kaydetOncesiIslemler(e) }
-		finally {
-			if (orjDetaylar)
-				setTimeout(() => this.detaylar = orjDetaylar, 500)
-		}
-	}*/
+	async kaydetOncesiIslemler(e) {
+		await super.kaydetOncesiIslemler(e)
+		// let { tarih, mustKod: must, rotaID, posta, class: { table } } = this
+	}
 	async dataDuzgunmuDuzenle({ eskiInst: eskiFis, parentPart, gridPart, result }) {
-		let { rotaSayac, posta } = this
-		if (!rotaSayac)
-			result.push(`<b>Rota</b> belirsizdir`)
-		if (empty(new TabPosta(posta).secilen))
-			result.push(`<b>Posta</b> seçilmelidir`)
-		/*if (yerKod && !await MQTabYer.kodVarmi(yerKod))
-			result.push(`<b>Yer (Depo) [<span class=firebrick>${yerKod}</span>]</b> hatalıdır`)*/
+		let { tarih, mustKod: must, rotaID, posta, class: { table } } = this
+		tarih = tarih.clone().clearTime()
+		let keyHV = extend(
+			this.class.varsayilanKeyHostVars(e),
+			{ tarih, must, rotaID, posta }
+		)
+		;{
+			let sent = new MQSent(), { where: wh, sahalar } = sent
+			sent.fromAdd(table)
+			wh
+				.add(`silindi = ''`, `gecici = ''`)
+				.birlestirDict(keyHV)
+			sahalar.add('COUNT(*) sayi')
+			let res = await sent.execTekilDeger()
+			if (asBool(res))
+				result.push(`<b>Bu (<b class=royalblue>Tarih + Rota + Müstahsil)</b> için belge zaten mevcut`)
+		}
+		;{
+			if (!rotaID)
+				result.push(`<b>Rota</b> belirsizdir`)
+			if (empty(new TabPosta(posta).secilen))
+				result.push(`<b>Posta</b> seçilmelidir`)
+			/*if (yerKod && !await MQTabYer.kodVarmi(yerKod))
+				result.push(`<b>Yer (Depo) [<span class=firebrick>${yerKod}</span>]</b> hatalıdır`)*/
+		}
 		return await super.dataDuzgunmuDuzenle(...arguments)
+	}
+	hostVarsDuzenle({ hv }) {
+		super.hostVarsDuzenle(...arguments)
+		let { topMiktar } = this
+		extend(hv, { topMiktar })
 	}
 	
 	yerDegisti({ oldValue = this._prev.yerKod, value = this.yerKod }) {
@@ -98,16 +116,14 @@ class TabSutAlimFis extends TabFis {
 		if (!this.dbMgr_db)
 			return false
 
-		let e = arguments[0]
-		let { table, idSaha, gonderildiDesteklenirmi, gonderimTSSaha } = this
-		let offlineMode = false, offlineRequest = true, offlineGonderRequest = true
-		
+		let e = { ...arguments[0], offlineRequest: true, offlineMode: false }
+		let { table, idSaha, gonderildiDesteklenirmi, gonderimTSSaha } = this		
 		let fisRecs, idListe, detRecs
 		let fisID2Yapi = {}, fisKey2Yapi = {}
-		let okIdList = []
 		let keyHV = this.varsayilanKeyHostVars(e)
+		let okIdList = [], errors = []
+		app.online()
 		try {
-			app.offline()
 			;{
 				// Burada yerelden veri okuyoruz
 				;{
@@ -120,10 +136,13 @@ class TabSutAlimFis extends TabFis {
 					wh
 						.fisSilindiEkle({ alias })
 						.add(`${alias}.gecici = ''`)
-						.birlestir(keyHV)
-					sahalar.addWithAlias(alias, `${idSaha} id`, 'tarih', 'seri', 'fisno', 'must', 'yerkod', 'rotasayac', 'posta', 'cariaciklama')
-					let orderBy = [`${alias}.tarih`]
-					fisRecs = new MQStm({ sent, orderBy }).execSelect()
+						.birlestirDict(keyHV)
+					sahalar.addWithAlias(alias,
+						`${idSaha} id`, 'kayitTS', 'tarih', 'fisno', 'must', 'yerkod', 'rotaID', 'posta', 'cariaciklama')
+					let orderBy = [`${alias}.tarih`, `${alias}.rotaID`, `${alias}.posta`]
+					fisRecs = await new MQStm({ sent, orderBy }).execSelect({ ...e, offlineMode: true })
+					;fisRecs.forEach(r =>
+						r.tarih = asDate(r.tarih))
 				}
 				window.progressManager?.progressStep(5)
 				
@@ -140,21 +159,33 @@ class TabSutAlimFis extends TabFis {
 					wh.inDizi(idListe, `${alias}.${fisSayacSaha}`)
 					sahalar.addWithAlias(alias, `${fisSayacSaha} fisID`, seqSaha, 'stokkod', 'miktar', 'brm')
 					let orderBy = [`${alias}.${fisSayacSaha}`, `${alias}.${seqSaha}`]
-					detRecs = new MQStm({ sent, orderBy }).execSelect()
+					detRecs = await new MQStm({ sent, orderBy }).execSelect({ ...e, offlineMode: true })
 				}
 				window.progressManager?.progressStep(7)
 
 				;{
-					fisRecs.forEach(r =>
-						fisID2Yapi[r.id] = { fisRec: r })
-					detRecs.forEach(r => {
-						let yapi = fisID2Yapi[r.fisID]
-						if (yapi)
-							(yapi.detRecs ??= []).push(r)
+					// Fiş -> Detay bağlantı ve düzenleme
+					fisRecs.forEach(fisRec =>
+						fisID2Yapi[fisRec.id] = { fisRec })
+					detRecs.forEach(detRec => {
+						let yapi = fisID2Yapi[detRec.fisID]
+						if (yapi) {
+							let { fisRec: { kayitTS, must } } = yapi
+							detRec.kayitts = asDate(kayitTS)
+							detRec.must = must
+							;(yapi.detRecs ??= []).push(detRec)
+						}
 					})
-
-					function getKey(r) {
-						return [r.rotasayac, r.posta]
+					fisRecs.forEach(r =>
+						deleteKeys(r, 'kayitTS', 'must'))
+				}
+				
+				;{
+					// Gruplanmış Fiş Yapıları
+					function getKey({ tarih, rotaID, posta }) {
+						if (isDate(tarih))
+							tarih = asReverseDateString(tarih)
+						return [tarih, rotaID, posta]
 							.filter(Boolean)
 							.map(String)
 							.join(delimWS)
@@ -172,36 +203,103 @@ class TabSutAlimFis extends TabFis {
 
 			;{
 				// Burada merkeze aktarım yapılacak
-				debugger
-				for (let [key, { fisRec, detRecs }] of entries(fisKey2Yapi)) {
-					let hv = {
-						// ...
+				// let fisSeq = 0
+				let toplu = new MQToplu().withTrn()
+				let _okIdList = []
+				
+				let table = 'musrotafis', detayTable = 'musrotastok'
+				let tipkod = 'M', alttipkod = ''
+				let seri = 'TAB', yerkod = 'A'
+				let no = `@sonNo + 1`.sqlConst()
+				let tabletguid = 'NEWID()'.sqlConst()
+				
+				toplu.add(...[
+					`DECLARE @fisSayac BIGINT`,
+					`DECLARE @sonNo INT`,
+					`DECLARE @seq SMALLINT`,
+					`DECLARE @id UNIQUEIDENTIFIER`
+				])
+				for (let { fisRec, detRecs } of values(fisKey2Yapi)) {
+					let { id, tarih, rotaID: rotasayac, posta } = fisRec
+					rotasayac = asInteger(rotasayac)
+					// fisSeq++
+					
+					let getFisSent = kisitsizmi => {
+						let sent = new MQSent(), { where: wh, sahalar } = sent
+						sent.fromAdd(table)
+						wh
+							.add(`silindi = ''`)
+							.degerAta(tipkod, 'tipkod')
+							.degerAta(alttipkod, 'alttipkod')
+							.degerAta(seri, 'seri')
+						if (!kisitsizmi) {
+							wh.degerAta(tarih, 'tarih')
+							wh.degerAta(rotasayac, 'rotasayac')
+							wh.degerAta(posta, 'posta')
+						}
+						return sent
 					}
-					let detHVListe = []
-					fisYapilar.push({
-						fisHV: hv,
-						detHVListe: []
-					})
+					let getHarSent = () => {
+						let sent = new MQSent(), { where: wh, sahalar } = sent
+						sent.fromAdd(detayTable)
+						wh.add(`fissayac = @fisSayac`)
+						return sent
+					}
+					
+					;{
+						let sent = getFisSent(), { sahalar } = sent
+						sahalar.add(`@fisSayac = MAX(kaysayac)`)
+						toplu.add(sent)
+					}
+					toplu.add(`IF @fisSayac IS NULL BEGIN`)
+						;{
+							let sent = getFisSent(true), { sahalar } = sent    // kısıtsız - rotasayac, posta ...vs olmadan where
+							sahalar.add('@sonNo = COALESCE(MAX(no), 0)')
+							toplu.add(sent)
+						}
+						;{
+							let hv = {
+								tipkod, alttipkod, tabletguid,
+								tarih, seri, no, yerkod,
+								rotasayac, posta
+							}
+							toplu.add(new MQInsert({ table, hv }).insertOnly())
+						}
+						;{
+							let sent = getFisSent(), { sahalar } = sent
+							sahalar.add(`@fisSayac = MAX(kaysayac)`)
+							toplu.add(sent)
+						}
+					toplu.add('END')
+					;{
+						let sent = getHarSent(), { sahalar } = sent
+						sahalar.add(`@seq = COALESCE(MAX(seq), 0) + 1`)
+						toplu.add(sent)
+					}
+					;{
+						let fissayac = '@fisSayac'.sqlConst()
+						let hvListe = detRecs.map((r, i) => {
+							let { seq: relSeq = i, kayitts, must, stokkod, miktar } = r
+							let seq = `@seq + ${relSeq}`.sqlConst()
+							return {
+								fissayac, seq, kayitts,
+								must, stokkod, miktar
+							}
+						})
+						toplu.add(new MQInsert({ table: detayTable, hvListe }).insertOnly())
+					}
+					
+					_okIdList.push(id)
 				}
 
-				app.online()
-				/*let result
+				let result
 				try {
-					let query = new MQInsert({ table: offlineTable, hvListe }).insertOnly()
-					result = await this.sqlExecNone({ ...e, offlineMode, query })
+					result = !empty(toplu.liste) && await toplu.execNone({ ...e, offlineMode: false })
+					if (result && !empty(_okIdList))
+						okIdList.push(..._okIdList)
 				}
-				catch (ex) {
-					if (ex.rc == 'duplicateKey') {
-						let query = new MQInsert({ table: offlineTable, hvListe }).insertIgnore()
-						result = await this.sqlExecNone({ ...e, offlineMode, query })
-					}
-					else {
-						cerr(ex)
-						return false
-					}
-				}
-				if (!result)
-					return false*/
+				catch (ex) { errors.push(ex) }
+				window.progressManager?.progressStep(toplu.liste.length)
 			}
 
 			app.offline()
@@ -210,15 +308,22 @@ class TabSutAlimFis extends TabFis {
 				upd.fromAdd(table)
 				wh.inDizi(okIdList, idSaha)
 				set.degerAta(asReverseDateTimeString(now()), gonderimTSSaha)
-				await upd.execNone()
+				await upd.execNone({ offlineMode: true })
 			}
 		}
 		finally {
 			app.resetOfflineStatus()
+			if (!empty(errors))
+				throw {
+					isError: true, rc: 'multiError',
+					errorText: (
+						`<b class="firebrick"><u>Süt Alım Fiş Gönderimi</u>:</b>` +
+						`<ul>` +
+							`${errors.map(_ => `<li>${getErrorText(_)}</li>`).join(CrLf)}` +
+						`</ul>`
+					)
+				}
 		}
-
-		fisRecs; idListe; detRecs
-		debugger
 
 		return true
 	}
@@ -278,10 +383,10 @@ class TabSutAlimFis extends TabFis {
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_dipCollapsed({ sender: tanimPart, inst: fis, rfb }) {
 		await super.rootFormBuilderDuzenle_tablet_acc_dipCollapsed(...arguments)
-		let { rotaSayac, topMiktar, detaylar, class: { detaySinif: { defaultBrm } } } = fis
-		if (rotaSayac) {
+		let { rotaID, topMiktar, detaylar, class: { detaySinif: { defaultBrm } } } = fis
+		if (rotaID) {
 			let aciklama = (await MQTabRota.loadServerData())
-				.find(r => r.vioID == rotaSayac)?.aciklama || rotaSayac
+				.find(r => r.id == rotaID)?.aciklama || rotaID
 			rfb
 				.addCSS('flex-row')
 				.addStyle(
@@ -513,39 +618,6 @@ class TabSutAlimDetay extends TabStokDetay {
 				`</div>`
 			: null)
 		].filter(Boolean).join(CrLf)*/
-	}
-}
-
-class SutAlimOnlineFis extends MQGenelFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get table() { return 'musrotafis' } static get tableAlias() { return 'fis' }
-	static get detaySinif() { return SutAlimOnlineDetay }
-	static pTanimDuzenle({ pTanim }) {
-		super.pTanimDuzenle(...arguments)
-		extend(pTanim, {
-			// plasiyerKod: new PInstStr('plasiyerkod'),
-			id: new PInstGuid('tabletguid'),
-			yerKod: new PInstStr({ rowAttr: 'yerkod', init: () => 'A' }),
-			rotaSayac: new PInstNum('rotasayac'),
-			posta: new PInstTekSecim('posta', TabPosta)
-		})
-	}
-	static varsayilanKeyHostVarsDuzenle({ hv }) {
-		super.varsayilanKeyHostVarsDuzenle(...arguments)
-		extend(hv, { tipkod: 'M' })
-	}
-}
-class SutAlimOnlineDetay extends MQDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get table() { return 'musrotastok' }
-	static pTanimDuzenle({ pTanim }) {
-		super.pTanimDuzenle(...arguments)
-		extend(pTanim, {
-			mustKod: new PInstStr('must'),
-			stokKod: new PInstStr('stokkod'),
-			miktar: new PInstNum('miktar'),
-			kayitTS: new PInstDateNow('tabletkayitts')
-		})
 	}
 }
 

@@ -2,38 +2,105 @@ class MQSQLOrtak extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e = {}) {
 		super(e)
-		$.extend(this, { prefix: e.prefix, postfix: e.postfix, params: e.params || null })
+		extend(this, { prefix: e.prefix, postfix: e.postfix, params: e.params || null })
 	}
+
+	static execNone(e = {}) {
+		if (e.query === undefined)
+			e.query = e
+		return MQCogul.sqlExecNone(e)
+	}
+	static execTekil(e = {}) {
+		if (e.query === undefined)
+			e.query = e
+		return MQCogul.sqlExecTekil(e)
+	}
+	static execTekilDeger(e = {}) {
+		if (e.query === undefined)
+			e.query = e
+		return MQCogul.sqlExecTekilDeger(e)
+	}
+	static execSelect(e = {}) {
+		if (e.query === undefined)
+			e.query = e
+		return MQCogul.sqlExecSelect(e)
+	}
+	
+	execNone(e) {
+		let _e = isObject(e) ? { ...e } : {}
+		_e.query = this
+		return MQCogul.sqlExecNone(_e)
+	}
+	execTekil(e) {
+		let _e = isObject(e) ? { ...e } : {}
+		_e.query = this
+		return MQCogul.sqlExecTekil(_e)
+	}
+	execTekilDeger(e) {
+		let _e = isObject(e) ? { ...e } : {}
+		_e.query = this
+		return MQCogul.sqlExecTekilDeger(_e)
+	}
+	execSelect(e) {
+		let _e = isObject(e) ? { ...e } : {}
+		_e.query = this
+		return MQCogul.sqlExecSelect(_e)
+	}
+	
 	static async topluYazVeyaDegistirIcinYap(e) {
 		let {trnId, toplu} = e, eskiWhere = e.eskiWhere ?? e.eskiHVWhere, uniqueKeys = e.uniqueKeys ?? e.attrListe, table = e.table ?? e.tablo;
 		let uniqueKeysSet = asSet(uniqueKeys) || {}, silinebilirmi = e.silinebilir ?? e.silinebilirmi ?? true;
 		let {hvListe, eskiHVListe} = e; if (!hvListe) { return } if (!$.isArray(hvListe)) { hvListe = [hvListe] }
 		let hv = hvListe[0], dateAttrSet = {}; if (hv) { for (let [key, value] of Object.entries(hv)) { if (isDate(value)) { dateAttrSet[key] = true } } }
-		if (!(eskiHVListe || $.isEmptyObject(uniqueKeys) || $.isEmptyObject(eskiWhere))) {
-			let keys = hv === undefined ? uniqueKeys : Object.keys(hv);
-			let sent = new MQSent({ from: table, where: eskiWhere, sahalar: keys }), recs = await app.sqlExecSelect({ trnId, query: sent }); eskiHVListe = recs;
-			if (eskiHVListe) { for (let hv of eskiHVListe) { for (let key in hv) { if (dateAttrSet[key]) { let value = hv[key]; if (value && typeof value == 'string') { hv[key] = value = asDate(value) } } } } }
+		if (!(eskiHVListe || empty(uniqueKeys) || empty(eskiWhere))) {
+			let keys = hv === undefined ? uniqueKeys : keys(hv)
+			let sent = new MQSent({ from: table, where: eskiWhere, sahalar: keys })
+			let recs = await app.sqlExecSelect({ trnId, query: sent })
+			eskiHVListe = recs
+			if (eskiHVListe) {
+				for (let hv of eskiHVListe)
+				for (let key in hv) {
+					if (dateAttrSet[key]) {
+						let value = hv[key]
+						if (value && isString(value))
+							hv[key] = value = asDate(value)
+					}
+				}
+			}
 		}
-		if ($.isEmptyObject(eskiHVListe)) {		/* sadece yazma */
-			if (uniqueKeysSet.kaysayac) { for (let hv of hvListe) { delete hv.kaysayac } }
-			toplu.add(new MQInsert({ table, hvListe })); return { eklenecekler: hvListe, degisecekler: [], silinecekler: [] }
+		if (empty(eskiHVListe)) {		/* sadece yazma */
+			if (uniqueKeysSet.kaysayac) {
+				for (let hv of hvListe)
+					delete hv.kaysayac
+			}
+			toplu.add(new MQInsert({ table, hvListe }))
+			return { eklenecekler: hvListe, degisecekler: [], silinecekler: [] }
 		}
 		/* ekleme, değiştirme ve silme */
 		let farkBilgi = hvListeFarkSonucu({ hv1Liste: hvListe, hv2Liste: eskiHVListe, uniqueKeys }) || {}, {eklenecekler, degisecekler, silinecekler} = farkBilgi;
 		for (let keyHV of silinecekler) { toplu.add(new MQIliskiliDelete({ from: table, where: { birlestirDict: keyHV } })) }
-		if (!$.isEmptyObject(eklenecekler)) { toplu.add(new MQInsert({ table, hvListe: eklenecekler })) }
+		if (!empty(eklenecekler)) { toplu.add(new MQInsert({ table, hvListe: eklenecekler })) }
 		for (let {keyHV, farkHV} of degisecekler) { toplu.add(new MQIliskiliUpdate({ from: table, where: { birlestirDict: keyHV }, set: { birlestirDict: farkHV } })) }
 		return farkBilgi
 	}
 	static sqlServerDegeri(e) {
-		if (window?.app?.sqlitemi) { return this.sqliteDegeri(e) }
-		if (e == null) { return 'NULL' }
-		let value = $.isPlainObject(e) ? e.value : e, ozelDeger = value?.sqlServerDegeri;
-		if (typeof value == 'object' && value?.constructor?.name == 'String') { value = value.toString() }
-		if (!(ozelDeger === undefined || typeof ozelDeger == 'function')) { return ozelDeger }
-		if (value == null) { return 'NULL' }
-		if (isDate(value)) { return `CAST('${asReverseDateTimeString(value, 'T')}' AS DATETIME)` }
-		if (isGUID(value)) { return `N'${value}'` }
+		let { isOfflineMode } = MQCogul
+		if (isOfflineMode)
+			return this.sqliteDegeri(e)
+		if (e == null)
+			return 'NULL'
+		let value = (isPlainObject(e) ? e.value : e)?.valueOf()
+		let ozelDeger = value?.sqlServerDegeri
+		if (typeof value == 'object' && value?.constructor?.name == 'String')
+			value = value.toString()
+		if (!(ozelDeger === undefined || typeof ozelDeger == 'function'))
+			return ozelDeger
+		if (value == null)
+			return 'NULL'
+		if (isDate(value))
+			return `CAST('${asReverseDateTimeString(value, 'T')}' AS DATETIME)`
+		if (isGUID(value))
+			return `N'${value}'`
 		return this.sqlDegeri(e)
 	}
 	static sqliteDegeri(e) {

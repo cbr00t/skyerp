@@ -14,8 +14,7 @@ CREATE TABLE IF NOT EXISTS tabfis (
 	cariaciklama TEXT NOT NULL DEFAULT '',
 	brut REAL NOT NULL DEFAULT 0,
 	topkdv REAL NOT NULL DEFAULT 0,
-	sonuc REAL NOT NULL DEFAULT 0,
-	dvkod TEXT NOT NULL DEFAULT '',
+	kayitTS TEXT NOT NULL DEFAULT '',
 	gonderimts TEXT NOT NULL DEFAULT '',
 -- ugrama fis
 	nedenkod TEXT NOT NULL DEFAULT '',
@@ -35,8 +34,12 @@ CREATE TABLE IF NOT EXISTS tabfis (
 -- stok fis
 	refyerkod TEXT NOT NULL DEFAULT '',
 -- sut alim fis
-	rotasayac INTEGER,
-	posta TEXT NOT NULL DEFAULT ''
+	rotaID TEXT NOT NULL DEFAULT '',
+	posta TEXT NOT NULL DEFAULT '',
+	topMiktar REAL NOT NULL DEFAULT 0,
+-- stok/ticari/tahsilat fis
+	sonuc REAL NOT NULL DEFAULT 0,
+	dvkod TEXT NOT NULL DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS idx_tabfis_fisTipi ON tabfis (fisTipi);
 CREATE INDEX IF NOT EXISTS idx_tabfis_tarih ON tabfis (tarih);

@@ -150,7 +150,15 @@ class TabRotaListe extends MQMasterOrtak {
 	static islemTuslariDuzenle_listeEkrani(e) {
 		super.islemTuslariDuzenle_listeEkrani(e)
 		let { parentPart: gridPart, part, liste } = e
-		let items = [
+		let solItems = [ ]
+		let sagItems = [
+			{
+				id: 'yeni', handler: async _e => {
+					_e = { ...e, ..._e }
+					try { await this.yeniIstendi(_e) }
+					catch (ex) { cerr(ex); throw ex }
+				}
+			},
 			{
 				id: 'izle', handler: async _e => {
 					_e = { ...e, ..._e }
@@ -172,9 +180,11 @@ class TabRotaListe extends MQMasterOrtak {
 			}}
 		]
 		let set = part.ekSagButonIdSet ??= {}
-		if (items.length) {
-			liste.unshift(...items)
-			extend(set, asSet(items.map(_ => _.id)))
+		if (solItems.length)
+			liste.push(...solItems)
+		if (sagItems.length) {
+			liste.unshift(...sagItems)
+			extend(set, asSet(sagItems.map(_ => _.id)))
 		}
 	}
 
@@ -185,14 +195,29 @@ class TabRotaListe extends MQMasterOrtak {
 		rec = rec?.bounddata ?? rec
 		this.fisListesiIstendi({ ...e, rec })
 	}
-	static fisListesiIstendi(e = {}) {
+	static async yeniIstendi(e = {}) {
 		let { gridPart = e.parentPart ?? e.sender } = e
 		let { rec = gridPart?.selectedRec } = e
-		let { mustKod, vioID: rotaSayac } = rec ?? {}
+		let { id: rotaID, mustKod } = rec ?? {}
 		if (!mustKod)
 			return
 
-		let args = { mustKod, rotaSayac }
+		let { fisTipi } = TabSutAlimFis
+		let args = { mustKod, rotaID }
+		let _e = { ...e, sender: gridPart, islem: 'yeni', fisTipi, args }
+		let inst = await TabFisListe.yeniInstOlustur(_e)
+		let { part } = await inst.tanimla()
+		if (gridPart && part)
+			part.kapaninca(() => gridPart.tazele())
+	}
+	static fisListesiIstendi(e = {}) {
+		let { gridPart = e.parentPart ?? e.sender } = e
+		let { rec = gridPart?.selectedRec } = e
+		let { id: rotaID, mustKod } = rec ?? {}
+		if (!mustKod)
+			return
+
+		let args = { rotaID, mustKod }
 		let { part } = TabFisListe.listeEkraniAc({ args })
 		if (gridPart && part)
 			part.kapaninca(() => gridPart.tazele())

@@ -41,6 +41,11 @@ body > * { font-size: 100% }
 	.jqx-grid [role = row] > div * { line-height: 14px }
 }
 @media (max-width: 600px) {
-	body > * { font-size: 93% }
+	body > * { font-size: 90% }
 	.jqx-grid [role = row] > div * { line-height: 13px }
 }
+@media (max-width: 500px) {
+	body > * { font-size: 85% }
+	.jqx-grid [role = row] > div * { line-height: 13px }
+}
+

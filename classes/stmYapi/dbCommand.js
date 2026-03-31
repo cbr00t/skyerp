@@ -1,30 +1,5 @@
 class MQDbCommand extends MQSQLOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	execNone(e) {
-		let _e = isObject(e) ? { ...e } : {}
-		_e.query = this
-		return MQCogul.sqlExecNone(_e)
-	}
-	execTekil(e) {
-		let _e = isObject(e) ? { ...e } : {}
-		_e.query = this
-		return MQCogul.sqlExecTekil(_e)
-	}
-	execTekil(e) {
-		let _e = isObject(e) ? { ...e } : {}
-		_e.query = this
-		return MQCogul.sqlExecTekil(_e)
-	}
-	execTekilDeger(e) {
-		let _e = isObject(e) ? { ...e } : {}
-		_e.query = this
-		return MQCogul.sqlExecTekilDeger(_e)
-	}
-	execSelect(e) {
-		let _e = isObject(e) ? { ...e } : {}
-		_e.query = this
-		return MQCogul.sqlExecSelect(_e)
-	}
 }
 class MQSentVeIliskiliYapiOrtak extends MQDbCommand {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
