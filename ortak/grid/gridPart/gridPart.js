@@ -802,7 +802,7 @@ class GridPart extends Part {
 		this.columns = jqxCols; return this
 	}
 	hizliBulIslemi(e = {}) {
-		let {tokens} = e, {gridWidget, parentPart} = this
+		let { tokens } = e, { gridWidget, parentPart } = this
 		this.filtreTokens = tokens
 		e.gridPart = this
 		clearTimeout(this._timer_hizliBulIslemi_ozel)
@@ -810,16 +810,16 @@ class GridPart extends Part {
 			try {
 				let {bulPart = parentPart?.bulPart} = this, {input} = bulPart
 				this.tazele({ action: 'hizliBul' })
-				for (let delayMS of [400, 1000]) {
+				for (let delayMS of [10]) {
 					setTimeout(() => {
-						bulPart.focus();
+						bulPart.focus()
 						setTimeout(() =>
 							input[0].selectionStart = input[0].selectionEnd = input[0].value?.length,
-							205)
+							1)
 					}, delayMS)
 				}
 				setTimeout(() =>
-					FiltreFormPart.hizliBulIslemi(e), 500)
+					FiltreFormPart.hizliBulIslemi(e), 5)
 			}
 			finally { delete this._timer_hizliBulIslemi_ozel }
 		}, 100)

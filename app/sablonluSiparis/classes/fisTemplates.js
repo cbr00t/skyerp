@@ -870,8 +870,9 @@ class SablonluSiparisGridciTemplate extends CObject {
 		det._degistimi = true
 		if (paketIcAdet && belirtec == 'miktar') {
 			let {brm} = det, {fra} = belirtec2Kolon[belirtec].tip ?? {}
-			if (brm) { fra = Math.max(fra, app.params.stokBirim.brmDict[brm].fra) }
-			if (typeof value != 'number') { value = asFloat(value) }
+			if (brm)
+				fra = Math.max(fra, app.params.stokBirim.brmDict[brm].fra)
+			value = asFloat(value)
 			if (koliYuvarlanirmi)
 				value = Math.ceil(value / paketIcAdet) * paketIcAdet
 			det.miktar = value = roundToFra(value, fra)

@@ -18,7 +18,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 	constructor(e) {
 		e = e || {}; super(e);
 		let fis = e.inst ?? e.fis, {mfSinif} = e; if (!fis && mfSinif) { fis = this.fis = new mfSinif() }
-		$.extend(this, {
+		extend(this, {
 			islem: e.islem, listePart: e.listePart, eskiFis: e.eskiInst || e.eskiFis || null, fis: e.inst || e.fis,
 			kaydetIslemi: e.kaydetIslemi, kaydedince: e.kaydedince, _builder: e.builder, dipEventsDisabledFlag: false, gridIslemTusYapilari: {}
 		});
@@ -153,28 +153,33 @@ class FisGirisPart extends GridliGirisWindowPart {
 		if (!bulForm?.length) { bulForm = layout.find('.bulForm') }
 		if (bulForm?.length) {
 			if (!fisSinif || fisSinif.bulFormKullanilirmi) {
-				let {bulPart} = this; if (!bulPart) {
+				let {bulPart} = this
+				if (!bulPart) {
 					bulPart = this.bulPart = new FiltreFormPart({
 						layout: bulForm,
-						degisince: e => { let {tokens} = e; this.hizliBulIslemi({ sender: this, layout, tokens }) }
-					});
+						degisince: ({ tokens, ...rest }) =>
+							this.hizliBulIslemi({ ...rest, sender: this, layout, tokens })
+					})
 					bulPart.run()
 				}
 			}
-			else { bulForm.addClass('jqx-hidden') }
+			else
+				bulForm.addClass('jqx-hidden')
 		}
 	}
-	hizliBulIslemi({ tokens: filtreTokens }) { return super.hizliBulIslemi(...arguments) }
+	hizliBulIslemi({ tokens: filtreTokens }) {
+		return super.hizliBulIslemi(...arguments)
+	}
 	gridInit(e) {
-		super.gridInit(e); let {grid} = this;
-		//grid.on('cellvaluechanged', evt => this.gridVeriDegisti($.extend({}, e, { event: evt, action: 'cellValueChanged' })));
-		grid.on('filter', evt => this.gridYapiDegisti($.extend({}, e, { event: evt, action: 'filter' })));
-		grid.on('sort', evt => this.gridYapiDegisti($.extend({}, e, { event: evt, action: 'sort' })));
-		grid.on('groupschanged', evt => this.gridYapiDegisti($.extend({}, e, { event: evt, action: 'group' })));
-		grid.on('pagechanged', evt => this.gridYapiDegisti($.extend({}, e, { event: evt, action: 'page' })))
+		super.gridInit(e); let {grid} = this
+		//grid.on('cellvaluechanged', evt => this.gridVeriDegisti(extend({}, e, { event: evt, action: 'cellValueChanged' })))
+		grid.on('filter', evt => this.gridYapiDegisti(extend({}, e, { event: evt, action: 'filter' })))
+		grid.on('sort', evt => this.gridYapiDegisti(extend({}, e, { event: evt, action: 'sort' })))
+		grid.on('groupschanged', evt => this.gridYapiDegisti(extend({}, e, { event: evt, action: 'group' })))
+		grid.on('pagechanged', evt => this.gridYapiDegisti(extend({}, e, { event: evt, action: 'page' })))
 	}
 	gridArgsDuzenle(e) {
-		super.gridArgsDuzenle(e);
+		super.gridArgsDuzenle(e)
 		let {args} = e, {columns} = args;
 		for (let col of columns) {
 			let savedCellsRenderer = col.cellsRenderer;
@@ -185,10 +190,10 @@ class FisGirisPart extends GridliGirisWindowPart {
 			}
 		}
 	}
-	gridArgsDuzenleDevam(e) { super.gridArgsDuzenleDevam(e); $.extend(e.args, { width: '99.5%', /*editMode: 'selectedrow',*/ groupable: false, sortable: false, groupable: false }) }
+	gridArgsDuzenleDevam(e) { super.gridArgsDuzenleDevam(e); extend(e.args, { width: '99.5%', /*editMode: 'selectedrow',*/ groupable: false, sortable: false, groupable: false }) }
 	/*get defaultTabloKolonlari() { let tabloKolonlari = super.defaultTabloKolonlari || []; return tabloKolonlari }*/
 	async defaultLoadServerData(e) {
-		let {fis, kontrolcu, sabitFlag} = this, {gridDetaySinif} = fis.class, _e = $.extend({}, e, { fis });
+		let {fis, kontrolcu, sabitFlag} = this, {gridDetaySinif} = fis.class, _e = extend({}, e, { fis });
 		_e.recs = []; for (let i = 0; i < fis.detaylar.length + (sabitFlag ? 0 : 1); i++) { _e.recs.push(this.newRec({ sinif: gridDetaySinif })) }
 		// if (!this.yenimi) {
 		let _result = await kontrolcu.fis2Grid(_e);
@@ -201,7 +206,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 	gridSatirGuncellendi(e) { super.gridSatirGuncellendi(e) }
 	gridSatirSilindi(e) { super.gridSatirSilindi(e) }
 	gridSatirSayisiDegisti(e) {
-		let _e = $.extend({}, e || {}), {kontrolcu, fis} = this;
+		let _e = extend({}, e || {}), {kontrolcu, fis} = this;
 		if (kontrolcu?.grid2FisMesajsiz) { kontrolcu.grid2FisMesajsiz(_e) }
 		fis.detaylar = _e.recs; super.gridSatirSayisiDegisti(e); this.gridYapiDegisti(e)
 	}
@@ -214,7 +219,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 		if (kontrolcu) { await kontrolcu.fisGiris_gridVeriYuklendi({ sender: this, fis: fis, kontrolcu: kontrolcu, grid: this.grid, gridWidget: this.gridWidget }) }
 		setTimeout(async () => {
 			let {dipIslemci} = fis;
-			if (dipIslemci) { await dipIslemci._promise_dipSatirlari; dipIslemci.detaylar = e => this.boundRecs; dipIslemci.topluHesapla($.extend({}, e, { sender: this })) }
+			if (dipIslemci) { await dipIslemci._promise_dipSatirlari; dipIslemci.detaylar = e => this.boundRecs; dipIslemci.topluHesapla(extend({}, e, { sender: this })) }
 			this.dipTazele(e); this.onResize(e)
 		}, 100)
 	}
@@ -272,7 +277,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 	async kaydetOncesi(e) {
 		e = e || {}; let {yeniVeyaKopyami, degistirVeyaSilmi, builder, islem, eskiFis} = this, gridPart = this, {gridWidget} = gridPart; let {fis} = this;
 		if (gridWidget?.editcell) { gridWidget.endcelledit() }
-		let _e = $.extend({}, e, { sender: this, builder, gridPart, islem, fis, eskiFis, yeniVeyaKopyami });
+		let _e = extend({}, e, { sender: this, builder, gridPart, islem, fis, eskiFis, yeniVeyaKopyami });
 		if (degistirVeyaSilmi) { e.eskiFis = this.eskiFis }
 		let result = await fis.uiKaydetOncesiIslemler(_e) ?? true;
 		for (let key of ['islem', 'fis', 'eskiFis']) {
@@ -281,7 +286,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 		}
 		if (yeniVeyaKopyami) {
 			let {numaratorPart} = this, {otoNummu, numarator} = numaratorPart || {};
-			$.extend(_e, { otoNummu, numaratorPart, numarator });
+			extend(_e, { otoNummu, numaratorPart, numarator });
 			if (numaratorPart?.otoNummu) {
 				let MaxTry = 5, {text: progressText} = window.progressManager ?? {};
 				window.progressManager?.setText(`<div>${progressText}</div><div style="margin: 5px 0 0 50px" class="royalblue">Numaratör belirleniyor...</div>`);
