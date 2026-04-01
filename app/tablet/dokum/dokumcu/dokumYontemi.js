@@ -19,7 +19,7 @@ class TabDokumYontemi extends CObject {
 		let {_kaListe: result} = this
 		if (result == null) {
 			result = this._kaListe =
-				entries(this.tip2Sinif)
+				entries(this.kod2Sinif)
 					.map( ([kod, cls]) => {
 						let {aciklama, question} = cls
 						return new CKodVeAdi([kod, aciklama, question])

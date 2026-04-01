@@ -1,6 +1,8 @@
 class TabletApp extends TicariApp {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get isLoginRequired() { return true }
-	static get yerelParamSinif() { return MQYerelParam } get configParamSinif() { return MQYerelParamConfig_App }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	get isLoginRequired() { return true }
+	get yerelParamSinif() { return MQYerelParam }
+	get configParamSinif() { return MQYerelParamConfig_App }
 	get offlineMode() { return super.offlineMode ?? true } set offlineMode(value) { super.offlineMode = value }
 	get dbMgrClass() { return SqlJS_DBMgr } get defaultOfflineRequestChunkSize() { return 4 } // get autoExecMenuId() { return MQTest.kodListeTipi }
 	get sicakVeyaSogukmu() { return this.sicakmi || this.sogukmu }
@@ -70,11 +72,12 @@ class TabletApp extends TicariApp {
 		return result
 	}
 	get offlineBilgiYukleSiniflar() {
+		let { dev } = config
 		let { cache, params: { tablet = {} } = {} } = this
 		let { _offlineBilgiYukleSiniflar: result } = cache
 		if (!result) {
-			let { sutToplama } = tablet
-			sutToplama ||= this.sutAlimmi
+			let { sicakSogukVeyaSutAlimmi } = tablet
+			sicakSogukVeyaSutAlimmi ||= this.sutAlimmi
 			result = cache._offlineBilgiYukleSiniflar = [
 				MQParam, MQTabDokumForm, MQTabNum, MQTabRota, MQTabCariBakiye,
 				MQTabTahsilSekli, MQTabSube, MQTabYer, MQTabNakliyeSekli,
@@ -83,7 +86,7 @@ class TabletApp extends TicariApp {
 				MQTabBolge, MQTabIl, MQTabUlke,
 				MQTabPlasiyer
 			]
-			if (sutToplama) 
+			if (dev || sicakSogukVeyaSutAlimmi) 
 				result.push(MQTabMustahsil, MQTabSutSira)
 			for (let {kami, mfSinif} of HMRBilgi) {
 				if (kami && mfSinif)
@@ -169,6 +172,10 @@ class TabletApp extends TicariApp {
 			return menuItems
 		}
 		items.push(
+			new FRMenuChoice({
+				mne: 'AYARLAR', text: 'Yerel Ayarlar',
+				block: e => app.params.yerel.tanimla(e)
+			}),
 			new FRMenuChoice({
 				mne: 'BILGIYUKLE', text: 'Bilgi Yükle',
 				block: e => this.bilgiYukleIstendi(e)

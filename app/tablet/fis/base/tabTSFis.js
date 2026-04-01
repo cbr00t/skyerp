@@ -468,7 +468,7 @@ class TabTSFis extends TabFis {
 				.onAfterRun(({ builder: { input } }) =>
 					txtMiktar = tanimPart.txtMiktar = input)
 			if (bedelKullanilirmi) {
-				form.addSelectElement('kdvOrani', 'KDV %')
+				form.addSelect('kdvOrani', 'KDV %')
 					.addStyle_wh(80)
 					.setSource(MQVergiKdv.sabitOranlar.map(_ => new CKodVeAdi([_, _])))
 					[fiyatDegistirir ? 'editable' : 'readOnly']()

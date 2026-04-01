@@ -5,30 +5,6 @@ class MQTabRota extends MQGuidVeAdiOrtak {
 	static get offlineDirect() { return true }
 	static get offlineGonderYapilirmi() { return false }
 
-	static async uygunRotaMusterileri(e) {
-		let { plasiyerKod } = app
-		let { gunKisaAdi } = today()
-
-		let sent = new MQSent()
-		let { where: wh, sahalar } = sent
-		sent.fromAdd(this.table)
-		if (plasiyerKod)
-			wh.degerAta(plasiyerKod, 'plasiyerKod')
-		;{
-			let or = new MQOrClause()
-			or.inDizi(['', 'HER', gunKod], 'gunKod')
-			wh.add(or)
-		}
-		wh.add(`mustKod <> ''`)
-		sahalar.add('seq', 'mustKod')
-
-		let orderBy = ['tip', 'plasiyerKod', 'gunKod', 'ekKod', 'seq']
-		let stm = new MQStm({ sent, orderBy })
-
-		let recs = await this.sqlExecSelect(stm)
-		return asSet(recs.map(_ => _.mustKod))
-	}
-	
 	offlineBuildSQLiteQuery({ result: r = [] }) {
 		super.offlineBuildSQLiteQuery(...arguments)
 		r[r.length - 1] = ');'
@@ -44,6 +20,7 @@ class MQTabRota extends MQGuidVeAdiOrtak {
 			tip: new PInstStr('tip'),
 			gunKod: new PInstStr('gunKod'),
 			ekKod: new PInstStr('ekKod'),
+			rotaID: new PInstStr('rotaID'),
 			seq: new PInstNum('seq'),
 			mustKod: new PInstNum('mustKod')
 		})
@@ -81,48 +58,6 @@ class MQTabRota extends MQGuidVeAdiOrtak {
 		)
 		super.orjBaslikListesiDuzenle(...arguments)
 	}
-	static loadServerData_queryDuzenle_son(e) {
-		super.loadServerData_queryDuzenle_son(e)
-		let { subeKod, plasiyerKod } = app
-		let { idSaha, adiSaha } = this
-		let { alias = this.tableAlias, offlineRequest, offlineMode, stm, sent } = e
-		let { where: wh, sahalar } = sent, { orderBy } = stm
-		sent.distinctYap()
-		sahalar.addWithAlias(alias, adiSaha)
-		if (offlineRequest && !offlineMode) {
-			// Bilgi Yükle
-			sent.innerJoin(alias, 'rotadetay har', [`${alias}.kaysayac = har.fissayac`, `har.devredisi = ''`, `har.must <> ''`])
-			wh.add(`${alias}.silindi = ''`)
-			wh.inDizi(['T', 'M'], `${alias}.tipkod`)
-			if (subeKod != null)
-				wh.degerAta(subeKod, `${alias}.bizsubekod`)
-			if (plasiyerKod) {
-				let or = new MQOrClause()
-				;{
-					let and = new MQAndClause()
-					and.degerAta('T', `${alias}.tipkod`)
-					and.like(`${plasiyerKod}-*`, `${alias}.kod`, true)
-					or.add(and)
-				}
-				;{
-					let and = new MQAndClause()
-					and.degerAta('M', `${alias}.tipkod`)
-					and.degerAta(plasiyerKod, `${alias}.musplasiyerkod`)
-					// and.inDizi(['', plasiyerKod], `${alias}.musplasiyerkod`)
-					or.add(and)
-				}
-				wh.add(or)
-			}
-			sahalar.addWithAlias(alias, 'kaysayac id', 'tipkod tipKod', 'kod', 'musplasiyerkod plasiyerKod')
-			sahalar.addWithAlias('har', 'seq', 'must mustKod')
-		}
-		else {
-			// Yerel
-			sent.innerJoin(alias, 'carmst car', `${alias}.mustKod = car.kod`)
-			sahalar.addWithAlias(alias, idSaha, 'plasiyerKod', 'gunKod', 'seq', 'mustKod')
-			orderBy.liste = ['tip', 'plasiyerKod', 'gunKod', 'ekKod', 'seq']
-		}
-	}
 	static async loadServerDataDogrudan({ offlineBuildSQLiteQuery, offlineRequest, offlineMode } = {}) {
 		let e = arguments[0]
 		let recs = await super.loadServerDataDogrudan(e)
@@ -155,9 +90,51 @@ class MQTabRota extends MQGuidVeAdiOrtak {
 		}
 		return recs
 	}
+	static loadServerData_queryDuzenle_son(e) {
+		super.loadServerData_queryDuzenle_son(e)
+		let { subeKod, plasiyerKod } = app
+		let { idSaha, adiSaha } = this
+		let { alias = this.tableAlias, offlineRequest, offlineMode, stm, sent } = e
+		let { where: wh, sahalar } = sent, { orderBy } = stm
+		sent.distinctYap()
+		sahalar.addWithAlias(alias, adiSaha)
+		if (offlineRequest && !offlineMode) {
+			// Bilgi Yükle
+			sent.innerJoin(alias, 'rotadetay har', [`${alias}.kaysayac = har.fissayac`, `har.devredisi = ''`, `har.must <> ''`])
+			wh.add(`${alias}.silindi = ''`)
+			wh.inDizi(['T', 'M'], `${alias}.tipkod`)
+			//if (subeKod != null)
+			//	wh.degerAta(subeKod, `${alias}.bizsubekod`)
+			if (plasiyerKod) {
+				let or = new MQOrClause()
+				;{
+					let and = new MQAndClause()
+					and.degerAta('T', `${alias}.tipkod`)
+					and.like(`${plasiyerKod}-*`, `${alias}.kod`, true)
+					or.add(and)
+				}
+				;{
+					let and = new MQAndClause()
+					and.degerAta('M', `${alias}.tipkod`)
+					and.degerAta(plasiyerKod, `${alias}.musplasiyerkod`)
+					// and.inDizi(['', plasiyerKod], `${alias}.musplasiyerkod`)
+					or.add(and)
+				}
+				wh.add(or)
+			}
+			sahalar.addWithAlias(alias, 'tipkod tipKod', 'kod', 'musplasiyerkod plasiyerKod', 'kaysayac rotaID')
+			sahalar.addWithAlias('har', 'seq', 'must mustKod')
+		}
+		else {
+			// Yerel
+			sent.innerJoin(alias, 'carmst car', `${alias}.mustKod = car.kod`)
+			sahalar.addWithAlias(alias, idSaha, 'plasiyerKod', 'gunKod', 'rotaID', 'seq', 'mustKod')
+			orderBy.liste = ['tip', 'plasiyerKod', 'gunKod', 'ekKod', 'seq']
+		}
+	}
 	alternateKeyHostVarsDuzenle({ hv }) {
 		super.alternateKeyHostVarsDuzenle(...arguments)
-		;['plasiyerKod', 'gunKod', 'mustKod'].forEach(k =>
+		;['plasiyerKod', 'gunKod', 'mustKod', 'rotaID'].forEach(k =>
 			hv[k] = this[k] ?? '')
 	}
 }

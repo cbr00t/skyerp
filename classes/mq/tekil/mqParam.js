@@ -8,13 +8,31 @@ class MQParam extends MQTekil {
 	static get table() { return 'yflaglar' } static get tableAlias() { return 'par' }
 	static get tanimUISinif() { return ParamTanimPart } static get paramKod() { return null }
 	static get kodKullanilirmi() { return true } static get kodSaha() { return 'kod' }
-	static get parammi() { return true } static get tanimmi() { return true }
 	static get tekilOku_sqlBatchFlag() { return false } get tekSecimDonusum_receiver() { return this }
+	static get parammi() { return true } static get tanimmi() { return true }
+	static get paramAttrListe() {
+		let result = this._paramAttrListe
+		if (!result) {
+			this.paramAttrListeDuzenle({ liste: result = [] })
+			this._paramAttrListe = result
+		}
+		return result
+	}
+	static get paramYapi() {
+		let _e = { paramci: new RootParamBuilder() }
+		this.paramYapiDuzenle(_e)
+		return _e.paramci
+	}
+	static get tekSecimDonusum() {
+		let { _tekSecimDonusum: result } = this
+		if (!result) {
+			this.tekSecimDonusumDuzenle({ liste: result = [] })
+			this._tekSecimDonusum = result
+		}
+		return result
+	}
 	get paramci() { return this._paramci } set paramci(value) { this._paramci = value }
 	get builder() { return this._builder } set builder(value) { this._builder = value }
-	static get paramAttrListe() { let result = this._paramAttrListe; if (!result) { this.paramAttrListeDuzenle({ liste: result = [] }); this._paramAttrListe = result } return result }
-	static get tekSecimDonusum() { let result = this._tekSecimDonusum; if (!result) { this.tekSecimDonusumDuzenle({ liste: result = [] }); this._tekSecimDonusum = result } return result }
-	static get paramYapi() { let _e = { paramci: new RootParamBuilder() }; this.paramYapiDuzenle(_e); let {paramci} = _e; return paramci }
 	get offlineSahaListe() {
 		let {class: { kodSaha }} = this
 		return [kodSaha, 'jsonstr', 'sonskyts']
@@ -24,7 +42,7 @@ class MQParam extends MQTekil {
 		super(e)
 		if (e.isCopy)
 			return
-		$.extend(this, { _promise: new $.Deferred(), kullanim: e.kullanim || {} })
+		extend(this, { _promise: new $.Deferred(), kullanim: e.kullanim || {} })
 		this.paramciInit(e)
 	}
 	paramciInit(e) {
@@ -35,35 +53,46 @@ class MQParam extends MQTekil {
 		}
 		return this
 	}
-	static paramYapiDuzenle(e) { }
 	static paramAttrListeDuzenle(e) { }
+	static paramYapiDuzenle(e) { }
 	static tekSecimDonusumDuzenle(e) { }
-	static getRootFormBuilder(e) {
-		e = e || {}; let {inst} = e, paramci = inst?.paramci ?? this.paramYapi;
-		let _e = $.extend({}, e, { paramci, rootBuilder: new (paramci.class.formBuilderClass || RootFormBuilder)(e) });
-		_e.builder = _e.rootBuilder; this.formBuilderDuzenle(_e); return _e.rootBuilder
+	static getRootFormBuilder({ inst } = {}) {
+		let _e = arguments[0]
+		let paramci = inst?.paramci ?? this.paramYapi
+		let e = { ..._e, paramci, rootBuilder: new (paramci.class.formBuilderClass || RootFormBuilder)(_e) }
+		e.builder = e.rootBuilder
+		this.formBuilderDuzenle(e)
+		return e.rootBuilder
 	}
 	static formBuilderDuzenle(e) {
-		let {builder, paramci} = e; if (!builder._id) builder.id = 'root'
+		let { builder, paramci } = e
+		if (!builder._id)
+			builder.id = 'root'
 		if (builder.isRootFormBuilder) {
-			let rootBuilder = builder.rootBuilder = builder.parentBuilder = builder;
-			let tabPanel = e.tabPanel = builder.addTabPanel('tabPanel').onAfterRun(e => {
-				let {builder} = e, id2TabPanel = builder.rootPart.id2TabPanel = {};
-				for (let subBuilder of builder.builders) id2TabPanel[subBuilder.id] = subBuilder
-			});
-			let tabPage_genel = e.tabPage_genel = tabPanel.addTab('genel', 'Genel'); e.builder = builder = tabPage_genel.addForm()
+			let rootBuilder = builder.rootBuilder = builder.parentBuilder = builder
+			let tabPanel = e.tabPanel = builder.addTabPanel('tabPanel')
+				.onAfterRun(({ builder: fbd }) => {
+					let id2TabPanel = fbd.rootPart.id2TabPanel = {}
+					for (let subBuilder of fbd.builders)
+						id2TabPanel[subBuilder.id] = subBuilder
+				})
+			let tabPage_genel = e.tabPage_genel = tabPanel.addTab('genel', 'Genel')
+			e.builder = builder = tabPage_genel.addForm()
 		}
 		if (paramci) {
-			for (let key of ['_id2Item', 'builder', '_root', '_parent', '_inst', '_altInst']) { delete paramci[key] }
-			let {inst, part, layout} = e; $.extend(paramci, { inst, part, layout });
-			if (!paramci._initFlag) { paramci.run(e) } if (paramci.formBuilderDuzenle) { paramci.formBuilderDuzenle(e) }
+			deleteKeys(paramci, '_id2Item', 'builder', '_root', '_parent', '_inst', '_altInst')
+			let { inst, part, layout } = e
+			extend(paramci, { inst, part, layout })
+			if (!paramci._initFlag)
+				paramci.run(e)
+			paramci?.formBuilderDuzenle?.(e)
 		}
 	}
 	static async loadServerData({ offlineRequest, offlineMode }) {
 		let e = arguments[0]
 		if (offlineRequest && !offlineMode) {
 			// Bilgi Yükle
-			let {_topluYukle_kod2Rec: kod2Rec} = this
+			let { _topluYukle_kod2Rec: kod2Rec } = this
 			if (empty(kod2Rec)) {
 				let promise = app.promise_param = this.topluYukleVerisiOlustur(e)
 				await promise
@@ -96,7 +125,7 @@ class MQParam extends MQTekil {
 		return await this.yukle(e)
 	}
 	async kaydetOncesiIslemler(e) {
-		let {paramci} = this, {islem} = e
+		let { paramci } = this
 		if (paramci) {
 			for (let item of paramci.getItemsAndSelf())
 				 await item?.kaydetOncesi?.(e)
@@ -104,7 +133,7 @@ class MQParam extends MQTekil {
 		super.kaydetOncesiIslemler(e)
 	}
 	async kaydetSonrasiIslemler(e) {
-		let {paramci} = this
+		let { paramci } = this
 		if (paramci) {
 			for (let item of paramci.getItemsAndSelf())
 				 await item?.kaydedince?.(e)
@@ -121,8 +150,8 @@ class MQParam extends MQTekil {
 	}
 	static varsayilanKeyHostVarsDuzenle({ hv }) {
 		super.varsayilanKeyHostVarsDuzenle(...arguments)
-		let {paramKod: kod} = this
-		$.extend(hv, { kod })
+		let { paramKod: kod } = this
+		extend(hv, { kod })
 	}
 	keyHostVarsDuzenle(e = {}) {
 		e.varsayilanAlma = false
@@ -160,7 +189,7 @@ class MQParam extends MQTekil {
 		return e.hv
 	}
 	paramHostVarsDuzenle({ hv }) {
-		let {class: { paramAttrListe }, paramci} = this
+		let { class: { paramAttrListe }, paramci } = this
 		for (let key of paramAttrListe) {
 			let value = this[key]
 			if (value !== undefined && !isFunction(value))
@@ -172,10 +201,13 @@ class MQParam extends MQTekil {
 		}
 	}
 	paramSetValues({ rec }) {
-		let {class: { paramAttrListe, tekSecimDonusum }, tekSecimDonusum_receiver, paramci} = this
+		let { class: { paramAttrListe, tekSecimDonusum }, tekSecimDonusum_receiver, paramci } = this
 		for (let key of paramAttrListe) {
-			if (key == '_p' && key[0] == '_') continue
-			let value = rec[key]; if (value !== undefined && !isFunction(value)) { this[key] = value }
+			if (key == '_p' && key[0] == '_')
+				continue
+			let value = rec[key]
+			if (value !== undefined && !isFunction(value))
+				this[key] = value
 		}
 		for (let [key, cls] of entries(tekSecimDonusum)) {
 			if (!cls)
@@ -204,13 +236,14 @@ class MQParam extends MQTekil {
 		catch (ex) { displayMessage(getErrorText(ex)); throw ex }
 	}
 	tanimla(e = {}) {
-		e.inst = e.inst ?? this
+		let { inst = this, _eskiInst = this._eskiInst } = e
+		extend(e, { inst, _eskiInst })
 		return this.class.tanimla(e)
 	}
 	shallowCopy(e) {
 		let inst = super.shallowCopy(e)
 		inst.builder = undefined
-			inst.paramciInit(e)
+		inst.paramciInit(e)
 		return inst
 	}
 	deepCopy(e) {

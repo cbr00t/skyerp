@@ -6,7 +6,15 @@ class MQTabPlasiyer extends MQKAOrtak {
 	static get offlineSahaListe() { return [...super.offlineSahaListe, ...this.offlineEkSahaListe] }
 	static get offlineEkSahaListe() { return ['kayittipi'] }
 	static get createTableYapilmazmi() { return true }
-	
+
+	static async loadServerData({ offlineRequest, offlineMode }) {
+		// cache
+		if (offlineRequest && !offlineMode) {
+			// Bilgi Yükle
+			return []
+		}
+		return await super.loadServerData(...arguments)
+	}
 	static varsayilanKeyHostVarsDuzenle({ hv }) {
 		super.varsayilanKeyHostVarsDuzenle(...arguments)
 		let {kayitTipi: kayittipi} = this
@@ -70,6 +78,40 @@ class MQTabMustahsil extends MQKAOrtak {
 		let { kayitTipi: kayittipi } = this
 		extend(hv, { kayittipi })
 	}
+	static async loadServerData({ offlineRequest, offlineMode }) {
+		// cache
+		if (offlineRequest && !offlineMode) {
+			// Bilgi Yükle
+			return []
+		}
+
+		if (!offlineRequest) {
+			await Promise.allSettled(
+				[MQTabRota].map(cls => cls.getGloKod2Rec())
+			)
+		}
+		let recs = await super.loadServerData(...arguments)
+		if (empty(recs) || (offlineRequest && offlineMode))
+			return recs
+
+		let { inst: { rotaID } = {} } = app.activeWndPart ?? {}
+		let globals = MQTabRota.globals ?? {}
+		let { cachedRecs } = globals
+		rotaID = rotaID?.toString()
+		let mustKodSet = globals.mustKodSet = (
+			rotaID && cachedRecs
+				? asSet(cachedRecs
+					.filter(r => r.rotaID == rotaID)
+					.map(r => r.mustKod)
+				)
+				: globals.mustKodSet
+		)
+		if (mustKodSet) {
+			let { kodSaha } = this
+			recs = recs.filter(r => mustKodSet[r[kodSaha]])
+		}
+		return recs
+	}
 	static loadServerData_queryDuzenle_son(e) {
 		super.loadServerData_queryDuzenle_son(e)
 		let { alias = this.tableAlias, offlineRequest, offlineMode, stm, sent } = e
@@ -108,6 +150,22 @@ class MQTabMustahsil extends MQKAOrtak {
 					`RTRIM(LTRIM(${alias}.unvan1 + ' ' + ${alias}.unvan2)) ${adiSaha}`
 				)
 			}
+		}
+		else {
+			/*let { inst: { rotaID } = {} } = app.activeWndPart ?? {}
+			let globals = MQTabRota.globals ??= {}
+			let { cachedRecs } = globals
+			let mustKodListe = rotaID && cachedRecs
+				? cachedRecs
+					.filter(r => r.rotaID == rotaID)
+					.map(r => r.mustKod)
+				: null
+			let mustKodListe = globals.mustKodListe ??= (() =>
+				keys(asSet(cachedRecs?.map(r =>
+					r.mustKod)))
+			)()
+			if (mustKodListe)
+				wh.inDizi(mustKodListe, `${alias}.${kodSaha}`)*/
 		}
 		stm = e.stm
 		sent = wh = sahalar = null

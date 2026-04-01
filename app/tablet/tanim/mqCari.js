@@ -142,7 +142,6 @@ class MQTabCari extends MQKAOrtak {
 				// Bilgi Yükle
 				this.loadServerData_queryDuzenle_son_bilgiYukle(e)
 			}
-			sahalar.add(`${alias}.kayittipi`)
 		}
 		stm = e.stm
 		sent = wh = sahalar = null
@@ -154,7 +153,7 @@ class MQTabCari extends MQKAOrtak {
 				.cari2IlBagla({ alias })
 				.cari2UlkeBagla({ alias })
 				.cari2TipBagla({ alias })
-			sahalar.add(`${alias}.kosulgrupkod`)
+			sahalar.addWithAlias(alias, 'kayittipi', 'kosulgrupkod')
 		}
 	}
 	static loadServerData_queryDuzenle_son_bilgiYukle({ alias = this.tableAlias, stm, sent, sent: { where: wh, sahalar } }) {
@@ -228,23 +227,27 @@ class MQTabCari extends MQKAOrtak {
 		}
 		{
 			// asil sent'e geçtik
+			let { sutAlimmi, params: { tablet = {} } } = app
+			sutAlimmi ||= (tablet.sutToplama ?? true)
 			let { sent, sent: { sahalar } } = stm
-			sent.innerJoin(alias, 'rotabilgi rbil', 'rbil.mustkod = car.must')
+			sent[sutAlimmi ? 'leftJoin' : 'innerJoin'](alias, 'rotabilgi rbil', 'rbil.mustkod = car.must')
+			// sent.innerJoin(alias, 'rotabilgi rbil', 'rbil.mustkod = car.must')
 			sahalar.addWithAlias('rbil', 'seq', 'rotadisimi', /*'rotaicisayi',*/ 'rotadevredisimi', 'hermi')
 		}
 	}
-	static varsayilanKeyHostVarsDuzenle({ hv }) {
+	static varsayilanKeyHostVarsDuzenle({ offlineRequest, hv }) {
 		super.varsayilanKeyHostVarsDuzenle(...arguments)
 		let { kayitTipi: kayittipi } = this
-		extend(hv, { kayittipi })
+		if (this != MQTabCari)
+			extend(hv, { kayittipi })
 	}
 	hostVarsDuzenle({ hv, offlineRequest, offlineMode, queryBuild }) {
 		super.hostVarsDuzenle(...arguments)
-		if (offlineRequest && !queryBuild) {
+		hv.kayittipi = this.class.kayitTipi
+		if (offlineRequest) {
 			// Bilgi Yükle
-			let removeKeys = ['ekstremustkod', 'tavsiyeplasiyerkod', 'odemegunkodu', 'standartiskonto']
-			for (let key of removeKeys)
-				delete hv[key]
+			if (!queryBuild)
+				deleteKeys(hv, 'ekstremustkod', 'tavsiyeplasiyerkod', 'odemegunkodu', 'standartiskonto')
 		}
 	}
 	setValues({ rec, offlineRequest, offlineMode }) {

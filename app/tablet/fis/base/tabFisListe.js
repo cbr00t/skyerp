@@ -107,7 +107,6 @@ class TabFisListe extends TabFis {
 				})
 		}
 	}
-
 	static async getUstBilgiHTML(e = {}) {
 		let { gridPart = e.sender } = e
 		let { mustKod } = gridPart

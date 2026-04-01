@@ -236,12 +236,14 @@ class MQLocalData extends MQYerelParamApp {
 	fragmanted() { this.isFragmanted = true; return this } notFragmanted() { this.isFragmanted = false; return this }
 	changed() { this.isChanged = true; return this } notChanged() { this.isChanged = false; return this }
 }
+
 class MQLocalTable extends MQLocalData {
 	static { window[this.name] = this; this._key2Class[this.name] = this } get tablemi() { return true }
 	static get paramKod() { return super.super_paramKod }
 	get table() { return this.name } set table(value) { this.name = value }
 	get fullTableName() { return `${this.rootTable}.${this.paramKod || ''}.db${this.dbNameWithPrefix || ''}${this.tableWithPrefix || ''}` }
 }
+
 class MQLocalDB extends CObject {
 	static { window[this.name] = this; this._key2Class[this.name] = this } get dbmi() { return true }
 	static get paramKod() { return `${MQLocalData.paramKod}.db` } get paramKod() { return this.class.paramKod }

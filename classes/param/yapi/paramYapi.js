@@ -52,8 +52,12 @@ class ParamBuilder extends CObject {
 		})
 	}
 	run(e) {
-		if (this._initFlag) { return }
-		this.runInternal(e); this.afterRun(e); this._initFlag = true; return this
+		if (this._initFlag)
+			return
+		this.runInternal(e)
+		this.afterRun(e)
+		this._initFlag = true
+		return this
 	}
 	runInternal(e) {
 		let root = this.root = this.root || this;
@@ -238,6 +242,21 @@ class ParamBuilder extends CObject {
 		let etiket = typeof e == 'object' ? e.etiket : _etiket;
 		let value = typeof e == 'object' ? e.value : _value;
 		return this.add(new ParamBuilder_DateInput({ id, etiket, value }))
+	}
+	addSelectElement() { return this.addSelect(...arguments) }
+	addSelect(e = {}, _etiket, _value, _source, _kodAttr, _adiAttr) {
+		let id = isObject(e) ? e.id : e
+		let etiket = isObject(e) ? e.etiket : _etiket
+		let value = isObject(e) ? e.value : _value
+		let source = isObject(e) ? e.source : _source
+		let kodAttr = isObject(e) ? e.kodAttr : _kodAttr
+		let adiAttr = isObject(e) ? e.adiAttr : _adiAttr
+		let builder = new ParamBuilder_SelectElement({
+			id, etiket, value,
+			source, kodAttr, adiAttr
+		})
+		this.add(builder)
+		return builder
 	}
 	addModelKullan(e, _etiket, _value, _mfSinif, _source, _ozelQueryDuzenle, _veriYuklenince, _kodAttr, _adiAttr) {
 		e = e ?? {}; let id = typeof e == 'object' ? e.id : e;
@@ -625,20 +644,21 @@ class ParamBuilder_DateInput extends ParamBuilder_UIElement {
 }
 class ParamBuilder_ModelKullan extends ParamBuilder_UIElement {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	constructor(e) {
-		e = e ?? {}; super(e);
-		$.extend(this, {
+	constructor(e = {}) {
+		super(e)
+		extend(this, {
 			mfSinif: e.mfSinif, source: e.source, ozelQueryDuzenle: e.ozelQueryDuzenle,
 			veriYuklenince: e.veriYuklenince, kodAttr: e.kodAttr, adiAttr: e.adiAttr
 		})
 	}
 	formBuilderDuzenleInternal(e) {
 		super.formBuilderDuzenleInternal(e);
-		let {id, etiket, value, mfSinif, source, ozelQueryDuzenle, veriYuklenince, kodAttr, adiAttr} = this
-		this.builder = e.builder.addModelKullan({ id, etiket, value, mfSinif, source, ozelQueryDuzenle, veriYuklenince, kodAttr, adiAttr })
+		let { id, etiket, value, mfSinif, source, ozelQueryDuzenle, veriYuklenince, kodAttr, adiAttr } = this
+		this.builder = e.builder
+			.addModelKullan({ id, etiket, value, mfSinif, source, ozelQueryDuzenle, veriYuklenince, kodAttr, adiAttr })
 	}
 	convertedValue_hostVars(value) {
-		value = super.convertedValue_hostVars(value);
+		value = super.convertedValue_hostVars(value)
 		if (value?.char !== undefined)
 			value = value.char
 		return value
@@ -688,6 +708,28 @@ class ParamBuilder_TekSecim extends ParamBuilder_ModelKullan {
 		value = value?.instance ?? value; value = value?.kaListe ?? value;
 		value = value ?? this.tekSecim?.kaListe; if (value != null) { this.source = e => value } return this
 	}
+}
+class ParamBuilder_SelectElement extends ParamBuilder_UIElement {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	constructor(e = {}) {
+		super(e)
+		this.args = e
+	}
+	formBuilderDuzenleInternal(e) {
+		super.formBuilderDuzenleInternal(e)
+		let { args } = this
+		this.builder = e.builder
+			.addSelect({ ...args })
+	}
+	convertedValue_hostVars(value) {
+		value = super.convertedValue_hostVars(value)
+		if (value?.char !== undefined)
+			value = value.char
+		return value
+	}
+	setSource() { return this.fbdEkIslem(({ builder: fbd }) => fbd.setSource(...arguments)) }
+	// degisince() { return this.fbdEkIslem(({ builder: fbd }) => fbd.degisince(...arguments)) }
+	// onAfterRun() { return this.fbdEkIslem(({ builder: fbd }) => fbd.onAfterRun(...arguments)) }
 }
 class ParamBuilder_Grid extends ParamBuilder_UIElement {
     static { window[this.name] = this; this._key2Class[this.name] = this }

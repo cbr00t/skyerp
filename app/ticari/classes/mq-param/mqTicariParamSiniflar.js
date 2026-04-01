@@ -613,6 +613,7 @@ class MQWebParam extends MQTicariParamBase {
 		}
 	}
 }
+
 class MQTabletParam extends MQTicariParamBase {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Sky Tablet Parametreleri' }

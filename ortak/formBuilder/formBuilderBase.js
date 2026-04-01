@@ -461,19 +461,18 @@ class FormBuilderBase extends CObject {
 		return builder
 	}
 	addSelectElement() { return this.addSelect(...arguments) }
-	addSelect(e, _etiket, _value, _source, _kodAttr, _adiAttr) {
-		e = e || {};
-		let id = isObject(e) ? e.id : e;
-		let etiket = isObject(e) ? e.etiket : _etiket;
-		let value = isObject(e) ? e.value : _value;
-		let source = isObject(e) ? e.source : _source;
-		let kodAttr = isObject(e) ? e.kodAttr : _kodAttr;
-		let adiAttr = isObject(e) ? e.adiAttr : _adiAttr;
+	addSelect(e = {}, _etiket, _value, _source, _kodAttr, _adiAttr) {
+		let id = isObject(e) ? e.id : e
+		let etiket = isObject(e) ? e.etiket : _etiket
+		let value = isObject(e) ? e.value : _value
+		let source = isObject(e) ? e.source : _source
+		let kodAttr = isObject(e) ? e.kodAttr : _kodAttr
+		let adiAttr = isObject(e) ? e.adiAttr : _adiAttr
 		let builder = new FBuilder_SelectElement({
 			id, etiket, value,
 			source, kodAttr, adiAttr
-		});
-		this.add(builder);
+		})
+		this.add(builder)
 		return builder
 	}
 	addRadioButton(e, _etiket, _value, _source, _kodAttr, _adiAttr) {

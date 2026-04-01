@@ -10,19 +10,15 @@ class TabSutAlimFis extends TabFis {
 
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
+		let { posta: defPosta } = app.params.yerel ?? {}
 		extend(pTanim, {
 			yerKod: new PInstStr('yerkod'),
 			plasiyerKod: new PInstStr('plasiyerkod'),
 			rotaID: new PInstNum('rotaID'),
-			posta: new PInstStr({ rowAttr: 'posta', init: () => TabPosta.defaultChar })
-		})
-	}
-	async onlineFisDuzenle({ oFis } = {}) {
-		super.onlineFisDuzenle(...arguments)
-		;['yerKod', 'rotaID', 'posta'].forEach(k => {
-			let v = this[k]
-			if (v)
-				oFis[k] = v
+			posta: new PInstStr({
+				rowAttr: 'posta',
+				init: () => defPosta || TabPosta.defaultChar
+			})
 		})
 	}
 	async yeniTanimOncesiVeyaYukleSonrasiIslemler(e) {
@@ -47,14 +43,14 @@ class TabSutAlimFis extends TabFis {
 		await super.kaydetOncesiIslemler(e)
 		// let { tarih, mustKod: must, rotaID, posta, class: { table } } = this
 	}
-	async dataDuzgunmuDuzenle({ eskiInst: eskiFis, parentPart, gridPart, result }) {
+	async dataDuzgunmuDuzenle({ islem, eskiInst: eskiFis, parentPart, gridPart, result }) {
 		let { tarih, mustKod: must, rotaID, posta, class: { table } } = this
 		tarih = tarih.clone().clearTime()
-		let keyHV = extend(
-			this.class.varsayilanKeyHostVars(e),
-			{ tarih, must, rotaID, posta }
-		)
-		;{
+		if (islem == 'yeni' || islem == 'kopya') {
+			let keyHV = extend(
+				this.class.varsayilanKeyHostVars(e),
+				{ tarih, must, rotaID, posta }
+			)
 			let sent = new MQSent(), { where: wh, sahalar } = sent
 			sent.fromAdd(table)
 			wh
@@ -117,9 +113,10 @@ class TabSutAlimFis extends TabFis {
 			return false
 
 		let e = { ...arguments[0], offlineRequest: true, offlineMode: false }
-		let { table, idSaha, gonderildiDesteklenirmi, gonderimTSSaha } = this		
+		let { table, idSaha, gonderildiDesteklenirmi, gonderimTSSaha } = this
+		let { defaultBrm } = this.class ?? {}
 		let fisRecs, idListe, detRecs
-		let fisID2Yapi = {}, fisKey2Yapi = {}
+		let fisID2Yapi = {}, fisKey2Yapi = {}, brm2Toplam = {}
 		let keyHV = this.varsayilanKeyHostVars(e)
 		let okIdList = [], errors = []
 		app.online()
@@ -171,7 +168,7 @@ class TabSutAlimFis extends TabFis {
 						let yapi = fisID2Yapi[detRec.fisID]
 						if (yapi) {
 							let { fisRec: { kayitTS, must } } = yapi
-							detRec.kayitts = asDate(kayitTS)
+							detRec.tabletkayitts = asDate(kayitTS)
 							detRec.must = must
 							;(yapi.detRecs ??= []).push(detRec)
 						}
@@ -198,6 +195,18 @@ class TabSutAlimFis extends TabFis {
 						yapi.detRecs.push(...detRecs)
 					}
 				}
+
+				;{
+					// Detay Brm -> Toplam
+					for (let det of detRecs) {
+						let { brm, miktar } = det
+						if (miktar) {
+							brm = (brm || defaultBrm).toLowerCase()
+							brm2Toplam[brm] = (brm2Toplam[brm] ?? 0) + miktar
+						}
+					}
+				}
+				
 				window.progressManager?.progressStep(3)
 			}
 
@@ -258,10 +267,12 @@ class TabSutAlimFis extends TabFis {
 							toplu.add(sent)
 						}
 						;{
+							// insert
 							let hv = {
 								tipkod, alttipkod, tabletguid,
 								tarih, seri, no, yerkod,
-								rotasayac, posta
+								rotasayac, posta,
+								detaytoplam: brm2Toplam.lt || 0
 							}
 							toplu.add(new MQInsert({ table, hv }).insertOnly())
 						}
@@ -271,6 +282,19 @@ class TabSutAlimFis extends TabFis {
 							toplu.add(sent)
 						}
 					toplu.add('END')
+					toplu.add('ELSE BEGIN')
+					; {
+						// update
+						let toplam = brm2Toplam.lt || 0
+						;{
+							let upd = new MQIliskiliUpdate(), { where: wh, set } = upd
+							upd.fromAdd(table)
+							wh.add(`kaysayac = @fisSayac`)
+							set.add(`detaytoplam = detaytoplam + ${toplam.sqlDegeri()}`)
+							toplu.add(upd)
+						}
+					}
+					toplu.add('END')
 					;{
 						let sent = getHarSent(), { sahalar } = sent
 						sahalar.add(`@seq = COALESCE(MAX(seq), 0) + 1`)
@@ -279,10 +303,10 @@ class TabSutAlimFis extends TabFis {
 					;{
 						let fissayac = '@fisSayac'.sqlConst()
 						let hvListe = detRecs.map((r, i) => {
-							let { seq: relSeq = i, kayitts, must, stokkod, miktar } = r
+							let { seq: relSeq = i, tabletkayitts, must, stokkod, miktar } = r
 							let seq = `@seq + ${relSeq}`.sqlConst()
 							return {
-								fissayac, seq, kayitts,
+								fissayac, seq, tabletkayitts,
 								must, stokkod, miktar
 							}
 						})
@@ -342,7 +366,7 @@ class TabSutAlimFis extends TabFis {
 	static async rootFormBuilderDuzenle_tablet_acc_baslik({ acc, sender: tanimPart, inst: fis, rfb }) {
 		let e = arguments[0]
 		await super.rootFormBuilderDuzenle_tablet_acc_baslik(e)
-		;{
+		/*;{
 			let { wndId } = tanimPart.wndPart
 			let mfSinif = MQTabYer.getMFSinif_subeFiltreli(() => fis.subeKod, wndId)
 			let { sinifAdi: etiket } = mfSinif
@@ -361,7 +385,7 @@ class TabSutAlimFis extends TabFis {
 				})
 				.onAfterRun(({ builder: { part } }) =>
 					tanimPart.ddYer = part)
-		}
+		}*/
 		;{
 			let mfSinif = MQTabPosta, { sinifAdi: etiket } = mfSinif
 			let form = rfb.addFormWithParent().altAlta()
@@ -377,16 +401,18 @@ class TabSutAlimFis extends TabFis {
 						fis.postaDegisti({ ...e, ..._e, tanimPart })
 					}, 5)
 				})
-				.onAfterRun(({ builder: { part } }) =>
-					tanimPart.ddPosta = part)
+				.onAfterRun(({ builder: { id, altInst: inst, input } }) => {
+					tanimPart.ddPosta = input
+					setTimeout(() => input?.val(inst[id]), 5)
+				})
 		}
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_dipCollapsed({ sender: tanimPart, inst: fis, rfb }) {
 		await super.rootFormBuilderDuzenle_tablet_acc_dipCollapsed(...arguments)
-		let { rotaID, topMiktar, detaylar, class: { detaySinif: { defaultBrm } } } = fis
+		let { rotaID, posta, topMiktar, detaylar, class: { detaySinif: { defaultBrm } } } = fis
 		if (rotaID) {
 			let aciklama = (await MQTabRota.loadServerData())
-				.find(r => r.id == rotaID)?.aciklama || rotaID
+				.find(r => r.rotaID == rotaID)?.aciklama || rotaID
 			rfb
 				.addCSS('flex-row')
 				.addStyle(
@@ -394,9 +420,25 @@ class TabSutAlimFis extends TabFis {
 					 $elementCSS > div:not(:first-child) { margin-left: 20px }`
 				)
 			rfb.addForm().setLayout(() => $([
-				`<div class="flex-row" style="gap: 10px">`,
+				`<div class="rota flex-row" style="gap: 10px">`,
 					`<div class="etiket lightgray">R:</div> `,
-					`<div class="blueviolet"><b>${aciklama}</b></div>`,
+					`<div class="bold blueviolet">${aciklama}</div>`,
+				`</div>`
+			].join(CrLf)))
+		}
+
+		if (posta) {
+			let { aciklama = '' } = new TabPosta(posta)
+			rfb
+				.addCSS('flex-row')
+				.addStyle(
+					`$elementCSS > div { width: max-content !important }
+					 $elementCSS > div:not(:first-child) { margin-left: 20px }`
+				)
+			rfb.addForm().setLayout(() => $([
+				`<div class="posta flex-row" style="gap: 10px">`,
+					`<div class="etiket lightgray">P:</div> `,
+					`<div class="bold darkyellow">${aciklama}</div>`,
 				`</div>`
 			].join(CrLf)))
 		}
@@ -405,8 +447,8 @@ class TabSutAlimFis extends TabFis {
 		let brm = detaylar[0]?.brm ?? defaultBrm
 		rfb.addForm().setLayout(() => $([
 			`<div class="flex-row" style="gap: 10px">`,
-				(topMiktar ? `<div class="forestgreen"><b>${numberToString(topMiktar, 2)}</b> ${brm}</div>` : null),
-				(topSatir ? `<div class="royalblue"><b>${numberToString(topSatir)}</b> satır</div>` : null),
+				(topMiktar ? `<div class="topMiktar forestgreen"><b>${numberToString(topMiktar, 2)}</b> ${brm}</div>` : null),
+				(topSatir ? `<div class="topSatir royalblue"><b>${numberToString(topSatir)}</b> satır</div>` : null),
 			`</div>`
 		].filter(Boolean).join(CrLf)))
 	}

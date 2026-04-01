@@ -139,14 +139,66 @@ class TabRotaListe extends MQMasterOrtak {
 		if (!(empty(recs) || rec))
 			setTimeout(() => w.selectrow(0), 100)
 	}
-	
 
 	static rootFormBuilderDuzenle_listeEkrani({ sender: gridPart, rootBuilder: rfb }) {
-		super.rootFormBuilderDuzenle_listeEkrani(...arguments)
-		rfb.addStyle(
+		let e = arguments[0]
+		super.rootFormBuilderDuzenle_listeEkrani(e)
+		let { layout, header, islemTuslari } = gridPart
+		rfb.addStyle(...[
 			`$elementCSS .header > .islemTuslari > div #izle { margin-right: 20px }`
-		)
+		])
+		;{
+			let parent = rfb.addForm('header', header)
+			let ustBilgiForm = parent.addForm('ustBilgi')
+				.addStyle_fullWH(null, 20)
+				.addCSS('jqx-hidden')
+				.addStyle(...[
+					`$elementCSS { font-size: 130%; padding: 15px 5px !important; overflow-y: auto !important }
+					 $elementCSS > .item { gap: 10px }
+					 $elementCSS > .item > div { gap: 10px; line-height: 10px }`
+				])
+				.setLayout(({ builder: fbd }) => {
+					let { id } = fbd
+					let result = $(`<div class="${id}"></div>`)
+					;(async () => {
+						let html = await this.getUstBilgiHTML({ ...e, gridPart, rfb, fbd })
+						if (html?.html) {
+							if (html.children().length) {
+								ustBilgiForm.layout.removeClass('jqx-hidden basic-hidden')
+								html.appendTo(result)
+							}
+						}
+						else if (html) {
+							ustBilgiForm.layout.removeClass('jqx-hidden basic-hidden')
+							result.html(html)
+						}
+					})()
+					return result
+				})
+		}
 	}
+	static async getUstBilgiHTML(e = {}) {
+		let { gridPart = e.sender } = e
+		let { mustKod } = gridPart
+		let { params: { yerel, tablet }, sutAlimmi } = app
+		let { posta } = yerel
+
+		let result = []
+		;{
+			let { aciklama } = new TabPosta(posta)
+			if (aciklama) {
+				result.push(
+					`<div class="posta item flex-row">`,
+						`<div class="etiket lightgray">Posta:</div> `,
+						`<div class="bold royalblue">${aciklama}</div>`,
+					`</div>`
+				)
+			}
+		}
+		result = result.filter(Boolean).join(CrLf)
+		return result
+	}
+	
 	static islemTuslariDuzenle_listeEkrani(e) {
 		super.islemTuslariDuzenle_listeEkrani(e)
 		let { parentPart: gridPart, part, liste } = e
@@ -193,17 +245,17 @@ class TabRotaListe extends MQMasterOrtak {
 		let { args } = e.event ?? {}
 		let { row: rec } = args ?? {}
 		rec = rec?.bounddata ?? rec
-		this.fisListesiIstendi({ ...e, rec })
+		this.yeniIstendi({ ...e, rec })
 	}
 	static async yeniIstendi(e = {}) {
 		let { gridPart = e.parentPart ?? e.sender } = e
 		let { rec = gridPart?.selectedRec } = e
-		let { id: rotaID, mustKod } = rec ?? {}
+		let { mustKod, rotaID, posta } = rec ?? {}
 		if (!mustKod)
 			return
 
 		let { fisTipi } = TabSutAlimFis
-		let args = { mustKod, rotaID }
+		let args = { mustKod, rotaID, posta }
 		let _e = { ...e, sender: gridPart, islem: 'yeni', fisTipi, args }
 		let inst = await TabFisListe.yeniInstOlustur(_e)
 		let { part } = await inst.tanimla()
@@ -213,11 +265,11 @@ class TabRotaListe extends MQMasterOrtak {
 	static fisListesiIstendi(e = {}) {
 		let { gridPart = e.parentPart ?? e.sender } = e
 		let { rec = gridPart?.selectedRec } = e
-		let { id: rotaID, mustKod } = rec ?? {}
+		let { mustKod, rotaID, posta } = rec ?? {}
 		if (!mustKod)
 			return
 
-		let args = { rotaID, mustKod }
+		let args = { mustKod, rotaID, posta }
 		let { part } = TabFisListe.listeEkraniAc({ args })
 		if (gridPart && part)
 			part.kapaninca(() => gridPart.tazele())

@@ -640,7 +640,7 @@ class FBuilder_SelectElement extends FBuilder_OptionBase {
 	
 	buildDevam(e) {
 		super.buildDevam(e)
-		let {input, styles} = this
+		let { input, styles } = this
 		if (input?.length) {
 			input.on('change', evt => {
 				let value = $(evt.currentTarget).val()
