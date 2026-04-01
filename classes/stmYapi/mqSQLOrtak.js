@@ -47,15 +47,25 @@ class MQSQLOrtak extends CObject {
 		return MQCogul.sqlExecSelect(_e)
 	}
 	
-	static async topluYazVeyaDegistirIcinYap(e) {
-		let {trnId, toplu} = e, eskiWhere = e.eskiWhere ?? e.eskiHVWhere, uniqueKeys = e.uniqueKeys ?? e.attrListe, table = e.table ?? e.tablo;
-		let uniqueKeysSet = asSet(uniqueKeys) || {}, silinebilirmi = e.silinebilir ?? e.silinebilirmi ?? true;
-		let {hvListe, eskiHVListe} = e; if (!hvListe) { return } if (!$.isArray(hvListe)) { hvListe = [hvListe] }
-		let hv = hvListe[0], dateAttrSet = {}; if (hv) { for (let [key, value] of Object.entries(hv)) { if (isDate(value)) { dateAttrSet[key] = true } } }
+	static async topluYazVeyaDegistirIcinYap(e = {}) {
+		let { hvListe } = e
+		if (!hvListe)
+			return
+		let { trnId, toplu, table = e.tablo, eskiWhere = e.eskiHVWhere, uniqueKeys = e.attrListe } = e
+		let { silinebilirmi = e.silinebilir ?? true, eskiHVListe } = e
+		let uniqueKeysSet = asSet(uniqueKeys) || {}
+		hvListe = makeArray(hvListe)
+		let hv = hvListe[0], dateAttrSet = {}
+		if (hv) {
+			for (let [key, value] of entries(hv)) {
+				if (isDate(value))
+					dateAttrSet[key] = true
+			}
+		}
 		if (!(eskiHVListe || empty(uniqueKeys) || empty(eskiWhere))) {
-			let keys = hv === undefined ? uniqueKeys : keys(hv)
-			let sent = new MQSent({ from: table, where: eskiWhere, sahalar: keys })
-			let recs = await app.sqlExecSelect({ trnId, query: sent })
+			let sahalar = hv === undefined ? uniqueKeys : keys(hv)
+			let sent = new MQSent({ from: table, where: eskiWhere, sahalar })
+			let recs = await sent.execSelect({ trnId })
 			eskiHVListe = recs
 			if (eskiHVListe) {
 				for (let hv of eskiHVListe)
@@ -68,7 +78,8 @@ class MQSQLOrtak extends CObject {
 				}
 			}
 		}
-		if (empty(eskiHVListe)) {		/* sadece yazma */
+		
+		if (empty(eskiHVListe)) {		// sadece yazma
 			if (uniqueKeysSet.kaysayac) {
 				for (let hv of hvListe)
 					delete hv.kaysayac
@@ -76,11 +87,27 @@ class MQSQLOrtak extends CObject {
 			toplu.add(new MQInsert({ table, hvListe }))
 			return { eklenecekler: hvListe, degisecekler: [], silinecekler: [] }
 		}
-		/* ekleme, değiştirme ve silme */
-		let farkBilgi = hvListeFarkSonucu({ hv1Liste: hvListe, hv2Liste: eskiHVListe, uniqueKeys }) || {}, {eklenecekler, degisecekler, silinecekler} = farkBilgi;
-		for (let keyHV of silinecekler) { toplu.add(new MQIliskiliDelete({ from: table, where: { birlestirDict: keyHV } })) }
-		if (!empty(eklenecekler)) { toplu.add(new MQInsert({ table, hvListe: eklenecekler })) }
-		for (let {keyHV, farkHV} of degisecekler) { toplu.add(new MQIliskiliUpdate({ from: table, where: { birlestirDict: keyHV }, set: { birlestirDict: farkHV } })) }
+		
+		// ekleme, değiştirme ve silme
+		let farkBilgi = hvListeFarkSonucu({ hv1Liste: hvListe, hv2Liste: eskiHVListe, uniqueKeys }) ?? {}
+		let { eklenecekler, degisecekler, silinecekler } = farkBilgi
+		for (let keyHV of silinecekler) {
+			toplu.add(new MQIliskiliDelete({
+				from: table,
+				where: { birlestirDict: keyHV }
+			}))
+		}
+		if (!empty(eklenecekler))
+			toplu.add(new MQInsert({ table, hvListe: eklenecekler }))
+		
+		for (let {keyHV, farkHV} of degisecekler) {
+			toplu.add(new MQIliskiliUpdate({
+				from: table,
+				where: { birlestirDict: keyHV },
+				set: { birlestirDict: farkHV }
+			}))
+		}
+		
 		return farkBilgi
 	}
 	static sqlServerDegeri(e) {
@@ -105,7 +132,7 @@ class MQSQLOrtak extends CObject {
 	}
 	static sqliteDegeri(e) {
 		if (e == null) { return 'NULL' }
-		let value = $.isPlainObject(e) ? e.value : e, ozelDeger = value?.sqlServerDegeri; if (value == null) { return 'NULL' }
+		let value = isPlainObject(e) ? e.value : e, ozelDeger = value?.sqlServerDegeri; if (value == null) { return 'NULL' }
 		if (typeof value == 'object' && value?.constructor?.name == 'String') { value = value.toString() }
 		if (!(ozelDeger === undefined || typeof ozelDeger == 'function')) { return ozelDeger }
 		if (isDate(value)) { return this.sqliteDegeri(asReverseDateString(value) || '') }
@@ -114,7 +141,7 @@ class MQSQLOrtak extends CObject {
 	}
 	static sqlDegeri(e) {
 		if (e == null) { return 'NULL' }
-		let value = $.isPlainObject(e) ? e.value : e, ozelDeger = value?.sqlDegeri;
+		let value = isPlainObject(e) ? e.value : e, ozelDeger = value?.sqlDegeri;
 		if (typeof value == 'object' && value?.constructor?.name == 'String') { value = value.toString() }
 		if (!(ozelDeger === undefined || typeof ozelDeger == 'function')) { return ozelDeger }
 		if (value == null) { return 'NULL' }
@@ -124,7 +151,7 @@ class MQSQLOrtak extends CObject {
 	}
 	static sqlParamValue(e) {
 		if (e == null) { return null }
-		let value = $.isPlainObject(e) ? e.value : e,  ozelDeger = value?.sqlDegeri;
+		let value = isPlainObject(e) ? e.value : e,  ozelDeger = value?.sqlDegeri;
 		if (typeof value == 'object' && value?.constructor?.name == 'String') { value = value.toString() }
 		if (!(ozelDeger === undefined || typeof ozelDeger == 'function')) { return ozelDeger }
 		if (value == null) { return value }
@@ -322,7 +349,7 @@ class MQAliasliYapi extends MQSQLOrtak {
 				- 'piffis AS fis'
 				- '(SELECT ... ) AS tbl'
 		*/
-		if (!$.isPlainObject(e))
+		if (!isPlainObject(e))
 			e = { text: e }
 		let text = (e.text || e.fromText || '').toString().trim()
 		let sonBosInd = text.lastIndexOf(' ')
@@ -495,7 +522,7 @@ class MQIliskiYapisi extends MQSQLOrtak {
 		}
 	}
 	static newForText(text) {
-		if (typeof text == 'object') { return $.isPlainObject(text) ? new this(text) : text }
+		if (typeof text == 'object') { return isPlainObject(text) ? new this(text) : text }
 		text = text?.toString()?.trim() ?? ''; let parantezSayilari, solText, ind = -1, esittirVarmi = false;
 		do {
 			parantezSayilari = { ac: 0, kapat: 0 }; ind = text.indexOf('=', ind + 1); if (ind != -1) { esittirVarmi = true }
