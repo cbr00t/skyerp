@@ -8,7 +8,7 @@ class TabTicariFis extends TabTSFis {
 	static get dipIskOranSayi() { return 1 } static get dipIskBedelSayi() { return 1 }
 	static get iademi() { return false } static get siparismi() { return false }
 	static get faturami() { return false } static get irsaliyemi() { return false }
-	static get ticariCikisGibimi() { return this.alimmi == this.iademi }
+	static get cikisGibimi() { return this.alimmi == this.iademi }
 	static get dokumFormTip_normal() { return '3FA' }
 	// static get dokumFormTip_eIslem() { return this.dokumFormTip_normal }
 	static get defaultEIslTip() { return '' }
@@ -23,7 +23,7 @@ class TabTicariFis extends TabTSFis {
 		if (!sonucBedel)
 			return 0
 		let { cachedRecs: tRecs } = MQTabTahsilSekli.globals ?? {}
-		let { tahsiltipi: tip, ahalttipi: altTip } = tRecs?.find(r => r.kodno = tahSekliNo) ?? {}
+		let { tahsiltipi: tip, ahalttipi: altTip } = tRecs?.find(r => r.kodno == tahSekliNo) ?? {}
 		let vadelimi = !(tahSekliNo && (tip || altTip))
 		return vadelimi ? sonucBedel : 0
 	}
@@ -144,9 +144,9 @@ class TabTicariFis extends TabTSFis {
 	async kaydetSonrasiIslemler({ islem }) {
 		await super.kaydetSonrasiIslemler(...arguments)
 		let { _tahsilatFis: t, id, mustKod, tahSekliNo, fisSonuc } = this
-		let { almSat, iademi, ticariCikisGibimi: cikis } = this.class
+		let { almSat, iademi, cikisGibimi: cikis } = this.class
 		if (t) {
-			let {tahFisId: prev} = t
+			let { tahFisId: prev } = t
 			t.tahFisId = tahSekliNo == -1 ? id : ''
 			if (prev != t.tahFisId)
 				await t?.kaydet()

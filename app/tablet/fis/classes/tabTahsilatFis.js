@@ -25,7 +25,7 @@ class TabTahsilatFis extends TabFis {
 				?.map(r => r.kodno)
 		) ?? {}
 		return topla(
-			d => t.bedel,
+			d => d.bedel,
 			...this.getYazmaIcinDetaylar()
 				.filter(d => d.bedel && vadeli[d.tahSekliNo])
 		)

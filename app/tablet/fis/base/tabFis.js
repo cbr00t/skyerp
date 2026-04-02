@@ -89,7 +89,9 @@ class TabFis extends MQDetayliGUID {
 	get dokumDetaylar() { return this.detaylar.filter(Boolean) }
 	static get cikisGibimi() {
 		let { alimmi, iademi } = this
-		return alimmi == null || iademi == null || alimmi == iademi
+		return alimmi == null || iademi == null
+			? null
+			: alimmi == iademi
 	}
 	static get bedelEtkilesimKatsayi() {
 		let { cikisGibimi } = this
@@ -399,20 +401,28 @@ class TabFis extends MQDetayliGUID {
 	}
 	async kaydetSonrasiIslemler(e = {}) {
 		let { islem, eskiInst = e.eskiFis ?? e.eskiObj ?? {} } = e
-		let { mustKod } = this
+		let { mustKod } = this, { mustKod: onceki_mustKod } = eskiInst
 		let toplu = new MQToplu()
-		if (mustKod) {
-			let { bakiyeArtis } = this, { bakiyeArtis: onceki_bakiyeArtis } = eskiInst
-			bakiyeArtis ??= 0; onceki_bakiyeArtis ??= 0
-			let bakiyeFark = bakiyeArtis - onceki_bakiyeArtis
-			if (bakiyeFark) {
+		if (mustKod || onceki_mustKod) {
+			let { bakiyeArtis } = this
+			let { bakiyeArtis: onceki_bakiyeArtis } = eskiInst
+			if (bakiyeArtis || onceki_bakiyeArtis) {
 				MQTabCariBakiye.globalleriSil()
 				let { table, kodSaha } = MQTabCariBakiye
-				let upd = new MQIliskiliUpdate(), { where: wh, set } = upd
-				upd.fromAdd(table)
-				wh.degerAta(mustKod, kodSaha)
-				set.add(`bakiye = bakiye + ${bakiyeFark.sqlDegeri()}`)
-				toplu.add(upd)
+				if (bakiyeArtis) {
+					let upd = new MQIliskiliUpdate(), { where: wh, set } = upd
+					upd.fromAdd(table)
+					wh.degerAta(mustKod, kodSaha)
+					set.add(`bakiye = bakiye + ${bakiyeArtis.sqlDegeri()}`)
+					toplu.add(upd)
+				}
+				if (onceki_bakiyeArtis) {
+					let upd = new MQIliskiliUpdate(), { where: wh, set } = upd
+					upd.fromAdd(table)
+					wh.degerAta(onceki_mustKod, kodSaha)
+					set.add(`bakiye = bakiye - ${onceki_bakiyeArtis.sqlDegeri()}`)
+					toplu.add(upd)
+				}
 			}
 		}
 		await super.kaydetSonrasiIslemler(...arguments)
@@ -442,13 +452,15 @@ class TabFis extends MQDetayliGUID {
 				return false
 		}
 
-		if (empty(this.detaylar))
-			await this.yukle({ ...e, rec: undefined })
+		if (empty(this.detaylar)) {
+			if (!await this.yukle({ ...e, rec: undefined }))
+				throw { isError: true, rc: 'fatalError', errorText: 'iç hata: Silinecek belge yüklenemedi' }
+		}
 
 		let { islem } = e, { mustKod } = this
 		let toplu = new MQToplu()
 		if (mustKod) {
-			let bakiyeArtis = ( this.bakiyeArtis || 0 )
+			let { bakiyeArtis } = this
 			if (bakiyeArtis) {
 				MQTabCariBakiye.globalleriSil()
 				let { table, kodSaha } = MQTabCariBakiye
