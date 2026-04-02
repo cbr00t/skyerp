@@ -1,10 +1,11 @@
 class TabTahsilatFis extends TabFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'TABTAH' } static get sinifAdi() { return 'Karma Tahsilat' }
+	static get tahsilatmi() { return true }
 	static get detaySinif() { return TabTahsilatDetay } static get almSat() { return 'T' }
 	static get onlineFisSinif() { return CariTahsilatFis }
 	static get bedelKullanilirmi() { return true }
-	static get tahsilatmi() { return true }
+	static get cikisGibimi() { return false }
 	get dokumDetaylar() {
 		return super.dokumDetaylar.filter(_ => _.bedel)
 	}
@@ -15,6 +16,19 @@ class TabTahsilatFis extends TabFis {
 	get kalanBedel() {
 		let {hedefBedel, detaylar} = this
 		return hedefBedel ? roundToBedelFra(hedefBedel - this.tahsilBedel) : 0
+	}
+	get bakiyeEtkileyenKisim() {
+		let { cachedRecs: tRecs } = MQTabTahsilSekli.globals ?? {}
+		let vadeli = asSet(
+			tRecs
+				?.filter(({ tip, altTip }) => !(tip || altTip))
+				?.map(r => r.kodno)
+		) ?? {}
+		return topla(
+			d => t.bedel,
+			...this.getYazmaIcinDetaylar()
+				.filter(d => d.bedel && vadeli[d.tahSekliNo])
+		)
 	}
 
 	static pTanimDuzenle({ pTanim }) {

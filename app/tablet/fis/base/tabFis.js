@@ -19,7 +19,8 @@ class TabFis extends MQDetayliGUID {
 	static get gonderildiDesteklenirmi() { return true }
 	static get offlineFis() { return true }
 	static get almSat() { return null }
-	static get satismi() { return this.almSat == 'T' } static get alimmi() { return this.almSat == 'A' }
+	static get satismi() { return this.almSat == 'T' }
+	static get alimmi() { return this.almSat == 'A' }
 	get numTipKod() { return this.class.fisTipi || 'TB' }
 	get numKod() { return this.class.getNumKod(this.numTipKod, this.eIslTip, this.yildizlimi) }
 	get defaultSeri() { return 'TAB' }
@@ -63,7 +64,7 @@ class TabFis extends MQDetayliGUID {
 	set kosulYapilar(value) { this._kosulYapilar = value }
 	get fisNox() { return this.tsn?.asText() }
 	get dipIslemci() {
-		let {_dipIslemci: result} = this
+		let { _dipIslemci: result } = this
 		if (result === undefined) {
 			this.dipOlustur()
 			result = this._dipIslemci
@@ -86,6 +87,19 @@ class TabFis extends MQDetayliGUID {
 	}
 	get sonucBedel() { return this.fisTopNet }
 	get dokumDetaylar() { return this.detaylar.filter(Boolean) }
+	static get cikisGibimi() {
+		let { alimmi, iademi } = this
+		return alimmi == null || iademi == null || alimmi == iademi
+	}
+	static get bedelEtkilesimKatsayi() {
+		let { cikisGibimi } = this
+		return (
+			cikisGibimi == null ? 0 :
+			cikisGibimi ? 1 : -1
+		)
+	}
+	get bakiyeEtkileyenKisim() { return 0 }
+	get bakiyeArtis() { return ( this.bakiyeEtkileyenKisim * this.class.bedelEtkilesimKatsayi ) || 0 }
 
 	constructor({ isCopy, offlineBuildQuery } = {}) {
 		super(...arguments)
@@ -256,7 +270,7 @@ class TabFis extends MQDetayliGUID {
 			let fisTipleri = keys(asSet(recs.map(r => r.fisTipi)))
 			if (!fisTipleri.find(_ => tip2Sinif[_]?.detaySinif?.bedelKullanilirmi))
 				w.hidecolumn('sonuc')*/
-			if (rec)
+			if (!rec)
 				setTimeout(() => w.selectrow(0), 100)
 		}
 	}
@@ -383,8 +397,26 @@ class TabFis extends MQDetayliGUID {
 		}
 		await this.dipIslemci?.kaydetOncesiIslemler(...arguments)
 	}
-	async kaydetSonrasiIslemler({ islem }) {
-		super.kaydetSonrasiIslemler(...arguments)
+	async kaydetSonrasiIslemler(e = {}) {
+		let { islem, eskiInst = e.eskiFis ?? e.eskiObj ?? {} } = e
+		let { mustKod } = this
+		let toplu = new MQToplu()
+		if (mustKod) {
+			let { bakiyeArtis } = this, { bakiyeArtis: onceki_bakiyeArtis } = eskiInst
+			bakiyeArtis ??= 0; onceki_bakiyeArtis ??= 0
+			let bakiyeFark = bakiyeArtis - onceki_bakiyeArtis
+			if (bakiyeFark) {
+				MQTabCariBakiye.globalleriSil()
+				let { table, kodSaha } = MQTabCariBakiye
+				let upd = new MQIliskiliUpdate(), { where: wh, set } = upd
+				upd.fromAdd(table)
+				wh.degerAta(mustKod, kodSaha)
+				set.add(`bakiye = bakiye + ${bakiyeFark.sqlDegeri()}`)
+				toplu.add(upd)
+			}
+		}
+		await super.kaydetSonrasiIslemler(...arguments)
+		await toplu.execute(e)
 	}
 	async yukle(e = {}) {
 		let {rec} = e
@@ -395,15 +427,41 @@ class TabFis extends MQDetayliGUID {
 			return await super.yukle(e)
 		}
 	}
-	async sil(e) {
-		let {sayac: id, class: { table, idSaha }} = this
+	async sil(e = {}) {
+		let { sayac: id, class: { table, idSaha } } = this
 		if (!id)
 			return false
-		let upd = new MQIliskiliUpdate(), {where: wh, set} = upd
-		upd.fromAdd(table)
-		wh.degerAta(id, idSaha)
-		set.degerAta(bool2FileStr(true), 'silindi')
-		return await this.sqlExecNone(upd)
+		
+		;{
+			let upd = new MQIliskiliUpdate(), { where: wh, set } = upd
+			upd.fromAdd(table)
+			wh.degerAta(id, idSaha)
+			set.degerAta(bool2FileStr(true), 'silindi')
+			let res = await this.sqlExecNone(upd)
+			if (!res)
+				return false
+		}
+
+		if (empty(this.detaylar))
+			await this.yukle({ ...e, rec: undefined })
+
+		let { islem } = e, { mustKod } = this
+		let toplu = new MQToplu()
+		if (mustKod) {
+			let bakiyeArtis = ( this.bakiyeArtis || 0 )
+			if (bakiyeArtis) {
+				MQTabCariBakiye.globalleriSil()
+				let { table, kodSaha } = MQTabCariBakiye
+				let upd = new MQIliskiliUpdate(), { where: wh, set } = upd
+				upd.fromAdd(table)
+				wh.degerAta(mustKod, kodSaha)
+				set.add(`bakiye = bakiye - ${bakiyeArtis.sqlDegeri()}`)
+				toplu.add(upd)
+			}
+		}
+		await toplu.execute(e)
+		
+		return true
 	}
 	static varsayilanKeyHostVarsDuzenle({ hv }) {
 		super.varsayilanKeyHostVarsDuzenle(...arguments)
@@ -1060,18 +1118,16 @@ class TabFis extends MQDetayliGUID {
 
 	shallowCopy(e) {
 		let result = super.shallowCopy(e)
-		let {_dipIslemci} = result
-		if (_dipIslemci) {
-			_dipIslemci = result._dipIslemci = _dipIslemci.shallowCopy()
-			_dipIslemci.fis = result
-		}
+		let dip = result._dipIslemci = this._dipIslemci?.shallowCopy(e)
+		if (dip)
+			dip.fis = result
 		return result
 	}
 	deepCopy(e) {
 		let result = super.deepCopy(e)
-		let {_dipIslemci} = result
-		if (_dipIslemci)
-			_dipIslemci.fis = result
+		let dip = result._dipIslemci = this._dipIslemci?.deepCopy(e)
+		if (dip)
+			dip.fis = result
 		return result
 	}
 }

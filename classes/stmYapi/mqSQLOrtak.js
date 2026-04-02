@@ -10,6 +10,7 @@ class MQSQLOrtak extends CObject {
 			e.query = e
 		return MQCogul.sqlExecNone(e)
 	}
+	static execute(e = {}) { return this.execNone(e) }
 	static execTekil(e = {}) {
 		if (e.query === undefined)
 			e.query = e
@@ -31,6 +32,7 @@ class MQSQLOrtak extends CObject {
 		_e.query = this
 		return MQCogul.sqlExecNone(_e)
 	}
+	execute(e = {}) { return this.execNone(e) }
 	execTekil(e) {
 		let _e = isObject(e) ? { ...e } : {}
 		_e.query = this

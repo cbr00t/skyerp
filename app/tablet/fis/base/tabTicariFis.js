@@ -18,6 +18,15 @@ class TabTicariFis extends TabTSFis {
 			: ''
 	}
 	get dovizlimi() { return !!this.dvKod }
+	get bakiyeEtkileyenKisim() {
+		let { tahSekliNo, sonucBedel } = this
+		if (!sonucBedel)
+			return 0
+		let { cachedRecs: tRecs } = MQTabTahsilSekli.globals ?? {}
+		let { tahsiltipi: tip, ahalttipi: altTip } = tRecs?.find(r => r.kodno = tahSekliNo) ?? {}
+		let vadelimi = !(tahSekliNo && (tip || altTip))
+		return vadelimi ? sonucBedel : 0
+	}
 
 	constructor(e) {
 		super(e)
@@ -38,6 +47,13 @@ class TabTicariFis extends TabTSFis {
 			tahSekliNo: new PInstNum('tahseklino'),
 			tahFisId: new PInstStr('tahfisid')
 		})
+	}
+	static async loadServerDataDogrudan({ offlineRequest, offlineMode } = {}) {
+		if (!offlineRequest) {
+			let cacheClasses = [MQTabTahsilSekli]
+			await Promise.allSettled(cacheClasses.map(_ => _.getGloKod2Rec()))
+		}
+		return await super.loadServerDataDogrudan(...arguments)
 	}
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments)
