@@ -187,7 +187,7 @@ class TabletApp extends TicariApp {
 			MQTabTahsilSekli, MQTabBarkodReferans, MQTabBarkodAyrisim,
 			MQCariSatis, MQTabUgramaNeden, MQTabCariTip, MQTabSevkAdres
 		])
-		;[TabRotaListe, TabFisListe]
+		;[TabRotaListe, TabFisListe, TabMusteriDurumu]
 			.filter(_ => _.uygunmu)
 			.forEach(mfSinif => {
 				let { kodListeTipi: mne, sinifAdi: text } = mfSinif

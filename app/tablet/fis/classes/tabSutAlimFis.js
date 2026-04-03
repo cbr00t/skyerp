@@ -54,7 +54,7 @@ class TabSutAlimFis extends TabFis {
 			let sent = new MQSent(), { where: wh, sahalar } = sent
 			sent.fromAdd(table)
 			wh
-				.add(`silindi = ''`, `gecici = ''`)
+				.add(`silindi = ''`, `gecici = ''`, `merkez = ''`)
 				.birlestirDict(keyHV)
 			sahalar.add('COUNT(*) sayi')
 			let res = await sent.execTekilDeger()
@@ -131,8 +131,7 @@ class TabSutAlimFis extends TabFis {
 					if (gonderildiDesteklenirmi)
 						wh.add(`COALESCE(${alias}.${gonderimTSSaha}, '') = ''`)
 					wh
-						.fisSilindiEkle({ alias })
-						.add(`${alias}.gecici = ''`)
+						.add(`${alias}.silindi = ''`, `${alias}.gecici = ''`, `${alias}.merkez = ''`)
 						.birlestirDict(keyHV)
 					sahalar.addWithAlias(alias,
 						`${idSaha} id`, 'kayitTS', 'tarih', 'fisno', 'must', 'yerkod', 'rotaID', 'posta', 'cariaciklama')
@@ -680,9 +679,8 @@ class TabPosta extends TekSecim {
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)
 		kaListe.push(
-			new CKodVeAdi(['S', 'Sabah', 'sabahmi']),
-			// new CKodVeAdi(['O', 'Öğle', 'oglemi']),
-			new CKodVeAdi(['A', 'Akşam', 'aksammi'])
+			new CKodVeAdi(['S', `<span class=teal>Sabah</span>`, 'sabahmi']),
+			new CKodVeAdi(['A', `<span class=orange>Akşam</span>`, 'aksammi'])
 		)
 	}
 }

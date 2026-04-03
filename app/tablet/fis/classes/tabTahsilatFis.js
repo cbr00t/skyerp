@@ -19,7 +19,7 @@ class TabTahsilatFis extends TabFis {
 	}
 	get bakiyeEtkileyenKisim() {
 		let { cachedRecs: tRecs } = MQTabTahsilSekli.globals ?? {}
-		let vadeli = asSet(
+		let acikmi = asSet(
 			tRecs
 				?.filter(({ tip, altTip }) => !(tip || altTip))
 				?.map(r => r.kodno)
@@ -27,7 +27,7 @@ class TabTahsilatFis extends TabFis {
 		return topla(
 			d => d.bedel,
 			...this.getYazmaIcinDetaylar()
-				.filter(d => d.bedel && vadeli[d.tahSekliNo])
+				.filter(d => d.bedel && acikmi[d.tahSekliNo])
 		)
 	}
 

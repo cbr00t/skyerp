@@ -81,8 +81,13 @@
 :not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-rebeccapurple { background-color: rebeccapurple !important }
 :not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-lightpink { background-color: lightpink !important }
 
-.efimzats:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).imzali { background-color: #e8c5b7 }
-.jqx-grid-cell:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed):not(.kod).gonderildi { background-color: #cfc6c3 }
+.efimzats:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).imzali {
+	background-color: #e8c5b7
+}
+.jqx-grid-cell:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed):not(.kod).gonderildi,
+.jqx-grid-group-cell:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed):not(.kod).gonderildi {
+	background-color: #cfc6c3
+}
 
 .editable { background: unset !important }
 .readOnly, input[readonly], textarea[readonly] {

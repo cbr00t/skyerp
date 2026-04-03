@@ -564,11 +564,13 @@ class MQOnayci extends MQCogul {
 							let xbinDocs, subName = 'EmbeddedDocumentBinaryObject'
 							xbinDocs = docRefs.filter(elm =>
 								elm.querySelector(subName) && (
+									elm.querySelector(subName)?.getAttribute('filename')?.includes('.xslt') ||
+									elm.querySelector(subName)?.innerHTML?.toUpperCase() == 'XSLT' ||
 									elm.querySelector('DocumentType')?.innerHTML?.toUpperCase() == 'XSLT' ||
 									elm.querySelector('DocumentTypeCode')?.innerHTML?.toUpperCase() == 'XSLT' ||
 									elm.querySelector('ID')?.innerHTML?.toUpperCase() == 'XSLT'
 								)
-							  )
+							)
 							if (empty(xbinDocs))
 								xbinDocs = docRefs.filter(elm => elm.querySelector(subName))
 							if (!empty(xbinDocs)) {
@@ -576,7 +578,11 @@ class MQOnayci extends MQCogul {
 									.map(x => x.querySelector(subName))
 									.filter(x => x?.getAttribute('mimeCode')?.toLowerCase() == 'application/xml')
 							}
-							xsltData = xbinDocs?.at(-1)?.textContent
+							xsltData = (
+								xbinDocs.find(elm =>
+									elm.querySelector('filename')?.includes('.xslt')) ??
+								xbinDocs?.at(-1)
+							)?.textContent
 						}
 						if (!xsltData)
 							throw { isError: true, rc: 'noXSLT', errorText: 'XSLT (e-İşlem Görüntü) bilgisi belirlenemedi' }

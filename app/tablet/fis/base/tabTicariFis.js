@@ -24,8 +24,8 @@ class TabTicariFis extends TabTSFis {
 			return 0
 		let { cachedRecs: tRecs } = MQTabTahsilSekli.globals ?? {}
 		let { tahsiltipi: tip, ahalttipi: altTip } = tRecs?.find(r => r.kodno == tahSekliNo) ?? {}
-		let vadelimi = !(tahSekliNo && (tip || altTip))
-		return vadelimi ? sonucBedel : 0
+		let acikmi = !(tahSekliNo && (tip || altTip))    // karma tahsilat için => false
+		return acikmi ? sonucBedel : 0
 	}
 
 	constructor(e) {

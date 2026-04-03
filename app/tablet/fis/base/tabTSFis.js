@@ -178,7 +178,8 @@ class TabTSFis extends TabFis {
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_dipCollapsed({ sender: tanimPart, inst: fis, rfb }) {
 		await super.rootFormBuilderDuzenle_tablet_acc_dipCollapsed(...arguments)
-		let { mustKod, dvKod, dipIslemci = {}, detaylar: { length: topSatir } } = fis
+		let { mustKod, dvKod, dipIslemci = {} } = fis
+		let { detaylar: { length: topSatir } } = fis
 		let mustRec = ( mustKod ? (await MQTabCari.getGloKod2Rec())?.[mustKod] : null ) ?? {}
 		let { brut, topIskBedel, topKdv, sonuc } = dipIslemci
 		dvKod ||= 'TL'
@@ -199,24 +200,33 @@ class TabTSFis extends TabFis {
 			let bakiyeRenk = bakiye ? ( bakiye ? 'orangered' : 'forestgreen' ) : '_'
 			layoutList.push(...[
 				`<div class="item flex-row" style="gap: 10px">`,
-					`<span class="etiket lightgray">Bak: </span>`,
-					`<span class="veri ${bakiyeRenk} bold">${bakiye ? `${bedelToString(bakiye)} ${dvKod}` : '-Yok-'}</span>`,
-					(topSatir ? `<div class="royalblue"><b>${numberToString(topSatir)}</b> satır</div>` : null),
+					`<span class="bakiye etiket lightgray">Bak: </span>`,
+					`<span class="bakiye veri ${bakiyeRenk} bold">${bakiye ? `${bedelToString(bakiye)} TL` : '-Yok-'}</span>`,
+					(topSatir ? `<div class="topSatir veri royalblue"><b>${numberToString(topSatir)}</b> satır</div>` : null),
 				`</div>`
 			].filter(Boolean))
 		}
 		if (sonuc) {
 			layoutList.push(...[
 				`<div class="item flex-row" style="gap: 10px">`,
-					(topIskBedel || topKdv ? `<div>` +
-						 `<span class="lightgray">BR: </span>` +
-						 `<span>${bedelToString(brut)}</span>` +
-					 `</div>` : null),
-					(topKdv ? `<div>` +
-						 `<span class="lightgray">KD: </span>` +
-						 `<span>${bedelToString(topKdv)}</span>` +
-					 `</div>` : null),
-					(sonuc ? `<div class="orangered"><b>${bedelToString(sonuc)}</b> ${dvKod}</div>` : null),
+					( topIskBedel || topKdv ?
+						`<div>` +
+							 `<span class="brut etiket lightgray">BR: </span>` +
+							 `<span class="brut veri">${bedelToString(brut)}</span>` +
+						`</div>`
+					: null ),
+					( topKdv ?
+						`<div>` +
+							 `<span class="kdv etiket lightgray">KD: </span>` +
+							 `<span class="kdv veri">${bedelToString(topKdv)}</span>` +
+						`</div>`
+					: null ),
+					( sonuc ?
+						`<div>` +
+							`<span class="sonuc etiket lightgray">Top: </span>` +
+							`<span class="sonuc veri royalblue bold">${bedelToString(sonuc)} ${dvKod}</span>` +
+						`</div>`
+					: null ),
 				`</div>`
 			].filter(Boolean))
 		}

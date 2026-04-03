@@ -118,8 +118,10 @@ class MQCogul extends MQYapi {
 		if (rec) { let _e = $.extend({}, e, { sender: this, rec, result: [] }); this.ekCSSDuzenle(_e); return _e.result }
 	}
 	static ekCSSDuzenle(e) {
-		this.forAltYapiClassesDo('ekCSSDuzenle', e); let {rec, dataField: belirtec, result} = e, {gonderimTSSaha} = this
-		if (gonderimTSSaha && !!rec[gonderimTSSaha]) { result.push('gonderildi') }
+		this.forAltYapiClassesDo('ekCSSDuzenle', e)
+		let {rec, dataField: belirtec, result} = e, {gonderimTSSaha} = this
+		if (gonderimTSSaha && !!rec[gonderimTSSaha])
+			result.push('gonderildi')
 	}
 	static listeEkrani_init(e) { this.forAltYapiClassesDo('listeEkrani_init', e) }
 	static listeEkrani_afterRun(e) { this.forAltYapiClassesDo('listeEkrani_afterRun', e) }
@@ -410,11 +412,11 @@ class MQCogul extends MQYapi {
 					...this.getKAKolonlar(
 						new GridKolon({
 							belirtec: gonderimTSSaha, text: 'Gnd.Trh', genislikCh: 8
-						}).tipDate(),
+						}).tipDate().alignCenter(),
 						new GridKolon({
 							belirtec: gonderimTSSaha.toLowerCase().replace('ts', 'saat'),
 							text: 'Gnd.Sa', genislikCh: 8, sql: `${alias}.${gonderimTSSaha}`
-						}).tipTime_noSecs()
+						}).tipTime_noSecs().alignCenter()
 					)
 				)
 			}

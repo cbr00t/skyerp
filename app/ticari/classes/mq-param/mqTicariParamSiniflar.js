@@ -639,4 +639,3 @@ class MQTabletParam extends MQTicariParamBase {
 		super.paramSetValues(...arguments)
 	}
 }
-

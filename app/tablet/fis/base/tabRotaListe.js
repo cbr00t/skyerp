@@ -8,6 +8,7 @@ class TabRotaListe extends MQMasterOrtak {
 	static get kolonFiltreKullanilirmi() { return false }
 	static get raporKullanilirmi() { return false }
 	static get tumKolonlarGosterilirmi() { return true }
+	static get noAutoFocus() { return true }
 
 	static fisSinifFor(e) { return TabFisListe.fisSinifFor(e) }
 	static detaySinifFor(e) { return TabFisListe.detaySinifFor(e) }
@@ -41,7 +42,10 @@ class TabRotaListe extends MQMasterOrtak {
 			wsArgs.sortdatafield = null
 		
 		if (!offlineRequest) {
-			let cacheClasses = [MQTabCari, MQTabRota]
+			let { cariSinif = MQTabCari } = this
+			let cacheClasses = [cariSinif]
+			if (await app.sqlHasTable(MQTabRota.table))
+				cacheClasses.push(MQTabRota)
 			await Promise.allSettled(cacheClasses.map(_ => _.getGloKod2Rec()))
 		}
 		
@@ -138,6 +142,7 @@ class TabRotaListe extends MQMasterOrtak {
 		let { boundRecs: recs, selectedRec: rec } = gridPart
 		if (!(empty(recs) || rec))
 			setTimeout(() => w.selectrow(0), 100)
+		setTimeout(() => w.focus(), 100)
 	}
 
 	static rootFormBuilderDuzenle_listeEkrani({ sender: gridPart, rootBuilder: rfb }) {

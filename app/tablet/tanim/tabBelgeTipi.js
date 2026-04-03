@@ -4,6 +4,7 @@ class MQTabBelgeTipi extends MQKAOrtak {
 	static get tekSecimSinif() { return TabBelgeTipi } static get kodKullanilirmi() { return false } 
 	static get kodListeTipi() { return this.tekSecimSinif.kodListeTipi }
 	static get sinifAdi() { return this.tekSecimSinif.sinifAdi }
+	static get noAutoFocus() { return true }
 	
 	static loadServerDataDogrudan(e) { return this.tekSecimSinif.kaListe }
 }

@@ -1,4 +1,4 @@
-class TabFis extends MQDetayliGUID {
+class TabFis extends MQDetayliGUIDOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, '_dipIslemci'] }
 	static get araSeviyemi() { return this == TabFis }
@@ -6,17 +6,20 @@ class TabFis extends MQDetayliGUID {
 	static get sinifAdi() { return 'Tablet Fiş' }
 	static get table() { return 'tabfis' } static get tableAlias() { return 'fis' }
 	static get detaySinif() { return TabDetay } static get sayacSaha() { return 'id' }
-	static get tanimUISinif() { return TabFisGirisPart }
-	static get secimSinif() { return null }
+	static get tanimUISinif() { return TabFisGirisPart } static get secimSinif() { return null }
 	static get dipKullanilirmi() { return false }
 	static get dipSinif() { return TabIcmal }
 	static get dipGirisYapilirmi() { return true }
 	// static get gridIslemTuslariKullanilirmi() { return false }
+	static get tanimlanabilirmi() { return true }
+    static get degistirilebilirmi() { return true }
+    static get silinebilirmi() { return true }
 	static get kolonFiltreKullanilirmi() { return false }
 	static get raporKullanilirmi() { return false }
 	static get tumKolonlarGosterilirmi() { return true }
-	// static get noAutoFocus() { return true }
+	static get noAutoFocus() { return true }
 	static get gonderildiDesteklenirmi() { return true }
+	static get merkezKayitlarAlinirmi() { return false }
 	static get offlineFis() { return true }
 	static get almSat() { return null }
 	static get satismi() { return this.almSat == 'T' }
@@ -128,6 +131,9 @@ class TabFis extends MQDetayliGUID {
 		super.pTanimDuzenle(...arguments)
 		extend(pTanim, {
 			kayitTS: new PInstDateTimeNow('kayitTS'),
+			gecicimi: new PInstBool('gecici'),
+			merkezmi: new PInstBool('merkez'),
+			yazdirildimi: new PInstBool('yazdirildi'),
 			plasiyerKod: new PInstStr('plasiyerkod'),
 			tarih: new PInstDateToday('tarih'),
 			subeKod: new PInstStr('bizsubekod'),
@@ -170,12 +176,19 @@ class TabFis extends MQDetayliGUID {
 	}
 	static ekCSSDuzenle({ dataField: belirtec, rec, result }) {
 		super.ekCSSDuzenle(...arguments)
+		let { gecici, merkez, yazdirildi } = rec
+		if (gecici)
+			result.push('gecici', 'bg-lightred-transparent')
+		if (merkez)
+			result.push('merkez', 'bg-lightcadetblue')
+		if (yazdirildi)
+			result.push('yazdirildi', 'bg-mediumpurple')
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
 		liste.push(
 			new GridKolon({ belirtec: '_html', text: 'Belge' }).noSql(),
-			new GridKolon({ belirtec: 'sonucText', text: 'Fiş Sonuç', genislikCh: 11 }).noSql().alignRight()
+			new GridKolon({ belirtec: 'sonucText', text: 'Fiş Sonuç', genislikCh: 15 }).noSql().alignRight()
 		)
 	}
 	static async loadServerDataDogrudan({ offlineRequest, offlineMode } = {}) {
@@ -184,39 +197,70 @@ class TabFis extends MQDetayliGUID {
 			let { sutAlimmi, params: { tablet } } = app
 			let cacheClasses = [MQTabCari]
 			if ( sutAlimmi || tablet.sutToplama )
-				cacheClasses.push(MQTabRota)
+				cacheClasses.push(MQTabRota, MQTabMustahsil)
 			await Promise.allSettled(cacheClasses.map(_ => _.getGloKod2Rec()))
 		}
 		let recs = await super.loadServerDataDogrudan(...arguments)
 		if (!offlineRequest) {
 			let { tip2Sinif } = TabFis
+			let { detayTable } = this
+			let idListe = keys(asSet(recs.map(r => r.id)))
+			let id2DetaySayi = {}
+			if (detayTable) {
+				let sent = new MQSent(), { where: wh, sahalar } = sent
+				sent.fromAdd(detayTable)
+				wh.inDizi(idListe, 'fisid')
+				sahalar.add('fisid id', 'COUNT(*) sayi')
+				sent.groupByOlustur()
+				;(await sent.execSelect()).forEach(({ id, sayi }) =>
+					id2DetaySayi[id] = sayi)
+			}
 			recs.forEach(rec => {
-				let { fisTipi: tip, dvKod, sonuc, brm, topMiktar } = rec
+				let { id, fisTipi: tip, dvKod, sonuc, brm, topMiktar } = rec
 				dvKod ||= 'TL'
 				if (!sonuc && topMiktar && !brm) {
 					let { detaySinif: { defaultBrm } = {} } = tip2Sinif[tip]
 					brm = defaultBrm || 'AD'
 				}
-				rec.sonucText = (
-					sonuc ? (
-						`<span class="bedel asil bold orangered">${bedelToString(sonuc)}</span> ` +
-						`<span class="bedel ek-bilgi gray">${dvKod}</span>`
-					) : topMiktar ? (
-						`<span class="miktar asil bold forestgreen">${numberToString(topMiktar)}</span> ` +
-						`<span class="miktar ek-bilgi gray">${brm}</span>`
-					) :
-					''
-				)
+				
+				let detaySayi = id2DetaySayi[id]
+				let sonucLines = []
+				;{
+					let text = [
+						`<div class="item">`,
+						(
+							sonuc ? (
+								`<span class="bedel asil bold orangered">${bedelToString(sonuc)}</span> ` +
+								`<span class="bedel ek-bilgi gray">${dvKod}</span>`
+							) : topMiktar ? (
+								`<span class="miktar asil bold forestgreen">${numberToString(topMiktar)}</span> ` +
+								`<span class="miktar ek-bilgi gray">${brm}</span>`
+							) : ''
+						),
+						`</div>`
+					].join('')
+					sonucLines.push(text)
+				}
+				if (detaySayi) {
+					sonucLines.push(
+						`<div class="item">` +
+							`<span class="detaySayi asil bold royalblue">${numberToString(detaySayi)}</span> ` +
+							`<span class="detaySayi ek-bilgi gray">kalem</span>` +
+						`</div>`
+					)
+				}
+				rec.sonucText = empty(sonucLines) ? '' : sonucLines.join('\n')
 				rec._html = this.getHTML({ ...e, rec })
 			})
 		}
 		return recs
 	}
 	static loadServerData_queryDuzenle(e = {}) {
-		let { gridPart = e.parentPart ?? e.sender, offlineRequest, offlineMode, stm } = e
+		let { gridPart = e.parentPart ?? e.sender, offlineBuildQuery, offlineRequest, offlineMode, stm } = e
 		let { plasiyerKod } = app, { mustKod } = gridPart ?? {}
 		super.loadServerData_queryDuzenle(e)
-		let { tableAlias: alias } = this
+		let { tableAlias: alias, idSaha, detaySinif: { table: detayTable, fisSayacSaha } = {} } = this
+		let { merkezKayitlarAlinirmi } = this
 		let unvanSaha = offlineMode === false ? 'birunvan' : MQTabCari.adiSaha
 		for (let sent of stm) {
 			let { from, where: wh, sahalar, alias2Deger } = sent
@@ -225,6 +269,8 @@ class TabFis extends MQDetayliGUID {
 			if (!offlineRequest || offlineMode) {
 				// tablet local
 				wh.add(`${alias}.silindi = ''`)
+				if (!merkezKayitlarAlinirmi)
+					wh.add(`${alias}.merkez = ''`)
 				if (plasiyerKod) {
 					let or = new MQOrClause()
 						.add(`${alias}.plasiyerkod = ''`)
@@ -238,17 +284,17 @@ class TabFis extends MQDetayliGUID {
 					wh.add(or)
 				}
 			}
-			if (!alias2Deger.mustunvan)
-				sahalar.add(`car.${unvanSaha} mustunvan`)
-			if (!alias2Deger['*'])
-				sahalar.add(`${alias}.*`)
+			sahalar.add(`car.${unvanSaha} mustunvan`, `${alias}.*`)
 		}
-		let {orderBy} = stm
+		let { orderBy } = stm
 		orderBy.liste = orderBy.liste
 			.filter(_ => !_.startsWith('_'))
 			.map(_ => _.toUpperCase().endsWith('DESC') ? _ : `${_} DESC`)
 		if (empty(orderBy.liste))
-			orderBy.add('tarih DESC', 'seri DESC', 'fisno DESC')
+			orderBy.add(
+				'merkez',    // Tablet, Merkez
+				'tarih DESC', 'seri DESC', 'fisno DESC'
+			)
 	}
 	static async loadServerData_detaylar({ parentRec: { fisTipi } = {}, offlineRequest, offlineMode }) {
 		let recs = await super.loadServerData_detaylar(...arguments)
@@ -1070,12 +1116,12 @@ class TabFis extends MQDetayliGUID {
 			.setLayout(layout).setPart(tanimPart)
 			.setInst(inst)
 	}
-	static getHTML({ rec } = {}) {
-		let e = arguments[0]
+	static getHTML(e = {}) {
+		let { gridPart = e.sender, rec } = e
 		let { fisTipi, tarih, seri, noyil, fisno, must, mustunvan, rotaID, posta } = rec
 		let rotaAdi = rotaID
 			? MQTabRota.globals?.cachedRecs?.find(r =>
-				r.vioID == rotaID)?.aciklama || rotaID
+				r.rotaID == rotaID)?.aciklama || rotaID
 			: null
 		let postaAdi = posta ? new TabPosta(posta)?.aciklama : null
 		let fisSinif = TabFisListe.fisSinifFor(fisTipi)
@@ -1100,6 +1146,7 @@ class TabFis extends MQDetayliGUID {
 
 		let ekHTMLLines = { sol: [], sag: [] }
 		this.ekHTMLDuzenle({ ...e, result: ekHTMLLines })
+		let headerMustVarmi = !!gridPart.mustKod
 		
 		let result = [
 			`<div class="aligned full-width relative" style="gap: 0 10px">`,
@@ -1107,8 +1154,8 @@ class TabFis extends MQDetayliGUID {
 				`<div class="sol float-left">`,
 					`<span class="tarih ek-bilgi bold">${dateKisaString(asDate(tarih)) ?? ''}</span>`,
 					`<span class="fisNox asil royalblue">${tsnText}</span>`,
-					`<span class="mustUnvan asil orangered">${mustunvan || ''}</span>`,
-					`<span class="ek-bilgi bold">${must ? `(${must})` : ''}</span>`,
+					( headerMustVarmi ? null : `<span class="mustUnvan asil orangered">${mustunvan || ''}</span>` ),
+					( headerMustVarmi ? null : `<span class="ek-bilgi bold">${must ? `(${must})` : ''}</span>` ),
 					( rotaAdi ? `<span class="rota ek-bilgi">R:</span> <span class="rotaAdi asil blueviolet">${rotaAdi}</span>` : null ),
 					( postaAdi ? `<span class="poosta ek-bilgi">P:</span> <span class="posta asil bold darkyellow">${postaAdi}</span>` : null ),
 					...(ekHTMLLines.sol ?? []),
@@ -1116,7 +1163,7 @@ class TabFis extends MQDetayliGUID {
 				`<div class="sag float-right">`,
 					( eIslText ? `<span class="ek-bilgi bold red">${eIslText}</span>` : null ),
 					( fisSinif ? `<span class="royalblue ek-bilgi">${fisSinif.sinifAdi || ''}</span>` : null ),
-					...(ekHTMLLines.sag ?? []),
+					...( ekHTMLLines.sag ?? [] ),
 				`</div>`,
 			`</div>`
 		].filter(Boolean)
@@ -1142,4 +1189,11 @@ class TabFis extends MQDetayliGUID {
 			dip.fis = result
 		return result
 	}
+
+	gecici() { this.gecicimi = true; return this }
+	geciciReset() { this.gecicimi = false; return this }
+	merkez() { this.merkezmi = true; return this }
+	merkezReset() { this.merkezmi = false; return this }
+	yazdirildi() { this.yazdirildimi = true; return this }
+	yazdirildiReset() { this.yazdirildimi = false; return this }
 }

@@ -4,6 +4,8 @@ CREATE TABLE IF NOT EXISTS tabfis (
 	fisTipi TEXT NOT NULL DEFAULT '',
 	silindi TEXT NOT NULL DEFAULT '',
 	gecici TEXT NOT NULL DEFAULT '',
+	merkez TEXT NOT NULL DEFAULT '',
+	yazdirildi TEXT NOT NULL DEFAULT '',
 	tarih TEXT NOT NULL DEFAULT '',
 	plasiyerkod TEXT NOT NULL DEFAULT '',
 	bizsubekod TEXT NOT NULL DEFAULT '',

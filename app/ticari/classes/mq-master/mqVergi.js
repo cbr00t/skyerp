@@ -11,14 +11,14 @@ class MQVergi extends MQKA {
 
 	static get ekVergiSayi() { return 2 }
 	static get ioAttrPrefixes_ekVergi() {
-		const liste = [];
-		for (const key of this.getIOAttrPrefixes_ekVergi())
+		let liste = [];
+		for (let key of this.getIOAttrPrefixes_ekVergi())
 			liste.push(key)
 		return liste
 	}
 	static get rowAttrPrefixes_ekVergi() {
-		const liste = [];
-		for (const key of this.getRowAttrPrefixes_ekVergi())
+		let liste = [];
+		for (let key of this.getRowAttrPrefixes_ekVergi())
 			liste.push(key)
 		return liste
 	}
@@ -39,50 +39,50 @@ class MQVergi extends MQKA {
 	static get sabitOtvOranlari() { return this.getSabitOranlar({ belirtec: 'otv' }) }
 	static getSabitOranlar(e) {
 		e = e || {};
-		const belirtec = e.belirtec || e.key;
-		const altSinif = this.belirtec2AltSinif[belirtec];
+		let belirtec = e.belirtec || e.key;
+		let altSinif = this.belirtec2AltSinif[belirtec];
 		return altSinif ? altSinif.sabitOranlar : null
 	}
 	static async getKod2VergiBilgi(e) {
 		e = e || {};
 		let belirtec = e.belirtec || e.key;
 		if (belirtec) {
-			const altSinif = this.belirtec2AltSinif[belirtec];
+			let altSinif = this.belirtec2AltSinif[belirtec];
 			return altSinif ? await altSinif.getKod2VergiBilgi(e) : null
 		}
-		const oransizmi = e.oransizmi ?? e.oransiz;
-		const rootGlobals = MQVergi.globals;
-		const belirtec2Globals = rootGlobals.belirtec2Globals = rootGlobals.belirtec2Globals || {};
-		const rootGlobalKey = this.belirtec || this.classKey || this;
-		const globalKey = [rootGlobalKey, oransizmi ? 'oransiz' : ''].join('-');
-		const globals = belirtec2Globals[globalKey] = belirtec2Globals[globalKey] || {};
+		let oransizmi = e.oransizmi ?? e.oransiz;
+		let rootGlobals = MQVergi.globals;
+		let belirtec2Globals = rootGlobals.belirtec2Globals = rootGlobals.belirtec2Globals || {};
+		let rootGlobalKey = this.belirtec || this.classKey || this;
+		let globalKey = [rootGlobalKey, oransizmi ? 'oransiz' : ''].join('-');
+		let globals = belirtec2Globals[globalKey] = belirtec2Globals[globalKey] || {};
 		let result = globals.kod2VergiBilgi;
 		if (result == null) {
 			result = {};
-			const {table, kodSaha} = MQVergi;
-			const {tipSet, rowAttrPrefix} = this;
+			let {table, kodSaha} = MQVergi;
+			let {tipSet, rowAttrPrefix} = this;
 			let sent = new MQSent({
 				from: table,
 				where: [`kod <> ''`, `alttip = ''`, `baktifmi <> 0`],
 				sahalar: (oransizmi ? ['kod', 'aciklama', 'vergitipi', 'alttip', 'belirtec', 'ba'] : ['*'])
 			});
-			const recs = await app.sqlExecSelect({ query: sent });
-			const {belirtec2AltSinif} = this;
-			for (const rec of recs) {
-				const kod = rec.kod.trimEnd();
-				const altTip = rec.alttip.trimEnd();
+			let recs = await app.sqlExecSelect({ query: sent });
+			let {belirtec2AltSinif} = this;
+			for (let rec of recs) {
+				let kod = rec.kod.trimEnd();
+				let altTip = rec.alttip.trimEnd();
 				let oranYapi;
 				if (!oransizmi) {
 					oranYapi = {}
-					for (const belirtec in belirtec2AltSinif) {
-						const cls = belirtec2AltSinif[belirtec];
-						const {rowAttrPrefix} = cls;
-						const oran = rec[`${rowAttrPrefix || ''}orani`];
+					for (let belirtec in belirtec2AltSinif) {
+						let cls = belirtec2AltSinif[belirtec];
+						let {rowAttrPrefix} = cls;
+						let oran = rec[`${rowAttrPrefix || ''}orani`];
 						if (oran != null)
 							oranYapi[belirtec] = asFloat(oran)
 					}
 				}
-				const item = {
+				let item = {
 					kod: kod, aciklama: rec.aciklama.trimEnd(),
 					tip: rec.vergitipi.trimEnd(), ba: rec.ba.trimEnd(),
 					belirtec: rec.belirtec.trimEnd()
@@ -102,10 +102,10 @@ class MQVergi extends MQKA {
 		return this.getKod2VergiBilgi(e)
 	}
 	static get tevkifatOranlari() {
-		const {globals} = this;
+		let {globals} = this;
 		let result = globals.tevkifatOranlari;
 		if (result == null) {
-			const {tevkifatOranlari} = app.sabitTanimlar.vergi || {};
+			let {tevkifatOranlari} = app.sabitTanimlar.vergi || {};
 			result = tevkifatOranlari;
 			if (result == null)
 				result = ['1/10', '2/10', '3/10', '4/10', '5/10', '7/10', '9/10']
@@ -123,7 +123,7 @@ class MQVergi extends MQKA {
 	}
 	static getTevkifatlar(e) {
 		e = e || {};
-		const fisSinif = e.fis || (e.fis || {}).class;
+		let fisSinif = e.fis || (e.fis || {}).class;
 		
 		let alimmi = coalesce(coalesce(e.alim, e.alimmi), e.ba ? e.ba == 'A' : null);
 		if (alimmi == null)
@@ -134,22 +134,22 @@ class MQVergi extends MQKA {
 		if (kismimi == null)
 			kismimi = !coalesce(e.tam, e.tammi)
 
-		const {globals} = this;
+		let {globals} = this;
 		let result = globals.tevkifatKodlari;
 		if (result == null)
 			globals.tevkifatKodlari = result = {}
-		const subKey = [ alimmi ? 'A' : 'T', kismimi ? 'K' : 'T' ];
+		let subKey = [ alimmi ? 'A' : 'T', kismimi ? 'K' : 'T' ];
 		let subResult = result[subKey];
 		if (subResult === undefined) {
-			const vergi = app.sabitTanimlar.vergi || {};
-			const selector = kismimi ? 'kismiTevkifatUygulananIslemTurleri' : 'tamTevkifatIslemTurleri';
+			let vergi = app.sabitTanimlar.vergi || {};
+			let selector = kismimi ? 'kismiTevkifatUygulananIslemTurleri' : 'tamTevkifatIslemTurleri';
 			subResult = vergi[selector] || null;
 			if (subResult) {
-				const uygunOlmayanKodSet = {};
-				const _subResult = subResult;
+				let uygunOlmayanKodSet = {};
+				let _subResult = subResult;
 				subResult = [];
-				const kaSinif = kismimi ? CKodAdiVeOran : CKodVeAdi;
-				for (const item of _subResult) {
+				let kaSinif = kismimi ? CKodAdiVeOran : CKodVeAdi;
+				for (let item of _subResult) {
 					let {kod} = item;
 					if (!uygunOlmayanKodSet[kod]) {
 						if (alimmi)
@@ -169,12 +169,12 @@ class MQVergi extends MQKA {
 		return this.getTevkifatDict($.extend({}, e, { kismi: true }))
 	}
 	static getTevkifatDict(e) {
-		const {globals} = this;
-		const key = `tevkifatDict-${toJSONStr(e)}`;
+		let {globals} = this;
+		let key = `tevkifatDict-${toJSONStr(e)}`;
 		let result = globals[key];
 		if (result == null) {
 			result = {};
-			for (const ka of this.getTevkifatlar(e))
+			for (let ka of this.getTevkifatlar(e))
 				result[ka.kod] = ka
 			globals[key] = result
 		}
@@ -194,7 +194,7 @@ class MQVergi extends MQKA {
 	}
 	static getIstisnalar(e) {
 		e = e || {};
-		const fisSinif = e.fis || (e.fis || {}).class;
+		let fisSinif = e.fis || (e.fis || {}).class;
 		let alimmi = coalesce(e.alim, e.alimmi);
 		if (alimmi == null)
 			alimmi = !coalesce(e.satis, e.satismi);
@@ -204,23 +204,23 @@ class MQVergi extends MQKA {
 		if (kismimi == null)
 			kismimi = !coalesce(e.tam, e.tammi)
 
-		const {globals} = this;
+		let {globals} = this;
 		let result = globals.istisnalar;
 		if (result == null)
 			globals.istisnalar = result = {}
-		const subKey = [ alimmi ? 'A' : 'T', kismimi ? 'K' : 'T' ];
+		let subKey = [ alimmi ? 'A' : 'T', kismimi ? 'K' : 'T' ];
 		let subResult = result[subKey];
 		if (subResult === undefined) {
-			const vergi = app.sabitTanimlar.vergi || {};
-			const selector = kismimi ? 'kismiistisnalar' : 'tamistisnalar';
+			let vergi = app.sabitTanimlar.vergi || {};
+			let selector = kismimi ? 'kismiistisnalar' : 'tamistisnalar';
 			subResult = vergi[selector] || null;
 			if (subResult) {
-				const uygunOlmayanKodSet = kismimi ? {} : asSet(['301', '302', '303']);
-				const _subResult = subResult;
+				let uygunOlmayanKodSet = kismimi ? {} : asSet(['301', '302', '303']);
+				let _subResult = subResult;
 				subResult = [];
-				const kaSinif = CKodAdiVeMadde;
-				for (const item of _subResult) {
-					const {kod} = item;
+				let kaSinif = CKodAdiVeMadde;
+				for (let item of _subResult) {
+					let {kod} = item;
 					if (!uygunOlmayanKodSet[kod])
 						subResult.push(new kaSinif({ kod: kod, aciklama: item.ad || item.adi || item.aciklama || '', madde: item.madde }))
 				}
@@ -240,10 +240,10 @@ class MQVergi extends MQKA {
 	static getTumIstisnaDict(e) {
 		e = e || {}; let {globals} = this, key  = `tumIstisnaDict-${toJSONStr(e)}`, result = globals[key];
 		if (result == null) { result = { ...this.getKismiIstisnaDict(e), ...this.getTamIstisnaDict(e) }; globals[key] = result }
-		const tamIstisnalar = (app.sabitTanimlar.vergi || {}).tamistisnalar || [];
+		let tamIstisnalar = (app.sabitTanimlar.vergi || {}).tamistisnalar || [];
 		if (!$.isEmptyObject(tamIstisnalar)) {
-			const uygunOlmayanKodSet = asSet(['301', '302', '303']);
-			for (const {kod} of tamIstisnalar) {
+			let uygunOlmayanKodSet = asSet(['301', '302', '303']);
+			for (let {kod} of tamIstisnalar) {
 				if (!uygunOlmayanKodSet[kod]) { continue }
 				result[kod] = new CKodAdiVeMadde({ kod, aciklama: rec.ad || rec.adi || rec.aciklama || '', madde: rec.madde })
 			}
@@ -251,12 +251,12 @@ class MQVergi extends MQKA {
 		return result
 	}
 	static getIstisnaDict(e) {
-		const {globals} = this;
-		const key = `istisnaDict-${toJSONStr(e)}`;
+		let {globals} = this;
+		let key = `istisnaDict-${toJSONStr(e)}`;
 		let result = globals[key];
 		if (result == null) {
 			result = {};
-			for (const ka of this.getIstisnalar(e))
+			for (let ka of this.getIstisnalar(e))
 				result[ka.kod] = ka;
 			globals[key] = result
 		}
@@ -264,14 +264,14 @@ class MQVergi extends MQKA {
 	}
 	static getKod2Oran(e) {
 		e = e || {};
-		const {belirtec} = e;
-		const altSinif = this.belirtec2AltSinif[belirtec];
+		let {belirtec} = e;
+		let altSinif = this.belirtec2AltSinif[belirtec];
 		return altSinif ? altSinif.getKod2Oran(e) : null;
 	}
 	static oran2KodSet(e) {
 		e = e || {};
-		const {belirtec} = e;
-		const altSinif = this.belirtec2AltSinif[belirtec];
+		let {belirtec} = e;
+		let altSinif = this.belirtec2AltSinif[belirtec];
 		return altSinif ? altSinif.oran2KodSet(e) : null;
 	}
 	static getKdvKod2Oran(e) {
@@ -323,7 +323,7 @@ class MQVergi extends MQKA {
 		let result = this._eTip2BelirtecDict;
 		if (result === undefined) {
 			result = {};
-			for (const cls of [MQVergiKdv, MQVergiOtv, MQVergiStopaj])
+			for (let cls of [MQVergiKdv, MQVergiOtv, MQVergiStopaj])
 				result[cls.eIslTypeCode] = cls.belirtec
 			for (let i = 72; i <= 77; i++)
 				result[`00${i}`] = MQVergiOtv.belirtec
@@ -341,17 +341,17 @@ class MQVergi extends MQKA {
 	}
 	static getETip2Belirtec(e) {
 		e = e || {}
-		const eTip = typeof e == 'object' ? e.eTip : e;
-		const {eTip2BelirtecDict}  = this;
+		let eTip = typeof e == 'object' ? e.eTip : e;
+		let {eTip2BelirtecDict}  = this;
 		return eTip2BelirtecDict[eTip] || null
 	}
 	static get belirtec2AltSinif() {
 		let result = this._belirtec2AltSinif;
 		if (result === undefined) {
 			result = {};
-			const subClasses = MQVergiAlt.subClasses;
-			for (const cls of subClasses) {
-				const {belirtec} = cls;
+			let subClasses = MQVergiAlt.subClasses;
+			for (let cls of subClasses) {
+				let {belirtec} = cls;
 				if (belirtec)
 					result[belirtec] = cls
 			}
@@ -361,14 +361,14 @@ class MQVergi extends MQKA {
 	}
 	static altYapiDictDuzenle(e) {
 		super.altYapiDictDuzenle(e);
-		const {liste} = e;
-		const {belirtec2AltSinif} = this;
-		for (const belirtec in belirtec2AltSinif)
+		let {liste} = e;
+		let {belirtec2AltSinif} = this;
+		for (let belirtec in belirtec2AltSinif)
 			liste[belirtec] = belirtec2AltSinif[belirtec]
 	}
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e);
-		const {pTanim} = e;
+		let {pTanim} = e;
 		$.extend(pTanim, {
 			ba: new PInstTekSecim('ba', BorcAlacak),
 			tip: new PInstTekSecim('vergitipi', VergiTip),
@@ -382,45 +382,45 @@ class MQVergi extends MQKA {
 		})
 	}
 	static rootFormBuilderDuzenle(e) {
-		e = e || {}; super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); const {tabPage_genel} = e;
+		e = e || {}; super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); let {tabPage_genel} = e;
 		let form = tabPage_genel.addFormWithParent().yanYana();
 		form.addRadioButton({ id: 'ba', etiket: 'B/A', source: e => e.builder.inst.ba.kaListe }).addStyle_wh('300px !important');
 		form.addLabel({ etiket: 'Tip' }).addStyle(e => `$elementCSS { --width: 50px; min-width: var(--width) !important; width: var(--width) !important; margin-bottom: 50px !important }`);
 		form.addModelKullan({ id: 'tip', etiket: '', source: e => e.builder.inst.tip.kaListe }).etiketGosterim_yok()
 			.dropDown().noMF().kodsuz()
 			.degisince(e => {
-				const {builder} = e, {fbd_vergiAltForm} = builder.rootPart;
-				for (const builder of fbd_vergiAltForm.getBuilders()) { builder.updateVisible() }
+				let {builder} = e, {fbd_vergiAltForm} = builder.rootPart;
+				for (let builder of fbd_vergiAltForm.getBuilders()) { builder.updateVisible() }
 			})
 			.addStyle_wh({ width: '300px !important' });
 		form = tabPage_genel.addFormWithParent().altAlta();
-		const fbd_vergiAltForm = e.fbd_vergiAltForm = tabPage_genel.addFormWithParent({ id: 'vergiAltForm' });
+		let fbd_vergiAltForm = e.fbd_vergiAltForm = tabPage_genel.addFormWithParent({ id: 'vergiAltForm' });
 		this.rootFormBuilderDuzenle_vergiAltForm(e);
 		fbd_vergiAltForm._afterRun = fbd_vergiAltForm.afterRun;
 		fbd_vergiAltForm.onAfterRun(e => {
-			const {builder} = e;
-			const {rootPart, _afterRun} = builder;
+			let {builder} = e;
+			let {rootPart, _afterRun} = builder;
 			builder.rootPart.fbd_vergiAltForm = builder;
 			if (_afterRun)
 				getFuncValue.call(this, _afterRun, e)
 		})
 	}
 	static getFormBuilders_vergiAltForm(e) {
-		const fbd_vergiAltForm = e.fbd_vergiAltForm = new FormBuilder({ id: 'vergiAltForm' });
+		let fbd_vergiAltForm = e.fbd_vergiAltForm = new FormBuilder({ id: 'vergiAltForm' });
 		this.rootFormBuilderDuzenle_vergiAltForm(e)
 		return fbd_vergiAltForm
 	}
 	static rootFormBuilderDuzenle_vergiAltForm(e) {
-		const {fbd_vergiAltForm} = e;
+		let {fbd_vergiAltForm} = e;
 		fbd_vergiAltForm.altAlta();
-		for (const altYapiKey in MQVergi.altYapiDict) {
+		for (let altYapiKey in MQVergi.altYapiDict) {
 			let form = fbd_vergiAltForm.addFormWithParent({ id: altYapiKey }).yanYana(2)
-				.setAltInst(e => { const {builder} = e; return builder.inst[builder.id] })
+				.setAltInst(e => { let {builder} = e; return builder.inst[builder.id] })
 				.setVisibleKosulu(e => {
-					const {builder} = e;
-					const {altInst, inst} = builder;
-					const altYapiKey = builder.id;
-					const tip = inst.tip.char ?? inst.tip;
+					let {builder} = e;
+					let {altInst, inst} = builder;
+					let altYapiKey = builder.id;
+					let tip = inst.tip.char ?? inst.tip;
 					return !!altInst.class.tipSet[tip] || (altYapiKey == 'kdv' && tip == 'KTEV')
 				});
 			form.addTextInput({ id: 'belirtec', etiket: 'Belirteç', maxLength: 8 })
@@ -431,29 +431,29 @@ class MQVergi extends MQKA {
 				.addStyle_wh({ width: '100px !important' });
 			form.addModelKullan({ id: 'oran', etiket: 'Oran', maxLength: 3 }).comboBox().noMF().kodsuz()
 				.setSource(e => {
-					const {altInst} = e.builder;
-					const oranlar = [0, ...(altInst.class.sabitOranlar || [])];
+					let {altInst} = e.builder;
+					let oranlar = [0, ...(altInst.class.sabitOranlar || [])];
 					return oranlar.map(oran => new CKodVeAdi({ kod: oran, aciklama: oran.toString() }))
 				})
 				.widgetArgsDuzenleIslemi(e => {
 					$.extend(e.args, {
 						rendererEk: e => {
-							const matchStr = `<div class="aciklama`;
+							let matchStr = `<div class="aciklama`;
 							return e.result.replace(matchStr, `${matchStr} right`)
 						}
 					})
 				})
 				.degisince(e => {
-					const {builder} = e;
-					const value = asFloat(e.sender.widget.input.val());
+					let {builder} = e;
+					let value = asFloat(e.sender.widget.input.val());
 					builder.inst.belirtec = value.toString()
 				})
 				.addStyle_wh({ width: '100px !important' })
 				.addStyle(e => `$elementCSS .jqx-widget-content { text-align: right }`);
 			if (altYapiKey == 'kdv') {
-				const getAltInst = e => e.builder.parentBuilder.altInst.tevkifatYapi;
-				const getVisibleKosulu = e => {
-					const {inst} = e.builder; const tip = inst.tip.char ?? inst.tip;
+				let getAltInst = e => e.builder.parentBuilder.altInst.tevkifatYapi;
+				let getVisibleKosulu = e => {
+					let {inst} = e.builder; let tip = inst.tip.char ?? inst.tip;
 					return tip == 'KTEV'
 				};
 				form.addNumberInput({ id: 'pay', etiket: 'Pay', min: 0, max: 10 })
@@ -465,23 +465,23 @@ class MQVergi extends MQKA {
 				form.addModelKullan({ id: 'tevkifatIslemTuru', etiket: 'İşlem Türü' }).dropDown().noMF()
 					.setAltInst(getAltInst).setVisibleKosulu(getVisibleKosulu)
 					.setSource(e => {
-						const {inst} = e.builder; const ba = inst.ba.char ?? inst.ba;
+						let {inst} = e.builder; let ba = inst.ba.char ?? inst.ba;
 						return MQVergi.getKismiTevkifatlar({ ba: ba })
 					})
 					.degisince(e => {
-						const {builder} = e;
-						const {inst, altInst, parentBuilder} = builder;
-						const value = altInst.tevkifatIslemTuru = e.value;
+						let {builder} = e;
+						let {inst, altInst, parentBuilder} = builder;
+						let value = altInst.tevkifatIslemTuru = e.value;
 						let islemTuru = e.item;
 						if (!islemTuru) {
-							const ba = inst.ba.char ?? inst.ba;
+							let ba = inst.ba.char ?? inst.ba;
 							islemTuru = MQVergi.getKismiTevkifatlar({ ba: ba }).find(ka => ka.kod == value)
 						}
-						const {oran} = islemTuru || {};
+						let {oran} = islemTuru || {};
 						if (oran) {
 							inst.belirtec = oran;
-							const parts = oran.split('/');
-							const {id2Builder} = parentBuilder;
+							let parts = oran.split('/');
+							let {id2Builder} = parentBuilder;
 							id2Builder.pay.input.val(asInteger(parts[0]) || 0);
 							id2Builder.baz.input.val(asInteger(parts[1]) || 0)
 						}
@@ -491,12 +491,12 @@ class MQVergi extends MQKA {
 		}
 	}
 	static getFormBuilder_shdKDV(e) {
-		const {ioAttrPrefix, etiketPrefix, ba} = e;
+		let {ioAttrPrefix, etiketPrefix, ba} = e;
 		return this.getFormBuilder_shdDigerVergi($.extend({}, e, {
 			ioAttr: `${ioAttrPrefix}KdvHesapKod`, etiket: 'KDV Hesabı',
 			belirtec: 'KDV', ba: ba,
 			builderDuzenle: e => {
-				const {formBuilder, vergiHesapBuilder, ioAttrPrefix, etiketPrefix} = e;
+				let {formBuilder, vergiHesapBuilder, ioAttrPrefix, etiketPrefix} = e;
 				formBuilder.add(
 					vergiHesapBuilder,
 					new FBuilder_CheckBox({ id: `${ioAttrPrefix}KdvDegiskenmi`, etiket: `${etiketPrefix || ''} KDV Değişkendir` })
@@ -511,11 +511,11 @@ class MQVergi extends MQKA {
 		}))
 	}
 	static getFormBuilder_shdDigerVergi(e) {
-		const {belirtec, ioAttr, etiket, ba} = e;
+		let {belirtec, ioAttr, etiket, ba} = e;
 		let vergiHesapBuilder = new FBuilder_ModelKullan({ id: ioAttr, etiket: etiket, mfSinif: MQVergi })
 			.dropDown()
 			.ozelQueryDuzenleBlock(e => {
-				const {stm, alias} = e;
+				let {stm, alias} = e;
 				stm.sentDo(sent => {
 					sent.where.degerAta(belirtec.toUpperCase(), `${alias}.vergitipi`);
 					sent.where.degerAta(ba, `${alias}.ba`)
@@ -523,9 +523,9 @@ class MQVergi extends MQKA {
 			});
 		let formBuilder = new FBuilderWithInitLayout({ id: `${belirtec}Form` });
 		let attachedToParentFlag = false;
-		const {builderDuzenle} = e;
+		let {builderDuzenle} = e;
 		if (builderDuzenle) {
-			const _e = $.extend({}, e, {
+			let _e = $.extend({}, e, {
 				formBuilder: formBuilder, vergiHesapBuilder: vergiHesapBuilder,
 				attachedToParentFlag: coalesce(e.attachedToParent, false),
 				attachedToParent() { this.attachedToParentFlag = true; return this },
@@ -542,7 +542,7 @@ class MQVergi extends MQKA {
 	}
 	static secimlerDuzenle(e) {
 		super.secimlerDuzenle(e);
-		const {secimler} = e;
+		let {secimler} = e;
 		secimler.secimTopluEkle({
 			tip: new SecimBirKismi({ etiket: 'Tip', tekSecimSinif: VergiTip }),
 			grupKod: new SecimString({ mfSinif: MQVergiGrup }),
@@ -551,8 +551,8 @@ class MQVergi extends MQKA {
 			ba: new SecimBirKismi({ etiket: 'B/A', tekSecimSinif: BorcAlacak })
 		});
 		secimler.whereBlockEkle(e => {
-			const {aliasVeNokta} = this;
-			const {where, secimler} = e;
+			let {aliasVeNokta} = this;
+			let {where, secimler} = e;
 			if (secimler.tip.value != null)
 				where.birKismi(secimler.tip.value, `${aliasVeNokta}vergitipi`);
 			where.basiSonu(secimler.grupKod, `${aliasVeNokta}vergrupkod`);
@@ -564,8 +564,8 @@ class MQVergi extends MQKA {
 	}
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e);
-		const {aliasVeNokta} = this;
-		const {liste} = e;
+		let {aliasVeNokta} = this;
+		let {liste} = e;
 		liste.push(
 			new GridKolon({ belirtec: 'vergrupkod', text: 'Grup', genislikCh: 10 }),
 			new GridKolon({ belirtec: 'vergrupadi', text: 'Grup Adı', genislikCh: 20, sql: 'vgrp.aciklama' }),
@@ -579,8 +579,8 @@ class MQVergi extends MQKA {
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e);
-		const {aliasVeNokta} = this;
-		const {sent} = e;
+		let {aliasVeNokta} = this;
+		let {sent} = e;
 		sent.fromIliski('vergigrup vgrp', 'ver.vergrupkod = vgrp.kod')
 	}
 }
@@ -593,7 +593,7 @@ class MQVergiAlt extends MQAlt {
 	static get tipSet() {
 		let result = this._tipSet;
 		if (!result) {
-			const e = { liste: {} };
+			let e = { liste: {} };
 			this.tipSetDuzenle(e);
 			result = this._tipSet = e.liste
 		}
@@ -602,16 +602,16 @@ class MQVergiAlt extends MQAlt {
 	static tipSetDuzenle(e) { }
 	static async getKod2VergiBilgi(e) {
 		e = e || {};
-		const rootGlobals = MQVergi.globals;
-		const belirtec2Globals = rootGlobals.belirtec2Globals = rootGlobals.belirtec2Globals || {};
-		const rootGlobalKey = this.belirtec || this.classKey || this;
-		const globalKey = [rootGlobalKey].join('-');
-		const globals = belirtec2Globals[globalKey] = belirtec2Globals[globalKey] || {};
+		let rootGlobals = MQVergi.globals;
+		let belirtec2Globals = rootGlobals.belirtec2Globals = rootGlobals.belirtec2Globals || {};
+		let rootGlobalKey = this.belirtec || this.classKey || this;
+		let globalKey = [rootGlobalKey].join('-');
+		let globals = belirtec2Globals[globalKey] = belirtec2Globals[globalKey] || {};
 		let result = globals.kod2VergiBilgi;
 		if (result == null) {
 			result = {};
-			const {table, kodSaha} = MQVergi;
-			const {tipSet, rowAttrPrefix} = this;
+			let {table, kodSaha} = MQVergi;
+			let {tipSet, rowAttrPrefix} = this;
 			let sent = new MQSent({
 				from: table,
 				where: [
@@ -620,11 +620,11 @@ class MQVergiAlt extends MQAlt {
 				],
 				sahalar: ['kod', 'ba', `${rowAttrPrefix}orani oran`]
 			});
-			const recs = await app.sqlExecSelect({ query: sent });
-			for (const rec of recs) {
-				const kod = rec.kod.trimEnd();
-				const ba = rec.ba.trimEnd();
-				const oran = asFloat(rec.oran);
+			let recs = await app.sqlExecSelect({ query: sent });
+			for (let rec of recs) {
+				let kod = rec.kod.trimEnd();
+				let ba = rec.ba.trimEnd();
+				let oran = asFloat(rec.oran);
 				result[kod] = { ba: ba, oran: oran }
 			}
 			globals.kod2VergiBilgi = result
@@ -633,19 +633,19 @@ class MQVergiAlt extends MQAlt {
 	}
 	static async getKod2OranSet(e) {
 		e = e || {};
-		const rootGlobals = MQVergi.globals;
-		const belirtec2Globals = rootGlobals.belirtec2Globals = rootGlobals.belirtec2Globals || {};
-		const rootGlobalKey = this.belirtec || this.classKey || this;
-		const ba = e.ba || '';
-		const globalKey = [rootGlobalKey, ba].join('-');
-		const globals = belirtec2Globals[globalKey] = belirtec2Globals[globalKey] || {};
+		let rootGlobals = MQVergi.globals;
+		let belirtec2Globals = rootGlobals.belirtec2Globals = rootGlobals.belirtec2Globals || {};
+		let rootGlobalKey = this.belirtec || this.classKey || this;
+		let ba = e.ba || '';
+		let globalKey = [rootGlobalKey, ba].join('-');
+		let globals = belirtec2Globals[globalKey] = belirtec2Globals[globalKey] || {};
 		let result = globals.kod2Oran;
 		if (result == null) {
 			result = {};
-			const oran2KodSet = globals.oran2KodSet || {};
-			const kod2VergiBilgi = await this.getKod2VergiBilgi(e);
-			for (const kod in kod2VergiBilgi) {
-				const {oran} = kod2VergiBilgi[kod];
+			let oran2KodSet = globals.oran2KodSet || {};
+			let kod2VergiBilgi = await this.getKod2VergiBilgi(e);
+			for (let kod in kod2VergiBilgi) {
+				let {oran} = kod2VergiBilgi[kod];
 				result[kod] = oran;
 				( oran2KodSet[oran] = oran2KodSet[oran] || {} )[kod] = true
 			}
@@ -656,20 +656,20 @@ class MQVergiAlt extends MQAlt {
 	}
 	static async getKod2Oran(e) {
 		e = e || {};
-		const {kod} = e;
+		let {kod} = e;
 		if (!kod)
 			return undefined
-		const result = await this.getKod2OranSet(e) || {};
+		let result = await this.getKod2OranSet(e) || {};
 		return result[kod]
 	}
 	static async oran2KodSet(e) {
 		e = e || {};
-		const rootGlobals = MQVergi.globals;
-		const belirtec2Globals = rootGlobals.belirtec2Globals = rootGlobals.belirtec2Globals || {};
-		const rootGlobalKey = this.belirtec || this.classKey || this;
+		let rootGlobals = MQVergi.globals;
+		let belirtec2Globals = rootGlobals.belirtec2Globals = rootGlobals.belirtec2Globals || {};
+		let rootGlobalKey = this.belirtec || this.classKey || this;
 		
-		const ba = e.ba || '';
-		const globalKey = [rootGlobalKey, ba].join('-');
+		let ba = e.ba || '';
+		let globalKey = [rootGlobalKey, ba].join('-');
 		let globals = belirtec2Globals[globalKey] = belirtec2Globals[globalKey] || {};
 		let {oran2KodSet} = globals;
 		if (oran2KodSet == null) {
@@ -681,7 +681,7 @@ class MQVergiAlt extends MQAlt {
 	}
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e);
-		const {pTanim} = e;
+		let {pTanim} = e;
 		$.extend(pTanim, {
 			oran: new PInstNum(`${this.rowAttrPrefix}orani`)
 		})
@@ -694,13 +694,13 @@ class MQVergiKdv extends MQVergiAlt {
 	static get eIslTypeCode() { return '0015' }
 	static tipSetDuzenle(e) {
 		super.tipSetDuzenle(e);
-		const {liste} = e;
+		let {liste} = e;
 		liste.KDV = true
 		// liste.KDV = liste.KMAT0 = liste.KDI = liste.KTEV = true
 	}
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e);
-		const {pTanim} = e;
+		let {pTanim} = e;
 		$.extend(pTanim, {
 			tevkifatYapi: new PInstClass(Oran),
 			tevkifatIslemTuru: new PInstStr('tevislemturu'),
@@ -708,17 +708,17 @@ class MQVergiKdv extends MQVergiAlt {
 		})
 	}
 	static get sabitOranlar() {
-		const rootGlobals = MQVergi.globals;
-		const belirtec2Globals = rootGlobals.belirtec2Globals = rootGlobals.belirtec2Globals || {};
-		const globalKey = this.belirtec || this.classKey || this;
-		const globals = belirtec2Globals[globalKey] = belirtec2Globals[globalKey] || {};
-		let result = globals.sabitOranlar;
+		let rootGlobals = MQVergi.globals
+		let belirtec2Globals = rootGlobals.belirtec2Globals = rootGlobals.belirtec2Globals || {}
+		let globalKey = this.belirtec || this.classKey || this
+		let globals = belirtec2Globals[globalKey] = belirtec2Globals[globalKey] || {}
+		let { sabitOranlar: result } = globals
 		if (result == null) {
-			const {oranlar} = app.sabitTanimlar.vergi || {};
+			/*let {oranlar} = app.sabitTanimlar.vergi || {}
 			if (!$.isEmptyObject(oranlar))
-				result = oranlar.map(x => asInteger(x))
+				result = oranlar.map(x => asInteger(x))*/
 			if (result == null)
-				result = [1, 10, 20];
+				result = [1, 10, 20]
 			globals.sabitOranlar = result
 		}
 		return result
@@ -726,7 +726,7 @@ class MQVergiKdv extends MQVergiAlt {
 	static async getKdvBilgileri(e) {
 		e = e || {};
 		let satismi, iademi;
-		const fisSinif = (e.fis || {}).class || e.fisSinif;
+		let fisSinif = (e.fis || {}).class || e.fisSinif;
 		let {ba} = e;
 		if (fisSinif) {
 			satismi = fisSinif.satismi;
@@ -752,18 +752,18 @@ class MQVergiKdv extends MQVergiAlt {
 		if (!ba && satismi != null)
 			ba = (satismi == iademi) ? 'B' : 'A'
 		
-		const rootGlobals = MQVergi.globals;
-		const belirtec2Globals = rootGlobals.belirtec2Globals = rootGlobals.belirtec2Globals || {};
-		const globalKey = this.belirtec || this.classKey || this;
-		const globals = belirtec2Globals[globalKey] = belirtec2Globals[globalKey] || {};
-		const anah2KdvBilgileri = globals.anah2KdvBilgileri = globals.anah2KdvBilgileri || {};
+		let rootGlobals = MQVergi.globals;
+		let belirtec2Globals = rootGlobals.belirtec2Globals = rootGlobals.belirtec2Globals || {};
+		let globalKey = this.belirtec || this.classKey || this;
+		let globals = belirtec2Globals[globalKey] = belirtec2Globals[globalKey] || {};
+		let anah2KdvBilgileri = globals.anah2KdvBilgileri = globals.anah2KdvBilgileri || {};
 		let altTip = e.altTip ?? '';
-		const anah = `${satismi == null ? '' : satismi ? 'T' : 'A'}|${iademi ? 'I' : ''}|${altTip}`;
+		let anah = `${satismi == null ? '' : satismi ? 'T' : 'A'}|${iademi ? 'I' : ''}|${altTip}`;
 		let result = anah2KdvBilgileri[anah];
 		if (result === undefined) {
-			const {table} = MQVergi;
-			const vergiTipi = iademi ? 'KDI' : 'KDV';
-			const sent = new MQSent({
+			let {table} = MQVergi;
+			let vergiTipi = iademi ? 'KDI' : 'KDV';
+			let sent = new MQSent({
 				from: table,
 				where: [
 					`baktifmi <> 0`,
@@ -773,9 +773,9 @@ class MQVergiKdv extends MQVergiAlt {
 				],
 				sahalar: ['kod kdvKod', 'kdvorani kdvOrani', 'belirtec kdvBelirtec']
 			});
-			const kod2Rec = {};
-			const recs = await app.sqlExecSelect({ query: sent });
-			for (const rec of recs)
+			let kod2Rec = {};
+			let recs = await app.sqlExecSelect({ query: sent });
+			for (let rec of recs)
 				kod2Rec[rec.kdvKod] = rec
 			result = anah2KdvBilgileri[anah] = kod2Rec
 		}
@@ -788,7 +788,7 @@ class MQVergiKdv extends MQVergiAlt {
 			ticariCikismi = coalesce(e.cikis, e.cikismi);
 		if (ticariCikismi == null) {
 			let satismi, iademi;
-			const fisSinif = (e.fis || {}).class || e.fisSinif;
+			let fisSinif = (e.fis || {}).class || e.fisSinif;
 			if (fisSinif) {
 				satismi = fisSinif.satismi;
 				iademi = fisSinif.iademi;
@@ -803,20 +803,20 @@ class MQVergiKdv extends MQVergiAlt {
 			ticariCikismi = satismi != iademi;
 		}
 		
-		const rootGlobals = MQVergi.globals;
-		const belirtec2Globals = rootGlobals.belirtec2Globals = rootGlobals.belirtec2Globals || {};
-		const globalKey = this.belirtec || this.classKey || this;
-		const globals = belirtec2Globals[globalKey] = belirtec2Globals[globalKey] || {};
-		const anah2TevkifatBilgiDict = globals.anah2TevkifatBilgiDict = globals.anah2TevkifatBilgiDict || {};
+		let rootGlobals = MQVergi.globals;
+		let belirtec2Globals = rootGlobals.belirtec2Globals = rootGlobals.belirtec2Globals || {};
+		let globalKey = this.belirtec || this.classKey || this;
+		let globals = belirtec2Globals[globalKey] = belirtec2Globals[globalKey] || {};
+		let anah2TevkifatBilgiDict = globals.anah2TevkifatBilgiDict = globals.anah2TevkifatBilgiDict || {};
 		
-		const anah = [ticariCikismi];
+		let anah = [ticariCikismi];
 		let result = anah2TevkifatBilgiDict[anah];
 		if (result === undefined) {
-			const recs = await MQVergiKdv.getTevkifatBilgileri(e);
+			let recs = await MQVergiKdv.getTevkifatBilgileri(e);
 			if (recs) {
 				result = {};
-				for (const rec of recs) {
-					const {kod} = rec;
+				for (let rec of recs) {
+					let {kod} = rec;
 					result[kod] = rec
 				}
 			}
@@ -833,7 +833,7 @@ class MQVergiKdv extends MQVergiAlt {
 			ticariCikismi = coalesce(e.cikis, e.cikismi);
 		if (ticariCikismi == null) {
 			let satismi, iademi;
-			const fisSinif = (e.fis || {}).class || e.fisSinif;
+			let fisSinif = (e.fis || {}).class || e.fisSinif;
 			if (fisSinif) {
 				satismi = fisSinif.satismi;
 				iademi = fisSinif.iademi
@@ -847,18 +847,18 @@ class MQVergiKdv extends MQVergiAlt {
 				iademi = asBool(coalesce(e.iademi, e.iade))
 			ticariCikismi = satismi != iademi
 		}
-		const rootGlobals = MQVergi.globals;
-		const belirtec2Globals = rootGlobals.belirtec2Globals = rootGlobals.belirtec2Globals || {};
-		const globalKey = this.belirtec || this.classKey || this;
-		const globals = belirtec2Globals[globalKey] = belirtec2Globals[globalKey] || {};
-		const anah2TevkifatBilgileri = globals.anah2TevkifatBilgileri = globals.anah2TevkifatBilgileri || {};
-		const anah = [ticariCikismi];
+		let rootGlobals = MQVergi.globals;
+		let belirtec2Globals = rootGlobals.belirtec2Globals = rootGlobals.belirtec2Globals || {};
+		let globalKey = this.belirtec || this.classKey || this;
+		let globals = belirtec2Globals[globalKey] = belirtec2Globals[globalKey] || {};
+		let anah2TevkifatBilgileri = globals.anah2TevkifatBilgileri = globals.anah2TevkifatBilgileri || {};
+		let anah = [ticariCikismi];
 		let result = anah2TevkifatBilgileri[anah];
 		if (result === undefined) {
-			const {table} = MQVergi;
-			const vergiTipi = 'KTEV'
-			const ba = ticariCikismi ? 'B' : 'A';
-			const sent = new MQSent({
+			let {table} = MQVergi;
+			let vergiTipi = 'KTEV'
+			let ba = ticariCikismi ? 'B' : 'A';
+			let sent = new MQSent({
 				from: table,
 				where: [
 					{ degerAta: vergiTipi, saha: 'vergitipi' },
@@ -869,16 +869,16 @@ class MQVergiKdv extends MQVergiAlt {
 					'kdvtevoranpay oranPay', 'kdvtevoranbaz oranBaz', 'tevislemturu islemTuru'
 				]
 			});
-			const stm = new MQStm({
+			let stm = new MQStm({
 				sent: sent,
 				orderBy: ['oncelik', 'belirtec', 'kod']
 			});
-			const recs = anah2TevkifatBilgileri[anah] = [];
+			let recs = anah2TevkifatBilgileri[anah] = [];
 			recs.push(new CTevkifatBilgi({ kod: '', oran: '0/1' }));
-			const _recs = await app.sqlExecSelect({ query: stm });
+			let _recs = await app.sqlExecSelect({ query: stm });
 			if (_recs) {
-				for (const _rec of _recs) {
-					const rec = new CTevkifatBilgi({
+				for (let _rec of _recs) {
+					let rec = new CTevkifatBilgi({
 						kod: _rec.kod,
 						oran: { pay: _rec.oranPay, baz: _rec.oranBaz },
 						belirtec: _rec.belirtec, islemTuru: _rec.islemTuru
@@ -892,8 +892,8 @@ class MQVergiKdv extends MQVergiAlt {
 	}
 	hostVarsDuzenle(e) {
 		super.hostVarsDuzenle(e);
-		const {hv} = e;
-		const {tevkifatYapi} = this;
+		let {hv} = e;
+		let {tevkifatYapi} = this;
 		$.extend(hv, {
 			kdvtevoranpay: asInteger(tevkifatYapi.pay) || 0,
 			kdvtevoranbaz: asInteger(tevkifatYapi.baz) || 0
@@ -901,8 +901,8 @@ class MQVergiKdv extends MQVergiAlt {
 	}
 	setValues(e) {
 		super.setValues(e);
-		const {rec} = e;
-		const {tevkifatYapi} = this;
+		let {rec} = e;
+		let {tevkifatYapi} = this;
 		$.extend(tevkifatYapi, {
 			pay: asInteger(rec.kdvtevoranpay) || 0,
 			baz: asInteger(rec.kdvtevoranbaz) || 0
@@ -916,25 +916,25 @@ class MQVergiOtv extends MQVergiAlt {
 	static get eIslTypeCode() { return '0071' }
 	static tipSetDuzenle(e) {
 		super.tipSetDuzenle(e);
-		const {liste} = e;
+		let {liste} = e;
 		liste.OTV = liste.OTEC = true
 	}
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e);
-		const {pTanim} = e;
+		let {pTanim} = e;
 		$.extend(pTanim, {
 			oransalmi: new PInstTrue('otvoransaldir'),
 			tecilYapi: new PInstClass(Oran)
 		})
 	}
 	static get sabitOranlar() {
-		const rootGlobals = MQVergi.globals;
-		const belirtec2Globals = rootGlobals.belirtec2Globals = rootGlobals.belirtec2Globals || {};
-		const globalKey = this.belirtec || this.classKey || this;
-		const globals = belirtec2Globals[globalKey] = belirtec2Globals[globalKey] || {};
+		let rootGlobals = MQVergi.globals;
+		let belirtec2Globals = rootGlobals.belirtec2Globals = rootGlobals.belirtec2Globals || {};
+		let globalKey = this.belirtec || this.classKey || this;
+		let globals = belirtec2Globals[globalKey] = belirtec2Globals[globalKey] || {};
 		let result = globals.sabitOranlar;
 		if (result == null) {
-			const oranlar = MQVergi.belirtec2AltSinif.kdv.sabitOranlar;
+			let oranlar = MQVergi.belirtec2AltSinif.kdv.sabitOranlar;
 			if (oranlar != null)
 				result = oranlar
 			globals.sabitOranlar = result
@@ -949,12 +949,12 @@ class MQVergiStopaj extends MQVergiAlt {
 	static get eIslTypeCode() { return '0003' }
 	static tipSetDuzenle(e) {
 		super.tipSetDuzenle(e);
-		const {liste} = e;
+		let {liste} = e;
 		liste.STO = true
 	}
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e);
-		const {pTanim} = e;
+		let {pTanim} = e;
 		$.extend(pTanim, {
 			tipi: new PInstStr('stotipkod')
 		})
@@ -966,12 +966,12 @@ class MQVergiGKKP extends MQVergiAlt {
 	static get rowAttrPrefix() { return 'gkkp' }
 	static tipSetDuzenle(e) {
 		super.tipSetDuzenle(e);
-		const {liste} = e;
+		let {liste} = e;
 		liste.GKKP = true
 	}
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e);
-		const {pTanim} = e;
+		let {pTanim} = e;
 		$.extend(pTanim, {
 			oransalmi: new PInstBool('gkkporansaldir')
 		})
@@ -983,7 +983,7 @@ class MQVergiMustahsil extends MQVergiAlt {
 	static get rowAttrPrefix() { return 'mustahsil' }
 	static tipSetDuzenle(e) {
 		super.tipSetDuzenle(e);
-		const {liste} = e;
+		let {liste} = e;
 		liste.MMAK = true
 	}
 }
@@ -993,7 +993,7 @@ class MQVergiKonaklama extends MQVergiAlt {
 	static get rowAttrPrefix() { return 'konaklama' }
 	static tipSetDuzenle(e) {
 		super.tipSetDuzenle(e);
-		const {liste} = e;
+		let {liste} = e;
 		liste.KON = true
 	}
 }
@@ -1003,7 +1003,7 @@ class MQVergiEkVergi extends MQVergiAlt {
 	static get rowAttrPrefix() { return 'ekvergi' }
 	static tipSetDuzenle(e) {
 		super.tipSetDuzenle(e);
-		const {liste} = e;
+		let {liste} = e;
 		liste.EKVER = true
 	}
 }
