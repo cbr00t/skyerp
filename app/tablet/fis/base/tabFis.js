@@ -260,12 +260,16 @@ class TabFis extends MQDetayliGUIDOrtak {
 		let { plasiyerKod } = app, { mustKod } = gridPart ?? {}
 		super.loadServerData_queryDuzenle(e)
 		let { tableAlias: alias, idSaha, detaySinif: { table: detayTable, fisSayacSaha } = {} } = this
-		let { merkezKayitlarAlinirmi } = this
+		let { gonderildiDesteklenirmi, gonderimTSSaha, merkezKayitlarAlinirmi } = this
 		let unvanSaha = offlineMode === false ? 'birunvan' : MQTabCari.adiSaha
 		for (let sent of stm) {
 			let { from, where: wh, sahalar, alias2Deger } = sent
 			if (!from.aliasIcinTable('car'))
 				sent.leftJoin(alias, 'carmst car', 'fis.must = car.kod')
+			if (offlineRequest && offlineMode && gonderildiDesteklenirmi && gonderimTSSaha) {
+				// Bilgi Gönder yapılacak - yerel veriler okunuyor
+				wh.add(`COALESCE(${alias}.${gonderimTSSaha}, '') = ''`)
+			}
 			if (!offlineRequest || offlineMode) {
 				// tablet local
 				wh.add(`${alias}.silindi = ''`)

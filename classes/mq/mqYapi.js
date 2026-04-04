@@ -437,9 +437,11 @@ class MQYapi extends CIO {
 	static async offlineSaveToRemoteTable(e = {}) {
 		if (!this.dbMgr_db)
 			return false
+		
 		let { offlineGonderYapilirmi } = this
 		if (!offlineGonderYapilirmi)
 			return false
+		
 		let noLocalTable = e.noLocalTable ?? this.noLocalTable
 		let offlineTable = e.table ?? e.offlineTable ?? this.table
 		if (!(noLocalTable || offlineTable))
@@ -535,7 +537,8 @@ class MQYapi extends CIO {
 						if (!await inst.yukle({ offlineMode: !offlineMode, offlineRequest, offlineGonderRequest }))
 							continue
 						inst = await inst.asOnlineFis?.({ ...e, rec }) ?? inst
-						if (inst.sayac) { inst.sayac = null }
+						if (inst.sayac)
+							inst.sayac = null
 						if (await inst.varmi({ trnId, offlineMode, offlineRequest, offlineGonderRequest }))
 							continue
 						if (!await inst.yaz({ trnId, offlineMode, offlineRequest, offlineGonderRequest }))

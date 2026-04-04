@@ -209,7 +209,7 @@ class TabSutAlimFis extends TabFis {
 				window.progressManager?.progressStep(3)
 			}
 
-			;{
+			if (!empty(fisKey2Yapi)) {
 				// Burada merkeze aktarım yapılacak
 				// let fisSeq = 0
 				let toplu = new MQToplu().withTrn()
@@ -323,15 +323,15 @@ class TabSutAlimFis extends TabFis {
 				}
 				catch (ex) { errors.push(ex) }
 				window.progressManager?.progressStep(toplu.liste.length)
-			}
-
-			app.offline()
-			if (gonderildiDesteklenirmi && !empty(okIdList)) {
-				let upd = new MQIliskiliUpdate(), { where: wh, set } = upd
-				upd.fromAdd(table)
-				wh.inDizi(okIdList, idSaha)
-				set.degerAta(asReverseDateTimeString(now()), gonderimTSSaha)
-				await upd.execNone({ offlineMode: true })
+				
+				app.offline()
+				if (gonderildiDesteklenirmi && !empty(okIdList)) {
+					let upd = new MQIliskiliUpdate(), { where: wh, set } = upd
+					upd.fromAdd(table)
+					wh.inDizi(okIdList, idSaha)
+					set.degerAta(asReverseDateTimeString(now()), gonderimTSSaha)
+					await upd.execNone({ offlineMode: true })
+				}
 			}
 		}
 		finally {
