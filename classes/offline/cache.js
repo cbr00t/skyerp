@@ -72,11 +72,16 @@ class QueryCache extends LocalCache {
 }
 class ReqCache extends LocalCache {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static CacheLimitBytes = 1_000_000
 	static get defaultName() { return 'req-cache' }
 	async onExec({ result }) {
 		if (await super.onExec(...arguments) === false)
-			return false 
+			return false
+		let { CacheLimitBytes } = this.class
 		let key = arguments[0]
+		let sub = (key?.url ?? key)?.slice?.(0, 200) ?? key
+		if (sub?.includes('/download') || sub?.includes('/upload') || (key?.data ?? key)?.length >= this.CacheLimitBytes)
+			return false
 		await this.set(key, result)
 		this.kaydetDefer()
 		return true

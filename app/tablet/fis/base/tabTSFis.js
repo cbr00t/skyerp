@@ -364,7 +364,8 @@ class TabTSFis extends TabFis {
 		let { acc, gridPart = {}, barkodGirisYapi = {} } = tanimPart
 		let { gridWidget: w, selectedRec: det } = gridPart
 		fiyatFra ??= 5; bedelFra ||= 2
-		let getDetay = () => gridPart?.selectedRec
+		let getDetay = () =>
+			gridPart?.selectedRec ?? {}
 		let initFlag = !getDetay()
 		if (!initFlag)
 			setTimeout(() => initFlag = true, 200)
@@ -395,7 +396,7 @@ class TabTSFis extends TabFis {
 				.addStyle(`$elementCSS { top: 5px; right: 100px }`)
 				.addCSS('absolute')
 				.onClick(e => {
-					let {uid} = getDetay() ?? {}
+					let { uid } = getDetay()
 					if (uid != null) {
 						w.deleterow(uid)
 						w.selectrow(0)

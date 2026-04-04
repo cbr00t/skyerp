@@ -28,7 +28,7 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 		return this
 	}
 	async close(e) {
-		let {internalDB: db} = this
+		let { internalDB: db } = this
 		if (db) {
 			if (this.changedFlag)
 				await this.kaydet(e)
@@ -87,7 +87,8 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 		try { this.execute('COMMIT') }    // trn varsa kapansın
 		catch (ex) { }
 		let data = internalDB.export()
-		let {fsRootDir: filePath} = this, {name} = fh
+		let { fsRootDir: filePath } = this
+		let { name } = fh
 		let bckName = `${name}.bak`
 		try {
 			let file = await fh.getFile()
@@ -105,37 +106,114 @@ class SqlJS_DB extends SqlJS_DBMgrBase {
 		await writeFile(fh, data)
 		return true
 	}
-	async dosyadanYukle(e = {}) {
-		let {data, fh} = e
+	async readFrom(e = {}) {
+		let { data, fh, url, remoteFile } = e
 		await this.open(e)
 		if (!data) {
 			if (!fh) {
-				let {file} = e
+				let { file } = e
 				if (!file) {
-					let files = await showOpenFilePicker({
-						multiple: false, excludeAcceptAllOption: true,
-						types: [{ accept: { 'application/x-db': ['.db'] }, description: 'SQLite DB Dosyaları' }]
-					})
-					file = files?.[0]
+					if (!url && remoteFile)
+						url = app.getWSUrl({ api: 'download', args: { stream: true, remoteFile } })
+					if (url)
+						data = await fetch(url).then(r => r.arrayBuffer())
+
+					if (!data) {
+						let files = await showOpenFilePicker({
+							multiple: false, excludeAcceptAllOption: true,
+							types: [{ accept: { 'application/x-db': ['.db'] }, description: 'SQLite DB Dosyaları' }]
+						})
+						file = files?.[0]
+					}
 				}
-				fh = await file.getFile()
+				if (file)
+					fh = await file.getFile()
 			}
-			data = new Uint8Array(await fh.arrayBuffer())
+			if (!data)
+				data = new Uint8Array(await fh.arrayBuffer())
+			if (!isBuffer(data))
+				data = new Uint8Array(data)
 			if (!data?.length)
 				data = undefined
 		}
+		
 		if (data) {
 			fh = this.fh = this.fh ?? await this.getFSHandle(true)
 			if (fh) {
-				let wr = fh.createWritable()
+				let wr = await fh.createWritable()
 				try { await wr.write(data) }
-				finally { try { wr.close() } catch (ex) { } }
+				finally { try { await wr.close() } catch (ex) { } }
 				if (!await this.yukle(e))
 					return false
 			}
 		}
-		let db = this
-		return {db, fsRootDir, fh, data}
+		
+		let db = this, { fsRootDir: filePath } = this
+		return { db, filePath, fh, url, remoteFile, data }
+	}
+	async writeTo(e = {}) {
+		let { data, db: internalDB = e.internalDB ?? this.internalDB, dest = {} } = e
+		if (internalDB && this.changedFlag)
+			await this.kaydet()
+
+		let shouldClose = false
+		if (!internalDB && data == null) {
+			await this.open()
+			shouldClose = true
+			internalDB = this.internalDB
+		}
+		
+		try {
+			data ??= internalDB.export()
+			if (!data)
+				throw { isError: true, errorText: 'DB verisi boş veya okunamadı' }
+	
+			let db = this
+			let { fh = {} } = this, { name: fileName = 'sqlite.db' } = fh
+			let { type: destType, name: destName } = dest
+			destType = destType?.toLowerCase() || 'download'
+			
+			switch (destType) {
+				case 'download': {
+					await downloadData(data, fileName, mimeType_SQLite3)
+					break
+				}
+				case 'upload':
+				case 'url':
+				case 'remotefile': {
+					let { ajaxType = 'POST' } = dest
+					let url = destType == 'remotefile'
+						? app.getWSUrl({ api: 'upload', args: { remoteFile: destName } })
+						: destName
+					let type = ajaxType, processData = false, contentType = mimeType_SQLite3
+					await ajaxCall({ type, processData, contentType, url, data })
+					break
+				}
+				case 'arg': {
+					e[destName || 'data'] = data
+					break
+				}
+				case 'console':
+					// asagida islem gorecek
+					break
+				default:
+					throw { isError: true, errorText: 'Hedef(dest) yapısı belirtilmelidir' }
+			}
+			
+			let { fsRootDir: filePath } = this
+			let result = { db, fh, filePath, destType, destName, data }
+			if (destType == 'console')
+				console.info(result)
+			
+			return result
+		}
+		finally {
+			if (shouldClose) {
+				try { await this.close() }
+				catch (ex) { cerr(ex) }
+				db = null
+			}
+		}
 	}
 	async dbInit(e) {
 		this.execute([
