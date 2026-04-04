@@ -6,7 +6,11 @@ class MQGenelFis extends MQOrtakFis {
 	constructor(e) {
 		e = e || {}; super(e);
 		if (e.isCopy) { return }
-		let {numYapi} = this.class; if (numYapi) { this.numarator = numYapi.deepCopy() }
+		let {numYapi} = this.class
+		if (numYapi) {
+			let num = this.numarator = numYapi.deepCopy()
+			num.fis = this
+		}
 	}
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); let {pTanim} = e;
@@ -112,10 +116,14 @@ class MQGenelFis extends MQOrtakFis {
 		$.extend(hv, { xbizsubekod: this.subeKod || '', xtarih: this.tarih, xseri: this.seri || '' })
 	}
 	alternateKeyHostVarsDuzenle({ hv }) {
-		super.alternateKeyHostVarsDuzenle(...arguments); let {seriSaha, noYilKullanilirmi} = this.class;
-		/*hv[subeKodSaha] = this.subeKod || '';*/
-		hv[seriSaha] = this.seri || '';
-		if (noYilKullanilirmi) { let {noYil} = this; if (noYil != null) { hv.noyil = noYil } }
+		super.alternateKeyHostVarsDuzenle(...arguments)
+		let {seriSaha, noYilKullanilirmi} = this.class
+		hv[seriSaha] = this.seri || ''
+		if (noYilKullanilirmi) {
+			let {noYil} = this
+			if (noYil)
+				hv.noyil = noYil
+		}
 	}
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments); let {tarih} = this, {ozelIsaretDesteklenirmi, subeKodSaha, tarihSaha} = this.class;

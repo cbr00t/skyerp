@@ -37,7 +37,10 @@ class TabRotaListe extends MQMasterOrtak {
 			new GridKolon({ belirtec: 'durumText', text: 'İşlem Durumu', genislikCh: 15 }).noSql().hidden()
 		)
 	}
-	static async loadServerDataDogrudan({ wsArgs, offlineRequest, offlineMode } = {}) {
+	static async loadServerDataDogrudan(e = {}) {
+		let { gridPart = e.sender, wsArgs, offlineRequest, offlineMode } = e
+		gridPart._lastUid = gridPart.selectedUid
+		
 		if (wsArgs?.sortdatafield == 'durumText')
 			wsArgs.sortdatafield = null
 		
@@ -139,19 +142,26 @@ class TabRotaListe extends MQMasterOrtak {
 				w.sortby(key, true)
 		}
 
-		let { boundRecs: recs, selectedRec: rec } = gridPart
-		if (!(empty(recs) || rec))
-			setTimeout(() => w.selectrow(0), 100)
-		setTimeout(() => w.focus(), 100)
+		let { boundRecs: recs, selectedRec: rec, selectedUid } = gridPart
+		setTimeout(() => {
+			// gridPart.seviyeKapat()
+			w.focus()
+			if (!empty(recs)) {
+				selectedUid ??= gridPart._lastUid ?? 0
+				if (selectedUid != null) {
+					w.clearselection()
+					w.selectrow(selectedUid)
+					w.ensurerowvisible(w.getrowboundindexbyid(selectedUid))
+				}
+			}
+		}, 10)
 	}
 
 	static rootFormBuilderDuzenle_listeEkrani({ sender: gridPart, rootBuilder: rfb }) {
 		let e = arguments[0]
 		super.rootFormBuilderDuzenle_listeEkrani(e)
 		let { layout, header, islemTuslari } = gridPart
-		rfb.addStyle(...[
-			`$elementCSS .header > .islemTuslari > div #izle { margin-right: 20px }`
-		])
+		rfb.addStyle(`$elementCSS .header > .islemTuslari > div #izle { margin-right: 20px }`)
 		;{
 			let parent = rfb.addForm('header', header)
 			let ustBilgiForm = parent.addForm('ustBilgi')

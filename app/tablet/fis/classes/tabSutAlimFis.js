@@ -113,10 +113,10 @@ class TabSutAlimFis extends TabFis {
 			return false
 
 		let e = { ...arguments[0], offlineRequest: true, offlineMode: false }
-		let { table, idSaha, gonderildiDesteklenirmi, gonderimTSSaha } = this
+		let { table: offlineTable, idSaha, gonderildiDesteklenirmi, gonderimTSSaha } = this
 		let { defaultBrm } = this.class ?? {}
 		let fisRecs, idListe, detRecs
-		let fisID2Yapi = {}, fisKey2Yapi = {}, brm2Toplam = {}
+		let fisID2Yapi = {}, fisKey2Yapi = {}
 		let keyHV = this.varsayilanKeyHostVars(e)
 		let okIdList = [], errors = []
 		app.online()
@@ -127,7 +127,7 @@ class TabSutAlimFis extends TabFis {
 					// Yerel Fişler
 					let { tableAlias: alias } = this
 					let sent = new MQSent(), { where: wh, sahalar } = sent
-					sent.fromAdd(`${table} ${alias}`)
+					sent.fromAdd(`${offlineTable} ${alias}`)
 					if (gonderildiDesteklenirmi)
 						wh.add(`COALESCE(${alias}.${gonderimTSSaha}, '') = ''`)
 					wh
@@ -194,17 +194,6 @@ class TabSutAlimFis extends TabFis {
 						yapi.detRecs.push(...detRecs)
 					}
 				}
-
-				;{
-					// Detay Brm -> Toplam
-					for (let det of detRecs) {
-						let { brm, miktar } = det
-						if (miktar) {
-							brm = (brm || defaultBrm).toLowerCase()
-							brm2Toplam[brm] = (brm2Toplam[brm] ?? 0) + miktar
-						}
-					}
-				}
 				
 				window.progressManager?.progressStep(3)
 			}
@@ -229,8 +218,8 @@ class TabSutAlimFis extends TabFis {
 				])
 				for (let { fisRec, detRecs } of values(fisKey2Yapi)) {
 					let { id, tarih, rotaID: rotasayac, posta } = fisRec
+					let toplam = topla(d => d.miktar || 0, detRecs)
 					rotasayac = asInteger(rotasayac)
-					// fisSeq++
 					
 					let getFisSent = kisitsizmi => {
 						let sent = new MQSent(), { where: wh, sahalar } = sent
@@ -271,7 +260,7 @@ class TabSutAlimFis extends TabFis {
 								tipkod, alttipkod, tabletguid,
 								tarih, seri, no, yerkod,
 								rotasayac, posta,
-								detaytoplam: brm2Toplam.lt || 0
+								detaytoplam: toplam
 							}
 							toplu.add(new MQInsert({ table, hv }).insertOnly())
 						}
@@ -284,7 +273,6 @@ class TabSutAlimFis extends TabFis {
 					toplu.add('ELSE BEGIN')
 					; {
 						// update
-						let toplam = brm2Toplam.lt || 0
 						;{
 							let upd = new MQIliskiliUpdate(), { where: wh, set } = upd
 							upd.fromAdd(table)
@@ -311,8 +299,7 @@ class TabSutAlimFis extends TabFis {
 						})
 						toplu.add(new MQInsert({ table: detayTable, hvListe }).insertOnly())
 					}
-					
-					_okIdList.push(id)
+					_okIdList.push(...detRecs.map(r => r.fisID))
 				}
 
 				let result
@@ -327,7 +314,7 @@ class TabSutAlimFis extends TabFis {
 				app.offline()
 				if (gonderildiDesteklenirmi && !empty(okIdList)) {
 					let upd = new MQIliskiliUpdate(), { where: wh, set } = upd
-					upd.fromAdd(table)
+					upd.fromAdd(offlineTable)
 					wh.inDizi(okIdList, idSaha)
 					set.degerAta(asReverseDateTimeString(now()), gonderimTSSaha)
 					await upd.execNone({ offlineMode: true })
@@ -680,7 +667,7 @@ class TabPosta extends TekSecim {
 		super.kaListeDuzenle(...arguments)
 		kaListe.push(
 			new CKodVeAdi(['S', `<span class=teal>Sabah</span>`, 'sabahmi']),
-			new CKodVeAdi(['A', `<span class=orange>Akşam</span>`, 'aksammi'])
+			new CKodVeAdi(['A', `<span class=darkgoldenrod>Akşam</span>`, 'aksammi'])
 		)
 	}
 }

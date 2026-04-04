@@ -122,11 +122,16 @@ class MQYapi extends CIO {
 		if (kayitSayisi > 1) { return { isError: false, rc: 'multiRecord', errorText: 'Aynı özellikte birden çok kayıt geldi' } }
 		return true
 	}
-	async kayitSayisi(e) {
-		e = e || {}; let keyHV = e.keyHV || this.alternateKeyHostVars(e); if (empty(keyHV)) { return 0 }
-		let {table} = this.class; let query = new MQSent({ from: table, where: { birlestirDict: keyHV }, sahalar: 'COUNT(*) sayi' });
-		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e, _e = { offlineMode, trnId, query };
-		let result = await this.sqlExecTekilDeger(_e); return result
+	async kayitSayisi(e = {}) {
+		let keyHV = e.keyHV || this.alternateKeyHostVars(e)
+		if (empty(keyHV))
+			return 0
+		let {table} = this.class
+		let query = new MQSent({ from: table, where: { birlestirDict: keyHV }, sahalar: 'COUNT(*) sayi' })
+		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode
+		let {trnId} = e, _e = { offlineMode, trnId, query }
+		let result = await this.sqlExecTekilDeger(_e)
+		return result
 	}
 	tekilOku(e) {
 		e = e || {}; if (this.class.tekilOkuYapilazmi) { return e.rec ?? e._rec }

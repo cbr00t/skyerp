@@ -618,6 +618,21 @@ class MQTabletParam extends MQTicariParamBase {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Sky Tablet Parametreleri' }
 	static get paramKod() { return 'TABLET' }
+
+	static paramAttrListeDuzenle({ liste }) {
+		super.paramAttrListeDuzenle(...arguments)
+		liste.push(...[
+			'ssMusteriBakiye', 'depoMusteriBakiye', 'depoMusteriDurumu',
+			'depoAlimFiyatIskonto', 'depoSatisFiyatIskonto', 'depoSubeTransferdeGirisKesindir', 'kmTakibiYapilir',
+			'ilkIrsaliyeDokumuZorunlu', 'alimNetFiyatGosterilir', 'tahsilatSilinir', 'faturadaTahsilatYapilmaz',
+			'yazdirilanTahsilatDegistirilir', 'eFatIslem', 'eIrsAyriForm', 'sevkYeriKullanilmaz',
+			'nakliyeSekliKullanilmaz', 'silmeYerineDevredisi', 'detaydaFiyatDegisiklik', 'detaydaIskontoDegisiklik',
+			'fisGirisSadeceBarkodlu', 'yaslandirmaGunleri', 'yaslandirmaTarihten', 'depoMalKabulSipKarsilama',
+			'depoMalKabulSipMiktarKontrolu', 'depoMalKabulSiparisHMRli', 'depoSevkiyatSipKarsilama', 'depoSevkiyatSipMiktarKontrolu',
+			'depoSevkiyatSiparisHMRlimi', 'depoSipReferansZorunlu', 'sevkiyatGunlukSipDagitimdan', 'depoSayimSonucAnlikGuncellenir',
+			'ertesiGunSiparisTeslimFisidir', 'malKabulKosulaGoreFiyatGuncellenir', 'sevkiyatKosulaGoreFiyatGuncellenir'
+		])
+	}
 	static paramYapiDuzenle({ paramci }) {
 		super.paramYapiDuzenle(...arguments)
 		{
@@ -637,5 +652,15 @@ class MQTabletParam extends MQTicariParamBase {
 	}
 	paramSetValues({ rec } = {}) {
 		super.paramSetValues(...arguments)
+		let donusum = {
+			rotaSirasaindaUgrama: 'rotaDisiMusteriAlinirmi',
+			silmeYerineDevredisi: 'silmeYerineDevreDisi'
+		}
+		;entries(donusum).forEach(([s, t]) => {
+			let v = rec[s]
+			if (v !== undefined)
+				rec[t] = v
+			delete rec[s]
+		})
 	}
 }

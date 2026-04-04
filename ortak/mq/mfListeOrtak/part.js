@@ -242,7 +242,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		if (panelDuzenleyici?.gridArgsDuzenle) { panelDuzenleyici.gridArgsDuzenle(e) }
 		if (mfSinif) {
 			if (mfSinif.gridDetaylimi) {
-				$.extend(args, {
+				extend(args, {
 					selectionMode: 'checkbox', /* virtualMode: true, */ rowDetails: true,
 					rowDetailsTemplate: rowIndex => ({ rowdetails: `<div class="detay-grid-parent dock-bottom"><div class="detay-grid"/></div>`, rowdetailsheight: 350 }),
 					initRowDetails: (rowIndex, _parent, grid, parentRec) => { let parent = $(_parent).find('.detay-grid'); this.initRowDetails({ rowIndex, parent, parentRec }) }

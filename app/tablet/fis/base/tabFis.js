@@ -314,16 +314,20 @@ class TabFis extends MQDetayliGUIDOrtak {
 		}
 		return recs
 	}
-	static async gridVeriYuklendi({ sender: gridPart, sender: { gridWidget: w } }) {
+	static async gridVeriYuklendi({ sender: gridPart }) {
 		await super.gridVeriYuklendi(...arguments)
-		let { boundRecs: recs, selectedRec: rec } = gridPart
+		let { gonderimTSSaha } = this
+		let { boundRecs: recs, selectedRec: rec, gridWidget: w } = gridPart
 		if (!empty(recs)) {
 			/*let { tip2Sinif } = TabFis
 			let fisTipleri = keys(asSet(recs.map(r => r.fisTipi)))
 			if (!fisTipleri.find(_ => tip2Sinif[_]?.detaySinif?.bedelKullanilirmi))
 				w.hidecolumn('sonuc')*/
-			if (!rec)
-				setTimeout(() => w.selectrow(0), 100)
+			if (!rec) {
+				let { uid = 0 } = recs.find(r => !r[gonderimTSSaha]) ?? {}
+				// ind = w.getrowboundindexbyid(uid)
+				setTimeout(() => w.selectrow(uid), 100)
+			}
 		}
 	}
 	static async gridVeriYuklendi_detaylar({ sender: gridPart, sender: { gridWidget: w } }) {
@@ -1154,7 +1158,9 @@ class TabFis extends MQDetayliGUIDOrtak {
 		
 		let result = [
 			`<div class="aligned full-width relative" style="gap: 0 10px">`,
-				`<template class="sort-data">${tarihStr}|${seri}|${noyil}|${fisno}|${mustunvan}</template>`,
+				`<template class="sort-data">`,
+					`{rotaAdi || ''}|${posta || ''}|${tarihStr}|${seri}|${noyil}|${fisno}|${mustunvan}`,
+				`</template>`,
 				`<div class="sol float-left">`,
 					`<span class="tarih ek-bilgi bold">${dateKisaString(asDate(tarih)) ?? ''}</span>`,
 					`<span class="fisNox asil royalblue">${tsnText}</span>`,

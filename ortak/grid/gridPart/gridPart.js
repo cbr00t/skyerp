@@ -27,6 +27,8 @@ class GridPart extends Part {
 		if (typeof result == 'number' && result < 0) { result = null }
 		return result
 	}
+	get selectedUids() { return this.selectedRecs?.map(r => r.uid) }
+	get selectedUid() { return this.selectedRec?.uid }
 	get selectedRecs() { let {gridWidget, selectedRowIndexes} = this; return selectedRowIndexes ? selectedRowIndexes.map(i => gridWidget.getrowdata(i)).filter(rec => !!rec) : [] }
 	get selectedRec() { let {selectedRecs} = this; return selectedRecs ? selectedRecs[0] : null }
 	get selectedBelirtec() { return this.selectedCell?.datafield || this.gridWidget._clickedcolumn }

@@ -1,5 +1,6 @@
 class MQNumarator extends MQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, 'fis'] }
 	static get numaratorPartSinif() { return NumaratorPart } static get fisGirisLayoutSelector() { return '.numarator' }
 	static get kodListeTipi() { return 'NUMARATOR' } static get sinifAdi() { return 'Numaratör' }
 	static get sayacSaha() { return 'sayac' } static get table() { return 'numarator' } static get tableAlias() { return 'num' }
@@ -94,48 +95,51 @@ class MQNumarator extends MQKA {
 		return await super.yukle({ ...e, rec })
 	}
 	async kesinlestir(e = {}) {
-		let {id, class: { table, isOfflineMode: _isOfflineMode }} = this
-		let {isOfflineMode = _isOfflineMode} = e
-		let sonNo = this.sonNo || 0
-		if (!await this.varmi()) {
-			sonNo = ++this.sonNo
-			await this.yaz()
-			return
-		}
+		let { isOfflineMode } = MQCogul
+		let { class: { table: numTable } } = this
+		let { fis = e.inst ?? this.fis } = e
+		let { id, class: { table: fisTable } } = fis
+	
 		if (isOfflineMode) {
-			/*if (!await this.varmi()) {
-				sonNo = ++this.sonNo
-				await this.yaz()
-			}
-			else {*/
+			if (!await this.varmi(e))
+				await this.yaz(e)
+			
 			let keyHV = this.alternateKeyHostVars(e)
 			let toplu = new MQToplu([
 				new MQIliskiliUpdate({
-					from: table,
+					from: numTable,
 					where: { birlestirDict: keyHV },
 					set: `sonno = sonno + 1`
 				}),
 				new MQSent({
-					from: table, sahalar: ['sonno'],
+					from: numTable, sahalar: ['sonno'],
 					where: { birlestirDict: keyHV }
 				})
 			]).withTrn()
-			sonNo = this.sonNo = asInteger(await this.sqlExecTekilDeger(toplu))
+			let sonNo = this.sonNo = asInteger(await this.sqlExecTekilDeger(toplu))
+			if (fis)
+				fis.fisNo = sonNo + 1
 			//}
-			return this
 		}
-		let keyHV = this.keyHostVars()
-		// `UPDATE ${table} SET @sonNo = sonno = sonno + 1 WHERE ${idSaha} = ${id}`,
-		let query = new MQIliskiliUpdate({ from: table }), {where: wh, set} = query
-		wh.birlestirDict(keyHV)
-		set.add(`sonno = sonno + 1`)
-		let params = [{ name: '@sonNo', type: 'int', direction: 'output' }]
-		let result = await this.class.sqlExecNoneWithResult({ query, params })
-		if (isArray(result))
-			result = result[0]
-		let qParam = result?.params?.['@sonNo']
-		if (qParam?.value)
-			sonNo = this.sonNo = qParam.value
+		else {
+			// let keyHV = this.keyHostVars()
+			let keyHV = this.keyHostVars(e)
+			// `UPDATE ${table} SET @sonNo = sonno = sonno + 1 WHERE ${idSaha} = ${id}`,
+			let query = new MQIliskiliUpdate({ from: numTable }), { where: wh, set } = query
+			wh.birlestirDict(keyHV)
+			set.add(`@sonNo = sonno = sonno + 1`)
+			let params = [{ name: '@sonNo', type: 'int', direction: 'output' }]
+			let result = await this.class.sqlExecNoneWithResult({ query, params })
+			if (isArray(result))
+				result = result[0]
+			let qParam = result?.params?.['@sonNo']
+			if (qParam?.value) {
+				let sonNo = this.sonNo = qParam.value
+				if (fis)
+					fis.fisNo = sonNo + 1
+			}
+		}
+		
 		return this
 	}
 

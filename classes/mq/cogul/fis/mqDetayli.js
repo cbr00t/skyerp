@@ -649,6 +649,20 @@ class MQDetayliGUID extends MQDetayliMaster {
 		hv.xkod = this.sayac || ''
 		delete hv.xsayac
 	}
+	shallowCopy(e) {
+		let inst = super.shallowCopy(e)
+		let { numarator: yNum } = inst ?? {}
+		if (yNum?.fis != null)
+			yNum.fis = inst
+		return inst
+	}
+	shallowCopy(e) {
+		let inst = super.deepCopy(e)
+		let { numarator: yNum } = inst ?? {}
+		if (yNum?.fis != null)
+			yNum.fis = inst
+		return inst
+	}
 }
 class MQDetayliVeAdi extends MQDetayliMaster {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

@@ -15,6 +15,7 @@
 .orange { color: orange !important }
 .orangered { color: orangered !important }
 .indianred { color: indianred !important }
+.darkgoldenrod { color: darkgoldenrod !important }
 .goldenrod { color: goldenrod !important }
 .gold { color: gold !important }
 .darkyellow { color: #989807 !important }
@@ -84,8 +85,8 @@
 .efimzats:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).imzali {
 	background-color: #e8c5b7
 }
-.jqx-grid-cell:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed):not(.kod).gonderildi,
-.jqx-grid-group-cell:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed):not(.kod).gonderildi {
+.jqx-grid-cell:not(.jqx-fill-state-hover)/*:not(.jqx-fill-state-pressed)*/:not(.kod).gonderildi,
+.jqx-grid-group-cell:not(.jqx-fill-state-hover)/*:not(.jqx-fill-state-pressed)*/:not(.kod).gonderildi {
 	background-color: #cfc6c3
 }
 

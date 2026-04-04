@@ -76,7 +76,7 @@ class TabletApp extends TicariApp {
 		let { cache, params: { tablet = {} } = {} } = this
 		let { _offlineBilgiYukleSiniflar: result } = cache
 		if (!result) {
-			let { sicakSogukVeyaSutAlimmi } = tablet
+			let { sicakSogukVeyaSutAlimmi } = this
 			sicakSogukVeyaSutAlimmi ||= this.sutAlimmi
 			result = cache._offlineBilgiYukleSiniflar = [
 				MQParam, MQTabDokumForm, MQTabNum, MQTabRota, MQTabCariBakiye,
@@ -150,7 +150,8 @@ class TabletApp extends TicariApp {
 		let { noMenuFlag, params } = this
 		if (noMenuFlag)
 			return new FRMenu()
-		
+
+		let { dev } = config
 		let items = []
 		let addMenuSubItems = (mne, text, ...classes) => {
 			let subItems = classes.flat().map(cls =>
@@ -172,10 +173,6 @@ class TabletApp extends TicariApp {
 			return menuItems
 		}
 		items.push(
-			new FRMenuChoice({
-				mne: 'AYARLAR', text: 'Yerel Ayarlar',
-				block: e => app.params.yerel.tanimla(e)
-			}),
 			new FRMenuChoice({
 				mne: 'BILGIYUKLE', text: 'Bilgi Yükle',
 				block: e => this.bilgiYukleIstendi(e)
@@ -200,7 +197,7 @@ class TabletApp extends TicariApp {
 			})
 		)
 		addMenuSubItems(null, null, [MQTabNum])
-		;{
+		if (dev) {
 			let mfSinif = MQTabletParam, {kodListeTipi: mne, sinifAdi: text} = mfSinif
 			items.push(
 				new FRMenuChoice({
@@ -209,6 +206,12 @@ class TabletApp extends TicariApp {
 				})
 			)
 		}
+		items.push(
+			new FRMenuChoice({
+				mne: 'AYARLAR', text: 'Yerel Ayarlar',
+				block: e => app.params.yerel.tanimla(e)
+			})
+		)
 		// addMenuSubItems(null, null, [MQTest])
 		return new FRMenu({ items })
 	}

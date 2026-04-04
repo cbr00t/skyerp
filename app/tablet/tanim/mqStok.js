@@ -101,8 +101,8 @@ class MQTabStok extends MQKAOrtak {
 		/*for (let i = 1; i <= Math.max(3, this.satFiyatSayi); i++)
 			liste.push(new GridKolon({ belirtec: `satfiyat${i}`, text: `S.Fiyat${i}`, genislikCh: 11 }).tipDecimal_fiyat())*/
 		liste.push(
-			new GridKolon({ belirtec: 'almkdvorani', text: 'Alm.Kdv%', genislikCh: 8 }).tipNumerik(),
-			new GridKolon({ belirtec: 'almfiyat', text: 'Alm.Fiyat', genislikCh: 11 }).tipDecimal_fiyat(),
+			new GridKolon({ belirtec: 'almkdvorani', text: 'Alm.Kdv%', genislikCh: 8 }).tipNumerik().hidden(),
+			new GridKolon({ belirtec: 'almfiyat', text: 'Alm.Fiyat', genislikCh: 11 }).tipDecimal_fiyat().hidden(),
 			...this.getKAKolonlar(
 				new GridKolon({ belirtec: 'smarkakod', text: 'Marka', genislikCh: 15 }),
 				new GridKolon({ belirtec: 'smarkaadi', text: 'Marka Adı', genislikCh: 25, sql: 'smar.aciklama' })
@@ -147,7 +147,7 @@ class MQTabStok extends MQKAOrtak {
 			}
 		}
 		sent.stok2GrupBagla().stok2MarkaBagla()
-		sahalar.addWithAlias(alias, 'aciklama', 'grupkod', 'satfiyat1 fiyat')
+		sahalar.addWithAlias(alias, 'aciklama', 'grupkod', 'satfiyat1 fiyat', 'almfiyat')
 		sahalar.add('grp.aciklama grupadi', 'smar.aciklama markaadi')
 		sahalar.add(getKdvKodClauseVeAlias('TAH', 'sat'), getKdvKodClauseVeAlias('IND', 'alm'))
 		if (offlineRequest && !offlineMode) {
@@ -157,6 +157,9 @@ class MQTabStok extends MQKAOrtak {
 				new MQOrClause([`stk.grupkod = ''`, `grp.elterkullan <> ''`])
 			)
 			sahalar.addWithAlias(alias, 'kisaadi', 'brm2', 'brmorani', 'tartilabilir')
+		}
+		else {
+			sahalar.addWithAlias(alias, 'almkdvorani')
 		}
 	}
 	hostVarsDuzenle({ hv, offlineRequest, offlineMode }) {
