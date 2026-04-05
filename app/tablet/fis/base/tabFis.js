@@ -24,7 +24,8 @@ class TabFis extends MQDetayliGUIDOrtak {
 	static get almSat() { return null }
 	static get satismi() { return this.almSat == 'T' }
 	static get alimmi() { return this.almSat == 'A' }
-	get numTipKod() { return this.class.fisTipi || 'TB' }
+	static get numTipKod() { return this.fisTipi }
+	get numTipKod() { return this.class.numTipKod || 'TB' }
 	get numKod() { return this.class.getNumKod(this.numTipKod, this.eIslTip, this.yildizlimi) }
 	get defaultSeri() { return 'TAB' }
 	get eIslemmi() { return !this.yildizlimi && this.eIslTip }
@@ -39,7 +40,8 @@ class TabFis extends MQDetayliGUIDOrtak {
 	static get bedelKullanilirmi() {
 		let {_bedelKullanilirmi: result} = this
 		if (result) {
-			let {depomu} = app, {tablet: { depoBedelGorur } = {}} = app.params
+			let { depomu, params: { tablet } } = app
+			let { depoBedelGorur } = tablet
 			result &&= !(depomu && depoBedelGorur === false)
 		}
 		return result
@@ -60,7 +62,8 @@ class TabFis extends MQDetayliGUIDOrtak {
 	get numYapi() {
 		let { defaultSeri: seri, numKod: kod } = this
 		let aciklama = 'Sky Tablet'
-		return kod ? new MQTabNum({ kod, aciklama, seri }) : null
+		let { [kod]: id } = app.numYapilar ?? {}
+		return kod ? new MQTabNum({ id, kod, aciklama, seri }) : null
 	}
 	get onlineOtoNumKullanilirmi() { return true }
 	get kosulYapilar() { return this._kosulYapilar }
@@ -90,6 +93,7 @@ class TabFis extends MQDetayliGUIDOrtak {
 	}
 	get sonucBedel() { return this.fisTopNet }
 	get dokumDetaylar() { return this.detaylar.filter(Boolean) }
+	static get ba() { return this.cikisGibimi == false ? 'A' : 'B' }
 	static get cikisGibimi() {
 		let { alimmi, iademi } = this
 		return alimmi == null || iademi == null
@@ -216,41 +220,9 @@ class TabFis extends MQDetayliGUIDOrtak {
 					id2DetaySayi[id] = sayi)
 			}
 			recs.forEach(rec => {
-				let { id, fisTipi: tip, dvKod, sonuc, brm, topMiktar } = rec
-				dvKod ||= 'TL'
-				if (!sonuc && topMiktar && !brm) {
-					let { detaySinif: { defaultBrm } = {} } = tip2Sinif[tip]
-					brm = defaultBrm || 'AD'
-				}
-				
-				let detaySayi = id2DetaySayi[id]
-				let sonucLines = []
-				;{
-					let text = [
-						`<div class="item">`,
-						(
-							sonuc ? (
-								`<span class="bedel asil bold orangered">${bedelToString(sonuc)}</span> ` +
-								`<span class="bedel ek-bilgi gray">${dvKod}</span>`
-							) : topMiktar ? (
-								`<span class="miktar asil bold forestgreen">${numberToString(topMiktar)}</span> ` +
-								`<span class="miktar ek-bilgi gray">${brm}</span>`
-							) : ''
-						),
-						`</div>`
-					].join('')
-					sonucLines.push(text)
-				}
-				if (detaySayi) {
-					sonucLines.push(
-						`<div class="item">` +
-							`<span class="detaySayi asil bold royalblue">${numberToString(detaySayi)}</span> ` +
-							`<span class="detaySayi ek-bilgi gray">kalem</span>` +
-						`</div>`
-					)
-				}
-				rec.sonucText = empty(sonucLines) ? '' : sonucLines.join('\n')
-				rec._html = this.getHTML({ ...e, rec })
+				let _e = { ...e, rec, idListe, id2DetaySayi }
+				rec._html = this.getHTML(_e)
+				rec.sonucText = this.getHTML_sonuc(_e)
 			})
 		}
 		return recs
@@ -547,11 +519,13 @@ class TabFis extends MQDetayliGUIDOrtak {
 	}
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments)
+		let { class: { ba } } = this
 		let { tarih, kayitTS } = hv
 		if ('tarih' in hv)
 			hv.tarih = tarih = asReverseDateString(kayitTS || now())
 		if ('kayitTS' in hv)
 			hv.kayitTS = kayitTS = asReverseDateTimeString(kayitTS || now())
+		extend(hv, { ba })
 	}
 	kopyaIcinDuzenle(e) {
 		super.kopyaIcinDuzenle(e)
@@ -1153,37 +1127,110 @@ class TabFis extends MQDetayliGUIDOrtak {
 		)
 
 		let ekHTMLLines = { sol: [], sag: [] }
-		this.ekHTMLDuzenle({ ...e, result: ekHTMLLines })
+		let _e = { ...e, result: ekHTMLLines }
+		this.ekHTMLDuzenle(_e)
+
+		let { noDefault } = _e
+		let sagVarmi = !empty(ekHTMLLines.sag)
 		let headerMustVarmi = !!gridPart.mustKod
 		
-		let result = [
-			`<div class="aligned full-width relative" style="gap: 0 10px">`,
+		let result = []
+		result.push(`<div class="aligned full-wh relative" style="gap: 0 10px">`)
+			result.push(
 				`<template class="sort-data">`,
 					`{rotaAdi || ''}|${posta || ''}|${tarihStr}|${seri}|${noyil}|${fisno}|${mustunvan}`,
-				`</template>`,
-				`<div class="sol float-left">`,
-					`<span class="tarih ek-bilgi bold">${dateKisaString(asDate(tarih)) ?? ''}</span>`,
-					`<span class="fisNox asil royalblue">${tsnText}</span>`,
-					( headerMustVarmi ? null : `<span class="mustUnvan asil orangered">${mustunvan || ''}</span>` ),
-					( headerMustVarmi ? null : `<span class="ek-bilgi bold">${must ? `(${must})` : ''}</span>` ),
-					( rotaAdi ? `<span class="rota ek-bilgi">R:</span> <span class="rotaAdi asil blueviolet">${rotaAdi}</span>` : null ),
-					( postaAdi ? `<span class="poosta ek-bilgi">P:</span> <span class="posta asil bold darkyellow">${postaAdi}</span>` : null ),
-					...(ekHTMLLines.sol ?? []),
-				`</div>`,
-				`<div class="sag float-right">`,
-					( eIslText ? `<span class="ek-bilgi bold red">${eIslText}</span>` : null ),
-					( fisSinif ? `<span class="royalblue ek-bilgi">${fisSinif.sinifAdi || ''}</span>` : null ),
-					...( ekHTMLLines.sag ?? [] ),
-				`</div>`,
-			`</div>`
-		].filter(Boolean)
-		if (posta) {
-			let { aciklama } = new TabPosta(posta)
-			result.push()
-		}
-		return result.join(CrLf)
+				`</template>`
+			)
+			result.push(`<div class="sol ${sagVarmi ? 'float-left' : 'full-width'}">`)
+			result.push(
+				`<span class="tarih ek-bilgi bold">${dateKisaString(asDate(tarih)) ?? ''}</span>`,
+				`<span class="fisNox asil royalblue">${tsnText}</span>`,
+				( headerMustVarmi ? null : `<span class="mustUnvan asil orangered">${mustunvan || ''}</span>` ),
+				( headerMustVarmi ? null : `<span class="ek-bilgi bold">${must ? `(${must})` : ''}</span>` ),
+				( rotaAdi ? `<span class="rota ek-bilgi">R:</span> <span class="rotaAdi asil blueviolet">${rotaAdi}</span>` : null ),
+				( postaAdi ? `<span class="poosta ek-bilgi">P:</span> <span class="posta asil bold darkyellow">${postaAdi}</span>` : null )
+			)
+			result.push( ...( ekHTMLLines.sol ?? [] ) )
+			result.push(`</div>`)
+			result.push(`<div class="sag float-right">`)
+			result.push(
+				( eIslText ? `<span class="ek-bilgi bold red">${eIslText}</span>` : null ),
+				( fisSinif ? `<span class="royalblue ek-bilgi">${fisSinif.sinifAdi || ''}</span>` : null )
+			)
+			result.push( ...( ekHTMLLines.sag ?? [] ) )
+			result.push(`</div>`)
+		result.push(`</div>`)
+		
+		return result.filter(Boolean).join(CrLf)
 	}
 	static ekHTMLDuzenle({ result }) { }
+
+	static getHTML_sonuc(e = {}) {
+		let { tip2Sinif } = this
+		let { gridPart = e.sender, rec, id2DetaySayi = {} } = e
+		let { id, fisTipi: tip, dvKod, sonuc, brm, topMiktar } = rec
+		dvKod ||= 'TL'
+		if (!sonuc && topMiktar && !brm) {
+			let { defaultBrm } = tip2Sinif[tip]?.detaySinif ?? {}
+			brm = defaultBrm || 'AD'
+		}
+
+		let detaySayi = id2DetaySayi[id]
+		let ekHTMLLines = { sol: [], sag: [] }
+		let _e = { ...e, result: ekHTMLLines, detaySayi, dvKod, brm }
+		this.ekHTMLDuzenle_sonuc(_e)
+
+		let { noDefault } = _e
+		let sagVarmi = !empty(ekHTMLLines.sag)
+		
+		let result = []
+		result.push(`<div class="aligned full-wh relative" style="gap: 0 10px">`)
+		result.push(
+			`<template class="sort-data">`,
+				`${sonuc || topMiktar || 0}|${detaySayi || 0}`,
+			`</template>`
+		)
+		result.push(`<div class="sol ${sagVarmi ? 'float-left' : 'full-width'}">`,)
+		if (!noDefault) {
+			result.push(...[
+				`<div class="item">`,
+				(
+					sonuc ? (
+						`<span class="bedel asil bold orangered">${bedelToString(sonuc)}</span> ` +
+						`<span class="bedel ek-bilgi gray">${dvKod}</span>`
+					) :
+					topMiktar ? (
+						`<span class="miktar asil bold forestgreen">${numberToString(topMiktar)}</span> ` +
+						`<span class="miktar ek-bilgi gray">${brm}</span>`
+					) :
+					''
+				),
+				`</div>`
+			].filter(Boolean))
+			if (detaySayi) {
+				result.push(...[
+					`<div class="item">`,
+						`<span class="detaySayi asil bold royalblue">${numberToString(detaySayi)}</span> `,
+						`<span class="detaySayi ek-bilgi gray">kalem</span>`,
+					`</div>`
+				].filter(Boolean))
+			}
+		}
+		result.push( ...( ekHTMLLines?.sol?.filter(Boolean) ?? [] ) )
+		result.push(`</div>`)
+
+		if (sagVarmi) {
+			result.push(`<div class="sag float-right">`)
+			result.push( ...( ekHTMLLines?.sag?.filter(Boolean) ?? [] ) )
+			result.push(`</div>`)
+		}
+		
+		return empty(result) ? '' : result.join('\n')
+	}
+	static ekHTMLDuzenle_sonuc(e) {
+		let { result } = e
+		// e.noDefault = true
+	}
 
 	shallowCopy(e) {
 		let result = super.shallowCopy(e)

@@ -178,6 +178,8 @@ class TabTSFis extends TabFis {
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_dipCollapsed({ sender: tanimPart, inst: fis, rfb }) {
 		await super.rootFormBuilderDuzenle_tablet_acc_dipCollapsed(...arguments)
+		let { depomu, params: { tablet } } = app
+		let bakiyeGosterim = tablet[`${depomu ? 'depo' : 'ss'}MusteriBakiye`] != false
 		let { mustKod, dvKod, dipIslemci = {} } = fis
 		let { detaylar: { length: topSatir } } = fis
 		let mustRec = ( mustKod ? (await MQTabCari.getGloKod2Rec())?.[mustKod] : null ) ?? {}
@@ -200,8 +202,8 @@ class TabTSFis extends TabFis {
 			let bakiyeRenk = bakiye ? ( bakiye ? 'orangered' : 'forestgreen' ) : '_'
 			layoutList.push(...[
 				`<div class="item flex-row" style="gap: 10px">`,
-					`<span class="bakiye etiket lightgray">Bak: </span>`,
-					`<span class="bakiye veri ${bakiyeRenk} bold">${bakiye ? `${bedelToString(bakiye)} TL` : '-Yok-'}</span>`,
+					( bakiyeGosterim ? `<span class="bakiye etiket lightgray">Bak: </span>` : null ),
+					( bakiyeGosterim ? `<span class="bakiye veri ${bakiyeRenk} bold">${bakiye ? `${bedelToString(bakiye)} TL` : '-Yok-'}</span>` : null ),
 					(topSatir ? `<div class="topSatir veri royalblue"><b>${numberToString(topSatir)}</b> satır</div>` : null),
 				`</div>`
 			].filter(Boolean))

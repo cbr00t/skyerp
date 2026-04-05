@@ -15,9 +15,16 @@ class TabMusteriDurumu extends TabFisListeOrtak {
 		super.orjBaslikListesi_groupsDuzenle(liste)
 		liste.push('merkezDurum')
 	}
-	static gridVeriYuklendi({ sender: gridPart, sender: { gridWidget } }) {
+	static gridVeriYuklendi({ sender: gridPart, sender: { gridWidget: w } }) {
 		super.gridVeriYuklendi(...arguments)
-		gridWidget.hidecolumn('merkezDurum')
+		let { gonderimTSSaha } = this
+		w.beginupdate()
+		;['merkezDurum',
+			gonderimTSSaha,
+			gonderimTSSaha.replace('ts', 'saat')
+		].forEach(k =>
+			w.hidecolumn(k))
+		w.endupdate()
 
 		let { mustKod, ddMust } = gridPart
 		if (!mustKod?.trim())
@@ -25,6 +32,7 @@ class TabMusteriDurumu extends TabFisListeOrtak {
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
+		liste.find(c => c.belirtec == 'sonucText').text = 'B/A Bedel'
 		liste.push(new GridKolon({ belirtec: 'merkezDurum', text: 'Merkez Durum' }).noSql())
 	}
 	static async loadServerDataDogrudan(e = {}) {
@@ -78,6 +86,34 @@ class TabMusteriDurumu extends TabFisListeOrtak {
 					)
 					.addStyle(`$elementCSS { margin: 10px 0 !important}`)
 			}
+		}
+	}
+
+	static ekHTMLDuzenle_sonuc(e) {
+		super.ekHTMLDuzenle_sonuc(e)
+		let { gridPart = e.sender, rec, id2DetaySayi = {}, result } = e
+		let { sol, sag } = result
+		let { dvKod, detaySayi, brm } = e
+		let { id, fisTipi: tip, sonuc, ba, topMiktar } = rec
+
+		//if (!sonuc)
+		//	return super.ekHTMLDuzenle_sonuc(e)
+		
+		e.noDefault = true
+		;[sol, sag].forEach(target =>
+			target.push(`&nbsp;`))
+		;{
+			let alacakmi = ba == 'A'
+			let baCSS = alacakmi ? 'alacak' : 'borc'
+			let target = alacakmi ? sag : sol
+			target.push(`<div class="item bedel ${baCSS}">`)
+			if (sonuc) {
+				target.push(
+					`<span class="asil bold orangered">${bedelToString(sonuc)}</span>`,
+					`<span class="ek-bilgi gray">${dvKod}</span>`
+				)
+			}
+			target.push(`</div>`)
 		}
 	}
 }

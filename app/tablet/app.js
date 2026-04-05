@@ -19,14 +19,7 @@ class TabletApp extends TicariApp {
 		}
 		return result
 	}
-	get numYapilar() {
-		let { cache, cache: { _numYapilar: result } } = this
-		if (result === undefined) {
-			result = cache._numYapilar = {}
-			this.numYapilarDuzenle({ result })
-		}
-		return result
-	}
+	get numYapilar() { return this.params.tablet?.numYapilar }
 	get subeKod() {
 		let { cache, cache: { _subeKod: result } } = this
 		if (result === undefined) {
@@ -106,7 +99,8 @@ class TabletApp extends TicariApp {
 		if (!result) {
 			result = cache._offlineBilgiGonderSiniflar = [
 				...this.offlineBilgiYukleGonderOrtakSiniflar,
-				...TabFis.subClasses.filter(_ => !_.araSeviyemi)
+				...TabFis.subClasses
+						.filter(_ => !_.araSeviyemi)
 			]
 		}
 		return result
@@ -115,7 +109,8 @@ class TabletApp extends TicariApp {
 		let fisSiniflar = TabFis.subClasses.filter(_ => !_.araSeviyemi)
 		let detSiniflar = fisSiniflar.map(_ => _.detaySinif).flat().filter(_ => !!_)
 		return [
-			...this.offlineBilgiYukleSiniflar.filter(_ => !_.createTableYapilmazmi),
+			...this.offlineBilgiYukleSiniflar
+					.filter(_ => !_.createTableYapilmazmi),
 			...fisSiniflar, ...detSiniflar
 		]
 	}
@@ -124,7 +119,7 @@ class TabletApp extends TicariApp {
 	}
 
 	constructor(e) {
-		window.appRoot = '../tablet'
+		globalThis.appRoot = '../tablet'
 		super(e)
 		this.cache = {}
 	}
@@ -144,7 +139,7 @@ class TabletApp extends TicariApp {
 	}
 	async afterRun(e) {
 		await super.afterRun(e)
-		this.cacheReset()
+		await this.afterRunVeBilgiYukleGonderSonrasiOrtak(e)
 	}
 	async getAnaMenu(e) {
 		let { noMenuFlag, params } = this
@@ -265,13 +260,10 @@ class TabletApp extends TicariApp {
             TabTahsilatFis
         ].map(_ => _.fisTipi))
 	}
-	numYapilarDuzenle({ result }) {
-		let { uygunFisTipleri } = this
-		debugger
-	}
 	async bilgiYukleIstendi(e) {
-		let {offlineBilgiYukleSiniflar: classes, offlineClearTableSiniflar: clearClasses} = this
-		let {params, dbMgr, dbMgr: { main: db, main: { name } }, defaultOfflineRequestChunkSize: chunkSize} = this
+		let { offlineBilgiYukleSiniflar: classes, offlineClearTableSiniflar: clearClasses } = this
+		let { params, dbMgr, defaultOfflineRequestChunkSize: chunkSize } = this
+		let { main: db, main: { name } } = dbMgr
 		if (!classes?.length)
 			return
 		
@@ -301,7 +293,7 @@ class TabletApp extends TicariApp {
 			let {belirtecListe: hmrBelirtecler_eski} = HMRBilgi
 			if (!withClear)
 				clearClasses = clearClasses.filter(cls => !cls.offlineFis)
-			this.cacheReset()
+			await this.cacheReset(e)
 			{
 				if (clearClasses?.length) {
 					await MQCogul.sqlExecNone({ offlineRequest, offlineMode, query: 'BEGIN TRANSACTION' })
@@ -313,7 +305,7 @@ class TabletApp extends TicariApp {
 			}
 			{
 				await MQCogul.sqlExecNone({ offlineMode, query: 'BEGIN TRANSACTION' })
-				this.cacheReset()
+				await this.cacheReset(e)
 				await MQParam.offlineSaveToLocalTable({ offlineRequest, offlineMode }).finally(() => pm.progressStep())
 				await MQCogul.sqlExecNone({ offlineMode, query: 'COMMIT' })
 				pm.progressStep(1)
@@ -345,11 +337,7 @@ class TabletApp extends TicariApp {
 					))
 				}
 			}
-			await this.dbMgr_tabloEksikleriTamamla({ db, name, offlineRequest, offlineMode })
-			pm.progressStep(3)
-
-			await MQTabCariBakiye.bakiyeRiskDuzenle({ offlineRequest, offlineMode })
-			pm.progressStep(5)
+			await this.bilgiYukleSonrasi(e)
 		}
 		catch (ex) {
 			let errText = getErrorText(ex)
@@ -367,7 +355,6 @@ class TabletApp extends TicariApp {
 			}
 			finally { pm.progressStep() }
 		}*/
-		app.activeWndPart?.tazele?.()
 		setTimeout(() => pm.progressEnd(), 50)
 		eConfirm('Veri Yükleme tamamlandı')
 		setTimeout(() => hideProgress(), 150)
@@ -394,15 +381,42 @@ class TabletApp extends TicariApp {
 				finally { pm.progressStep() }
 			}
 		}
-		app.activeWndPart?.tazele?.()
-		pm.progressEnd()
+		await this.bilgiGonderSonrasi(e)
 		eConfirm('Veri Gönderimi tamamlandı')
 		setTimeout(() => hideProgress(), 200)
 	}
+	async bilgiYukleSonrasi(e) {
+		let { progressManager: pm } = globalThis
+		let { dbMgr, params } = this
+		let { tablet } = params
+		let { main: db, main: { name } } = dbMgr
+		let offlineRequest = true, offlineMode = true
+		await this.dbMgr_tabloEksikleriTamamla({ db, name, offlineRequest, offlineMode })
+		await tablet.kaydet()
+		pm?.progressStep(3)
+		await MQTabCariBakiye.bakiyeRiskDuzenle({ offlineRequest, offlineMode })
+		pm?.progressStep(5)
+		await this.bilgiYukleGonderSonrasi({ ...e, offlineRequest, offlineMode })
+	}
+	async bilgiGonderSonrasi(e) {
+		let { progressManager: pm } = globalThis
+		let offlineRequest = true, offlineMode = false
+		await this.bilgiYukleGonderSonrasi({ ...e, offlineRequest, offlineMode })
+	}
+	async bilgiYukleGonderSonrasi(e) {
+		app.activeWndPart?.tazele?.()
+		await this.afterRunVeBilgiYukleGonderSonrasiOrtak(e)
+	}
+	async afterRunVeBilgiYukleGonderSonrasiOrtak(e) {
+		let { progressManager: pm } = globalThis
+		await this.cacheReset(e)
+		pm?.progressEnd()
+	}
 	cacheReset() {
-		let {_cls2PTanim} = CIO, {offlineClearTableSiniflar} = this
-		for (let cls of [...offlineClearTableSiniflar, MQTabPlasiyer, TicIskYapi, BarkodParser /*, HMRBilgi*/]) {
-			let {detaySinif} = cls ?? {}
+		let { _cls2PTanim } = CIO, { offlineClearTableSiniflar } = this
+		let classes = [...offlineClearTableSiniflar, MQTabPlasiyer, TicIskYapi, BarkodParser /*, HMRBilgi*/]
+		for (let cls of classes) {
+			let { detaySinif } = cls ?? {}
 			cls?.globalleriSil?.()
 			detaySinif?.globalleriSil?.()
 		}

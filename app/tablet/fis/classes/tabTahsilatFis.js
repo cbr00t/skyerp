@@ -1,11 +1,12 @@
 class TabTahsilatFis extends TabFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kodListeTipi() { return 'TABTAH' } static get sinifAdi() { return 'Karma Tahsilat' }
-	static get tahsilatmi() { return true }
-	static get detaySinif() { return TabTahsilatDetay } static get almSat() { return 'T' }
+	static get kodListeTipi() { return 'TAH' } static get sinifAdi() { return 'Karma Tahsilat' }
+	static get numTipKod() { return 'TAH' } static get tahsilatmi() { return true }
+	static get detaySinif() { return TabTahsilatDetay }
 	static get onlineFisSinif() { return CariTahsilatFis }
-	static get bedelKullanilirmi() { return true }
+	static get almSat() { return 'T' } static get bedelKullanilirmi() { return true }
 	static get cikisGibimi() { return false }
+	
 	get dokumDetaylar() {
 		return super.dokumDetaylar.filter(_ => _.bedel)
 	}
@@ -79,7 +80,7 @@ class TabTahsilatFis extends TabFis {
 		}
 	}*/
 	async silmeOncesiIslemler(e = {}) {
-		let {_noCheck, tahFisId: asilFisId} = this
+		let { _noCheck, tahFisId: asilFisId } = this
 		if (!(_noCheck || asilFisId)) {
 			let {id, class: { idSaha, table }} = this
 			let sent = new MQSent(), {where: wh, sahalar} = sent
@@ -90,6 +91,11 @@ class TabTahsilatFis extends TabFis {
 		}
 		if (!_noCheck && asilFisId)
 			throw { isError: true, errorText: `Bu Tahsilat bir Ticari Belgeye bağlıdır ve silinemez. Lütfen önce Ticari Belgeyi siliniz` }
+
+		let { tablet } = app.params
+		if (tablet.tahsilatSilinir == false)
+			throw { isError: true, errorText: `Merkez kuralı gereği Tahsilat silme yetkiniz yoktur` }
+			
 		await super.silmeOncesiIslemler(e)
 	}
 	

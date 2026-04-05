@@ -310,12 +310,14 @@ class TabTicariFis extends TabTSFis {
 	}
 
 	static async rootFormBuilderDuzenle_tablet_acc_baslik({ sender: tanimPart, inst: fis, rfb }) {
-		let e = arguments[0], {siparismi} = this
+		let e = arguments[0]
+		let { tablet } = app.params
+		let { siparismi } = this
 		await super.rootFormBuilderDuzenle_tablet_acc_baslik(e)
 		{
 			let form = rfb.addFormWithParent().yanYana()
 			let etiketPrefix = `${siparismi ? 'Teslim' : 'Sevk'}`
-			{
+			if (siparismi || !tablet.sevkYeriKullanilmaz) {
 				let mfSinif = MQTabSevkAdres, etiket = `${etiketPrefix} Yeri`
 				if (siparismi)
 					etiket = etiket.replaceAll('Sevk', 'Teslim')

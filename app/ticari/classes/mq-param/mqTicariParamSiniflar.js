@@ -535,7 +535,7 @@ class MQWebParam extends MQTicariParamBase {
 	constructor(e = {}) {
 		super(e)
 		let {sablonSip_degisiklik, sablonSip_eMail, ekOzellikKodlari, yerKodListe} = e
-		$.extend(this, {
+		extend(this, {
 			sablonSip_degisiklik: sablonSip_degisiklik ?? true, sablonSip_eMail: sablonSip_eMail ?? true,
 			ekOzellikKodlari: ekOzellikKodlari ?? [], yerKodListe: yerKodListe ?? []
 		})
@@ -604,10 +604,13 @@ class MQWebParam extends MQTicariParamBase {
 		$.extend(hv, { ekOzellikKodlari })
 	}
 	paramSetValues({ rec }) {
-		super.paramSetValues(...arguments);
-		for (let key of ['sablonSip_degisiklik', 'sablonSip_eMail', 'webSiparis_sonStokGosterilirmi']) { this[key] = this[key] ?? true }
-		for (let key of ['ekOzellikKodlari', 'yerKodListe']) { this[key] = rec[key] ?? this[key] ?? [] }
-		let {sablonDefKisit} = this; if (sablonDefKisit?.sablonDefKisit) {
+		super.paramSetValues(...arguments)
+		for (let key of ['sablonSip_degisiklik', 'sablonSip_eMail', 'webSiparis_sonStokGosterilirmi'])
+			this[key] = this[key] ?? true
+		for (let key of ['ekOzellikKodlari', 'yerKodListe'])
+			this[key] = rec[key] ?? this[key] ?? []
+		let { sablonDefKisit } = this
+		if (sablonDefKisit?.sablonDefKisit) {
 			$.extend(sablonDefKisit, sablonDefKisit.sablonDefKisit);
 			delete sablonDefKisit.sablonDefKisit
 		}
@@ -619,23 +622,12 @@ class MQTabletParam extends MQTicariParamBase {
 	static get sinifAdi() { return 'Sky Tablet Parametreleri' }
 	static get paramKod() { return 'TABLET' }
 
-	static paramAttrListeDuzenle({ liste }) {
-		super.paramAttrListeDuzenle(...arguments)
-		liste.push(...[
-			'ssMusteriBakiye', 'depoMusteriBakiye', 'depoMusteriDurumu',
-			'depoAlimFiyatIskonto', 'depoSatisFiyatIskonto', 'depoSubeTransferdeGirisKesindir', 'kmTakibiYapilir',
-			'ilkIrsaliyeDokumuZorunlu', 'alimNetFiyatGosterilir', 'tahsilatSilinir', 'faturadaTahsilatYapilmaz',
-			'yazdirilanTahsilatDegistirilir', 'eFatIslem', 'eIrsAyriForm', 'sevkYeriKullanilmaz',
-			'nakliyeSekliKullanilmaz', 'silmeYerineDevredisi', 'detaydaFiyatDegisiklik', 'detaydaIskontoDegisiklik',
-			'fisGirisSadeceBarkodlu', 'yaslandirmaGunleri', 'yaslandirmaTarihten', 'depoMalKabulSipKarsilama',
-			'depoMalKabulSipMiktarKontrolu', 'depoMalKabulSiparisHMRli', 'depoSevkiyatSipKarsilama', 'depoSevkiyatSipMiktarKontrolu',
-			'depoSevkiyatSiparisHMRlimi', 'depoSipReferansZorunlu', 'sevkiyatGunlukSipDagitimdan', 'depoSayimSonucAnlikGuncellenir',
-			'ertesiGunSiparisTeslimFisidir', 'malKabulKosulaGoreFiyatGuncellenir', 'sevkiyatKosulaGoreFiyatGuncellenir'
-		])
+	constructor(e = {}) {
+		super(e)
 	}
 	static paramYapiDuzenle({ paramci }) {
 		super.paramYapiDuzenle(...arguments)
-		{
+		;{
 			let form = paramci.addFormWithParent()
 			form.addBool('yaslandirmaTarihmi', `Yaşlandırma Tarih'e göredir`);
 			form.addBool('cariHareketTakipNo', 'Cari Hareket Takip No Bazında Gruplanır')
@@ -648,13 +640,36 @@ class MQTabletParam extends MQTicariParamBase {
 			form.addBool('eIslem', 'e-İşlem')
 			form.addNumber('iskMaxSayi', 'İsk. Max Sayı')
 			form.addAltObject('dokumFormlar')
+			form.addAltObject('numYapilar')
+		}
+		;{
+			let form = paramci.addFormWithParent()
+			;[
+				'ssMusteriBakiye', 'depoMusteriBakiye', 'depoMusteriDurumu',
+				'depoAlimFiyatIskonto', 'depoSatisFiyatIskonto', 'depoSubeTransferdeGirisKesindir', 'kmTakibiYapilir',
+				'ilkIrsaliyeDokumuZorunlu', 'alimNetFiyatGosterilir', 'tahsilatSilinir', 'faturadaTahsilatYapilmaz',
+				'yazdirilanTahsilatDegistirilir', 'eFatIslem', 'eIrsAyriForm', 'sevkYeriKullanilmaz',
+				'nakliyeSekliKullanilmaz', 'fisGirisSadeceBarkodlu', 'depoMalKabulSipKarsilama',
+				'depoMalKabulSipMiktarKontrolu', 'depoMalKabulSiparisHMRli', 'depoSevkiyatSipKarsilama', 'depoSevkiyatSipMiktarKontrolu',
+				'depoSevkiyatSiparisHMRlimi', 'depoSipReferansZorunlu', 'sevkiyatGunlukSipDagitimdan', 'depoSayimSonucAnlikGuncellenir',
+				'ertesiGunSiparisTeslimFisidir', 'malKabulKosulaGoreFiyatGuncellenir', 'sevkiyatKosulaGoreFiyatGuncellenir'
+			].forEach(k =>
+				form.addBool(k, k))
+		}
+		;{
+			let form = paramci.addFormWithParent()
+			;['yaslandirmaGunleri'].forEach(k =>
+				form.addAltArray(k, k))
 		}
 	}
 	paramSetValues({ rec } = {}) {
 		super.paramSetValues(...arguments)
 		let donusum = {
 			rotaSirasaindaUgrama: 'rotaDisiMusteriAlinirmi',
-			silmeYerineDevredisi: 'silmeYerineDevreDisi'
+			silmeYerineDevredisi: 'silmeYerineDevreDisi',
+			yaslandirmaTarihten: 'yaslandirmaTarihmi',
+			detaydaFiyatDegisiklik: 'fiyatDegistirir',
+			detaydaIskontoDegisiklik: 'iskDegistirir'
 		}
 		;entries(donusum).forEach(([s, t]) => {
 			let v = rec[s]

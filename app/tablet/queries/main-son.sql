@@ -41,7 +41,10 @@ CREATE TABLE IF NOT EXISTS tabfis (
 	topMiktar REAL NOT NULL DEFAULT 0,
 -- stok/ticari/tahsilat fis
 	sonuc REAL NOT NULL DEFAULT 0,
-	dvkod TEXT NOT NULL DEFAULT ''
+	ba TEXT NOT NULL DEFAULT '',
+	dvkod TEXT NOT NULL DEFAULT '',
+-- diger hareketler
+	ekBilgi TEXT NOT NULL DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS idx_tabfis_fisTipi ON tabfis (fisTipi);
 CREATE INDEX IF NOT EXISTS idx_tabfis_tarih ON tabfis (tarih);

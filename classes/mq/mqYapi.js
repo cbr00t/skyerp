@@ -593,7 +593,7 @@ class MQYapi extends CIO {
 		inst.offlineBuildSQLiteQuery(e)
 	}
 	offlineBuildSQLiteQuery({ result: r = [] }) {
-		let {class: { noLocalTable, table, primaryKeys }} = this
+		let { class: { noLocalTable, table, primaryKeys } } = this
 		if (noLocalTable || !table)
 			return
 		let e = { ...arguments[0], offlineRequest: true, offlineMode: true, queryBuild: true }

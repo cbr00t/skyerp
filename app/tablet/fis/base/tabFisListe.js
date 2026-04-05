@@ -42,8 +42,9 @@ class TabFisListe extends TabFisListeOrtak {
 	static async getUstBilgiHTML(e = {}) {
 		let { gridPart = e.sender } = e
 		let { mustKod } = gridPart
-		let { params: { tablet }, sutAlimmi } = app
+		let { params: { tablet }, depomu, sutAlimmi } = app
 		sutAlimmi ||= tablet.sutToplama
+		let bakiyeGosterim = tablet[`${depomu ? 'depo' : 'ss'}MusteriBakiye`] != false
 
 		let mustRec = mustKod ? (
 			(await MQTabCari.getGloKod2Rec())?.[mustKod] ??
@@ -58,7 +59,6 @@ class TabFisListe extends TabFisListeOrtak {
 			let vkno = sahismi ? tckn : vkn
 			let { [mustKod]: { bakiye } } = await MQTabCariBakiye.getGloKod2Rec()
 			let bakiyeRenk = bakiye ? ( bakiye ? 'orangered' : 'forestgreen' ) : '_'
-
 			unvan ??= ''
 			
 			result.push(...[
@@ -77,12 +77,12 @@ class TabFisListe extends TabFisListeOrtak {
 								 `<span class="orangered bold">${vkno || ''}</span>` +
 							 `</div>`
 						: null ),
-						(
+						( bakiyeGosterim ?
 							`<div class="bakiye">` +
 								`<span class="bakiye etiket lightgray">Bak: </span>` +
 								`<span class="bakiye veri ${bakiyeRenk} bold">${bakiye ? `${bedelToString(bakiye)} TL` : '-Yok-'}</span>` +
 							`</div>`
-						),
+						: null ),
 					`</div>`,
 				`</div>`
 			].filter(Boolean))

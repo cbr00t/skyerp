@@ -1,6 +1,7 @@
 class TabUgramaFis extends TabFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kodListeTipi() { return 'TABUGR' } static get sinifAdi() { return 'Uğrama' }
+	static get kodListeTipi() { return 'UGR' } static get sinifAdi() { return 'Uğrama' }
+	static get numTipKod() { return 'U' }
 	static get onlineFisSinif() { return TabUgramaOnlineFis }
 
 	static pTanimDuzenle({ pTanim }) {

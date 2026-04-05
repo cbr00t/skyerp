@@ -2,6 +2,7 @@ class TabSutAlimFis extends TabFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sutAlimmi() { return true } static get alimmi() { return true }
 	static get kodListeTipi() { return 'SUT' } static get sinifAdi() { return 'Süt Alım' }
+	static get numTipKod() { return 'SUT' }
 	static get detaySinif() { return TabSutAlimDetay }
 	static get onlineFisSinif() { return SutAlimOnlineFis }
 	static get cariSinif() { return MQTabMustahsil }
