@@ -16,32 +16,47 @@ class TabRotaListe extends MQMasterOrtak {
 
 	static listeEkrani_afterRun({ sender: gridPart }) {
 		super.listeEkrani_afterRun(...arguments)
+		let { grid } = gridPart
+		gridPart.noAnimate()
+		gridPart.gridGroupsChangedBlock = _e =>
+			this.gridGroupsChanged({ ...e, ..._e })
 	}
 	static orjBaslikListesi_argsDuzenle(e) {
 		super.orjBaslikListesi_argsDuzenle(e)
 		MQMasterOrtak.orjBaslikListesi_argsDuzenle(e)
+		let { args } = e
+		extend(args, { groupsExpandedByDefault: false, enableToolTips: false })
 	}
-	static orjBaslikListesi_groupsDuzenle({ liste }) {
+	static orjBaslikListesi_groupsDuzenle(e = {}) {
+		let { gridPart = e.sender, liste } = e
+		let { _lastGroups } = gridPart
+		// _lastGroups ??= ['durumText', 'aciklama']
+		_lastGroups ??= ['aciklama']
 		super.orjBaslikListesi_groupsDuzenle(...arguments)
-		liste.push('durumText', 'aciklama')
+		liste.push(..._lastGroups)
 	}
 	static ekCSSDuzenle({ dataField: belirtec, rec, result }) {
 		super.ekCSSDuzenle(...arguments)
+		if (belirtec == 'aciklama' || belirtec == 'durumText')
+			result.push('fs-70', 'lh-13')
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
 		liste.push(
 			new GridKolon({ belirtec: '_html', text: 'Belge' }).noSql(),
 			new GridKolon({ belirtec: 'islemVarmi', text: 'İşl?', genislikCh: 4 }).noSql().tipBool(),
-			new GridKolon({ belirtec: 'aciklama', text: 'Rota Adı', genislikCh: 4 }).noSql(),
-			new GridKolon({ belirtec: 'durumText', text: 'İşlem Durumu', genislikCh: 15 }).noSql().hidden()
+			new GridKolon({ belirtec: 'aciklama', text: 'Rota', genislikCh: 13 }).noSql(),
+			new GridKolon({ belirtec: 'durumText', text: 'Drm', genislikCh: 6 }).noSql(),
+			new GridKolon({ belirtec: 'sortText' }).noSql().hidden()
 		)
 	}
 	static async loadServerDataDogrudan(e = {}) {
 		let { gridPart = e.sender, wsArgs, offlineRequest, offlineMode } = e
-		gridPart._lastUid = gridPart.selectedUid
-		
-		if (wsArgs?.sortdatafield == 'durumText')
+		let { selectedUid: _lastUid, gridWidget: w } = gridPart
+		extend(gridPart, { _lastUid })
+
+		let ignoreKeys = asSet(['durumText', 'sortText'])
+		if (ignoreKeys[wsArgs?.sortdatafield])
 			wsArgs.sortdatafield = null
 		
 		if (!offlineRequest) {
@@ -55,15 +70,20 @@ class TabRotaListe extends MQMasterOrtak {
 		let { plasiyerKod: buPlasiyerKod } = app
 		let mustKod2HarBilgi = {}
 		;{
+			let { fisTipi: sutFisTipi } = TabSutAlimFis
 			let sent = new MQSent(), { where: wh, sahalar } = sent
 			sent.fromAdd(TabFis.table)
 			wh.add(`must <> ''`, `silindi = ''`)
-			sahalar.add('must mustKod', 'dvkod dvKod', 'SUM(sonuc) bedel', 'COUNT(*) sayi')
+			sahalar.add(
+				'must mustKod', 'dvkod dvKod', 'SUM(sonuc) bedel', 'COUNT(*) sayi',
+				`(CASE WHEN fisTipi = ${sutFisTipi.sqlDegeri()} THEN SUM(topMiktar) ELSE 0 END) sutMiktar`
+			)
 			sent.groupByOlustur()
 			mustKod2HarBilgi = fromEntries(
 				(await sent.execSelect()).map(r => [r.mustKod, r]))
 		}
-		
+		let { groups } = w
+		let groupSet = asSet(groups)
 		let _recs = await super.loadServerDataDogrudan(...arguments)
 		let mustKod2Rec = { ilk: {}, son: {}, hepsi: {} }
 		for (let rec of _recs) {
@@ -73,19 +93,25 @@ class TabRotaListe extends MQMasterOrtak {
 			let harBilgi = mustKod2HarBilgi[mustKod] ?? {}
 			if (harBilgi)
 				extend(rec, harBilgi)
-			let { sayi } = rec
+			let { tip, sayi } = rec
 			let islemVarmi = sayi > 0
 			extend(rec, {
 				islemVarmi,
-				durumText: ( islemVarmi ? `<b class=orangered>İşlem Görenler</b>` : `<b class=forestgreen>Bekleyenler</b>` )
+				durumText: ( islemVarmi ? `<b class=orangered>İşlem Gören</b>` : `<b class=forestgreen>Bek.</b>` ),
 			})
+			rec.sortText = [
+				( groupSet.durumText ? islemVarmi : null ),
+				( groupSet.aciklama ? tip : null )
+			].filter(Boolean).join(delimWS)
 			rec._html = this.getHTML({ ...e, rec })
 			// let selector = islemVarmi ? 'son' : 'ilk'
 			// mustKod2Rec[selector][mustKod] = rec
 			mustKod2Rec.hepsi[mustKod] = rec             // öncelik sırasız
 		}
-		return values(mustKod2Rec.hepsi)
-		//return [...values(mustKod2Rec.ilk), ...values(mustKod2Rec.son)]
+		let recs = values(mustKod2Rec.hepsi)
+		recs.sort((a, b) =>
+			a.sortText.localeCompare(b.sortText))
+		return recs
 	}
 	static loadServerData_queryDuzenle({ offlineRequest, offlineMode, stm }) {
 		let e = arguments[0]
@@ -133,25 +159,41 @@ class TabRotaListe extends MQMasterOrtak {
 		if (empty(orderBy.liste))
 			orderBy.add('tip', 'plasiyerKod', 'ekKod', 'oncelik', 'seq')
 	}
+	static gridGroupsChanged(e) {
+		let { gridPart = e.sender, event: { args = {} } } = e
+		let type = args.type?.toLowerCase()
+		if (type == 'insert' || type == 'remove') {
+			clearTimeout(this._timer_groupsChanged_tazele)
+			this._timer_groupsChanged_tazele = setTimeout(() => gridPart.tazele(e), 1)
+		}
+	}
 	static async gridVeriYuklendi({ sender: gridPart, sender: { gridWidget: w } }) {
 		super.gridVeriYuklendi(...arguments)
-		let { groups } = w
-		;{
-			let key = 'durumText'
+		let { sortcolumn: sortKey, groups } = w
+		gridPart._lastGroups = groups
+		//if (!sortKey)
+		//	w.sortby('sortText', true)
+		/*;{
+			let key = 'sortText'
 			if (groups.includes(key))
 				w.sortby(key, true)
-		}
+		}*/
 
 		let { boundRecs: recs, selectedRec: rec, selectedUid } = gridPart
 		setTimeout(() => {
+			let { groups } = w
+			try { w[groups.includes('durumText') ? 'showcolumn' : 'hidecolumn']('islemVarmi') }
+			catch (ex) { }
 			// gridPart.seviyeKapat()
 			w.focus()
 			if (!empty(recs)) {
 				selectedUid ??= gridPart._lastUid ?? 0
 				if (selectedUid != null) {
 					w.clearselection()
-					w.selectrow(selectedUid)
-					w.ensurerowvisible(w.getrowboundindexbyid(selectedUid))
+					let ind = w.getrowboundindexbyid(selectedUid)
+					w.selectrow(ind)
+					gridPart.expandGroup(selectedUid)
+					w.ensurerowvisible(ind)
 				}
 			}
 		}, 10)
@@ -297,8 +339,9 @@ class TabRotaListe extends MQMasterOrtak {
 		]
 	}
 	static getHTML({ rec = {} }) {
-		let { mustKod, mustUnvan, eFatmi, bedel, dvKod, sayi } = rec
 		let { eIslemKullanilirmi: eIslem } = app
+		let { mustKod, mustUnvan, eFatmi, sutMiktar, bedel, dvKod, sayi } = rec
+		let sutBrm = TabSutAlimFis.detaySinif.defaultBrm || 'LT'
 		dvKod ||= 'TL'
 		eIslem ??= true
 		let eIslText = (
@@ -309,7 +352,7 @@ class TabRotaListe extends MQMasterOrtak {
 			!eIslem ? '' :
 			eFatmi ? ' firebrick' : ' forestgreen'
 		)
-		
+
 		return [
 			`<div class="aligned full-width relative">`,
 				`<template class="sort-data">${mustKod}|${mustUnvan}|${eIslText}</template>`,
@@ -319,8 +362,26 @@ class TabRotaListe extends MQMasterOrtak {
 				`</div>`,
 				`<div class="sag float-right">`,
 					( eIslText ? `<span class="eIslText ek-bilgi bold${eIslCSS}">${eIslText}</span>` : null ),
-					( bedel ? `<span class="bedel asil bold royalblue">${bedelToString(bedel)}</span> <span class="ek-bilgi">${dvKod}</span>` : null ),
-					( sayi ? `<span class="sayi asil bold forestgreen">${numberToString(sayi)}</span> <span class="ek-bilgi green">satır</span>` : null ),
+					( bedel ? (
+						`<div class="item right">` +
+							`<span class="etiket lightgray">Tic:</span> `  +
+							`<span class="bedel asil bold royalblue">${bedelToString(bedel)}</span> ` +
+							`<span class="ek-bilgi">${dvKod}</span>` +
+						`</div>`
+					) : null ),
+					( sutMiktar ? (
+						`<div class="item right">` +
+							`<span class="etiket lightgray">SÜT:</span> `  +
+							`<span class="bedel asil bold forestgreen">${numberToString(sutMiktar)}</span> ` +
+							( sutBrm ? `<span class="ek-bilgi">${sutBrm}</span>` : '' ) +
+						`</div>`
+					) : null ),
+					( sayi ? (
+						`<div class="item right">` +
+							`<span class="sayi asil bold forestgreen">${numberToString(sayi)}</span> ` +
+							`<span class="ek-bilgi green">fiş</span>` +
+						`</div>`
+					): null ),
 				`</div>`,
 			`</div>`
 		].filter(Boolean).join(CrLf)

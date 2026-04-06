@@ -91,6 +91,8 @@
 .contain { background-size: contain !important }
 .bg-auto { background-size: auto !important }
 
+.fs-60 { font-size: 60% !important }
+.fs-65 { font-size: 65% !important }
 .fs-70 { font-size: 70% !important }
 .fs-75 { font-size: 75% !important }
 .fs-80 { font-size: 80% !important }
@@ -103,6 +105,22 @@
 .fs-140 { font-size: 140% !important }
 .fs-150 { font-size: 150% !important }
 .fs-160 { font-size: 160% !important }
+
+.lh-24, .lh-24 > div { line-height: 24px !important }
+.lh-23, .lh-23 > div { line-height: 23px !important }
+.lh-22, .lh-22 > div { line-height: 22px !important }
+.lh-21, .lh-21 > div { line-height: 21px !important }
+.lh-20, .lh-20 > div { line-height: 20px !important }
+.lh-19, .lh-19 > div { line-height: 19px !important }
+.lh-18, .lh-18 > div { line-height: 18px !important }
+.lh-17, .lh-17 > div { line-height: 17px !important }
+.lh-16, .lh-16 > div { line-height: 16px !important }
+.lh-15, .lh-15 > div { line-height: 15px !important }
+.lh-14, .lh-14 > div { line-height: 14px !important }
+.lh-13, .lh-13 > div { line-height: 13px !important }
+.lh-12, .lh-12 > div { line-height: 12px !important }
+.lh-11, .lh-11 > div { line-height: 11px !important }
+.lh-10, .lh-10 > div { line-height: 10px !important }
 
 .pl-5 { padding-left: 5px !important }
 .pl-8 { padding-left: 8px !important }

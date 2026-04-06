@@ -115,7 +115,7 @@ class TabSutAlimFis extends TabFis {
 
 		let e = { ...arguments[0], offlineRequest: true, offlineMode: false }
 		let { table: offlineTable, idSaha, gonderildiDesteklenirmi, gonderimTSSaha } = this
-		let { defaultBrm } = this.class ?? {}
+		let { numarator: { id: numId }, class: { defaultBrm } } = this
 		let fisRecs, idListe, detRecs
 		let fisID2Yapi = {}, fisKey2Yapi = {}
 		let keyHV = this.varsayilanKeyHostVars(e)
@@ -195,7 +195,6 @@ class TabSutAlimFis extends TabFis {
 						yapi.detRecs.push(...detRecs)
 					}
 				}
-				
 				window.progressManager?.progressStep(3)
 			}
 

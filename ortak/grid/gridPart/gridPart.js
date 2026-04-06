@@ -144,6 +144,7 @@ class GridPart extends Part {
 			showGroupsHeader: false, groupIndentWidth: 25, groupsHeaderHeight: 33, groupsExpandedByDefault: false,
 			enableBrowserSelection: false, selectionMode: 'multiplecellsextended',
 			pageable: false, pagermode: 'advanced', adaptive: undefined, virtualMode: false, updatedelay: 0,
+			// enableToolTips: true,
 			scrollbarsize: 13, scrollMode: 'logical',		/* default | logical | deferred */
 			renderGridRows: ({ data = {} }) => {
 				let recs = data?.records ?? data
@@ -1264,10 +1265,11 @@ class GridPart extends Part {
 	seviyeKapat(e) { return this.seviyeAcKapat({ ...e, flag: false }) }
 	seviyeAcKapat({ flag } = {}) {
 		let { gridWidget: w } = this
+		let { groups } = w
 		w.beginupdate()
 		try {
 			w[flag ? 'expandallgroups' : 'collapseallgroups'](1)
-			if (!flag) {
+			if (!flag && groups?.length > 1) {
 				let l0Groups = w.dataview.loadedgroups.filter(_ => _.level === 0)
 				if (!empty(l0Groups)) {
 					l0Groups.forEach((_, i) =>
@@ -1276,6 +1278,46 @@ class GridPart extends Part {
 			}
 		}
 		finally { w.endupdate() }
+		return this
+	}
+	expandGroup(e = {}) { return this.setGroupState(e, true) }
+	collapseGroup(e = {}) { return this.setGroupState(e, false) }
+	setGroupState(e = {}, _expand) {
+		let { gridWidget: w } = this
+		let uid = e.uid ?? e
+		if (uid == null) {
+			let rec = e.rec ?? e
+			if (isNumber(rec)) {
+				let ind = rec
+				rec = this.boundRecs[ind]
+			}
+			uid = rec?.uid
+		}
+		if (uid == null)
+			return this
+
+		let vRec = w.getvisiblerowdata(w.getrowdisplayindex(uid))
+		if (vRec == null)
+			return this
+
+		let { dataview: view = {} } = w
+		let { loadedrootgroups: lg } = view
+		if (empty(lg))
+			return this
+
+		let groupKey = []
+		let { parentItem: grp } = vRec
+		while (grp) {
+			let parent = grp.parentItem?.subGroups ?? lg
+			let i = parent.findIndex(_ => _ == grp)
+			if (i > -1)
+				groupKey.unshift(i)
+			grp = grp.parentItem ?? grp.parentgroup ??
+		            grp.parentGroup ?? grp.parent ?? null
+		}
+
+		let expand = _expand ?? e.expand
+		w[expand ? 'expandgroup' : 'collapsegroup'](groupKey.join('.'))
 		return this
 	}
 	addRow(e) {

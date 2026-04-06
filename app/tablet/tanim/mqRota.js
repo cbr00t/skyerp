@@ -70,15 +70,17 @@ class MQTabRota extends MQGuidVeAdiOrtak {
 			return recs
 		
 		for (let rec of recs) {
-			let { tipKod, plasiyerKod, gunKod, kod } = rec
-			tipKod ||= 'T'
+			let { tip, plasiyerKod, gunKod, kod } = rec
+			tip ||= 'T'
 			rec.id ||= newGUID()
 			gunKod ||= rec.gunKod = 'HER'
-			switch (tipKod) {
+			switch (tip) {
 				case 'T': {
 					let tokens = kod.split('-')
+					rec.aciklama = `<span class="royalblue">[ SATIŞ ROTASI ]</span>`
 					rec.plasiyerKod = tokens[0].trimEnd()
 					rec.gunKod = tokens[1]?.trimEnd() || gunKod
+					rec.ekKod = ''
 					break
 				}
 				case 'M': {
@@ -122,7 +124,7 @@ class MQTabRota extends MQGuidVeAdiOrtak {
 				}
 				wh.add(or)
 			}
-			sahalar.addWithAlias(alias, 'tipkod tipKod', 'kod', 'musplasiyerkod plasiyerKod', 'kaysayac rotaID')
+			sahalar.addWithAlias(alias, 'tipkod tip', 'kod', 'musplasiyerkod plasiyerKod', 'kaysayac rotaID')
 			sahalar.addWithAlias('har', 'seq', 'must mustKod')
 		}
 		else {
