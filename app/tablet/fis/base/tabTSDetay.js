@@ -86,16 +86,18 @@ class TabTSDetay extends TabDetay {
 		brm ??= ''
 		return [
 			_,
-			`<div class="asil flex-row" style="gap: 0 10px">`,
-				( stokAdi ? `<div class="stokAdi">${stokAdi}</div>` : null ),
-				( stokKod ? `<div class="stokKod orangered">${stokKod}</div>` : null ),
-				( !barkod || stokKod == barkod ? null : `<div class="barkod bold float-right">${barkod}</div>` ),
-			`</div>`,
-			( miktar ?
-				`<div class="miktarFiyat ek-bilgi float-right" style="gap: 0 10px">` +
-					`<span class="miktar bold forestgreen">${miktar} ${brm}</span>` +
-				`</div>`
-			: null)
+			`<div class="full-wh">`,
+				`<div class="asil flex-row float-left" style="gap: 0 10px">`,
+					( stokAdi ? `<div class="stokAdi">${stokAdi}</div>` : null ),
+					( stokKod ? `<div class="stokKod orangered">${stokKod}</div>` : null ),
+					( !barkod || stokKod == barkod ? null : `<div class="barkod bold float-right">${barkod}</div>` ),
+				`</div>`,
+				( miktar ?
+					`<div class="miktarFiyat ek-bilgi float-right" style="gap: 0 10px">` +
+						`<span class="miktar bold forestgreen">${miktar} ${brm}</span>` +
+					`</div>`
+				: null),
+			`</div>`
 		].filter(Boolean).join(CrLf)
 	}
 	super_getHTML(e) { return super.getHTML(e) }

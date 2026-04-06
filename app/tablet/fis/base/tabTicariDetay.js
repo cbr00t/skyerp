@@ -83,28 +83,34 @@ class TabTicariDetay extends TabTSDetay {
 				)
 			}
 		}
+		
 		return [
 			_,
-			`<div class="asil flex-row" style="gap: 0 10px">`,
-				`<div class="stokAdi">${stokAdi}</div>`,
-				`<div class="stokKod orangered">${stokKod}</div>`,
-				(stokKod == barkod ? null : `<div class="barkod bold float-right">${barkod}</div>`),
-				(!kdvOrani ? null : `<div class=kdvOrani><span>%</span><span class=purple>${kdvOrani}</span></div>`),
-			`</div>`,
-			`<div class="miktarFiyat ek-bilgi float-right" style="gap: 0 10px">`,
-				`<span class="miktar bold forestgreen">${miktar} ${brm}</span>`,
-				...(bedelKullanilirmi ? [
-					`<span> x </span>`,
-					`<span class="fiyat bold royalblue">${numberToString(roundToFiyatFra(fiyat))}</span>`,
-					`<span>TL</span>`
+			`<div class="full-width">`,
+				`<div class="asil flex-row float-left" style="gap: 0 10px">`,
+					`<div class="stokAdi">${stokAdi}</div>`,
+					`<div class="stokKod orangered">${stokKod}</div>`,
+					(stokKod == barkod ? null : `<div class="barkod bold float-right">${barkod}</div>`),
+					(!kdvOrani ? null : `<div class=kdvOrani><span>%</span><span class=purple>${kdvOrani}</span></div>`),
+				`</div>`,
+				`<div class="miktarFiyat ek-bilgi float-right" style="gap: 0 10px">`,
+					`<span class="miktar bold forestgreen">${miktar} ${brm}</span>`,
+					/*`<span class="miktar">`,
+						`<input class="bold forestgreen right" type="number" value="${miktar}" style="width: 50px"/>`,
+					`</span>`,*/
+					...(bedelKullanilirmi ? [
+						`<span> x </span>`,
+						`<span class="fiyat bold royalblue">${numberToString(roundToFiyatFra(fiyat))}</span>`,
+						`<span>TL</span>`
+					] : []),
+					...iskHTMLListe,
+				`</div>`,
+				...(!empty(kosulKodHTMLListe) ? [
+					`<div style="margin-top: 13px" class="kosulBilgi ek-bilgi" style="gap: 0 13px">`,
+						...kosulKodHTMLListe,
+					`</div>`
 				] : []),
-				...iskHTMLListe,
-			`</div>`,
-			...(!empty(kosulKodHTMLListe) ? [
-				`<div style="margin-top: 13px" class="kosulBilgi ek-bilgi" style="gap: 0 13px">`,
-					...kosulKodHTMLListe,
-				`</div>`
-			] : [])
-		].filter(_ => _).join(CrLf)
+			`</div>`
+		].filter(Boolean).join(CrLf)
 	}
 }

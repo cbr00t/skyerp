@@ -2,7 +2,7 @@ class TabSutAlimFis extends TabFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sutAlimmi() { return true } static get alimmi() { return true }
 	static get kodListeTipi() { return 'SUT' } static get sinifAdi() { return 'Süt Alım' }
-	static get numTipKod() { return 'SUT' }
+	static get numTipKod() { return 'SUT' } get defaultSeri() { return '' }
 	static get detaySinif() { return TabSutAlimDetay }
 	static get onlineFisSinif() { return SutAlimOnlineFis }
 	static get cariSinif() { return MQTabMustahsil }
@@ -115,7 +115,15 @@ class TabSutAlimFis extends TabFis {
 
 		let e = { ...arguments[0], offlineRequest: true, offlineMode: false }
 		let { table: offlineTable, idSaha, gonderildiDesteklenirmi, gonderimTSSaha } = this
-		let { numarator: { id: numId }, class: { defaultBrm } } = this
+		let { params: { tablet } } = app
+		let numYapilar = tablet.numYapilar ??= {}
+		let { defaultBrm } = this
+		let numTable = 'numarator', numKod = 'MUSHZ'                           // uzak
+		let { subeKod: bizsubekod } = config.session
+		bizsubekod ??= ''
+		let { numYapi } = new this()
+		await numYapi.yukle()
+		let { id: numId, seri } = numYapi
 		let fisRecs, idListe, detRecs
 		let fisID2Yapi = {}, fisKey2Yapi = {}
 		let keyHV = this.varsayilanKeyHostVars(e)
@@ -200,40 +208,81 @@ class TabSutAlimFis extends TabFis {
 
 			if (!empty(fisKey2Yapi)) {
 				// Burada merkeze aktarım yapılacak
-				// let fisSeq = 0
 				let toplu = new MQToplu().withTrn()
 				let _okIdList = []
 				
 				let table = 'musrotafis', detayTable = 'musrotastok'
-				let tipkod = 'M', alttipkod = ''
-				let seri = 'TAB', yerkod = 'A'
+				let tipkod = 'M', alttipkod = '', yerkod = 'A'
 				let no = `@sonNo + 1`.sqlConst()
 				let tabletguid = 'NEWID()'.sqlConst()
 				
 				toplu.add(...[
 					`DECLARE @fisSayac BIGINT`,
+					`DECLARE @numSeri CHAR(3)`,
 					`DECLARE @sonNo INT`,
 					`DECLARE @seq SMALLINT`,
-					`DECLARE @id UNIQUEIDENTIFIER`
+					`DECLARE @id UNIQUEIDENTIFIER`,
+					// `DECLARE @numId UNIQUEIDENTIFIER`,
+					``
 				])
+
+				;{
+					if (numId) {
+						let sent = new MQSent(), { where: wh, sahalar } = sent
+						sent.fromAdd(numTable)
+						wh.degerAta(numId, 'id')
+						sahalar.add('@numId = id', '@sonNo = sonno', '@numSeri = seri')
+						toplu.add(sent)
+					}
+					
+					toplu.add('IF @sonNo IS NULL')
+					;{
+						let sent = new MQSent(), { where: wh, sahalar } = sent
+						sent.fromAdd(numTable)
+						// bizsubekod + seri + kod => pri key
+						wh
+							.degerAta(bizsubekod, 'bizsubekod')
+							.degerAta(numKod, 'kod')
+							.degerAta(seri, 'seri')
+						sahalar.add('@numId = id', '@sonNo = sonno', '@numSeri = seri')
+						toplu.add(sent)
+					}
+					
+					toplu.add('IF @sonNo IS NULL', 'BEGIN')
+					;{
+						let id = numId ||= newGUID()
+						let kod = numKod, sonno = 0
+						let { seri, aciklama } = numYapi
+						seri ??= ''
+						let hv = { bizsubekod, id, kod, aciklama, seri, sonno }
+						toplu.add(
+							`SET @numSeri = ${seri.sqlDegeri()}`,
+							new MQInsert({ table: numTable, hv }).insertOnly()
+						)
+					}
+					toplu.add('END')
+				}
+
+				// fiş seviyeli toplu işlemler
 				for (let { fisRec, detRecs } of values(fisKey2Yapi)) {
 					let { id, tarih, rotaID: rotasayac, posta } = fisRec
 					let toplam = topla(d => d.miktar || 0, detRecs)
 					rotasayac = asInteger(rotasayac)
 					
-					let getFisSent = kisitsizmi => {
+					let getFisSent = () => {
 						let sent = new MQSent(), { where: wh, sahalar } = sent
 						sent.fromAdd(table)
 						wh
 							.add(`silindi = ''`)
+							.degerAta(bizsubekod, 'bizsubekod')
 							.degerAta(tipkod, 'tipkod')
 							.degerAta(alttipkod, 'alttipkod')
-							.degerAta(seri, 'seri')
-						if (!kisitsizmi) {
+							.add('seri = @numSeri')
+						/*if (!kisitsizmi) {
 							wh.degerAta(tarih, 'tarih')
 							wh.degerAta(rotasayac, 'rotasayac')
 							wh.degerAta(posta, 'posta')
-						}
+						}*/
 						return sent
 					}
 					let getHarSent = () => {
@@ -244,18 +293,23 @@ class TabSutAlimFis extends TabFis {
 					}
 					
 					;{
-						let sent = getFisSent(), { sahalar } = sent
+						let sent = getFisSent(), { where: wh, sahalar } = sent
+						wh
+							.degerAta(tarih, 'tarih')
+							.degerAta(rotasayac, 'rotasayac')
+							.degerAta(posta, 'posta')
 						sahalar.add(`@fisSayac = MAX(kaysayac)`)
 						toplu.add(sent)
 					}
 					toplu.add(`IF @fisSayac IS NULL BEGIN`)
 						;{
-							let sent = getFisSent(true), { sahalar } = sent    // kısıtsız - rotasayac, posta ...vs olmadan where
+							let sent = getFisSent(), { sahalar } = sent
 							sahalar.add('@sonNo = COALESCE(MAX(no), 0)')
 							toplu.add(sent)
 						}
 						;{
 							// insert
+							let seri = '@numSeri'.sqlConst()
 							let hv = {
 								tipkod, alttipkod, tabletguid,
 								tarih, seri, no, yerkod,
@@ -290,8 +344,8 @@ class TabSutAlimFis extends TabFis {
 					;{
 						let fissayac = '@fisSayac'.sqlConst()
 						let hvListe = detRecs.map((r, i) => {
-							let { seq: relSeq = i, tabletkayitts, must, stokkod, miktar } = r
-							let seq = `@seq + ${relSeq}`.sqlConst()
+							let { tabletkayitts, must, stokkod, miktar } = r
+							let seq = `@seq + ${i + 1}`.sqlConst()
 							return {
 								fissayac, seq, tabletkayitts,
 								must, stokkod, miktar
@@ -302,16 +356,41 @@ class TabSutAlimFis extends TabFis {
 					_okIdList.push(...detRecs.map(r => r.fisID))
 				}
 
-				let result
+				;{
+					// numId guncellemesi
+					toplu.add(`SET @sonNo = @sonNo + 1`)
+					
+					let upd = new MQIliskiliUpdate(), { where: wh, set } = upd
+					upd.fromAdd('numarator')
+					wh.degerAta(numId, 'id')
+					set.add(`sonno = (CASE WHEN @sonNo > sonno THEN @sonNo ELSE sonno END)`)
+					toplu.add(upd)
+				}
+
+				let result, success
+				let params = [
+					{ name: '@numId', type: 'uniqueidentifier', direction: 'output' }
+				]
 				try {
-					result = !empty(toplu.liste) && await toplu.execNone({ ...e, offlineMode: false })
-					if (result && !empty(_okIdList))
+					result = empty(toplu.liste) ? null : await toplu.executeResult({ ...e, params, offlineMode: false })
+					result = result?.[0] ?? result
+					if (result && !empty(_okIdList)) {
 						okIdList.push(..._okIdList)
+						success = true
+					}
 				}
 				catch (ex) { errors.push(ex) }
 				window.progressManager?.progressStep(toplu.liste.length)
 				
 				app.offline()
+				;{
+					let { params: { ['@numId']: { value: numId } = {} } } = result ?? {}
+					if (success && numId && numYapilar.SUT != numId) {
+						numYapilar.SUT = numId
+						tablet.kaydet()    // async, sonucu bekleme
+					}
+				}
+				
 				if (gonderildiDesteklenirmi && !empty(okIdList)) {
 					let upd = new MQIliskiliUpdate(), { where: wh, set } = upd
 					upd.fromAdd(offlineTable)

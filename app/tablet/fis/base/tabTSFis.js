@@ -294,7 +294,16 @@ class TabTSFis extends TabFis {
 			}))
 			.setTabloKolonlari([
 				new GridKolon({ belirtec: '_html', text: 'Ürün', filterType: 'input' }),
-				(bedelKullanilirmi ? new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 11, filterType: 'checkedlist' }).tipDecimal_bedel() : null),
+				(bedelKullanilirmi ? new GridKolon({
+					belirtec: 'bedel', text: 'Bedel', genislikCh: 11, filterType: 'checkedlist',
+					cellsRenderer: (colDef, rowIndex, belirtec, value, html, jqxCol, rec) => {
+						let ekCSS = $(window).width() < 500 ? ' pt-1' : ''
+						return changeTagContent(html, (
+							// `<div>&nbsp;</div>` +
+							`<div class="royalblue bold${ekCSS}">${getTagContent(html)}</div>`
+						))
+					}
+				}).tipDecimal_bedel() : null),
 				new GridKolon({ belirtec: '_sil', text: ' ', genislikCh: 4 })
 					.tipButton('X')
 					.onClick(({ gridRec, args: { owner: w } }) => {

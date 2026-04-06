@@ -45,7 +45,11 @@ class MQTabNum extends MQKAOrtak {
 
 			let { depomu, sicakSogukVeyaSutAlimmi, plasiyerKod, params: { tablet } } = app
 			let numYapilar = tablet.numYapilar = {}
-			let numTipDonusum = { PSSSIP: 'TS', CRTAH: 'TAH', MUSHZ: 'SUT' }
+			let numTipDonusum = {
+				PSSSIP: 'TS',
+				CRTAH: 'TAH',
+				MUSHZ: 'SUT'
+			}
 			;{
 				let eIrsTipSet = asSet(['TI', 'AII'])
 				;recs.forEach(rec => {

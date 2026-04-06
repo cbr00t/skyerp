@@ -4,6 +4,7 @@ class TabletApp extends TicariApp {
 	get yerelParamSinif() { return MQYerelParam }
 	get configParamSinif() { return MQYerelParamConfig_App }
 	get offlineMode() { return super.offlineMode ?? true } set offlineMode(value) { super.offlineMode = value }
+	get noCache() { return true }
 	get dbMgrClass() { return SqlJS_DBMgr } get defaultOfflineRequestChunkSize() { return 4 } // get autoExecMenuId() { return MQTest.kodListeTipi }
 	get sicakVeyaSogukmu() { return this.sicakmi || this.sogukmu }
 	get sicakSogukVeyaSutAlimmi() { return this.sicakVeyaSogukmu || this.sutAlimmi }

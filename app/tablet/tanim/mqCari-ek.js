@@ -7,7 +7,7 @@ class MQTabPlasiyer extends MQKAOrtak {
 	static get offlineEkSahaListe() { return ['kayittipi'] }
 	static get createTableYapilmazmi() { return true }
 
-	static async loadServerData({ offlineRequest, offlineMode }) {
+	static async loadServerData({ offlineRequest, offlineMode } = {}) {
 		// cache
 		if (offlineRequest && !offlineMode) {
 			// Bilgi Yükle

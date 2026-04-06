@@ -2,6 +2,7 @@ class SablonluSiparisApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get configParamSinif() { return MQYerelParamConfig_App } get yerelParamSinif() { return MQYerelParam }
 	get autoExecMenuId() { return null /* MQKonsinyeSablon.kodListeTipi */ }
+	get noCache() { return false }
 	get sonStokDB() { let {webSiparis_sonStokDB: sonStokDB} = app.params.web, {dbName} = config.session; return sonStokDB || dbName }
 	get gecerliDepolar() { let {webSiparis_yerKodListe: yerKodListe} = app.params.web; return $.makeArray(yerKodListe?.length ? yerKodListe : ['A']) }
 	get offlineFisCache() {
