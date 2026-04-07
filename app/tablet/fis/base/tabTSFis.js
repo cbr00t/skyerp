@@ -43,7 +43,7 @@ class TabTSFis extends TabFis {
 		return await super.loadServerData_detaylar(...arguments)
 	}
 	async dataDuzgunmuDuzenle({ eskiInst: eskiFis, parentPart, gridPart, result }) {
-		let {yerKod} = this
+		let { yerKod } = this
 		if (yerKod && !await MQTabYer.kodVarmi(yerKod))
 			result.push(`<b>Yer (Depo) [<span class=firebrick>${yerKod}</span>]</b> hatalıdır`)
 		return await super.dataDuzgunmuDuzenle(...arguments)
@@ -107,6 +107,12 @@ class TabTSFis extends TabFis {
 			}
 		}
 	}
+	tanimUI_gridVeriYuklenince({ tanimPart, gridPart }) {
+		let { gridWidget: w } = gridPart
+		if (this.detaylar != gridPart.boundRecs)
+			gridPart.tazele()
+	}
+	
 	yerDegisti({ oldValue = this._prev.yerKod, value = this.yerKod }) {
 		this._prev.yerKod = value
 	}
@@ -154,26 +160,29 @@ class TabTSFis extends TabFis {
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_baslik({ sender: tanimPart, inst: fis, rfb, acc }) {
 		let e = arguments[0]
+		let { siparismi } = this
 		await super.rootFormBuilderDuzenle_tablet_acc_baslik(e)
 		{
 			let { wndId } = tanimPart.wndPart
 			let mfSinif = MQTabYer.getMFSinif_subeFiltreli(() => fis.subeKod, wndId)
 			let { sinifAdi: etiket } = mfSinif
 			let form = rfb.addFormWithParent().altAlta()
-			form.addSimpleComboBox('yerKod', etiket, etiket)
-				.etiketGosterim_yok()
-				.kodsuz().setMFSinif(mfSinif)
-				.degisince(({ type, events, ...rest }) => {
-					if (type == 'batch') {
-						let _e = { type, events, ...rest, oldValue: fis.yerKod, value: events.at(-1).value?.trimEnd() }
-						setTimeout(() => {
-							fis.yerDegisti({ ...e, ..._e, tanimPart })
-							acc?.render()
-						}, 5)
-					}
-				})
-				.onAfterRun(({ builder: { part } }) =>
-					tanimPart.ddYer = part)
+			if (!siparismi) {
+				form.addSimpleComboBox('yerKod', etiket, etiket)
+					.etiketGosterim_yok()
+					.kodsuz().setMFSinif(mfSinif)
+					.degisince(({ type, events, ...rest }) => {
+						if (type == 'batch') {
+							let _e = { type, events, ...rest, oldValue: fis.yerKod, value: events.at(-1).value?.trimEnd() }
+							setTimeout(() => {
+								fis.yerDegisti({ ...e, ..._e, tanimPart })
+								acc?.render()
+							}, 5)
+						}
+					})
+					.onAfterRun(({ builder: { part } }) =>
+						tanimPart.ddYer = part)
+			}
 		}
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_dipCollapsed({ sender: tanimPart, inst: fis, rfb }) {
@@ -317,7 +326,7 @@ class TabTSFis extends TabFis {
 				fis = tanimPart?.inst ?? fis
 				return fis?.detaylar
 			})
-			.onAfterRun(({ builder: { rootPart, part: gridPart, part: { gridWidget: gw } } }) => {
+			.onAfterRun(({ builder: fbd, builder: { rootPart, part: gridPart, part: { gridWidget: gw } } }) => {
 				rootPart.gridPart = gridPart
 				$.extend(gridPart, {
 					gridSatirCiftTiklandiBlock: ({ sender: tanimPart, event: { args } = {} }) => {
@@ -349,14 +358,13 @@ class TabTSFis extends TabFis {
 					}
 				})
 				{
-					let {bindingCompleteBlock: savedHandler} = gridPart
-					let veriYuklenince = (...rest) => {
+					let { bindingCompleteBlock: savedHandler } = gridPart
+					let veriYuklenince = async (...rest) => {
 						try {
 							fis = tanimPart?.fis ?? fis
-							if (fis && fis.detaylar != gridPart.boundRecs)
-								gridPart.tazele()
+							await fis.tanimUI_gridVeriYuklenince({ ...e, ...rest, tanimPart, gridPart, fbd })
 						}
-						finally { savedHandler?.call(this, ...rest) }
+						finally { await savedHandler?.call(this, ...rest) }
 					}
 					gridPart.veriYuklenince(veriYuklenince)
 				}
@@ -368,9 +376,10 @@ class TabTSFis extends TabFis {
 	static async rootFormBuilderDuzenle_tablet_acc_duzenle(e) {
 		let { params: { zorunlu, tablet } } = app
 		let { fiyatFra, bedelFra } = zorunlu
-		let { fiyatDegistirir, iskDegistirir, iskMaxSayi } = tablet
+		let { fiyatDegistirir, iskDegistirir, iskMaxSayi = 3 } = tablet
 		let { sender: tanimPart, inst: fis, rfb, item } = e
-		let { bedelKullanilirmi, detaySinif } = fis.class
+		let { class: fisSinif } = fis
+		let { bedelKullanilirmi, detaySinif, ticarimi } = fisSinif
 		let { stokSinif } = detaySinif
 		let { acc, gridPart = {}, barkodGirisYapi = {} } = tanimPart
 		let { gridWidget: w, selectedRec: det } = gridPart
@@ -500,6 +509,20 @@ class TabTSFis extends TabFis {
 					})
 					.onAfterRun(({ builder: { input } }) =>
 						tanimPart.ddKdvOrani = input)
+			}
+		}
+		if (iskMaxSayi && ticarimi) {
+			let form = detayForm.addFormWithParent().yanYana()
+				.addStyle(`$elementCSS > div:not(:first-child) { margin-left: 20px }`)
+			for (let i = 1; i <= iskMaxSayi; i++) {
+				form.addNumberInput(`iskOran${i}`, `İsk${i}`, `İsk${i}`)
+					.addStyle_wh(90).setFra(1)
+					.setMin(0).setMax(100)
+					[iskDegistirir ? 'editable' : 'readonly']()
+					.degisince(({ builder: { id, input }, value }) => {
+						getDetay()[id] = value
+						degisinceOrtak({ input })
+					})
 			}
 		}
 		if (bedelKullanilirmi) {

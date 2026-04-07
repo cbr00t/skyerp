@@ -6,8 +6,10 @@ class TabTicariFis extends TabTSFis {
 	// static get onlineFisSinif() { return SatisFaturaFis }
 	static get dipKullanilirmi() { return true } static get _bedelKullanilirmi() { return true }
 	static get dipIskOranSayi() { return 1 } static get dipIskBedelSayi() { return 1 }
-	static get iademi() { return false } static get siparismi() { return false }
+	static get iademi() { return false }
+	static get ticarimi() { return true }
 	static get faturami() { return false } static get irsaliyemi() { return false }
+	static get siparismi() { return false }
 	static get cikisGibimi() { return this.alimmi == this.iademi }
 	static get dokumFormTip_normal() { return '3FA' }
 	// static get dokumFormTip_eIslem() { return this.dokumFormTip_normal }
@@ -45,7 +47,8 @@ class TabTicariFis extends TabTSFis {
 			sevkYerKod: new PInstStr('sevkyerkod'),
 			sevkTS: new PInstDateTimeNow('sevkts'),
 			tahSekliNo: new PInstNum('tahseklino'),
-			tahFisId: new PInstStr('tahfisid')
+			tahFisId: new PInstStr('tahfisid'),
+			rotaID: new PInstNum('rotaID')
 		})
 	}
 	static async loadServerDataDogrudan({ offlineRequest, offlineMode } = {}) {
@@ -314,9 +317,10 @@ class TabTicariFis extends TabTSFis {
 		let { tablet } = app.params
 		let { siparismi } = this
 		await super.rootFormBuilderDuzenle_tablet_acc_baslik(e)
-		{
+		if (!siparismi) {
 			let form = rfb.addFormWithParent().yanYana()
-			let etiketPrefix = `${siparismi ? 'Teslim' : 'Sevk'}`
+			// let etiketPrefix = `${siparismi ? 'Teslim' : 'Sevk'}`
+			let etiketPrefix = 'Sevk'
 			if (siparismi || !tablet.sevkYeriKullanilmaz) {
 				let mfSinif = MQTabSevkAdres, etiket = `${etiketPrefix} Yeri`
 				if (siparismi)

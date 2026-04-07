@@ -343,6 +343,53 @@ class TabFis extends MQDetayliGUIDOrtak {
 		}
 		return this
 	}
+	async rotaBelirle({ sender: tanimPart }) {
+		let { sutAlimmi, params: { tablet } } = app
+		let { mustKod, _prev: { mustKod: eskiMustKod } = {} } = this
+		sutAlimmi ||= tablet.sutToplama
+		if (sutAlimmi && mustKod) {
+			this.rotaID = mustKod
+				? (await MQTabRota.loadServerData())
+					.find(r => r.mustKod == mustKod)
+					?.rotaID
+				: null
+		}
+	}
+	async satirMiktarEditIstendi({ tanimPart, gridPart, target, value } = {}) {
+		tanimPart ??= app.activeWndPart
+		gridPart ??= tanimPart.gridPart
+		value ??= target?.value
+		let { acc } = tanimPart
+		let { gridWidget: w, selectedRec: det } = gridPart ?? {}
+		if (!det)
+			return
+		let args = {
+			etiket: 'Miktar giriniz', value: det.miktar,
+			args: { width: 500, height: 200 },
+			buildEk: ({ builder: fbd }) => {
+				fbd.addStyle(
+					`$elementCSS {
+						width: 180px !important; max-width: unset !important;
+						margin-left: auto !important; margin-right: auto !important
+					}
+					$elementCSS input {
+						font-size: 150% !important;
+						color: forestgreen !important
+					}
+				`
+				)
+			}
+		}
+		let miktar = await jqxPrompt(args)
+		miktar = miktar == null ? null : asFloat(miktar.replace(',', '.'))
+		if (miktar && miktar != det.miktar) {
+			det.miktar = miktar
+			det.bedelHesapla().htmlOlustur()
+			w?.updaterow(det.uid, det)
+			this.topluHesapla(e)
+			setTimeout(() => acc?.render(), 1)
+		}
+	}
 	
 	async uiGirisOncesiIslemler(e) {
 		this._promise_ready = new $.Deferred()
@@ -622,9 +669,11 @@ class TabFis extends MQDetayliGUIDOrtak {
 		this._prev.plasiyerKod = value
 	}
 	async mustDegisti({ acc, oldValue = this._prev.mustKod, value = this.mustKod }) {
+		let e = arguments[0]
 		if (!(oldValue && value == oldValue)) {
-			await this.satisKosullariOlusturWithReset(...arguments)
-			await this.numaratorBelirle(...arguments)
+			await this.satisKosullariOlusturWithReset(e)
+			await this.rotaBelirle(e)
+			await this.numaratorBelirle(e)
 			this.noYil = this.eIslemmi ? today().yil : 0
 			acc?.render()
 		}

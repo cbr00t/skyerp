@@ -94,7 +94,7 @@ class TabTicariDetay extends TabTSDetay {
 					(!kdvOrani ? null : `<div class=kdvOrani><span>%</span><span class=purple>${kdvOrani}</span></div>`),
 				`</div>`,
 				`<div class="miktarFiyat ek-bilgi float-right" style="gap: 0 10px">`,
-					`<span class="miktar bold forestgreen">${miktar} ${brm}</span>`,
+					`<button class="miktar bold forestgreen" onclick="app.activeWndPart.inst.satirMiktarEditIstendi({ target: this })">${miktar} ${brm}</button>`,
 					/*`<span class="miktar">`,
 						`<input class="bold forestgreen right" type="number" value="${miktar}" style="width: 50px"/>`,
 					`</span>`,*/

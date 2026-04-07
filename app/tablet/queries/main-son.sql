@@ -68,6 +68,12 @@ CREATE TABLE IF NOT EXISTS tabhar (
 	ekaciklama TEXT NOT NULL DEFAULT '',
 	fiyatkosulkod TEXT NOT NULL DEFAULT '',
 	iskkosulkod TEXT NOT NULL DEFAULT '',
+	iskoran1 INTEGER NOT NULL DEFAULT 0,
+	iskoran2 INTEGER NOT NULL DEFAULT 0,
+	iskoran3 INTEGER NOT NULL DEFAULT 0,
+	iskoran4 INTEGER NOT NULL DEFAULT 0,
+	iskoran5 INTEGER NOT NULL DEFAULT 0,
+	iskoran6 INTEGER NOT NULL DEFAULT 0,
 -- tahsilat fis
 	tahseklino INTEGER NOT NULL DEFAULT '',
 -- tahsilat, ticari/stok ortak fis

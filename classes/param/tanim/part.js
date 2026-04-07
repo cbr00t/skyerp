@@ -58,7 +58,7 @@ class ParamTanimPart extends Part {
 		let bulPart = this.bulPart = new FiltreFormPart({
 			layout: header.find('.bulForm'),
 			degisince: _e =>
-				FiltreFormPart.hizliBulIslemi({ ...e, ...rest, sender: this, layout: form })
+				FiltreFormPart.hizliBulIslemi({ ...e, ..._e, sender: this, layout: form })
 		});
 		bulPart.run()
 	}

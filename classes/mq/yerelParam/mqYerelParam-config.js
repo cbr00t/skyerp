@@ -19,19 +19,19 @@ class MQYerelParamConfig extends MQYerelParamApp {
 	}
 	static async getRootFormBuilder(e) {
 		e = e || {}; let rootBuilder = new RootFormBuilder(e);
-		let sender =  this, mfSinif = this, _e = $.extend({}, e, { sender, mfSinif, rootBuilder });
+		let sender =  this, mfSinif = this, _e = extend({}, e, { sender, mfSinif, rootBuilder });
 		await this.rootFormBuilderDuzenle(_e); await this.rootFormBuilderDuzenleSonrasi(_e);
 		rootBuilder = _e.rootBuilder; return rootBuilder
 	}
 	getRootFormBuilder(e) { return this.class.getRootFormBuilder(e) } static rootFormBuilderDuzenle(e) { } static rootFormBuilderDuzenleSonrasi(e) { }
 	paramHostVarsDuzenle(e) {
 		super.paramHostVarsDuzenle(e); let {colorScheme} = this; if (colorScheme?.char !== undefined) { colorScheme = colorScheme.char }
-		let {hv} = e; $.extend(hv, { colorScheme })
+		let {hv} = e; extend(hv, { colorScheme })
 	}
 	paramSetValues(e) {
 		super.paramSetValues(e); let {rec} = e; let {colorScheme} = rec;
 		if (colorScheme !== undefined && colorScheme?.char === undefined) { colorScheme = new ColorScheme(colorScheme) }
-		$.extend(this, { colorScheme })
+		extend(this, { colorScheme })
 	}
 	yukleSonrasi(e) {
 		super.yukleSonrasi(e); if (appVersion != this.lastVersion) { app.onbellekSil(); this.lastVersion = appVersion; this.kaydet(e) }

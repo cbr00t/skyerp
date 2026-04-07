@@ -94,7 +94,7 @@ class TabTSDetay extends TabDetay {
 				`</div>`,
 				( miktar ?
 					`<div class="miktarFiyat ek-bilgi float-right" style="gap: 0 10px">` +
-						`<span class="miktar bold forestgreen">${miktar} ${brm}</span>` +
+						`<button class="miktar bold forestgreen" onclick="app.activeWndPart.inst.satirMiktarEditIstendi({ target: this })">${miktar} ${brm}</button>` +
 					`</div>`
 				: null),
 			`</div>`

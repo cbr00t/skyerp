@@ -624,6 +624,7 @@ class MQTabletParam extends MQTicariParamBase {
 
 	constructor(e = {}) {
 		super(e)
+		extend(this, { iskMaxSayi: e.iskMaxSayi ?? 3 })
 	}
 	static paramYapiDuzenle({ paramci }) {
 		super.paramYapiDuzenle(...arguments)
