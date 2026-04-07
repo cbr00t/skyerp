@@ -174,12 +174,14 @@ class TabletApp extends TicariApp {
 				block: e => this.bilgiYukleIstendi(e)
 			})
 		)
-		addMenuSubItems('TANIM', 'Tanımlar', [
-			MQTabStok, MQTabCari, MQTabCariBakiye, MQTabPlasiyer, MQTabSube, MQTabYer,
-			MQTabRota, MQTabStokGrup, MQTabStokAnaGrup, MQTabStokMarka, MQTabNakliyeSekli,
-			MQTabTahsilSekli, MQTabBarkodReferans, MQTabBarkodAyrisim,
-			MQCariSatis, MQTabUgramaNeden, MQTabCariTip, MQTabSevkAdres
-		])
+		if (dev) {
+			addMenuSubItems('TANIM', 'Tanımlar', [
+				MQTabStok, MQTabCari, MQTabCariBakiye, MQTabPlasiyer, MQTabSube, MQTabYer,
+				MQTabRota, MQTabStokGrup, MQTabStokAnaGrup, MQTabStokMarka, MQTabNakliyeSekli,
+				MQTabTahsilSekli, MQTabBarkodReferans, MQTabBarkodAyrisim,
+				MQCariSatis, MQTabUgramaNeden, MQTabCariTip, MQTabSevkAdres
+			])
+		}
 		;[TabRotaListe, TabFisListe, TabMusteriDurumu]
 			.filter(_ => _.uygunmu)
 			.forEach(mfSinif => {

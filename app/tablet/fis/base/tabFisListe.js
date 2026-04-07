@@ -2,10 +2,94 @@ class TabFisListe extends TabFisListeOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'FIS' } static get sinifAdi() { return 'Fiş' }
 
-	static async loadServerDataDogrudan({ offlineRequest, offlineMode } = {}) {
-		let recs = await super.loadServerDataDogrudan(...arguments)
+	static listeEkrani_afterRun(e = {}) {
+		super.listeEkrani_afterRun(...arguments)
+	}
+	static orjBaslikListesi_argsDuzenle({ args }) {
+		super.orjBaslikListesi_argsDuzenle(...arguments)
+		extend(args, { groupsExpandedByDefault: false, enableToolTips: false })
+	}
+	static orjBaslikListesi_groupsDuzenle({ gridPart = e.sender, liste } = {}) {
+		super.orjBaslikListesi_groupsDuzenle(...arguments)
+		let { rotaID, _lastGroups, gridWidget: w } = gridPart
+		;{
+			let belirtec = 'rotaText'
+			if (!_lastGroups) {
+				let { belirtec2Kolon } = gridPart, { groups } = w
+				if (belirtec2Kolon[belirtec] && !groups?.includes(belirtec))
+					_lastGroups = [belirtec]
+			}
+			if (!empty(_lastGroups)) {
+				if (rotaID && _lastGroups.includes(belirtec))
+					_lastGroups = _lastGroups.filter(_ => _ != belirtec)
+				liste.push(..._lastGroups)
+			}
+		}
+	}
+	static standartGorunumListesiDuzenle(e) {
+		super.standartGorunumListesiDuzenle(...arguments)
+		e.liste = e.liste.filter(_ => _ != 'rotaText')
+	}
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		let { tablet: { sutToplama } } = app.params
+		sutToplama ||= app.sutAlimmi
+		if (sutToplama)
+			liste.push( new GridKolon({ belirtec: 'rotaText', text: 'Rota' }).noSql() )
+	}
+	static async loadServerData(e = {}) {
+		let { gridPart = e.sender, offlineRequest, offlineMode } = e
+		let { gridWidget: w, belirtec2Kolon } = gridPart ?? {}
+		let recs = await super.loadServerData(...arguments)
+		if (empty(recs))
+			return recs
+
+		if (!offlineRequest) {
+			let rotaKolonVarmi = !!belirtec2Kolon.rotaText
+			if (rotaKolonVarmi) {
+				let rotaID2Adi = fromEntries(
+					(await MQTabRota.loadServerData()).map(r =>
+						[r.rotaID, r.aciklama])
+				)
+				;recs.forEach(rec => {
+					let { rotaID } = rec
+					let rotaAdi = rotaID2Adi[rotaID]
+					rec.rotaText ??= rotaID
+						? `<span>${rotaAdi || rotaID}</span>`
+						: `<span class="royalblue">[ Rota DIŞI ]</span>`
+				})
+			}
+		}
+		
 		return recs
 	}
+	static async gridVeriYuklendi(e = {}) {
+		await super.gridVeriYuklendi(e)
+		let { sender: gridPart } = e
+		let { boundRecs: recs, selectedRec: rec, selectedUid, gridWidget: w } = gridPart
+		let { rotaID, belirtec2Kolon } = gridPart
+		if (rotaID && belirtec2Kolon.rotaText) {
+			try { w.hidecolumn('rotaText') }
+			catch (ex) {}
+		}
+		setTimeout(() => {
+			let { groups } = w
+			//try { w[groups.includes('rotaText') ? 'showcolumn' : 'hidecolumn']('rotaText') }
+			//catch (ex) { }
+			w.focus()
+			if (!empty(recs)) {
+				selectedUid ??= gridPart._lastUid ?? 0
+				if (selectedUid != null) {
+					w.clearselection()
+					let ind = w.getrowboundindexbyid(selectedUid)
+					w.selectrow(ind)
+					gridPart.expandGroup(selectedUid)
+					w.ensurerowvisible(ind)
+				}
+			}
+		}, 10)
+	}
+	
 	static rootFormBuilderDuzenle_listeEkrani({ sender: gridPart, rootBuilder: rfb }) {
 		let e = arguments[0]
 		super.rootFormBuilderDuzenle_listeEkrani(e)

@@ -176,7 +176,7 @@ class TabFis extends MQDetayliGUIDOrtak {
 		let e = arguments[0]
 		super.orjBaslikListesi_argsDuzenle(e)
 		MQMasterOrtak.orjBaslikListesi_argsDuzenle(e)
-		extend(args, { groupable: false })
+		extend(args, { groupable: true })
 	}
 	static ekCSSDuzenle({ dataField: belirtec, rec, result }) {
 		super.ekCSSDuzenle(...arguments)
@@ -289,17 +289,22 @@ class TabFis extends MQDetayliGUIDOrtak {
 	static async gridVeriYuklendi({ sender: gridPart }) {
 		await super.gridVeriYuklendi(...arguments)
 		let { gonderimTSSaha } = this
-		let { boundRecs: recs, selectedRec: rec, gridWidget: w } = gridPart
+		let { boundRecs: recs, gridWidget: w } = gridPart
+		let { /*sortcolumn: sortKey,*/ groups } = w
+		gridPart._lastGroups = groups
 		if (!empty(recs)) {
-			/*let { tip2Sinif } = TabFis
-			let fisTipleri = keys(asSet(recs.map(r => r.fisTipi)))
-			if (!fisTipleri.find(_ => tip2Sinif[_]?.detaySinif?.bedelKullanilirmi))
-				w.hidecolumn('sonuc')*/
-			if (!rec) {
-				let { uid = 0 } = recs.find(r => !r[gonderimTSSaha]) ?? {}
-				// ind = w.getrowboundindexbyid(uid)
-				setTimeout(() => w.selectrow(uid), 100)
-			}
+			setTimeout(() => {
+				/*let { tip2Sinif } = TabFis
+				let fisTipleri = keys(asSet(recs.map(r => r.fisTipi)))
+				if (!fisTipleri.find(_ => tip2Sinif[_]?.detaySinif?.bedelKullanilirmi))
+					w.hidecolumn('sonuc')*/
+				let { selectedRec: rec } = gridPart
+				if (!rec) {
+					let { uid = 0 } = recs.find(r => !r[gonderimTSSaha]) ?? {}
+					// ind = w.getrowboundindexbyid(uid)
+					w.selectrow(uid)
+				}
+			}, 100)
 		}
 	}
 	static async gridVeriYuklendi_detaylar({ sender: gridPart, sender: { gridWidget: w } }) {
@@ -1100,8 +1105,10 @@ class TabFis extends MQDetayliGUIDOrtak {
 	}
 	static getHTML(e = {}) {
 		let { gridPart = e.sender, rec } = e
+		let { belirtec2Kolon, gridWidget: w } = gridPart, { groups } = w
 		let { fisTipi, tarih, seri, noyil, fisno, must, mustunvan, rotaID, posta } = rec
-		let rotaAdi = rotaID
+		let rotaKolonVarmi = belirtec2Kolon.rotaText && !groups?.includes('rotaText')
+		let rotaAdi = rotaID && !rotaKolonVarmi
 			? MQTabRota.globals?.cachedRecs?.find(r =>
 				r.rotaID == rotaID)?.aciklama || rotaID
 			: null

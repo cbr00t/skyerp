@@ -5,69 +5,132 @@ class ParamTanimPart extends Part {
 	get yenimi() { return this.islem == 'yeni' } get degistirmi() { return this.islem == 'degistir' } get silmi() { return this.islem == 'silmi' } get kopyami() { return this.islem == 'kopya' }
 	get yeniVeyaKopyami() { return this.yenimi || this.kopyami } get degistirVeyaSilmi() { return this.degistirmi || this.silmi }
 
-	constructor(e) {
-		e = e || {}; super(e);
-		$.extend(this, { islem: e.islem, mfSinif: e.mfSinif, inst: e.inst, eskiInst: e.eskiInst, kaydedince: e.kaydedince }); let {mfSinif, inst, eskiInst} = this;
-		if (!inst && mfSinif) { inst = this.inst = new mfSinif() }
-		if (inst && !mfSinif) { mfSinif = this.mfSinif = inst.class }
-		if (inst && !eskiInst && this.degistirmi) { eskiInst = this.eskiInst = inst; inst = this.inst = inst.deepCopy() }
+	constructor(e = {}) {
+		super(e)
+		extend(this, {
+			islem: e.islem, mfSinif: e.mfSinif, inst: e.inst, eskiInst: e.eskiInst,
+			kaydedince: e.kaydedince
+		})
+		let {mfSinif, inst, eskiInst} = this
+		if (!inst && mfSinif)
+			inst = this.inst = new mfSinif()
+		if (inst && !mfSinif)
+			mfSinif = this.mfSinif = inst.class
+		if (inst && !eskiInst && this.degistirmi) {
+			eskiInst = this.eskiInst = inst
+			inst = this.inst = inst.deepCopy()
+		}
 		this.title = this.title || `${(mfSinif || {}).sinifAdi || 'Parametre'} Tanım`;
-		const {islem} = this; if (islem) { const islemText = islem[0].toUpperCase() + islem.slice(1); this.title += ` &nbsp;[<span class="window-title-ek">${islemText}</span>]` }
+		let {islem} = this
+		if (islem) {
+			let islemText = islem[0].toUpperCase() + islem.slice(1)
+			this.title += ` &nbsp;[<span class="window-title-ek">${islemText}</span>]`
+		}
 	}
-	init(e) {
-		e = e || {}; super.init(e); const {layout, mfSinif, inst, eskiInst, parentPart} = this; let {builder} = this;
-		layout.addClass(`${this.class.partName} ${this.class.rootPartName}`);
-		const header = this.header = layout.children('.header'), form = this.form = layout.children('.form');
-		this.initBulForm(e); this.initIslemTuslari(e);
-		if (!builder) { if (!builder && mfSinif) { builder = this.builder = mfSinif.getRootFormBuilder($.extend({}, e, { sender: this, part: this, parentPart, layout: form, mfSinif, inst, eskiInst })) } }
-		if (inst && builder) { inst.builder = builder }
+	init(e = {}) {
+		super.init(e)
+		let {layout, mfSinif, inst, eskiInst, parentPart, builder} = this
+		layout.addClass(`${this.class.partName} ${this.class.rootPartName}`)
+		let header = this.header = layout.children('.header')
+		let form = this.form = layout.children('.form')
+		this.initBulForm(e)
+		this.initIslemTuslari(e)
+		if (!builder && mfSinif)
+			builder = this.builder = mfSinif.getRootFormBuilder({ ...e, sender: this, part: this, parentPart, layout: form, mfSinif, inst, eskiInst })
+		if (inst && builder)
+			inst.builder = builder
 	}
-	run(e) {
-		e = e || {}; super.run(e); this.initBuilder(e);
-		const {layout} = this, inputs = layout.find('input[type=textbox], input[type=number]');
-		inputs.on('focus', evt => evt.currentTarget.select());
-		inputs.on('keyup', evt => { const key = evt.key?.toLowerCase(); if (key == 'enter' || key == 'linefeed') this.kaydetIstendi({ event: evt }) })
+	run(e = {}) {
+		super.run(e)
+		this.initBuilder(e)
+		let {layout} = this
+		let inputs = layout.find('input[type=textbox], input[type=number]')
+		inputs.on('focus', ({ currentTarget: t }) =>
+			t.select())
+		inputs.on('keyup', evt => {
+			let key = evt?.key?.toLowerCase()
+			if (key == 'enter' || key == 'linefeed')
+				this.kaydetIstendi({ event: evt })
+		})
 	}
-	initBulForm(e) {
-		const {header, form} = this;
-		const bulPart = this.bulPart = new FiltreFormPart({ layout: header.find('.bulForm'), degisince: e => FiltreFormPart.hizliBulIslemi({ sender: this, layout: form, tokens: e.tokens }) });
+	initBulForm(e = {}) {
+		let {header, form} = this
+		let bulPart = this.bulPart = new FiltreFormPart({
+			layout: header.find('.bulForm'),
+			degisince: _e =>
+				FiltreFormPart.hizliBulIslemi({ ...e, ...rest, sender: this, layout: form })
+		});
 		bulPart.run()
 	}
 	initIslemTuslari(e) {
-		const islemTuslari = this.islemTuslari = this.header.find(`.islemTuslari`);
-		let _e = { args: { sender: this, layout: islemTuslari } }; if (this.islemTuslariArgsDuzenle(_e) === false) return null	
-		const islemTuslariPart = this.islemTuslariPart = new ButonlarPart(_e.args); islemTuslariPart.run(); return islemTuslariPart
+		let islemTuslari = this.islemTuslari = this.header.find('.islemTuslari')
+		let args = { sender: this, layout: islemTuslari }
+		let _e = { args }
+		if (this.islemTuslariArgsDuzenle(_e) === false)
+			return null
+		let islemTuslariPart = this.islemTuslariPart = new ButonlarPart(_e.args)
+		islemTuslariPart.run()
+		return islemTuslariPart
 	}
-	initBuilder(e) { const {builder} = this; if (builder) builder.autoInitLayout().run(e) }
+	initBuilder(e) {
+		let {builder} = this
+		builder?.autoInitLayout()?.run(e)
+	}
 	islemTuslariArgsDuzenle(e) {
-		const {args, builder} = e; e.sender = this;
-		$.extend(args, { tip: 'tamamVazgec', id2Handler: { tamam: e => this.kaydetIstendi(e), vazgec: e => this.vazgecIstendi(e) } });
+		let { args, builder } = e
+		e.sender = this
+		extend(args, {
+			tip: 'tamamVazgec',
+			id2Handler: {
+				tamam: e => this.kaydetIstendi(e),
+				vazgec: e => this.vazgecIstendi(e)
+			}
+		})
 		if (builder) {
-			e.builder = builder;
-			for (const _builder of builder.getItemsAndSelf()) { if (_builder.islemTuslariArgsDuzenle) _builder.islemTuslariArgsDuzenle(e) }
+			e.builder = builder
+			for (let _builder of builder.getItemsAndSelf())
+				_builder?.islemTuslariArgsDuzenle?.(e)
 		}
 	}
 	async kaydet(e) {
-		const {mfSinif, inst, eskiInst} = this;
+		let { mfSinif, inst, eskiInst } = this
 		if (inst && eskiInst) {
-			const {builder} = this, _e = $.extend({}, e, { sender: this, builder, mfSinif, inst, eskiInst });
-			for (const _builder of builder.getItemsAndSelf()) { if (_builder.kaydetOncesi) await _builder.kaydetOncesi(e) }
-			if (inst.kaydetOncesiIslemler) await inst.kaydetOncesiIslemler(_e)
-			const almaSet = asSet(inst.class.deepCopyAlinmayacaklar); const keys = Reflect.ownKeys(inst).filter(key => !almaSet[key]); for (const key of keys) eskiInst[key] = inst[key]
+			let { builder } = this
+			let _e = { ...e, sender: this, builder, mfSinif, inst, eskiInst }
+			for (let _builder of builder.getItemsAndSelf())
+				await _builder?.kaydetOncesi?.(e)
+			if (inst.kaydetOncesiIslemler)
+				await inst.kaydetOncesiIslemler(_e)
+			let almaSet = asSet(inst.class.deepCopyAlinmayacaklar)
+			let _keys = Reflect.ownKeys(inst).filter(key => !almaSet[key])
+			for (let key of _keys)
+				eskiInst[key] = inst[key]
 		}
 		return true
 	}
 	async kaydetIstendi(e) {
 		try {
-			await this.kaydet(e);
-			const {builder, kaydedince, mfSinif, inst, eskiInst} = this, _e = $.extend({}, e, { sender: this, builder, mfSinif, inst, eskiInst });
-			for (const _builder of builder.getItemsAndSelf()) { if (_builder.kaydedince) await _builder.kaydedince(_e) }
-			await inst.kaydet(e);
-			if (inst.kaydetSonrasiIslemler) await inst.kaydetSonrasiIslemler(_e)
-			if (kaydedince) getFuncValue.call(this, kaydedince, _e)
+			await this.kaydet(e)
+			let { builder, kaydedince, mfSinif, inst, eskiInst } = this
+			let _e = { ...e, sender: this, builder, mfSinif, inst, eskiInst }
+			for (let _builder of builder.getItemsAndSelf())
+				await _builder?.kaydedince?.(_e)
+			await inst.kaydet(e)
+			await inst?.kaydetSonrasiIslemler?.(_e)
+			kaydedince?.call?.(this, _e)
+			setTimeout(() => {
+				let { activeWndPart: part } = app
+				if (part && !part.isDestroyed)
+					part.tazele?.()
+			}, 100)
 		}
-		catch (ex) { hConfirm(getErrorText(ex, this.title)); throw ex }
+		catch (ex) {
+			hConfirm(getErrorText(ex, this.title))
+			throw ex
+		}
 		this.close()
 	}
-	vazgecIstendi(e) { this.close() }
+	vazgecIstendi(e) {
+		this.close()
+	}
 }

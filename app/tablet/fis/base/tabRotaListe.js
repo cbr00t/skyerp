@@ -27,12 +27,10 @@ class TabRotaListe extends MQMasterOrtak {
 		let { args } = e
 		extend(args, { groupsExpandedByDefault: false, enableToolTips: false })
 	}
-	static orjBaslikListesi_groupsDuzenle(e = {}) {
-		let { gridPart = e.sender, liste } = e
-		let { _lastGroups } = gridPart
-		// _lastGroups ??= ['durumText', 'aciklama']
-		_lastGroups ??= ['aciklama']
+	static orjBaslikListesi_groupsDuzenle({ gridPart = e.sender, liste } = {}) {
 		super.orjBaslikListesi_groupsDuzenle(...arguments)
+		let { _lastGroups } = gridPart
+		_lastGroups ??= ['aciklama']
 		liste.push(..._lastGroups)
 	}
 	static ekCSSDuzenle({ dataField: belirtec, rec, result }) {
@@ -167,10 +165,12 @@ class TabRotaListe extends MQMasterOrtak {
 			this._timer_groupsChanged_tazele = setTimeout(() => gridPart.tazele(e), 1)
 		}
 	}
-	static async gridVeriYuklendi({ sender: gridPart, sender: { gridWidget: w } }) {
-		super.gridVeriYuklendi(...arguments)
-		let { sortcolumn: sortKey, groups } = w
-		gridPart._lastGroups = groups
+	static async gridVeriYuklendi(e = {}) {
+		super.gridVeriYuklendi(e)
+		let { sender: gridPart } = e
+		let { boundRecs: recs, selectedRec: rec, selectedUid, gridWidget: w } = gridPart
+		// let { /*sortcolumn: sortKey,*/ groups } = w
+		// gridPart._lastGroups = groups
 		//if (!sortKey)
 		//	w.sortby('sortText', true)
 		/*;{
@@ -179,7 +179,6 @@ class TabRotaListe extends MQMasterOrtak {
 				w.sortby(key, true)
 		}*/
 
-		let { boundRecs: recs, selectedRec: rec, selectedUid } = gridPart
 		setTimeout(() => {
 			let { groups } = w
 			try { w[groups.includes('durumText') ? 'showcolumn' : 'hidecolumn']('islemVarmi') }
@@ -196,6 +195,7 @@ class TabRotaListe extends MQMasterOrtak {
 					w.ensurerowvisible(ind)
 				}
 			}
+			this.ustBilgiDuzenle(e)
 		}, 10)
 	}
 
@@ -214,24 +214,28 @@ class TabRotaListe extends MQMasterOrtak {
 					 $elementCSS > .item { gap: 10px }
 					 $elementCSS > .item > div { gap: 10px; line-height: 10px }`
 				])
-				.setLayout(({ builder: fbd }) => {
-					let { id } = fbd
-					let result = $(`<div class="${id}"></div>`)
-					;(async () => {
-						let html = await this.getUstBilgiHTML({ ...e, gridPart, rfb, fbd })
-						if (html?.html) {
-							if (html.children().length) {
-								ustBilgiForm.layout.removeClass('jqx-hidden basic-hidden')
-								html.appendTo(result)
-							}
-						}
-						else if (html) {
-							ustBilgiForm.layout.removeClass('jqx-hidden basic-hidden')
-							result.html(html)
-						}
-					})()
-					return result
+				.setLayout(({ builder: { id } }) =>
+					$(`<div class="${id}"></div>`))
+				.onAfterRun(({ builder: { rootPart: part, layout } }) => {
+					part.ustBilgiForm = layout
+					//this.ustBilgiDuzenle({ ...e, target })
 				})
+		}
+	}
+	static async ustBilgiDuzenle(e = {}) {
+		let { gridPart = e.sender } = e
+		let { target = gridPart.ustBilgiForm } = e
+		let html = await this.getUstBilgiHTML({ ...e, gridPart })
+		if (html?.html) {
+			if (html.children().length) {
+				target.removeClass('jqx-hidden basic-hidden')
+				target.children().remove()
+				html.appendTo(target)
+			}
+		}
+		else if (html) {
+			target.removeClass('jqx-hidden basic-hidden')
+			target.html(html)
 		}
 	}
 	static async getUstBilgiHTML(e = {}) {
