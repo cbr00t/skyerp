@@ -124,19 +124,37 @@ class MQNumarator extends MQKA {
 		else {
 			// let keyHV = this.keyHostVars()
 			let keyHV = this.keyHostVars(e)
+			if (keyHV.no == 0)
+				delete keyHV.no
 			// `UPDATE ${table} SET @sonNo = sonno = sonno + 1 WHERE ${idSaha} = ${id}`,
-			let query = new MQIliskiliUpdate({ from: numTable }), { where: wh, set } = query
-			wh.birlestirDict(keyHV)
-			set.add(`@sonNo = sonno = sonno + 1`)
+			let toplu = new MQToplu()
+			;{
+				let upd = new MQIliskiliUpdate({ from: numTable }), { where: wh, set } = upd
+				wh.birlestirDict(keyHV)
+				set.add(`sonno = COALESCE(sonno, 0) + 1`)
+				toplu.add(upd)
+			}
+			;{
+				let sent = new MQSent({ from: numTable }), { where: wh, sahalar } = sent
+				wh.birlestirDict(keyHV)
+				sahalar.add(`@sonNo = MAX(sonno)`)
+				toplu.add(sent)
+			}
 			let params = [{ name: '@sonNo', type: 'int', direction: 'output' }]
-			let result = await this.class.sqlExecNoneWithResult({ query, params })
-			if (isArray(result))
-				result = result[0]
+			let result = await toplu.executeResult({ params })
+			result = result[0] ?? result
 			let qParam = result?.params?.['@sonNo']
 			if (qParam?.value) {
 				let sonNo = this.sonNo = qParam.value
 				if (fis)
 					fis.fisNo = sonNo + 1
+			}
+			else if (fis) {
+				fis.fisNo++
+				if (this.sonNo < fis.fisNo) {
+					this.sonNo = fis.fisNo
+					await this.kaydet(e)
+				}
 			}
 		}
 		

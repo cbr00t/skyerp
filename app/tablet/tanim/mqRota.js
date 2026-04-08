@@ -9,7 +9,8 @@ class MQTabRota extends MQGuidVeAdiOrtak {
 		super.offlineBuildSQLiteQuery(...arguments)
 		r[r.length - 1] = ');'
 		r.push(
-			'CREATE INDEX IF NOT EXISTS idx_rota_plasGun ON rota (tip, plasiyerKod, gunKod, ekKod);',
+			'CREATE INDEX IF NOT EXISTS idx_rota_plas1 ON rota (tip, plasiyerKod, gunKod, ekKod);',
+			'CREATE INDEX IF NOT EXISTS idx_rota_plas2 ON rota (tip, plasiyerKod, gunKod, ekKod, seq);',
 			'CREATE UNIQUE INDEX IF NOT EXISTS idx_rota_plasGunSeq ON rota (tip, plasiyerKod, gunKod, ekKod, seq)'
 		)
 	}

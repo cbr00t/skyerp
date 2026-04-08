@@ -17,6 +17,7 @@ class TabFis extends MQDetayliGUIDOrtak {
 	static get kolonFiltreKullanilirmi() { return false }
 	static get raporKullanilirmi() { return false }
 	static get tumKolonlarGosterilirmi() { return true }
+	static get bulFormKullanilirmi() { return true }
 	static get noAutoFocus() { return true }
 	static get gonderildiDesteklenirmi() { return true }
 	static get merkezKayitlarAlinirmi() { return false }
@@ -347,7 +348,7 @@ class TabFis extends MQDetayliGUIDOrtak {
 		let { sutAlimmi, params: { tablet } } = app
 		let { mustKod, _prev: { mustKod: eskiMustKod } = {} } = this
 		sutAlimmi ||= tablet.sutToplama
-		if (sutAlimmi && mustKod) {
+		if (sutAlimmi) {
 			this.rotaID = mustKod
 				? (await MQTabRota.loadServerData())
 					.find(r => r.mustKod == mustKod)
@@ -399,6 +400,8 @@ class TabFis extends MQDetayliGUIDOrtak {
 	}
 	async uiGirisSonrasiIslemler(e) {
 		await super.uiGirisSonrasiIslemler(e)
+		let { tanimPart = e.sender } = e
+		// let { bulPart } = tanimPart
 		setTimeout(() => {
 			this._promise_ready?.resolve()
 			this._uiReady = true
@@ -609,6 +612,14 @@ class TabFis extends MQDetayliGUIDOrtak {
 		]
 	}
 
+	tanimPart_hizliBulIslemi(e) {
+		let { tanimPart = e.sender ?? {}, tokens } = e
+		let { gridPart } = tanimPart
+		if (gridPart) {
+			gridPart.filtreTokens = tokens
+			gridPart.tazele()
+		}
+	}
 	static async orjBaslikListesi_yazdirIstendi(e = {}) {
 		let {gridPart = e.sender, recs, close} = e
 		if (empty(recs))
@@ -779,7 +790,8 @@ class TabFis extends MQDetayliGUIDOrtak {
 	async onlineFisDuzenle({ oFis } = {}) {
 		let e = arguments[0]
 		let { class: oFisSinif } = oFis
-		let fis = this, { detaylar } = this
+		let fis = this
+		let detaylar = this.getYazmaIcinDetaylar(e)
 		let { detaySinif: detSinif } = this.class
 		detSinif ??= MQDetay
 		let oDetSinif = (
@@ -974,7 +986,43 @@ class TabFis extends MQDetayliGUIDOrtak {
 			extend(set, asSet(items.map(_ => _.id)))
 		}
 	}
-	static async rootFormBuilderDuzenle_tablet(e) { }
+	static rootFormBuilderDuzenle_tablet(e) {
+		/*let { rootBuilder: rfb, sender: tanimPart, inst, acc } = e
+		let { islemTuslari, bulPart } = tanimPart
+		let { class: { bulFormKullanilirmi } = {} } = inst
+		if (bulFormKullanilirmi && !bulPart) {
+			let fbd = rfb.addForm('filtreForm')
+				.autoAppend()
+				.setParent(islemTuslari)
+				.setLayout(({ builder: { id }}) => $(
+					`<div class="bulForm part filtreForm">` +
+						`<input class="input full-wh" type="textbox" maxlength="100">` +
+					`</div>`
+				))
+				.onAfterRun(({ builder: fbd, builder: { id, layout } }) => {
+					let { bulPart: part } = tanimPart
+					if (part)
+						return
+					part = new FiltreFormPart({
+						layout,
+						degisince: ({ tokens, ...rest }) => {
+							let sender = tanimPart
+							let { layout } = sender
+							tanimPart.hizliBulIslemi({ ...e, ...rest, sender, layout, tokens })
+						}
+					})
+					part.run()
+					tanimPart.bulPart = part
+				})
+				.addCSS('absolute fg')
+				.addStyle_wh(200)
+			fbd.destroyPart = () => {
+				let { bulPart: part } = tanimPart
+				part?.destroyPart()
+				tanimPart.bulPart = null
+			}
+		}*/
+	}
 	static async rootFormBuilderDuzenle_tablet_acc(e) {
 		let { sender: tanimPart, inst, acc } = e
 		let { mustKod, numarator: num, class: { mustZorunlumu } } = inst
@@ -1040,7 +1088,7 @@ class TabFis extends MQDetayliGUIDOrtak {
 				}
 			})
 			acc.add({
-				id: 'detay', title: 'Kalemler',
+				id: 'detay', title: 'Detaylar',
 				collapsedContent: async ({ item, layout }) => {
 					let rfb = getBuilder(layout)
 					await this.rootFormBuilderDuzenle_tablet_acc_detayCollapsed({ ...e, rfb, item, layout })
@@ -1092,7 +1140,10 @@ class TabFis extends MQDetayliGUIDOrtak {
 	}
 	static rootFormBuilderDuzenle_tablet_acc_baslik({ sender: tanimPart, inst: fis, rfb, acc }) {
 		let e = arguments[0]
-		let {loginTipi} = config.session ?? {}
+		let { rotaID, class: fisSinif } = fis
+		let { sutAlimmi } = fisSinif
+		
+		let { loginTipi } = config.session ?? {}
 		if (!(loginTipi == 'plasiyerLogin' || loginTipi == 'musteriLogin')) {
 			let mfSinif = MQTabPlasiyer, {sinifAdi: etiket} = mfSinif
 			let form = rfb.addFormWithParent().altAlta()
@@ -1116,6 +1167,7 @@ class TabFis extends MQDetayliGUIDOrtak {
 				.etiketGosterim_yok()
 				//.addStyle(`$elementCSS { max-width: 800px }`)
 				.kodsuz().setMFSinif(mfSinif)
+				// [ sutAlimmi && rotaID ? 'disable' : 'enable' ]()
 				.degisince(({ type, events, ...rest }) => {
 					if (type == 'batch') {
 						// henuz mustKod atanmadı
@@ -1153,8 +1205,8 @@ class TabFis extends MQDetayliGUIDOrtak {
 			.setInst(inst)
 	}
 	static getHTML(e = {}) {
-		let { gridPart = e.sender, rec } = e
-		let { belirtec2Kolon, gridWidget: w } = gridPart, { groups } = w
+		let { gridPart = e.sender ?? {}, rec } = e
+		let { belirtec2Kolon = {}, gridWidget: w = {} } = gridPart, { groups } = w
 		let { fisTipi, tarih, seri, noyil, fisno, must, mustunvan, rotaID, posta } = rec
 		let rotaKolonVarmi = belirtec2Kolon.rotaText && !groups?.includes('rotaText')
 		let rotaAdi = rotaID && !rotaKolonVarmi
@@ -1267,7 +1319,7 @@ class TabFis extends MQDetayliGUIDOrtak {
 				result.push(...[
 					`<div class="item">`,
 						`<span class="detaySayi asil bold royalblue">${numberToString(detaySayi)}</span> `,
-						`<span class="detaySayi ek-bilgi gray">kalem</span>`,
+						`<span class="detaySayi ek-bilgi gray">detay</span>`,
 					`</div>`
 				].filter(Boolean))
 			}

@@ -78,38 +78,49 @@ class MQTabMustahsil extends MQKAOrtak {
 		let { kayitTipi: kayittipi } = this
 		extend(hv, { kayittipi })
 	}
-	static async loadServerData({ offlineRequest, offlineMode }) {
-		// cache
+	static async loadServerData({ basit, sender, offlineRequest, offlineMode }) {
 		if (offlineRequest && !offlineMode) {
 			// Bilgi Yükle
 			return []
 		}
 
-		if (!offlineRequest) {
-			await Promise.allSettled(
-				[MQTabRota].map(cls => cls.getGloKod2Rec())
-			)
+		let { rotaDisiMusteriAlinirmi: rotaDisi } = app.params?.tablet ?? {}
+		let { rotaKullanilirmi } = app
+		if (!(basit || offlineRequest)) {
+			// cache
+			let classes = []
+			if (rotaKullanilirmi && !rotaDisi)
+				classes.push(MQTabRota)
+			if (!empty(classes)) {
+				await Promise.allSettled(classes.map(cls => cls.getGloKod2Rec()))
+				await Promise.allSettled(classes.map(cls => cls.loadServerData()))
+			}
 		}
+		
 		let recs = await super.loadServerData(...arguments)
-		if (empty(recs) || (offlineRequest && offlineMode))
+		if (basit || empty(recs) || (offlineRequest && offlineMode))
 			return recs
 
-		let { inst: { rotaID } = {} } = app.activeWndPart ?? {}
-		let globals = MQTabRota.globals ?? {}
-		let { cachedRecs } = globals
-		rotaID = rotaID?.toString()
-		let mustKodSet = globals.mustKodSet = (
-			rotaID && cachedRecs
-				? asSet(cachedRecs
-					.filter(r => r.rotaID == rotaID)
-					.map(r => r.mustKod)
-				)
-				: globals.mustKodSet
-		)
-		if (mustKodSet) {
-			let { kodSaha } = this
-			recs = recs.filter(r => mustKodSet[r[kodSaha]])
+		if (rotaKullanilirmi && !rotaDisi) {
+			let inst = sender?.inst ?? app.activeWndPart?.inst ?? {}
+			let globals = MQTabRota.globals ?? {}
+			let { cachedRecs, mustKodSet } = globals
+			let rotaID = inst?.rotaID?.toString()
+			if (rotaID && cachedRecs)
+				cachedRecs = cachedRecs.filter(r => r.rotaID == rotaID)
+			// !! her seferinde global override. sonraki liste tazelemeler için
+			mustKodSet = globals.mustKodSet =
+				rotaID
+					? asSet(cachedRecs?.map(r => r.mustKod)) ?? mustKodSet
+					: null
+			
+			if (mustKodSet) {
+				let { kodSaha } = this
+				recs = recs.filter(r =>
+					mustKodSet[r[kodSaha]])
+			}
 		}
+		
 		return recs
 	}
 	static loadServerData_queryDuzenle_son(e) {
@@ -150,22 +161,6 @@ class MQTabMustahsil extends MQKAOrtak {
 					`RTRIM(LTRIM(${alias}.unvan1 + ' ' + ${alias}.unvan2)) ${adiSaha}`
 				)
 			}
-		}
-		else {
-			/*let { inst: { rotaID } = {} } = app.activeWndPart ?? {}
-			let globals = MQTabRota.globals ??= {}
-			let { cachedRecs } = globals
-			let mustKodListe = rotaID && cachedRecs
-				? cachedRecs
-					.filter(r => r.rotaID == rotaID)
-					.map(r => r.mustKod)
-				: null
-			let mustKodListe = globals.mustKodListe ??= (() =>
-				keys(asSet(cachedRecs?.map(r =>
-					r.mustKod)))
-			)()
-			if (mustKodListe)
-				wh.inDizi(mustKodListe, `${alias}.${kodSaha}`)*/
 		}
 		stm = e.stm
 		sent = wh = sahalar = null

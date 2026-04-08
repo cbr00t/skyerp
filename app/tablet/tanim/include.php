@@ -2,6 +2,7 @@
 <script src="<?=$_partRoot?>/mqMaster.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqTabNum.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqStok.js?<?=$appVersion?>"></script>
+<script src="<?=$_partRoot?>/mqSonStok.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqCari.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqCari-ek.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqBarkod.js?<?=$appVersion?>"></script>

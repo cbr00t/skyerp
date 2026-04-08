@@ -71,11 +71,11 @@ class SimpleComboBoxPart extends Part {
 		input?.attr('placeholder', value)
 	}
 	get disabled() {
-		let {input, _disabled} = this
-		return input?.length ? input.attr('readonly') : _disabled
+		let { input, _disabled } = this
+		return _disabled ?? input?.attr('readonly') != null
 	}
 	set disabled(value) {
-		let {input, layout} = this
+		let { input, layout } = this
 		this._disabled = value
 		input?.attr('readonly', value ? '' : null)
 		if (layout?.length) {
@@ -119,7 +119,7 @@ class SimpleComboBoxPart extends Part {
 			id, name, placeholder,
 			mfSinif, autoClearFlag, source, listSource,
 			delay, minLength, maxRows, renderer,
-			kodsuzmu, disabled,
+			kodsuzmu, _disabled: disabled,
 			userData, events, queue
 		})
 		/* !! (kodSaha, adiSaha) ve (item, value) mutlaka (mfSinif) sonrası atanmalı.
@@ -129,12 +129,13 @@ class SimpleComboBoxPart extends Part {
 	}
 	runDevam(e = {}) {
 		super.runDevam(e)
-		let sender = this, {layout, argsDuzenleBlock, class: { partName }} = this
+		let sender = this
+		let { layout, argsDuzenleBlock, class: { partName } } = this
 		layout.addClass(`${partName} part`)
 		let input = this.input ??= layout.children('input')
 		let _e = { ...e, sender, layout, input }
 		argsDuzenleBlock?.call(this, _e)
-		let {id, name = this.id, item, mfSinif, kodSaha, adiSaha, delay, minLength, maxRows, listSource} = this
+		let { id, name = this.id, item, mfSinif, kodSaha, adiSaha, delay, minLength, maxRows, listSource, _disabled: disabled } = this
 		layout = this.layout = _e.layout
 		input = this.input = _e.input
 		// $.extend(_e, { kodsuz, mfSinif, kodSaha, adiSaha, delay, minLength })
@@ -146,17 +147,17 @@ class SimpleComboBoxPart extends Part {
 		input.val(this.renderedInputText || null)
 		input.attr('placeholder', this.renderedText)
 		input.on('change', event => {
-			let {currentTarget: { value }} = event
+			let { currentTarget: { value } } = event
 			this._onChange({ type: 'change', event, layout, input, value })
 		})
 		input.on('keydown', event => {
-			let {key, currentTarget: { value }} = event
+			let { key, currentTarget: { value } } = event
 			key = key?.toLowerCase()
 			if (key == 'enter' || key == 'linefeed')
 				this._onChange({ type: 'commit', event, layout, input, value })
 		})
 		input.on('contextmenu', event => {
-			let {button, pointerId} = event
+			let { button, pointerId } = event
 			if (pointerId == 1 && button != 2)    // touch durumda textbox dolu ise, sol tıklama için contextmenu event gelebiliyor
 				return
 			event?.preventDefault()
@@ -198,6 +199,7 @@ class SimpleComboBoxPart extends Part {
 			btnListe.on('click', event =>
 				this.listeIstendi({ event }))
 		}
+		this.disabled = disabled    // init event trigger
 		this._initialized = true
 		setTimeout(() => {
 			let {kodSaha} = this
@@ -232,8 +234,10 @@ class SimpleComboBoxPart extends Part {
 	}
 	 async _onChange({ type, item }) {
 		// event debounce & type checks
-		if (this._inEvent || type == 'keypress' || type == 'change')
+		let { _inEvent, disabled } = this
+		if (_inEvent || disabled || type == 'keypress' || type == 'change')
 			return
+		 
 		this._inEvent = true
 		let isSelect = type == 'select', fromList = type == 'list'
 		let isCommit = type == 'commit', isTrigger = !type                                                // muhtemelen .trigger('change') vs
@@ -282,19 +286,19 @@ class SimpleComboBoxPart extends Part {
 		let events = queue.filter(_ => _ != null)
 		if (!events?.length)
 			return this
-		; (async events =>
+				
+		;(async events =>
 			this.signalChange({ type: 'batch', events })
 		)(events)
 		for (let evt of queue) {
-			(async args =>
-				this.signalChange({ ...args })
-			)(evt)
+			(async args => this.signalChange({ ...args }))(evt)
 		}
 		queue.splice(0)
 		return this
 	}
 	async aciklamaBelirle() {
-		let sender = this, {value, mfSinif, kodSaha, adiSaha, source, listSource} = this
+		let sender = this
+		let { value, mfSinif, kodSaha, adiSaha, source, listSource } = this
 		if (!value)
 			return this
 		if (!(mfSinif || source || listSource))
@@ -310,10 +314,13 @@ class SimpleComboBoxPart extends Part {
 		return this
 	}
 	listeIstendi({ event: evt }) {
-		let {layout, input, mfSinif, listSource: source} = this
-		if (!(source || mfSinif))
+		let { disabled, mfSinif, listSource: source } = this
+		if (disabled || !(source || mfSinif))
 			return
-		let sender = this, {kodsuzmu, kodSaha, adiSaha, item, value: kod, aciklama} = this
+
+		let sender = this
+		let { layout, input } = this
+		let { kodsuzmu, kodSaha, adiSaha, item, value: kod, aciklama } = this
 		let inputVal = input.val() ?? ''
 		let orjMFSinif = mfSinif
 		let cls = (class extends orjMFSinif {

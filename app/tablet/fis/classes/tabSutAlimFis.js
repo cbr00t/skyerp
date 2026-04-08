@@ -11,16 +11,19 @@ class TabSutAlimFis extends TabFis {
 
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
-		let { posta: defPosta } = app.params.yerel ?? {}
 		extend(pTanim, {
 			yerKod: new PInstStr('yerkod'),
 			plasiyerKod: new PInstStr('plasiyerkod'),
-			rotaID: new PInstNum('rotaID'),
-			posta: new PInstStr({
-				rowAttr: 'posta',
-				init: () => defPosta || TabPosta.defaultChar
-			})
+			rotaID: new PInstStr('rotaID'),
+			posta: new PInstStr({ ioAttr: 'posta', init: () => TabPosta.defaultChar })
 		})
+		let { posta: defPosta } = app.params.yerel ?? {}
+	}
+	async yeniTanimOncesiIslemler(e) {
+		await super.yeniTanimOncesiIslemler(e)
+		let { posta: defPosta } = app.params.yerel ?? {}
+		if (defPosta)
+			this.posta = defPosta
 	}
 	async yeniTanimOncesiVeyaYukleSonrasiIslemler(e) {
 		let { detaySinif: { stokSinif } } = this.class

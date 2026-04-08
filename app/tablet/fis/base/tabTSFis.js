@@ -53,13 +53,14 @@ class TabTSFis extends TabFis {
 		let e = arguments[0]
 		let barkodYapilar = barkodlar.filter(Boolean).map(barkod => {
 			let carpan = 1
+			let barkodLower = barkod?.toLowerCase() ?? ''
 			for (let s of ['x', '*']) {
-				let i = barkod.indexOf(s)
+				let i = barkodLower.indexOf(s)
 				if (i != -1) {
 					carpan = asFloat(barkod.slice(0, i))
 					barkod = barkod.slice(i + 1).trimEnd()
+					break
 				}
-				break
 			}
 			carpan ||= 1
 			return barkod ? ({ carpan, barkod }) : null
@@ -108,9 +109,10 @@ class TabTSFis extends TabFis {
 		}
 	}
 	tanimUI_gridVeriYuklenince({ tanimPart, gridPart }) {
-		let { gridWidget: w } = gridPart
-		if (this.detaylar != gridPart.boundRecs)
+		if (!gridPart._gridVeriYuklenince_fixFlag && this.detaylar != gridPart.boundRecs) {
+			gridPart._gridVeriYuklenince_fixFlag = true
 			gridPart.tazele()
+		}
 	}
 	
 	yerDegisti({ oldValue = this._prev.yerKod, value = this.yerKod }) {
@@ -511,18 +513,49 @@ class TabTSFis extends TabFis {
 						tanimPart.ddKdvOrani = input)
 			}
 		}
-		if (iskMaxSayi && ticarimi) {
+		if (ticarimi) {
+			if (iskMaxSayi) {
+				let form = detayForm.addFormWithParent().yanYana()
+					.addStyle(`$elementCSS > div:not(:first-child) { margin-left: 20px }`)
+				for (let i = 1; i <= iskMaxSayi; i++) {
+					form.addNumberInput(`iskOran${i}`, `İsk${i}`, `İsk${i}`)
+						.addStyle_wh(90).setFra(1)
+						.setMin(0).setMax(100)
+						[iskDegistirir ? 'editable' : 'readOnly']()
+						.degisince(({ builder: { id, input }, value }) => {
+							getDetay()[id] = value
+							degisinceOrtak({ input })
+						})
+				}
+			}
+			
 			let form = detayForm.addFormWithParent().yanYana()
 				.addStyle(`$elementCSS > div:not(:first-child) { margin-left: 20px }`)
-			for (let i = 1; i <= iskMaxSayi; i++) {
-				form.addNumberInput(`iskOran${i}`, `İsk${i}`, `İsk${i}`)
-					.addStyle_wh(90).setFra(1)
-					.setMin(0).setMax(100)
-					[iskDegistirir ? 'editable' : 'readonly']()
-					.degisince(({ builder: { id, input }, value }) => {
-						getDetay()[id] = value
-						degisinceOrtak({ input })
-					})
+			for (let { ioAttr, etiket, numerikmi, kami, mfSinif } of HMRBilgi) {
+				let fbd
+				if (kami && mfSinif) {
+					fbd = form.addSimpleComboBox(ioAttr, etiket, etiket)
+						.setMFSinif(mfSinif)
+						.degisince(({ sender: { input }, type, events = [], ...rest }) => {
+							if (type == 'batch') {
+								let { value } = events.at(-1) ?? {}
+								getDetay()[ioAttr].value = numerikmi ? asFloat(value) : (value ?? '')
+								degisinceOrtak()
+							}
+						})
+						.addStyle_wh(250)
+				}
+				else {
+					fbd = form[numerikmi ? 'addNumberInput' : 'addTextInput'](ioAttr, etiket, etiket)
+						.degisince(({ builder: { input, value } }) => {
+							getDetay()[ioAttr].value = numerikmi ? asFloat(value) : (value ?? '')
+							degisinceOrtak({ input })
+						})
+						.addStyle_wh(150)
+				}
+				
+				if (fbd)
+					fbd.etiketGosterim_yok()
 			}
 		}
 		if (bedelKullanilirmi) {

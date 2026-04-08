@@ -124,9 +124,49 @@ class MQTabCari extends MQKAOrtak {
 			new GridKolon({ belirtec: 'tavsiyeplasiyerkod', text: 'Plasiyer', genislikCh: 15 }).hidden()*/
 		)
 	}
+	static async loadServerData({ basit, sender, offlineRequest, offlineMode }) {
+		let { rotaDisiMusteriAlinirmi: rotaDisi } = app.params?.tablet ?? {}
+		let { rotaKullanilirmi } = app
+		if (!(basit || offlineRequest)) {
+			// cache
+			let classes = []
+			if (rotaKullanilirmi && !rotaDisi)
+				classes.push(MQTabRota)
+			if (!empty(classes)) {
+				await Promise.allSettled(classes.map(cls => cls.getGloKod2Rec()))
+				await Promise.allSettled(classes.map(cls => cls.loadServerData()))
+			}
+		}
+		
+		let recs = await super.loadServerData(...arguments)
+		if (basit || empty(recs) || (offlineRequest && offlineMode))
+			return recs
+
+		if (rotaKullanilirmi && !rotaDisi) {
+			let inst = sender?.inst ?? app.activeWndPart?.inst ?? {}
+			let globals = MQTabRota.globals ?? {}
+			let { cachedRecs, mustKodSet } = globals
+			let rotaID = inst?.rotaID?.toString()
+			if (rotaID && cachedRecs)
+				cachedRecs = cachedRecs.filter(r => r.rotaID == rotaID)
+			// !! her seferinde global override. sonraki liste tazelemeler için
+			mustKodSet = globals.mustKodSet =
+				rotaID
+					? asSet(cachedRecs?.map(r => r.mustKod)) ?? mustKodSet
+					: null
+			if (mustKodSet) {
+				let { kodSaha } = this
+				recs = recs.filter(r =>
+					mustKodSet[r[kodSaha]])
+			}
+		}
+		
+		return recs
+	}
 	static loadServerData_queryDuzenle_son({ alias = this.tableAlias, offlineRequest, offlineMode, stm, sent, sent: { where: wh, sahalar } }) {
-		let e = arguments[0]; super.loadServerData_queryDuzenle_son(e)
-		let {kodSaha, adiSaha, onlineIdSaha} = this
+		let e = arguments[0]
+		super.loadServerData_queryDuzenle_son(e)
+		let { kodSaha, adiSaha, onlineIdSaha } = this
 		if (offlineRequest) {
 			if (offlineMode) {
 				// Bilgi Gönder
@@ -157,8 +197,10 @@ class MQTabCari extends MQKAOrtak {
 		}
 	}
 	static loadServerData_queryDuzenle_son_bilgiYukle({ alias = this.tableAlias, stm, sent, sent: { where: wh, sahalar } }) {
-		let e = arguments[0], {rotaKullanilirmi} = app
-		let {kodSaha, adiSaha, onlineIdSaha} = this
+		let e = arguments[0]
+		let { kodSaha, adiSaha, onlineIdSaha } = this
+		let { rotaKullanilirmi } = app
+	
 		let ortakSentDuzenle = e.ortakSentDuzenle = sent => {
 			wh.add(
 				`${alias}.silindi = ''`, `${alias}.calismadurumu <> ''`,

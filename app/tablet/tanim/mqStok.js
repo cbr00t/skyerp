@@ -92,6 +92,7 @@ class MQTabStok extends MQKAOrtak {
 				new GridKolon({ belirtec: 'grupkod', text: 'Grup', genislikCh: 15 }),
 				new GridKolon({ belirtec: 'grupadi', text: 'Grup Adı', genislikCh: 25, sql: 'grp.aciklama' })
 			),
+			new GridKolon({ belirtec: 'sonStok', text: 'Son Stok', genislikCh: 10 }).tipNumerik().sifirGosterme().noSql(),
 			new GridKolon({ belirtec: 'satkdvorani', text: 'Sat.Kdv%', genislikCh: 8 }).tipNumerik()
 			//new GridKolon({ belirtec: 'calismadurumu', text: 'Aktif?', genislikCh: 10, filterType: 'checkedlist' }).tipBool(),
 			//new GridKolon({ belirtec: 'satilamazfl', text: 'SatılaMAz?', genislikCh: 10, filterType: 'checkedlist' }).tipBool()
@@ -118,6 +119,30 @@ class MQTabStok extends MQKAOrtak {
 		super.gridVeriYuklendi(...arguments)
 		gridWidget.hidecolumn('grupadi')
 	}
+	static async loadServerData(e = {}) {
+		let { sender, offlineRequest, offlineMode } = e
+		let recs = await super.loadServerData(e)
+		if (empty(recs))
+			return recs
+
+		let { activeWndPart: part } = app
+		let inst = (
+			sender?.inst ?? part?.inst ??
+			sender?.parentPart?.inst ?? part?.parentPart?.inst ?? {}
+		)
+		let { yerKod } = inst
+		if (!offlineRequest) {
+			let kod2Yer2Son = {}
+			for (let r of await MQTabSonStok.loadServerData(e)) {
+				let yer2Son = kod2Yer2Son[r.stokKod] ??= {}
+				yer2Son[r.yerKod] = r
+			}
+			;recs.forEach(r =>
+				r.sonStok ??= kod2Yer2Son[r.kod]?.[yerKod ?? '']?.sonMiktar)
+		}
+			
+		return recs
+	}
 	static async loadServerDataDogrudan({ offlineRequest, offlineMode } = {}) {
 		if (offlineRequest && offlineMode) {
 			this._kdvOran2Kod ??= await MQVergiKdv.oran2KodSet()
@@ -125,11 +150,13 @@ class MQTabStok extends MQKAOrtak {
 		}
 		return await super.loadServerDataDogrudan(...arguments)
 	}
-	static loadServerData_queryDuzenle_son({ sent, sent: { where: wh, sahalar, alias2Deger }, offlineRequest, offlineMode } = {}) {
+	static loadServerData_queryDuzenle_son({ sender, sent, sent: { where: wh, sahalar, alias2Deger }, offlineRequest, offlineMode } = {}) {
 		super.loadServerData_queryDuzenle_son(...arguments)
-		let {tableAlias: alias} = this, kdvHesap_sabitLen = 3
+		let { tableAlias: alias } = this
+		let kdvHesap_sabitLen = 3
 		let getKdvKodClauseVeAlias = (kodPrefix, almSatPrefix) => {
 			if (offlineRequest && !offlineMode) {
+				// Bilgi Yükle
 				let clause = `${alias}.${almSatPrefix}kdvhesapkod`
 				return (    // mssql
 					`(case when ${clause} LIKE '${kodPrefix}%' then` +
@@ -138,6 +165,13 @@ class MQTabStok extends MQKAOrtak {
 				)
 			}
 			else {
+				/*let inst = sender?.inst ?? app.activePart?.inst ?? {}
+				let { yerKod } = inst
+				if (!offlineRequest && yerKod) {
+					sent.leftJoin('son', 'sonstok stk', [`${alias}.kod = son.stokKod`, `son.yerKod = ${yerKod.sqlDegeri()}`])
+					sahalar.add('son.yerKod', 'son.sonMiktar sonStok')
+				}*/
+					
 				let clause = `${alias}.${almSatPrefix}kdvorani`
 				return (    // sqlite
 					`(case when ${clause} = 0 then ''` +

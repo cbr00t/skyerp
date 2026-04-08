@@ -44,9 +44,10 @@ body.offline #windows.skyTabs.part > .tabs {
 }
 
 .skyTabs.part > .tabs > .tabPage {
-	position: relative;
-	width: max-content;
-	margin-inline: 0; padding-inline: 0 }
+	position: relative; width: max-content;
+	margin-inline: 0; padding-inline: 0;
+	z-index: 1010 !important
+}
 
 .skyTabs.part > .tabs > .tabPage > .header {
 	font-size: 100%;

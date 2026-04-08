@@ -75,10 +75,10 @@ class TabletApp extends TicariApp {
 			result = cache._offlineBilgiYukleSiniflar = [
 				MQParam, MQTabDokumForm, MQTabNum, MQTabRota, MQTabCariBakiye,
 				MQTabTahsilSekli, MQTabSube, MQTabYer, MQTabNakliyeSekli,
-				MQTabCariTip, MQTabSevkAdres, MQPaket, MQUrunPaket, MQTabUgramaNeden,
-				MQTabKasa, MQTabStokAnaGrup, MQTabStokGrup, MQTabStokMarka,
+				MQTabCariTip, MQTabSevkAdres, MQPaket, MQUrunPaket,
+				MQTabUgramaNeden, MQTabKasa, MQTabStokAnaGrup, MQTabStokGrup, MQTabStokMarka,
 				MQTabBolge, MQTabIl, MQTabUlke,
-				MQTabPlasiyer
+				MQTabPlasiyer, MQTabSonStok
 			]
 			if (dev || sicakSogukVeyaSutAlimmi) 
 				result.push(MQTabMustahsil, MQTabSutSira)
@@ -176,7 +176,7 @@ class TabletApp extends TicariApp {
 		)
 		if (dev) {
 			addMenuSubItems('TANIM', 'Tanımlar', [
-				MQTabStok, MQTabCari, MQTabCariBakiye, MQTabPlasiyer, MQTabSube, MQTabYer,
+				MQTabStok, MQTabSonStok, MQTabCari, MQTabCariBakiye, MQTabPlasiyer, MQTabSube, MQTabYer,
 				MQTabRota, MQTabStokGrup, MQTabStokAnaGrup, MQTabStokMarka, MQTabNakliyeSekli,
 				MQTabTahsilSekli, MQTabBarkodReferans, MQTabBarkodAyrisim,
 				MQCariSatis, MQTabUgramaNeden, MQTabCariTip, MQTabSevkAdres

@@ -51,7 +51,7 @@ class TabRotaListe extends MQMasterOrtak {
 	static async loadServerDataDogrudan(e = {}) {
 		let { gridPart = e.sender, wsArgs, offlineRequest, offlineMode } = e
 		let { selectedUid: _lastUid, gridWidget: w } = gridPart
-		extend(gridPart, { _lastUid })
+		gridPart._lastUid = _lastUid
 
 		let ignoreKeys = asSet(['durumText', 'sortText'])
 		if (ignoreKeys[wsArgs?.sortdatafield])
@@ -83,7 +83,7 @@ class TabRotaListe extends MQMasterOrtak {
 		let { groups } = w
 		let groupSet = asSet(groups)
 		let _recs = await super.loadServerDataDogrudan(...arguments)
-		let mustKod2Rec = { ilk: {}, son: {}, hepsi: {} }
+		let mustKod2Rec = {}
 		for (let rec of _recs) {
 			let { mustKod } = rec
 			if (mustKod2Rec[mustKod])
@@ -93,21 +93,16 @@ class TabRotaListe extends MQMasterOrtak {
 				extend(rec, harBilgi)
 			let { tip, sayi } = rec
 			let islemVarmi = sayi > 0
-			extend(rec, {
-				islemVarmi,
-				durumText: ( islemVarmi ? `<b class=orangered>İşlem Gören</b>` : `<b class=forestgreen>Bek.</b>` ),
-			})
+			rec.islemVarmi = islemVarmi
+			rec.durumText = ( islemVarmi ? `<b class=orangered>İşlem Gören</b>` : `<b class=forestgreen>Bek.</b>` )
 			rec.sortText = [
 				( groupSet.durumText ? islemVarmi : null ),
 				( groupSet.aciklama ? tip : null )
 			].filter(Boolean).join(delimWS)
 			rec._html = this.getHTML({ ...e, rec })
-			// let selector = islemVarmi ? 'son' : 'ilk'
-			// mustKod2Rec[selector][mustKod] = rec
-			mustKod2Rec.hepsi[mustKod] = rec             // öncelik sırasız
+			mustKod2Rec[mustKod] = rec
 		}
-		let recs = values(mustKod2Rec.hepsi)
-		recs.sort((a, b) =>
+		let recs = values(mustKod2Rec).sort((a, b) =>
 			a.sortText.localeCompare(b.sortText))
 		return recs
 	}
@@ -121,9 +116,9 @@ class TabRotaListe extends MQMasterOrtak {
 			let { from, where: wh, sahalar, alias2Deger } = sent
 			sent
 				.distinctYap()
-				.leftJoin(alias, 'tabfis fis', `${alias}.mustKod = fis.must`)
+				// .leftJoin(alias, 'tabfis fis', `${alias}.mustKod = fis.must`)
 				.innerJoin(alias, 'carmst car', [`${alias}.mustKod = car.kod`, `car.calismadurumu <> ''`, `car.satilamazfl = ''`])
-				.innerJoin('car', 'caril il', 'car.ilkod = il.kod')
+				//.innerJoin('car', 'caril il', 'car.ilkod = il.kod')
 			;{
 				let or = new MQOrClause()
 				or.inDizi(['', 'HER', gunKod], `${alias}.gunKod`)
@@ -138,24 +133,27 @@ class TabRotaListe extends MQMasterOrtak {
 			}
 			sahalar
 				.addWithAlias(alias,
-					'tip', 'plasiyerKod', 'gunKod', 'ekKod', 'aciklama', 'seq', 'mustKod')
+					'tip', 'plasiyerKod', 'gunKod', 'ekKod', 'aciklama')
 				.addWithAlias('car',
-					'aciklama mustUnvan', 'kontipkod konTipkod', `konsolidemusterikod ticMustKod`,
-					'efaturakullanirmi eFatmi', 'oscolor', 'yore', 'ilkod ilKod'
+					'aciklama mustUnvan' //, 'kontipkod konTipkod', `konsolidemusterikod ticMustKod`,
+					//, 'efaturakullanirmi eFatmi', 'oscolor', 'yore' ilkod ilKod'
 				)
 				.add(
-					'il.aciklama ilAdi',
+					//'il.aciklama ilAdi',
 					`(CASE WHEN ${alias}.gunKod IN ('', 'HER') THEN 2 ELSE 1 END) oncelik`,
 					`(CASE WHEN ${alias}.plasiyerKod IN ('', ${plasiyerKod.sqlDegeri()}) AND ${alias}.gunKod NOT IN ('', 'HER') THEN 1 else 0 END) rotaIcimi`
 				)
+				.addWithAlias(alias,
+					'seq', 'mustKod')
+			sent.gereksizTablolariSil()
 		}
 		
-		let {orderBy} = stm
+		let { orderBy } = stm
 		orderBy.liste = orderBy.liste
 			.filter(_ => !_.startsWith('_'))
 			.map(v => v.toUpperCase().endsWith('DESC') ? v : `${v} DESC`)
 		if (empty(orderBy.liste))
-			orderBy.add('tip', 'plasiyerKod', 'ekKod', 'oncelik', 'seq')
+			orderBy.add(/*'tip',*/ 'plasiyerKod', 'ekKod', 'oncelik', 'seq')
 	}
 	static gridGroupsChanged(e) {
 		let { gridPart = e.sender, event: { args = {} } } = e
@@ -169,8 +167,8 @@ class TabRotaListe extends MQMasterOrtak {
 		super.gridVeriYuklendi(e)
 		let { sender: gridPart } = e
 		let { boundRecs: recs, selectedRec: rec, selectedUid, gridWidget: w } = gridPart
-		// let { /*sortcolumn: sortKey,*/ groups } = w
-		// gridPart._lastGroups = groups
+		let { /*sortcolumn: sortKey,*/ groups } = w
+		gridPart._lastGroups = groups
 		//if (!sortKey)
 		//	w.sortby('sortText', true)
 		/*;{
@@ -203,7 +201,10 @@ class TabRotaListe extends MQMasterOrtak {
 		let e = arguments[0]
 		super.rootFormBuilderDuzenle_listeEkrani(e)
 		let { layout, header, islemTuslari } = gridPart
-		rfb.addStyle(`$elementCSS .header > .islemTuslari > div #izle { margin-right: 20px }`)
+		rfb.addStyle(
+			`$elementCSS .header > .islemTuslari > div #yeni { margin-right: 5px }
+			 $elementCSS .header > .islemTuslari > div #izle { margin-right: 5px }`
+		)
 		;{
 			let parent = rfb.addForm('header', header)
 			let ustBilgiForm = parent.addForm('ustBilgi')
@@ -278,7 +279,7 @@ class TabRotaListe extends MQMasterOrtak {
 					try { await this.fisListesiIstendi(_e) }
 					catch (ex) { cerr(ex); throw ex }
 				}
-			},
+			}/*,
 			{ id: 'menu', text: '...', handler: async _e => {
 				_e = { ...e, ..._e }
 				try {
@@ -290,7 +291,7 @@ class TabRotaListe extends MQMasterOrtak {
 					}
 				}
 				catch (ex) { cerr(ex); throw ex }
-			}}
+			}}*/
 		]
 		let set = part.ekSagButonIdSet ??= {}
 		if (solItems.length)

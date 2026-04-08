@@ -93,16 +93,16 @@ class MQOrtakFis extends MQDetayli {
 		if (noSaha && !fisNo && num) {
 			if (hedefSeri) {
 				let {cariYil} = app.params?.zorunlu
-				$.extend(num, { kod: hedefSeri, seri: hedefSeri, noYil: cariYil })
+				extend(num, { kod: hedefSeri, seri: hedefSeri, noYil: cariYil })
 				if (!await num.yukle())
 					await num.kaydet(e)
 				this.numarator = num
 			}
 			else
 				await num.yukle(e)
-			let {seri, noYil} = num
+			let { seri, noYil } = num
 			fisNo = (await num.kesinlestir(e)).sonNo
-			$.extend(this, { seri, noYil, fisNo })
+			extend(this, { seri, noYil, fisNo })
 		}
 		let result = await this.disKaydetOncesiIslemler(e); if (result === false) { return false }
 		e.proc = async e => {

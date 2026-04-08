@@ -49,31 +49,47 @@ class GridKolonTip extends CObject {
 	}
 	/* return true: override grid default handler, return (true / false) = event handled */
 	handleKeyboardNavigation_ortak(e) {
-		let {keyState: state} = e, {gridPart, gridWidget, editable, editing, sabitmi, modifiers, keyLower: key} = state;
-		let {ctrl, shift, alt} = modifiers;
+		let { keyState: state } = e
+		let { gridPart, gridWidget, editable, editing, sabitmi, modifiers, keyLower: key } = state
+		let { ctrl, shift, alt } = modifiers
 		switch (key) {
-			case 'enter': case 'tab': {
-				let preventGridEvents = !editing;
-				if (!editing) { gridPart.endCellEdit(true) }
-				gridPart.selectEditableCell({ ...e, prev: !!modifiers.shift });
+			case 'enter':
+			case 'tab': {
+				let preventGridEvents = !editing
+				if (!editing)
+					gridPart.endCellEdit(true)
+				gridPart.selectEditableCell({ ...e, prev: !!modifiers.shift })
 				return preventGridEvents
 			}
-			case 'insert': { if (editable && !sabitmi) { gridPart.addRow({ offset: state.selectedRowIndex }) } return true }
-			case 'delete': { if (editable && !sabitmi && ctrl) { gridPart.deleteRow(); return true } }
+			case 'insert': {
+				if (editable && !sabitmi)
+					gridPart.addRow({ offset: state.selectedRowIndex })
+					return true
+			}
+			case 'delete': {
+				if (editable && !sabitmi && ctrl) {
+					gridPart.deleteRow()
+					return true
+				}
+			}
 			case 'arrowdown': {
-				let {belirtec, totalRecs} = state, rowIndex = state.rowIndex + 1;
-				if (editable && !sabitmi && rowIndex + 1 > totalRecs) { gridPart.addRow({ offset: 'last' }) }
+				let { belirtec, totalRecs } = state
+				let rowIndex = state.rowIndex + 1
+				if (editable && !sabitmi && rowIndex + 1 > totalRecs)
+					gridPart.addRow({ offset: 'last' })
 				break
 			}
 			case 'f2': {
-				let {rowIndex, belirtec} = state;
-				if (!editing && rowIndex != null && belirtec) { gridWidget.begincelledit(rowIndex, belirtec) }
+				let { rowIndex, belirtec } = state;
+				if (!editing && rowIndex != null && belirtec)
+					gridWidget.begincelledit(rowIndex, belirtec)
 				return true
 			}
 			case 'f': {
 				if (ctrl) {
-					let {parentPart} = gridPart, bulPart = gridPart.bulPart ?? parentPart.bulPart, {input} = bulPart ?? {};
-					input?.focus();
+					let { parentPart } = gridPart
+					let bulPart = gridPart.bulPart ?? parentPart.bulPart
+					bulPart?.focus()
 					return true
 				}
 			}

@@ -160,9 +160,9 @@ class ModelTanimPart extends Part {
 		mfSinif?.rootFormBuilderDuzenle_islemTuslari(...arguments)
 	}
 	initBulForm(e) {
-		let {header, form, mfSinif} = this
-		let {bulFormKullanilirmi} = mfSinif ?? {}
-		let bulForm = header.find('.bulForm')
+		let { layout, form, mfSinif } = this
+		let { bulFormKullanilirmi } = mfSinif ?? {}
+		let bulForm = layout.find('.bulForm')
 		if (!mfSinif || bulFormKullanilirmi) {
 			let bulPart = this.bulPart = new FiltreFormPart({
 				layout: bulForm,

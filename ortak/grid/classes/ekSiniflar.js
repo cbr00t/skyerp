@@ -33,7 +33,7 @@ class GridState extends CObject {
 			sender, builder, event, eventType, key, modifiers, hasModifiers, eventTS: timeStamp, targetIsGrid,
 			gridPart, grid, gridWidget, rowIndex, belirtec, colDef, jqxCol, selectedCell, editCell,
 			gridEditable, colEditable, editable, result
-		} = this;
+		} = this
 		return {
 			keyState, sender, gridPart, builder, event, eventType, key, modifiers, hasModifiers, timeStamp, targetIsGrid,
 			gridPart, grid, gridWidget, rowIndex, belirtec, colDef, jqxCol, selectedCell, editCell,
@@ -41,24 +41,31 @@ class GridState extends CObject {
 		}
 	}
 	get tusaBasilincaBlock() { return this.gridPart?.tusaBasilincaBlock }
-	constructor(e) {
-		e = e ?? {}; super(e); let {gridPart, sender: _sender, event, lastEventTS, result} = e;
-		$.extend(this, { gridPart, _sender, event, lastEventTS, result })
+
+	constructor(e = {}) {
+		super(e)
+		let { gridPart, sender: _sender, event, lastEventTS, result } = e
+		extend(this, { gridPart, _sender, event, lastEventTS, result })
 	}
 	run(e) {
-		if (!this.canHandleEvents) { return null }
-		this.saveLastEventTS(); let result = this.runDevam(e);
+		if (!this.canHandleEvents)
+			return null
+		this.saveLastEventTS()
+		let result = this.runDevam(e)
 		return result
 	}
 	runDevam(e) {
-		let result = this.dispatchEvents(e); if (result != null) { return result }
+		let result = this.dispatchEvents(e)
+		if (result != null)
+			return result
 		return this.runInternal(e)
 	}
 	runInternal(e) { }
 	dispatchEvents(e) { this.signalEvents(e); return this.result }
 	signalEvents(e) { }
 	setEvent(value) { this.event = value; return this }
-	setResult(value) { this.result = value; return this } resetResult() { return this.setResult(undefined) }
+	setResult(value) { this.result = value; return this }
+	resetResult() { return this.setResult(undefined) }
 	saveLastEventTS() { this.lastEventTS = this.eventTS; return this }
 }
 
@@ -74,14 +81,17 @@ class GridKeyState extends GridState {
 	get keyLower() { return this.key?.toLowerCase() } 
 	get hasModifiers() { return !!Object.keys(this.modifiers).length }
 	get modifiers() { let {event: evt} = this; return { ctrl: evt?.ctrlKey, shift: evt?.shiftKey, alt: evt?.altKey } }
+
 	runInternal(e) { super.runInternal(e) }
 	signalEvents(e) {
-		super.signalEvents(e); let {gridPart, colDef, tusaBasilincaBlock: tusaBasilinca, newEventArgs} = this;
-		colDef = colDef ?? new GridKolon();
-		let _e = { ...e, ...newEventArgs }, result;
-		result = _e.result = colDef?.handleKeyboardNavigation?.(_e) ?? result;
-		result = _e.result = tusaBasilinca?.call(gridPart, _e) ?? result;
-		result = _e.result = colDef?.handleKeyboardNavigation_ortak?.(_e) ?? result;
+		super.signalEvents(e)
+		let { gridPart, colDef, tusaBasilincaBlock: tusaBasilinca, newEventArgs } = this
+		colDef = colDef ?? new GridKolon()
+		let _e = { ...e, ...newEventArgs }
+		let result
+		result = _e.result = colDef?.handleKeyboardNavigation?.(_e) ?? result
+		result = _e.result = tusaBasilinca?.call(gridPart, _e) ?? result
+		result = _e.result = colDef?.handleKeyboardNavigation_ortak?.(_e) ?? result
 		return this.setResult(result)
 	}
 }

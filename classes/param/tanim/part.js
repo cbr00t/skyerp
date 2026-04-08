@@ -54,12 +54,12 @@ class ParamTanimPart extends Part {
 		})
 	}
 	initBulForm(e = {}) {
-		let {header, form} = this
+		let  {layout, form } = this
 		let bulPart = this.bulPart = new FiltreFormPart({
-			layout: header.find('.bulForm'),
+			layout: layout.find('.bulForm'),
 			degisince: _e =>
 				FiltreFormPart.hizliBulIslemi({ ...e, ..._e, sender: this, layout: form })
-		});
+		})
 		bulPart.run()
 	}
 	initIslemTuslari(e) {

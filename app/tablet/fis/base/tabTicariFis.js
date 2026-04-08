@@ -48,7 +48,7 @@ class TabTicariFis extends TabTSFis {
 			sevkTS: new PInstDateTimeNow('sevkts'),
 			tahSekliNo: new PInstNum('tahseklino'),
 			tahFisId: new PInstStr('tahfisid'),
-			rotaID: new PInstNum('rotaID')
+			rotaID: new PInstStr('rotaID')
 		})
 	}
 	static async loadServerDataDogrudan({ offlineRequest, offlineMode } = {}) {
@@ -317,11 +317,10 @@ class TabTicariFis extends TabTSFis {
 		let { tablet } = app.params
 		let { siparismi } = this
 		await super.rootFormBuilderDuzenle_tablet_acc_baslik(e)
-		if (!siparismi) {
+		;{
 			let form = rfb.addFormWithParent().yanYana()
-			// let etiketPrefix = `${siparismi ? 'Teslim' : 'Sevk'}`
-			let etiketPrefix = 'Sevk'
-			if (siparismi || !tablet.sevkYeriKullanilmaz) {
+			let etiketPrefix = `${siparismi ? 'Teslim' : 'Sevk'}`
+			if (!tablet.sevkYeriKullanilmaz) {
 				let mfSinif = MQTabSevkAdres, etiket = `${etiketPrefix} Yeri`
 				if (siparismi)
 					etiket = etiket.replaceAll('Sevk', 'Teslim')
@@ -362,12 +361,14 @@ class TabTicariFis extends TabTSFis {
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_dip({ sender: tanimPart, inst: fis, rfb }) {
 		await super.rootFormBuilderDuzenle_tablet_acc_dip(...arguments)
-		let {acc} = tanimPart, {dvKod, dipIslemci, detaylar} = fis
+		let { acc } = tanimPart, { dvKod, dipIslemci, detaylar } = fis
+		let { tablet } = app.params
+		let { iskDegistirir } = tablet
 		// rfb.addStyle_wh(null, 200)
 		rfb
 			.addStyle_wh(null, 'max-content')
 			.addStyle(`$elementCSS { padding-bottom: 30px !important }`)
-		{
+		if (iskDegistirir) {
 			let form = rfb.addFormWithParent().yanYana()
 				.addStyle(`$elementCSS > * { gap: 20px }`)
 				.setAltInst(dipIslemci)

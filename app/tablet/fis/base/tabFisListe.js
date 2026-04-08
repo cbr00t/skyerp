@@ -45,7 +45,7 @@ class TabFisListe extends TabFisListeOrtak {
 			return recs
 
 		if (!offlineRequest) {
-			let rotaKolonVarmi = !!belirtec2Kolon.rotaText
+			let rotaKolonVarmi = !!belirtec2Kolon?.rotaText
 			if (rotaKolonVarmi) {
 				let rotaID2Adi = fromEntries(
 					(await MQTabRota.loadServerData()).map(r =>
@@ -53,6 +53,8 @@ class TabFisListe extends TabFisListeOrtak {
 				)
 				;recs.forEach(rec => {
 					let { rotaID } = rec
+					if (rotaID == '0')
+						rotaID = rec.rotaID = null
 					let rotaAdi = rotaID2Adi[rotaID]
 					rec.rotaText ??= rotaID
 						? `<span>${rotaAdi || rotaID}</span>`
@@ -137,7 +139,7 @@ class TabFisListe extends TabFisListeOrtak {
 
 		// await super.getUstBilgiHTML(...arguments)
 		let result = []
-		if (mustKod) {
+		if (mustRec) {
 			let { aciklama: unvan, yore, iladi: ilAdi } = mustRec
 			let { sahismi, vnumara: vkn, tckimlikno: tckn } = mustRec
 			let vkno = sahismi ? tckn : vkn

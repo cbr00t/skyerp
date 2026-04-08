@@ -83,6 +83,8 @@ class TabTSDetay extends TabDetay {
 	getHTML(e) {
 		let _ = super.getHTML(e) ?? ''
 		let { stokAdi, stokKod, barkod, miktar, brm } = this
+		let miktarsiz = this instanceof TabSutAlimFis.detaySinif
+			
 		brm ??= ''
 		return [
 			_,
@@ -94,7 +96,10 @@ class TabTSDetay extends TabDetay {
 				`</div>`,
 				( miktar ?
 					`<div class="miktarFiyat ek-bilgi float-right" style="gap: 0 10px">` +
-						`<button class="miktar bold forestgreen" onclick="app.activeWndPart.inst.satirMiktarEditIstendi({ target: this })">${miktar} ${brm}</button>` +
+						`<button class="miktar bold forestgreen" onclick="app.activeWndPart.inst.satirMiktarEditIstendi({ target: this })">` + 
+							 `${miktarsiz ? '' : miktar}` +
+							 ` ${brm}`+
+						 `</button>` +
 					`</div>`
 				: null),
 			`</div>`

@@ -603,13 +603,15 @@ class FBuilder_OptionBase extends FBuilder_DivOrtak {
 	}
 	buildDevam(e) {
 		super.buildDevam(e)
-		let {input, isReadOnly} = this
-		if (input?.length)
+		let { input, isReadOnly } = this
+		if (input?.length && isReadOnly) {
 			input.attr('readonly', '')
+			input.attr('disabled', '')
+		}
 	}
 	afterBuild(e) {
 		super.afterBuild(e)
-		let {layout, isReadOnly} = this
+		let { layout } = this
 		if (layout?.length) {
 			if (!this.layoutHasParent)
 				layout.appendTo(this.parent)

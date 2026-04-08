@@ -163,7 +163,7 @@ class GridPart extends Part {
 					this.dragDropDisabledFlag_resetTimer = setTimeout(() => {
 						this.dragDropDisabledFlag = false; delete this.dragDropDisabledFlag_resetTimer
 						/* this.gridRendered({ sender: this, builder, type: e, grid, gridWidget }) */
-					}, 100);
+					}, 100)
 				}
 			},
 			source: new $.jqx.dataAdapter(
@@ -571,9 +571,13 @@ class GridPart extends Part {
 		return recs
 	}
 	gridHandleKeyboardNavigation(e) {
-		let gridPart = this, {event} = e, {gridKeyState: state} = this;
-		if (!state) { state = this.gridKeyState = new GridKeyState({ gridPart }) };
-		let result = state.setEvent(event).run(e); if (result != null) {
+		let gridPart = this
+		let { event } = e
+		let { gridKeyState: state } = this
+		if (!state)
+			state = this.gridKeyState = new GridKeyState({ gridPart })
+		let result = state.setEvent(event).run(e)
+		if (result != null) {
 			// if (result === false) { event.preventDefault() }
 			return result
 		}
@@ -768,7 +772,8 @@ class GridPart extends Part {
 				}
 				if (_e.result == null) {
 					if (modifiers.ctrl && keyLower == 'a') { gridWidget.selectallrows(); _e.result = true }
-					else if (modifiers.ctrl && keyLower == 'f') { this.kolonFiltreIstendi(e); _e.result = false }
+					// else if (modifiers.ctrl && keyLower == 'f') { this.kolonFiltreIstendi(e); _e.result = false }
+					else if (modifiers.ctrl && keyLower == 'f') { this.bulPart?.focus(); _e.result = false }
 					else if (modifiers.ctrl && keyLower == 'v') { _e.result = true }
 				}
 			}
@@ -811,7 +816,8 @@ class GridPart extends Part {
 		clearTimeout(this._timer_hizliBulIslemi_ozel)
 		this._timer_hizliBulIslemi_ozel = setTimeout(() => {
 			try {
-				let {bulPart = parentPart?.bulPart} = this, {input} = bulPart
+				let { bulPart = parentPart?.bulPart } = this
+				let { input } = bulPart
 				this.tazele({ action: 'hizliBul' })
 				for (let delayMS of [10]) {
 					setTimeout(() => {

@@ -27,42 +27,81 @@ class MQYapi extends CIO {
 	get logHV() { let e = { hv: {} }; this.logHVDuzenle(e); return e.hv }
 
 	static getInstance() {
-		let result = this._instance; if (!result) {
-			result = new this(); result._promise = new $.Deferred();
+		let result = this._instance
+		if (!result) {
+			( result = new this() )
+				._promise = new $.Deferred()
 			result.getInstance_yukleIslemi()
-				.then(() => { result._yuklendimi = true; let {_promise} = result; if (_promise) { _promise.resolve(result) } })
-				.catch(ex => { result._yuklendimi = false; let {_promise} = result; if (_promise) { _promise.reject(ex) } })
+				.then(() => {
+					result._yuklendimi = true
+					result._promise?.resolve(result)
+				})
+				.catch(ex => {
+					result._yuklendimi = false
+					result._promise.reject(ex)
+				})
 			this._instance = result
 		}
 		return result
 	}
-	static yeniInstOlustur(e) { e = e || {}; let {args} = e; return new this(args) }
-	async kaydet(e) { return await this.varmi(e) ? await this.degistir(e) : await this.yaz(e) }
+	static yeniInstOlustur({ args } = {}) {
+		return new this(args)
+	}
+	async kaydet(e) {
+		return await this.varmi(e)
+			? await this.degistir(e)
+			: await this.yaz(e)
+	}
 	async yaz(e = {}) {
 		e.islem ||= 'yeni'
-		let keyHV = this.alternateKeyHostVars(e);
-		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e, _e = { offlineMode, trnId };
+		let keyHV = this.alternateKeyHostVars(e)
+		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode
+		let { trnId } = e
+		let _e = { offlineMode, trnId }
 		if (!empty(keyHV)) {
-			$.extend(_e, { keyHV }); let result = await this.varmi(_e); delete _e.keyHV;
-			if (result) { throw { isError: true, rc: 'duplicateRecord', errorText: 'Kayıt tekrarlanıyor' } }
+			extend(_e, { keyHV })
+			let result = await this.varmi(_e)
+			delete _e.keyHV
+			if (result)
+				throw { isError: true, rc: 'duplicateRecord', errorText: 'Kayıt tekrarlanıyor' }
 		}
-		await this.yeniOncesiIslemler(e); let hv = this.hostVars(e); if (!empty(keyHV)) { $.extend(hv, keyHV) }
-		let {table} = this.class; let query = _e.query = new MQInsert({ table, hv });
-		let result = await this.sqlExecNone(_e); await this.yeniSonrasiIslemler({ ...e, ..._e }); return result
+		await this.yeniOncesiIslemler(e)
+		let hv = this.hostVars(e)
+		if (!empty(keyHV))
+			extend(hv, keyHV)
+		let {table} = this.class
+		let query = _e.query = new MQInsert({ table, hv })
+		let result = await this.sqlExecNone(_e)
+		await this.yeniSonrasiIslemler({ ...e, ..._e })
+		return result
 	}
 	async degistir(e = {}) {
-		if (!isPlainObject(e)) { e = { islem: 'degistir', eskiInst: e } }
+		if (!isPlainObject(e))
+			e = { islem: 'degistir', eskiInst: e }
 		await this.degistirOncesiIslemler(e)
-		let {table} = this.class; let keyHV = this.keyHostVars({ ...e, varsayilanAlma: true }) ?? {};
-		let altKeyHV = this.alternateKeyHostVars({ ...e, varsayilanAlma: true }); if (!empty(altKeyHV)) { $.extend(keyHV, altKeyHV) }
-		let sent = new MQSent({ from: table, where: { birlestirDict: keyHV }, sahalar: '*' });
-		let basRec = await this.sqlExecTekil(sent), hv = this.hostVars(e), degisenHV = degisimHV(hv, basRec);
-		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e, _e = { offlineMode, trnId }; 
-		let result = true; if (!empty(degisenHV)) {
-			let query = _e.query = new MQIliskiliUpdate({ from: table, where: { birlestirDict: keyHV }, set: { birlestirDict: degisenHV } });
+		let {table} = this.class
+		let keyHV = this.keyHostVars({ ...e, varsayilanAlma: true }) ?? {}
+		let altKeyHV = this.alternateKeyHostVars({ ...e, varsayilanAlma: true })
+		if (!empty(altKeyHV))
+			extend(keyHV, altKeyHV)
+		let sent = new MQSent({ from: table, where: { birlestirDict: keyHV }, sahalar: '*' })
+		let basRec = await this.sqlExecTekil(sent)
+		let hv = this.hostVars(e)
+		let degisenHV = degisimHV(hv, basRec)
+		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode
+		let { trnId } = e
+		let _e = { offlineMode, trnId }
+		let result = true
+		if (!empty(degisenHV)) {
+			let query = _e.query = new MQIliskiliUpdate({
+				from: table,
+				where: { birlestirDict: keyHV },
+				set: { birlestirDict: degisenHV }
+			})
 			result = await this.sqlExecNone(_e)
 		}
-		await this.degistirSonrasiIslemler({ ...e, ..._e }); return result
+		await this.degistirSonrasiIslemler({ ...e, ..._e })
+		return result
 	}
 	async sil(e = {}) {
 		e.islem ||= 'sil'
@@ -141,7 +180,7 @@ class MQYapi extends CIO {
 		e = e || {}; let {tableAlias: alias, aliasVeNokta, tableAndAlias} = this.class;
 		let sent = new MQSent({ from: tableAndAlias }); sent.sahalar.add(`${aliasVeNokta}*`);
 		let keyHV = this.class.varsayilanKeyHostVars(e); if (keyHV) { sent.where.birlestirDict({ alias, dict: keyHV }) }
-		sent.gereksizTablolariSil({ disinda: alias }); let stm = new MQStm({ sent }); $.extend(e, { stm, sent });
+		sent.gereksizTablolariSil({ disinda: alias }); let stm = new MQStm({ sent }); extend(e, { stm, sent });
 		this.tekilOku_queryDuzenle(e); return stm
 	}
 	tekilOku_queryDuzenle(e) { }
@@ -257,7 +296,7 @@ class MQYapi extends CIO {
 		let _e = { ...e, hv: {} }; this.class.varsayilanKeyHostVarsDuzenle(_e); let hv = _e.hv;
 		_e.hv = {}; this.alternateKeyHostVarsDuzenle(_e); let _hv = _e.hv;
 		if (empty(_hv)) { _hv = _e.hv = this.keyHostVars(e) }
-		if (!empty(_hv)) { $.extend(hv, _hv) }
+		if (!empty(_hv)) { extend(hv, _hv) }
 		return hv
 	}
 	alternateKeyHostVarsDuzenle(e) { }
@@ -265,7 +304,7 @@ class MQYapi extends CIO {
 	hostVarsDuzenle(e) { /* this.keyHostVarsDuzenle(e); */ this.alternateKeyHostVarsDuzenle(e) }
 	keySetValues(e) { }
 	setValues(e) { this.keySetValues(e); super.setValues(e) }
-	inExp_hostVarsDuzenle(e) { $.extend(e.hv, this.hostVars(e)) }
+	inExp_hostVarsDuzenle(e) { extend(e.hv, this.hostVars(e)) }
 	inExp_setValues(e) { this.setValues(e) }
 	static sqlExecNone(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecNone' }) }
 	static sqlExecNoneWithResult(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecNoneWithResult' }) }
@@ -321,29 +360,29 @@ class MQYapi extends CIO {
 	static async offlineSaveToLocalTable(e = {}) {
 		if (!this.dbMgr_db)
 			return false
-		let noLocalTable = e.noLocalTable ?? this.noLocalTable
-		let offlineTable = e.table ?? e.offlineTable ?? this.table
+		let { noLocalTable = this.noLocalTable } = e
+		let { offlineTable = e.table ?? this.table } = e
 		if (!(noLocalTable || offlineTable))
 			return false
-		let {offlineDirect: directFlag, idSaha, gonderildiDesteklenirmi, gonderimTSSaha} = this
-		let clear = e.clear ?? e.clearFlag
-		let {offlineSahaListe: attrListe, kodKullanilirmi, kodSaha, bosKodAlinirmi, emptyKodValue = ''} = this
-		let {trnId} = e, offlineMode = true, offlineRequest = true, offlineYukleRequest = true, internal = true
+		let { clear = e.clearFlag, trnId } = e
+		let { offlineDirect: directFlag, idSaha, gonderildiDesteklenirmi, gonderimTSSaha } = this
+		let { offlineSahaListe: attrListe, kodKullanilirmi, kodSaha, bosKodAlinirmi, emptyKodValue = '' } = this
+		let offlineMode = true, offlineRequest = true, offlineYukleRequest = true, internal = true
 		let recs = await this.loadServerData({ ...e, trnId, offlineMode: !offlineMode, offlineRequest, offlineYukleRequest })
 		let inLocalTrn = false, okIdList = []
 		if (!inLocalTrn) {
 			try {
 				await this.sqlExecNone({ ...e, offlineMode, query: 'BEGIN TRANSACTION' })
 				inLocalTrn = true
-				window.progressManager?.progressStep()
+				globalThis.progressManager?.progressStep()
 			}
 			catch (ex) { }
 		}
 		try {
 			if (clear)
 				await this.offlineClearTable({ ...e, offlineMode })
-			window.progressManager?.progressStep(20)
-			window.progressManager?.progressStep()
+			globalThis.progressManager?.progressStep(20)
+			globalThis.progressManager?.progressStep()
 			if (kodKullanilirmi && kodSaha && !bosKodAlinirmi) {
 				let hv = { [kodSaha]: emptyKodValue }
 				let query = new MQInsert({ table: offlineTable, hv }).insertOnly()
@@ -356,12 +395,12 @@ class MQYapi extends CIO {
 					else
 						cerr(ex)
 				}
-				window.progressManager?.progressStep(3)
+				globalThis.progressManager?.progressStep(3)
 			}
 			if (attrListe?.length) {
 				if (directFlag && recs?.length) {
 					let attrSet = asSet(attrListe)
-					let {online2OfflineSaha} = this
+					let { online2OfflineSaha } = this
 					for (let _recs of arrayIterChunks(recs, 800)) {
 						let hvListe = []
 						for (let rec of _recs) {
@@ -398,10 +437,10 @@ class MQYapi extends CIO {
 						}
 						if (!result)
 							return false
-						window.progressManager?.progressStep(10)
+						globalThis.progressManager?.progressStep(10)
 						if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha)
 							okIdList.push(_recs.map(rec => rec[idSaha]))
-						window.progressManager?.progressStep(5)
+						globalThis.progressManager?.progressStep(5)
 					}
 				}
 				else if (recs?.length) {
@@ -410,10 +449,10 @@ class MQYapi extends CIO {
 						await inst.setValues({ rec })
 						if (!await inst.yukle({ offlineMode: !offlineMode, offlineRequest, offlineYukleRequest }))
 							continue
-						window.progressManager?.progressStep(3)
+						globalThis.progressManager?.progressStep(3)
 						if (!await inst.yaz({ offlineMode, offlineRequest, offlineYukleRequest }))
 							continue
-						window.progressManager?.progressStep(10)
+						globalThis.progressManager?.progressStep(10)
 						if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha)
 							okIdList.push(rec[idSaha])
 					}
@@ -435,7 +474,7 @@ class MQYapi extends CIO {
 			}
 			if (inLocalTrn)
 				await this.sqlExecNone({ ...e, offlineMode, query: 'COMMIT' }) 
-			window.progressManager?.progressStep(5)
+			globalThis.progressManager?.progressStep(5)
 		}
 		return true
 	}
@@ -457,7 +496,7 @@ class MQYapi extends CIO {
 		let { idSaha, onlineIdSaha = idSaha, sayacSaha, gonderildiDesteklenirmi, gonderimTSSaha } = this
 		let offlineMode = false, offlineRequest = true, offlineGonderRequest = true
 		let recs = await this.loadServerData({ ...e, offlineMode: !offlineMode, offlineRequest, offlineGonderRequest })
-		window.progressManager?.progressStep(20)
+		globalThis.progressManager?.progressStep(20)
 		if (attrListe && onlineIdSaha && onlineIdSaha != idSaha && !attrListe.includes(onlineIdSaha))
 			attrListe.push(onlineIdSaha)
 		if (attrListe?.length) {
@@ -498,7 +537,7 @@ class MQYapi extends CIO {
 								sahalar.add(...priKeys)*/
 							let _recs = await this.sqlExecSelect({ ...e, trnId, offlineMode, query: sent })
 							mevcutIdSet = asSet(_recs.map(rec => rec[onlineIdSaha]))
-							window.progressManager?.progressStep(5)
+							globalThis.progressManager?.progressStep(5)
 						}
 						let attrSet = asSet(attrListe)
 						let { online2OfflineSaha } = this
@@ -522,7 +561,7 @@ class MQYapi extends CIO {
 							if (!_empty)
 								hvListe.push(hv)
 						}
-						window.progressManager?.progressStep(5)
+						globalThis.progressManager?.progressStep(5)
 						if (!empty(hvListe)) {
 							for (let _hvListe of arrayIterChunks(hvListe, 500)) {
 								let query = new MQInsert({ table: offlineTable, hvListe: _hvListe })
@@ -530,7 +569,7 @@ class MQYapi extends CIO {
 									return false
 								if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha)
 									okIdList.push(recs.map(rec => rec[idSaha]))
-								window.progressManager?.progressStep(2)
+								globalThis.progressManager?.progressStep(2)
 							}
 						}
 					}
@@ -550,7 +589,7 @@ class MQYapi extends CIO {
 							continue
 						if (idSaha && gonderildiDesteklenirmi && gonderimTSSaha)
 							okIdList.push(rec[idSaha])
-						window.progressManager?.progressStep()
+						globalThis.progressManager?.progressStep()
 					}
 				}
 			}
@@ -568,10 +607,10 @@ class MQYapi extends CIO {
 					if (query)
 						await this.sqlExecNone({ trnId, offlineMode: !offlineMode, query })
 				}
-				window.progressManager?.progressStep(5)
+				globalThis.progressManager?.progressStep(5)
 			}
 		}
-		window.progressManager?.progressStep()
+		globalThis.progressManager?.progressStep()
 		return true
 	}
 	static offlineSaveToLocalTableWithClear(e) { e = e ?? {}; return this.offlineSaveToLocalTable({ ...e, clear: true }) }
@@ -635,7 +674,12 @@ class MQYapi extends CIO {
 		r.push(`CREATE TABLE IF NOT EXISTS ${table} (`)
 		// if (this instanceof MQTabPlasiyer)
 		// 	debugger
+		let sahaSet = {}
 		for (let [k, v] of entries(hv)) {
+			let lk = k.toLowerCase()
+			if (sahaSet[lk])
+				continue
+			
 			let autoInc = autoIncSet[k]
 			let _isNum = isNum(v)
 			if (autoInc && !_isNum) {
@@ -663,6 +707,8 @@ class MQYapi extends CIO {
 				post += ','
 			r.push(`${pre}${k} ${t}${post}`)
 			atFirst = false; i++
+
+			sahaSet[lk] = true
 		}
 		if (!atFirst && hasMultiPK)
 			r.push(`\tPRIMARY KEY (${keys(primaryKeys).join(', ')})`)
