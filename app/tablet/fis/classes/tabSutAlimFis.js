@@ -15,9 +15,8 @@ class TabSutAlimFis extends TabFis {
 			yerKod: new PInstStr('yerkod'),
 			plasiyerKod: new PInstStr('plasiyerkod'),
 			rotaID: new PInstStr('rotaID'),
-			posta: new PInstStr({ ioAttr: 'posta', init: () => TabPosta.defaultChar })
+			posta: new PInstStr({ rowAttr: 'posta', init: () => TabPosta.defaultChar })
 		})
-		let { posta: defPosta } = app.params.yerel ?? {}
 	}
 	async yeniTanimOncesiIslemler(e) {
 		await super.yeniTanimOncesiIslemler(e)
