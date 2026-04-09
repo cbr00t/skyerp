@@ -405,15 +405,22 @@ class TabloYapiItem extends CObject {
 	get kaYapimi() { return !!this.mfSinif }
 	get formulmu() { return !!this.formul }
 	get orderBySaha() {
-		let {_orderBySaha: result} = this; if (result !== undefined) { return result }
-		let {kaYapimi} = this; result = this.colDefs[0]?.belirtec;
+		let { _orderBySaha: result} = this
+		if (result !== undefined)
+			return result
+		let { kaYapimi, formulmu } = this
+		if (formulmu)
+			return null
+		result = this.colDefs[0]?.belirtec
 		if (result && kaYapimi) {
-			let lower = result.toLowerCase();
-			if (!(lower.endsWith('kod') || lower.endsWith('adi'))) { result = [`${result}kod`, `${result}adi`] }
+			let lower = result.toLowerCase()
+			if (!(lower.endsWith('kod') || lower.endsWith('adi')))
+				result = [`${result}kod`, `${result}adi`]
 		}
 		return result
 	}
 	set orderBySaha(value) { this._orderBySaha = value }
+
 	constructor(e = {}) {
 		super(e)
 		$.extend(this, {
@@ -448,13 +455,28 @@ class TabloYapiItem extends CObject {
 		this.secimlerDuzenleyici?.call(this, { ...e, kod })
 	}
 	tbWhereClauseDuzenle(e) {
-		let {secimKullanilirFlag, mfSinif, ozelWhereClauseFlag, tbWhereClauseDuzenleyici} = this
-		let {ka, secimSinif, colDefs, kaYapimi, sql} = this
+		let { sent } = e
+		let { secimKullanilirFlag, mfSinif, ozelWhereClauseFlag, tbWhereClauseDuzenleyici } = this
+		let { ka, secimSinif, colDefs, kaYapimi, sql } = this
 		let kod = ka?.kod
 		e.item = this
+
+		let alias = mfSinif?.tableAlias || ''
+		if (alias == 'stk' && sent) {
+			let { from } = sent
+			if (!from.aliasIcinTable('stk')) {
+				if (from.aliasIcinTable('hiz'))
+					mfSinif = MQHizmet
+				else if (from.aliasIcinTable('dem'))
+					mfSinif = MQDemirbas
+				alias = mfSinif?.tableAlias || ''
+			}
+		}
+		
 		secimKullanilirFlag = secimKullanilirFlag ?? !!mfSinif
-		let kodSaha = mfSinif?.kodSaha, alias = mfSinif?.tableAlias || ''
-		let aliasVeNokta = alias ? `${alias}.` : '', {belirtec} = colDefs[0], kodClause = `${aliasVeNokta}${kodSaha || belirtec}`
+		let kodSaha = mfSinif?.kodSaha
+		let aliasVeNokta = alias ? `${alias}.` : '', {belirtec} = colDefs[0]
+		let kodClause = `${aliasVeNokta}${kodSaha || belirtec}`
 		let hv = e.hv ?? e.hrkHV, defHV = e.defHV ?? e.hrkDefHV
 		let hvDegeri = e.hvDegeri ?? (hv || defHV ? (key => hv?.[key] ?? defHV?.[key]) : null)
 		if (hvDegeri) {

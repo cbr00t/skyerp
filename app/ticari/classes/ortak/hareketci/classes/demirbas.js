@@ -67,13 +67,18 @@ class DemirbasHareketci extends Hareketci {
 			attrSet.cinskod = attrSet.miktar = true
 			;{
 				let sent = new MQSent(), {where: wh, sahalar} = sent
-				sent.fromAdd('demmst dem').leftJoin('dem', 'pifdemirbas ahar', [`dem.fiskayittipi = 'A'`, `dem.alimdetaysayac = ahar.kaysayac`]).leftJoin('dem', 'stdemirbas dhar', [`dem.fiskayittipi IN ('D', 'K')`, `dem.devirdetaysayac = dhar.kaysayac`])
+				sent.fromAdd('demmst dem')
+					.leftJoin('dem', 'pifdemirbas ahar', [`dem.fiskayittipi = 'A'`, `dem.alimdetaysayac = ahar.kaysayac`])
+					.leftJoin('dem', 'stdemirbas dhar', [`dem.fiskayittipi IN ('D', 'K')`, `dem.devirdetaysayac = dhar.kaysayac`])
 				wh.add(`dem.kod <> ''`)
-				sahalar.add('dem.kod demkod', 'dem.rayicfiyat', `(CASE
+				sahalar.add(
+					'dem.kod demkod', 'dem.rayicfiyat',
+					`(CASE
 							WHEN dem.fiskayittipi = 'A' THEN ahar.belgefiyat
 							WHEN dem.fiskayittipi IN ('D', 'K') THEN dhar.belgefiyat
 							ELSE 0
-						END) alimfiyat`)
+					  END) alimfiyat`
+				)
 				stm.with.add(sent.asTmpTable('demfiyat'))
 			}
 			;{

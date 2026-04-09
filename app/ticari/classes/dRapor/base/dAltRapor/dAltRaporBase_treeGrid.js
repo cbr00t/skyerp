@@ -260,22 +260,35 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		e.recs = recs
 	}
 	loadServerData_recsDuzenle_hizliBulIslemi(e) {
-		let {fbd_grid, gridPart} = this, {filtreTokens} = gridPart; if (!filtreTokens?.length) { return }
-		let {tabloKolonlari: colDefs} = this, attrListe = [];
-		for (let colDef of colDefs) { if (!(colDef.ekKolonmu || !colDef.text?.trim)) { attrListe.push(colDef.belirtec) } }
-		let {recs: orjRecs} = e, recs = []; for (let rec of orjRecs) {
-			let uygunmu = true, values = attrListe.map(key => rec[key]?.toString()).filter(value => !!value);
+		let {fbd_grid, gridPart} = this, {filtreTokens} = gridPart
+		if (!filtreTokens?.length)
+			return
+		let {tabloKolonlari: colDefs} = this, attrListe = []
+		for (let colDef of colDefs) {
+			if (!(colDef.ekKolonmu || !colDef.text?.trim))
+				attrListe.push(colDef.belirtec)
+		}
+		let {recs: orjRecs} = e
+		let recs = []
+		for (let rec of orjRecs) {
+			let uygunmu = true
+			let values = attrListe.map(key => rec[key]?.toString()).filter(Boolean)
 			for (let token of filtreTokens) {
 				let _uygunmu = false; for (let value of values) {
 					if (value == null) { continue } value = value.toString();
 					if (value.toUpperCase().includes(token.toUpperCase()) ||
 							value.toLocaleUpperCase(culture).includes(token.toLocaleUpperCase(culture))) {
-						_uygunmu = true; break
+						_uygunmu = true
+						break
 					}
 				}
-				if (!_uygunmu) { uygunmu = false; break }
+				if (!_uygunmu) {
+					uygunmu = false
+					break
+				}
 			}
-			if (!uygunmu) { continue }
+			if (!uygunmu)
+				continue
 			recs.push(rec)
 		}
 		return recs
@@ -509,14 +522,16 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		}
 		let {grupVeToplam} = tabloYapi
 		let {records: jqxCols} = gridWidget.base.columns
-		let formuller = []; for (let key in attrSet) {
+		let formuller = []
+		for (let key in attrSet) {
 			let item = grupVeToplam[key]
 			if (item?.formulmu)
 				formuller.push(item)
 		}
 		let {recs} = e
 		if (recs) {
-			let _recs = recs; recs = []
+			let _recs = recs
+			recs = []
 			for (let _rec of _recs) {
 				if (!_rec)
 					continue
@@ -530,7 +545,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		let gtTip2AttrListe = { sabit: [], toplam: [] }
 		if (recs) {
 			for (let colDef of values(belirtec2ColDef) /*.filter(colDef => colDef.belirtec != yatayBelirtec)*/) {
-				let toplammi = colDef?.userData?.tip == 'toplam', selector = toplammi ? 'toplam' : 'sabit'
+				let toplammi = colDef?.userData?.tip == 'toplam'
+				let selector = toplammi ? 'toplam' : 'sabit'
 				gtTip2AttrListe[selector].push(colDef.belirtec)
 			}
 		}
@@ -773,7 +789,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			}
 			else
 				window.progressManager?.progressStep(3)
-			_colDefs = colDefs; colDefs = []
+			_colDefs = colDefs
+			colDefs = []
 			let belirtecSet = {}
 			for (let colDef of _colDefs) {
 				let {belirtec} = colDef
@@ -797,7 +814,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				grid.jqxTreeGrid('clear')
 			colDefs = this.getColumns(colDefs)
 			let {sortcolumn: sortBelirtec, sortdirection: sortDir} = base
-			let sortTipKod = belirtec2Tip[sortBelirtec]; ozetBilgi.grupTipKod = ozetBilgi.icerikTipKod = null
+			let sortTipKod = belirtec2Tip[sortBelirtec]
+			ozetBilgi.grupTipKod = ozetBilgi.icerikTipKod = null
 			if (sortTipKod) {
 				if (tabloYapi.toplam[sortTipKod]) { ozetBilgi.icerikTipKod = sortTipKod }
 				/*let selector = `${tabloYapi.toplam[sortTipKod] ? 'icerik' : 'grup'}TipKod`; ozetBilgi[selector] = sortTipKod*/

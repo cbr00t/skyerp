@@ -209,7 +209,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 				uygunluk = asSet(hareketTipSecim.kaListe.map(({ kod }) => kod))
 		}
 		let {varsayilanHV: hrkDefHV} = hareketci.class
-		$.extend(e, { hareketci, hrkDefHV })
+		extend(e, { hareketci, hrkDefHV })
 		if (yatayAnaliz)
 			attrSet[DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod] = true
 		let uni = e.uni = stm.sent = new MQUnionAll()
@@ -235,7 +235,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 				.filter(Boolean)
 			for (let uniBilgi of unionBilgiListe) {
 				let {sent, hv: hrkHV} = uniBilgi
-				$.extend(_e, {
+				extend(_e, {
 					sent, hrkHV, hv: hrkHV,
 					hvDegeri: key =>
 						this.hrkHVDegeri({ ..._e, key }),

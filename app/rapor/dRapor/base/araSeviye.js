@@ -334,7 +334,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				continue
 			let {attrListe} = formul
 			if (attrListe?.length)
-				$.extend(attrSet, asSet(attrListe))
+				extend(attrSet, asSet(attrListe))
 		}
 		if (yatayAnaliz)
 			attrSet[DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod] = true
@@ -370,7 +370,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		kaPrefixes = asSet(kaPrefixes)
 		let {iniYapilar} = this, sentDuzenleyiciler = {}
 		iniYapilar?.forEach(({ sentDuzenle }) =>
-			$.extend(sentDuzenleyiciler, sentDuzenle))
+			extend(sentDuzenleyiciler, sentDuzenle))
 		let _e = { ...e }
 		if (empty(stm?.sent?.liste))
 			stm = new MQStm({ sent: _sent })

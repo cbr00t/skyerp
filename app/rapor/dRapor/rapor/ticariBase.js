@@ -194,7 +194,7 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 				.addColDef(new GridKolon({ belirtec: 'iskbedel', text: `${toplamPrefix}İskonto Bedel`, genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel()))
 			.addToplam(new TabloYapiItem().setKA('CIRO', `${toplamPrefix}Net Ciro`)
 				.addColDef(new GridKolon({ belirtec: 'ciro', text: `${toplamPrefix}Net Ciro`, genislikCh: 19, filterType: 'numberinput' }).tipDecimal_bedel()))
-			.addToplam(new TabloYapiItem().setKA('CIROFIYAT', `${toplamPrefix}Ciro Fiyat`)
+			.addGrup(new TabloYapiItem().setKA('CIROFIYAT', `${toplamPrefix}Ciro Fiyat`)
 				.setFormul(['CIRO', 'MIKTAR'], ({ rec }) => roundToFiyatFra(rec.miktar ? rec.ciro / rec.miktar : 0))
 				.addColDef(new GridKolon({ belirtec: 'cirofiyat', text: `${toplamPrefix}Ciro Fiyat`, genislikCh: 30, filterType: 'numberinput' }).tipDecimal_fiyat()))
 		for (let dvKod of this.degerlemeDvKodListe) {
@@ -294,10 +294,10 @@ class DRapor_Sevkiyat_Main extends DRapor_Ticari_Main {
 		result
 			.addToplam(new TabloYapiItem().setKA('BRCIRO', 'Brüt Ciro').addColDef(new GridKolon({ belirtec: 'brciro', text: 'Brüt Ciro', genislikCh: 19, filterType: 'numberinput' }).tipDecimal()))
 			.addToplam(new TabloYapiItem().setKA('IACIRO', 'İADE Ciro').addColDef(new GridKolon({ belirtec: 'iaciro', text: 'İADE Ciro', genislikCh: 19, filterType: 'numberinput' }).tipDecimal()))
-			.addToplam(new TabloYapiItem().setKA('BRCIROFIYAT', 'Brüt Ciro Fiyat')
+			.addGrup(new TabloYapiItem().setKA('BRCIROFIYAT', 'Brüt Ciro Fiyat')
 				.setFormul(['BRCIRO', 'BRMIKTAR'], ({ rec }) => roundToFiyatFra(rec.brciro / rec.brmiktar))
 				.addColDef(new GridKolon({ belirtec: 'brcirofiyat', text: 'Brüt Ciro Fiyat', genislikCh: 19, filterType: 'numberinput' }).tipDecimal_fiyat()))
-			.addToplam(new TabloYapiItem().setKA('IACIROFIYAT', 'İADE Ciro Fiyat')
+			.addGrup(new TabloYapiItem().setKA('IACIROFIYAT', 'İADE Ciro Fiyat')
 				.setFormul(['IACIRO', 'IAMIKTAR'], ({ rec }) => roundToFiyatFra(rec.iaciro / rec.iamiktar))
 				.addColDef(new GridKolon({ belirtec: 'iacirofiyat', text: 'İADE Ciro Fiyat', genislikCh: 19, filterType: 'numberinput' }).tipDecimal_fiyat()))
 		if (maliyetGorurmu) {

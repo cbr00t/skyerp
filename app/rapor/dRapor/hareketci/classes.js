@@ -33,7 +33,7 @@ class DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main extends DRapor_Hareketci_Mai
 				.addToplamBasit_bedel('ISKBEDEL', 'İskonto Bedel', 'iskbedel')
 				.addToplamBasit_bedel('DIPISKONTO', 'Dip İskonto', 'dipiskonto')
 				.addToplamBasit_bedel('CIRO', 'Net Ciro', 'ciro')
-				.addToplamBasit_bedel('CIROFIYAT', 'Ciro Fiyat', 'cirofiyat', null, null, ({ item }) =>
+				.addGrupBasit_bedel('CIROFIYAT', 'Ciro Fiyat', 'cirofiyat', null, null, ({ item }) =>
 					item.setFormul(['CIRO', 'MIKTAR'], ({ rec }) => rec.miktar ? roundToFiyatFra(rec.ciro / rec.miktar, 2) : 0))
 				.addToplamBasit_bedel('TUMMALIYET', 'Tüm Maliyet', 'tummaliyet')
 				.addToplamBasit('YUZDE_CIRO_TUMMALIYET', 'Mal. Ciro(%)', 'yuzde_ciro_tummaliyet', null, null, ({ item }) =>
@@ -217,8 +217,8 @@ class DRapor_Hareketci_AlimSatisSipOrtak_Main extends DRapor_Hareketci_AlimSatis
 			.addToplamBasit('SEVKMIKTAR2', 'Sevk Miktar 2', 'sevkmiktar2')
 			.addToplamBasit('KALANMIKTAR', 'Kalan Miktar', 'kalanmiktar')
 			.addToplamBasit('KALANMIKTAR2', 'Kalan Miktar 2', 'kalanmiktar2')
-			.addToplamBasit('FIYAT', 'Fiyat', 'fiyat')
-			.addToplamBasit_fiyat('BRUTBEDEL', 'Brüt Bedel', 'brutbedel')
+			.addGrupBasit_fiyat('FIYAT', 'Fiyat', 'fiyat')
+			.addToplamBasit_bedel('BRUTBEDEL', 'Brüt Bedel', 'brutbedel')
 			.addToplamBasit_bedel('BEDEL', 'Net Bedel', 'bedel')
 			.addToplamBasit_bedel('SEVKBEDEL', 'Sevk Bedeli', 'sevkbedel')
 			.addToplamBasit_bedel('KALANBEDEL', 'Kalan Bedeli', 'kalanbedel')

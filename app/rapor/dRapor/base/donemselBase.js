@@ -30,7 +30,7 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 	superSuper_loadServerDataInternal(e) { super.super_loadServerDataInternal(e) }
 	loadServerData(e = {}) {
 		let {secimler: sec, secimler: { tarihBS: donemBS }} = this
-		$.extend(e, { donemBS }) /* e.donemBS = sec.tarihBSVeyaCariDonem; */
+		extend(e, { donemBS }) /* e.donemBS = sec.tarihBSVeyaCariDonem; */
 		return super.loadServerData(e)
 	}
 	donemBagla({ donemBS, alias = 'fis', tarihSaha, tarihClause, sent }) {

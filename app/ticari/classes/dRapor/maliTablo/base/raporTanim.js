@@ -239,7 +239,8 @@ class SBTabloDetay extends MQDetay {
 			})
 		}
 		else*/
-		if (hesapTipi?.formulmu) { return this.formul }
+		if (hesapTipi?.formulmu)
+			return this.formul
 		return null
 	}
 	get asRaporQuery() {

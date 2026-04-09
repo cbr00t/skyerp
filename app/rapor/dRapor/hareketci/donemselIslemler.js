@@ -132,7 +132,8 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		let {secimler: sec} = this, {tarihBS: donemBS} = sec, {value: devirAlinmasin} = sec.devirAlinmasin;
 		let {basi: tBasi, sonu: tSonu} = donemBS ?? {}; tSonu = tSonu || today();
 		/*if (!(tBasi && tSonu)) { throw { isError: true, errorText: `Seçimlerden <b>Dönem</b> seçilmeli veya <b>Tarih Aralık</b> belirtilmelidir` } }*/
-		let tBasiClause = MQSQLOrtak.sqlServerDegeri(tBasi), tSonuClause = MQSQLOrtak.sqlServerDegeri(tSonu);
+		let tBasiClause = MQSQLOrtak.sqlServerDegeri(tBasi), tSonuClause = MQSQLOrtak.sqlServerDegeri(tSonu)
+		let tSonuSonrakiGunClause = MQSQLOrtak.sqlServerDegeri(tSonu?.clone()?.addDays(1))
 		/* let devirTBasi = tBasi ? tBasi.clone().addDays(1) : null, devir_tBasiClause = MQSQLOrtak.sqlServerDegeri(devirTBasi); */
 		/*let belirtecler = keys(attrSet).map(kod => grupVeToplam[kod]?.colDefs?.[0]?.belirtec).filter(x => !!x);*/
 		let uni = new MQUnionAll()
@@ -186,7 +187,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 					)
 				}
 				if (devirAlinmasin) { this.donemBagla({ donemBS, tarihSaha: tarihClause, sent: harSent }) }
-				else if (tSonu) { wh.add(`${tarihClause} < ${tSonuClause} + 1`) }
+				else if (tSonu) { wh.add(`${tarihClause} < ${tSonuSonrakiGunClause}`) }
 				if (ozelIsaretVarmi && ozelIsaretClause) { wh.notDegerAta('X', ozelIsaretClause) }
 				let fisAliasVarmi = !!from.liste.find(({ alias }) => alias == 'fis');
 				let logZamaniClause = fisAliasVarmi ? 'fis.sonzamants' : sqlNull;
