@@ -764,12 +764,15 @@ class DRapor_Hareketci_Masraf_Main extends DRapor_Hareketci_Main {
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
 		super.loadServerData_queryDuzenle_hrkSent(e);
-		let {attrSet, sent, hvDegeri} = e, {where: wh, sahalar} = sent, kodClause = hvDegeri('masrafkod')
-		sent.fromIliski('stkmasraf kas', `${kodClause} = mas.kod`);
-		this.loadServerData_queryDuzenle_cari({ ...e, kodClause: 'car.must' });
+		let {attrSet, sent, hvDegeri} = e, {where: wh, sahalar} = sent
+		let kodClause = hvDegeri('masrafkod')
+		sent.fromIliski('stkmasraf kas', `${kodClause} = mas.kod`)
+		this.loadServerData_queryDuzenle_cari({ ...e, kodClause: hvDegeri('mustkod') || hvDegeri('must') })
 		for (let key in attrSet) {
 			switch (key) {
-				case 'MASRAF': sahalar.add(`${kodClause} masrafkod`, 'mas.aciklama masrafadi'); break
+				case 'MASRAF':
+					sahalar.add(`${kodClause} masrafkod`, 'mas.aciklama masrafadi')
+					break
 			}
 		}
 	}

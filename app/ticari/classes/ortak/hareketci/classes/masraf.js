@@ -18,10 +18,11 @@ class MasrafHareketci extends Hareketci {
 		])
     }
 	uniOrtakSonIslem({ sender, hv, sent, attrSet }) {
-		super.uniOrtakSonIslem(...arguments); let {from, where: wh} = sent;
-		let {masrafkod: kodClause} = hv;
+		super.uniOrtakSonIslem(...arguments)
+		let {from, where: wh} = sent
+		let {masrafkod: kodClause} = hv
 		if (!from.aliasIcinTable('mas')) { sent.fromIliski('stkmasraf mas', `${kodClause} = mas.kod`) }
-		if (!from.aliasIcinTable('car')) { sent.x2CariBagla({ kodClause: hv.mustkod }) }
+		if (!from.aliasIcinTable('car')) { sent.x2CariBagla({ kodClause: hv.mustkod || hv.must }) }
 		if (!this.sonIslem_whereBaglanmazFlag)
 			wh.add(`${kodClause} > ''`)
 		/*if (sender?.finansalAnalizmi) { }*/
@@ -43,8 +44,8 @@ class MasrafHareketci extends Hareketci {
     }
     /** (Alım Fatura) için UNION */
     uniDuzenle_alimFatura({ uygunluk, liste }) {
-		let {params} = app, {kullanim: genel} = params.ticariGenel, {kullanim: satis} = params.satis;
-		let {demirbas} = genel, {fason} = satis;
+		let {params} = app, {kullanim: genel} = params.ticariGenel, {kullanim: satis} = params.satis
+		let {demirbas} = genel, {fason} = satis
 		let getUniBilgi = ({ pifHarTablo, kayitTipi, sentDuzenle, refKodClause, refAdiClause, refTipi, brmClause, dagilimSayacAttr }) => {
 			return new Hareketci_UniBilgi()
 				.sentDuzenleIslemi(({ sent }) => {
@@ -103,7 +104,7 @@ class MasrafHareketci extends Hareketci {
 					let {where: wh} = sent; 
 					sent.fisHareket('finansfis', 'finanshar')
 						.leftJoin('har', 'finmasrafdagilim mdag', 'har.kaysayac = mdag.harsayac')
-						.har2HizmetBagla();
+						.har2HizmetBagla()
 					wh.fisSilindiEkle().degerAta('A', 'fis.ba')
 						.inDizi(['CH', 'KH', 'HH', 'MS'], 'fis.fistipi')
                 }).hvDuzenleIslemi(({ hv }) => {
