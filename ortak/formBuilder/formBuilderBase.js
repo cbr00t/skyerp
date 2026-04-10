@@ -657,7 +657,7 @@ class FormBuilderBase extends CObject {
 	setVisibleKosulu(value) { this.visibleKosulu = value; return this }
 	autoAppendMode_append() {
 		this.autoAppendIslemi = e => {
-			let {layout, parent} = e
+			let { layout, parent } = e
 			if ((layout || {})?.length && (parent || {}).length && !(layout?.parent() || {}).length)
 				layout?.appendTo(parent)
 		};
@@ -665,7 +665,7 @@ class FormBuilderBase extends CObject {
 	}
 	autoAppendMode_prepend() {
 		this.autoAppendIslemi = e => {
-			let {layout, parent} = e;
+			let {layout, parent} = e
 			if ((layout || {}).length && (parent || {}).length && !(layout.parent() || {}).length) layout.prependTo(parent)	
 		};
 		return this

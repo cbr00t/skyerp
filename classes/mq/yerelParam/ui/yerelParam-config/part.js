@@ -180,7 +180,7 @@ class MQYerelParamConfigTanimPart extends MQYerelParamBaseTanimPart {
 		super.afterRun(e)
 		setTimeout(() => {
 			makeScrollable(this.layout)
-			this.txtWSUrl.focus()
+			this.txtWSUrl?.focus()
 		}, 100)
 	}
 	/*wndArgsDuzenle() {

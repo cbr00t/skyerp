@@ -151,9 +151,12 @@ class GridPart extends Part {
 				return recs
 				/* return recs.slice(e.startindex, e.startindex + e.endindex) */
 			},
-			groupColumnRenderer: text => `<div style="padding: 5px 10px; float: left;">${text}</div>`,
-			groupsRenderer: (text, group, expanded, groupInfo) => `<div class="grid-cell-group">${group}</div>`,
-			rendered: type => { return this.gridRendered({ sender: this, builder, type, gridPart: this, grid: this.grid, gridWidget: this.gridWidget }) },
+			groupColumnRenderer: text =>
+				`<div style="padding: 5px 10px; float: left;">${text}</div>`,
+			groupsRenderer: (text, group, expanded, groupInfo) =>
+				`<div class="grid-cell-group">${group}</div>`,
+			rendered: type => 
+				this.gridRendered({ sender: this, builder, type, gridPart: this, grid: this.grid, gridWidget: this.gridWidget }),
 			/*rendered: type => this.gridRendered({ sender: this, builder, type: e, grid, gridWidget }), */
 			handleKeyboardNavigation: evt => {
 				if (this.dragDropDisabledFlag_resetTimer) { clearTimeout(this.dragDropDisabledFlag_resetTimer); delete this.dragDropDisabledFlag_resetTimer }

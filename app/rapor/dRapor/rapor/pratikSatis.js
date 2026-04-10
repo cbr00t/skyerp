@@ -1,4 +1,3 @@
-
 class DRapor_PratikSatis extends DRaporMQ {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get hareketciSinif() { return PratikSatisHareketci }
@@ -12,10 +11,13 @@ class DRapor_PratikSatis extends DRaporMQ {
 	// static get vioAdim() { return 'MH-R' }
 
 	uiGirisOncesiIslemler(e) {
-		let {sender: tanimPart} = e, {sinifAdi: title} = this.class
+		let { sender: tanimPart } = e, { sinifAdi: title } = this.class
 		e.islem = tanimPart.islem = 'izle'
 		extend(tanimPart, { title })
 		this.secimlerOlustur(e)
+		//let { dRapor: { gercekZamanliSubeVerisi } } = app.params ?? {}
+		//if (!gercekZamanliSubeVerisi)
+		//	this.getSubeTanimlari(e)
 		return super.uiGirisOncesiIslemler(e)
 	}
 	secimlerOlustur({ sender: tanimPart } = {}) {
@@ -168,9 +170,9 @@ class DRapor_PratikSatis extends DRaporMQ {
 					.setToplamYapi({ etiket: { belirtec: 'tipText' } })
 					.widgetArgsDuzenleIslemi(({ args }) =>
 						extend(args, {
-							autoHeight: true, rowsHeight: 30, columnsMenu: false, columnsReorder: false,
-							showStatusBar: false, showAggregates: false, showGroupAggregates: false,
-							selectionMode: 'multiplerowsextended'
+							...this.getGridOrtakArgs({ ...arguments[0], args }),
+							autoHeight: true, showStatusBar: false,
+							showAggregates: false, showGroupAggregates: false
 						})
 					)
 					.setTabloKolonlari(e => {
@@ -187,43 +189,43 @@ class DRapor_PratikSatis extends DRaporMQ {
 						]
 					})
 					.setSource(async e => {
-					let uni = new MQUnionAll()
-					;{
-						let sent = new MQSent(), {where: wh, sahalar} = sent
-						this.baslikSentDuzele({ ...arguments[0], ...e, sent })
-						sahalar.add(
-							`(case` +
-								` when fis.efayrimtipi = 'E' then 1` +
-								` when fis.efayrimtipi = 'A' then 2` +
-								` when fis.fisanatipi = 'YM' then 4` +
-								` when fis.ozelisaret = '*' then 10` +
-								` else 3` +
-							` end) oncelik`,
-							`(case` +
-								` when fis.efayrimtipi = 'E' then 'EFAT'` +
-								` when fis.efayrimtipi = 'A' then 'EARS'` +
-								` when fis.fisanatipi = 'YM' then 'YMK'` +
-								` when fis.ozelisaret = '*' then '*'` +
-								` else 'DIG'` +
-							` end) tip`,
-							`(case` +
-								` when fis.efayrimtipi = 'E' then 'e-Fatura'` +
-								` when fis.efayrimtipi = 'A' then 'e-Arşiv'` +
-								` when fis.fisanatipi = 'YM' then 'Yemek Kartı'` +
-								` when fis.ozelisaret = '*' then 'Fiili Fiş'` +
-								` else 'Diğer'` +
-							` end) tipText`,
-							`'' almaText`,
-							`COUNT(*) fisSayi`, `SUM(fis.fissonuc) bedel`
-						)
-						sent.groupByOlustur()
-						uni.add(sent)
-					}
-					let stm = new MQStm({ sent: uni, orderBy: ['oncelik'] })
-					let recs = await app.sqlExecSelect(stm)
-					recs = recs.filter(r => r.fisSayi)
-					return recs
-				})
+						let uni = new MQUnionAll()
+						;{
+							let sent = new MQSent(), {where: wh, sahalar} = sent
+							this.baslikSentDuzele({ ...arguments[0], ...e, sent })
+							sahalar.add(
+								`(case` +
+									` when fis.efayrimtipi = 'E' then 1` +
+									` when fis.efayrimtipi = 'A' then 2` +
+									` when fis.fisanatipi = 'YM' then 4` +
+									` when fis.ozelisaret = '*' then 10` +
+									` else 3` +
+								` end) oncelik`,
+								`(case` +
+									` when fis.efayrimtipi = 'E' then 'EFAT'` +
+									` when fis.efayrimtipi = 'A' then 'EARS'` +
+									` when fis.fisanatipi = 'YM' then 'YMK'` +
+									` when fis.ozelisaret = '*' then '*'` +
+									` else 'DIG'` +
+								` end) tip`,
+								`(case` +
+									` when fis.efayrimtipi = 'E' then 'e-Fatura'` +
+									` when fis.efayrimtipi = 'A' then 'e-Arşiv'` +
+									` when fis.fisanatipi = 'YM' then 'Yemek Kartı'` +
+									` when fis.ozelisaret = '*' then 'Fiili Fiş'` +
+									` else 'Diğer'` +
+								` end) tipText`,
+								`'' almaText`,
+								`COUNT(*) fisSayi`, `SUM(fis.fissonuc) bedel`
+							)
+							sent.groupByOlustur()
+							uni.add(sent)
+						}
+						let stm = new MQStm({ sent: uni, orderBy: ['oncelik'] })
+						let recs = await this.getGridData({ ...arguments[0], ...e, query: stm })
+						recs = recs.filter(r => r.fisSayi)
+						return recs
+					})
 			}
 			;{
 				altForm.addGridliGosterici('ozetEk')
@@ -231,8 +233,8 @@ class DRapor_PratikSatis extends DRaporMQ {
 					.rowNumberOlmasin().notAdaptive()
 					.widgetArgsDuzenleIslemi(({ args }) =>
 						extend(args, {
-							rowsHeight: 30, columnsHeight: 25, columnsMenu: false, columnsReorder: false,
-							selectionMode: 'multiplerowsextended'
+							...this.getGridOrtakArgs({ ...arguments[0], args }),
+							columnsHeight: 25
 							// showStatusBar: true, showAggregates: false, showGroupAggregates: false
 						})
 					)
@@ -293,7 +295,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 						uni.add(sent)
 					}
 					let stm = new MQStm({ sent: uni, orderBy: ['oncelik'] })
-					let recs = await app.sqlExecSelect(stm)
+					let recs = await this.getGridData({ ...arguments[0], ...e, query: stm })
 					recs = recs.filter(r => r.fisSayi)
 					return recs
 				})
@@ -309,9 +311,8 @@ class DRapor_PratikSatis extends DRaporMQ {
 				.setToplamYapi({ etiket: { belirtec: 'text' } })
 				.widgetArgsDuzenleIslemi(({ args }) =>
 					extend(args, {
-						rowsHeight: 30, showStatusBar: true, columnsMenu: false, columnsReorder: false,
-						showAggregates: true, showGroupAggregates: true,
-						selectionMode: 'multiplerowsextended'
+						...this.getGridOrtakArgs({ ...arguments[0], args }),
+						showStatusBar: true, showAggregates: true, showGroupAggregates: true
 					})
 				)
 				.setTabloKolonlari(e => {
@@ -349,9 +350,8 @@ class DRapor_PratikSatis extends DRaporMQ {
 				.setToplamYapi({ etiket: { belirtec: 'aciklama' } })
 				.widgetArgsDuzenleIslemi(({ args }) =>
 					extend(args, {
-						rowsHeight: 30, showStatusBar: false, columnsMenu: false, columnsReorder: false,
-						showAggregates: false, showGroupAggregates: false,
-						selectionMode: 'multiplerowsextended'
+						...this.getGridOrtakArgs({ ...arguments[0], args }),
+						showStatusBar: false, showAggregates: false, showGroupAggregates: false
 					})
 				)
 				.setTabloKolonlari(e => {
@@ -377,7 +377,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 					)
 					sent.groupByOlustur()
 					let stm = new MQStm({ sent, orderBy: ['oncelik', 'bedel DESC'] })
-					let recs = await app.sqlExecSelect(stm)
+					let recs = await this.getGridData({ ...arguments[0], ...e, query: stm })
 					return recs
 				})
 		}
@@ -397,9 +397,8 @@ class DRapor_PratikSatis extends DRaporMQ {
 				.setToplamYapi({ etiket: { belirtec: 'text' } })
 				.widgetArgsDuzenleIslemi(({ args }) =>
 					extend(args, {
-						rowsHeight: 30, showStatusBar: false, columnsMenu: false, columnsReorder: false,
-						showAggregates: false, showGroupAggregates: false,
-						selectionMode: 'multiplerowsextended'
+						...this.getGridOrtakArgs({ ...arguments[0], args }),
+						showStatusBar: false, showAggregates: false, showGroupAggregates: false
 					})
 				)
 				.setTabloKolonlari(e => {
@@ -425,7 +424,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 					)
 					sent.groupByOlustur()
 					let stm = new MQStm({ sent, orderBy: ['oran', 'ozelIsaret'] })
-					let recs = await app.sqlExecSelect(stm)
+					let recs = await this.getGridData({ ...arguments[0], ...e, query: stm })
 					recs.forEach(r =>
 						r.text = `%${r.oran}`)
 					return recs
@@ -448,9 +447,8 @@ class DRapor_PratikSatis extends DRaporMQ {
 				.setToplamYapi({ etiket: { belirtec: 'aciklama' } })
 				.widgetArgsDuzenleIslemi(({ args }) =>
 					extend(args, {
-						rowsHeight: 30, showStatusBar: false, columnsMenu: false, columnsReorder: false,
-						showAggregates: false, showGroupAggregates: false,
-						selectionMode: 'multiplerowsextended'
+						...this.getGridOrtakArgs({ ...arguments[0], args }),
+						showStatusBar: false, showAggregates: false, showGroupAggregates: false
 					})
 				)
 				.setTabloKolonlari(e => {
@@ -475,7 +473,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 					)
 					sent.groupByOlustur()
 					let stm = new MQStm({ sent, orderBy: ['bedel DESC', 'aciklama'] })
-					let recs = await app.sqlExecSelect(stm)
+					let recs = await this.getGridData({ ...arguments[0], ...e, query: stm })
 					return recs
 				})
 		}
@@ -496,9 +494,8 @@ class DRapor_PratikSatis extends DRaporMQ {
 				.setToplamYapi({ etiket: { belirtec: 'aciklama' } })
 				.widgetArgsDuzenleIslemi(({ args }) =>
 					extend(args, {
-						rowsHeight: 30, showStatusBar: false, columnsMenu: false, columnsReorder: false,
-						showAggregates: false, showGroupAggregates: false,
-						selectionMode: 'multiplerowsextended'
+						...this.getGridOrtakArgs({ ...arguments[0], args }),
+						showStatusBar: false, showAggregates: false, showGroupAggregates: false
 					})
 				)
 				.setTabloKolonlari(e => {
@@ -523,7 +520,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 					)
 					sent.groupByOlustur()
 					let stm = new MQStm({ sent, orderBy: ['bedel DESC', 'aciklama'] })
-					let recs = await app.sqlExecSelect(stm)
+					let recs = await this.getGridData({ ...arguments[0], ...e, query: stm })
 					return recs
 				})
 		}
@@ -538,10 +535,9 @@ class DRapor_PratikSatis extends DRaporMQ {
 				.addStyle_fullWH()
 				.widgetArgsDuzenleIslemi(({ args }) =>
 					extend(args, {
+						...this.getGridOrtakArgs({ ...arguments[0], args }),
 						showGroupsHeader: true, rowsHeight: 50, showStatusBar: true,
-						columnsMenu: false, columnsReorder: false,
-						showAggregates: true, showGroupAggregates: true,
-						selectionMode: 'multiplerowsextended'
+						showAggregates: true, showGroupAggregates: true
 					})
 				)
 				.veriYukleninceIslemi(({ builder: { part: { grid } }}) =>
@@ -680,134 +676,121 @@ class DRapor_PratikSatis extends DRaporMQ {
 			.birlestir(secimler.getTBWhereClause(e))
 		return this
 	}
+
+	getGridOrtakArgs() {
+		return {
+			rowsHeight: 30, columnsMenu: false,
+			columnsReorder: false, selectionMode: 'multiplerowsextended',
+			groupsRenderer: (text, group, expanded, groupInfo) => {
+				let { subItems = [] } = groupInfo ?? {}
+				subItems = subItems?.filter(r => !r.totalsrow)
+				let topBedel = topla(r => r.hasilat ?? r.bedel, subItems)
+				return (
+					`<div class="grid-cell-group full-wh relative">` +
+						`<div class="aciklama float-left">${group}</div>` +
+						`<div class="bedel fs-100 bold royalblue float-right" style="margin-right: 23px">${bedelToString(topBedel)}</div>` +
+					`</div>`
+				)
+			}
+		}
+	}
+	async getGridData(e = {}) {
+		let { tanimPart, query, params } = e
+		let { dRapor: { gercekZamanliSubeVerisi } } = app.params ?? {}
+		if (!gercekZamanliSubeVerisi)
+			return await query.execSelect({ params })
+
+		let kod2Def = await this.getSubeTanimlari(e)
+		if (empty(kod2Def))
+			return await query.execSelect({ params })
+		
+		let all = await Promise.allSettled(values(kod2Def)
+		   .map(async def => {
+				try {
+					return await remoteProc({
+						...def, args: { params },
+						proc: ({ args }) => {
+							if (query?.sentDo) {
+								for (let { where: wh } of query) {
+									;wh.liste = wh.liste.filter(v =>
+										!(v?.startsWith?.('sub.') || v?.saha?.endsWith?.('bizsubekod')))
+								}
+							}
+							return query.execSelect(args)
+						}
+					})
+				}
+			   catch (error) {
+				   throw ({ def, error })
+			   }
+			}))
+		
+		let recs = []
+		;all.forEach(_ => {
+			let { status: s } = _
+			switch (s) {
+				case 'fulfilled': {
+					let { value: v } = _
+					recs.push(...v)
+					break
+				}
+				case 'rejected': {
+					let { def = {}, error: err } = _.reason
+					let { host, port, sql, db = {} } = def
+					db ??= sql?.db
+					let title = `${host}:${port} | ${db}`
+					hConfirm(getErrorText(err), title)
+					break
+				}
+			}
+		})
+		
+		return recs
+	}
+	async getSubeTanimlari(e = {}) {
+		let { tanimPart } = e
+		let { subeKod2Param, secimler = {} } = tanimPart
+		if (!subeKod2Param) {
+			let { sube: { value: kodListe } = {} } = secimler
+			let sent = new MQSent(), { where: wh, sahalar } = sent
+			sent.fromAdd('marsubeparam')
+			wh.add(`bizsubekod <> ''`, `offsubeipadres <> ''`)
+			if (!empty(kodListe))
+				wh.inDizi(kodListe, 'bizsubekod')
+			sahalar.add(
+				'bizsubekod kod', 'offsubebhttpsmi https', 'offsubeipadres host', 'offsubeportno port',
+				'offsubesqlserver server', 'offsubevtadi db',
+				'offsubesqluser wsUser', 'offsubesqlpasswd wsPass'
+			)
+			let stm = new MQStm({ sent })
+			let recs = await stm.execSelect()
+			tanimPart.subeKod2Param = subeKod2Param = fromEntries(
+				recs.map(r => [r.kod, r]))
+		}
+		return subeKod2Param
+	}
 	
 
-	/*async onAfterRun({ gridPart, builder: rfb }) {
-		await super.onAfterRun(...arguments)
-		if (!this.isPanelItem)
-			setTimeout(() => gridPart.secimlerIstendi(), 50)
-	}
-	static islemTuslariDuzenle_listeEkrani({ sender: gridPart, liste, part: { ekSagButonIdSet: sagSet } }) {
-		super.islemTuslariDuzenle_listeEkrani(...arguments)
-		let items = [
-			// { id: 'eIslemXMLOlustur', handler: e => this.eIslemIzleIstendi({ ...arguments[0], ...e, recs: gridPart.selectedRecs }) }
-		]
-		liste.push(...items)
-		extend(sagSet, asSet(items.map(_ => _.id)))
-	}
-	static orjBaslikListesi_argsDuzenle({ sender: gridPart, args }) {
-		super.orjBaslikListesi_argsDuzenle(...arguments)
-		gridPart.tekil()
-		$.extend(args, { showStatusBar: true, showAggregates: true, selectionMode: 'multiplerowsextended' })
-	}
-	static orjBaslikListesi_groupsDuzenle({ liste }) {
-		super.orjBaslikListesi_groupsDuzenle(...arguments)
-	}
-	static secimlerDuzenle({ secimler: sec }) {
-		let {liste: l, donem: { tekSecim: donem }} = sec
-		donem.buAy()
-		sec.addKA('muhHesap', DMQMuhHesap, null, null, false)
-		$.extend(l.muhHesapKod, { birKismimi: false, basi: '7', sonu: '7z' })
-		delete l.muhHesapAdi
-	}
-	static ekCSSDuzenle({ dataField: belirtec, rec, value, result }) {
-		super.ekCSSDuzenle(...arguments)
-		if (value) {
-			if (belirtec.endsWith('borc') || belirtec.endsWith('bakiye'))
-				result.push('bold', value > 0 ? 'forestgreen' : 'orangered')
-			if (belirtec.endsWith('alacak'))
-				result.push('bold', value > 0 ? 'firebrick' : 'orangered')
+	/*
+		try { ctable(await `
+			select bizsubekod kod, offsubebhttpsmi https, offsubeipadres host, offsubeportno port,
+					offsubesqlserver server, offsubevtadi db,
+					offsubesqluser wsUser, offsubesqlpasswd wsPass
+				from marsubeparam
+				where bizsubekod <> '' and offsubeipadres <> ''`.execSelect()) }
+		catch (ex) { cerr(ex) }
+
+		let port = ??, user = '??', pass = '??'
+		let sql = { db: '??' }
+		let session = user || pass ? { user, pass } : undefined
+		
+		let query = `select name from sys.databases`
+		try {
+			ctable(remoteProc(
+				{ port, pass, sql, session },
+				({ args }) => query.execSelect(args)
+			))
 		}
-		else if (belirtec.endsWith('borc') || belirtec.endsWith('alacak') || belirtec.endsWith('bakiye'))
-			result.push('lightgray')
-		if (belirtec == 'bakiye')
-			result.push('fs-120')
-	}
-	static orjBaslikListesiDuzenle({ liste }) {
-		super.orjBaslikListesiDuzenle(...arguments)
-		liste.push(
-			...this.getKAKolonlar(
-				new GridKolon({ belirtec: 'muhHesapKod', text: 'Muh Hesap', genislikCh: 15 }),
-				new GridKolon({ belirtec: 'muhHesapAdi', text: 'Hesap Adı', maxWidth: 60 * katSayi_ch2Px })
-			),
-			new GridKolon({ belirtec: 'muh_borc', text: 'Muh.Borç', genislikCh: 15, aggregates: ['sum'] }).tipDecimal_bedel(),
-			new GridKolon({ belirtec: 'muh_alacak', text: 'Muh.Alacak', genislikCh: 15, aggregates: ['sum'] }).tipDecimal_bedel(),
-			new GridKolon({ belirtec: 'hiz_borc', text: 'Hiz.Borç', genislikCh: 15, aggregates: ['sum'] }).tipDecimal_bedel(),
-			new GridKolon({ belirtec: 'hiz_alacak', text: 'Hiz.Alacak', genislikCh: 15, aggregates: ['sum'] }).tipDecimal_bedel(),
-			new GridKolon({ belirtec: 'bakiye', text: '(Muh - Hiz) Fark', genislikCh: 21, aggregates: ['sum'] }).tipDecimal_bedel()
-		)
-	}
-	static async loadServerDataDogrudan({ gridPart, secimler: sec, secimler: { tarihBSVeyaCariDonem: tarihBS } }) {
-		let {hizmetVeMuhKarsilastirma_ozelIsaret: ozelIsaretBakilirmi} = app.params?.dRapor ?? {}
-		let {muhHesapKod: sec_muhHesapKod, muhHesapAdi: sec_muhHesapAdi} = sec
-		let recs
-		{
-			let har = new HizmetHareketci()
-			har.withAttrs('hizmetkod', 'bedel', 'ba')
-			har.addEkDuzenleyici(null, ({ har, hv, sent, where: wh }) => {
-				wh.basiSonu(tarihBS, hv.tarih)
-				wh.basiSonu(sec_muhHesapKod, 'hiz.muhhesap')
-				// hareketci wh.fisSilindiEkle() kendisi yapıyor olabilir
-				if (ozelIsaretBakilirmi)
-					wh.add(`${hv.ozelisaret} <> '*'`)                                                      // sadece muhasebeleşenler
-				sent.sahalarVeGroupByVeHavingReset()
-				let {sahalar} = sent, {ba, bedel} = hv
-				sahalar.add(...[
-					'hiz.muhhesap muhHesapKod',
-					`SUM(case when ${ba} = 'B' then ${bedel} else 0 end) hiz_borc`,
-					`SUM(case when ${ba} = 'A' then ${bedel} else 0 end) hiz_alacak`,
-					`0 muh_borc`,
-					`0 muh_alacak`
-				])
-				sent.groupByOlustur()
-				sent.gereksizTablolariSilDogrudan(['hiz'])
-			})
-			let uni = har.uniOlustur()
-			{
-				let sent = new MQSent(), {where: wh, sahalar} = sent
-				sent.fisHareket('muhfis', 'muhhar')
-				wh.fisSilindiEkle()
-				if (ozelIsaretBakilirmi)
-					wh.add(`fis.ozelisaret <> '*'`)
-				wh.basiSonu(tarihBS, 'fis.tarih')
-				wh.basiSonu(sec_muhHesapKod, 'har.hesapkod')
-				sahalar.add(...[
-					'har.hesapkod muhHesapKod',
-					`0 hiz_borc`,
-					`0 hiz_alacak`,
-					`SUM(case when har.ba = 'B' then har.bedel else 0 end) muh_borc`,
-					`SUM(case when har.ba = 'A' then har.bedel else 0 end) muh_alacak`
-				])
-				sent.groupByOlustur()
-				uni.add(sent)
-			}
-			let stm = new MQStm(), {with: _with, orderBy} = stm
-			_with.add(uni.asTmpTable('onhesap'))
-			{
-				let sent = stm.sent = new MQSent(), {sahalar, having} = sent
-				sent.fromAdd('onhesap onh')
-					.fromIliski('muhhesap mhes', 'onh.muhHesapKod = mhes.kod')
-				sahalar.add(
-					'onh.muhHesapKod', 'mhes.aciklama muhHesapAdi',
-					...['hiz_borc', 'hiz_alacak', 'muh_borc', 'muh_alacak']
-							.map(alias => `SUM(onh.${alias}) ${alias}`)
-				)
-				sent.groupByOlustur()
-				having.add(new MQOrClause([
-					`SUM(onh.hiz_borc) <> SUM(onh.muh_borc)`,
-					`SUM(onh.hiz_alacak) <> SUM(onh.muh_alacak)`
-				]))
-			}
-			orderBy.add('muhHesapKod')
-			recs = await this.sqlExecSelect(stm)
-			for (let rec of recs) {
-				for (let prefix of ['hiz', 'muh']) {
-					let borc = rec[`${prefix}_borc`], alacak = rec[`${prefix}_alacak`]
-					rec[`${prefix}_bakiye`] = roundToBedelFra(borc - alacak)
-				}
-				rec.bakiye = rec.muh_bakiye - rec.hiz_bakiye
-			}
-		}
-		return recs ?? []
-	}*/
+		catch (ex) { cerr(ex) }
+	*/
 }

@@ -31,6 +31,7 @@ class MQParam_DRapor extends MQParam {
 			form.addBool('trfVeAlimSipBirlesik', 'Transfer Sip. + Alım Sip.')
 			form.addBool('hizmetVeMuhKarsilastirma', 'Hizmet ve Muh. Karşılaştırması')
 			form.addBool('hizmetVeMuhKarsilastirma_ozelIsaret', 'Hizmet ve Muh. Karşılaştırması: Özel İşaret')
+			form.addBool('gercekZamanliSubeVerisi', 'Gerçek Zamanlı Şube Verileri')
 		}
 		paramci.onAfterRun(({ builder: { inst } }) =>
 			inst._kritikDegisiklikVarmi = false)

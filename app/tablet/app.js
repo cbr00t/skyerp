@@ -4,7 +4,8 @@ class TabletApp extends TicariApp {
 	get yerelParamSinif() { return MQYerelParam }
 	get configParamSinif() { return MQYerelParamConfig_App }
 	get offlineMode() { return super.offlineMode ?? true } set offlineMode(value) { super.offlineMode = value }
-	get noCache() { return true }
+	get noReqCache() { return false }
+	get noQueryCache() { return true }
 	get dbMgrClass() { return SqlJS_DBMgr } get defaultOfflineRequestChunkSize() { return 4 } // get autoExecMenuId() { return MQTest.kodListeTipi }
 	get sicakVeyaSogukmu() { return this.sicakmi || this.sogukmu }
 	get sicakSogukVeyaSutAlimmi() { return this.sicakVeyaSogukmu || this.sutAlimmi }
@@ -141,6 +142,8 @@ class TabletApp extends TicariApp {
 	async afterRun(e) {
 		await super.afterRun(e)
 		await this.afterRunVeBilgiYukleGonderSonrasiOrtak(e)
+		;['queryCache', 'reqCache'].forEach(k =>
+			this[k]?.stop?.())
 	}
 	async getAnaMenu(e) {
 		let { noMenuFlag, params } = this

@@ -181,7 +181,8 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 			hizmetmi: e.hizmetmi ?? (shStokHizmet?.hizmetmi || shStokHizmet?.birliktemi) ?? true
 		}
 		
-		if (almSat != 'T' || ihracatmi || !ekUygunluk.stokmu)
+		// if (almSat != 'T' || ihracatmi || !ekUygunluk.stokmu)
+		if (ihracatmi || !ekUygunluk.stokmu)
 			return
 		
 		extend(liste, {

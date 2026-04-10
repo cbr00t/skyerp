@@ -1,20 +1,21 @@
 class LocalCache extends MQLocalTable {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultName() { return 'local-cache' }
-
 	get recording() { return this._recording }
 	set recording(value) { this._recording = value }
+
 	constructor(e) {
 		super(...arguments); if (typeof e != 'object') { e = {} }
 		let {recording = false} = e;
-		$.extend(this, { recording })
+		extend(this, { recording })
 	}
 	get(e, _ifAbsent, _ifAbsentPut, _ifPresent) {
 		let {data} = this; if (data == null) { return undefined }
 		if (e?.key == null) { e = { key: e, ifAbsent: _ifAbsent, ifAbsentPut: _ifAbsentPut, ifPresent: _ifPresent } }
 		let {key, ifAbsent, ifAbsentPut, ifPresent} = e;
 		let newKey = this.fixKey(key);
-		if (newKey != key) { e.key = newKey }
+		if (newKey != key)
+			e.key = newKey
 		return super.get(e)
 	}
 	set(e, _value) {
@@ -27,30 +28,44 @@ class LocalCache extends MQLocalTable {
 		return super.set(e, _value)
 	}
 	delete(e) {
-		let {data} = this; if (data == null) { return false }
-		if (e?.key == null) { e = { key: e } }
+		let { data } = this
+		if (data == null)
+			return false
+		if (e?.key == null)
+			e = { key: e }
 		let {key} = e, newKey = this.fixKey(key)
 		if (newKey != key) { e.key = newKey }
 		return super.delete(e)
 	}
 	deleteAll(...keys) {
-		for (let key of keys) { this.delete(key) }
+		for (let key of keys)
+			this.delete(key)
 		return this
 	}
 	onExec(e) {
-		if (!this.recording) { return false }
-		return true
+		return !!this.recording
 	}
-	record() { this.recording = true; return this } stop() { this.recording = false; return this }
+	record() {
+		this.recording = true
+		return this
+	}
+	stop() {
+		if (this.isChanged)
+			this.kaydet()
+		this.recording = false
+		return this
+	}
 	fixKey(key) {
-		if (typeof key == 'object') {
+		if (isObject(key)) {
 			try { key = toJSONStr(key) }
 			catch (ex) { debugger; throw ex }
 		}
 		if (key) {
 			key = key.replaceAll('\\r', '').replaceAll('\\n', ' ').replaceAll('\\t', ' ')
-					   .replaceAll('\r', '').replaceAll('\n', ' ').replaceAll('\t', ' ').trim()
-			if (this.isFragmanted) { key = /*async*/ hash(key) }
+						.replaceAll('\r', '').replaceAll('\n', ' ').replaceAll('\t', ' ')
+						.trim()
+			if (this.isFragmanted)
+				key = /*async*/ hash(key)
 		}
 		return key
 	}
