@@ -74,7 +74,7 @@ class TabletApp extends TicariApp {
 			let { sicakSogukVeyaSutAlimmi } = this
 			sicakSogukVeyaSutAlimmi ||= this.sutAlimmi
 			result = cache._offlineBilgiYukleSiniflar = [
-				MQParam, MQTabDokumForm, MQTabNum, MQTabRota, MQTabCariBakiye,
+				MQParam, MQTabDokumForm, MQTabNum, MQTabRota, MQTabMusDurum,
 				MQTabTahsilSekli, MQTabSube, MQTabYer, MQTabNakliyeSekli,
 				MQTabCariTip, MQTabSevkAdres, MQPaket, MQUrunPaket,
 				MQTabUgramaNeden, MQTabKasa, MQTabStokAnaGrup, MQTabStokGrup, MQTabStokMarka,
@@ -179,17 +179,24 @@ class TabletApp extends TicariApp {
 		)
 		if (dev) {
 			addMenuSubItems('TANIM', 'Tanımlar', [
-				MQTabStok, MQTabSonStok, MQTabCari, MQTabCariBakiye, MQTabPlasiyer, MQTabSube, MQTabYer,
+				MQTabStok, MQTabSonStok, MQTabCari, MQTabMusDurum, MQTabPlasiyer, MQTabSube, MQTabYer,
 				MQTabRota, MQTabStokGrup, MQTabStokAnaGrup, MQTabStokMarka, MQTabNakliyeSekli,
 				MQTabTahsilSekli, MQTabBarkodReferans, MQTabBarkodAyrisim,
 				MQCariSatis, MQTabUgramaNeden, MQTabCariTip, MQTabSevkAdres
 			])
 		}
-		;[TabRotaListe, TabFisListe, TabMusteriDurumu]
+		;[TabRotaListe, TabFisListe, TabMusteriDurumu, TabSahaDurum]
 			.filter(_ => _.uygunmu)
 			.forEach(mfSinif => {
-				let { kodListeTipi: mne, sinifAdi: text } = mfSinif
-				items.push(new FRMenuChoice({ mne, text, block: e => mfSinif.listeEkraniAc(e) }))
+				let { kodListeTipi: mne, sinifAdi: text, dogrudanTanimmi: dogrudan } = mfSinif
+				items.push(
+					new FRMenuChoice({
+						mne, text, block: e =>
+							dogrudan
+								? mfSinif.tanimla({ ...e, islem: 'izle' })
+								: mfSinif.listeEkraniAc(e)
+						})
+				)
 			})
 		items.push(
 			new FRMenuChoice({
@@ -274,9 +281,10 @@ class TabletApp extends TicariApp {
 			return
 		
 		let withClear = true
-		{
+		let temps = e.temps = {}
+		; {
 			let args = { noClear: false }
-			let {wnd, result} = displayMessage('Merkezden veriler yüklensin mi?', appName, 'eh')
+			let { wnd, result } = displayMessage('Merkezden veriler yüklensin mi?', appName, 'eh')
 			let parent = wnd.find('.jqx-window-content > .subContent')
 			let rfb = new RootFormBuilder().setLayout(parent).setInst(args)
 			rfb.addCheckBox('noClear', 'Veriler SilinMEsin').addStyle(`
@@ -296,20 +304,10 @@ class TabletApp extends TicariApp {
 		pm.setProgressMax(classes.length * 130 + 500).progressReset()
 		app.resetOfflineStatus()
 		try {
-			let {belirtecListe: hmrBelirtecler_eski} = HMRBilgi
+			let { belirtecListe: hmrBelirtecler_eski } = HMRBilgi
 			if (!withClear)
 				clearClasses = clearClasses.filter(cls => !cls.offlineFis)
-			await this.cacheReset(e)
-			{
-				if (clearClasses?.length) {
-					await MQCogul.sqlExecNone({ offlineRequest, offlineMode, query: 'BEGIN TRANSACTION' })
-					await Promise.allSettled( clearClasses.map(cls => cls.offlineDropTable?.({ ...e, offlineRequest, offlineMode, internal })) )
-					await this.dbMgr_tablolariOlustur({ ...e, offlineRequest, offlineMode, internal, classes: [MQParam] })
-					await MQCogul.sqlExecNone({ offlineMode, query: 'COMMIT' })
-					pm.progressStep(1)
-				}
-			}
-			{
+			;{
 				await MQCogul.sqlExecNone({ offlineMode, query: 'BEGIN TRANSACTION' })
 				await this.cacheReset(e)
 				await MQParam.offlineSaveToLocalTable({ offlineRequest, offlineMode }).finally(() => pm.progressStep())
@@ -324,7 +322,18 @@ class TabletApp extends TicariApp {
 				HMRBilgi.globalleriSil()
 				pm.progressStep(2)
 			}
-			{
+			let classes
+			;{
+				classes = this.offlineBilgiYukleSiniflar.filter(cls => cls != MQParam)             // parametrelere göre YENİ OLUŞAN 'offlineBilgiYukleSiniflar'
+				for (let cls of classes) {
+					if (await cls.offlineSaveToLocalTableOncesi({ ...e, offlineRequest, offlineMode }) === false) {
+						pm?.hideProgress()
+						return
+					}
+					pm.progressStep()
+				}
+			}
+			;{
 				await MQCogul.sqlExecNone({ offlineMode, query: 'BEGIN TRANSACTION' })
 				await Promise.all(
 					clearClasses.filter(cls => cls != MQParam).map(cls =>
@@ -334,11 +343,10 @@ class TabletApp extends TicariApp {
 				await MQCogul.sqlExecNone({ offlineMode, query: 'COMMIT' })
 				pm.progressStep(1)
 			}
-			{	
-				classes = this.offlineBilgiYukleSiniflar.filter(cls => cls != MQParam)             // parametrelere göre YENİ OLUŞAN 'offlineBilgiYukleSiniflar'
+			if (!empty(classes)) {
 				for (let _classes of arrayIterChunks(classes, chunkSize)) {
 					await Promise.all(_classes.map(cls =>
-						cls.offlineSaveToLocalTable({ offlineRequest, offlineMode }).finally(() =>
+						cls.offlineSaveToLocalTable({ temps, offlineRequest, offlineMode }).finally(() =>
 							pm.progressStep())
 					))
 				}
@@ -374,7 +382,7 @@ class TabletApp extends TicariApp {
 			return
 		
 		let pm = showProgress('Veriler gönderiliyor...', null, true)
-		pm.setProgressMax(classes.length * 70).progressReset()
+		pm.setProgressMax(classes.length * 80).progressReset()
 		app.resetOfflineStatus()
 		for (let _classes of arrayIterChunks(classes, chunkSize)) {
 			for (let cls of _classes) {
@@ -400,7 +408,7 @@ class TabletApp extends TicariApp {
 		await this.dbMgr_tabloEksikleriTamamla({ db, name, offlineRequest, offlineMode })
 		await tablet.kaydet()
 		pm?.progressStep(3)
-		await MQTabCariBakiye.bakiyeRiskDuzenle({ offlineRequest, offlineMode })
+		// await MQTabMusDurum.bakiyeRiskDuzenle({ offlineRequest, offlineMode })
 		pm?.progressStep(5)
 		await this.bilgiYukleGonderSonrasi({ ...e, offlineRequest, offlineMode })
 	}

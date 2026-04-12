@@ -9,5 +9,6 @@
 	require_once("$webRoot_tablet/tanim/include.php");
 	require_once("$webRoot_tablet/fis/include.php");
 	require_once("$webRoot_tablet/dokum/include.php");
-	require_once("$webRoot_tablet/part/include.php")
+	require_once("$webRoot_tablet/part/include.php");
+	require_once("$webRoot_tablet/ui/include.php")
 ?>

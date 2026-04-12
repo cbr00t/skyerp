@@ -6,11 +6,9 @@ class TabTicariFis extends TabTSFis {
 	// static get onlineFisSinif() { return SatisFaturaFis }
 	static get dipKullanilirmi() { return true } static get _bedelKullanilirmi() { return true }
 	static get dipIskOranSayi() { return 1 } static get dipIskBedelSayi() { return 1 }
-	static get iademi() { return false }
-	static get ticarimi() { return true }
+	static get iademi() { return false } static get ticarimi() { return true }
 	static get faturami() { return false } static get irsaliyemi() { return false }
 	static get siparismi() { return false }
-	static get cikisGibimi() { return this.alimmi == this.iademi }
 	static get dokumFormTip_normal() { return '3FA' }
 	// static get dokumFormTip_eIslem() { return this.dokumFormTip_normal }
 	static get defaultEIslTip() { return '' }
@@ -20,6 +18,7 @@ class TabTicariFis extends TabTSFis {
 			: ''
 	}
 	get dovizlimi() { return !!this.dvKod }
+	static get cikisGibimi() { return this.alimmi == this.iademi }
 	get bakiyeEtkileyenKisim() {
 		let { tahSekliNo, sonucBedel } = this
 		if (!sonucBedel)
@@ -154,17 +153,6 @@ class TabTicariFis extends TabTSFis {
 			if (prev != t.tahFisId)
 				await t?.kaydet()
 		}
-		/*if (mustKod && fisSonuc && tahSekliNo > 0) {
-			let {[tahSekliNo]: { tahsiltipi: tip, ahalttipi: altTip }} = await MQTabTahsilSekli.getGloKod2Rec()
-			if (!(tip || altTip)) {
-				// vadeli
-				let op = cikis ? '+' : '-'
-				let upd = new MQIliskiliUpdate(), {where: wh, set} = upd
-				upd.fromAdd('carbakiye')
-				wh.degerAta(mustKod, 'kod')
-				set.add(`bakiye = bakiye ${op} ${fisSonuc.sqlDegeri()}`)
-			}
-		}*/
 	}
 
 	async mustDegisti({ oldValue = this._prev.mustKod, value = this.mustKod }) {

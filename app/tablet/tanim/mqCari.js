@@ -124,7 +124,7 @@ class MQTabCari extends MQKAOrtak {
 			new GridKolon({ belirtec: 'tavsiyeplasiyerkod', text: 'Plasiyer', genislikCh: 15 }).hidden()*/
 		)
 	}
-	static async loadServerData({ basit, sender, offlineRequest, offlineMode }) {
+	static async loadServerData({ basit, sender, offlineRequest, offlineMode } = {}) {
 		let { rotaDisiMusteriAlinirmi: rotaDisi } = app.params?.tablet ?? {}
 		let { rotaKullanilirmi } = app
 		if (!(basit || offlineRequest)) {

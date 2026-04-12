@@ -3,6 +3,17 @@ class SkyRaporApp extends TicariApp {
 	get yerelParamSinif() { return MQYerelParam }
 	get autoExecMenuId() { return 'FAV' }
 	get mainRaporBase() { return DRapor }
+	get dbListe() {
+		let { buDB, params: { dRapor } = {} } = this
+		let { konsolideCikti, ekDBListe } = dRapor ?? {}
+		let result = {}
+		if (buDB)
+			result[buDB] = true
+		if (konsolideCikti && !empty(ekDBListe))
+			extend(result, asSet(ekDBListe))
+		return keys(result)
+	}
+	
 	static get kategoriKod2Adi() {
 		let {_kategoriKod2Adi: result} = this
 		if (result == null) {
@@ -27,6 +38,7 @@ class SkyRaporApp extends TicariApp {
 		}
 		return result
 	}
+	
 	async runDevam(e) {
 		await super.runDevam(e)
 		// await this.ilkIslemler(e)

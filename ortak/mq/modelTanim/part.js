@@ -405,8 +405,10 @@ class ModelTanimPart extends Part {
 		for (let builder of this.getBuilders(e)) { e.builder = builder; if (builder.kaydetSonrasiIslemler) { await builder.kaydetSonrasiIslemler(e) } }
 		for (let _e of this.getAltFormParts()) { await _e.part.kaydetSonrasiIslemler(e) }
 	}
-	destroyPart(e) {
-		e = e || {}; for (let builder of this.getBuilders(e)) { e.builder = builder; if (builder.destroyPart) builder.destroyPart(e) }
+	destroyPart(e = {}) {
+		let { inst } = this
+		inst?.destroyPart?.(e)
+		for (let builder of this.getBuilders(e)) { e.builder = builder; if (builder.destroyPart) builder.destroyPart(e) }
 		super.destroyPart(e)
 	}
 	async vazgecIstendi(e) {

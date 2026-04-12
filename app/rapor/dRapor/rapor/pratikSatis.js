@@ -8,6 +8,8 @@ class DRapor_PratikSatis extends DRaporMQ {
 	get uygunmu() { return this.class.uygunmu } static get uygunmu() { return this.hareketciSinif.uygunmu }
 	static get secimSinif() { return DonemselSecimler } static get sadeceTanimmi() { return true }
 	static get kolonFiltreKullanilirmi() { return false } static get bulFormKullanilirmi() { return true }
+	get timeout() { return config.dev ? 5_000 : 15_000 }
+	static get otoTazele_minDk() { return config.dev ? .1 : .3 }
 	// static get vioAdim() { return 'MH-R' }
 
 	uiGirisOncesiIslemler(e) {
@@ -15,10 +17,16 @@ class DRapor_PratikSatis extends DRaporMQ {
 		e.islem = tanimPart.islem = 'izle'
 		extend(tanimPart, { title })
 		this.secimlerOlustur(e)
-		//let { dRapor: { gercekZamanliSubeVerisi } } = app.params ?? {}
-		//if (!gercekZamanliSubeVerisi)
+		//let { dRapor: { praUzakSubeVerisi } } = app.params ?? {}
+		//if (!praUzakSubeVerisi)
 		//	this.getSubeTanimlari(e)
+		app.appTitleBar?.addClass('jqx-hidden')
 		return super.uiGirisOncesiIslemler(e)
+	}
+	destroyPart(e = {}) {
+		e.sender = this
+		app.appTitleBar?.removeClass('jqx-hidden')
+		this.otoTazele_stopTimer(e)
 	}
 	secimlerOlustur({ sender: tanimPart } = {}) {
 		let secimler = new DonemselSecimler()
@@ -38,10 +46,16 @@ class DRapor_PratikSatis extends DRaporMQ {
 				wh.basiSonu(tarihBS, 'fis.tarih')
 		})
 	}
-	static rootFormBuilderDuzenle_islemTuslari({ fbd_islemTuslari: fbd }) {
+	static rootFormBuilderDuzenle_islemTuslari({ sender: tanimPart, fbd_islemTuslari: fbd }) {
 		super.rootFormBuilderDuzenle_islemTuslari(...arguments)
 		fbd.addStyle(
-			`$elementCSS { pointer-events: none !important }
+			`$elementCSS { position: fixed; top: 65px !important; pointer-events: none !important }
+			 @media (max-width: 650px) {
+				$elementCSS { top: 45px !important }
+			 }
+			 @media (max-width: 395px) {
+				$elementCSS { top: 0 !important }
+			 }
 			 $elementCSS > .sag { pointer-events: auto !important }
 			 $elementCSS #seviyeAc.jqx-fill-state-normal { background-color: forestgreen !important }
 			 $elementCSS #seviyeKapat.jqx-fill-state-normal { background-color: firebrick !important }`
@@ -64,8 +78,47 @@ class DRapor_PratikSatis extends DRaporMQ {
 	}
 	static rootFormBuilderDuzenle(e = {}) {
 		super.rootFormBuilderDuzenle(e)
+		let { otoTazele_minDk } = this
 		let { sender: tanimPart, islem, inst, rootBuilder: rfb, tanimFormBuilder: tanimForm } = e
 		extend(e, { tanimPart })
+		rfb.addNumberInput('_otoTazeleDk', null, null, 'Tazele (dk)')
+			.etiketGosterim_yok()
+			.setAltInst(tanimPart)
+			.setMin(0)
+			.setMax(24 * 60)
+			.setValue(tanimPart._otoTazeleDk || null)
+			.degisince(_e => {
+				let { value, builder: fbd } = _e
+				let { layout, input } = fbd
+				if (!value)
+					input.val(null)
+				layout[value ? 'addClass' : 'removeClass']('active')
+				inst.otoTazele_startTimer({ ...arguments[0], ..._e, ...e })
+			})
+			.addStyle_wh(100, 35)
+			.addStyle(...[
+				`$elementCSS {
+					position: fixed !important;
+					top: 5px !important; right: 50px !important;
+					border-radius: 13px; z-index: 1001 !important;
+					pointer-events: auto !important
+				}
+				$elementCSS > input { height: unset !important }
+				$elementCSS.active { animation: 3000ms infinite anim-dRapor-otoTazele }
+				.part.refreshing $elementCSS > input {
+					background-color: lightcyan !important;
+					background-image: url(../../images/loading.gif) !important;
+					background-position: center center !important;
+					background-size: 32px 32px !important;
+					background-repeat: no-repeat !important
+				 }
+				 @keyframes anim-dRapor-otoTazele {
+					   0% { box-shadow: 0 0 13px 3px forestgreen }
+					  70% { box-shadow: 0 0 13px 8px forestgreen }
+					 100% { box-shadow: 0 0 13px 3px forestgreen }
+				 }`
+			])
+		
 		tanimForm.addAccordion('acc')
 			.fullScreen()
 			.addStyle_fullWH()
@@ -75,6 +128,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 			)
 			.onAfterRun(({ builder: { part }}) =>
 				tanimPart.acc = e.acc = part)
+		
 		rfb.onAfterRun(() =>
 			inst.onAfterRun(e))
 	}
@@ -165,6 +219,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 				.addStyle_wh(450)
 			;{
 				altForm.addGridliGosterici('ozet')
+					.setUserData({ noSort: true })
 					.addStyle_fullWH(null, 197)
 					.rowNumberOlmasin().notAdaptive()
 					.setToplamYapi({ etiket: { belirtec: 'tipText' } })
@@ -176,12 +231,8 @@ class DRapor_PratikSatis extends DRaporMQ {
 						})
 					)
 					.setTabloKolonlari(e => {
-						let cellClassName = (sender, rowIndex, belirtec, value, rec, prefix) => {
-							let result = [belirtec]
-							if (rec._toplam)
-								result.push('_toplam')
-							return result.join(' ')
-						}
+						let cellClassName = (...rest) =>
+							this.gridCSSHandler(...rest)
 						return [
 							new GridKolon({ belirtec: 'tipText', text: `<span class=darkviolet>ÖZET</span>`, genislikCh: 16, filterType: 'checkedlist', cellClassName }),
 							new GridKolon({ belirtec: 'fisSayi', text: 'Fiş Sayı', genislikCh: 10, filterType: 'checkedlist', aggregates: ['sum'], cellClassName }).tipNumerik(),
@@ -229,6 +280,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 			}
 			;{
 				altForm.addGridliGosterici('ozetEk')
+					.setUserData({ noSort: true })
 					.addStyle_fullWH(null, 130)
 					.rowNumberOlmasin().notAdaptive()
 					.widgetArgsDuzenleIslemi(({ args }) =>
@@ -239,10 +291,8 @@ class DRapor_PratikSatis extends DRaporMQ {
 						})
 					)
 					.setTabloKolonlari(e => {
-						let cellClassName = (sender, rowIndex, belirtec, value, rec, prefix) => {
-							let result = [belirtec]
-							return result.join(' ')
-						}
+						let cellClassName = (...rest) =>
+							this.gridCSSHandler(...rest)
 						return [
 							new GridKolon({ belirtec: 'tipText', text: `<span class=violet>ÖZET-EK</span>`, genislikCh: 16, filterType: 'checkedlist', cellClassName }),
 							new GridKolon({ belirtec: 'fisSayi', text: 'Fiş Sayı', genislikCh: 10, filterType: 'checkedlist', aggregates: ['sum'], cellClassName }).tipNumerik(),
@@ -305,6 +355,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 		// özel aralık
 		;{
 			form.addGridliGosterici('ozel')
+				.setUserData({ noSort: true })
 				.addStyle_fullWH(440, 130)
 				.addStyle(`$elementCSS { min-width: 200px !important; max-width: 440px !important }`)
 				.rowNumberOlmasin().notAdaptive()
@@ -316,12 +367,8 @@ class DRapor_PratikSatis extends DRaporMQ {
 					})
 				)
 				.setTabloKolonlari(e => {
-					let cellClassName = (sender, rowIndex, belirtec, value, rec, prefix) => {
-						let result = [belirtec]
-						if (rec._toplam)
-							result.push('_toplam')
-						return result.join(' ')
-					}
+					let cellClassName = (...rest) =>
+						this.gridCSSHandler(...rest)
 					return [
 						new GridKolon({ belirtec: 'text', text: 'Özel Aralık', genislikCh: 13, filterType: 'checkedlist', cellClassName }),
 						new GridKolon({ belirtec: 'hasilat', text: 'Hasılat (Kdvli)', genislikCh: 20, aggregates: ['sum'], cellClassName }).tipDecimal_bedel(),
@@ -345,6 +392,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 		// tahsilat
 		;{
 			form.addGridliGosterici('tahsilat')
+				.setUserData({ sortFields: ['oncelik', 'aciklama'] })
 				.addStyle_fullWH(450, 500)
 				.rowNumberOlmasin().notAdaptive()
 				.setToplamYapi({ etiket: { belirtec: 'aciklama' } })
@@ -355,12 +403,8 @@ class DRapor_PratikSatis extends DRaporMQ {
 					})
 				)
 				.setTabloKolonlari(e => {
-					let cellClassName = (sender, rowIndex, belirtec, value, rec, prefix) => {
-						let result = [belirtec]
-						if (rec._toplam)
-							result.push('_toplam')
-						return result.join(' ')
-					}
+					let cellClassName = (...rest) =>
+						this.gridCSSHandler(...rest)
 					return [
 						new GridKolon({ belirtec: 'aciklama', text: `<span class=limegreen>TAHSİLAT</span>`, genislikCh: 25, filterType: 'checkedlist', cellClassName }),
 						new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 18, aggregates: ['sum'], cellClassName }).tipDecimal_bedel()
@@ -392,6 +436,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 		// matrah ve kdv
 		;{
 			form.addGridliGosterici('matrahKdv')
+				.setUserData({ noSort: true })
 				.addStyle_fullWH(450, 500)
 				.rowNumberOlmasin().notAdaptive()
 				.setToplamYapi({ etiket: { belirtec: 'text' } })
@@ -402,12 +447,8 @@ class DRapor_PratikSatis extends DRaporMQ {
 					})
 				)
 				.setTabloKolonlari(e => {
-					let cellClassName = (sender, rowIndex, belirtec, value, rec, prefix) => {
-						let result = [belirtec]
-						if (rec._toplam)
-							result.push('_toplam')
-						return result.join(' ')
-					}
+					let cellClassName = (...rest) =>
+						this.gridCSSHandler(...rest)
 					return [
 						new GridKolon({ belirtec: 'text', text: `<span class=orangered>KDV</span>`, genislikCh: 10, filterType: 'checkedlist', cellClassName }).alignRight(),
 						new GridKolon({ belirtec: 'matrah', text: 'Matrah', genislikCh: 16, aggregates: ['sum'], cellClassName }).tipDecimal_bedel(),
@@ -452,12 +493,8 @@ class DRapor_PratikSatis extends DRaporMQ {
 					})
 				)
 				.setTabloKolonlari(e => {
-					let cellClassName = (sender, rowIndex, belirtec, value, rec, prefix) => {
-						let result = [belirtec]
-						if (rec._toplam)
-							result.push('_toplam')
-						return result.join(' ')
-					}
+					let cellClassName = (...rest) =>
+						this.gridCSSHandler(...rest)
 					return [
 						new GridKolon({ belirtec: 'aciklama', text: `<span class=orange>KASİYER</span>`, genislikCh: 25, filterType: 'checkedlist', cellClassName }),
 						new GridKolon({ belirtec: 'bedel', text: 'Hasılat', genislikCh: 18, aggregates: ['sum'], cellClassName }).tipDecimal_bedel()
@@ -543,15 +580,11 @@ class DRapor_PratikSatis extends DRaporMQ {
 				.veriYukleninceIslemi(({ builder: { part: { grid } }}) =>
 					grid.jqxGrid('groups', ['grupAdi']))
 				.setTabloKolonlari(e => {
-					let cellClassName = (sender, rowIndex, belirtec, value, rec, prefix) => {
-						let result = [belirtec]
-						//if (rec._toplam)
-						//	result.push('_toplam')
-						return result.join(' ')
-					}
+					let cellClassName = (...rest) =>
+						this.gridCSSHandler(...rest)
 					return [
 						new GridKolon({ belirtec: 'stokAdi', text: 'Stok', filterType: 'checkedlist', cellClassName }),
-						new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 9, filterType: 'checkedlist', aggregates: ['sum'], cellClassName }).tipDecimal(),
+						new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 11, filterType: 'checkedlist', aggregates: ['sum'], cellClassName }).tipDecimal(),
 						new GridKolon({ belirtec: 'brm', text: 'Brm', genislikCh: 4, filterType: 'checkedlist', cellClassName }),
 						new GridKolon({ belirtec: 'hasilat', text: 'Hasılat (Kdvli)', genislikCh: 13, aggregates: ['sum'], cellClassName }).tipDecimal_bedel(),
 						new GridKolon({ belirtec: 'grupAdi', text: 'Grup', genislikCh: 20, filterType: 'checkedlist', cellClassName })
@@ -575,9 +608,10 @@ class DRapor_PratikSatis extends DRaporMQ {
 						let stm = new MQStm({ sent, orderBy: ['grupAdi', 'stokAdi'] })
 						return stm
 					}
+					let _e = { ...arguments[0], ...e }
 					let recs = [
-						...await app.sqlExecSelect(getSatisStm(false)),
-						...await app.sqlExecSelect(getSatisStm(true))
+						...await this.getGridData({ ..._e, query: getSatisStm(false) }),
+						...await this.getGridData({ ..._e, query: getSatisStm(true) })
 					]
 					/*;{
 						let t = { _toplam: true, stokAdi: 'TOPLAM', hasilat: 0, miktar: 0 }
@@ -594,7 +628,13 @@ class DRapor_PratikSatis extends DRaporMQ {
 		rfb.run()
 	}
 	_acc_initCollapsedContent_ortak({ tanimPart, islem, acc, item, layout, rfb }) {
-		let {secimler} = this, {collapsed} = item
+		let { secimler } = this, { collapsed } = item
+		let { dbListe } = app
+		let container = $(`<div class="flex-row"/>`)
+		if (!collapsed) {
+			$(`<span class="dbListe darkviolet bold fs-90">${dbListe.map(_ => _.slice(4)).join(', ')}</span>`).appendTo(container)
+			$(`<span class="separator lightgray"> | </span>`).appendTo(container)
+		}
 		if (secimler && !collapsed) {
 			let e = { liste: [] }
 			for (let [k, s] of secimler) {
@@ -604,10 +644,10 @@ class DRapor_PratikSatis extends DRaporMQ {
 			let ozetBilgiHTML = e.liste?.filter(x => !!x).join(' ')
 			if (ozetBilgiHTML) {
 				let container = $(`<div class="secimBilgi"/>`)
-				container.html(ozetBilgiHTML)
-				return container
+				$(ozetBilgiHTML).appendTo(container)
 			}
 		}
+		return container
 	}
 	acc_onCollapse({ tanimPart, acc }) {
 		/*let {activePanelId: id} = acc
@@ -616,7 +656,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 	}
 	acc_onExpand({ tanimPart, acc }) {
 		setTimeout(() => {
-			let {activePanelId: id} = acc, {islemTuslari} = tanimPart
+			let {activePanelId: id} = acc, { islemTuslari } = tanimPart
 			let btns = islemTuslari.find('#seviyeAc, #seviyeKapat')
 			let selector = id == 'satis' ? 'removeClass' : 'addClass'
 			btns[selector]('jqx-hidden')
@@ -656,25 +696,55 @@ class DRapor_PratikSatis extends DRaporMQ {
 		}
 	}
 	tazeleIstendi({ tanimPart }) {
-		let {acc, acc: { layout }} = tanimPart
+		let { acc } = tanimPart
+		let { activePanel: { item } = {} } = acc
+		let { contentLayout: layout } = item ?? {}
 		let elms = Array.from(layout.find('.grid.part'))
 		elms.forEach(elm =>
 			$(elm).data('part')?.tazele())
 		acc.render()
 	}
 
-	baslikSentDuzele(e = {}) {
-		let { sent, sent: { where: wh, sahalar }, harTable, iade = e.iademi } = e
-		let { secimler } = this
-		if (harTable)
-			sent.fisHareket('restoranfis', harTable)
-		else
-			sent.fromAdd('restoranfis fis')
-		wh
-			.add(`fis.kapanmazamani IS NOT NULL`, 'fis.biptalmi = 0')
-			.degerAta(iade ? 'I' : '', 'fis.iade')
-			.birlestir(secimler.getTBWhereClause(e))
-		return this
+	otoTazele_startTimer(e) {
+		let { class: { otoTazele_minDk } } = this
+		let { tanimPart = e.sender } = e
+		let {_timer_otoTazele: timer, _otoTazeleDk: otoTazeleDk } = tanimPart
+		if (otoTazeleDk)
+			otoTazeleDk = Math.max(otoTazeleDk, otoTazele_minDk)
+		
+		if (!otoTazeleDk) {
+			this.otoTazele_stopTimer(e)
+			return null
+		}
+		this.otoTazele_stopTimer(e)
+		return tanimPart._timer_otoTazele = setInterval(
+			_e => this.otoTazele_timerProc({ ...e, ..._e }),
+			otoTazeleDk * 60_000
+		)
+	}
+	otoTazele_stopTimer(e = {}) {
+		let { tanimPart = e.sender } = e
+		let { _timer_otoTazele: timer } = tanimPart
+		if (timer) {
+			clearInterval(timer)
+			delete tanimPart._timer_otoTazele
+		}
+		return timer
+	}
+	otoTazele_timerProc(e = {}) {
+		let { class: { otoTazele_minDk } } = this
+		let { tanimPart = e.sender } = e, { inst } = tanimPart
+		let { _otoTazeleDk: otoTazeleDk, _inTazeleProc, _otoTazeleDisabled } = tanimPart
+		let { activeWndPart } = app, { appActivatedFlag } = window
+		if (_otoTazeleDisabled || activeWndPart != tanimPart)
+			return
+		if (!otoTazeleDk)
+			otoTazeleDk = Math.max(otoTazeleDk, otoTazele_minDk)
+		if (!(otoTazeleDk && window.appActivatedFlag) || _inTazeleProc)
+			return
+		tanimPart._inTazeleProc = true
+		inst.tazeleIstendi({ ...e, action: 'otoTazele' })
+		setTimeout(() => tanimPart._inTazeleProc = false, 1_000)
 	}
 
 	getGridOrtakArgs() {
@@ -694,80 +764,186 @@ class DRapor_PratikSatis extends DRaporMQ {
 			}
 		}
 	}
-	async getGridData(e = {}) {
-		let { tanimPart, query, params } = e
-		let { dRapor: { gercekZamanliSubeVerisi } } = app.params ?? {}
-		if (!gercekZamanliSubeVerisi)
-			return await query.execSelect({ params })
-
-		let kod2Def = await this.getSubeTanimlari(e)
-		if (empty(kod2Def))
-			return await query.execSelect({ params })
-		
-		let all = await Promise.allSettled(values(kod2Def)
-		   .map(async def => {
-				try {
-					return await remoteProc({
-						...def, args: { params },
-						proc: ({ args }) => {
-							if (query?.sentDo) {
-								for (let { where: wh } of query) {
-									;wh.liste = wh.liste.filter(v =>
-										!(v?.startsWith?.('sub.') || v?.saha?.endsWith?.('bizsubekod')))
-								}
-							}
-							return query.execSelect(args)
-						}
-					})
-				}
-			   catch (error) {
-				   throw ({ def, error })
-			   }
-			}))
-		
-		let recs = []
-		;all.forEach(_ => {
-			let { status: s } = _
-			switch (s) {
-				case 'fulfilled': {
-					let { value: v } = _
-					recs.push(...v)
-					break
-				}
-				case 'rejected': {
-					let { def = {}, error: err } = _.reason
-					let { host, port, sql, db = {} } = def
-					db ??= sql?.db
-					let title = `${host}:${port} | ${db}`
-					hConfirm(getErrorText(err), title)
-					break
-				}
-			}
-		})
-		
-		return recs
+	async gridCSSHandler(sender, rowIndex, belirtec, value, rec, prefix) {
+		let result = [belirtec]
+		if (rec._toplam)
+			result.push('_toplam')
+		return result.join(' ')
 	}
-	async getSubeTanimlari(e = {}) {
-		let { tanimPart } = e
-		let { subeKod2Param, secimler = {} } = tanimPart
-		if (!subeKod2Param) {
-			let { sube: { value: kodListe } = {} } = secimler
-			let sent = new MQSent(), { where: wh, sahalar } = sent
-			sent.fromAdd('marsubeparam')
-			wh.add(`bizsubekod <> ''`, `offsubeipadres <> ''`)
-			if (!empty(kodListe))
-				wh.inDizi(kodListe, 'bizsubekod')
-			sahalar.add(
-				'bizsubekod kod', 'offsubebhttpsmi https', 'offsubeipadres host', 'offsubeportno port',
-				'offsubesqlserver server', 'offsubevtadi db',
-				'offsubesqluser wsUser', 'offsubesqlpasswd wsPass'
-			)
-			let stm = new MQStm({ sent })
-			let recs = await stm.execSelect()
-			tanimPart.subeKod2Param = subeKod2Param = fromEntries(
-				recs.map(r => [r.kod, r]))
+	baslikSentDuzele(e = {}) {
+		let { sent, sent: { where: wh, sahalar }, harTable, iade = e.iademi } = e
+		let { secimler } = this
+		if (harTable)
+			sent.fisHareket('restoranfis', harTable)
+		else
+			sent.fromAdd('restoranfis fis')
+		wh
+			.add(`fis.kapanmazamani IS NOT NULL`, 'fis.biptalmi = 0')
+			.degerAta(iade ? 'I' : '', 'fis.iade')
+			.birlestir(secimler.getTBWhereClause(e))
+		return this
+	}
+	stmSonIslemler({ stm }) {
+		/*let { buDB, dbListe } = app
+		if (konsolideCikti && !empty(ekDBListe)) {
+			;stm.forEach(sent => {
+				let { from, where: wh, sahalar } = sent
+			})
+		}*/
+	}
+
+	async getGridData({ tanimPart, query, params, tabloKolonlari, builder: fbd, gridPart } = {}) {
+		let { timeout } = this
+		let { buDB, dbListe } = app
+		if (query?.sentDo) {
+			let e = { ...arguments[0], stm: query }
+			delete e.query
+			this.stmSonIslemler(e)
+			query = e.query = e.stm
+			params = e.params = e.params
 		}
-		return subeKod2Param
+		
+		let { dRapor: { praUzakSubeVerisi } } = app.params ?? {}
+		if (!praUzakSubeVerisi)
+			return await query.execSelect({ timeout, params })
+
+		let db2Kod2Def = await this.getSubeTanimlari(...arguments)
+		if (empty(db2Kod2Def))
+			return await query.execSelect({ timeout, params })
+
+		tabloKolonlari ??= fbd?.tabloKolonlari ?? gridPart?.tabloKolonlari
+		let cd = { sabit: {}, toplam: {} }
+		if (tabloKolonlari) {
+			;tabloKolonlari.forEach(c => {
+				let { belirtec, aggregates } = c
+				let agg = makeArray(aggregates)
+				let selector = (
+					agg?.includes('sum') ? 'toplam' :
+					empty(agg) ? 'sabit' : null
+				)
+				if (selector)
+					cd[selector][belirtec] = c
+			})
+		}
+
+		;{
+			let { _promises_uzakVeri: promises } = tanimPart
+			if (!empty(promises))
+				await delay(1_000)
+		}
+		;{
+			let { _promises_uzakVeri: promises } = tanimPart
+			;promises?.forEach(p =>
+				p?.abort?.())
+			delete tanimPart._promises_uzakVeri
+		}
+
+		let delayMS = 50
+		let promises = tanimPart._promises_uzakVeri = []
+		for (let [db, kod2Def] of entries(db2Kod2Def))
+		for (let def of values(kod2Def)) {
+			promises.push(
+				(async () => {
+					try {
+						return await remoteProc({
+							...def,
+							args: { timeout, params },
+							proc: async ({ args }) => {
+								if (query?.sentDo) {
+									for (let { where: wh } of query) {
+										;wh.liste = wh.liste.filter(v =>
+											!(v?.startsWith?.('sub.') || v?.saha?.endsWith?.('bizsubekod')))
+									}
+								}
+								if (delayMS)
+									await delay(delayMS)
+								delayMS *= 2.5
+								return await query.execSelect(args)
+							}
+						})
+					}
+					catch (error) {
+						throw({ def, error })
+					}
+				})()
+			)
+		}
+
+		let getKey = (r, sortFields) => {
+			if (sortFields)
+				sortFields = makeArray(sortFields)
+			let _keys = sortFields ?? keys(cd.sabit)
+			return _keys
+				.map(k => String(r[k]))
+				.join('\t')
+		}
+		
+		let all = ( await promiseAllSet(promises) )
+		let key2Rec = new Map()
+		for (let { status: s, reason, value: recs } of all) {
+			if (s == 'rejected') {
+				let { def = {}, error: err } = reason
+				let { host, port, sql, db = {} } = def
+				db ??= sql?.db
+				let title = `${host}:${port} | ${db}`
+				hConfirm(getErrorText(err), title)
+				continue
+			}
+			
+			if (empty(recs))
+				continue
+
+			;recs.forEach(bu => {
+				let k = getKey(bu)
+				if (!key2Rec.has(k))
+					key2Rec.set(k, bu)
+				else {
+					let diger = key2Rec.get(k)
+					;keys(cd.toplam).forEach(b =>
+						diger[b] = Number(diger[b]) + Number(bu[b]))
+				}
+			})
+		}
+		delete tanimPart._promises_uzakVeri
+
+		;{
+			let recs = Array.from(key2Rec.values())
+			let { userData: { noSort, sortFields } = {} } = fbd ?? {}
+			if (!noSort) {
+				recs.sort((a, b) =>
+					getKey(a, sortFields).localeCompare(getKey(b, sortFields)))
+			}
+			return recs
+		}
+	}
+	async getSubeTanimlari({ tanimPart = {} } = {}) {
+		let { buDB, dbListe } = app
+		let { db2SubeKod2Param: result, secimler = {} } = tanimPart
+		if (!result) {
+			let { sube: { value: kodListe } = {} } = secimler
+			let uni = new MQUnionAll()
+			;dbListe.forEach(db => {
+				let fromPrefix = db == buDB ? '' : `${db}..`
+				let sent = new MQSent(), { where: wh, sahalar } = sent
+				sent.fromAdd(`${fromPrefix}marsubeparam`)
+				wh.add(`bizsubekod <> ''`, `offsubeipadres <> ''`)
+				if (!empty(kodListe))
+					wh.inDizi(kodListe, 'bizsubekod')
+				sahalar.add(
+					`'${db}' merkezDB`,
+					'bizsubekod kod', 'offsubebhttpsmi https', 'offsubeipadres host', 'offsubeportno port',
+					'offsubesqlserver server', 'offsubevtadi db', 'offsubesqluser wsUser', 'offsubesqlpasswd wsPass'
+				)
+				uni.add(sent)
+			})
+			let stm = new MQStm({ sent: uni })
+			result = tanimPart.db2SubeKod2Param = {}
+			for (let r of await stm.execSelect()) {
+				let kod2Param = result[r.db] ??= {}
+				kod2Param[r.kod] = r
+			}
+		}
+		return result
 	}
 	
 

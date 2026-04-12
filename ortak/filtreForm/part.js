@@ -26,7 +26,13 @@ class FiltreFormPart extends Part {
 				this.lastValue = value
 			}
 		}
-		input.off('change').on('change', evt => changeHandler(evt));
+		input.off('change').on('change', evt => {
+			let { currentTarget: target } = evt
+			let { value } = target
+			value = value?.trim()
+			$(target)[value ? 'addClass' : 'removeClass']('has-data')
+			changeHandler(evt)
+		})
 		input.off('keyup').on('keyup', evt => {
 			let key = evt.key?.toLowerCase()
 			clearTimeout(this.timer_change)

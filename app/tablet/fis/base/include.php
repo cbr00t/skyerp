@@ -2,10 +2,6 @@
 <!-- 'mqMasterOrtak.js' prereq sırasında ÖNCEDEN include ediliyor -->
 <script src="<?=$_partRoot?>/tabDetay.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/tabFis.js?<?=$appVersion?>"></script>
-<script src="<?=$_partRoot?>/tabFisListeOrtak.js?<?=$appVersion?>"></script>
-<script src="<?=$_partRoot?>/tabFisListe.js?<?=$appVersion?>"></script>
-<script src="<?=$_partRoot?>/tabMusteriDurumu.js?<?=$appVersion?>"></script>
-<script src="<?=$_partRoot?>/tabRotaListe.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/tabTSDetay.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/tabTSFis.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/tabTicariDetay.js?<?=$appVersion?>"></script>

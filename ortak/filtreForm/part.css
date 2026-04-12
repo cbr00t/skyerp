@@ -7,9 +7,16 @@
 .bulForm.filtreForm.part {
 	position: fixed; top: -8px; right: 100px; min-width: unset !important;
 	background: transparent !important;
-	width: 180px; height: 33px; padding: 10px; opacity: .2; z-index: 1001 !important
+	width: 180px; height: 33px; padding: 10px; z-index: 1001 !important
 }
-.bulForm.filtreForm.part:has(:hover) { opacity: .7 }
-.bulForm.filtreForm.part:not(:has(:hover)):not(:has(:focus)):not(:has(:active)) input { background-color: #ffffffaa !important }
-.bulForm.filtreForm.part:has(:focus), .part .bulForm:has(:active) { opacity: 1 !important }
-@media (max-width: 650px) { .bulForm.filtreForm.part { top: -3px; right: 105px; width: 110px; padding: 5px 3px } }
+.bulForm.filtreForm.part input:not(.has-data) { opacity: .2 }
+.bulForm.filtreForm.part input.has-data { opacity: 1 !important }
+/*.bulForm.filtreForm.part input:hover:not(.has-data) { opacity: .7 }*/
+.bulForm.filtreForm.part:not(:has(:hover)):not(:has(:focus)):not(:has(:active)) input {
+	background-color: #ffffffaa !important
+}
+.bulForm.filtreForm.part input:focus,
+.bulForm.filtreForm.part input:active { opacity: 1 }
+@media (max-width: 650px) {
+	.bulForm.filtreForm.part { top: -3px; right: 105px; width: 110px; padding: 5px 3px }
+}

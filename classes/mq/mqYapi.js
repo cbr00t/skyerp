@@ -311,11 +311,13 @@ class MQYapi extends CIO {
 	static sqlExecSelect(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecSelect' }) }
 	static sqlExecTekil(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekil' }) }
 	static sqlExecTekilDeger(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekilDeger' }) }
+	static sqlExecSP(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecSP' }) }
 	sqlExecNone(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecNone' }) }
 	sqlExecNoneWithResult(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecNoneWithResult' }) }
 	sqlExecSelect(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecSelect' }) }
 	sqlExecTekil(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekil' }) }
 	sqlExecTekilDeger(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekilDeger' }) }
+	sqlExecSP(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecSP' }) }
 	static gonderildiIsaretiKoy(e = {}) { return this.gonderildiIsaretiKoyKaldir({ ...e, flag: true }) }
 	static gonderildiIsaretiKaldir(e = {}) { return this.gonderildiIsaretiKoyKaldir({ ...e, flag: false }) }
 	static async gonderildiIsaretiKoyKaldir(e = {}) {
@@ -356,6 +358,9 @@ class MQYapi extends CIO {
 		let {trnId} = e, offlineMode = e.offline ?? e.offlineMode ?? true
 		let query = new MQIliskiliDelete({ from: offlineTable })
 		return this.sqlExecNone({ ...e, offlineMode, trnId, query })
+	}
+	static async offlineSaveToLocalTableOncesi({ temps } = {}) {
+		return this.dbMgr_db
 	}
 	static async offlineSaveToLocalTable(e = {}) {
 		if (!this.dbMgr_db)

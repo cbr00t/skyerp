@@ -146,18 +146,59 @@ class TabTSFis extends TabFis {
 		})
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_baslikCollapsed({ sender: tanimPart, inst: fis, rfb }) {
-		let {yerKod} = fis
+		let { depomu, params: { tablet } } = app
+		let bakiyeGosterim = tablet[`${depomu ? 'depo' : 'ss'}MusteriBakiye`] != false
+		let { mustKod, dvKod, yerKod } = fis
+		let { dipIslemci = {}, detaylar: { length: topSatir } } = fis
+		let { brut, topIskBedel, topKdv, sonuc } = dipIslemci
+		let mustRec = ( mustKod ? (await MQTabCari.getGloKod2Rec())?.[mustKod] : null ) ?? {}
+		dvKod ||= 'TL'
+		let layoutList = []
+		if (mustRec) {
+			let { [mustKod]: rec } = await MQTabMusDurum.getGloKod2Rec() ?? {}
+			let bakiye = rec?.orjBakiye + rec?.tabBakiye
+			let kalanRisk = rec?.orjKalanRisk + rec?.tabKalanRisk
+			let takipBorc = rec?.orjTakipBorc + rec?.tabTakipBorc
+			let bakiyeRenk = bakiye ? ( bakiye < 0 ? 'orangered' : 'forestgreen' ) : '_'
+			let kalanRiskRenk = kalanRisk ? ( kalanRisk < 0 ? 'forestgreen' : 'orangered' ) : '_'
+			let takipBorcRenk = takipBorc ? ( takipBorc < 0 ? 'orangered' : 'forestgreen' ) : '_'
+			layoutList.push(...[
+				( bakiyeGosterim ? (
+					`<div class="item flex-row" style="gap: 5px">` +
+						( takipBorc ? `<span class="takipBorc etiket gray">TKP: </span>` : '' ) +
+						( takipBorc ? `<span class="takipBorc veri bold ${takipBorcRenk}">${takipBorc ? `${bedelToString(takipBorc)}` : '-'}</span>` : '' ) +
+						( takipBorc ? `<span class="takipBorc separator lightgray"> | </span>` : '' ) +
+						( kalanRisk ? `<span class="kalanRisk etiket gray">KR: </span>` : '' ) +
+						( kalanRisk ? `<span class="kalanRisk veri bold ${kalanRiskRenk}">${kalanRisk ? `${bedelToString(kalanRisk)}` : '-'}</span>` : '' ) +
+						( kalanRisk ? `<span class="kalanRisk separator lightgray"> | </span>` : '' ) +
+						( bakiye ? `<span class="bakiye etiket gray">BK: </span>` : '' ) +
+						( bakiye ? `<span class="bakiye veri bold ${bakiyeRenk}">${bakiye ? `${bedelToString(bakiye)}` : '-'}</span>` : '' ) +
+					`</div>`
+				) : null )
+			].filter(Boolean))
+		}
 		if (yerKod) {
 			let aciklama = (await MQTabYer.getGloKod2Adi(yerKod)) || yerKod
-			rfb.addForm().setLayout(() => $([
-				`<div class="flex-row" style="gap: 10px">`,
-					`<div class="rebeccapurple">`,
-						`<span>Yer:</span>`,
-						`<b>${aciklama}</b></div>`,
-					`</div>`,
+			layoutList.push(...[
+				`<div class="item">` +
+					 `<span class="yer etiket lightgray">Yer:</span>` +
+					 `<span class="yer veri rebeccapurple bold">${aciklama}</span>` +
 				`</div>`
-			].join(CrLf)))
+			].filter(Boolean))
 		}
+
+		layoutList = layoutList?.filter(Boolean)
+		if (!empty(layoutList)) {
+			rfb.addForm().setLayout(() => {
+				/*layoutList = [
+					`<div style="gap: 10px">`,
+					...layoutList,
+					`</div>`
+				]*/
+				return $(layoutList.join(CrLf))
+			})
+		}
+		
 		await super.rootFormBuilderDuzenle_tablet_acc_baslikCollapsed(...arguments)
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_baslik({ sender: tanimPart, inst: fis, rfb, acc }) {
@@ -191,34 +232,11 @@ class TabTSFis extends TabFis {
 		await super.rootFormBuilderDuzenle_tablet_acc_dipCollapsed(...arguments)
 		let { depomu, params: { tablet } } = app
 		let bakiyeGosterim = tablet[`${depomu ? 'depo' : 'ss'}MusteriBakiye`] != false
-		let { mustKod, dvKod, dipIslemci = {} } = fis
-		let { detaylar: { length: topSatir } } = fis
-		let mustRec = ( mustKod ? (await MQTabCari.getGloKod2Rec())?.[mustKod] : null ) ?? {}
+		let { mustKod, dvKod } = fis
+		let { dipIslemci = {}, detaylar: { length: topSatir } } = fis
 		let { brut, topIskBedel, topKdv, sonuc } = dipIslemci
 		dvKod ||= 'TL'
 		let layoutList = []
-		if (mustRec) {
-			let uni = new MQUnionAll()
-			;{
-				let sent = new MQSent(), { where: wh, sahalar } = sent
-				sent.fromAdd('carbakiye')
-				wh.degerAta(mustKod, 'kod')
-				sahalar.add(`'bakiye' tip`, 'bakiye bedel')
-				uni.add(sent)
-			}
-			// ;{ ... }
-			let recs = await uni.execSelect()
-			let tip2Bedel = fromEntries(recs.map(r => [r.tip, r.bedel]))
-			let { bakiye } = tip2Bedel
-			let bakiyeRenk = bakiye ? ( bakiye ? 'orangered' : 'forestgreen' ) : '_'
-			layoutList.push(...[
-				`<div class="item flex-row" style="gap: 10px">`,
-					( bakiyeGosterim ? `<span class="bakiye etiket lightgray">Bak: </span>` : null ),
-					( bakiyeGosterim ? `<span class="bakiye veri ${bakiyeRenk} bold">${bakiye ? `${bedelToString(bakiye)} TL` : '-Yok-'}</span>` : null ),
-					(topSatir ? `<div class="topSatir veri royalblue"><b>${numberToString(topSatir)}</b> satır</div>` : null),
-				`</div>`
-			].filter(Boolean))
-		}
 		if (sonuc) {
 			layoutList.push(...[
 				`<div class="item flex-row" style="gap: 10px">`,
@@ -237,20 +255,26 @@ class TabTSFis extends TabFis {
 					( sonuc ?
 						`<div>` +
 							`<span class="sonuc etiket lightgray">Top: </span>` +
-							`<span class="sonuc veri royalblue bold">${bedelToString(sonuc)} ${dvKod}</span>` +
+							`<span class="sonuc veri forestgreen bold">${bedelToString(sonuc)} ${dvKod}</span>` +
 						`</div>`
 					: null ),
+					(
+						`<div>` +
+							`<span class="topSatir veri orangered"><b>${numberToString(topSatir)}</b> satır</span>` +
+						 `</div>`
+					),
 				`</div>`
 			].filter(Boolean))
 		}
+		
 		layoutList = layoutList?.filter(Boolean)
 		if (!empty(layoutList)) {
 			rfb.addForm().setLayout(() => {
-				layoutList = [
+				/*layoutList = [
 					`<div style="gap: 10px">`,
 					...layoutList,
 					`</div>`
-				]
+				]*/
 				return $(layoutList.join(CrLf))
 			})
 		}

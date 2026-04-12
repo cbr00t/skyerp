@@ -50,7 +50,7 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 			if (v !== undefined)
 				events[k] = v
 		}
-		$.extend(this, { width, height, events, otoTazeleYapilirmi })
+		extend(this, { width, height, events, otoTazeleYapilirmi })
 	}
 	static getClass(e) {
 		let kod = typeof e == 'object' ? (e.kod ?? e.tip) : e

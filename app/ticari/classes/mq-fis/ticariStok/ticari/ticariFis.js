@@ -402,7 +402,8 @@ class TicariFis extends TSOrtakFis {
 		if (!musteriOncekiBakiyeDurumu) {
 			if (eskiFis && eskiFis.mustKod == mustKod) {
 				let {musteriOncekiBakiyeDurumu: _musteriOncekiBakiyeDurumu} = eskiFis;
-				if (_musteriOncekiBakiyeDurumu) { musteriOncekiBakiyeDurumu = (_musteriOncekiBakiyeDurumu.deepCopy ? _musteriOncekiBakiyeDurumu.deepCopy() : $.extend(true, {}, _musteriOncekiBakiyeDurumu)) }
+				if (_musteriOncekiBakiyeDurumu)
+					musteriOncekiBakiyeDurumu = (_musteriOncekiBakiyeDurumu.deepCopy ? _musteriOncekiBakiyeDurumu.deepCopy() : extend(true, {}, _musteriOncekiBakiyeDurumu))
 				else {
 					let query = new MQSent({
 						from: 'carbakiye', sahalar: ['SUM(bakiye) bakiye', 'SUM(dvbakiye) dvbakiye'],

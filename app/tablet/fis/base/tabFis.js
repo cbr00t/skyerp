@@ -366,9 +366,11 @@ class TabFis extends MQDetayliGUIDOrtak {
 			return
 		let args = {
 			etiket: 'Miktar giriniz', value: det.miktar,
-			args: { width: 500, height: 200 },
-			buildEk: ({ builder: fbd }) => {
-				fbd.addStyle(
+			args: { width: 500, height: 200 }, numerik: true,
+			duzenle: ({ fbd_value }) => {
+				/*fbd_value.onBuildEk(({ builder: { input } }) =>
+					input.prop('type', 'number'))*/
+				fbd_value.addStyle(
 					`$elementCSS {
 						width: 180px !important; max-width: unset !important;
 						margin-left: auto !important; margin-right: auto !important
@@ -377,13 +379,12 @@ class TabFis extends MQDetayliGUIDOrtak {
 						font-size: 150% !important;
 						color: forestgreen !important
 					}
-				`
-				)
+				`)
 			}
 		}
 		let miktar = await jqxPrompt(args)
-		miktar = miktar == null ? null : asFloat(miktar.replace(',', '.'))
-		if (miktar && miktar != det.miktar) {
+		// miktar = miktar == null ? null : asFloat(miktar.replace(',', '.'))
+		if (miktar > 0 && miktar != det.miktar) {
 			det.miktar = miktar
 			det.bedelHesapla().htmlOlustur()
 			w?.updaterow(det.uid, det)
@@ -481,33 +482,10 @@ class TabFis extends MQDetayliGUIDOrtak {
 		await this.dipIslemci?.kaydetOncesiIslemler(...arguments)
 	}
 	async kaydetSonrasiIslemler(e = {}) {
+		let inst = this
 		let { islem, eskiInst = e.eskiFis ?? e.eskiObj ?? {} } = e
-		let { mustKod } = this, { mustKod: onceki_mustKod } = eskiInst
-		let toplu = new MQToplu()
-		if (mustKod || onceki_mustKod) {
-			let { bakiyeArtis } = this
-			let { bakiyeArtis: onceki_bakiyeArtis } = eskiInst
-			if (bakiyeArtis || onceki_bakiyeArtis) {
-				MQTabCariBakiye.globalleriSil()
-				let { table, kodSaha } = MQTabCariBakiye
-				if (bakiyeArtis) {
-					let upd = new MQIliskiliUpdate(), { where: wh, set } = upd
-					upd.fromAdd(table)
-					wh.degerAta(mustKod, kodSaha)
-					set.add(`bakiye = bakiye + ${bakiyeArtis.sqlDegeri()}`)
-					toplu.add(upd)
-				}
-				if (onceki_bakiyeArtis) {
-					let upd = new MQIliskiliUpdate(), { where: wh, set } = upd
-					upd.fromAdd(table)
-					wh.degerAta(onceki_mustKod, kodSaha)
-					set.add(`bakiye = bakiye - ${onceki_bakiyeArtis.sqlDegeri()}`)
-					toplu.add(upd)
-				}
-			}
-		}
 		await super.kaydetSonrasiIslemler(...arguments)
-		await toplu.execute(e)
+		await MQTabMusDurum.update({ inst, eskiInst })
 	}
 	async yukle(e = {}) {
 		let {rec} = e
@@ -538,22 +516,8 @@ class TabFis extends MQDetayliGUIDOrtak {
 				throw { isError: true, rc: 'fatalError', errorText: 'iç hata: Silinecek belge yüklenemedi' }
 		}
 
-		let { islem } = e, { mustKod } = this
-		let toplu = new MQToplu()
-		if (mustKod) {
-			let { bakiyeArtis } = this
-			if (bakiyeArtis) {
-				MQTabCariBakiye.globalleriSil()
-				let { table, kodSaha } = MQTabCariBakiye
-				let upd = new MQIliskiliUpdate(), { where: wh, set } = upd
-				upd.fromAdd(table)
-				wh.degerAta(mustKod, kodSaha)
-				set.add(`bakiye = bakiye - ${bakiyeArtis.sqlDegeri()}`)
-				toplu.add(upd)
-			}
-		}
-		await toplu.execute(e)
-		
+		let eskiInst = this
+		await MQTabMusDurum.update({ eskiInst })
 		return true
 	}
 	static varsayilanKeyHostVarsDuzenle({ hv }) {
@@ -1119,11 +1083,11 @@ class TabFis extends MQDetayliGUIDOrtak {
 			rfb
 				.addCSS('flex-row')
 				.addStyle(
-					`$elementCSS > div { width: max-content !important }
-					 $elementCSS > div:not(:first-child) { margin-left: 20px }`
+					`/*$elementCSS > div { width: max-content !important }*/
+					 $elementCSS > div:not(:first-child) { margin-left: 5px }`
 				)
 			rfb.addForm().setLayout(() => $([
-				`<div class="flex-row" style="gap: 10px">`,
+				`<div class="flex-row" style="gap: 5px">`,
 					// `<div class="orangered"><b>${dateKisaString(asDate(tarih))}</b></div>`,
 					`<div class="etiket lightgray">M:</div> `,
 					`<div class="royalblue"><b>${aciklama}</b></div>`,
@@ -1133,7 +1097,7 @@ class TabFis extends MQDetayliGUIDOrtak {
 		if (eFatmi) {
 			rfb.addForm().setLayout(() => $([
 				`<div class="flex-row" style="gap: 5px">`,
-					`<div class="bold red">e-İşlem</div>`,
+					`<span class="bold red">e-İşlem</span>`,
 				`</div>`
 			].join(CrLf)))
 		}

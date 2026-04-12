@@ -477,47 +477,51 @@ class TabSutAlimFis extends TabFis {
 	static async rootFormBuilderDuzenle_tablet_acc_dipCollapsed({ sender: tanimPart, inst: fis, rfb }) {
 		await super.rootFormBuilderDuzenle_tablet_acc_dipCollapsed(...arguments)
 		let { rotaID, posta, topMiktar, detaylar, class: { detaySinif: { defaultBrm } } } = fis
+		rfb.addStyle(
+			`$elementCSS { padding-top: 15px }
+			 $elementCSS > .item { gap: 10px }`
+		)
+		let layoutList = []
 		if (rotaID) {
-			let aciklama = (await MQTabRota.loadServerData())
+			let aciklama = ( await MQTabRota.loadServerData() )
 				.find(r => r.rotaID == rotaID)?.aciklama || rotaID
-			rfb
-				.addCSS('flex-row')
-				.addStyle(
-					`$elementCSS > div { width: max-content !important }
-					 $elementCSS > div:not(:first-child) { margin-left: 20px }`
-				)
-			rfb.addForm().setLayout(() => $([
-				`<div class="rota flex-row" style="gap: 10px">`,
-					`<div class="etiket lightgray">R:</div> `,
-					`<div class="bold blueviolet">${aciklama}</div>`,
+			layoutList.push(...[
+				`<div class="item flex-row">` +
+					`<span class="rota etiket gray">R: </span>` +
+					`<span class="rota veri blueviolet bold">${aciklama}</span>` +
 				`</div>`
-			].join(CrLf)))
+			])
 		}
 
+		layoutList.push(`<div class="item flex-row">`)
 		if (posta) {
 			let { aciklama = '' } = new TabPosta(posta)
-			rfb
-				.addCSS('flex-row')
-				.addStyle(
-					`$elementCSS > div { width: max-content !important }
-					 $elementCSS > div:not(:first-child) { margin-left: 20px }`
-				)
-			rfb.addForm().setLayout(() => $([
-				`<div class="posta flex-row" style="gap: 10px">`,
-					`<div class="etiket lightgray">P:</div> `,
-					`<div class="bold darkyellow">${aciklama}</div>`,
-				`</div>`
-			].join(CrLf)))
+			layoutList.push(...[
+				`<span class="posta etiket gray">P: </span>` +
+				`<span class="posta veri darkyellow bold">${aciklama}</span>`
+			])
 		}
-		
-		let topSatir = detaylar.filter(_ => _.miktar).length
-		let brm = detaylar[0]?.brm ?? defaultBrm
-		rfb.addForm().setLayout(() => $([
-			`<div class="flex-row" style="gap: 10px">`,
-				(topMiktar ? `<div class="topMiktar forestgreen"><b>${numberToString(topMiktar, 2)}</b> ${brm}</div>` : null),
-				(topSatir ? `<div class="topSatir royalblue"><b>${numberToString(topSatir)}</b> satır</div>` : null),
-			`</div>`
-		].filter(Boolean).join(CrLf)))
+		;{
+			let topSatir = detaylar.filter(_ => _.miktar).length
+			let brm = detaylar[0]?.brm ?? defaultBrm
+			layoutList.push(...[
+				`<span class="topMiktar veri forestgreen"><b>${numberToString(topMiktar, 2)}</b> ${brm}</span>` +
+				`<span class="topSatir veri royalblue"><b>${numberToString(topSatir)}</b> satır</span>`
+			])
+		}
+		layoutList.push(`</div>`)
+
+		layoutList = layoutList?.filter(Boolean)
+		if (!empty(layoutList)) {
+			rfb.addForm().setLayout(() => {
+				/*layoutList = [
+					`<div style="gap: 10px">`,
+					...layoutList,
+					`</div>`
+				]*/
+				return $(layoutList.join(CrLf))
+			})
+		}
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_detayCollapsed({ sender: tanimPart, inst: fis, rfb }) {
 		await super.rootFormBuilderDuzenle_tablet_acc_detayCollapsed(...arguments)

@@ -268,7 +268,8 @@ class MQDetayli extends MQSayacli {
 			let paramName_fisSayac = '@fisSayac'
 			await this.yeniOncesiIslemler(e)
 			let _e = { ...e, toplu: new MQToplu(), paramName_fisSayac }
-			await this.topluYazmaKomutlariniOlustur(_e); await this.topluYazmaKomutlariniOlusturSonrasi(_e); if (empty(_e.toplu.liste)) { return true }
+			await this.topluYazmaKomutlariniOlustur(_e); await this.topluYazmaKomutlariniOlusturSonrasi(_e)
+			if (empty(_e.toplu.liste)) { return true }
 			let {toplu: query, sayac} = _e; _e = { offlineMode, trnId, query, sayac };
 			await delay(asInteger(100 + Math.random() * 400));
 			let result = await this.sqlExecNoneWithResult(_e); if ($.isArray(result)) { result = result[0] ?? true }

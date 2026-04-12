@@ -1,10 +1,10 @@
 .accordion.part {
-	--item-pad-x: 1px; --item-pad-y: 1px;
-	--acc-header-height: 40px;
-	--acc-header-collapsed-lineHeight: 20px;
+	--item-pad-x: 1px; --item-pad-y: 2px;
+	--acc-header-height: 35px;
+	--acc-header-collapsed-lineHeight: 16px;
 	--border-size: 2px;
 	width: calc(var(--full) - var(--item-pad-x) * 2);
-	height: calc(var(--full) - var(--item-pad-y) * 2)
+	height: calc(var(--full) - var(--item-pad-y) * 2 + 5px)
 }
 .accordion.part .accordion.item {
 	position: relative;
@@ -12,23 +12,28 @@
 	margin: var(--item-pad-y) var(--item-pad-x);
 	border-radius: 10px;
 	border: var(--border-size) solid rgba(0, 0, 0, .10);
-	box-sizing: content-box; transition: 200ms ease
+	box-sizing: content-box
+}
+.accordion.part .accordion.item > div {
+	transition: 100ms ease
+	/*transition-delay: 2ms*/
 }
 .accordion.part.fullScreen:has(> .accordion.item.expanded) .accordion.item:not(.expanded) { display: none }
 /*.accordion.part .accordion.item.expanded > .header > .collapsed-content,*/
 .accordion.part .accordion.item:not(.expanded) > .content { display: none }
-.accordion.part .accordion > .header {
+.accordion.part .accordion.item > .header {
 	font-size: 110%; user-select: none; cursor: pointer;
 	height: var(--acc-header-height); padding: 0 8px;
+	padding-right: 5px;
 	border: 1px solid #ccc; border-bottom: 1px solid rgba(0, 0, 0, 0.15);
 	background: #f7f7f7; align-items: center;
-	overflow-y: auto !important
+	overflow-y: hidden
 }
 .accordion.part .accordion.item:not(.expanded) > .header { background: #cecececc }
 .accordion.part .accordion.item.expanded { }
 .accordion.part .accordion.item.expanded:not(.disabled) > .header {
 	/*background: #8eaafc;*/
-	background: linear-gradient(90deg, #8eaafc 50%, #cececeee 85%);
+	background: linear-gradient(35deg, #8eaafc 5%, #cececeee 90%);
 	border-bottom: 1px solid rgba(0, 0, 0, 0.35)
 }
 .accordion.part .accordion.item.disabled { opacity: .4; pointer-events: none }
@@ -42,16 +47,22 @@
 	border-bottom: 3px solid rgba(0, 50, 100, 0.35)*/
 }
 .accordion.part .accordion.item > .header > .title {
+	height: var(--full) !important; margin-top: 0;
 	font-weight: 600; color: #222; white-space: nowrap;
-	overflow: hidden; text-overflow: ellipsis
+	overflow: hidden; text-overflow: ellipsis;
 }
 .accordion.part .accordion.item > .header > .collapsed-content {
-	font-size: 83%; color: #777;
-	margin-left: auto; margin-top: -8px;
-	padding-right: 5px;
-	line-height: var(--acc-header-collapsed-lineHeight)
+	font-size: 70%; color: #555;
+	margin-left: auto; margin-top: -18px; padding-right: 5px;
+	line-height: var(--acc-header-collapsed-lineHeight);
+	overflow-y: auto !important
 }
 .accordion.part .accordion.item > .header > .collapsed-content > div {
+}
+.accordion.part .accordion.item > .header > .collapsed-content > .formBuilder-element,
+.accordion.part .accordion.item > .header > .collapsed-content > * > .formBuilder-element,
+.accordion.part .accordion.item > .header > .collapsed-content > * > * > .formBuilder-element {
+	width: unset
 }
 .accordion.part .accordion.item > .header > .collapsed-content,
 .accordion.part .accordion.item > .header > .collapsed-content > div {
@@ -60,7 +71,7 @@
 .accordion.part .accordion > .content {
 	width: var(--full);
 	height: calc(var(--full) - (var(--acc-header-height) + 2px));
-	padding: 5px 2px; box-sizing: content-box;
+	padding: 3px 2px; box-sizing: content-box;
 	border-top: 2px solid rgba(0 200, 255, .8);
 	overflow-x: hidden !important; overflow-y: auto !important;
 	animation: 100ms cubic-bezier(0.45, 0.05, 0.55, 0.95) 0ms 1 normal nav-item-open
@@ -69,10 +80,27 @@
 	max-width: calc(var(--full) - var(--item-pad-x) * 3)
 }
 
+.accordion.part .accordion.item.expanded > .header > .collapsed-content { color: #111 }
+.accordion.part .accordion.item.expanded > .header > .collapsed-content > * .gray { color: #333 !important }
+.accordion.part .accordion.item.expanded > .header > .collapsed-content > * .lightgray { color: #777 !important }
+
 @media (max-width: 800px) {
-	.accordion.part { --acc-header-height: 35px; --acc-header-collapsed-lineHeight: 16px }
-	.accordion.part .accordion.item > .header { line-height: 15px }
+	.accordion.part .accordion.item > .header > .collapsed-content {
+		--acc-header-collapsed-lineHeight: 13px;
+		font-size: 70%
+	}
+	.accordion.part .item:not(.expanded) { --acc-header-height: 33px }
+	.accordion.part .item.expanded { --acc-header-height: 50px }
+	.accordion.part .accordion.item.expanded > .header > .collapsed-content {
+		margin-top: -30px
+	}
+	.accordion.part .accordion.item:not(.expanded) > .header > .collapsed-content {
+		margin-top: -20px
+	}
 }
 @media (max-width: 600px) {
-	.accordion.part { --acc-header-height: 45px; --acc-header-collapsed-lineHeight: 18px }
+	/*.accordion.part.expanded { --acc-header-height: 45px }*/
+	.accordion.part .accordion.item > .header > .collapsed-content {
+		font-size: 78%
+	}
 }
