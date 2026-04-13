@@ -436,7 +436,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 		// matrah ve kdv
 		;{
 			form.addGridliGosterici('matrahKdv')
-				.setUserData({ noSort: true })
+				.setUserData({ keyFields: ['oran'], noSort: true })
 				.addStyle_fullWH(450, 500)
 				.rowNumberOlmasin().notAdaptive()
 				.setToplamYapi({ etiket: { belirtec: 'text' } })
@@ -811,6 +811,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 		if (empty(db2Kod2Def))
 			return await query.execSelect({ timeout, params })
 
+		let { userData: { keyFields, sortFields, noSort } = {} } = fbd ?? {}
 		tabloKolonlari ??= fbd?.tabloKolonlari ?? gridPart?.tabloKolonlari
 		let cd = { sabit: {}, toplam: {} }
 		if (tabloKolonlari) {
@@ -869,11 +870,17 @@ class DRapor_PratikSatis extends DRaporMQ {
 			)
 		}
 
-		let getKey = (r, sortFields) => {
+		let getKey = (r, keyFields, sortFields) => {
+			if (keyFields)
+				keyFields = makeArray(keyFields)
 			if (sortFields)
 				sortFields = makeArray(sortFields)
-			let _keys = sortFields ?? keys(cd.sabit)
-			return _keys
+			
+			if (empty(keyFields))
+				keyFields = sortFields
+			if (empty(keyFields))
+				keyFields = keys(cd.sabit)
+			return keyFields
 				.map(k => String(r[k]))
 				.join('\t')
 		}
@@ -894,7 +901,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 				continue
 
 			;recs.forEach(bu => {
-				let k = getKey(bu)
+				let k = getKey(bu, keyFields)
 				if (!key2Rec.has(k))
 					key2Rec.set(k, bu)
 				else {
@@ -908,10 +915,9 @@ class DRapor_PratikSatis extends DRaporMQ {
 
 		;{
 			let recs = Array.from(key2Rec.values())
-			let { userData: { noSort, sortFields } = {} } = fbd ?? {}
 			if (!noSort) {
 				recs.sort((a, b) =>
-					getKey(a, sortFields).localeCompare(getKey(b, sortFields)))
+					getKey(a, keyFields, sortFields).localeCompare(getKey(b, keyFields, sortFields)))
 			}
 			return recs
 		}
