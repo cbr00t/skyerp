@@ -153,7 +153,9 @@ body.dark-theme #ust-parent > #nav[style = ""] + #parent #windows.part {
 	filter: blur(2px) brightness(.9); opacity: 1 !important
 }
 body #ust-parent > #nav ul > li ul { animation: 100ms 1 nav-item-open }
-@keyframes nav-open { 100% { opacity: .5 !important; filter: blur(.8px) brightness(.5) } }
+@keyframes nav-open {
+	100% { opacity: .5 !important; filter: blur(.8px) brightness(.5) }
+}
 @keyframes nav-item-open {
 	  0% { opacity: 0 }
 	 50% { opacity: .5 }
@@ -279,5 +281,15 @@ input[type = text]::placeholder,
 	width: calc(var(--full) - 8px) !important
 }
 @media (max-width: 850px) {
+	.sn-notifications-container { --sn-notify-width: 400px }
+	.sn-notifications-container .sn-notify-content > * {
+		font-size: 80% !important;
+		line-height: 16px
+	}
+	.sn-notifications-container .sn-notify-content > * > * > * {
+		
+	}
+}
+@media (max-width: 600px) {
 	.sn-notifications-container { --sn-notify-width: 350px }
 }

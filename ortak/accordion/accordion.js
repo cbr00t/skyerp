@@ -83,7 +83,7 @@ class AccordionPart extends Part {
 		let {layout, panels, _lastPanelCount} = this
 		if (!layout?.length)
 			return this
-		let {defaultCollapsed, fullScreenFlag: fullScreen} = this
+		let { defaultCollapsed, fullScreenFlag: fullScreen } = this
 		layout[fullScreen ? 'addClass' : 'removeClass']('fullScreen')
 		if (_lastPanelCount > panels.length) {
 			layout.find('.accordion.item').remove()

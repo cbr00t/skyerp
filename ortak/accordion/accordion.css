@@ -18,7 +18,9 @@
 	transition: 100ms ease
 	/*transition-delay: 2ms*/
 }
+.accordion.part.fullScreen:has(> .accordion.item.expanded) .accordion.item.expanded { height: calc(var(--full) - var(--acc-header-height) * 1.55) }
 .accordion.part.fullScreen:has(> .accordion.item.expanded) .accordion.item:not(.expanded) { display: none }
+.accordion.part.fullScreen:has(> .accordion.item.expanded) .accordion.item.expanded + .accordion.item { display: block }
 /*.accordion.part .accordion.item.expanded > .header > .collapsed-content,*/
 .accordion.part .accordion.item:not(.expanded) > .content { display: none }
 .accordion.part .accordion.item > .header {
@@ -49,15 +51,22 @@
 .accordion.part .accordion.item > .header > .title {
 	height: var(--full) !important; margin-top: 0;
 	font-weight: 600; color: #222; white-space: nowrap;
-	overflow: hidden; text-overflow: ellipsis;
+	overflow: hidden; text-overflow: ellipsis
 }
 .accordion.part .accordion.item > .header > .collapsed-content {
 	font-size: 70%; color: #555;
 	margin-left: auto; margin-top: -18px; padding-right: 5px;
-	line-height: var(--acc-header-collapsed-lineHeight);
 	overflow-y: auto !important
 }
-.accordion.part .accordion.item > .header > .collapsed-content > div {
+.accordion.part .accordion.item > .header > .collapsed-content > * {
+	line-height: var(--acc-header-collapsed-lineHeight)
+}
+.accordion.part .accordion.item > .header > .collapsed-content,
+.accordion.part .accordion.item > .header > .collapsed-content > *,
+.accordion.part .accordion.item > .header > .collapsed-content > * > *,
+.accordion.part .accordion.item > .header > .collapsed-content > * > * > * {
+	word-wrap: break-word; white-space: pre-wrap;
+	text-overflow: ellipsis; 
 }
 .accordion.part .accordion.item > .header > .collapsed-content > .formBuilder-element,
 .accordion.part .accordion.item > .header > .collapsed-content > * > .formBuilder-element,
@@ -85,22 +94,21 @@
 .accordion.part .accordion.item.expanded > .header > .collapsed-content > * .lightgray { color: #777 !important }
 
 @media (max-width: 800px) {
+	.accordion.part .accordion.item > .header > .title {
+		margin-top: 0;
+		margin-bottom: -30px;
+		line-height: 16px
+	}
 	.accordion.part .accordion.item > .header > .collapsed-content {
 		--acc-header-collapsed-lineHeight: 13px;
-		font-size: 70%
+		font-size: 74%
 	}
 	.accordion.part .item:not(.expanded) { --acc-header-height: 33px }
 	.accordion.part .item.expanded { --acc-header-height: 50px }
-	.accordion.part .accordion.item.expanded > .header > .collapsed-content {
-		margin-top: -30px
-	}
-	.accordion.part .accordion.item:not(.expanded) > .header > .collapsed-content {
-		margin-top: -20px
-	}
+	.accordion.part .accordion.item.expanded > .header > .collapsed-content { margin-top: -30px }
+	.accordion.part .accordion.item:not(.expanded) > .header > .collapsed-content { margin-top: -20px }
 }
 @media (max-width: 600px) {
 	/*.accordion.part.expanded { --acc-header-height: 45px }*/
-	.accordion.part .accordion.item > .header > .collapsed-content {
-		font-size: 78%
-	}
+	.accordion.part .accordion.item > .header > .collapsed-content { font-size: 70% }
 }

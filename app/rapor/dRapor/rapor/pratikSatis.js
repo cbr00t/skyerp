@@ -8,20 +8,20 @@ class DRapor_PratikSatis extends DRaporMQ {
 	get uygunmu() { return this.class.uygunmu } static get uygunmu() { return this.hareketciSinif.uygunmu }
 	static get secimSinif() { return DonemselSecimler } static get sadeceTanimmi() { return true }
 	static get kolonFiltreKullanilirmi() { return false } static get bulFormKullanilirmi() { return true }
-	get timeout() { return config.dev ? 5_000 : 15_000 }
-	static get otoTazele_minDk() { return config.dev ? .1 : .3 }
+	get timeout() { return config.dev ? 5_000 : 13_000 }
+	static get otoTazele_minDk() { return config.dev ? .05 : .1 }
 	// static get vioAdim() { return 'MH-R' }
 
-	uiGirisOncesiIslemler(e) {
+	async uiGirisOncesiIslemler(e) {
 		let { sender: tanimPart } = e, { sinifAdi: title } = this.class
 		e.islem = tanimPart.islem = 'izle'
 		extend(tanimPart, { title })
 		this.secimlerOlustur(e)
 		//let { dRapor: { praUzakSubeVerisi } } = app.params ?? {}
-		//if (!praUzakSubeVerisi)
-		//	this.getSubeTanimlari(e)
+		//if (praUzakSubeVerisi)
+		tanimPart._promise_getSubeTanimlari = this.getSubeTanimlari({ ...e, tanimPart })
 		app.appTitleBar?.addClass('jqx-hidden')
-		return super.uiGirisOncesiIslemler(e)
+		return await super.uiGirisOncesiIslemler(e)
 	}
 	destroyPart(e = {}) {
 		e.sender = this
@@ -41,7 +41,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 				.fromIliski('kasiyer kas', 'fis.kasiyerkod = kas.kod')
 			wh
 				.fisSilindiEkle()
-				.add(new MQOrClause([`fis.ozelisaret <> '*'`, `fis.fisanatipi = 'YM'`]))
+				//.add(new MQOrClause([`fis.ozelisaret <> '*'`, `fis.fisanatipi = 'YM'`]))
 			if (tarihBS)
 				wh.basiSonu(tarihBS, 'fis.tarih')
 		})
@@ -49,16 +49,25 @@ class DRapor_PratikSatis extends DRaporMQ {
 	static rootFormBuilderDuzenle_islemTuslari({ sender: tanimPart, fbd_islemTuslari: fbd }) {
 		super.rootFormBuilderDuzenle_islemTuslari(...arguments)
 		fbd.addStyle(
-			`$elementCSS { position: fixed; top: 65px !important; pointer-events: none !important }
-			 @media (max-width: 650px) {
-				$elementCSS { top: 45px !important }
-			 }
-			 @media (max-width: 395px) {
-				$elementCSS { top: 0 !important }
-			 }
-			 $elementCSS > .sag { pointer-events: auto !important }
-			 $elementCSS #seviyeAc.jqx-fill-state-normal { background-color: forestgreen !important }
-			 $elementCSS #seviyeKapat.jqx-fill-state-normal { background-color: firebrick !important }`
+			`$elementCSS {
+				position: fixed;
+				top: 80px !important;
+				right: 5px !important;
+				pointer-events: none !important
+			}
+			$elementCSS > .sag {
+				pointer-events: auto !important;
+				z-index: 1050 !important
+			}
+			@media (max-width: 700px) {
+				$elementCSS { right: -5px !important }
+			}
+			@media (max-width: 550px) {
+				$elementCSS { top: 63px !important; right: -5px !important }
+				$elementCSS:not(:has(:focus)):not(:has(:active)) { opacity: .4 }
+			}
+			$elementCSS #seviyeAc.jqx-fill-state-normal { background-color: forestgreen !important }
+			$elementCSS #seviyeKapat.jqx-fill-state-normal { background-color: firebrick !important }`
 		)
 	}
 	static tanimPart_islemTuslariDuzenle(e) {
@@ -76,8 +85,8 @@ class DRapor_PratikSatis extends DRaporMQ {
 		liste = e.liste = [...items, ...liste]
 		extend(sagSet, asSet(items.map(_ => _.id)))
 	}
-	static rootFormBuilderDuzenle(e = {}) {
-		super.rootFormBuilderDuzenle(e)
+	static async rootFormBuilderDuzenle(e = {}) {
+		await super.rootFormBuilderDuzenle(e)
 		let { otoTazele_minDk } = this
 		let { sender: tanimPart, islem, inst, rootBuilder: rfb, tanimFormBuilder: tanimForm } = e
 		extend(e, { tanimPart })
@@ -104,7 +113,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 					pointer-events: auto !important
 				}
 				$elementCSS > input { height: unset !important }
-				$elementCSS.active { animation: 3000ms infinite anim-dRapor-otoTazele }
+				$elementCSS.active { animation: 3000ms infinite anim-pratikSatis-otoTazele }
 				.part.refreshing $elementCSS > input {
 					background-color: lightcyan !important;
 					background-image: url(../../images/loading.gif) !important;
@@ -112,19 +121,39 @@ class DRapor_PratikSatis extends DRaporMQ {
 					background-size: 32px 32px !important;
 					background-repeat: no-repeat !important
 				 }
-				 @keyframes anim-dRapor-otoTazele {
-					   0% { box-shadow: 0 0 13px 3px forestgreen }
-					  70% { box-shadow: 0 0 13px 8px forestgreen }
-					 100% { box-shadow: 0 0 13px 3px forestgreen }
+				 @keyframes anim-pratikSatis-otoTazele {
+					  0%, 100%  { box-shadow: 0 0 13px 3px forestgreen }
+					 70%        { box-shadow: 0 0 13px 8px forestgreen }
 				 }`
 			])
 		
 		tanimForm.addAccordion('acc')
 			.fullScreen()
 			.addStyle_fullWH()
-			.addStyle(
-				`$elementCSS .secimBilgi { margin-right: 250px }
-				 $elementCSS .secimBilgi > * { background-color: whitesmoke !important }`
+			.addStyle(`
+				$elementCSS .accordion > .header > .collapsed-content > div {
+					margin-top: 14px;
+					line-height: 16px !important
+				}
+				@media (max-width: 600px) {
+					$elementCSS .accordion > .header > .collapsed-content > div {
+						margin-top: 18px;
+						line-height: 18px !important
+					}
+				}
+				$elementCSS .accordion.item.expanded.has-error > .header {
+					background: linear-gradient(35deg, #fc8e8e 50%, #cececeee 100%) !important;
+					animation: anim-haserror 900ms ease-in-out infinite !important
+				}
+				$elementCSS .accordion.item.has-error > .content > div {
+					box-shadow: 0 0px 15px 2px firebrick !important
+				}
+				$elementCSS .secimBilgi { margin-right: 250px }
+				$elementCSS .secimBilgi > * { background-color: whitesmoke !important }
+				@keyframes anim-haserror {
+					  0%, 100%  { filter: brightness(1) }
+					 50%        { filter: brightness(1.2) saturate(1.1) }
+				 }`
 			)
 			.onAfterRun(({ builder: { part }}) =>
 				tanimPart.acc = e.acc = part)
@@ -211,16 +240,18 @@ class DRapor_PratikSatis extends DRaporMQ {
 	async acc_initContent_ozet({ tanimPart, islem, acc, item, layout, rfb }) {
 		// rfb.addStyle_fullWH()
 		let form = rfb.addFormWithParent().yanYana()
-			.addStyle(`$elementCSS > div { overflow-y: auto !important }`)
+			.addStyle(`$elementCSS { overflow: hidden !important }`)
 		
 		// özet
 		;{
 			let altForm = form.addFormWithParent().altAlta()
-				.addStyle_wh(450)
+				.addStyle_fullWH(null, 'auto')
+				.addStyle(`$elementCSS { overflow-x: hidden !important }`)
 			;{
 				altForm.addGridliGosterici('ozet')
+					.noAnimate()
 					.setUserData({ noSort: true })
-					.addStyle_fullWH(null, 197)
+					.addStyle_fullWH(null, 240)
 					.rowNumberOlmasin().notAdaptive()
 					.setToplamYapi({ etiket: { belirtec: 'tipText' } })
 					.widgetArgsDuzenleIslemi(({ args }) =>
@@ -242,7 +273,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 					.setSource(async e => {
 						let uni = new MQUnionAll()
 						;{
-							let sent = new MQSent(), {where: wh, sahalar} = sent
+							let sent = new MQSent(), { where: wh, sahalar } = sent
 							this.baslikSentDuzele({ ...arguments[0], ...e, sent })
 							sahalar.add(
 								`(case` +
@@ -280,13 +311,14 @@ class DRapor_PratikSatis extends DRaporMQ {
 			}
 			;{
 				altForm.addGridliGosterici('ozetEk')
+					.noAnimate()
 					.setUserData({ noSort: true })
-					.addStyle_fullWH(null, 130)
+					.addStyle_fullWH(null, 200)
 					.rowNumberOlmasin().notAdaptive()
 					.widgetArgsDuzenleIslemi(({ args }) =>
 						extend(args, {
 							...this.getGridOrtakArgs({ ...arguments[0], args }),
-							columnsHeight: 25
+							showGroupsHeader: false, columnsHeight: 25
 							// showStatusBar: true, showAggregates: false, showGroupAggregates: false
 						})
 					)
@@ -302,9 +334,8 @@ class DRapor_PratikSatis extends DRaporMQ {
 					.setSource(async e => {
 					let uni = new MQUnionAll()
 					;{
-						let sent = new MQSent(), {where: wh, sahalar} = sent
-						this.baslikSentDuzele({ ...arguments[0], ...e, sent, harTable: 'restorandetay' })
-						wh.add(`har.biptalmi = 0`, `har.bikrammi = 0`)
+						let sent = new MQSent(), { where: wh, sahalar } = sent
+						this.baslikSentDuzele({ ...arguments[0], ...e, iptalAlma: true, sent })
 						sahalar.add(
 							`11 oncelik`,
 							`'IPT' tip`,
@@ -317,7 +348,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 						uni.add(sent)
 					}
 					;{
-						let sent = new MQSent(), {where: wh, sahalar} = sent
+						let sent = new MQSent(), { where: wh, sahalar } = sent
 						this.baslikSentDuzele({ ...arguments[0], ...e, sent, harTable: 'restorandetay' })
 						wh.add(new MQOrClause([
 							`har.biptalmi > 0`, `har.bikrammi > 0`]))
@@ -331,7 +362,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 						uni.add(sent)
 					}
 					;{
-						let sent = new MQSent(), {where: wh, sahalar} = sent
+						let sent = new MQSent(), { where: wh, sahalar } = sent
 						this.baslikSentDuzele({ ...arguments[0], ...e, sent, harTable: 'restorandetay' })
 						wh.add(`har.biptalmi = 0`, `har.bikrammi = 0`)
 						wh.inDizi(['MS', 'DG'], 'fis.fisanatipi')          // 'YM' alınmaz
@@ -355,8 +386,9 @@ class DRapor_PratikSatis extends DRaporMQ {
 		// özel aralık
 		;{
 			form.addGridliGosterici('ozel')
+				.noAnimate()
 				.setUserData({ noSort: true })
-				.addStyle_fullWH(440, 130)
+				.addStyle_fullWH(null, 180)
 				.addStyle(`$elementCSS { min-width: 200px !important; max-width: 440px !important }`)
 				.rowNumberOlmasin().notAdaptive()
 				.setToplamYapi({ etiket: { belirtec: 'text' } })
@@ -386,14 +418,16 @@ class DRapor_PratikSatis extends DRaporMQ {
 	}
 	async acc_initContent_tahsilat({ tanimPart, islem, acc, item, layout, rfb }) {
 		// rfb.addStyle_fullWH()
-		let form = rfb.addFormWithParent().yanYana()
-			.addStyle(`$elementCSS > div { overflow-y: auto !important }`)
+		let form = rfb.addFormWithParent().altAlta()
+			.addStyle_fullWH(null, 'calc(var(--full) - var(--acc-header-height) - 35px)')
+			.addStyle(`$elementCSS { overflow: hidden !important }`)
 		
 		// tahsilat
 		;{
 			form.addGridliGosterici('tahsilat')
+				.noAnimate()
 				.setUserData({ sortFields: ['oncelik', 'aciklama'] })
-				.addStyle_fullWH(450, 500)
+				.addStyle_fullWH(null)
 				.rowNumberOlmasin().notAdaptive()
 				.setToplamYapi({ etiket: { belirtec: 'aciklama' } })
 				.widgetArgsDuzenleIslemi(({ args }) =>
@@ -411,7 +445,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 					]
 				})
 				.setSource(async e => {
-					let sent = new MQSent(), {where: wh, sahalar} = sent
+					let sent = new MQSent(), { where: wh, sahalar } = sent
 					this.baslikSentDuzele({ ...arguments[0], ...e, sent, harTable: 'restorantahsil' })
 					sent.har2TahSekliBagla()
 					sahalar.add(
@@ -431,13 +465,14 @@ class DRapor_PratikSatis extends DRaporMQ {
 	async acc_initContent_kdv({ tanimPart, islem, acc, item, layout, rfb }) {
 		// rfb.addStyle_fullWH()
 		let form = rfb.addFormWithParent().yanYana()
-			.addStyle(`$elementCSS > div { overflow-y: auto !important }`)
+			.addStyle(`$elementCSS { overflow: hidden !important }`)
 
 		// matrah ve kdv
 		;{
 			form.addGridliGosterici('matrahKdv')
+				.noAnimate()
 				.setUserData({ keyFields: ['oran'], noSort: true })
-				.addStyle_fullWH(450, 500)
+				.addStyle_fullWH(null, 230)
 				.rowNumberOlmasin().notAdaptive()
 				.setToplamYapi({ etiket: { belirtec: 'text' } })
 				.widgetArgsDuzenleIslemi(({ args }) =>
@@ -456,7 +491,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 					]
 				})
 				.setSource(async e => {
-					let sent = new MQSent(), {where: wh, sahalar} = sent
+					let sent = new MQSent(), { where: wh, sahalar } = sent
 					this.baslikSentDuzele({ ...arguments[0], ...e, sent, harTable: 'restorandetay' })
 					wh.add(`har.biptalmi = 0`, `har.bikrammi = 0`)
 					sahalar.add(
@@ -477,13 +512,14 @@ class DRapor_PratikSatis extends DRaporMQ {
 	async acc_initContent_kasiyer({ tanimPart, islem, acc, item, layout, rfb }) {
 		// rfb.addStyle_fullWH()
 		let form = rfb.addFormWithParent().yanYana()
-			// .addStyle_fullWH()
-			.addStyle(`$elementCSS > div { overflow-y: auto !important }`)
+			.addStyle_fullWH(null, 'calc(var(--full) - var(--acc-header-height) - 35px)')
+			.addStyle(`$elementCSS { overflow: hidden !important }`)
 
 		// kasiyer
 		;{
 			form.addGridliGosterici('kasiyer')
-				.addStyle_fullWH(450, 500)
+				.noAnimate()
+				.addStyle_fullWH()
 				.rowNumberOlmasin().notAdaptive()
 				.setToplamYapi({ etiket: { belirtec: 'aciklama' } })
 				.widgetArgsDuzenleIslemi(({ args }) =>
@@ -501,7 +537,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 					]
 				})
 				.setSource(async e => {
-					let sent = new MQSent(), {where: wh, sahalar} = sent
+					let sent = new MQSent(), { where: wh, sahalar } = sent
 					this.baslikSentDuzele({ ...arguments[0], ...e, sent })
 					sent.fromIliski('kasiyer ksy', 'fis.kasiyerkod = ksy.kod')
 					sahalar.add(
@@ -520,13 +556,14 @@ class DRapor_PratikSatis extends DRaporMQ {
 	async acc_initContent_sube({ tanimPart, islem, acc, item, layout, rfb }) {
 		// rfb.addStyle_fullWH()
 		let form = rfb.addFormWithParent().yanYana()
-			// .addStyle_fullWH()
-			.addStyle(`$elementCSS > div { overflow-y: auto !important }`)
+			.addStyle_fullWH(null, 'calc(var(--full) - var(--acc-header-height) - 35px)')
+			.addStyle(`$elementCSS { overflow-x: hidden !important }`)
 
 		// şube
 		;{
 			form.addGridliGosterici('sube')
-				.addStyle_fullWH(450, 300)
+				.noAnimate()
+				.addStyle_fullWH()
 				.rowNumberOlmasin().notAdaptive()
 				.setToplamYapi({ etiket: { belirtec: 'aciklama' } })
 				.widgetArgsDuzenleIslemi(({ args }) =>
@@ -543,20 +580,23 @@ class DRapor_PratikSatis extends DRaporMQ {
 						return result.join(' ')
 					}
 					return [
-						new GridKolon({ belirtec: 'aciklama', text: `<span class=orange>ŞUBE</span>`, genislikCh: 25, filterType: 'checkedlist', cellClassName }),
+						...MQCogul.getKAKolonlar(
+							new GridKolon({ belirtec: 'subeKod', text: 'Kod', genislikCh: 6, filterType: 'checkedlist', cellClassName }),
+							new GridKolon({ belirtec: 'subeAdi', text: `<span class=orange>ŞUBE</span>`, genislikCh: 25, filterType: 'checkedlist', cellClassName })
+						),
 						new GridKolon({ belirtec: 'bedel', text: 'Hasılat', genislikCh: 18, aggregates: ['sum'], cellClassName }).tipDecimal_bedel()
 					]
 				})
 				.setSource(async e => {
-					let sent = new MQSent(), {where: wh, sahalar} = sent
+					let sent = new MQSent(), { where: wh, sahalar } = sent
 					this.baslikSentDuzele({ ...arguments[0], ...e, sent })
 					sent.fromIliski('isyeri sub', 'fis.bizsubekod = sub.kod')
 					sahalar.add(
-						'fis.bizsubekod kod', 'sub.aciklama aciklama',
+						'fis.bizsubekod subeKod', 'sub.aciklama subeAdi',
 						'SUM(fis.fissonuc) bedel'
 					)
 					sent.groupByOlustur()
-					let stm = new MQStm({ sent, orderBy: ['bedel DESC', 'aciklama'] })
+					let stm = new MQStm({ sent, orderBy: ['bedel DESC', 'subeAdi'] })
 					let recs = await this.getGridData({ ...arguments[0], ...e, query: stm })
 					return recs
 				})
@@ -565,11 +605,12 @@ class DRapor_PratikSatis extends DRaporMQ {
 		rfb.run()
 	}
 	async acc_initContent_satis({ tanimPart, islem, acc, item, layout, rfb }) {
-		let {secimler: sec} = this
-		let {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs
+		let { secimler: sec } = this
+		let { sqlNull, sqlEmpty } = Hareketci_UniBilgi.ortakArgs
 		;{
-			rfb.addGridliGosterici('satisGrid')
-				.addStyle_fullWH()
+			rfb.addGridliGosterici('satis')
+				.noAnimate()
+				.addStyle_fullWH(null, 'calc(var(--full) - var(--acc-header-height) + 35px)')
 				.widgetArgsDuzenleIslemi(({ args }) =>
 					extend(args, {
 						...this.getGridOrtakArgs({ ...arguments[0], args }),
@@ -592,7 +633,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 				})
 				.setSource(async e => {
 					let getSatisStm = iade => {
-						let sent = new MQSent(), {where: wh, sahalar} = sent
+						let sent = new MQSent(), { where: wh, sahalar } = sent
 						this.baslikSentDuzele({ ...arguments[0], ...e, sent, iade, harTable: 'restorandetay' })
 						sent
 							.har2StokBagla()
@@ -628,13 +669,28 @@ class DRapor_PratikSatis extends DRaporMQ {
 		rfb.run()
 	}
 	_acc_initCollapsedContent_ortak({ tanimPart, islem, acc, item, layout, rfb }) {
-		let { secimler } = this, { collapsed } = item
+		let { secimler } = this, { collapsed, userData = {} } = item
+		let { subeDefs = {} } = userData
 		let { dbListe } = app
-		let container = $(`<div class="flex-row"/>`)
+		let container = $(`<div/>`)
 		if (!collapsed) {
-			$(`<span class="dbListe darkviolet bold fs-90">${dbListe.map(_ => _.slice(4)).join(', ')}</span>`).appendTo(container)
-			$(`<span class="separator lightgray"> | </span>`).appendTo(container)
+			//let parent = $(`<div class="flex-row"/>`)
+			if (!empty(subeDefs.success)) {
+				let liste = subeDefs.success?.map(_ => _.aciklama) ?? []
+				$(`<div class="subeler success fs-90">Mevcut: [ <b class="forestgreen">${liste.join(', ') ?? ''}</b> ]</div>`)
+					.appendTo(container)
+			}
+			if (!empty(subeDefs.error)) {
+				let liste = subeDefs.error?.map(_ => _.aciklama) ?? []
+				$(`<div class="subeler error fs-90"><u class="orangered"><b>HATALI</b>:</u> [ <b class="firebrick">${liste.join(', ') ?? ''}</b> ]</div>`)
+					.appendTo(container)
+			}
+			/*if (parent.children().length) {
+				$(`<span class="separator lightgray"> | </span>`).appendTo(parent)
+				parent.appendTo(container)
+			}*/
 		}
+		
 		if (secimler && !collapsed) {
 			let e = { liste: [] }
 			for (let [k, s] of secimler) {
@@ -647,20 +703,30 @@ class DRapor_PratikSatis extends DRaporMQ {
 				$(ozetBilgiHTML).appendTo(container)
 			}
 		}
+		
 		return container
 	}
 	acc_onCollapse({ tanimPart, acc }) {
 		/*let {activePanelId: id} = acc
 		let targetId = id == 'genel' ? 'satis' : 'genel'
 		acc.expand(targetId)*/
+		setTimeout(() => hideNotify(), 10)
 	}
 	acc_onExpand({ tanimPart, acc }) {
+		;{
+			let { _promises_uzakVeri: promises } = tanimPart
+			;promises?.flat?.()?.forEach(p =>
+				p?.abort?.())
+			lastAjaxObj?.abort?.()
+			delete tanimPart._promises_uzakVeri
+		}
 		setTimeout(() => {
-			let {activePanelId: id} = acc, { islemTuslari } = tanimPart
+			let { activePanelId: id } = acc, { islemTuslari } = tanimPart
 			let btns = islemTuslari.find('#seviyeAc, #seviyeKapat')
 			let selector = id == 'satis' ? 'removeClass' : 'addClass'
 			btns[selector]('jqx-hidden')
-		}, 1)
+			hideNotify()
+		}, 10)
 	}
 
 	gridSeviyeAcKapatIstendi({ tanimPart, state } = {}) {
@@ -749,7 +815,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 
 	getGridOrtakArgs() {
 		return {
-			rowsHeight: 30, columnsMenu: false,
+			rowsHeight: 30, columnsMenu: false, showGroupsHeader: true,
 			columnsReorder: false, selectionMode: 'multiplerowsextended',
 			groupsRenderer: (text, group, expanded, groupInfo) => {
 				let { subItems = [] } = groupInfo ?? {}
@@ -771,16 +837,18 @@ class DRapor_PratikSatis extends DRaporMQ {
 		return result.join(' ')
 	}
 	baslikSentDuzele(e = {}) {
-		let { sent, sent: { where: wh, sahalar }, harTable, iade = e.iademi } = e
+		let { sent, sent: { where: wh, sahalar }, harTable, iptalAlma, iade = e.iademi } = e
 		let { secimler } = this
 		if (harTable)
 			sent.fisHareket('restoranfis', harTable)
 		else
 			sent.fromAdd('restoranfis fis')
 		wh
-			.add(`fis.kapanmazamani IS NOT NULL`, 'fis.biptalmi = 0')
+			.add(`fis.kapanmazamani IS NOT NULL`)
 			.degerAta(iade ? 'I' : '', 'fis.iade')
 			.birlestir(secimler.getTBWhereClause(e))
+		if (!iptalAlma)
+			wh.add('fis.biptalmi = 0')
 		return this
 	}
 	stmSonIslemler({ stm }) {
@@ -792,9 +860,22 @@ class DRapor_PratikSatis extends DRaporMQ {
 		}*/
 	}
 
-	async getGridData({ tanimPart, query, params, tabloKolonlari, builder: fbd, gridPart } = {}) {
+	async getGridData({ tanimPart, acc, query, params, tabloKolonlari, builder: fbd, gridPart } = {}) {
 		let { timeout } = this
+		let { layout } = tanimPart
 		let { buDB, dbListe } = app
+
+		let { activePanel: { item: accItem = {} } = {} } = acc ?? {}
+		let { layout: panelLayout } = accItem
+		let userData = accItem.userData ??= {}
+		panelLayout?.removeClass('has-error')
+		let ud_subeDefs = userData.subeDefs = { success: [], error: [] }
+
+		layout?.addClass('refreshing')
+		clearTimeout(tanimPart._timer_tazeleIndicatorClear)
+		tanimPart._timer_tazeleIndicatorClear = setTimeout(() =>
+			layout?.removeClass('refreshing'), 5_000)
+		
 		if (query?.sentDo) {
 			let e = { ...arguments[0], stm: query }
 			delete e.query
@@ -802,6 +883,8 @@ class DRapor_PratikSatis extends DRaporMQ {
 			query = e.query = e.stm
 			params = e.params = e.params
 		}
+
+		await tanimPart?._promise_getSubeTanimlari
 		
 		let { dRapor: { praUzakSubeVerisi } } = app.params ?? {}
 		if (!praUzakSubeVerisi)
@@ -826,101 +909,154 @@ class DRapor_PratikSatis extends DRaporMQ {
 					cd[selector][belirtec] = c
 			})
 		}
-
-		;{
-			let { _promises_uzakVeri: promises } = tanimPart
-			if (!empty(promises))
-				await delay(1_000)
-		}
-		;{
-			let { _promises_uzakVeri: promises } = tanimPart
-			;promises?.forEach(p =>
-				p?.abort?.())
-			delete tanimPart._promises_uzakVeri
-		}
-
-		let delayMS = 50
-		let promises = tanimPart._promises_uzakVeri = []
-		for (let [db, kod2Def] of entries(db2Kod2Def))
-		for (let def of values(kod2Def)) {
-			promises.push(
-				(async () => {
+		
+		let { _promise_getGridData } = tanimPart
+		// try { await _promise_getGridData } catch (ex) { }
+		_promise_getGridData = tanimPart._promise_getGridData = defer()
+		
+		try {
+			;{
+				let { _promises_uzakVeri: promises } = tanimPart
+				if (!empty(promises))
+					await delay(1_000)
+			}
+			;{
+				let { _promises_uzakVeri: promises } = tanimPart
+				;promises?.flat?.()?.forEach(p =>
+					p?.abort?.())
+				lastAjaxObj?.abort?.()
+				delete tanimPart._promises_uzakVeri
+			}
+	
+			if (query?.sentDo) {
+				for (let { where: wh } of query) {
+					;wh.liste = wh.liste.filter(v =>
+						!(v?.startsWith?.('sub.') || v?.saha?.endsWith?.('bizsubekod')))
+				}
+			}
+			
+			let delayMS = 50
+			let promises = []
+			let _promises_uzakVeri = tanimPart._promises_uzakVeri = []
+			for (let [db, kod2Def] of entries(db2Kod2Def))
+			for (let [subeKod, def] of entries(kod2Def)) {
+				let pr = (async () => {
+					if (delayMS)
+						await delay(delayMS)
+					delayMS *= 2.5
 					try {
-						return await remoteProc({
+						let _pr = remoteProc({
 							...def,
-							args: { timeout, params },
-							proc: async ({ args }) => {
-								if (query?.sentDo) {
-									for (let { where: wh } of query) {
-										;wh.liste = wh.liste.filter(v =>
-											!(v?.startsWith?.('sub.') || v?.saha?.endsWith?.('bizsubekod')))
-									}
-								}
-								if (delayMS)
-									await delay(delayMS)
-								delayMS *= 2.5
-								return await query.execSelect(args)
-							}
+							proc: () =>
+								query.execSelect({ timeout, params })
 						})
+						_promises_uzakVeri.push(_pr)
+						let recs = await _pr
+						
+						let { aciklama: subeAdi, port, db } = def
+						;recs?.forEach(r => {
+							if (r.subeKod !== undefined)
+								extend(r, { subeKod, subeAdi })
+						})
+						ud_subeDefs.success.push(def)
+						
+						;{
+							console.group(`${port}: ${db}`)
+							console.table(recs)
+							console.info(query?.getQueryYapi() ?? query)
+							console.groupEnd()
+						}
+						
+						return recs
 					}
 					catch (error) {
-						throw({ def, error })
+						ud_subeDefs.error.push(def)
+						throw { def, error }
 					}
 				})()
-			)
-		}
-
-		let getKey = (r, keyFields, sortFields) => {
-			if (keyFields)
-				keyFields = makeArray(keyFields)
-			if (sortFields)
-				sortFields = makeArray(sortFields)
-			
-			if (empty(keyFields))
-				keyFields = sortFields
-			if (empty(keyFields))
-				keyFields = keys(cd.sabit)
-			return keyFields
-				.map(k => String(r[k]))
-				.join('\t')
-		}
-		
-		let all = ( await promiseAllSet(promises) )
-		let key2Rec = new Map()
-		for (let { status: s, reason, value: recs } of all) {
-			if (s == 'rejected') {
-				let { def = {}, error: err } = reason
-				let { host, port, sql, db = {} } = def
-				db ??= sql?.db
-				let title = `${host}:${port} | ${db}`
-				hConfirm(getErrorText(err), title)
-				continue
+				;promises.push(pr)
 			}
-			
-			if (empty(recs))
-				continue
 
-			;recs.forEach(bu => {
-				let k = getKey(bu, keyFields)
-				if (!key2Rec.has(k))
-					key2Rec.set(k, bu)
-				else {
-					let diger = key2Rec.get(k)
-					;keys(cd.toplam).forEach(b =>
-						diger[b] = Number(diger[b]) + Number(bu[b]))
+			let getKey = (r, keyFields, sortFields) => {
+				if (keyFields)
+					keyFields = makeArray(keyFields)
+				if (sortFields)
+					sortFields = makeArray(sortFields)
+				
+				if (empty(keyFields))
+					keyFields = sortFields
+				if (empty(keyFields))
+					keyFields = keys(cd.sabit)
+				
+				return keyFields
+					.map(k => String(r[k]))
+					.join('\t')
+			}
+
+			let { DefaultWSHostName_SkyServer: defHost } = config.class
+			let all = ( await promiseAllSet(promises) )
+			let key2Rec = new Map()
+			let errors = tanimPart._errors ??= []
+			for (let { status: s, reason, value: recs } of all) {
+				if (s == 'rejected') {
+					let { def = {}, error: err } = reason
+					let { https, host, port, url, sql, db = {} } = def
+					db ??= sql?.db
+					url ??= `${https ? 'https' : 'http'}://${host}:${port}`
+					let origin = !host || host == defHost ? String(port) : `${host}:${port}`
+					let title = `${origin} | ${db}`
+					let content = getErrorText(err, url)
+					errors.push({ title, content, err })
+					continue
 				}
-			})
-		}
-		delete tanimPart._promises_uzakVeri
-
-		;{
-			let recs = Array.from(key2Rec.values())
-			if (!noSort) {
-				recs.sort((a, b) =>
-					getKey(a, keyFields, sortFields).localeCompare(getKey(b, keyFields, sortFields)))
+				
+				if (empty(recs))
+					continue
+	
+				;recs.forEach(bu => {
+					let k = getKey(bu, keyFields)
+					if (!key2Rec.has(k))
+						key2Rec.set(k, bu)
+					else {
+						let diger = key2Rec.get(k)
+						;keys(cd.toplam).forEach(b =>
+							diger[b] = Number(diger[b]) + Number(bu[b]))
+					}
+				})
 			}
+			delete tanimPart._promises_uzakVeri
+
+			let recs
+			;{
+				recs = Array.from(key2Rec.values())
+				if (!noSort) {
+					recs.sort((a, b) =>
+						getKey(a, keyFields, sortFields).localeCompare(getKey(b, keyFields, sortFields)))
+				}
+			}
+			
+			clearTimeout(tanimPart._timer_errors)
+			tanimPart._timer_errors = setTimeout(() => {
+				let { _errors: errors } = tanimPart
+				if (!empty(errors)) {
+					let inner = errors.map(({ title, content }) =>
+						`<li><span class="firebrick bold">${title}</span>: <span>${content}</span></li>`)
+					let html = `<ul>${inner.join('<br/>\n')}</ul>`
+					hConfirm(html, 'Uzak Şube Servis Erişim Sorunu')
+				}
+				delete tanimPart._errors
+			}, 500)
+
+			acc?.render()
+			;{
+				let hasErr = !empty(errors)
+				let { item: { layout } = {} } = acc?.activePanel ?? {}
+				layout?.[hasErr ? 'addClass' : 'removeClass']('has-error')
+			}
+			
 			return recs
 		}
+		finally { _promise_getGridData?.resolve() }
 	}
 	async getSubeTanimlari({ tanimPart = {} } = {}) {
 		let { buDB, dbListe } = app
@@ -931,24 +1067,30 @@ class DRapor_PratikSatis extends DRaporMQ {
 			;dbListe.forEach(db => {
 				let fromPrefix = db == buDB ? '' : `${db}..`
 				let sent = new MQSent(), { where: wh, sahalar } = sent
-				sent.fromAdd(`${fromPrefix}marsubeparam`)
-				wh.add(`bizsubekod <> ''`, `offsubeipadres <> ''`)
+				sent
+					.fromAdd(`${fromPrefix}marsubeparam par`)
+					.innerJoin('par', 'isyeri sub', 'par.bizsubekod = sub.kod')
+				wh.add(`par.bizsubekod <> ''`, `par.offsubeipadres <> ''`)
 				if (!empty(kodListe))
-					wh.inDizi(kodListe, 'bizsubekod')
+					wh.inDizi(kodListe, 'par.bizsubekod')
 				sahalar.add(
 					`'${db}' merkezDB`,
-					'bizsubekod kod', 'offsubebhttpsmi https', 'offsubeipadres host', 'offsubeportno port',
-					'offsubesqlserver server', 'offsubevtadi db', 'offsubesqluser wsUser', 'offsubesqlpasswd wsPass'
+					'par.bizsubekod kod', 'sub.aciklama', 'par.offsubebhttpsmi https', 'par.offsubeipadres host', 'par.offsubeportno port',
+					'par.offsubesqlserver server', 'par.offsubevtadi db', 'par.offsubesqluser wsUser', 'par.offsubesqlpasswd wsPass'
 				)
 				uni.add(sent)
 			})
 			let stm = new MQStm({ sent: uni })
-			result = tanimPart.db2SubeKod2Param = {}
-			for (let r of await stm.execSelect()) {
+			result = {}
+			let recs = await stm.execSelect()
+			for (let r of recs) {
 				let kod2Param = result[r.db] ??= {}
 				kod2Param[r.kod] = r
 			}
+			tanimPart.db2SubeKod2Param = result
 		}
+		if (empty(result))
+			debugger
 		return result
 	}
 	
