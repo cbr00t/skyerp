@@ -140,12 +140,12 @@ class MQCariEkstre_Detay extends MQMasterOrtak {
 	static get dataKey() { return 'cariEkstre_detay' } static get sinifAdi() { return 'Cari Ekstre (Detay)' } get tableAlias() { return 'har' }
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); let {liste} = e; liste.push(...[
-			new GridKolon({ belirtec: 'shkod', text: 'Stok Kod', maxWidth: 13 * katSayi_ch2Px }),
+			new GridKolon({ belirtec: 'shkod', text: 'Stok Kod', maxWidth: 15 * katSayi_ch2Px }),
 			new GridKolon({ belirtec: 'stokadi', text: 'Stok Adı', maxWidth: 40 * katSayi_ch2Px }),
-			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 10, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal(),
-			new GridKolon({ belirtec: 'fiyat', text: 'Fiyat', genislikCh: 13, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_fiyat(),
+			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 12, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal(),
+			new GridKolon({ belirtec: 'fiyat', text: 'Fiyat', genislikCh: 15, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_fiyat(),
 			new GridKolon({ belirtec: 'sonuciskoran', text: 'İsk%', genislikCh: 6, aggregates: [{ ORT: gridDipIslem_avg }] }).tipDecimal(),
-			new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 13, cellClassName: 'bold', aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel()
+			new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 15, cellClassName: 'bold', aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel()
 		])
 	}
 	static loadServerData(e) { e = e || {}; e.mustKod = e.mustKod ?? e.parentRec?.must; return this.loadServerDataFromMustBilgi(e) }

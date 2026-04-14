@@ -296,16 +296,16 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 			e.uni = e.stm.sent
 		super.loadServerData_queryDuzenle_ek(e)
 		if (this.class.hareketmi)
-			this.loadServerData_queryDuzenle_ek_hareket(e)
+			return this.loadServerData_queryDuzenle_ek_hareket(e)
 		if (this.class.envantermi)
-			this.loadServerData_queryDuzenle_ek_envanter(e)
+			return this.loadServerData_queryDuzenle_ek_envanter(e)
 	}
 	loadServerData_queryDuzenle_ek_hareket(e) {
 		let {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs
 		let {devir: devirmi, attrSet, stm, donemBS} = e
 		let {basi: tarih} = donemBS ?? {}, tarihDegerClause = tarih?.sqlServerDegeri() ?? sqlNull
 		if  (devirmi && !tarih)
-			return
+			return false
 		let {tabloYapi, raporTanim} = this, {grupVeToplam} = tabloYapi
 		attrSet = attrSet ?? raporTanim.attrSet; let attrListe = keys(attrSet);
 		let alias2Key = {}

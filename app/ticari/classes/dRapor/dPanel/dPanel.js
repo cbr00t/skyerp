@@ -283,8 +283,11 @@ class DPanel extends Part {
 			return
 		if (!otoTazeleDk)
 			otoTazeleDk = Math.max(otoTazeleDk, .05)
-		if (!(otoTazeleDk && window.appActivatedFlag) || _inTazeleProc)
+		if (!(otoTazeleDk && window.appActivatedFlag) || _inTazeleProc) {
+			if (_inTazeleProc)
+				setTimeout(() => tanimPart._inTazeleProc = false, 1_000)
 			return
+		}
 		this._inTazeleProc = true
 		this.tazeleDogrudan()
 		setTimeout(() => this._inTazeleProc = false, 1_000)

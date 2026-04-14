@@ -331,13 +331,29 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	seviyeAcIstendi(e) { let {gridPart} = this, {gridWidget} = gridPart; gridWidget.expandAll() }
 	seviyeKapatIstendi(e) { let {gridPart} = this, {gridWidget} = gridPart; gridWidget.collapseAll(); gridPart.expandedRowsSet = {} }
 	getColumns(colDefs) {
-		if (!colDefs) { return colDefs } colDefs = colDefs.filter(colDef => !!colDef);
-		let {gridPart} = this, result = []; for (let i = 0; i < colDefs.length; i++) {
-			let colDef = colDefs[i]?.deepCopy(); if (!colDef) { continue } colDef.gridPart = gridPart; let {tip} = colDef;
-			for (let _colDef of colDefs) { if (!_colDef.minWidth) { _colDef.minWidth = 100 } }
-			let savedHandlers = {}; for (let key of ['cellsRenderer', 'cellValueChanging']) { savedHandlers[key] = colDef[key]; delete colDef[key] }
+		colDefs = colDefs?.filter(Boolean)
+		if (empty(colDefs))
+			return colDefs
+		
+		let { gridPart } = this
+		let result = []
+		for (let i = 0; i < colDefs.length; i++) {
+			let colDef = colDefs[i]?.deepCopy()
+			if (!colDef)
+				continue
+			colDef.gridPart = gridPart
+			/*for (let _colDef of colDefs) {
+				if (!_colDef.minWidth)
+					_colDef.minWidth = 100
+			}*/
+			let savedHandlers = {}
+			for (let key of ['cellsRenderer', 'cellValueChanging']) {
+				savedHandlers[key] = colDef[key]
+				delete colDef[key]
+			}
 			colDef.aggregatesRenderer = (colDef, aggregates, jqCol, elm) => {
-				let result = [], {belirtec} = colDef
+				let result = []
+				let { belirtec } = colDef
 				for (let [tip, value] of entries(aggregates)) {
 					if (value != null)
 						value = asFloat(value)
@@ -357,26 +373,34 @@ class DAltRapor_TreeGrid extends DAltRapor {
 					)
 				}
 				return result.join('')
-			};
+			}
+			
+			let { tip } = colDef
 			if (tip instanceof GridKolonTip_Number) {
 				let {fra} = tip; colDef.cellsRenderer = (colDef, rowIndex, belirtec, value, rec) =>
 					this.cellsRenderer?.({ colDef, rowIndex, belirtec, value, rec, html: `<div class="right">${toStringWithFra(value, fra)}</div>` })
-				/*if (!colDef.aggregates &&  tip instanceof GridKolonTip_Decimal) { colDef.aggregates = [(total, value) => asFloat(total) + asFloat(value)] }*/
+				// if (!colDef.aggregates &&  tip instanceof GridKolonTip_Decimal)
+				//		colDef.aggregates = [(total, value) => asFloat(total) + asFloat(value)]
 			}
 			else if (tip instanceof GridKolonTip_Date) {
 				colDef.cellsRenderer = (colDef, rowIndex, belirtec, value, rec) =>
 					this.cellsRenderer?.({ 
 						colDef, rowIndex, belirtec, value, rec,
-						html: `<div>${isDate(value)
-									? dateKisaString(value)
-									: (value.length == DateTimeFormat.length || value.length == DateTimeFormat.length - 1 ? value?.slice(0, 10) : (value ?? ''))
-							  }</div>`
+						html: (
+							`<div>${isDate(value)
+								? dateKisaString(value)
+								: value.length == DateTimeFormat.length || value.length == DateTimeFormat.length - 1
+									? value?.slice(0, 10)
+								    : value ?? ''
+							 }</div>`
+						)
 					})
 			}
 			else {
 				colDef.cellsRenderer = (colDef, rowIndex, belirtec, value, rec) =>
 					this.cellsRenderer?.({ colDef, rowIndex, belirtec, value, rec, html: `<span>${value}</span>` }) }
-			delete colDef.tip; result.push(colDef)
+			delete colDef.ti
+			result.push(colDef)
 		}
 		return result
 	}
@@ -803,7 +827,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			if (tabloYapi.grup[ilkColDef?.userData?.kod]) {
 				let colDef = ilkColDef.deepCopy()
 				colDefs[0] = colDef
-				colDef.minWidth = Math.max(colDef.minWidth ?? 0, 300)
+				colDef.minWidth = Math.max(colDef.minWidth ?? 0, 150)
 				colDef.text = [
 					...(keys(grup).map(kod =>
 						`<span class="royalblue">${tabloYapi.grup[kod]?.colDefs[0]?.text || ''}</span>`) || []),

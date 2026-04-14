@@ -761,14 +761,16 @@ class DRapor_PratikSatis extends DRaporMQ {
 				l?.removeClass(css))
 		}
 	}
-	tazeleIstendi({ tanimPart }) {
-		let { acc } = tanimPart
+	tazeleIstendi({ tanimPart } = {}) {
+		let { acc = {} } = tanimPart ?? {}
 		let { activePanel: { item } = {} } = acc
-		let { contentLayout: layout } = item ?? {}
-		let elms = Array.from(layout.find('.grid.part'))
-		elms.forEach(elm =>
-			$(elm).data('part')?.tazele())
-		acc.render()
+		if (item) {
+			let { contentLayout: layout } = item
+			let elms = Array.from(layout.find('.grid.part'))
+			elms.forEach(elm =>
+				$(elm).data('part')?.tazele())
+		}
+		acc?.render()
 	}
 
 	otoTazele_startTimer(e) {
@@ -799,15 +801,18 @@ class DRapor_PratikSatis extends DRaporMQ {
 	}
 	otoTazele_timerProc(e = {}) {
 		let { class: { otoTazele_minDk } } = this
-		let { tanimPart = e.sender } = e, { inst } = tanimPart
+		let { tanimPart = e.sender, acc: { hasActivePanel } = {} } = e, { inst } = tanimPart
 		let { _otoTazeleDk: otoTazeleDk, _inTazeleProc, _otoTazeleDisabled } = tanimPart
 		let { activeWndPart } = app, { appActivatedFlag } = window
 		if (_otoTazeleDisabled || activeWndPart != tanimPart)
 			return
 		if (!otoTazeleDk)
 			otoTazeleDk = Math.max(otoTazeleDk, otoTazele_minDk)
-		if (!(otoTazeleDk && window.appActivatedFlag) || _inTazeleProc)
+		if (!(otoTazeleDk && window.appActivatedFlag) || _inTazeleProc || !hasActivePanel) {
+			if (_inTazeleProc)
+				setTimeout(() => tanimPart._inTazeleProc = false, 1_000)
 			return
+		}
 		tanimPart._inTazeleProc = true
 		inst.tazeleIstendi({ ...e, action: 'otoTazele' })
 		setTimeout(() => tanimPart._inTazeleProc = false, 1_000)
@@ -817,6 +822,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 		return {
 			rowsHeight: 30, columnsMenu: false, showGroupsHeader: true,
 			columnsReorder: false, selectionMode: 'multiplerowsextended',
+			autoShowLoadElement: false,
 			groupsRenderer: (text, group, expanded, groupInfo) => {
 				let { subItems = [] } = groupInfo ?? {}
 				subItems = subItems?.filter(r => !r.totalsrow)
@@ -871,192 +877,195 @@ class DRapor_PratikSatis extends DRaporMQ {
 		panelLayout?.removeClass('has-error')
 		let ud_subeDefs = userData.subeDefs = { success: [], error: [] }
 
-		layout?.addClass('refreshing')
 		clearTimeout(tanimPart._timer_tazeleIndicatorClear)
-		tanimPart._timer_tazeleIndicatorClear = setTimeout(() =>
-			layout?.removeClass('refreshing'), 5_000)
-		
-		if (query?.sentDo) {
-			let e = { ...arguments[0], stm: query }
-			delete e.query
-			this.stmSonIslemler(e)
-			query = e.query = e.stm
-			params = e.params = e.params
-		}
-
-		await tanimPart?._promise_getSubeTanimlari
-		
-		let { dRapor: { praUzakSubeVerisi } } = app.params ?? {}
-		if (!praUzakSubeVerisi)
-			return await query.execSelect({ timeout, params })
-
-		let db2Kod2Def = await this.getSubeTanimlari(...arguments)
-		if (empty(db2Kod2Def))
-			return await query.execSelect({ timeout, params })
-
-		let { userData: { keyFields, sortFields, noSort } = {} } = fbd ?? {}
-		tabloKolonlari ??= fbd?.tabloKolonlari ?? gridPart?.tabloKolonlari
-		let cd = { sabit: {}, toplam: {} }
-		if (tabloKolonlari) {
-			;tabloKolonlari.forEach(c => {
-				let { belirtec, aggregates } = c
-				let agg = makeArray(aggregates)
-				let selector = (
-					agg?.includes('sum') ? 'toplam' :
-					empty(agg) ? 'sabit' : null
-				)
-				if (selector)
-					cd[selector][belirtec] = c
-			})
-		}
-		
-		let { _promise_getGridData } = tanimPart
-		// try { await _promise_getGridData } catch (ex) { }
-		_promise_getGridData = tanimPart._promise_getGridData = defer()
-		
+		layout?.addClass('refreshing')
 		try {
-			;{
-				let { _promises_uzakVeri: promises } = tanimPart
-				if (!empty(promises))
-					await delay(1_000)
-			}
-			;{
-				let { _promises_uzakVeri: promises } = tanimPart
-				;promises?.flat?.()?.forEach(p =>
-					p?.abort?.())
-				lastAjaxObj?.abort?.()
-				delete tanimPart._promises_uzakVeri
-			}
-	
 			if (query?.sentDo) {
-				for (let { where: wh } of query) {
-					;wh.liste = wh.liste.filter(v =>
-						!(v?.startsWith?.('sub.') || v?.saha?.endsWith?.('bizsubekod')))
-				}
+				let e = { ...arguments[0], stm: query }
+				delete e.query
+				this.stmSonIslemler(e)
+				query = e.query = e.stm
+				params = e.params = e.params
 			}
-			
-			let delayMS = 50
-			let promises = []
-			let _promises_uzakVeri = tanimPart._promises_uzakVeri = []
-			for (let [db, kod2Def] of entries(db2Kod2Def))
-			for (let [subeKod, def] of entries(kod2Def)) {
-				let pr = (async () => {
-					if (delayMS)
-						await delay(delayMS)
-					delayMS *= 2.5
-					try {
-						let _pr = remoteProc({
-							...def,
-							proc: () =>
-								query.execSelect({ timeout, params })
-						})
-						_promises_uzakVeri.push(_pr)
-						let recs = await _pr
-						
-						let { aciklama: subeAdi, port, db } = def
-						;recs?.forEach(r => {
-							if (r.subeKod !== undefined)
-								extend(r, { subeKod, subeAdi })
-						})
-						ud_subeDefs.success.push(def)
-						
-						;{
-							console.group(`${port}: ${db}`)
-							console.table(recs)
-							console.info(query?.getQueryYapi() ?? query)
-							console.groupEnd()
-						}
-						
-						return recs
-					}
-					catch (error) {
-						ud_subeDefs.error.push(def)
-						throw { def, error }
-					}
-				})()
-				;promises.push(pr)
-			}
-
-			let getKey = (r, keyFields, sortFields) => {
-				if (keyFields)
-					keyFields = makeArray(keyFields)
-				if (sortFields)
-					sortFields = makeArray(sortFields)
-				
-				if (empty(keyFields))
-					keyFields = sortFields
-				if (empty(keyFields))
-					keyFields = keys(cd.sabit)
-				
-				return keyFields
-					.map(k => String(r[k]))
-					.join('\t')
-			}
-
-			let { DefaultWSHostName_SkyServer: defHost } = config.class
-			let all = ( await promiseAllSet(promises) )
-			let key2Rec = new Map()
-			let errors = tanimPart._errors ??= []
-			for (let { status: s, reason, value: recs } of all) {
-				if (s == 'rejected') {
-					let { def = {}, error: err } = reason
-					let { https, host, port, url, sql, db = {} } = def
-					db ??= sql?.db
-					url ??= `${https ? 'https' : 'http'}://${host}:${port}`
-					let origin = !host || host == defHost ? String(port) : `${host}:${port}`
-					let title = `${origin} | ${db}`
-					let content = getErrorText(err, url)
-					errors.push({ title, content, err })
-					continue
-				}
-				
-				if (empty(recs))
-					continue
 	
-				;recs.forEach(bu => {
-					let k = getKey(bu, keyFields)
-					if (!key2Rec.has(k))
-						key2Rec.set(k, bu)
-					else {
-						let diger = key2Rec.get(k)
-						;keys(cd.toplam).forEach(b =>
-							diger[b] = Number(diger[b]) + Number(bu[b]))
-					}
+			await tanimPart?._promise_getSubeTanimlari
+			
+			let { dRapor: { praUzakSubeVerisi } } = app.params ?? {}
+			if (!praUzakSubeVerisi)
+				return await query.execSelect({ timeout, params })
+	
+			let db2Kod2Def = await this.getSubeTanimlari(...arguments)
+			if (empty(db2Kod2Def))
+				return await query.execSelect({ timeout, params })
+	
+			let { userData: { keyFields, sortFields, noSort } = {} } = fbd ?? {}
+			tabloKolonlari ??= fbd?.tabloKolonlari ?? gridPart?.tabloKolonlari
+			let cd = { sabit: {}, toplam: {} }
+			if (tabloKolonlari) {
+				;tabloKolonlari.forEach(c => {
+					let { belirtec, aggregates } = c
+					let agg = makeArray(aggregates)
+					let selector = (
+						agg?.includes('sum') ? 'toplam' :
+						empty(agg) ? 'sabit' : null
+					)
+					if (selector)
+						cd[selector][belirtec] = c
 				})
 			}
-			delete tanimPart._promises_uzakVeri
-
-			let recs
-			;{
-				recs = Array.from(key2Rec.values())
-				if (!noSort) {
-					recs.sort((a, b) =>
-						getKey(a, keyFields, sortFields).localeCompare(getKey(b, keyFields, sortFields)))
-				}
-			}
 			
-			clearTimeout(tanimPart._timer_errors)
-			tanimPart._timer_errors = setTimeout(() => {
-				let { _errors: errors } = tanimPart
-				if (!empty(errors)) {
-					let inner = errors.map(({ title, content }) =>
-						`<li><span class="firebrick bold">${title}</span>: <span>${content}</span></li>`)
-					let html = `<ul>${inner.join('<br/>\n')}</ul>`
-					hConfirm(html, 'Uzak Şube Servis Erişim Sorunu')
-				}
-				delete tanimPart._errors
-			}, 500)
-
-			acc?.render()
-			;{
-				let hasErr = !empty(errors)
-				let { item: { layout } = {} } = acc?.activePanel ?? {}
-				layout?.[hasErr ? 'addClass' : 'removeClass']('has-error')
-			}
+			let { _promise_getGridData } = tanimPart
+			// try { await _promise_getGridData } catch (ex) { }
+			_promise_getGridData = tanimPart._promise_getGridData = defer()
 			
-			return recs
+			try {
+				;{
+					let { _promises_uzakVeri: promises } = tanimPart
+					if (!empty(promises))
+						await delay(1_000)
+				}
+				;{
+					let { _promises_uzakVeri: promises } = tanimPart
+					;promises?.flat?.()?.forEach(p =>
+						p?.abort?.())
+					lastAjaxObj?.abort?.()
+					delete tanimPart._promises_uzakVeri
+				}
+		
+				if (query?.sentDo) {
+					for (let { where: wh } of query) {
+						;wh.liste = wh.liste.filter(v =>
+							!(v?.startsWith?.('sub.') || v?.saha?.endsWith?.('bizsubekod')))
+					}
+				}
+				
+				let delayMS = 50
+				let promises = []
+				let _promises_uzakVeri = tanimPart._promises_uzakVeri = []
+				for (let [db, kod2Def] of entries(db2Kod2Def))
+				for (let [subeKod, def] of entries(kod2Def)) {
+					let pr = (async () => {
+						if (delayMS)
+							await delay(delayMS)
+						delayMS *= 2.5
+						try {
+							let _pr = remoteProc({
+								...def,
+								proc: () =>
+									query.execSelect({ timeout, params })
+							})
+							_promises_uzakVeri.push(_pr)
+							let recs = await _pr
+							
+							let { aciklama: subeAdi, port, db } = def
+							;recs?.forEach(r => {
+								if (r.subeKod !== undefined)
+									extend(r, { subeKod, subeAdi })
+							})
+							ud_subeDefs.success.push(def)
+							
+							if (config.dev) {
+								console.group(`${port}: ${db}`)
+								console.table(recs)
+								console.info(query?.getQueryYapi() ?? query)
+								console.groupEnd()
+							}
+							
+							return recs
+						}
+						catch (error) {
+							ud_subeDefs.error.push(def)
+							throw { def, error }
+						}
+					})()
+					;promises.push(pr)
+				}
+	
+				let getKey = (r, keyFields, sortFields) => {
+					if (keyFields)
+						keyFields = makeArray(keyFields)
+					if (sortFields)
+						sortFields = makeArray(sortFields)
+					
+					if (empty(keyFields))
+						keyFields = sortFields
+					if (empty(keyFields))
+						keyFields = keys(cd.sabit)
+					
+					return keyFields
+						.map(k => String(r[k]))
+						.join('\t')
+				}
+	
+				let { DefaultWSHostName_SkyServer: defHost } = config.class
+				let all = ( await promiseAllSet(promises) )
+				let key2Rec = new Map()
+				let errors = tanimPart._errors ??= []
+				for (let { status: s, reason, value: recs } of all) {
+					if (s == 'rejected') {
+						let { def = {}, error: err } = reason
+						let { https, host, port, url, sql, db = {} } = def
+						db ??= sql?.db
+						url ??= `${https ? 'https' : 'http'}://${host}:${port}`
+						let origin = !host || host == defHost ? String(port) : `${host}:${port}`
+						let title = `${origin} | ${db}`
+						let content = getErrorText(err, url)
+						errors.push({ title, content, err })
+						continue
+					}
+					
+					if (empty(recs))
+						continue
+		
+					;recs.forEach(bu => {
+						let k = getKey(bu, keyFields)
+						if (!key2Rec.has(k))
+							key2Rec.set(k, bu)
+						else {
+							let diger = key2Rec.get(k)
+							;keys(cd.toplam).forEach(b =>
+								diger[b] = Number(diger[b]) + Number(bu[b]))
+						}
+					})
+				}
+				delete tanimPart._promises_uzakVeri
+	
+				let recs
+				;{
+					recs = Array.from(key2Rec.values())
+					if (!noSort) {
+						recs.sort((a, b) =>
+							getKey(a, keyFields, sortFields).localeCompare(getKey(b, keyFields, sortFields)))
+					}
+				}
+				
+				/*clearTimeout(tanimPart._timer_errors)
+				tanimPart._timer_errors = setTimeout(() => {
+					let { _errors: errors } = tanimPart
+					if (!empty(errors)) {
+						let inner = errors.map(({ title, content }) =>
+							`<li><span class="firebrick bold">${title}</span>: <span>${content}</span></li>`)
+						let html = `<ul>${inner.join('<br/>\n')}</ul>`
+						hConfirm(html, 'Uzak Şube Servis Erişim Sorunu')
+					}
+					delete tanimPart._errors
+				}, 500)*/
+	
+				acc?.render()
+				;{
+					let hasErr = !empty(errors)
+					let { item: { layout } = {} } = acc?.activePanel ?? {}
+					layout?.[hasErr ? 'addClass' : 'removeClass']('has-error')
+				}
+				
+				return recs
+			}
+			finally { _promise_getGridData?.resolve() }
 		}
-		finally { _promise_getGridData?.resolve() }
+		finally {
+			tanimPart._timer_tazeleIndicatorClear = setTimeout(() =>
+				layout?.removeClass('refreshing'), 100)
+		}
 	}
 	async getSubeTanimlari({ tanimPart = {} } = {}) {
 		let { buDB, dbListe } = app
