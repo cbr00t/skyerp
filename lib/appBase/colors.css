@@ -73,6 +73,7 @@
 :not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-lightred-transparent { background-color: #cf8c8cba !important }
 :not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-very-lightred { background-color: #dfcdcdad !important }
 :not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-cyan { background-color: cyan !important }
+:not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-teal { background-color: teal !important }
 :not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-royalblue { background-color: royalblue !important }
 :not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-lightroyalblue { background-color: #b0c3fb !important }
 :not(.jqx-fill-state-hover):not(.jqx-fill-state-pressed).bg-cadetblue { background-color: cadetblue !important }

@@ -278,8 +278,15 @@ class MQMustBilgi extends MQKAOrtak {
 		let { [mustKod]: mustBilgi } = localData.get('mustBilgi') ?? {}
 		if (!mustBilgi)
 			return
+
+		let { cariEkstre: _cariEkstre, cariEkstre_detay = [] } = mustBilgi ?? {}
+		let { part: gridPart } =
+			tanimPart.builder.getBuilders()
+				.find(fbd => fbd.id == 'cariEkstre' && fbd instanceof FBuilder_Grid) ?? {}
+		let { selectedRecs: cariEkstre } = gridPart ?? {}
+		if (empty(cariEkstre))
+			cariEkstre = _cariEkstre
 		
-		let { cariEkstre, cariEkstre_detay = [] } = mustBilgi ?? {}
 		if (empty(cariEkstre)) {
 			hConfirm('Çıktı alınacak bilgi yok', islemAdi)
 			return
@@ -291,6 +298,61 @@ class MQMustBilgi extends MQKAOrtak {
 			if (id)
 				(id2Detaylar[id] ??= []).push({ ...r })
 		})
+
+		let islemTipi, uiArgs = {}
+		;{
+			let rfb = new RootFormBuilder()
+				.setLayout($('<div/>'))
+				.setInst(uiArgs)
+				.addStyle_wh('calc(var(--full) - 20px)')
+				.addStyle(
+					`$elementCSS > div { padding: 10px }
+					 $elementCSS > div > .formBuilder-element:not(:first-child) { margin-top: 30px !important }
+					 $elementCSS > div .formBuilder-element { gap: 10px !important }`
+				)
+			;{
+				let form = rfb.addFormWithParent().altAlta()
+				form.addForm().setLayout(() => $(
+					`<h3>Seçilen <b class=royalblue>${cariEkstre.length}</b> kayıt için işlem yapılacak</h3>`))
+				form.addTextInput('ozelEMailStr', 'Özel e-Mail Adresleri')
+					.onBuildEk(({ builder: { input }}) => {
+						input.attr('autocomplete', 'email')
+						input.attr('placeholder', 'Boş bırakılırsa Müşteri e-Mail adresleri kullanılacak')
+					})
+			}
+			rfb.run()
+			let content = rfb.layout
+
+			islemTipi = await promise(async (c, f) => {
+				let wnd
+				let callback = val => {
+					c(val)
+					wnd?.jqxWindow('destroy')
+				}
+				wnd = createJQXWindow({
+					content,
+					title: 'e-Mail/PDF',
+					args: {
+						isModal: true,
+						width: Math.min(600, $(window).width() - 50),
+						height: Math.min(300, $(window).height() - 20),
+						closeButtonAction: 'close'
+					},
+					buttons: {
+						'PDF Göster': () => callback('pdf'),
+						'e-Mail Gönder': () => callback('email'),
+						'VAZGEÇ': () => callback(null)
+					}
+				})
+				wnd.on('close', () =>
+					callback(null))
+				let btns = wnd.find('.buttons').children()
+				btns.eq(0).addClass('bg-lightgreen')
+				btns.eq(1).addClass('bg-lightroyalblue')
+			})
+		}
+		if (!islemTipi)
+			return
 
 		let sablon = {}
 		;{
@@ -374,7 +436,6 @@ class MQMustBilgi extends MQKAOrtak {
 					</tr>
 				 </table>`
 		}
-
 		function getBedelStr(value, detaymi) {
 			if (!value)
 				return space
@@ -420,19 +481,72 @@ class MQMustBilgi extends MQKAOrtak {
 		dip.alacakBedelStr = getBedelStr(dip.alacak, false)
 
 		let dokumcu = new HTMLDokum(sablon.baslik)
-		let { result: content } = dokumcu.process({ baslik, detaylar, dip })
-		content = content && isString(content) ? $(content)[0] : null
-		if (!content)
+		let { result: htmlContent } = dokumcu.process({ baslik, detaylar, dip })
+		let htmlElm = htmlContent && isString(htmlContent) ? $(htmlContent)[0] : null
+		if (!htmlElm)
 			throw { isError: true, errorText: 'Görüntülenecek veri yok' }
-		// displayMessage(content)
 		
-		//let url = URL.createObjectURL(new Blob([content], { type: 'text/html' }))
+		// displayMessage(htmlElm)
+		
+		//let url = URL.createObjectURL(new Blob([htmlContent], { type: 'text/html' }))
 		//openNewWindow(url)
 		//setTimeout(() => URL.revokeObjectURL(url), 5_000)
-		
-		let url = await getPdf_url(content, { margin: 5, orientation: 'landscape' })
-		openNewWindow(url)
-		setTimeout(() => URL.revokeObjectURL(url), 5_000)
+
+		showProgress()
+		try {
+			let getPdf = type =>
+				getPdfOutput(type, htmlElm, { margin: 5, orientation: 'landscape' })
+			switch (islemTipi) {
+				case 'email': {
+					let { ozelEMailStr: eMailStr } = uiArgs
+					// eMailStr ||= ??  // gerekirse cari tanımdan email adresi alınacak kısım
+					
+					let to, cc = []
+					if (eMailStr) {
+						let tokens = eMailStr.split(';').map(_ => _.trim())
+						to = tokens[0]
+						cc.push(...tokens.slice(1))
+					}
+					if (empty(to))
+						throw { isError: true, errorText: 'Gönderilecek e-Mail adresi boş olamaz' }
+					
+					let blob = await getPdf('blob')
+					let pdfContent = blob
+					
+					let { appID } = app
+					let fileName = `skyERP/sahaDurum/${appID}.pdf`
+					await app.wsTempUpload({ fileName, data: pdfContent })
+					
+					let auth = await app.getEMailAuth() ?? {}
+					;{
+						let html = true
+						let subject = `Sky Saha Durum - Cari Ekstre | ${dateTimeAsKisaString(now())} | ${mustUnvan}`
+						let body = htmlContent
+						let tempUploadDir = Base64.decode('L1Byb2dyYW1EYXRhL3Zpby9zZXJ2aWNlL0NTa3lXUy91cGxvYWQ=')
+						let attachments = [`${tempUploadDir}/${fileName}`]
+						let data = {
+							...auth, html, to, cc,
+							subject, body, attachments
+						}
+						await app.wsEMailGonder({ data })
+					}
+					
+					/*let te = new TextEncoderStream()
+					a.stream().pipeTo(te.writable)
+					await Array.fromAsync( te.readable.values() )
+					*/
+					eConfirm('e-Mail Gönderimi tamamlandı')
+					break
+				}
+				case 'pdf': {
+					let url = await getPdf('bloburl')
+					openNewWindow(url)
+					setTimeout(() => URL.revokeObjectURL(url), 5_000)
+					break
+				}
+			}
+		}
+		finally { hideProgress() }
 	}
 }
 
