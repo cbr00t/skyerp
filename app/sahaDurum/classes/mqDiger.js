@@ -97,7 +97,7 @@ class MQCariEkstre extends MQMasterOrtak {
 			new GridKolon({ belirtec: 'fisnox', text: 'Belge Seri/No', genislikCh: 20 }),
 			new GridKolon({ belirtec: 'isladi', text: 'İşlem Adı', maxWidth: 40 * katSayi_ch2Px }),
 			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 10, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal(),
-			new GridKolon({ belirtec: 'brm', text: 'Brm', genislikCh: 5 }),
+			new GridKolon({ belirtec: 'brm', text: 'Brm', genislikCh: 6, filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'sonuciskoran', text: 'İsk%', genislikCh: 6, aggregates: [{ ORT: gridDipIslem_avg }] }).tipDecimal(),
 			new GridKolon({ belirtec: 'borcbedel', text: 'Borç Bedel.', genislikCh: 16, cellClassName: 'green', aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel(),
 			new GridKolon({ belirtec: 'alacakbedel', text: 'Alacak Bedel.', genislikCh: 16, cellClassName: 'red', aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel(),
@@ -159,23 +159,31 @@ class MQKapanmayanHesaplar_Yaslandirma extends MQMasterOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get dataKey() { return MustBilgi.yaslandirmaKey }
 	static get sinifAdi() { return 'Kapanmayan Hesaplar (Total Bilgi)' } get tableAlias() { return 'ktot' }
 	static orjBaslikListesi_argsDuzenle({ args }) {
-		super.orjBaslikListesi_argsDuzenle(...arguments);
-		$.extend(args, { sortable: false, groupable: false, showFilterRow: false, rowsHeight: 30, adaptive: false })
+		super.orjBaslikListesi_argsDuzenle(...arguments)
+		extend(args, {
+			sortable: false, groupable: false, showFilterRow: false,
+			rowsHeight: 30, adaptive: false
+		})
 	}
 	static ekCSSDuzenle({ dataField: belirtec, rec, result }) {
 		super.ekCSSDuzenle(...arguments)
 		if (rec?.toplammi) {
 			result.push('bg-lightroyalblue', 'bold')
-			if (belirtec == 'gecmis') { result.push('red') }
-			else if (belirtec == 'gelecek') { result.push('green') }
+			if (belirtec == 'gecmis')
+				result.push('red')
+			else if (belirtec == 'gelecek')
+				result.push('green')
 		}
 		else {
-			if (belirtec == 'gecmis') { result.push('bg-lightpink') }
-			else if (belirtec == 'gelecek') { result.push('bg-lightgreen') }
+			if (belirtec == 'gecmis')
+				result.push('bg-lightpink')
+			else if (belirtec == 'gelecek')
+				result.push('bg-lightgreen')
 		}
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
-		super.orjBaslikListesiDuzenle(...arguments); liste.push(...[
+		super.orjBaslikListesiDuzenle(...arguments)
+		liste.push(...[
 			new GridKolon({ belirtec: 'kademeText', text: 'Kademe', genislikCh: 10, columnType: 'n', align: 'right' }),
 			new GridKolon({ belirtec: 'gecmis', text: 'Geçmiş', genislikCh: 14 }).tipDecimal_bedel(),
 			new GridKolon({ belirtec: 'gelecek', text: 'Gelecek', genislikCh: 14 }).tipDecimal_bedel()
@@ -185,24 +193,30 @@ class MQKapanmayanHesaplar_Yaslandirma extends MQMasterOrtak {
 		let recs = this.loadServerDataFromMustBilgi(...arguments)
 		if (!recs)
 			return recs
+		
 		let toplam = { gecmis: 0, gelecek: 0 }
 		/*if (mustKod == 'M05D48928') { debugger }*/
-		for (let rec of recs) {
-			let {isaretligecikmegun: isaretliGecikmeGun} = rec
+		for (let r of recs) {
+			let rec = { ...r }
+			let { isaretligecikmegun: isaretliGecikmeGun } = rec
 			if (isaretliGecikmeGun != null) {
-				isaretliGecikmeGun = typeof isaretliGecikmeGun === 'string' ? asDate(isaretliGecikmeGun) : isaretliGecikmeGun
+				isaretliGecikmeGun = isString(isaretliGecikmeGun) ? asDate(isaretliGecikmeGun) : isaretliGecikmeGun
 				if (isDate(isaretliGecikmeGun))
 					isaretliGecikmeGun = ((isaretliGecikmeGun - minDate) / Date_OneDayNum) + 1
-				rec.gecmis = rec.gelecek = 0; rec[isaretliGecikmeGun < 0 ? 'gelecek' : 'gecmis'] += Math.abs(isaretliGecikmeGun)
+				rec.gecmis = rec.gelecek = 0
+				rec[isaretliGecikmeGun < 0 ? 'gelecek' : 'gecmis'] += Math.abs(isaretliGecikmeGun)
 				delete rec.isaretligecikmegun
 			}
-			for (let key of ['gecmis', 'gelecek'])
-				toplam[key] += rec[key]
+			;['gecmis', 'gelecek'].forEach(k =>
+				toplam[k] += rec[k])
 		}
+		
 		let recToplam = { toplammi: true, kademeText: `<u>TOPLAM</u> =&gt;` }
 		for (let key in toplam)
 			recToplam[key] = toplam[key]
-		recs.unshift(recToplam)
+		
+		recs = [recToplam, ...recs]
+		
 		return recs
 	}
 	static loadServerDataFromMustBilgi(e) {

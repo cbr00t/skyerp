@@ -797,7 +797,8 @@ class GridPart extends Part {
 				clearTimeout(this.timer_animate); this.timer_animate = setTimeout(() => { grid.removeClass(animation); delete this.timer_animate }, 2000)
 			}
 			try { gridWidget.refresh() } catch (ex) { }
-			try { return gridWidget.updatebounddata() } catch (ex) { setTimeout(() => gridWidget.updatebounddata(), 500); console.debug(ex); return this }
+			try { return gridWidget.updatebounddata() }
+			catch (ex) { setTimeout(() => gridWidget.updatebounddata(), 500); console.debug(ex); return this }
 		}
 		return this
 	}

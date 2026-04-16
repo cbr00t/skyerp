@@ -154,6 +154,16 @@ class MQMustBilgi extends MQKAOrtak {
 		let ekSagButonIdSet = e.part.ekSagButonIdSet ??= {}
 		extend(ekSagButonIdSet, asSet(items.map(_ => _.id)))
 	}
+	tanimPart_hizliBulIslemi({ sender: tanimPart, tokens }) { 
+		super.tanimPart_hizliBulIslemi(...arguments)
+		let { builder } = tanimPart
+		let idSet = asSet(['cariEkstre', 'kapanmayanHesap'])
+		builder.getBuilders()
+			.filter(_ => idSet[_.id] && _ instanceof FBuilder_Grid)
+			.forEach(({ id, input: layout, part: gridPart }) =>
+				gridPart.hizliBulIslemi({ sender: tanimPart, layout, tokens })
+			)
+	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e)
 		let { rootBuilder: rfb, tanimFormBuilder: tanimForm, sender: tanimPart, mfSinif, inst, kaForm } = e
@@ -219,25 +229,34 @@ class MQMustBilgi extends MQKAOrtak {
 				etFuncValue.call(this, ekIslemler.ilk, { id, etiket, mfSinif, etiket, parent, fbd })
 			return fbd
 		}
-		addGrid('kapanmayanHesaplar', null, MQKapanmayanHesaplar, { ilk: e => {
-			let {parentBuilder} = e;
+		addGrid('kapanmayanHesap', null, MQKapanmayanHesaplar, { ilk: e => {
+			let { parentBuilder } = e
 			parentBuilder.addButton('navToggle')
 				.onClick(e => {
 					let {builder} = e, {parentBuilder, rootPart} = builder;
-					let builder_sol = parentBuilder.id2Builder[id], builder_sag = parentBuilder.id2Builder.kapanmayanHesaplar;
-					builder_sol.layout.toggleClass('jqx-hidden'); builder_sag.layout.toggleClass('full-width-important');
+					let builder_sol = parentBuilder.id2Builder[id]
+					let { kapanmayanHesap: builder_sag } = parentBuilder.id2Builder
+					builder_sol.layout.toggleClass('jqx-hidden')
+					builder_sag.layout.toggleClass('full-width-important');
 					rootPart.onResize()
 				}).addStyle(e => `$elementCSS { position: absolute; width: auto !important; height: auto !important; margin-top: -45px; z-index: 500 }`)
 				.addStyle(e => `$elementCSS > button { width: 45px !important; height: 45px !important }`);
 			let width = 400, subParentBuilder = parentBuilder.addFormWithParent().altAlta().addStyle_fullWH(width); subParentBuilder._width = width;
 			{
-				let mfSinif = MQKapanmayanHesaplar_Yaslandirma, {dataKey: id} = mfSinif;
+				let mfSinif = MQKapanmayanHesaplar_Yaslandirma
+				let { dataKey: id } = mfSinif
 				let fbd = subParentBuilder.addGridliGosterici(id).addStyle_fullWH(null, 350)
 					.setMFSinif(mfSinif).rowNumberOlmasin()
 					.widgetArgsDuzenleIslemi(({ sender, args, builder: fbd }) => {
-						let {mfSinif} = fbd; mfSinif.orjBaslikListesi_argsDuzenle({ ...e, sender, args, builder: fbd }) })
+						let { mfSinif } = fbd
+						mfSinif.orjBaslikListesi_argsDuzenle({ ...e, sender, args, builder: fbd })
+					})
 					.setTabloKolonlari(({ builder: fbd }) => fbd.mfSinif.listeBasliklari)
-					.setSource(({ builder: fbd }) => { let {rootPart, mfSinif} = fbd; e.mustKod = rootPart.inst.kod; return mfSinif.loadServerData(e) });
+					.setSource(({ builder: fbd }) => {
+						let { rootPart, mfSinif } = fbd
+						e.mustKod = rootPart.inst.kod
+						return mfSinif.loadServerData({ ...e })
+					})
 				fbd.onAfterRun(({ builder: fbd }) => {
 					if (mfSinif?.orjBaslikListesi_gridInit) {
 						let {part} = fbd, {grid, gridWidget} = part;
@@ -272,34 +291,37 @@ class MQMustBilgi extends MQKAOrtak {
 		}
 	}
 
-	async dataOutputIstendi({ sender: tanimPart }) {
+	async dataOutputIstendi({ sender: tanimPart, recs: orjRecs, detRecs: orjDetRecs }) {
 		let { params: { localData } } = app
 		let { kod: mustKod, aciklama: mustUnvan, class: { sinifAdi: islemAdi } } = this
 		let { [mustKod]: mustBilgi } = localData.get('mustBilgi') ?? {}
 		if (!mustBilgi)
 			return
 
-		let { cariEkstre: _cariEkstre, cariEkstre_detay = [] } = mustBilgi ?? {}
-		let { part: gridPart } =
-			tanimPart.builder.getBuilders()
-				.find(fbd => fbd.id == 'cariEkstre' && fbd instanceof FBuilder_Grid) ?? {}
-		let { selectedRecs: cariEkstre } = gridPart ?? {}
-		if (empty(cariEkstre))
-			cariEkstre = _cariEkstre
-		
-		if (empty(cariEkstre)) {
-			hConfirm('Çıktı alınacak bilgi yok', islemAdi)
-			return
+		let getRecYapi = () => {
+			let recs = orjRecs, detRecs = orjDetRecs
+			if (!recs) {
+				let { kod, kod: selector } = veriTipi
+				let iceriklimi = kod == 'icerikliCariEkstre'
+				if (kod == 'icerikliCariEkstre')
+					selector = 'cariEkstre'
+				let { part: gridPart = {} } = tanimPart.builder.getBuilders()
+						.find(fbd => fbd.id == selector && fbd instanceof FBuilder_Grid) ?? {}
+				recs = gridPart.selectedRecs
+				if (empty(recs))
+					recs = mustBilgi[selector]
+				detRecs = iceriklimi ? mustBilgi[`${selector}_detay`] : null
+			}
+			return { recs, detRecs }
 		}
-
-		let id2Detaylar = {}
-		;cariEkstre_detay.forEach(r => {
-			let { icerikfissayac: id } = r
-			if (id)
-				(id2Detaylar[id] ??= []).push({ ...r })
-		})
-
-		let islemTipi, uiArgs = {}
+		
+		let veriTipleri = [
+			new CKodVeAdi(['cariEkstre', 'Cari Ekstre', 'cariEkstremi']),
+			new CKodVeAdi(['icerikliCariEkstre', 'İçerikli Cari Ekstre', 'icerikliCariEkstremi']),
+			new CKodVeAdi(['kapanmayanHesap', 'Kapanmayan Hesaplar', 'kapanmayanHesapmi'])
+		]
+		let islemTipi, veriTipi = veriTipleri[0]
+		let uiArgs = { veriTipi: veriTipi.kod }
 		;{
 			let rfb = new RootFormBuilder()
 				.setLayout($('<div/>'))
@@ -307,21 +329,40 @@ class MQMustBilgi extends MQKAOrtak {
 				.addStyle_wh('calc(var(--full) - 20px)')
 				.addStyle(
 					`$elementCSS > div { padding: 10px }
-					 $elementCSS > div > .formBuilder-element:not(:first-child) { margin-top: 30px !important }
-					 $elementCSS > div .formBuilder-element { gap: 10px !important }`
+					 $elementCSS > div > .formBuilder-element:not(:first-child) { margin-top: 20px !important }
+					 $elementCSS > div .formBuilder-element { gap: 5px !important }`
 				)
+			let fbd_sayiBilgi
+			let veriTipiDegisince = ({ altInst: { veriTipi: kod } = {} }) => {
+				if (kod == null)
+					return
+				veriTipi = veriTipleri.find(_ => _.kod == kod)
+				fbd_sayiBilgi?.layout?.html(
+					`<h3>
+						<b class=royalblue>${getRecYapi()?.recs?.length ?? 0}</b> kayıt için işlem yapılacak
+					</h3>`
+				)
+			}
 			;{
 				let form = rfb.addFormWithParent().altAlta()
-				form.addForm().setLayout(() => $(
-					`<h3>Seçilen <b class=royalblue>${cariEkstre.length}</b> kayıt için işlem yapılacak</h3>`))
+				fbd_sayiBilgi = form.addForm()
+					.setLayout(() => $(`<h3></h3>`))
+				if (!orjRecs) {
+					form.addSelect('veriTipi', 'Tip')
+						.setSource(veriTipleri)
+						.degisince(({ builder: fbd }) =>
+							veriTipiDegisince(fbd))
+						.addStyle_wh(250)
+				}
 				form.addTextInput('ozelEMailStr', 'Özel e-Mail Adresleri')
 					.onBuildEk(({ builder: { input }}) => {
 						input.attr('autocomplete', 'email')
 						input.attr('placeholder', 'Boş bırakılırsa Müşteri e-Mail adresleri kullanılacak')
 					})
 			}
+			rfb.onAfterRun(({ builder: rfb }) =>
+				veriTipiDegisince(rfb))
 			rfb.run()
-			let content = rfb.layout
 
 			islemTipi = await promise(async (c, f) => {
 				let wnd
@@ -329,13 +370,14 @@ class MQMustBilgi extends MQKAOrtak {
 					c(val)
 					wnd?.jqxWindow('destroy')
 				}
+				let { layout: content } = rfb
 				wnd = createJQXWindow({
 					content,
 					title: 'e-Mail/PDF',
 					args: {
 						isModal: true,
 						width: Math.min(600, $(window).width() - 50),
-						height: Math.min(300, $(window).height() - 20),
+						height: Math.min(400, $(window).height() - 20),
 						closeButtonAction: 'close'
 					},
 					buttons: {
@@ -351,8 +393,23 @@ class MQMustBilgi extends MQKAOrtak {
 				btns.eq(1).addClass('bg-lightroyalblue')
 			})
 		}
-		if (!islemTipi)
+		if (!islemTipi || veriTipi == null)
 			return
+
+		//if (!(veriTipi.cariEkstremi || veriTipi.icerikliCariEkstremi))
+		//	throw { isError: true, errorText: `<b class=firebrick>${veriTipi.aciklama}</b> Veri Tipi henüz desteklenmiyor` }
+
+		let { recs, detRecs } = getRecYapi()
+		if (empty(recs)) {
+			hConfirm('Çıktı alınacak bilgi yok', islemAdi)
+			return
+		}
+		let id2Detaylar = {}
+		;detRecs?.forEach(r => {
+			let { icerikfissayac: id = r.fissayac } = r
+			if (id)
+				(id2Detaylar[id] ??= []).push({ ...r })
+		})
 
 		let sablon = {}
 		;{
@@ -436,6 +493,7 @@ class MQMustBilgi extends MQKAOrtak {
 					</tr>
 				 </table>`
 		}
+		
 		function getBedelStr(value, detaymi) {
 			if (!value)
 				return space
@@ -444,16 +502,26 @@ class MQMustBilgi extends MQKAOrtak {
 		}
 		mustUnvan ??= ( await MQMustBilgi.getGloKod2Adi() )?.[mustKod]?.trimEnd()
 		let baslik = { mustKod, mustUnvan }
-		let dip = { borc: 0, alacak: 0}
-		let detaylar = cariEkstre.map(_r => {
+		let dip = { borc: 0, alacak: 0 }
+		let detaylar = recs.map(_r => {
 			let r = { ..._r }
-			let { tarih, borcbedel: borc, alacakbedel: alacak, icerikfissayac: id } = r
+			let { tarih, bedel, borcbedel: borc, alacakbedel: alacak } = r
+			let { icerikfissayac: id = r.fissayac } = r
 			if (tarih)
 				tarih = r.tarih = asDate(tarih)
+			if (bedel != null && (borc ?? alacak) == null) {
+				borc = r.borcbedel =bedel < 0 ? 0 : bedel
+				alacak = r.alacakbedel = bedel < 0 ? -bedel : 0
+			}
+			r.bedel ??= (borc ?? 0) - (alacak ?? 0)
 			dip.borc += borc
 			dip.alacak += alacak
 			r.borcBedelStr = getBedelStr(borc, false)
 			r.alacakBedelStr = getBedelStr(alacak, false)
+			r.bedelStr = getBedelStr(bedel, false)
+			r.fisnox ??= r.belgeNox ?? r.belgenox
+			deleteKeys(r, 'belgeNox', 'belgenox')
+			
 			let _detaylar = r.detaylar = id2Detaylar[id] ?? []
 			if (!empty(_detaylar)) {
 				let _dip = {}
@@ -520,7 +588,7 @@ class MQMustBilgi extends MQKAOrtak {
 					let auth = await app.getEMailAuth() ?? {}
 					;{
 						let html = true
-						let subject = `Sky Saha Durum - Cari Ekstre | ${dateTimeAsKisaString(now())} | ${mustUnvan}`
+						let subject = `Sky Saha Durum - ${veriTipi.aciklama} | ${dateTimeAsKisaString(now())} | ${mustUnvan}`
 						let body = htmlContent
 						let tempUploadDir = Base64.decode('L1Byb2dyYW1EYXRhL3Zpby9zZXJ2aWNlL0NTa3lXUy91cGxvYWQ=')
 						let attachments = [`${tempUploadDir}/${fileName}`]
