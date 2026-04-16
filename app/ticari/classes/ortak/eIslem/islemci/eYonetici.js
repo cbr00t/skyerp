@@ -500,32 +500,53 @@ class EYonetici extends CObject {
 				let sayac2EFis = ps2Sayac2EFis[psTip], fisSayacListe = keys(sayac2EFis);
 				while (fisSayacListe.length) {
 					let subFisSayacListe = fisSayacListe.splice(0, BlockSize), uuid2SubResult = {};
-					let toplu = new MQToplu(), updCallback = _e.updCallback = ({ query }) => { if (query) { toplu.add(query) } };
-					let promises = [], uploadList = []; let commit = async () => {
-						await Promise.all(promises); promises = [];
-						if (uploadList.length) { await app.wsMultiUpload({ data: uploadList }); uploadList = [] }
-						if (toplu.liste.length) { await app.sqlExecNone(toplu); toplu.liste = [] }
-					};
+					let toplu = new MQToplu()
+					let updCallback = _e.updCallback = ({ query }) => {
+						if (query)
+							toplu.add(query)
+					}
+					let promises = [], uploadList = []
+					let commit = async () => {
+						await promiseAll(promises)
+						promises = []
+						if (uploadList.length) {
+							await app.wsMultiUpload({ data: uploadList })
+							uploadList = []
+						}
+						if (toplu.liste.length) {
+							await app.sqlExecNone(toplu)
+							toplu.liste = []
+						}
+					}
 					for (let fisSayac of subFisSayacListe) {
 						promises.push(new $.Deferred(async p => {
 							let eFis = sayac2EFis[fisSayac], {baslik} = eFis, {efayrimtipi: efAyrimTipi} = baslik;
 							let eIslSinif = EIslemOrtak.getClass({ tip: efAyrimTipi }), anaBolum = eConf.getAnaBolumFor({ eIslSinif });
-							let uuid; try {
-								if (!anaBolum) { throw { isError: true, rc: 'eIslAnaBolumBelirsiz', errorText: 'e-İşlem için Ana Bölüm belirlenemedi' } }
-								let args = { ..._e }, xmlStr = await eFis.xmlOlustur(args); if (!xmlStr) { p.resolve() }
-								uuid = baslik.uuid; uuid2Result[uuid] = uuid2Result[uuid] ?? { islemZamani: now(), isError: false, eFis, rec: baslik, efAyrimTipi };
-								/* let uuid2XML = e.uuid2XML = e.uuid2XML || {}; uuid2XML[uuid] = xmlStr; */
-								let xmlDosya = `${anaBolum}\\IMZALI\\${uuid}.xml`; /*await app.wsUpload({ remoteFile: xmlDosya, args: xmlStr });*/
-								uploadList.push({ name: xmlDosya, data: Base64.encode(xmlStr) });
-								/*if (config.dev) { let url = URL.createObjectURL(new Blob([xmlStr], { type: 'application/xml' })); openNewWindow(url) }*/
+							let uuid
+							try {
+								if (!anaBolum)
+									throw { isError: true, rc: 'eIslAnaBolumBelirsiz', errorText: 'e-İşlem için Ana Bölüm belirlenemedi' }
+								let args = { ..._e }
+								let xmlStr = await eFis.xmlOlustur(args)
+								if (!xmlStr)
+									p.resolve()
+								uuid = baslik.uuid
+								uuid2Result[uuid] ??= { islemZamani: now(), isError: false, eFis, rec: baslik, efAyrimTipi }
+								// let uuid2XML = e.uuid2XML = e.uuid2XML || {}; uuid2XML[uuid] = xmlStr
+								let xmlDosya = `${anaBolum}\\IMZALI\\${uuid}.xml`
+								//await app.wsUpload({ remoteFile: xmlDosya, args: xmlStr })
+								uploadList.push({ name: xmlDosya, data: Base64.encode(xmlStr) })
+								//if (config.dev) { let url = URL.createObjectURL(new Blob([xmlStr], { type: 'application/xml' })); openNewWindow(url) }
 							} catch (ex) {
-								uuid = baslik.uuid || uuid; let rec = uuid2Result[uuid] = uuid2Result[uuid] ?? { islemZamani: now(), eFis, baslik, efAyrimTipi };
-								$.extend(rec, { isError: true, message: getErrorText(ex) });
+								uuid = baslik.uuid || uuid
+								let rec = uuid2Result[uuid] ??= { islemZamani: now(), eFis, baslik, efAyrimTipi }
+								extend(rec, { isError: true, message: getErrorText(ex) })
 								console.error(ex)
 							}
 							p.resolve()
-						}));
-						if (promises.length == 1) { await commit() }
+						}))
+						if (promises.length == 1)
+							await commit()
 					}
 					await commit()
 					window.progressManager?.progressStep(subFisSayacListe?.length ?? 0)

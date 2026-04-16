@@ -293,7 +293,7 @@ class MQEMutOnay extends MQCogul {
 					maxLength: 6,
 					// placeHolder: '______',
 					validate: ({ value: v }) => {
-						if (!Array.from(v).filter(isDigit).length == 6)
+						if (!/^\d{6}$/.test(v))
 							return hConfirm('Onay Kodu 6 haneli bir sayı olmalıdır')
 						return true
 					},
