@@ -81,7 +81,8 @@ class MQMustBilgi extends MQKAOrtak {
 	}
 	static async loadServerData(e = {}) {
 		await super.loadServerData(e)
-		let {wsArgs} = e, {dataKey} = this, {localData} = app.params
+		let { wsArgs } = e, { dataKey } = this
+		let { localData } = app.params
 		let result = await localData.get(dataKey)
 		if (result == null) {
 			let recs = await MQCari.loadServerDataDogrudan(e)
@@ -94,12 +95,12 @@ class MQMustBilgi extends MQKAOrtak {
 			}
 			let cariEkstre_fisSayac2Rec = {}
 			for (let cls of classes) {
-				let {dataKey: subDataKey} = cls
+				let { dataKey: subDataKey } = cls
 				if (!subDataKey)
 					continue
 				let recs = await cls.loadServerDataDogrudan(e) ?? []
 				for (let rec of recs) {
-					let parentRec, {icerikfissayac: fisSayac} = rec
+					let parentRec, { icerikfissayac: fisSayac } = rec
 					switch (cls) {
 						case MQCariEkstre: if (fisSayac) { cariEkstre_fisSayac2Rec[fisSayac] = rec } break
 						case MQCariEkstre_Detay: parentRec = cariEkstre_fisSayac2Rec[fisSayac]; break
@@ -214,15 +215,18 @@ class MQMustBilgi extends MQKAOrtak {
 					let _e = { ...e, mustKod }
 					return mfSinif.loadServerData(_e)
 				})
-			fbd.addCSS('full-height-important').addStyle(
-				`$elementCSS:not(.full-width):not(.full-width-important) {
-					width: calc(var(--full) - ${prevWidth ? prevWidth + 10 : 0}px) !important
-				}`
-			)
-			fbd.onAfterRun(({ builder: fbd }) => {
+			fbd
+				.addCSS('full-height-important')
+				.addStyle(
+					`$elementCSS:not(.full-width):not(.full-width-important) {
+						width: calc(var(--full) - ${prevWidth ? prevWidth + 10 : 0}px) !important
+					}`
+				)
+			fbd.onAfterRun(({ builder }) => {
 				if (mfSinif?.orjBaslikListesi_gridInit) {
-					let { part } = fbd, { grid, gridWidget } = part
-					mfSinif.orjBaslikListesi_gridInit({ ...e, sender: part, gridPart: part, builder: fbd, mfSinif, grid, gridWidget })
+					let { part: gridPart } = builder
+					let { grid, gridWidget } = gridPart
+					mfSinif.orjBaslikListesi_gridInit({ ...e, sender: gridPart, gridPart, builder, mfSinif, grid, gridWidget })
 				}
 			})
 			if (ekIslemler.son)
@@ -298,30 +302,49 @@ class MQMustBilgi extends MQKAOrtak {
 		if (!mustBilgi)
 			return
 
-		let getRecYapi = () => {
+		let veriTipi
+		let getRecYapi = kod => {
+			kod ??= veriTipi?.kod
 			let recs = orjRecs, detRecs = orjDetRecs
 			if (!recs) {
-				let { kod, kod: selector } = veriTipi
+				let selector = kod
+				let eIslemmi = kod == 'eIslem'
 				let iceriklimi = kod == 'icerikliCariEkstre'
-				if (kod == 'icerikliCariEkstre')
+				if (eIslemmi || kod == 'icerikliCariEkstre')
 					selector = 'cariEkstre'
 				let { part: gridPart = {} } = tanimPart.builder.getBuilders()
 						.find(fbd => fbd.id == selector && fbd instanceof FBuilder_Grid) ?? {}
 				recs = gridPart.selectedRecs
-				if (empty(recs))
+				if (!eIslemmi && empty(recs))
 					recs = mustBilgi[selector]
 				detRecs = iceriklimi ? mustBilgi[`${selector}_detay`] : null
 			}
 			return { recs, detRecs }
 		}
-		
+
+		let recCount = getRecYapi('cariEkstre')?.recs?.length ?? 0
 		let veriTipleri = [
 			new CKodVeAdi(['cariEkstre', 'Cari Ekstre', 'cariEkstremi']),
 			new CKodVeAdi(['icerikliCariEkstre', 'İçerikli Cari Ekstre', 'icerikliCariEkstremi']),
-			new CKodVeAdi(['kapanmayanHesap', 'Kapanmayan Hesaplar', 'kapanmayanHesapmi'])
-		]
-		let islemTipi, veriTipi = veriTipleri[0]
+			new CKodVeAdi(['kapanmayanHesap', 'Kapanmayan Hesaplar', 'kapanmayanHesapmi']),
+			( recCount == 1 ? new CKodVeAdi(['eIslem', 'e-İşlem', 'eIslemmi']) : null ),
+		].filter(Boolean)
+
+		veriTipi ??= veriTipleri[0]
+		let islemTipi
 		let uiArgs = { veriTipi: veriTipi.kod }
+		if (!uiArgs.ozelEMailStr) {
+			// [ 'email', 'emailearsiv', 'emailfinans', 'emaillojistik', 'emailmuhasebe', 'emailmutabakat', 'emailsatinalma', 'emailsatis' ]
+			let sent = new MQSent(), { where: wh, sahalar } = sent
+			sent.fromAdd('carmst car')
+			wh.degerAta(mustKod, 'car.must')
+			sahalar.addWithAlias('car', 'email', 'emailsatinalma')
+			let { email, emailsatinalma } = await sent.execTekil() ?? {}
+			let tokens = [email, emailsatinalma]
+				.filter(Boolean)
+				.flatMap(_ => _.split(';'))
+			uiArgs.ozelEMailStr = tokens.join('; ')
+		}
 		;{
 			let rfb = new RootFormBuilder()
 				.setLayout($('<div/>'))
@@ -354,7 +377,8 @@ class MQMustBilgi extends MQKAOrtak {
 							veriTipiDegisince(fbd))
 						.addStyle_wh(250)
 				}
-				form.addTextInput('ozelEMailStr', 'Özel e-Mail Adresleri')
+				form.addTextArea('ozelEMailStr', `Özel e-Mail Adresleri &nbsp;(<span class="lightgray ek-bilgi">';' ile ayırınız</span>)`)
+					.setRows(4).setCols(10000)
 					.onBuildEk(({ builder: { input }}) => {
 						input.attr('autocomplete', 'email')
 						input.attr('placeholder', 'Boş bırakılırsa Müşteri e-Mail adresleri kullanılacak')
@@ -376,8 +400,8 @@ class MQMustBilgi extends MQKAOrtak {
 					title: 'e-Mail/PDF',
 					args: {
 						isModal: true,
-						width: Math.min(600, $(window).width() - 50),
-						height: Math.min(400, $(window).height() - 20),
+						width: Math.min(700, $(window).width() - 50),
+						height: Math.min(430, $(window).height() - 20),
 						closeButtonAction: 'close'
 					},
 					buttons: {
@@ -389,181 +413,276 @@ class MQMustBilgi extends MQKAOrtak {
 				wnd.on('close', () =>
 					callback(null))
 				let btns = wnd.find('.buttons').children()
-				btns.eq(0).addClass('bg-lightgreen')
-				btns.eq(1).addClass('bg-lightroyalblue')
+				btns.eq(0).addClass('bg-lightroyalblue')
+				btns.eq(1).addClass('bg-lightgreen')
 			})
 		}
 		if (!islemTipi || veriTipi == null)
 			return
-
-		//if (!(veriTipi.cariEkstremi || veriTipi.icerikliCariEkstremi))
-		//	throw { isError: true, errorText: `<b class=firebrick>${veriTipi.aciklama}</b> Veri Tipi henüz desteklenmiyor` }
 
 		let { recs, detRecs } = getRecYapi()
 		if (empty(recs)) {
 			hConfirm('Çıktı alınacak bilgi yok', islemAdi)
 			return
 		}
-		let id2Detaylar = {}
-		;detRecs?.forEach(r => {
-			let { icerikfissayac: id = r.fissayac } = r
-			if (id)
-				(id2Detaylar[id] ??= []).push({ ...r })
-		})
 
-		let sablon = {}
-		;{
-			sablon.baslik = `
-				<div class="dokum">
-					<style>
-						.dokum { margin: 0 }
-						.dokum > table { margin-top: 30px }
-						.dokum table { width: 100% }
-						.dokum table tr.header > * { text-align: center }
-						.dokum table tr.content { page-break-inside: avoid }
-						.dokum table.detay { font-size: 80% }
-						.dokum table.baslik tr.content { border-bottom: 1px solid #eee }
-						.dokum table.baslik tr { }
-						.dokum table.baslik tr > * { font-weight: bold; padding: 4px 10px }
-						.dokum table.detay tr > * { padding: 2px 5px }
-						.dokum table.detay tr.content > * { font-weight: normal; color: #777 }
-						.dokum table.baslik tr.header { border-bottom: 5px solid royalblue }
-						.dokum table.detay tr.header { border-bottom: 3px solid forestgreen }
-						.dokum table.baslik tr.dip { border-top: 3px solid royalblue; background-color: #ddd }
-						.dokum table.detay tr.dip { border-top: 2px solid forestgreen; background-color: #eee }
-						/*@media screen {
-							.dokum table.baslik { box-shadow: 0 0 8px 3px royalblue }
-							.dokum table tr.content:hover { background-color: #88ccff33; cursor: pointer }
-						}*/
-					</style>
-					<h3 style="color: royalblue">
-						[mustUnvan]
-					</h3>
-					<table class="baslik" border="1">
-						<tr class="header">
-							<th width="80">TARİH</th>
-							<th width="250">BELGE NO</th>
-							<th>İŞLEM</th>
-							<th width="150" align="right">BORÇ</th>
-							<th width="150" align="right">ALACAK</th>
-						</tr>
-						<tr class="content">
-							<td colspan="100">
-								<table>
-									<tr class="asil">
-										<td width="80">[tarih]</td>
-										<td width="250" align="right">[fisnox]</td>
-										<td>[isladi]</td>
-										<td width="150" align="right">[borcBedelStr]</td>
-										<td width="150" align="right">[alacakBedelStr]</td>
-									</tr>
-									<tr class="detaylar">
-										<td colspan="100">
-											[detayTable]
-										</td>
-									</tr>
-								</table>
-							</td>
-						</tr>
-						<tr class="dip">
-							<td colspan="3">&nbsp;</td>
-							<td align="right">[borcBedelStr]</td>
-							<td align="right">[alacakBedelStr]</td>
-						</tr>
-					</table>
-				</div>`
-		}
-		;{
-			sablon.detay = 
-				`<table class="detay" border="0">
-					<tr class="header">
-						<th>Ürün</th>
-						<th align="right">Miktar</th>
-						<th align="right">Bedel</th>
-					</tr>
-					<tr class="content">
-						<td>[stokadi]</td>
-						<td align="right">[miktar]</td>
-						<td align="right">[bedelStr]</td>
-					</tr>
-					<tr class="dip">
-						<td>&nbsp;</td>
-						<td align="right">[miktar]</td>
-						<td align="right">[bedelStr]</td>
-					</tr>
-				 </table>`
-		}
-		
 		function getBedelStr(value, detaymi) {
 			if (!value)
 				return space
 			let color = value < 0 ? 'firebrick' : detaymi ? 'forestgreen' : 'royalblue'
 			return `<b style="color: ${color}">${bedelToString(value)}</b>`
 		}
+		
 		mustUnvan ??= ( await MQMustBilgi.getGloKod2Adi() )?.[mustKod]?.trimEnd()
-		let baslik = { mustKod, mustUnvan }
-		let dip = { borc: 0, alacak: 0 }
-		let detaylar = recs.map(_r => {
-			let r = { ..._r }
-			let { tarih, bedel, borcbedel: borc, alacakbedel: alacak } = r
-			let { icerikfissayac: id = r.fissayac } = r
-			if (tarih)
-				tarih = r.tarih = asDate(tarih)
-			if (bedel != null && (borc ?? alacak) == null) {
-				borc = r.borcbedel =bedel < 0 ? 0 : bedel
-				alacak = r.alacakbedel = bedel < 0 ? -bedel : 0
-			}
-			r.bedel ??= (borc ?? 0) - (alacak ?? 0)
-			dip.borc += borc
-			dip.alacak += alacak
-			r.borcBedelStr = getBedelStr(borc, false)
-			r.alacakBedelStr = getBedelStr(alacak, false)
-			r.bedelStr = getBedelStr(bedel, false)
-			r.fisnox ??= r.belgeNox ?? r.belgenox
-			deleteKeys(r, 'belgeNox', 'belgenox')
+		let htmlElm, pdfContent
+		let eIslemmi = veriTipi.kod == 'eIslem'
+		if (eIslemmi) {
+			if (recs.length > 1)
+				throw { isError: true, errorText: 'e-İşlem için sadece tek belge seçilmelidir' }
 			
-			let _detaylar = r.detaylar = id2Detaylar[id] ?? []
-			if (!empty(_detaylar)) {
-				let _dip = {}
-				;_detaylar.forEach(det => {
-					_dip.miktar = (_dip.miktar ?? 0) + det.miktar
-					_dip.bedel = (_dip.bedel ?? 0) + det.bedel
-					det.bedelStr = getBedelStr(det.bedel, true)
-				})
-				_dip.bedelStr = getBedelStr(_dip.bedel, true)
-				
-				if (r.detayTable == null) {
-					let { result: detayTable } = (
-						new HTMLDokum(sablon.detay)
-							.process({ baslik: {}, detaylar: _detaylar, dip: _dip })
-					)
-					if (detayTable)
-						detayTable = $(detayTable)[0].outerHTML
-					r.detayTable = detayTable
-				}
+			let rec = recs[0]
+			if (!rec.icerikfissayac)
+				throw { isError: true, errorText: 'e-İşlem için Belge ID belirlenemedi.<p/>Sadece Ticari Belgeler için e-İşlem GÖrüntüsü alınabilir' }
+		}
+		else {
+			let id2Detaylar = {}
+			;detRecs?.forEach(r => {
+				let { icerikfissayac: id = r.fissayac } = r
+				if (id)
+					(id2Detaylar[id] ??= []).push({ ...r })
+			})
+			
+			let sablon = {
+				baslik: app.getSablonIcerik(veriTipi, false),
+				detay: app.getSablonIcerik(veriTipi, true)
 			}
-			r.detayTable ??= ''
-			return r
-		})
-		dip.borcBedelStr = getBedelStr(dip.borc, false)
-		dip.alacakBedelStr = getBedelStr(dip.alacak, false)
+			if (!sablon.baslik) {
+				sablon.baslik = `
+					<div class="dokum">
+						<style>
+							.dokum { margin: 0 }
+							.dokum > table { margin-top: 30px }
+							.dokum table { width: 100% }
+							.dokum table tr.header > * { text-align: center }
+							.dokum table tr.content { page-break-inside: avoid }
+							.dokum table.detay { font-size: 80% }
+							.dokum table.baslik tr.content { border-bottom: 1px solid #eee }
+							.dokum table.baslik tr { }
+							.dokum table.baslik tr > * { font-weight: bold; padding: 4px 10px }
+							.dokum table.detay tr > * { padding: 2px 5px }
+							.dokum table.detay tr.content > * { font-weight: normal; color: #777 }
+							.dokum table.baslik tr.header { border-bottom: 5px solid royalblue }
+							.dokum table.detay tr.header { border-bottom: 3px solid forestgreen }
+							.dokum table.baslik tr.dip { border-top: 3px solid royalblue; background-color: #ddd }
+							.dokum table.detay tr.dip { border-top: 2px solid forestgreen; background-color: #eee }
+							/*@media screen {
+								.dokum table.baslik { box-shadow: 0 0 8px 3px royalblue }
+								.dokum table tr.content:hover { background-color: #88ccff33; cursor: pointer }
+							}*/
+						</style>
+						<h3 style="color: royalblue">
+							[mustUnvan]
+						</h3>
+						<table class="baslik" border="1">
+							<tr class="header">
+								<th width="80">TARİH</th>
+								<th width="250">BELGE NO</th>
+								<th>İŞLEM</th>
+								<th width="150" align="right">BORÇ</th>
+								<th width="150" align="right">ALACAK</th>
+							</tr>
+							<tr class="content">
+								<td colspan="100">
+									<table>
+										<tr class="asil">
+											<td width="80">[tarih]</td>
+											<td width="250" align="right">[fisnox]</td>
+											<td>[isladi]</td>
+											<td width="150" align="right">[borcBedelStr]</td>
+											<td width="150" align="right">[alacakBedelStr]</td>
+										</tr>
+										<tr class="detaylar">
+											<td colspan="100">
+												[detayTable]
+											</td>
+										</tr>
+									</table>
+								</td>
+							</tr>
+							<tr class="dip">
+								<td colspan="3">&nbsp;</td>
+								<td align="right">[borcBedelStr]</td>
+								<td align="right">[alacakBedelStr]</td>
+							</tr>
+						</table>
+					</div>`
+			}
+			if (!sablon.detay) {
+				sablon.detay = 
+					`<table class="detay" border="0">
+						<tr class="header">
+							<th>Ürün</th>
+							<th align="right">Miktar</th>
+							<th align="right">Bedel</th>
+						</tr>
+						<tr class="content">
+							<td>[stokadi]</td>
+							<td align="right">[miktar]</td>
+							<td align="right">[bedelStr]</td>
+						</tr>
+						<tr class="dip">
+							<td>&nbsp;</td>
+							<td align="right">[miktar]</td>
+							<td align="right">[bedelStr]</td>
+						</tr>
+					 </table>`
+			}
+			
+			let baslik = { mustKod, mustUnvan }
+			let dip = { borc: 0, alacak: 0 }
+			let detaylar = recs.map(_r => {
+				let r = { ..._r }
+				let { tarih, bedel, borcbedel: borc, alacakbedel: alacak } = r
+				let { icerikfissayac: id = r.fissayac } = r
+				if (tarih)
+					tarih = r.tarih = asDate(tarih)
+				if (bedel != null && (borc ?? alacak) == null) {
+					borc = r.borcbedel =bedel < 0 ? 0 : bedel
+					alacak = r.alacakbedel = bedel < 0 ? -bedel : 0
+				}
+				r.bedel ??= (borc ?? 0) - (alacak ?? 0)
+				dip.borc += borc
+				dip.alacak += alacak
+				r.borcBedelStr = getBedelStr(borc, false)
+				r.alacakBedelStr = getBedelStr(alacak, false)
+				r.bedelStr = getBedelStr(bedel, false)
+				r.fisnox ??= r.belgeNox ?? r.belgenox
+				deleteKeys(r, 'belgeNox', 'belgenox')
+				
+				let _detaylar = r.detaylar = id2Detaylar[id] ?? []
+				if (!empty(_detaylar)) {
+					let _dip = {}
+					;_detaylar.forEach(det => {
+						_dip.miktar = (_dip.miktar ?? 0) + det.miktar
+						_dip.bedel = (_dip.bedel ?? 0) + det.bedel
+						det.bedelStr = getBedelStr(det.bedel, true)
+					})
+					_dip.bedelStr = getBedelStr(_dip.bedel, true)
+					
+					if (r.detayTable == null) {
+						let { result: detayTable } = (
+							new HTMLDokum(sablon.detay)
+								.process({ baslik: {}, detaylar: _detaylar, dip: _dip })
+						)
+						if (detayTable)
+							detayTable = $(detayTable)[0].outerHTML
+						r.detayTable = detayTable
+					}
+				}
+				r.detayTable ??= ''
+				return r
+			})
+			dip.borcBedelStr = getBedelStr(dip.borc, false)
+			dip.alacakBedelStr = getBedelStr(dip.alacak, false)
+	
+			let dokumcu = new HTMLDokum(sablon.baslik)
+			let { result: htmlContent } = dokumcu.process({ baslik, detaylar, dip })
+			htmlElm = htmlContent && isString(htmlContent) ? $(htmlContent)[0] : null
+			if (!htmlElm)
+				throw { isError: true, errorText: 'Görüntülenecek veri yok' }
+		}
 
-		let dokumcu = new HTMLDokum(sablon.baslik)
-		let { result: htmlContent } = dokumcu.process({ baslik, detaylar, dip })
-		let htmlElm = htmlContent && isString(htmlContent) ? $(htmlContent)[0] : null
-		if (!htmlElm)
-			throw { isError: true, errorText: 'Görüntülenecek veri yok' }
-		
-		// displayMessage(htmlElm)
-		
-		//let url = URL.createObjectURL(new Blob([htmlContent], { type: 'text/html' }))
-		//openNewWindow(url)
-		//setTimeout(() => URL.revokeObjectURL(url), 5_000)
+		let getPdf = async urlOnly => {
+			if (eIslemmi) {
+				let { eIslem: { anaBolum: rootDir, efatUzakIP, efatWSUzakIP } = {} } = app.params
+				if (!rootDir)
+					throw { isError: true, errorText: '(e-İşlem Ana Bölüm) belirlenemedi.<p/>Ticari programda e-İşlem Parametrelerine girip KAYDET denmesi gerekiyor olabilir'}
+				
+				let { icerikfissayac: id } = getRecYapi()?.recs?.[0] ?? {}
+				if (!id)
+					throw { isError: true, errorText: 'Ticari Belge belirlenemedi'}
+				
+				let r
+				;{
+					let sent = new MQSent(), { where: wh, sahalar } = sent
+					sent.fromAdd('piffis fis')
+					wh
+						.degerAta(id, 'fis.kaysayac')
+						.add(`fis.efatuuid <> ''`)
+					sahalar.addWithAlias('fis',
+						 'efayrimtipi eIslTip', 'efatuuid uuid')
+					r = await sent.execTekil()
+				}
+				let { eIslTip, uuid } = r
+				if (!uuid)
+					throw { isError: true, errorText: 'e-İşlem Belgesi belirlenemedi' }
+				eIslTip = eIslTip?.toUpperCase() ?? 'E'
+				let subDir = (
+					!eIslTip || eIslTip == 'A' ? 'EArsiv' :
+					eIslTip == 'IR' ? 'EIrsaliye' :
+					eIslTip == 'M' || eIslTip == 'MS' ? 'EMustahsil' :
+					null    // e-Fatura ==> rootDir
+				)
+				let remoteFile = [rootDir, subDir, 'IMZALI', uuid + '.xml']
+					.filter(Boolean)
+					.map(f => f.replace('\\', '/'))
+					.join('/')
+				let xmlData
+				try {
+					xmlData = await app.wsDownloadAsStream({ remoteFile })
+					if (!xmlData)
+						throw { isError: true, errorText: 'e-İşlem XML Dosyası bulunamadı veya içerik indirilemedi' }
+				}
+				catch (ex) {
+					if (ex?.responseText)
+						ex = JSON.parse(ex.responseText)
+					throw ex
+				}
 
+				let xml = $.parseXML(xmlData)
+				let docRefs = Array.from(xml.documentElement.querySelectorAll('AdditionalDocumentReference'))
+				let xsltData
+				{
+					let xbinDoc, subName = 'EmbeddedDocumentBinaryObject'
+					xbinDoc = docRefs.find(elm =>
+						elm.querySelector('DocumentType')?.innerHTML?.toUpperCase() == 'XSLT' && elm.querySelector(subName))
+					if (!xbinDoc)
+						xbinDoc = docRefs.find(elm => elm.querySelector(subName))
+					if (xbinDoc)
+						xsltData = xbinDoc.querySelector(subName)?.textContent
+				}
+				if (!xsltData)
+					throw { isError: true, errorText: 'XSLT (e-İşlem Görüntü) bilgisi belirlenemedi' }
+				if (Base64.isValid(xsltData))
+					xsltData = Base64.decode(xsltData)
+				
+				let xslt = $.parseXML(xsltData)
+				let xsltProcessor, eDoc
+				try {
+					(xsltProcessor = new XSLTProcessor())
+						.importStylesheet(xslt)
+					eDoc = xsltProcessor.transformToFragment(xml, document)
+				}
+				catch (ex) {
+					xsltProcessor = 'api'
+					let data = { xmlData, xsltData }
+					let html = await app.wsXSLTTransformAsStream({ data })
+					if (html)
+						eDoc = $(html)
+				}
+				if (!eDoc)
+					throw { isError: true, errorText: 'XSLT Görüntüsü oluşturulamadı', source: xsltProcessor }
+
+				htmlElm = document.createElement('div')
+				htmlElm.append(eDoc)
+			}
+			
+			let type = urlOnly ? 'bloburl' : 'blob'
+			return await getPdfOutput(type, htmlElm, { margin: 5, orientation: 'landscape' })
+		}
+		
 		showProgress()
 		try {
-			let getPdf = type =>
-				getPdfOutput(type, htmlElm, { margin: 5, orientation: 'landscape' })
 			switch (islemTipi) {
 				case 'email': {
 					let { ozelEMailStr: eMailStr } = uiArgs
@@ -573,27 +692,45 @@ class MQMustBilgi extends MQKAOrtak {
 					if (eMailStr) {
 						let tokens = eMailStr.split(';').map(_ => _.trim())
 						to = tokens[0]
-						cc.push(...tokens.slice(1))
+						cc = tokens.slice(1)
 					}
+					/*if (empty(to)) {
+						let r
+						;{
+							// [ 'email', 'emailearsiv', 'emailfinans', 'emaillojistik', 'emailmuhasebe', 'emailmutabakat', 'emailsatinalma', 'emailsatis' ]
+							let sent = new MQSent(), { where: wh, sahalar } = sent
+							sent.fromAdd('carmst car')
+							wh.degerAta(mustKod, 'car.must')
+							sahalar.addWithAlias('car', 'email', 'emailsatinalma')
+							r = await sent.execTekil()
+						}
+						if (r) {
+							let tokens = [r.email, r.emailsatinalma].filter(Boolean)
+							to = tokens[0]
+							cc = tokens.slice(1)
+						}
+					}*/
 					if (empty(to))
-						throw { isError: true, errorText: 'Gönderilecek e-Mail adresi boş olamaz' }
-					
-					let blob = await getPdf('blob')
-					let pdfContent = blob
-					
-					let { appID } = app
-					let fileName = `skyERP/sahaDurum/${appID}.pdf`
-					await app.wsTempUpload({ fileName, data: pdfContent })
+						throw { isError: true, errorText: 'Gönderilecek e-Mail Adres(ler)i boş olamaz' }
+
+					let tempUploadDir = Base64.decode('L1Byb2dyYW1EYXRhL3Zpby9zZXJ2aWNlL0NTa3lXUy91cGxvYWQvc2t5RVJQL3NhaGFEdXJ1bQ===')
+					let file
+					;{
+						let data = await getPdf(false)
+						file = `${tempUploadDir}/${app.appID}.pdf`
+						await app.wsUpload({ remoteFile: file, data })
+					}
 					
 					let auth = await app.getEMailAuth() ?? {}
 					;{
+						let { aciklama: tipAdi } = veriTipi
 						let html = true
-						let subject = `Sky Saha Durum - ${veriTipi.aciklama} | ${dateTimeAsKisaString(now())} | ${mustUnvan}`
-						let body = htmlContent
-						let tempUploadDir = Base64.decode('L1Byb2dyYW1EYXRhL3Zpby9zZXJ2aWNlL0NTa3lXUy91cGxvYWQ=')
-						let attachments = [`${tempUploadDir}/${fileName}`]
+						let subject = `Sky Saha Durum - ${tipAdi} | ${dateTimeAsKisaString(now())} | ${mustUnvan}`
+						let body = `<h3>Sayın ${mustUnvan},</h3> <h4>${tipAdi} belge çıktınız ektedir.</h4>`
+						let attachments = [file]
 						let data = {
-							...auth, html, to, cc,
+							// ...auth,
+							html, to, cc,
 							subject, body, attachments
 						}
 						await app.wsEMailGonder({ data })
@@ -607,7 +744,7 @@ class MQMustBilgi extends MQKAOrtak {
 					break
 				}
 				case 'pdf': {
-					let url = await getPdf('bloburl')
+					let url = await getPdf(true)
 					openNewWindow(url)
 					setTimeout(() => URL.revokeObjectURL(url), 5_000)
 					break

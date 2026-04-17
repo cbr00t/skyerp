@@ -120,10 +120,14 @@ class EYonetici extends CObject {
 		if (!e.internal) { if (sender && !sender.isDestroyed && sender.tazele) { sender.tazele() } }
 	}
 	static async eIslemIzle(e) {
-		let eYoneticiler = await this.getEYoneticiListe(e); delete e.eYoneticiler; let uuid2Result = {};
+		let eYoneticiler = await this.getEYoneticiListe(e)
+		delete e.eYoneticiler
+		let uuid2Result = {}
 		for (let eYonetici of eYoneticiler ?? []) {
-			await eYonetici.eIslemIzle(e);
-			let _uuid2Result = e.uuid2Result; if (!empty(_uuid2Result)) { $.extend(uuid2Result, _uuid2Result) }
+			await eYonetici.eIslemIzle(e)
+			let { uuid2Result: _uuid2Result } = e
+			if (!empty(_uuid2Result))
+				extend(uuid2Result, _uuid2Result)
 		}
 		e.uuid2Result = uuid2Result
 	}
@@ -152,7 +156,7 @@ class EYonetici extends CObject {
 					if (!eIslAltBolum)
 						throw { isError: true, rc: 'eIslAnaBolumBelirsiz', errorText: 'e-İşlem için Ana Bölüm belirlenemedi' }
 					let xmlDosyaAdi = `${uuid}.xml`, xmlDosya = `${eIslAltBolum}\\${gelenmi ? 'ALINAN' : 'IMZALI'}\\${xmlDosyaAdi}`
-					let result = uuid2Result[uuid] = uuid2Result[uuid] || {};
+					let result = uuid2Result[uuid] = uuid2Result[uuid] || {}
 					$.extend(result, { islemZamani: now(), isError: false, eIslSinif, efAyrimTipi, rec, anaBolum: eIslAltBolum, xmlDosya })
 					try {
 						let xmlData = uuid2Result[uuid]?.xmlData
@@ -198,12 +202,19 @@ class EYonetici extends CObject {
 						}
 						else
 							divContainer.append(eDoc)
-						eDocCount++; $.extend(result, { xmlData, xml, xsltData, xslt, xsltProcessor, eDoc, divContainer });
-						if (window.progressManager) { window.progressManager.progressStep() } if (keys(uuid2Result).length % 201 == 200) { if (callback) { getFuncValue.call(this, callback, e) } }
+						eDocCount++
+						extend(result, { xmlData, xml, xsltData, xslt, xsltProcessor, eDoc, divContainer })
+						window.progressManager?.progressStep()
+						if (callback && keys(uuid2Result).length % 201 == 200)
+							getFuncValue.call(this, callback, e)
 					}
 					catch (ex) {
-						if (!ex.responseJSON && ex.responseText) { try { ex = JSON.parse(ex.responseText) } catch (_ex) { } }
-						$.extend(result, { isError: true, rc: ex?.rc ?? ex.code ?? '??', errorText: getErrorText(ex), error: ex }); console.error(ex)
+						if (!ex.responseJSON && ex.responseText) {
+							try { ex = JSON.parse(ex.responseText) }
+							catch (_ex) { }
+						}
+						extend(result, { isError: true, rc: ex?.rc ?? ex.code ?? '??', errorText: getErrorText(ex), error: ex })
+						console.error(ex)
 					}
 				}
 			}

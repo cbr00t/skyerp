@@ -33,7 +33,7 @@ class MQEIslemParam extends MQTicariParamBase {
 		super.paramYapiDuzenle(e); let {paramci} = e
 		paramci.addString('anaBolum', 'e-İşlem Ana Bölüm')
 		paramci.addModelKullan('ozelEntegrator', 'Özel Entegratör').dropDown().autoBind().noMF().kodsuz()
-			.setSource(e => EOzelEntegrator.instance.kaListe)
+			.setSource(e => EOzelEntegrator?.instance?.kaListe)
 			.degisince(({ builder: fbd = {}, id, altInst,  builder: { parentBuilder = {} } = {} }) => {
 				let {id2Builder} = parentBuilder.id2Builder.oeParam
 				let value = altInst?.[id]
@@ -113,8 +113,8 @@ class MQEIslemParam extends MQTicariParamBase {
 		let {kullanim, class: { kullanimKeys }} = this
 		for (let key of kullanimKeys)
 			kullanim[key] = rec[key]
-		let ozelEntegrator = new EOzelEntegrator({ char: _oe || ' ' })
-		$.extend(this, { anaBolum, ozelEntegrator })
+		let ozelEntegrator = globalThis.EOzelEntegrator ? new EOzelEntegrator({ char: _oe || ' ' }) : {}
+		extend(this, { anaBolum, ozelEntegrator })
 		let oe = this.oe = {
 			nesV4: rec.oeNESv4 || {}, innova: rec.oeInnova || {}, edm: rec.oeEDM || {},
 			veriban: rec.oeVeriban || {}, eFinans: rec.oeEFinans || {}, nes: rec.oeNES || {},
