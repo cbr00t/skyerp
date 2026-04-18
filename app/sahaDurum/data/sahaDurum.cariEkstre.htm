@@ -1,0 +1,58 @@
+<div class="dokum">
+	<style>
+		.dokum { margin: 0 }
+		.dokum > table { margin-top: 30px }
+		.dokum table { width: 100% }
+		.dokum table tr.header > * { text-align: center }
+		.dokum table tr.content { page-break-inside: avoid }
+		.dokum table.detay { font-size: 80% }
+		.dokum table.baslik tr.content { border-bottom: 1px solid #eee }
+		.dokum table.baslik tr { }
+		.dokum table.baslik tr > * { font-weight: bold; padding: 4px 10px }
+		.dokum table.detay tr > * { padding: 2px 5px }
+		.dokum table.detay tr.content > * { font-weight: normal; color: #777 }
+		.dokum table.baslik tr.header { border-bottom: 5px solid royalblue }
+		.dokum table.detay tr.header { border-bottom: 3px solid forestgreen }
+		.dokum table.baslik tr.dip { border-top: 3px solid royalblue; background-color: #ddd }
+		.dokum table.detay tr.dip { border-top: 2px solid forestgreen; background-color: #eee }
+		/*@media screen {
+			.dokum table.baslik { box-shadow: 0 0 8px 3px royalblue }
+			.dokum table tr.content:hover { background-color: #88ccff33; cursor: pointer }
+		}*/
+	</style>
+	<h3 style="color: royalblue">
+		[mustUnvan]
+	</h3>
+	<table class="baslik" border="1">
+		<tr class="header">
+			<th width="80">TARİH</th>
+			<th width="250">BELGE NO</th>
+			<th>İŞLEM</th>
+			<th width="150" align="right">BORÇ</th>
+			<th width="150" align="right">ALACAK</th>
+		</tr>
+		<tr class="content">
+			<td colspan="100">
+				<table>
+					<tr class="asil">
+						<td width="80">[tarih]</td>
+						<td width="250" align="right">[fisnox]</td>
+						<td>[isladi]</td>
+						<td width="150" align="right">[borcBedelStr]</td>
+						<td width="150" align="right">[alacakBedelStr]</td>
+					</tr>
+					<tr class="detaylar">
+						<td colspan="100">
+							[detayTable]
+						</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+		<tr class="dip">
+			<td colspan="3">&nbsp;</td>
+			<td align="right">[borcBedelStr]</td>
+			<td align="right">[alacakBedelStr]</td>
+		</tr>
+	</table>
+</div>

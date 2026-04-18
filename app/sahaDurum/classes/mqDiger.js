@@ -106,7 +106,7 @@ class MQCariEkstre extends MQMasterOrtak {
 				cellClassName: (colDef, rowIndex, belirtec, value, rec) => {
 					let result = [belirtec, 'bold']; result.push(value ? (asFloat(value) < 0 ? 'red' : 'green') : ''); return result.filter(x => !!x).join(' ') }
 			}).tipDecimal_bedel(),
-			(cariHareketTakipNo ? new GridKolon({ belirtec: 'takiptext', text: 'Takip No', genislikCh: 45, filterType: 'checkedlist' }) : null)
+			(cariHareketTakipNo ? new GridKolon({ belirtec: 'takiptext', text: 'Takip No', filterType: 'checkedlist' }) : null)
 		].filter(x => !!x))
 	}
 	static loadServerData(e) {

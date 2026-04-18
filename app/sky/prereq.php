@@ -4,8 +4,7 @@
 
 <script src="<?=$webRoot?>/lib_external/etc/date.js"></script>
 
-<script src="../ticari/classes/mq-param/mqTicariParamBase.js"></script>
-<script src="../ticari//classes/mq-param/mqZorunluParam.js"></script>
+<script src="../ticari/classes/mq-param/mqTicariParamSiniflar.js"></script>
 <script src="<?=$webRoot?>/classes/mq/cogul/kod/mqKod.js"></script>
 <script src="<?=$webRoot?>/classes/mq/cogul/kod/mqKA.js"></script>
 <script src="<?=$webRoot?>/classes/mq/cogul/fis/mqSayacli.js"></script>

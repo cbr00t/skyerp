@@ -36,13 +36,13 @@ class MQMustBilgi extends MQKAOrtak {
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
-		let {session} = config, {yerl} = app.params
+		let { session } = config, { yerel } = app.params
 		session ??= yerel.lastSession ?? {}
 		let {loginTipi, user} = session
 		let colDef = liste.find(_ => _.belirtec == 'kod')
 		colDef?.hidden()
 		colDef = liste.find(_ => _.belirtec == 'aciklama')
-		$.extend(colDef, {
+		extend(colDef, {
 			genislikCh: null,
 			cellsRenderer: (colDef, rowIndex, belirtec, value, html, jqxCol, rec) => {
 				rec = rec?.tanim ?? rec; let marginStyle = 'margin-inline-end: 20px';
@@ -303,31 +303,41 @@ class MQMustBilgi extends MQKAOrtak {
 			return
 
 		let veriTipi
+		let secilenVarmi = !empty(orjRecs)
 		let getRecYapi = kod => {
 			kod ??= veriTipi?.kod
-			let recs = orjRecs, detRecs = orjDetRecs
+			let recs = orjRecs
+			let detRecs = orjDetRecs
 			if (!recs) {
 				let selector = kod
 				let eIslemmi = kod == 'eIslem'
 				let iceriklimi = kod == 'icerikliCariEkstre'
+				let kapanmayanHesapmi = kod == 'kapanmayanHesap'
 				if (eIslemmi || kod == 'icerikliCariEkstre')
 					selector = 'cariEkstre'
 				let { part: gridPart = {} } = tanimPart.builder.getBuilders()
 						.find(fbd => fbd.id == selector && fbd instanceof FBuilder_Grid) ?? {}
-				recs = gridPart.selectedRecs
-				if (!eIslemmi && empty(recs))
+				recs = kapanmayanHesapmi ? null : gridPart.selectedRecs
+				secilenVarmi = !empty(recs)
+				if (!(eIslemmi || secilenVarmi))
 					recs = mustBilgi[selector]
 				detRecs = iceriklimi ? mustBilgi[`${selector}_detay`] : null
 			}
 			return { recs, detRecs }
 		}
 
-		let recCount = getRecYapi('cariEkstre')?.recs?.length ?? 0
+		let { part: { activePageId: tabId } = {} } = tanimPart.builder.getBuilders().find(_ => _ instanceof FBuilder_Tabs) ?? {}
+		let cariEkstremi = tabId == 'cariEkstre'
+		let kapanmayanHesapmi = tabId == 'kapanmayanHesap'
+		let recYapi = getRecYapi(tabId)
+		let eIslemmi = recYapi?.recs?.[0]?.iceriktablotipi == 'PIF'
+		let recCount = recYapi?.recs?.length ?? 0
+		
 		let veriTipleri = [
-			new CKodVeAdi(['cariEkstre', 'Cari Ekstre', 'cariEkstremi']),
-			new CKodVeAdi(['icerikliCariEkstre', 'İçerikli Cari Ekstre', 'icerikliCariEkstremi']),
-			new CKodVeAdi(['kapanmayanHesap', 'Kapanmayan Hesaplar', 'kapanmayanHesapmi']),
-			( recCount == 1 ? new CKodVeAdi(['eIslem', 'e-İşlem', 'eIslemmi']) : null ),
+			( cariEkstremi && eIslemmi && recCount == 1 ? new CKodVeAdi(['eIslem', `e-İşlem (<span class="bold lightgray">sunucudan</span>)`, 'eIslemmi']) : null ),
+			( cariEkstremi ? new CKodVeAdi(['icerikliCariEkstre', 'İçerikli Cari Ekstre', 'icerikliCariEkstremi']) : null ),
+			( cariEkstremi ? new CKodVeAdi(['cariEkstre', 'Cari Ekstre', 'cariEkstremi']) : null ),
+			( kapanmayanHesapmi ? new CKodVeAdi(['kapanmayanHesap', 'Kapanmayan Hesaplar', 'kapanmayanHesapmi']) : null )
 		].filter(Boolean)
 
 		veriTipi ??= veriTipleri[0]
@@ -361,9 +371,9 @@ class MQMustBilgi extends MQKAOrtak {
 					return
 				veriTipi = veriTipleri.find(_ => _.kod == kod)
 				fbd_sayiBilgi?.layout?.html(
-					`<h3>
-						<b class=royalblue>${getRecYapi()?.recs?.length ?? 0}</b> kayıt için işlem yapılacak
-					</h3>`
+					secilenVarmi
+						? `<h3>Seçilen <b class=royalblue>${getRecYapi()?.recs?.length ?? 0}</b> kayıt için işlem yapılacak</h3>`
+						: ''
 				)
 			}
 			;{
@@ -381,7 +391,7 @@ class MQMustBilgi extends MQKAOrtak {
 					.setRows(4).setCols(10000)
 					.onBuildEk(({ builder: { input }}) => {
 						input.attr('autocomplete', 'email')
-						input.attr('placeholder', 'Boş bırakılırsa Müşteri e-Mail adresleri kullanılacak')
+						// input.attr('placeholder', 'Boş bırakılırsa Müşteri e-Mail adresleri kullanılacak')
 					})
 			}
 			rfb.onAfterRun(({ builder: rfb }) =>
@@ -435,8 +445,8 @@ class MQMustBilgi extends MQKAOrtak {
 		
 		mustUnvan ??= ( await MQMustBilgi.getGloKod2Adi() )?.[mustKod]?.trimEnd()
 		let htmlElm, pdfContent
-		let eIslemmi = veriTipi.kod == 'eIslem'
-		if (eIslemmi) {
+		let tip_eIslemmi = veriTipi.kod == 'eIslem'
+		if (tip_eIslemmi) {
 			if (recs.length > 1)
 				throw { isError: true, errorText: 'e-İşlem için sadece tek belge seçilmelidir' }
 			
@@ -456,88 +466,6 @@ class MQMustBilgi extends MQKAOrtak {
 				baslik: app.getSablonIcerik(veriTipi, false),
 				detay: app.getSablonIcerik(veriTipi, true)
 			}
-			if (!sablon.baslik) {
-				sablon.baslik = `
-					<div class="dokum">
-						<style>
-							.dokum { margin: 0 }
-							.dokum > table { margin-top: 30px }
-							.dokum table { width: 100% }
-							.dokum table tr.header > * { text-align: center }
-							.dokum table tr.content { page-break-inside: avoid }
-							.dokum table.detay { font-size: 80% }
-							.dokum table.baslik tr.content { border-bottom: 1px solid #eee }
-							.dokum table.baslik tr { }
-							.dokum table.baslik tr > * { font-weight: bold; padding: 4px 10px }
-							.dokum table.detay tr > * { padding: 2px 5px }
-							.dokum table.detay tr.content > * { font-weight: normal; color: #777 }
-							.dokum table.baslik tr.header { border-bottom: 5px solid royalblue }
-							.dokum table.detay tr.header { border-bottom: 3px solid forestgreen }
-							.dokum table.baslik tr.dip { border-top: 3px solid royalblue; background-color: #ddd }
-							.dokum table.detay tr.dip { border-top: 2px solid forestgreen; background-color: #eee }
-							/*@media screen {
-								.dokum table.baslik { box-shadow: 0 0 8px 3px royalblue }
-								.dokum table tr.content:hover { background-color: #88ccff33; cursor: pointer }
-							}*/
-						</style>
-						<h3 style="color: royalblue">
-							[mustUnvan]
-						</h3>
-						<table class="baslik" border="1">
-							<tr class="header">
-								<th width="80">TARİH</th>
-								<th width="250">BELGE NO</th>
-								<th>İŞLEM</th>
-								<th width="150" align="right">BORÇ</th>
-								<th width="150" align="right">ALACAK</th>
-							</tr>
-							<tr class="content">
-								<td colspan="100">
-									<table>
-										<tr class="asil">
-											<td width="80">[tarih]</td>
-											<td width="250" align="right">[fisnox]</td>
-											<td>[isladi]</td>
-											<td width="150" align="right">[borcBedelStr]</td>
-											<td width="150" align="right">[alacakBedelStr]</td>
-										</tr>
-										<tr class="detaylar">
-											<td colspan="100">
-												[detayTable]
-											</td>
-										</tr>
-									</table>
-								</td>
-							</tr>
-							<tr class="dip">
-								<td colspan="3">&nbsp;</td>
-								<td align="right">[borcBedelStr]</td>
-								<td align="right">[alacakBedelStr]</td>
-							</tr>
-						</table>
-					</div>`
-			}
-			if (!sablon.detay) {
-				sablon.detay = 
-					`<table class="detay" border="0">
-						<tr class="header">
-							<th>Ürün</th>
-							<th align="right">Miktar</th>
-							<th align="right">Bedel</th>
-						</tr>
-						<tr class="content">
-							<td>[stokadi]</td>
-							<td align="right">[miktar]</td>
-							<td align="right">[bedelStr]</td>
-						</tr>
-						<tr class="dip">
-							<td>&nbsp;</td>
-							<td align="right">[miktar]</td>
-							<td align="right">[bedelStr]</td>
-						</tr>
-					 </table>`
-			}
-			
 			let baslik = { mustKod, mustUnvan }
 			let dip = { borc: 0, alacak: 0 }
 			let detaylar = recs.map(_r => {
@@ -593,7 +521,7 @@ class MQMustBilgi extends MQKAOrtak {
 		}
 
 		let getPdf = async urlOnly => {
-			if (eIslemmi) {
+			if (tip_eIslemmi) {
 				let { eIslem: { anaBolum: rootDir, efatUzakIP, efatWSUzakIP } = {} } = app.params
 				if (!rootDir)
 					throw { isError: true, errorText: '(e-İşlem Ana Bölüm) belirlenemedi.<p/>Ticari programda e-İşlem Parametrelerine girip KAYDET denmesi gerekiyor olabilir'}

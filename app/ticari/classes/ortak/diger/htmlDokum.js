@@ -11,7 +11,8 @@ class HTMLDokum extends CObject {
 	get style() { return getTagContent(this.sablon, 'style') }
 	get body() { return getTagContent(this.sablon, 'body') }
 
-    constructor(e = {}, _tabloNo, _baslikSayisi) {
+    constructor(e, _tabloNo, _baslikSayisi) {
+		e ??= {}
 		super(e)
 		let isObj = isObject(e)
 		let { tip = e.tipKod } = e

@@ -171,11 +171,21 @@ class SahaDurumApp extends App {
 		let sablonYapi = {}
 		await promiseAllSet([null, 'cariEkstre', 'kapanmayanHesap'].map(async k => {
 			for (let k2 of [null, 'detay']) {
-				let file = [prefix, k, k2].filter(Boolean).join('.') + '.htm'
 				let key = k || '_'
-				let { sablon: content } = await HTMLDokum.FromDosyaAdi(file) ?? {}
+				let fullKey = [key, k2].filter(Boolean).join('.')
+				let file = [prefix, k, k2].filter(Boolean).join('.') + '.htm'
+				let content
+				try { sablon = await HTMLDokum.FromDosyaAdi(file)?.result }
+				catch (ex) { clog(getErrorText(ex)) }
+				if (!content) {
+					let dataType = 'html'
+					let timeout = 5_000
+					let url = `data/${file}`
+					try { content = await ajaxPost({ dataType, timeout, url }) }
+					catch (ex) { clog(getErrorText(ex)) }
+				}
 				if (content)
-					sablonYapi[key] = content
+					sablonYapi[fullKey] = content
 			}
 		}))
 		
@@ -185,8 +195,9 @@ class SahaDurumApp extends App {
 	}
 	getSablonIcerik(e, _detaymi) {
 		let isObj = isObject(e)
-		let tip = isObj ? e.veriTipi ?? e.tip : e
+		let tip = isObj ? e.veriTipi ?? e.tip ?? e.kod : e
 		let detaymi = _detaymi ?? ( isObj ? e.detay ?? e.detaymi : false )
+
 		if (tip == 'icerikliCariEkstre')
 			tip = 'cariEkstre'
 
