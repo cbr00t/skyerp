@@ -467,7 +467,7 @@ class MQMustBilgi extends MQKAOrtak {
 				detay: app.getSablonIcerik(veriTipi, true)
 			}
 			let baslik = { mustKod, mustUnvan }
-			let dip = { borc: 0, alacak: 0 }
+			let dip = { borc: 0, alacak: 0, bedel: 0 }
 			let detaylar = recs.map(_r => {
 				let r = { ..._r }
 				let { tarih, bedel, borcbedel: borc, alacakbedel: alacak } = r
@@ -479,12 +479,13 @@ class MQMustBilgi extends MQKAOrtak {
 					alacak = r.alacakbedel = bedel < 0 ? -bedel : 0
 				}
 				r.bedel ??= (borc ?? 0) - (alacak ?? 0)
-				dip.borc += borc
-				dip.alacak += alacak
 				r.borcBedelStr = getBedelStr(borc, false)
 				r.alacakBedelStr = getBedelStr(alacak, false)
 				r.bedelStr = getBedelStr(bedel, false)
 				r.fisnox ??= r.belgeNox ?? r.belgenox
+				dip.borc += borc
+				dip.alacak += alacak
+				dip.bedel += bedel
 				deleteKeys(r, 'belgeNox', 'belgenox')
 				
 				let _detaylar = r.detaylar = id2Detaylar[id] ?? []
@@ -495,7 +496,9 @@ class MQMustBilgi extends MQKAOrtak {
 						_dip.bedel = (_dip.bedel ?? 0) + det.bedel
 						det.bedelStr = getBedelStr(det.bedel, true)
 					})
-					_dip.bedelStr = getBedelStr(_dip.bedel, true)
+					_dip.borcBedelStr = getBedelStr(_dip.borcbedel, true)
+					_dip.bedelStr = getBedelStr(_dip.alacakbedel, true)
+					_dip.alacakBedelStr = getBedelStr(_dip.bedel, true)
 					
 					if (r.detayTable == null) {
 						let { result: detayTable } = (
@@ -512,6 +515,7 @@ class MQMustBilgi extends MQKAOrtak {
 			})
 			dip.borcBedelStr = getBedelStr(dip.borc, false)
 			dip.alacakBedelStr = getBedelStr(dip.alacak, false)
+			dip.bedelStr = getBedelStr(dip.bedel, false)
 	
 			let dokumcu = new HTMLDokum(sablon.baslik)
 			let { result: htmlContent } = dokumcu.process({ baslik, detaylar, dip })
@@ -524,7 +528,7 @@ class MQMustBilgi extends MQKAOrtak {
 			if (tip_eIslemmi) {
 				let { eIslem: { anaBolum: rootDir, efatUzakIP, efatWSUzakIP } = {} } = app.params
 				if (!rootDir)
-					throw { isError: true, errorText: '(e-İşlem Ana Bölüm) belirlenemedi.<p/>Ticari programda e-İşlem Parametrelerine girip KAYDET denmesi gerekiyor olabilir'}
+					throw { isError: true, errorText: '<span class="fs-120 firebrick">(<b>e-İşlem Ana Bölüm</b>) belirlenemedi.</span><br><br>VIO programında e-İşlem Parametrelerine girip KAYDET denmesi gerekiyor olabilir'}
 				
 				let { icerikfissayac: id } = getRecYapi()?.recs?.[0] ?? {}
 				if (!id)
@@ -541,9 +545,9 @@ class MQMustBilgi extends MQKAOrtak {
 						 'efayrimtipi eIslTip', 'efatuuid uuid')
 					r = await sent.execTekil()
 				}
-				let { eIslTip, uuid } = r
+				let { eIslTip, uuid } = r ?? {}
 				if (!uuid)
-					throw { isError: true, errorText: 'e-İşlem Belgesi belirlenemedi' }
+					throw { isError: true, errorText: '<b class="fs-120 firebrick">e-İşlem Belgesi belirlenemedi</b><br><br>VIO programında bu belge için <b class=orangered>XML Oluştur veya Görüntüle</b> işlemi yapılmalıdır' }
 				eIslTip = eIslTip?.toUpperCase() ?? 'E'
 				let subDir = (
 					!eIslTip || eIslTip == 'A' ? 'EArsiv' :
@@ -651,7 +655,9 @@ class MQMustBilgi extends MQKAOrtak {
 					
 					let auth = await app.getEMailAuth() ?? {}
 					;{
-						let { aciklama: tipAdi } = veriTipi
+						let { kod: tipKod, aciklama: tipAdi } = veriTipi
+						if (tipKod == 'eIslem')
+							tipAdi = 'e-İşlem'
 						let html = true
 						let subject = `Sky Saha Durum - ${tipAdi} | ${dateTimeAsKisaString(now())} | ${mustUnvan}`
 						let body = `<h3>Sayın ${mustUnvan},</h3> <h4>${tipAdi} belge çıktınız ektedir.</h4>`
