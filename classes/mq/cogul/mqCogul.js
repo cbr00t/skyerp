@@ -119,8 +119,9 @@ class MQCogul extends MQYapi {
 	}
 	static ekCSSDuzenle(e) {
 		this.forAltYapiClassesDo('ekCSSDuzenle', e)
-		let {rec, dataField: belirtec, result} = e, {gonderimTSSaha} = this
-		if (gonderimTSSaha && !!rec[gonderimTSSaha])
+		let { rec, dataField: belirtec, result } = e
+		let { detaylimi, gonderimTSSaha } = this
+		if (gonderimTSSaha && detaylimi && !!rec[gonderimTSSaha])
 			result.push('gonderildi')
 	}
 	static listeEkrani_init(e) { this.forAltYapiClassesDo('listeEkrani_init', e) }
@@ -1013,6 +1014,8 @@ class MQCogul extends MQYapi {
 	static getGridKolonGrup(e) { }
 	static globalleriSil() {
 		let { mqGlobals, classKey } = this
+		if (classKey == 'cls')
+			classKey = this.superClass?.name || classKey
 		let { [classKey]: result } = mqGlobals
 		deleteKeys(mqGlobals, classKey)
 		deleteKeys(this, '_online_sqlColDefs')

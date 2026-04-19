@@ -899,17 +899,22 @@ class GridPart extends Part {
 		let fbd_islemTuslari = new FormBuilder({
 			id: 'islemTuslari',
 			buildEk: e => {
-				let {builder} = e, {rootPart, parentBuilder} = builder, {layout} = parentBuilder; layout.addClass('basic-hidden');
-				let header = $(`<div class="grid-toolbar"/>`).appendTo(layout); let islemTuslari = $(`<div id="grid-islemTuslari"/>`).appendTo(header);
+				let {builder} = e
+				let { rootPart, parentBuilder } = builder
+				let { layout } = parentBuilder
+				layout.addClass('basic-hidden')
+				let header = $(`<div class="grid-toolbar"/>`).appendTo(layout)
+				let islemTuslari = $(`<div id="grid-islemTuslari"/>`).appendTo(header)
 				let _e = {
-					sender: rootPart, layout: islemTuslari, builder,
+					builder, sender: rootPart, layout: islemTuslari,
 					ekButonlarIlk: [
 						/*{ id: 'html', handler: _e => this.gridExport_html($.extend({}, e, _e)) },*/
 						{ id: 'yazdir', handler: _e => this.gridYazdir({ ...e, ..._e }) },
 						{ id: 'excel', handler: _e => this.gridExport_excel({ ...e, ..._e }) }
 					]
-				};
-				let islemTuslariPart = rootPart.islemTuslariPart = new ButonlarPart(_e); islemTuslariPart.run()
+				}
+				let islemTuslariPart = rootPart.islemTuslariPart = new ButonlarPart(_e)
+				islemTuslariPart.run()
 			},
 			styles: [
 				e => `$elementCSS, $elementCSS .wnd-content { width: var(--full) !important; height: var(--full) !important;
@@ -925,23 +930,33 @@ class GridPart extends Part {
 			]
 		}).addStyle_fullWH();
 		let rfb = new RootFormBuilder({
-			parentPart: this, inst: e => e.builder.parentPart.inst,
+			parentPart: this,
+			inst: e => e.builder.parentPart.inst,
 			formDeferMS: 0, noFullHeight: true,
 			afterRun: e => {
 				setTimeout(() => {
-					let {part} = e, {layout} = part;
+					let { part } = e, { layout } = part
 					let wnd = part.wnd = createJQXWindow({
 						content: rfb.layout, title: null,
 						args: {
 							isModal: false, showCollapseButton: false, closeButtonAction: 'close',
 							/* width: 200, */ width: 200, height: 45, minWidth: 1, minHeight: 1,
-							position: { left: Math.min(mousePos.x, $(window).width() - 200), top: Math.min(mousePos.y, $(window).height() - 100) }
+							position: {
+								left: Math.min(mousePos.x, $(window).width() - 200),
+								top: Math.min(mousePos.y, $(window).height() - 100)
+							}
 						}
-					});
-					layout.addClass('basic-hidden'); wnd.addClass('grid-contextmenu-export grid-contextmenu basic-hidden');
-					wnd.find('.buttons').remove(); wnd.css('border-radius', '10px'); wnd.css('box-shadow', '2px 2px 30px #555555cc');
+					})
+					layout.addClass('basic-hidden')
+					wnd.addClass('grid-contextmenu-export grid-contextmenu basic-hidden')
+					wnd.find('.buttons').remove()
+					wnd.css('border-radius', '10px')
+					wnd.css('box-shadow', '2px 2px 30px #555555cc')
 					let wndContent = wnd.find('.content');
-					for (let elm of [wndContent, wndContent.children('.subContent')]) { elm.css('height', 'var(--full)', true); elm.css('width', 'var(--full)', true) }
+					for (let elm of [wndContent, wndContent.children('.subContent')]) {
+						elm.css('height', 'var(--full)', true)
+						elm.css('width', 'var(--full)', true)
+					}
 					setTimeout(() => {
 						let blurHandler = evt => {
 							if (part._timer_close) { clearTimeout(part._timer_close) }
@@ -962,7 +977,7 @@ class GridPart extends Part {
 					}, 10)
 				}, 10)
 			}
-		});
+		})
 		rfb.addStyle_fullWH().add(new FBuilderWithInitLayout().altAlta()
 			.addStyle(e => `${e.builder.getCSSElementSelector(e.builder.layout)} { /* background-color: #555; */ text-align: center; padding-top: 3px; overflow-y: hidden !important; }`)
 			.add(fbd_islemTuslari).addStyle_fullWH()

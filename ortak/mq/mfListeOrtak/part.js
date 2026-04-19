@@ -777,53 +777,76 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		})();
 		return true
 	}
-	basliklariDuzenleIstendi(e) {
-		e ??= {}; let mfSinif = this.getMFSinif(e), _e = $.extend({}, e, { mfSinif });
-		let orjBaslikListesi = this.getOrjBaslikListesi(_e);
-		if ($.isEmptyObject(orjBaslikListesi)) {
-			let {ekTabloKolonlari, ozelKolonDuzenleBlock} = this, __e = { tabloKolonlari: [] }; 
-			orjBaslikListesi = __e.tabloKolonlari; orjBaslikListesi.push(...this.defaultTabloKolonlari);
+	basliklariDuzenleIstendi(e = {}) {
+		let mfSinif = this.getMFSinif(e)
+		let { layout, grid, args, builder } = this
+		let { duzTabloKolonlari: gridTabloKolonlari } = this
+		let _e = { ...e, mfSinif, sender: this, builder, grid, args }
+		let orjBaslikListesi = this.getOrjBaslikListesi(_e)
+		if (empty(orjBaslikListesi)) {
+			let { ekTabloKolonlari, ozelKolonDuzenleBlock } = this
+			_e.tabloKolonlari = []
+			orjBaslikListesi = _e.tabloKolonlari
+			orjBaslikListesi.push(...this.defaultTabloKolonlari)
 			if (ekTabloKolonlari) {
-				let colAttrSet = asSet(orjBaslikListesi.map(colDef => colDef.belirtec));
-				for (let colDef of ekTabloKolonlari) { if (!colAttrSet[colDef.belirtec]) orjBaslikListesi.push(colDef) }
+				let colAttrSet = asSet(orjBaslikListesi.map(_ => _.belirtec))
+				for (let c of ekTabloKolonlari) {
+					if (!colAttrSet[c.belirtec])
+						orjBaslikListesi.push(c)
+				}
 			}
-			if (ozelKolonDuzenleBlock) { let result = getFuncValue.call(this, ozelKolonDuzenleBlock, e); if (result != null) orjBaslikListesi = __e.tabloKolonlari = result }
+			if (isFunction(ozelKolonDuzenleBlock)) {
+				let result = ozelKolonDuzenleBlock.call(this, _e)
+				if (result != null)
+					orjBaslikListesi = _e.tabloKolonlari = result
+			}
 		}
-		let {duzTabloKolonlari} = this,  part = new GridKolonDuzenlePart({
-			parentPart: this, mfSinif, orjBaslikListesi, gridTabloKolonlari: duzTabloKolonlari,
+		let part = new GridKolonDuzenlePart({
+			parentPart: this, mfSinif,
+			orjBaslikListesi, gridTabloKolonlari,
 			tamamIslemi: e => {
+				mfSinif?.globalleriSil()
 				setTimeout(() => {
-					let {layout, grid, args, builder} = this
 					if (mfSinif) {
-						mfSinif.globalleriSil()
 						mfSinif.listeEkraniAc({ args })
-						setTimeout(() => this.layout.css('opacity', .8), 200); setTimeout(() => this.close(), 350)
+						setTimeout(() => this.layout.css('opacity', .8), 200)
+						setTimeout(() => this.close(), 350)
 					}
 					else {
-						layout.css('opacity', .8); let _e = $.extend({}, e, { sender: this, builder, grid, args: {} }); this.gridArgsDuzenle(_e);
-						grid.jqxGrid('columns', _e.args.columns); setTimeout(layout => layout.css('opacity', 1), 100, layout)
+						layout.css('opacity', .8)
+						_e.args = {}
+						this.gridArgsDuzenle(_e)
+						grid.jqxGrid('columns', _e.args.columns)
+						setTimeout(() => layout.css('opacity', 1), 100)
 					}
-				}, 10)
+				})
 			}
-		}); part.run()
+		})
+		part.run()
 	}
-	sabitBilgiRaporuIstendi(e) {
-		e ??= {}; let mfSinif = this.getMFSinif(e), {secimler} = this;
-		let {sabitBilgiRaporcuSinif} = mfSinif; if (!sabitBilgiRaporcuSinif) { return }
-		let modelRapor = new sabitBilgiRaporcuSinif({ parentPart: this, mfSinif: mfSinif, secimler }); modelRapor.raporEkraniAc()
+	sabitBilgiRaporuIstendi(e = {}) {
+		let mfSinif = this.getMFSinif(e)
+		let { secimler } = this, { sabitBilgiRaporcuSinif } = mfSinif
+		if (!sabitBilgiRaporcuSinif)
+			return
+		let modelRapor = new sabitBilgiRaporcuSinif({ parentPart: this, mfSinif, secimler })
+		modelRapor.raporEkraniAc()
 	}
-	boyutlandirIstendi(e) { let {panelDuzenleyici} = this; if (panelDuzenleyici?.boyutlandirIstendi) { panelDuzenleyici?.boyutlandirIstendi(e) } }
-	async vazgecIstendi(e) {
-		e = e ?? {}; let mfSinif = this.getMFSinif(e)
-		if (await mfSinif?.listeEkrani_vazgecOncesi?.(e) === false) { return false }
+	boyutlandirIstendi(e) {
+		this.panelDuzenleyici?.boyutlandirIstendi?.(e)
+	}
+	async vazgecIstendi(e = {}) {
+		let mfSinif = this.getMFSinif(e)
+		if (await mfSinif?.listeEkrani_vazgecOncesi?.(e) === false)
+			return false
 		return await super.vazgecIstendi(e)
 	}
-	tekil() { this.tekilmi = true; return this } coklu() { this.tekilmi = false; return this }
+	tekil() { this.tekilmi = true; return this }
+	coklu() { this.tekilmi = false; return this }
 	onInit(handler) { this.initBlock = handler; return this }
 	secimlerDuzenleIslemi(handler) { this.secimlerDuzenleBlock = handler; return this }
 	veriYuklenince(handler) { this.veriYukleninceBlock = handler; return this }
 }
-
 
 
 
