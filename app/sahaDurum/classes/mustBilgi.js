@@ -9,7 +9,15 @@ class MustBilgi extends CObject {
 	}
 	get yaslandirmalar() { return this[this.class.yaslandirmaKey] }
 	set yaslandirmalar(value) { this[this.class.yaslandirmaKey] = value }
-	get bakiyeText() { return `Bakiye: <span class="bold green">${toStringWithFra(this.bakiye, 2)}</b>` }
+	get bakiyeText() {
+		let { bakiye: v } = this
+		return (
+			`<span>Bakiye: </span>` +
+			`<b class="${v < 0 ? 'orangered' : v > 0 ? 'forestgreen' : 'lightgray'}" style="margin-left: 10px">` +
+				( v ? fra2Str(v) : '-Yok-' ) +
+			`</b>`
+		)
+	}
 
 	constructor(e = {}) {
 		super(e); $.extend(this, e)
