@@ -23,7 +23,8 @@ class MQYerelParamConfig extends MQYerelParamApp {
 		await this.rootFormBuilderDuzenle(_e); await this.rootFormBuilderDuzenleSonrasi(_e);
 		rootBuilder = _e.rootBuilder; return rootBuilder
 	}
-	getRootFormBuilder(e) { return this.class.getRootFormBuilder(e) } static rootFormBuilderDuzenle(e) { } static rootFormBuilderDuzenleSonrasi(e) { }
+	getRootFormBuilder(e) { return this.class.getRootFormBuilder(e) }
+	static rootFormBuilderDuzenle(e) { } static rootFormBuilderDuzenleSonrasi(e) { }
 	paramHostVarsDuzenle(e) {
 		super.paramHostVarsDuzenle(e); let {colorScheme} = this; if (colorScheme?.char !== undefined) { colorScheme = colorScheme.char }
 		let {hv} = e; extend(hv, { colorScheme })

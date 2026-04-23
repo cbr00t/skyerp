@@ -1,9 +1,17 @@
 class SahaDurumApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'DEF' } get defaultLoginTipi() { return 'plasiyerLogin' }
-	get configParamSinif() { return MQYerelParamConfig_SahaDurum } get yerelParamSinif() { return MQYerelParam }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	get autoExecMenuId() { return 'DEF' }
+	get defaultLoginTipi() { return 'plasiyerLogin' }
+	get configParamSinif() { return MQYerelParamConfig_SahaDurum }
+	get yerelParamSinif() { return MQYerelParam }
+	get localDataSinif() { return MQLocalData }
 	get sablonDosyaPrefix() { return 'sahaDurum' }
 
 	constructor(e = {}) { super(e) }
+	async init(e) {
+		globalThis.rootAppName = 'sahaDurum'
+		await super.init(e)
+	}
 	async runDevam(e) {
 		await super.runDevam(e)
 		if (qs.user)
@@ -33,9 +41,12 @@ class SahaDurumApp extends App {
 			eIslem: MQEIslemParam.getInstance()
 		})
 	}
-	async paramsDuzenleSonrasi(e) { try { await super.paramsDuzenleSonrasi(e) } finally { this.params.localData = await MQLocalData.getInstance() } }
+	async paramsDuzenleSonrasi(e) {
+		try { await super.paramsDuzenleSonrasi(e) }
+		finally { this.params.localData = await this.localDataSinif.getInstance() }
+	}
 	getAnaMenu(e) {
-		/* const disabledMenuIdSet = this.disabledMenuIdSet || {}; */
+		/* let disabledMenuIdSet = this.disabledMenuIdSet || {}; */
 		return new FRMenu({ items: [
 			new FRMenuChoice({ mnemonic: 'BILGI-YUKLE', text: 'Bilgi Yükle', block: e => this.bilgiYukleIstendi(e) }),
 			new FRMenuChoice({ mnemonic: 'MUSTERILER', text: 'Müşteriler', block: e => MQMustBilgi.listeEkraniAc(e) }),
@@ -43,19 +54,19 @@ class SahaDurumApp extends App {
 		]})
 	}
 	navLayoutOlustur_araIslem(e) {
-		super.navLayoutOlustur_araIslem(e);
-		const items = [
+		super.navLayoutOlustur_araIslem(e)
+		let items = [
 			new FRMenuChoice({
 				id: '_verileriSil', text: `<span class="img"></span><span class="text">Verileri Sil</span>`,
 				block: e => app.verileriSilIstendi(e)
 			})
 		];
-		for (const item of items)
+		for (let item of items)
 			item.navLayoutOlustur(e)
 	}
 	async bilgiYukleIstendi(e) {
 		if (!config.session?.user) {
-			await this.loginIstendi(e); const {session} = config, yerelParam = this.params.yerel;
+			await this.loginIstendi(e); let {session} = config, yerelParam = this.params.yerel;
 			if (session?.user) { yerelParam.lastSession = session; setTimeout(() => yerelParam.kaydet(), 100) }
 		}
 		try {
@@ -84,7 +95,7 @@ class SahaDurumApp extends App {
 	async bilgiYukle(e = {}) {
 		if (!navigator.onLine)
 			throw { isError: true, rc: 'noInternet', errorText: 'Bu işlem için İnternet Bağlantısı gereklidir' }
-		const TotalCount = 4
+		let TotalCount = 4
 		if (progressManager) progressManager.progressMax = TotalCount
 		if (e.abortFlag)
 			return false
@@ -122,13 +133,13 @@ class SahaDurumApp extends App {
 	async verileriSilIstendi(e = {}) {
 		let {params} = this, selectors = ['yerel', 'localData']
 		let size = 0;
-		for (const selector of selectors) {
+		for (let selector of selectors) {
 			let param = params[selector];
 			if (param) { let data = localStorage.getItem(param.class?.fullTableName); size += data?.length }
 		}
-		const sizeMB = roundToFra(size / 1024 / 1024, 2);
+		let sizeMB = roundToFra(size / 1024 / 1024, 2);
 		let promise = new $.Deferred();
-		const {wnd} = displayMessage((
+		let {wnd} = displayMessage((
 			`<p class="bold">Yerel Veriler <u class="darkred">SİLİNECEK</u>.` +
 				(sizeMB
 					? (
@@ -145,7 +156,7 @@ class SahaDurumApp extends App {
 		);
 		wnd.on('close', evt => promise.resolve(false));
 		wnd.jqxWindow({ width: 500, height: 180, position: 'center' }); setTimeout(() => wnd.jqxWindow('resize'), 1);
-		const buttons = wnd.find('.jqx-window-content > .buttons > button');
+		let buttons = wnd.find('.jqx-window-content > .buttons > button');
 		buttons.eq(0).addClass('jqx-danger'); buttons.eq(1).addClass('jqx-inverse');
 		let result = await promise
 		if (result) {
@@ -182,7 +193,11 @@ class SahaDurumApp extends App {
 					let timeout = 5_000
 					let url = `data/${file}`
 					try { content = await ajaxPost({ dataType, timeout, url }) }
-					catch (ex) { clog(getErrorText(ex)) }
+					catch (ex) {
+						url = `../sahaDurum/${url}`
+						try { content = await ajaxPost({ dataType, timeout, url }) }
+						catch (ex) { clog(getErrorText(ex)) }
+					}
 				}
 				if (content)
 					sablonYapi[fullKey] = content
@@ -224,20 +239,20 @@ class SahaDurumApp extends App {
 		})
 	}
 	wsTopluDurum(e) {
-		e = e || {}; const {plasiyerKod, mustKod} = e, params = [
+		e = e || {}; let {plasiyerKod, mustKod} = e, params = [
 			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null),
 			(mustKod ? { name: '@argMustKod', value: mustKod } : null)
-		].filter(x => !!x);
+		].filter(Boolean)
 		return this.sqlExecSP({ query: 'tic_topluDurum', params })
 	}
 	wsTicKapanmayanHesap(e) {
-		e = e || {}; const {plasiyerKod, mustKod} = e, {yaslandirmaTarihmi} = app.params.tablet, params = [
+		e = e || {}; let {plasiyerKod, mustKod} = e, {yaslandirmaTarihmi} = app.params.tablet, params = [
 			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null),
 			(mustKod ? { name: '@argMustKod', value: mustKod } : null),
 			/*(cariTipKod ? { name: '@argCariTipKod', value: cariTipKod } : null),*/
 			{ name: '@argSadecePlasiyereBagliOlanlar', type: 'bit', value: bool2Int(!!plasiyerKod) },
 			(yaslandirmaTarihmi ? { name: '@argGecikmeTarihten', type: 'bit', value: bool2Int(yaslandirmaTarihmi) } : null)
-		].filter(x => !!x);
+		].filter(Boolean)
 		return this.sqlExecSP({ query: 'tic_kapanmayanHesap', params })
 		/*return ajaxPost({
 			timeout: 10 * 60000, processData: false, ajaxContentType: wsContentTypeVeCharSet,
@@ -245,12 +260,12 @@ class SahaDurumApp extends App {
 		})*/
 	}
 	wsTicCariEkstre(e) {
-		e = e || {}; const {plasiyerKod, mustKod} = e, params = [
+		e = e || {}; let {plasiyerKod, mustKod} = e, params = [
 			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null),
 			(mustKod ? { name: '@argMustKod', value: mustKod } : null),
 			/*(cariTipKod ? { name: '@argCariTipKod', value: cariTipKod } : null),*/
 			{ name: '@argSadecePlasiyereBagliOlanlar', value: bool2Int(!!plasiyerKod) }
-		].filter(x => !!x);
+		].filter(Boolean)
 		return this.sqlExecSP({ query: 'tic_cariEkstre', params })
 		/* return ajaxPost({
 			timeout: 10 * 60000, processData: false, ajaxContentType: wsContentTypeVeCharSet,
@@ -258,20 +273,20 @@ class SahaDurumApp extends App {
 		})*/
 	}
 	wsTicCariEkstre_icerik(e) {
-		e = e || {}; const {plasiyerKod, mustKod, cariTipKod} = e, params = [
+		e = e || {}; let {plasiyerKod, mustKod, cariTipKod} = e, params = [
 			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null),
 			(mustKod ? { name: '@argMustKod', value: mustKod } : null),
 			/*(cariTipKod ? { name: '@argCariTipKod', value: cariTipKod } : null),*/
 			{ name: '@argSadecePlasiyereBagliOlanlar', value: bool2Int(!!plasiyerKod) }
-		].filter(x => !!x);
+		].filter(Boolean)
 		return this.sqlExecSP({ query: 'tic_ticariIcerik', params })
 	}
 	/*wsX(e) {
-		e = e || {}; const {args} = e;
-		const url = this.getWSUrl({ api: 'X', args }); return ajaxPost({ url })
+		e = e || {}; let {args} = e;
+		let url = this.getWSUrl({ api: 'X', args }); return ajaxPost({ url })
 	}
 	wsY(e) {
-		e = e || {}; const data = e.args || {}; delete e.args;
+		e = e || {}; let data = e.args || {}; delete e.args;
 		return ajaxPost({
 			processData: false, ajaxContentType: wsContentType,
 			url: app.getWSUrl({ wsPath: 'ws/yonetim', api: 'Y', args: e }), data: toJSONStr(data)

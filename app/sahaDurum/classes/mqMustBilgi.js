@@ -3,7 +3,7 @@ class MQMustBilgi extends MQKAOrtak {
 	static get dataKey() { return 'mustBilgi' } static get tableAlias() { return 'mbil' }
 	static kodListeTipi() { return 'MUST' } static get sinifAdi() { return 'Plasiyer için Müşteriler' }
 	static get tanimUISinif() { return ModelTanimPart } static get secimSinif() { return null }
-	static get tekilOkuYapilazmi() { return true }
+	static get tekilOkuYapilazmi() { return true } static get tumKolonlarGosterilirmi() { return true }
 
 	static islemTuslariDuzenle_listeEkrani({ liste, part }) {
 		let e = arguments[0]
@@ -66,8 +66,7 @@ class MQMustBilgi extends MQKAOrtak {
 				genislikCh: 13, aggregates: [{ TOPLAM: gridDipIslem_sum }]
 			}).tipDecimal_bedel())
 		}
-		liste.push(
-			new GridKolon({ belirtec: 'plasiyerText', text: 'Plasiyer', genislikCh: 10, cellClassName: 'darkgray' }))
+		liste.push(new GridKolon({ belirtec: 'plasiyerText', text: 'Plasiyer', genislikCh: 10, cellClassName: 'darkgray' }))
 	}
 	static gridVeriYuklendi(e) {
 		let {grid} = e, {session} = config, {yerel} = app.params
@@ -145,11 +144,11 @@ class MQMustBilgi extends MQKAOrtak {
 		let { sender: tanimPart } = e
 		let { inst } = tanimPart
 		let items = [
-			(dev ? {
+			{
 				id: 'dataOutput', text: 'PDF<br/>e-Mail',
 				handler: _e =>
 					inst.dataOutputIstendi({ ...e, ..._e })
-			} : null)
+			}
 		].filter(Boolean)
 		e.liste = [...items, ...e.liste]
 		let ekSagButonIdSet = e.part.ekSagButonIdSet ??= {}
@@ -188,8 +187,8 @@ class MQMustBilgi extends MQKAOrtak {
 		tanimForm.addStyle_wh('var(--full)')
 		tanimForm.addForm('bakiyeText').addStyle_wh('auto')
 			.setLayout(({ builder: { altInst: inst }}) => $(`<span class="bakiyeForm">${inst.bakiyeText}</span>`))
-			.addStyle(`$elementCSS { font-size: 130%; color: gray; position: absolute; top: 30px; right: 250px }`)
-		let tabPanel = tanimForm.addTabPanel('tabPanel').addStyle_fullWH(null, 'calc(var(--full) - 100px)')
+			.addStyle(`$elementCSS { font-size: 130%; color: gray; position: absolute; top: 75px; right: 20px; z-index: 1015 !important }`)
+		let tabPanel = tanimForm.addTabPanel('tabPanel').addStyle_fullWH(null, 'calc(var(--full) - 20px)')
 			.addStyle(`$elementCSS > .content > div { padding-bottom: 0 !important }`);
 		let addGrid = (id, etiket, mfSinif, ekIslemler, parentBuilder) => {
 			ekIslemler ??= {}
@@ -387,10 +386,20 @@ class MQMustBilgi extends MQKAOrtak {
 							veriTipiDegisince(fbd))
 						.addStyle_wh(250)
 				}
-				form.addTextArea('ozelEMailStr', `Özel e-Mail Adresleri &nbsp;(<span class="lightgray ek-bilgi">';' ile ayırınız</span>)`)
-					.setRows(4).setCols(10000)
+				form.addTextInput('ozelEMailStr', `Özel e-Mail Adresleri &nbsp;(<span class="lightgray ek-bilgi">';' ile ayırınız</span>)`)
+					// .setRows(3).setCols(10000)
 					.onBuildEk(({ builder: { input }}) => {
+						input.attr('type', 'email')
 						input.attr('autocomplete', 'email')
+						input.on('keydown', ({ key, currentTarget: target }) => {
+							key = key?.toLowerCase()
+							if (key == 'enter' || key == 'linefeed') {
+								if (target.value.trimEnd().at(-1) != ';') {
+									let value = (target.value + '; ').replaceAll(',', ';')
+									target.value = value
+								}
+							}
+						})
 						// input.attr('placeholder', 'Boş bırakılırsa Müşteri e-Mail adresleri kullanılacak')
 					})
 			}
@@ -436,10 +445,10 @@ class MQMustBilgi extends MQKAOrtak {
 			return
 		}
 
-		function getBedelStr(value, detaymi) {
+		function getBedelStr(value, detaymi, alacakmi) {
 			if (!value)
 				return space
-			let color = value < 0 ? 'firebrick' : detaymi ? 'forestgreen' : 'royalblue'
+			let color = ( alacakmi ? value > 0 : value < 0 ) ? 'firebrick' : detaymi ? 'royalblue' : 'forestgreen'
 			return `<b style="color: ${color}">${bedelToString(value)}</b>`
 		}
 		
@@ -467,25 +476,30 @@ class MQMustBilgi extends MQKAOrtak {
 				detay: app.getSablonIcerik(veriTipi, true)
 			}
 			let baslik = { mustKod, mustUnvan }
-			let dip = { borc: 0, alacak: 0, bedel: 0 }
+			let dip = { borc: 0, alacak: 0, bedel: 0, bakiye: 0, acikKisim: 0 }
 			let detaylar = recs.map(_r => {
 				let r = { ..._r }
-				let { tarih, bedel, borcbedel: borc, alacakbedel: alacak } = r
-				let { icerikfissayac: id = r.fissayac } = r
+				let { icerikfissayac: id = r.fissayac, tarih } = r
+				let { borcbedel: borc, alacakbedel: alacak, bedel } = r
+				let { bakiye = 0, acikkisim: acikKisim = 0 } = r
 				if (tarih)
 					tarih = r.tarih = asDate(tarih)
 				if (bedel != null && (borc ?? alacak) == null) {
-					borc = r.borcbedel =bedel < 0 ? 0 : bedel
+					borc = r.borcbedel = bedel < 0 ? 0 : bedel
 					alacak = r.alacakbedel = bedel < 0 ? -bedel : 0
 				}
-				r.bedel ??= (borc ?? 0) - (alacak ?? 0)
-				r.borcBedelStr = getBedelStr(borc, false)
-				r.alacakBedelStr = getBedelStr(alacak, false)
-				r.bedelStr = getBedelStr(bedel, false)
 				r.fisnox ??= r.belgeNox ?? r.belgenox
+				r.bedel ??= (borc ?? 0) - (alacak ?? 0)
+				r.borcBedelStr = getBedelStr(borc, false, false)
+				r.alacakBedelStr = getBedelStr(alacak, false, true)
+				r.bedelStr = getBedelStr(bedel, false, false)
+				r.bakiyeStr = getBedelStr(bakiye, false, false)
+				r.acikKisimStr = getBedelStr(acikKisim, false, true)
 				dip.borc += borc
 				dip.alacak += alacak
 				dip.bedel += bedel
+				dip.bakiye = bakiye
+				dip.acikKisim += acikKisim
 				deleteKeys(r, 'belgeNox', 'belgenox')
 				
 				let _detaylar = r.detaylar = id2Detaylar[id] ?? []
@@ -494,11 +508,11 @@ class MQMustBilgi extends MQKAOrtak {
 					;_detaylar.forEach(det => {
 						_dip.miktar = (_dip.miktar ?? 0) + det.miktar
 						_dip.bedel = (_dip.bedel ?? 0) + det.bedel
-						det.bedelStr = getBedelStr(det.bedel, true)
+						det.bedelStr = getBedelStr(det.bedel, true, false)
 					})
-					_dip.borcBedelStr = getBedelStr(_dip.borcbedel, true)
-					_dip.bedelStr = getBedelStr(_dip.alacakbedel, true)
-					_dip.alacakBedelStr = getBedelStr(_dip.bedel, true)
+					_dip.borcBedelStr = getBedelStr(_dip.borcbedel, true, false)
+					_dip.bedelStr = getBedelStr(_dip.alacakbedel, true, true)
+					_dip.alacakBedelStr = getBedelStr(_dip.bedel, true, false)
 					
 					if (r.detayTable == null) {
 						let { result: detayTable } = (
@@ -513,9 +527,11 @@ class MQMustBilgi extends MQKAOrtak {
 				r.detayTable ??= ''
 				return r
 			})
-			dip.borcBedelStr = getBedelStr(dip.borc, false)
-			dip.alacakBedelStr = getBedelStr(dip.alacak, false)
-			dip.bedelStr = getBedelStr(dip.bedel, false)
+			dip.borcBedelStr = getBedelStr(dip.borc, false, false)
+			dip.alacakBedelStr = getBedelStr(dip.alacak, false, true)
+			dip.bedelStr = getBedelStr(dip.bedel, false, false)
+			dip.bakiyeStr = getBedelStr(dip.bakiye, false, false)
+			dip.acikKisimStr = getBedelStr(dip.acikKisim, false, true)
 	
 			let dokumcu = new HTMLDokum(sablon.baslik)
 			let { result: htmlContent } = dokumcu.process({ baslik, detaylar, dip })

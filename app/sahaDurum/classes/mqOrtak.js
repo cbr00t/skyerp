@@ -1,24 +1,36 @@
 class MQMasterOrtak extends MQCogul {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get dataKey() { return this.classKey } static get raporKullanilirmi() { return false }
+
 	static orjBaslikListesi_argsDuzenle(e) {
-		super.orjBaslikListesi_argsDuzenle(e); const {args, sender} = e;
-		$.extend(args, { rowsHeight: 36, showGroupsHeader: true, showFilterRow: true, autoShowColumnsMenuButton: true, showStatusBar: true, showaggregates: true, showgroupaggregates: true });
+		super.orjBaslikListesi_argsDuzenle(e)
+		let {args, sender} = e
+		extend(args, {
+			rowsHeight: $(window).width() < 800 ? 50 : 38,
+			showGroupsHeader: true, showFilterRow: true,
+			autoShowColumnsMenuButton: true, columnsMenu: false,
+			showStatusBar: true, showaggregates: true, showgroupaggregates: true
+		})
 		if (this.gridDetaylimi) {
-			$.extend(args, {
+			extend(args, {
 				selectionMode: 'checkbox', /* virtualMode: true, */ rowDetails: true,
-				rowDetailsTemplate: rowIndex => ({ rowdetails: `<div class="detay-grid-parent dock-bottom"><div class="detay-grid"/></div>`, rowdetailsheight: 350 }),
+				rowDetailsTemplate: rowIndex => ({
+					rowdetailsheight: 350,
+					rowdetails: `<div class="detay-grid-parent dock-bottom"><div class="detay-grid"/></div>`
+				}),
 				initRowDetails: (rowIndex, _parent, grid, parentRec) => {
-					if (grid && !grid?.html) { grid = $(grid) } const gridWidget = grid.jqxGrid('getInstance'), parent = $(_parent).find('.detay-grid');
+					if (grid && !grid?.html) { grid = $(grid) }
+					let gridWidget = grid.jqxGrid('getInstance'), parent = $(_parent).find('.detay-grid');
 					this.initRowDetails({ grid, gridWidget, rowIndex, parent, parentRec, args: e.temps })
 				}
 			});
-			$.extend(sender, {
+			extend(sender, {
 				gridSatirCiftTiklandi: e => {
-					if (!this.gridDetaylimi) { return }
-					let {sender} = e, {selectedRowIndexes, gridWidget, expandedIndexes} = sender;
+					if (!this.gridDetaylimi)
+						return
+					let {sender} = e, {selectedRowIndexes, gridWidget, expandedIndexes} = sender
 					if (selectedRowIndexes?.length) {
-						let rowIndex = selectedRowIndexes[0];
+						let rowIndex = selectedRowIndexes[0]
 						gridWidget[expandedIndexes?.[rowIndex] ? 'hiderowdetails' : 'showrowdetails']?.(rowIndex)
 					}
 				}
@@ -26,23 +38,23 @@ class MQMasterOrtak extends MQCogul {
 		}
 	}
 	static gridVeriYuklendi(e) {
-		super.gridVeriYuklendi(e) /*const {grid} = e; grid.jqxGrid('groups', ['plasiyerKod'])*/
+		super.gridVeriYuklendi(e) /*let {grid} = e; grid.jqxGrid('groups', ['plasiyerKod'])*/
 	}
 	static orjBaslikListesi_gridInit(e) {
 		super.orjBaslikListesi_gridInit(e); let {sender, grid, gridWidget} = e, {gridDetaylimi} = this;
 		sender.expandedIndexes = sender.expandedIndexes || {};
 		if (gridDetaylimi) {
 			grid.on('rowexpand', evt => {
-				const {expandedIndexes} = sender, index = gridWidget.getrowboundindex(evt.args.rowindex);
+				let {expandedIndexes} = sender, index = gridWidget.getrowboundindex(evt.args.rowindex);
 				if (index != null && index > -1) {
-					const animation = 'grid-open-fast'; grid.addClass(animation);
+					let animation = 'grid-open-fast'; grid.addClass(animation);
 					clearTimeout(sender.timer_animate); sender.timer_animate = setTimeout(() => { grid.removeClass(animation); delete sender.timer_animate }, 2000)
-					if (!$.isEmptyObject(expandedIndexes)) { for (let _index in expandedIndexes) { _index = asInteger(_index); if (index != _index) gridWidget.hiderowdetails(_index) } }
+					if (!empty(expandedIndexes)) { for (let _index in expandedIndexes) { _index = asInteger(_index); if (index != _index) gridWidget.hiderowdetails(_index) } }
 					expandedIndexes[index] = true; setTimeout(() => gridWidget.ensurerowvisible(index > 0 ? index - 1 : index), 100);
 				}
 			});
 			grid.on('rowcollapse', evt => {
-				const {sender, gridWidget} = e, index = gridWidget.getrowboundindex(evt.args.rowindex);
+				let {sender, gridWidget} = e, index = gridWidget.getrowboundindex(evt.args.rowindex);
 				if (index != null && index > -1) delete sender.expandedIndexes[index]
 			})
 		}
@@ -56,10 +68,10 @@ class MQMasterOrtak extends MQCogul {
 			}
 			catch (ex) { hConfirm(getErrorText(ex), 'Detay Grid Gösterim'); throw ex }
 		}
-		const detGridPart = e.detGridPart = new GridliGostericiPart({
+		let detGridPart = e.detGridPart = new GridliGostericiPart({
 			parentPart: this, parentBuilder: this.builder,
 			layout: parent, argsDuzenle: e => {
-				let {args} = e; $.extend(args, { virtualMode: false, selectionMode: 'multiplerowsextended' });
+				let {args} = e; extend(args, { virtualMode: false, selectionMode: 'multiplerowsextended' });
 				if (mfSinif?.orjBaslikListesi_argsDuzenle_detaylar) { mfSinif.orjBaslikListesi_argsDuzenle_detaylar(e) }
 			},
 			tabloKolonlari: e => mfSinif.tabloKolonlari_detaylar,
@@ -70,7 +82,7 @@ class MQMasterOrtak extends MQCogul {
 						grid: detGridPart.grid, gridWidget: detGridPart.gridWidget, args, ..._e
 					})
 				}
-				catch (ex) { console.error(ex); const errorText = getErrorText(ex); hConfirm(`<div style="color: firebrick;">${errorText}</div>`, 'Grid Verisi Alınamadı') }
+				catch (ex) { console.error(ex); let errorText = getErrorText(ex); hConfirm(`<div style="color: firebrick;">${errorText}</div>`, 'Grid Verisi Alınamadı') }
 			},
 			veriYuklenince: e => { if (mfSinif?.gridVeriYuklendi_detaylar) { return mfSinif.gridVeriYuklendi_detaylar(e) } }
 		});
@@ -88,10 +100,11 @@ class MQMasterOrtak extends MQCogul {
 		liste.push(...this.orjBaslikListesi.map(colDef => colDef.belirtec))
 	}
 	static loadServerData(e) { }
-	static loadServerDataDogrudan(e) {
-		e = e || {}; let wsArgs = e.wsArgs = e.wsArgs ?? {}, {mustKod} = e;
-		let session = config.session || {}, loginTipi = e.loginTipi = session.session;
-		let user = e.user = session.user || (session.session ? JSON.parse(Base64.decode(session.session))?.user : null);
+	static loadServerDataDogrudan(e = {}) {
+		let wsArgs = e.wsArgs = e.wsArgs ?? {}
+		let {mustKod} = e
+		let session = config.session || {}, loginTipi = e.loginTipi = session.session
+		let user = e.user = session.user || (session.session ? JSON.parse(Base64.decode(session.session))?.user : null)
 		if (user) {
 			switch (loginTipi) {
 				case 'plasiyerLogin': wsArgs.plasiyerKod = user; break
@@ -100,10 +113,11 @@ class MQMasterOrtak extends MQCogul {
 		}
 		return null
 	}
-	static loadServerDataFromMustBilgi(e) {
-		e = e || {}; let {localData} = app.params, dataKey = e.dataKey ?? this.dataKey, {mustKod} = e;
-		let mustBilgiDict = localData.get(MQMustBilgi.dataKey) || {}, mustBilgi = mustBilgiDict[mustKod] || {};
-		let recs = mustBilgi[dataKey] || []; return recs
+	static loadServerDataFromMustBilgi(e = {}) {
+		let {localData} = app.params, dataKey = e.dataKey ?? this.dataKey, {mustKod} = e
+		let mustBilgiDict = localData.get(MQMustBilgi.dataKey) || {}, mustBilgi = mustBilgiDict[mustKod] || {}
+		let recs = mustBilgi[dataKey] ?? []
+		return recs
 	}
 }
 class MQKAOrtak extends MQKA {
@@ -116,16 +130,23 @@ class MQKAOrtak extends MQKA {
 	}
 	static orjBaslikListesi_gridInit(e) { MQMasterOrtak.orjBaslikListesi_gridInit(e) }
 	static gridVeriYuklendi(e) { MQMasterOrtak.gridVeriYuklendi(e) }
-	static async loadServerData(e) {
-		e = e || {}; let {localData} = app.params, dataKey = e.dataKey ?? this.dataKey;
-		let recs = await localData.get(dataKey);
+	static async loadServerData(e = {}) {
+		let {localData} = app.params
+		let dataKey = e.dataKey ?? this.dataKey
+		let recs = await localData.get(dataKey)
 		if (recs === undefined) {
-			recs = await this.loadServerDataDogrudan(e);
-			await localData.set(dataKey, recs);
+			recs = await this.loadServerDataDogrudan(e)
+			await localData.set(dataKey, recs)
 			localData.kaydetDefer()
 		}
 		return recs
 	}
-	static loadServerDataDogrudan(e) { e = e || {}; e.dataKey = this.dataKey; MQMasterOrtak.loadServerDataDogrudan(e) }
-	static loadServerDataFromMustBilgi(e) { e = e || {}; e.dataKey = this.dataKey; MQMasterOrtak.loadServerDataFromMustBilgi(e) }
+	static loadServerDataDogrudan(e = {}) {
+		e.dataKey = this.dataKey
+		MQMasterOrtak.loadServerDataDogrudan(e)
+	}
+	static loadServerDataFromMustBilgi(e = {}) { 
+		e.dataKey = this.dataKey
+		MQMasterOrtak.loadServerDataFromMustBilgi(e)
+	}
 }

@@ -8,6 +8,8 @@
 <link rel="stylesheet" href="<?=$_partRoot?>/etc/simple-notify.css" />
 <script src="<?=$_partRoot?>/xml/xmlWriter.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/etc/qrcode/qrcode.js"></script>
+<link rel="stylesheet" href="<?=$_partRoot?>/tabulator/css/tabulator.min.css" />
+<!--<script src="<?=$_partRoot?>/tabulator/js/tabulator.min.js"></script>-->
 
 
 <!-- İPTAL --

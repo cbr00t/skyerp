@@ -121,13 +121,20 @@ class GridKolonTip extends CObject {
 		}
 	}
 	static getHTML_groupsTotalRow(value) {
-		if (typeof value == 'number') { value = numberToString(value) }
-		let text = numberToString(asFloat(value.replace(':', '').replace('Sum', '').replace('Avg', '').replace('TOPLAM', '').replace('ORT', '')));
-		return `<div class="bold royalblue right" style="border-top: 3px solid royalblue">${text}</div>`
+		if (isNumber(value))
+			value = numberToString(value)
+		let text = numberToString(asFloat(
+			value
+				.replace(':', '').replace('Sum', '')
+				.replace('Avg', '').replace('TOPLAM', '')
+				.replace('ORT', '')
+		))
+		return `<div class="bold royalblue right" style="border-top: 3px solid royalblue">${text ?? ''}</div>`
 	}
 	static getHTML_totalRow(value) {
-		if (typeof value == 'number') { value = numberToString(value) }
-		return `<div class="bold forestgreen right" style="border-top: 3px solid forestgreen">${value}</div>`
+		if (isNumber(value))
+			value = numberToString(value)
+		return `<div class="bold forestgreen right" style="border-top: 3px solid forestgreen">${value ?? ''}</div>`
 	}
 	jqxColumnDuzenle(e) {
 		let {column} = e, colDef = e.colDef || {}, {genislikCh} = colDef;
@@ -284,14 +291,19 @@ class GridKolonTip_Decimal extends GridKolonTip_Number {
 	}
 	get cellsRenderer() {
 		return ((colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
-			if (rec?.totalsrow) { return GridKolonTip.getHTML_groupsTotalRow(value) }
-			let {gridPart} = colDef, gridWidget = gridPart?.gridWidget ?? gridPart?.gridPart?.gridWidget;
-			rec = (gridWidget?.getboundrows ? gridWidget.getboundrows()[rowIndex] : null) ?? rec; rec = rec?.originalRecord ?? rec;
-			if (rec) { value = rec[columnField] }; let fra = this.getFra({ rec });
+			if (rec?.totalsrow)
+				return GridKolonTip.getHTML_groupsTotalRow(value)
+			let {gridPart} = colDef, gridWidget = gridPart?.gridWidget ?? gridPart?.gridPart?.gridWidget
+			rec = (gridWidget?.getboundrows ? gridWidget.getboundrows()[rowIndex] : null) ?? rec
+			rec = rec?.originalRecord ?? rec
+			if (rec)
+				value = rec[columnField]
+			let fra = this.getFra({ rec })
 			if (value != null) {
-				if (typeof value != 'number') value = asFloat(value)
-				value = !value && this.sifirGostermeFlag ? '' : (fra == null ? value.toLocaleString() : toStringWithFra(value, fra));
-				html = typeof html == 'object' ? value : changeTagContent(html, value)
+				if (!isNumber(value))
+					value = asFloat(value)
+				value = !value && this.sifirGostermeFlag ? '' : (fra == null ? value.toLocaleString() : toStringWithFra(value, fra))
+				html = isString(html) ? changeTagContent(html, value) : value
 			}
 			return html
 		})
@@ -723,8 +735,10 @@ class GridKolonTip_Bool extends GridKolonTip_Ozel {
 	}
 	get cellsRenderer() {
 		return ((colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
-			if (rec?.totalsrow) { return GridKolonTip.getHTML_groupsTotalRow(value) }
-			rec = colDef?.gridPart?.gridWidget?.getboundrows()[rowIndex] ?? rec; rec = rec?.originalRecord ?? rec;
+			if (rec?.totalsrow)
+				return GridKolonTip.getHTML_groupsTotalRow(value)
+			rec = colDef?.gridPart?.gridWidget?.getboundrows()[rowIndex] ?? rec
+			rec = rec?.originalRecord ?? rec
 			if (!(typeof value == 'boolean' || typeof value == 'number')) value = this.value ?? asBool(value)
 			if (!colDef.gridPart?.gridWidget?.editable || (!colDef.columnType || colDef.columnType == 'checkbox' || colDef.columnType == 'custom' || colDef.columnType == 'template')) {
 				html = (

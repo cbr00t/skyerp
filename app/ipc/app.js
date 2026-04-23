@@ -1,38 +1,55 @@
 class IPCApp extends TicariApp {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static MaxCloseCount = (asInteger(Math.random() * 10) % 5) + 6;
-    get isLoginRequired() { return false } /*get defaultWSPath() { return 'ws/skyERP' }*/
-    constructor(e) {
-        e = e ?? {}; super(e);
-        $.extend(this, { ipcKey: qs.ipc ?? qs.ipcKey ?? 'sky-ipc', ws: null, closeCount: 0 })
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static MaxCloseCount = (asInteger(Math.random() * 10) % 5) + 6
+    get isLoginRequired() { return false }
+
+    constructor(e = {}) {
+        super(e)
+		let { ipcKey = e.ipc ?? e.key ?? qs.ipcKey ?? qs.ipc ?? qs.key } = e
+		let ws = null, closeCount = 0
+        extend(this, { ipcKey, ws, closeCount })
     }
     async runDevam(e) {
-		if (qs.user) { await app.loginIstendi() }
 		await super.runDevam(e)
 	}
 	async afterRun(e) {
-		await super.afterRun(e);
-		this.content.children().remove(); this.show(); this.initIPC(e)
+		await super.afterRun(e)
+		this.content.children().remove()
+		this.show()
+		;{
+			let { session: s } = config
+			if (qs.user || qs.session || qs.sessionID || s?.user || s?.sessionID || s?.session)
+			try { await this.loginIstendi(e) }
+			catch (ex) { cerr(ex) }
+		}
+		this.initIPC(e)
     }
     getAnaMenu() { return new FRMenu() }
     /** WebSocket IPC bağlantısını başlatır */
-    async initIPC(e) {
-        e = e ?? {}; let {content, ipcKey} = this, url = app.getWebSocketURL({ key: ipcKey });
-        this.ws?.close(); let ws = this.ws = new WebSocket(url);
-        $.extend(ws, {
+    async initIPC(e = {}) {
+        let { content, ipcKey } = this
+		let url = app.getWebSocketURL({ key: ipcKey })
+        this.ws?.close()
+		let ws = this.ws = new WebSocket(url)
+        extend(ws, {
             onopen: () => {
-				content.html(`<div class="info success">IPC WebSocket aktif</div>`);
+				content.html(`<div class="info success">IPC WebSocket aktif</div>`)
 				this.closeCount = 0; this.initTimerTest({ ...e, content, ipcKey })
 			},
-            onmessage: async ({ data }) => this.onMessage({ ...e, ws, ipcKey, data }),
+            onmessage: async ({ data }) =>
+				this.onMessage({ ...e, ws, ipcKey, data }),
             onerror: ({ currentTarget: ws }) => {
-				setTimeout(()=> content.html(`<div class="info error">IPC WebSocket erişim sorunu</div>`), 10);
+				setTimeout(() => content.html(`<div class="info error">IPC WebSocket erişim sorunu</div>`), 10)
 				this.initTimerTest({ ...e, content, ipcKey })
 			},
             onclose: ({ reason }) => {
 				content.html(`<div class="info error">IPC WebSocket kapandı</div>`);
 				if (qs.internal) {
-					if (++this.closeCount >= this.class.MaxCloseCount || reason == 'ClosedByServer') {
-						clearInterval(this.timerTest); delete this.timerTest
+					this.closeCount++
+					let { closeCount, class: { MaxCloseCount } } = this
+					if (closeCount >= MaxCloseCount || reason == 'ClosedByServer') {
+						clearInterval(this.timerTest)
+						delete this.timerTest
 						self.close()
 						return
 					}
@@ -45,36 +62,59 @@ class IPCApp extends TicariApp {
     initTimerTest(e = {}) {
         if (this.timerTest)
 			return
-		let ipcKey = e.ipcKey ?? this.ipcKey;
+		
+		let { ipcKey = e.key ?? this.ipcKey } = e
         this.timerTest = setInterval(async () => {
 			let {ws} = this
 			switch (ws?.readyState) {
-				case WebSocket.OPEN: break
-				case WebSocket.CLOSED: await this.initIPC(e); return
-				default: return
+				case WebSocket.OPEN:
+		            // await ws.send(toJSONStr({ result: undefined }))
+					break
+				case WebSocket.CLOSED:
+					await this.initIPC(e)
+					break
 			}
-            // await ws.send(toJSONStr({ result: undefined }))
         }, 1_000)
     }
     /** Gelen WebSocket mesajlarını işleyerek eval() çalıştırır */
-    async onMessage(e) {
-        let ws = e.ws ?? this.ws, {data} = e; if (!data) { return }
-        e = e ?? {}; $.extend(e, {
-            ws, 
-            callback: result => ws.send(toJSONStr({ result }))
-        });
-		let evalStr, result;
+    async onMessage(e = {}) {
+        let { data } = e
+		if (!data)
+			return
+		
+		let { ws = this.ws } = e
+		let callback = result =>
+			ws.send(toJSONStr({ result }))
+		extend(e, { ws, callback })
+
+		let { sesson: s } = config
+		if (qs.user || qs.session || qs.sessionID || s?.user || s?.sessionID || s?.session) {
+			try {
+				let { sessionID } = await app.wsGetSessionInfo() ?? {}
+				if (!sessionID)
+					await app.loginIstendi(e)
+			}
+			catch (ex) {
+				await app.loginIstendi(e)
+			}
+		}
+		
+		let evalStr, result
         try {
-            /* Gelen mesajı `(e => { ... })` formatına dönüştürüp eval() et */
-            evalStr = `(async e => { ${data} })`, result = await eval(evalStr);
+            // Gelen mesajı `(e => { ... })` formatına dönüştürüp eval() et
+            evalStr = `(async e => { ${data} })`
+			let result = await eval(evalStr)
             /* Eğer sonuç fonksiyon döndürüyorsa, tekrar çalıştır */
-            if (isFunction(result) || result?.run) { result = await getFuncValue.call(this, result, e) }
-        } catch (ex) {
-			e.callback({ isError: true, code: ex.code ?? ex.rc, errorText: getErrorText(ex) });
+			if (isFunction(result) || result?.run)
+				result = await getFuncValue.call(this, result, e)
+        }
+		catch (ex) {
+			callback({ isError: true, code: ex.code ?? ex.rc, errorText: getErrorText(ex) })
 			console.error('WebSocket eval() hatası', ex, { evalStr, result })
 		}
     }
 }
+
 
 /*
 	ÖRNEK KULLANIM  [console]:

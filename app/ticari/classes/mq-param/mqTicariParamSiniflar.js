@@ -79,7 +79,7 @@ class MQTicariGenelParam extends MQTicariParamBase {
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e); let {paramci} = e; paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 10px !important }`);
 		paramci.addGrup().setEtiket('Genel'); let form = paramci.addFormWithParent();
-			form.addTekSecim('borclanmaSekli', 'Borçlanma Şekli').dropDown().noMF().kodsuz().setTekSecim(TicBorclanmaSekli).addStyle_wh(300);
+			form.addTekSecim('borclanmaSekli', 'Borçlanma Şekli').dropDown().noMF().kodsuz().setTekSecim(TicBorclanmaSekli).addStyle_wh(300)
 			form.addBool('sipIrsBorclanmaSonrasiEsasAlinir', 'Sip./İrs. Borçlanma Sonrası Esas Alınır');
 		let kullanim = paramci.addKullanim().addGrup().setEtiket('Kullanım'); form = kullanim.addFormWithParent();
 			form.addBool('doviz', 'Döviz'); form.addBool('sms', 'SMS İşlemleri'); form.addBool('plasiyer', 'Plasiyer');

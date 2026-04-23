@@ -37,14 +37,20 @@ class MQEMutOnay extends MQCogul {
 			if (!await this.getWSResult(e))
 				throw null
 		}
-		catch (ex) {
-			let errText = getErrorText(ex)
-			if (errText)
-				await hConfirm(errText)
-			if (!config.dev)
-				setTimeout(() => tanimPart.close(), 100)
-			return
-			// throw { isError: true, rc: 'userClose' }
+		catch (_1) {
+			try {
+				if (!await this.getWSResult(e))
+					throw null
+			}
+			catch (ex) {
+				let errText = getErrorText(ex)
+				if (errText)
+					await hConfirm(errText)
+				if (!config.dev)
+					setTimeout(() => tanimPart.close(), 100)
+				return
+				// throw { isError: true, rc: 'userClose' }
+			}
 		}
 		let {wsResult} = this
 		if (wsResult) {
@@ -444,7 +450,7 @@ class MQEMutOnay extends MQCogul {
 						`<span class="veri orangered">${dateToString(tarih)}<span> `,
 						`<span class="ek-bilgi">tarihi itibariyle</span> &nbsp;`,
 						`<span class="veri ${bakiye ? 'bakiye-var' : 'bakiye-yok'}">
-							${bakiye ? `${numberToString(Math.abs(bakiye))} ${dvKod}` : 'YOKTUR'}
+							${bakiye ? `${bedelToString(Math.abs(bakiye))} ${dvKod}` : 'YOKTUR'}
 						</span> &nbsp;`,
 						`<span class="veri ${bakiye ? `bakiye-var ${bakiye < 0 ? 'alacak' : 'borc'}` : 'bakiye-yok'}">
 							${bakiye ? `${bakiye < 0 ? 'ALACAKTIR' : 'BORÇTUR'}` : 'YOKTUR'}

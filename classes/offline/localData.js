@@ -16,14 +16,14 @@ class MQLocalData extends MQYerelParamApp {
 	get fsFileName() { let tokens = this.fullTableName?.split('.'); return tokens ? tokens.at(-1) : null }
 	get data() { return this._data = this._data || {} }
 	set data(value) { this._data = value; this.changed() }
-	get length() { return Object.keys(this.data ?? {}).length }
+	get length() { return keys(this.data ?? {}).length }
 
 	constructor(e, __data, _dbName, _fragmanted) {
 		if (typeof e != 'object') { e = { name: e, data: __data, dbName: _dbName, fragmanted: _fragmanted } }
 		super(e); let {class: { defaultName }} = this
 		let {name = e.key ?? e.table, dbName, isFragmanted, isChanged, data: _data, fh = e.fileHandle} = e
 		name ??= defaultName; _data ??= {}; isChanged ??= true
-		$.extend(this, { name, dbName, isFragmanted, isChanged, _data, fh })
+		extend(this, { name, dbName, isFragmanted, isChanged, _data, fh })
 	}
 	static paramAttrListeDuzenle({ liste }) {
 		super.paramAttrListeDuzenle(...arguments)
@@ -257,17 +257,18 @@ class MQLocalDB extends CObject {
 		return value
 	}
 	get fsFileName() { let tokens = this.fullTableName?.split('.'); return tokens ? tokens.at(-1) : null }
-	get tableNames() { return Object.keys(this.tables) }
-	get tableArray() { return Object.values(this.tables) }
+	get tableNames() { return keys(this.tables) }
+	get tableArray() { return values(this.tables) }
 	get data() {
 		let table2Data = {};
 		for (let [name, table] of this) { table2Data[name] = table.data }
 		return table2Data
 	}
-	get length() { return Object.keys(this.tables ?? {}).length }
+	get length() { return keys(this.tables ?? {}).length }
 	constructor(e, _tables) {
 		if (typeof e != 'object') { e = { name: e, tables: _tables } }
-		super(e); let {name, tables = {}} = e; $.extend(this, { name, tables })
+		super(e)
+		let {name, tables = {}} = e; extend(this, { name, tables })
 	}
 	async yukle(e) {
 		let {fsRootDir, tables} = this, dh;
@@ -280,11 +281,11 @@ class MQLocalDB extends CObject {
 			if (kind != 'file') { continue }
 			if (tables[name] == null) { this.add(name) }
 		}
-		await Promise.all(Array.from(this.values()).map(table => table.yukle(e)))
+		await promiseAll(Array.from(this.values()).map(table => table.yukle(e)))
 		return this
 	}
 	async kaydet(e) {
-		await Promise.all(Array.from(this.values()).map(table => table.kaydet(e)))
+		await promiseAll(Array.from(this.values()).map(table => table.kaydet(e)))
 		return this
 	}
 	kaydetDefer(e) {
@@ -295,7 +296,7 @@ class MQLocalDB extends CObject {
 		}, 500)
 	}
 	async sil(e) {
-		await Promise.all(Array.from(this.values()).map(table => table.sil(e)))
+		await promiseAll(Array.from(this.values()).map(table => table.sil(e)))
 		let {fsRootDir} = this, dh
 		try { dh = await getFSDirHandle(fsRootDir) } catch (ex) { }
 		if (dh) { await dh.remove({ recursive: true }) }
@@ -347,7 +348,7 @@ class MQLocalDB extends CObject {
 	}
 	clear() { return this.delete() }
 	*keys() { for (let key in this.tables) { yield key } }
-	*values() { for (let value of Object.values(this.tables)) { yield value } }
+	*values() { for (let value of values(this.tables)) { yield value } }
 	*entries() { for (let entry of Object.entries(this.tables)) { yield entry } }
 	forEach(block) { for (let [k, v] of this) { block(k, v) } }
 	[Symbol.iterator]() { return this.entries() }

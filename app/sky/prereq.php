@@ -4,9 +4,12 @@
 
 <script src="<?=$webRoot?>/lib_external/etc/date.js"></script>
 
-<script src="../ticari/classes/mq-param/mqTicariParamSiniflar.js"></script>
+<?php
+	require_once("$webRoot_ticari/classes/tekSecim/include.php");
+	require_once("$webRoot_ticari/classes/mq-param/include.php")
+?>
+<!--<script src="../ticari/classes/mq-param/mqTicariParamSiniflar.js"></script>-->
 <script src="<?=$webRoot?>/classes/mq/cogul/kod/mqKod.js"></script>
-<script src="<?=$webRoot?>/classes/mq/cogul/kod/mqKA.js"></script>
 <script src="<?=$webRoot?>/classes/mq/cogul/fis/mqSayacli.js"></script>
 <script src="<?=$webRoot?>/classes/mq/cogul/fis/mqSayacliKA.js"></script>
 <script src="<?=$webRoot?>/classes/mq/cogul/fis/mqDetayli.js"></script>

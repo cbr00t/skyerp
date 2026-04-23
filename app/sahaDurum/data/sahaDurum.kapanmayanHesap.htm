@@ -15,6 +15,7 @@
 		.dokum table.detay tr.header { border-bottom: 3px solid forestgreen }
 		.dokum table.baslik tr.dip { border-top: 3px solid royalblue; background-color: #ddd }
 		.dokum table.detay tr.dip { border-top: 2px solid forestgreen; background-color: #eee }
+		.dokum .bolder { font-weight: bolder }
 		/*@media screen {
 			.dokum table.baslik { box-shadow: 0 0 8px 3px royalblue }
 			.dokum table tr.content:hover { background-color: #88ccff33; cursor: pointer }
@@ -28,7 +29,8 @@
 			<th width="80">TARİH</th>
 			<th width="250">BELGE NO</th>
 			<th>İŞLEM</th>
-			<th width="200" align="right">BEDEL</th>
+			<th width="200" align="right" class="bolder">BEDEL</th>
+			<th width="200" align="right" class="bolder">AÇIK KISIM</th>
 		</tr>
 		<tr class="content">
 			<td colspan="100">
@@ -37,12 +39,8 @@
 						<td width="80">[tarih]</td>
 						<td width="250" align="right">[fisnox]</td>
 						<td>[isladi]</td>
-						<td width="150" align="right">[bedelStr]</td>
-					</tr>
-					<tr class="detaylar">
-						<td colspan="100">
-							[detayTable]
-						</td>
+						<td width="150" align="right" class="bolder">[bedelStr]</td>
+						<td width="150" align="right" class="bolder">[acikKisimStr]</td>
 					</tr>
 				</table>
 			</td>
@@ -50,6 +48,7 @@
 		<tr class="dip">
 			<td colspan="3">&nbsp;</td>
 			<td width="150" align="right">[bedelStr]</td>
+			<td width="150" align="right">[acikKisimStr]</td>
 		</tr>
 	</table>
 </div>
