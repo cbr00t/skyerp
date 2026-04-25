@@ -55,8 +55,8 @@
 }
 .accordion.part .accordion.item > .header > .collapsed-content {
 	font-size: 70%; color: #555;
-	margin-left: auto; margin-top: -18px; padding-right: 5px;
-	overflow-y: auto !important
+	margin-left: auto; margin-top: -18px; padding-right: 3px;
+	overflow-x: hidden !important;; overflow-y: auto !important
 }
 .accordion.part .accordion.item > .header > .collapsed-content > * {
 	line-height: var(--acc-header-collapsed-lineHeight)

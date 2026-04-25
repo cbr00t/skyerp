@@ -28,10 +28,14 @@ class MQMustBilgi extends MQKAOrtak {
 	}
 	static ekCSSDuzenle({ dataField: belirtec, rec, result }) {
 		super.ekCSSDuzenle(...arguments)
-		if (belirtec == 'bakiye' || belirtec.startsWith('kademe')) {
+		if (rec.dengesizmi && belirtec == 'bakiye')
+			result.push('fs-110 lightblack bg-lightorangered')
+		else if (belirtec == 'bakiye' || belirtec.startsWith('kademe')) {
 			let value = rec[belirtec]
-			if (value) { result.push(value < 0 ? 'red' : 'green') }
-			else { result.push('lightgray') }
+			if (value)
+				result.push(value < 0 ? 'red' : 'green')
+			else
+				result.push('lightgray')
 		}
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
@@ -167,16 +171,14 @@ class MQMustBilgi extends MQKAOrtak {
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e)
 		let { rootBuilder: rfb, tanimFormBuilder: tanimForm, sender: tanimPart, mfSinif, inst, kaForm } = e
+		let { localData } = app.params
+		let { kod: mustKod } = inst
+		let mustBilgiDict = localData.get(this.dataKey) ?? {}
+		let mustBilgi = mustBilgiDict[mustKod]
 		let { layout } = tanimPart
 		rfb.addCSS('no-scroll').addStyle(
 			`$elementCSS .form-layout > [data-builder-id = "kaForm"] { margin-top: -80px }`)
-		rfb.setAltInst(({ builder: fbd }) => {
-			let { localData } = app.params
-			let mustBilgiDict = localData.get(this.dataKey)
-			let { part: { inst: { kod } } } = fbd
-			let mustBilgi = mustBilgiDict[kod]
-			return mustBilgi
-		})
+		rfb.setAltInst(mustBilgi)
 		tanimPart.islem = 'izle'
 		tanimPart.title = `<b>${inst.kod}</b><span class="gray"> - Müşteri Detayları</span>`
 
@@ -185,9 +187,19 @@ class MQMustBilgi extends MQKAOrtak {
 				layout.find('.header > .islemTuslari'))
 			.addStyle(`$elementCSS .sag > #dataOutput { width: 100px }`)
 		tanimForm.addStyle_wh('var(--full)')
+		if (mustBilgi.dengesizmi) {
+			tanimForm.addForm('uyariText').addStyle_wh('auto')
+				.setLayout(({ builder: { altInst: inst }}) => $(`<span class="uyariForm"> ?? </span>`))
+				.addStyle(`$elementCSS {
+					font-size: 150%; color: whitesmoke; background-color: orangered; padding: 0 10px;
+					position: absolute; top: 75px; right: 270px;
+					min-width: unset !important; z-index: 1015 !important
+				}`)
+		}
 		tanimForm.addForm('bakiyeText').addStyle_wh('auto')
 			.setLayout(({ builder: { altInst: inst }}) => $(`<span class="bakiyeForm">${inst.bakiyeText}</span>`))
 			.addStyle(`$elementCSS { font-size: 130%; color: gray; position: absolute; top: 75px; right: 20px; z-index: 1015 !important }`)
+		
 		let tabPanel = tanimForm.addTabPanel('tabPanel').addStyle_fullWH(null, 'calc(var(--full) - 20px)')
 			.addStyle(`$elementCSS > .content > div { padding-bottom: 0 !important }`);
 		let addGrid = (id, etiket, mfSinif, ekIslemler, parentBuilder) => {
@@ -245,7 +257,7 @@ class MQMustBilgi extends MQKAOrtak {
 				}).addStyle(e => `$elementCSS { position: absolute; width: auto !important; height: auto !important; margin-top: -45px; z-index: 500 }`)
 				.addStyle(e => `$elementCSS > button { width: 45px !important; height: 45px !important }`);
 			let width = 400, subParentBuilder = parentBuilder.addFormWithParent().altAlta().addStyle_fullWH(width); subParentBuilder._width = width;
-			{
+			;{
 				let mfSinif = MQKapanmayanHesaplar_Yaslandirma
 				let { dataKey: id } = mfSinif
 				let fbd = subParentBuilder.addGridliGosterici(id).addStyle_fullWH(null, 350)

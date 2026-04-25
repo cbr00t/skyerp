@@ -282,9 +282,14 @@ class GridKolon extends GridKolonVeGrupOrtak {
 	setTip(value) { this.tip = value; return this }
 	setCellClassName(value) { this.cellClassName = value; return this }
 	setCellsRenderer(handler) { this.cellsRenderer = handler; return this }
+	sum() { this.aggregates = ['sum']; return this }
+	avg() { this.aggregates = ['avg']; return this }
+	checkedList() { this.filterType = 'checkedlist'; return this }
+	input() { this.filterType = 'input'; return this }
 }
 
 (function() {
 	let anaTip2Sinif = GridKolonVeGrupOrtak._anaTip2Sinif, subClasses = [GridKolon];
 	for (let cls of subClasses) { let {anaTip} = cls; if (anaTip) anaTip2Sinif[anaTip] = cls }
 })()
+

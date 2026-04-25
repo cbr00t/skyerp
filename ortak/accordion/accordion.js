@@ -76,7 +76,7 @@ class AccordionPart extends Part {
 		if (!layout?.length)
 			return this
 		clearTimeout(this._timer_render)
-		this._timer_render = setTimeout(e => this._render(e), 1, e)
+		this._timer_render = setTimeout(e => this._render(e), 5, e)
 		return this
 	}
 	async _render(e) {
@@ -138,7 +138,7 @@ class AccordionPart extends Part {
 			let collapsedKey = 'collapsedContent'
 			let targetKey = collapsed ? collapsedKey : 'content'
 			// if (collapsed) {
-			{
+			;{
 				// let targetContent = await this.evalContent(item, item[targetKey], elmCollapsedContent) || $('<div/>')
 				let targetContent = await this.evalContent(item, item[collapsedKey], elmCollapsedContent) || $('<div/>')
 				if (targetContent && !targetContent.parent()?.length)

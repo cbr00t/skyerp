@@ -28,7 +28,11 @@ class MQKapanmayanHesaplar extends MQMasterOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get dataKey() { return 'kapanmayanHesap' } static get sinifAdi() { return 'Kapanmayan Hesaplar' }
 	get tableAlias() { return 'khes' }
-	
+
+	static orjBaslikListesi_argsDuzenle({ args }) {
+		super.orjBaslikListesi_argsDuzenle(...arguments)
+		extend(args, { showGroupAggregates: false })
+	}
 	static ekCSSDuzenle({ dataField: belirtec, rec, result }) {
 		super.ekCSSDuzenle(...arguments)
 		if (belirtec == 'bedel') {
@@ -137,47 +141,35 @@ class MQKapanmayanHesaplar extends MQMasterOrtak {
 			}
 			if (dengelimi)
 				continue
-			
-			let ba2Recs = {}
-			_recs = [..._recs].sort((r1, r2) => {
-				let v1 = asDate(r1.vade)?.getTime() ?? 0
-				let v2 = asDate(r2.vade)?.getTime() ?? 0
-				return v1 - v2
-			})
+
+			let pDizi = [], nDizi = []
 			;_recs.forEach(r => {
-				let { acikkisim: v } = r
-				let k = v < 0 ? 'A' : 'B'
-				;(ba2Recs[k] ??= []).push(r)
+				let target = r.acikkisim < 0 ? nDizi : pDizi
+				target.push(r)
 			})
-			let maxLen = max(...values(ba2Recs).map(_ => _.length)) || 0
-			let arrayChanged = false, ba2RemoveIndexes = {}
-			for (let i = 0; i < maxLen; i++) {
-				let recB = ba2Recs.B?.[i] ?? {}, { acikkisim: b } = recB
-				let recA = ba2Recs.A?.[i] ?? {}, { acikkisim: a } = recA
-				let fark = abs(b || 0) - abs(a || 0)
-				if (!fark)
-					continue
-				let buKey = fark < 0 ? 'A' : 'B'
-				let digerKey = fark < 0 ? 'B' : 'A'
-				ba2Recs[buKey][i].acikkisim = abs(fark)
-				if (ba2Recs[digerKey]) {
-					;(ba2RemoveIndexes[digerKey] ??= []).push(i)
-					arrayChanged = true
-				}
+			
+			let pi = 0, ni = 0
+			while (pi < pDizi.length && ni < nDizi.length) {
+				let pr = pDizi[pi], nr = nDizi[ni]
+				let p = pr.acikkisim || 0
+				let n = abs(nr.acikkisim || 0)
+				let kucuk = min(p, n)
+				
+				// mahsuplaşma
+				pr.acikkisim = roundToFra2(pr.acikkisim - kucuk)
+				nr.acikkisim = roundToFra2(nr.acikkisim + kucuk)     // negatifi sıfıra yaklaştırır
+				if (!pr.acikkisim) pi++
+				if (!nr.acikkisim) ni++
 			}
-			if (!empty(ba2RemoveIndexes)) {
-				for (let [ba, indexes] of entries(ba2RemoveIndexes)) {
-					let target = ba2Recs[ba]
-					indexes.sort((i1, i2) => i2 - i1)    // reversed index sort
-					;indexes.forEach(i =>
-						target.splice(i, 1))
-				}
+			if (pi || ni) {
+				must2Recs[mustKod] = _recs = [
+					...pDizi.slice(pi),
+					...nDizi.slice(ni)
+				]
+				degistimi = true
 			}
-			if (arrayChanged)
-				_recs = values(ba2Recs).flat()
-			must2Recs[mustKod] = _recs
-			degistimi = true
 		}
+		
 		if (degistimi)
 			recs = values(must2Recs).flat()
 		
@@ -328,7 +320,7 @@ class MQCariEkstre extends MQMasterOrtak {
 	static get detaySinif() { return MQCariEkstre_Detay }
 	static get tabloKolonlari_detaylar() { return this.detaySinif.orjBaslikListesi }
 
-	static ekCSSDuzenle({ dataField: belirtec, rec, result }) {
+	static ekCSSDuzenle({ rowIndex, dataField: belirtec, rec, result }) {
 		super.ekCSSDuzenle(...arguments)
 		if (rec?.toplammi)
 			result.push('bg-lightroyalblue', 'bold')
@@ -343,6 +335,8 @@ class MQCariEkstre extends MQMasterOrtak {
 				result.push(value < 0 ? 'red' : 'green')
 			}
 		}
+		if (rowIndex === 0 && belirtec == 'bakiye')
+			result.push('fs-130 bolder royalblue')
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
@@ -358,7 +352,7 @@ class MQCariEkstre extends MQMasterOrtak {
 			new GridKolon({ belirtec: 'borcbedel', text: 'Borç Bedel.', genislikCh: 13, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel(),
 			new GridKolon({ belirtec: 'alacakbedel', text: 'Alacak Bedel.', genislikCh: 13, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel(),
 			// new GridKolon({ belirtec: 'bedel', text: 'İşr. Bedel.', genislikCh: 13, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel(),
-			new GridKolon({ belirtec: 'bakiye', text: 'Bakiye', genislikCh: 13, aggregates: [{ TOPLAM: gridDipIslem_sum }]}).tipDecimal_bedel(),
+			new GridKolon({ belirtec: 'bakiye', text: 'Bakiye', genislikCh: 17 }).tipDecimal_bedel(),
 			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 9, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal(),
 			new GridKolon({ belirtec: 'brm', text: 'Brm', genislikCh: 5, filterType: 'checkedlist' }),
 			( cariHareketTakipNo ? new GridKolon({ belirtec: 'takiptext', text: 'Takip No', filterType: 'checkedlist' }) : null )

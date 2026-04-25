@@ -33,6 +33,7 @@ class MustBilgi extends CObject {
 		let {kademeler} = this.class
 		let yaslandirmalar = this.yaslandirmalar ??= []
 		let kapanmayanHesaplar = this[MQKapanmayanHesaplar.dataKey] || []
+		let cariEkstreler = this[MQCariEkstre.dataKey] || []
 		kademeler.forEach((_, index) =>
 			yaslandirmalar[index] = new Yaslandirma({ index, gecmis: 0, gelecek: 0 }))
 		let {kod: mustKod} = this
@@ -59,9 +60,21 @@ class MustBilgi extends CObject {
 				yaslandirma[selector] = (yaslandirma[selector] || 0) + acikKisim
 			}
 		}
-		this.bakiye = topla(_ => _.bedel || 0, yaslandirmalar)
+		this.bakiye = roundToFra2(topla(_ => _.bedel || 0, yaslandirmalar))
 		for (let i = 1; i <= kademeler.length + 1; i++)
 			this[`kademe${i}Bedel`] = this.getKademeGecmisBedeli(i - 1)
+
+		if (cariEkstreler) {
+			let { bakiye } = this
+			let ekstreToplam = roundToFra2(topla(
+				r => r.bedel ?? (r.borcbedel - r.alacakbedel),
+				cariEkstreler
+			))
+			if (bakiye != ekstreToplam) {
+				this.dengesizmi = true
+				this.bakiye = ekstreToplam
+			}
+		}
 	}
 	static getGunIcinKademeIndex(gun) {
 		let {kademeler} = this

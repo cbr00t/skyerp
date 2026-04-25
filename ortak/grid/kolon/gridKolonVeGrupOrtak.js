@@ -1,6 +1,8 @@
 class GridKolonVeGrupOrtak extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static _anaTip2Sinif = []; static _templates = {};
-	static get defaultKodZorunlumu() { return false } static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar || [], 'gridPart'] }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static _anaTip2Sinif = []; static _templates = {};
+	static get defaultKodZorunlumu() { return false }
+	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar || [], 'builder', '_builder', 'gridPart'] }
 	get builder() { return this._builder || this.gridPart?.builder } get kodBelirtec() { return this.belirtec } get adiBelirtec() { return null }
 	get belirtec() { return getFuncValue.call(this, this._belirtec, { sender: this.sender, colDef: this }) } set belirtec(value) { this._belirtec = value }
 	get isReadOnly() { return !this.isEditable }

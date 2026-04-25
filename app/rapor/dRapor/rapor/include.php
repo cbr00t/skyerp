@@ -8,13 +8,15 @@
 <script src="<?=$_partRoot?>/hizmetMuhKontrol.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/uretimBase.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/uretim.js?<?=$appVersion?>"></script>
-<script src="<?=$_partRoot?>/operBase.js?<?=$appVersion?>"></script>
-<script src="<?=$_partRoot?>/oper.js?<?=$appVersion?>"></script>
+<!--<script src="<?=$_partRoot?>/operBase.js?<?=$appVersion?>"></script>
+<script src="<?=$_partRoot?>/oper.js?<?=$appVersion?>"></script>-->
 <script src="<?=$_partRoot?>/mesBase.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mes.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/pdksBase.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/pdks.js?<?=$appVersion?>"></script>
+<!--<script src="<?=$_partRoot?>/pratikSatis_eski.js?<?=$appVersion?>"></script>-->
 <script src="<?=$_partRoot?>/pratikSatis.js?<?=$appVersion?>"></script>
+<script src="<?=$_partRoot?>/pratikSatis_ek.js?<?=$appVersion?>"></script>
 
 <?php
 /*let text = 'cbr00t', tmp = {}, r = {}
