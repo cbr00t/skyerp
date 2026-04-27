@@ -310,54 +310,54 @@ class DRapor_PratikSatis_Eski extends DRaporMQ {
 						]
 					})
 					.setSource(async e => {
-					let uni = new MQUnionAll()
-					;{
-						let sent = new MQSent(), { where: wh, sahalar } = sent
-						this.baslikSentDuzele({ ...arguments[0], ...e, iptalAlma: true, sent })
-						sahalar.add(
-							`11 oncelik`,
-							`'IPT' tip`,
-							`'İptal Fiş' tipText`,
-							`'X' almaText`,
-							`COUNT(*) fisSayi`, `SUM(fis.fissonuc) bedel`
-						)
-						wh.add(`fis.biptalmi > 0`)
-						sent.groupByOlustur()
-						uni.add(sent)
-					}
-					;{
-						let sent = new MQSent(), { where: wh, sahalar } = sent
-						this.baslikSentDuzele({ ...arguments[0], ...e, sent, harTable: 'restorandetay' })
-						wh.add(new MQOrClause([
-							`har.biptalmi > 0`, `har.bikrammi > 0`]))
-						sahalar.add(
-							`(case when har.biptalmi > 0 then 20 else 22 end) oncelik`,
-							`(case when har.biptalmi > 0 then 'IHAR' when har.bikrammi > 0 then 'IKR' else '' end) tip`,
-							`(case when har.biptalmi > 0 then 'İPTAL Satırı' when har.bikrammi > 0 then 'İkram Satırı' else '??' end) tipText`,
-							`'X' almaText`, `COUNT(*) fisSayi`, `SUM(ROUND(har.miktar * har.kdvlifiyat, 2)) bedel`
-						)
-						sent.groupByOlustur()
-						uni.add(sent)
-					}
-					;{
-						let sent = new MQSent(), { where: wh, sahalar } = sent
-						this.baslikSentDuzele({ ...arguments[0], ...e, sent, harTable: 'restorandetay' })
-						wh.add(`har.biptalmi = 0`, `har.bikrammi = 0`)
-						wh.inDizi(['MS', 'DG'], 'fis.fisanatipi')          // 'YM' alınmaz
-						sahalar.add(
-							`(case fis.fisanatipi when 'MS' then 24 when 'DG' then 25 else 28 end) oncelik`,
-							`(case fis.fisanatipi when 'MS' then 'MUS' when 'DG' then 'DADR' else '' end) tip`,
-							`(case fis.fisanatipi when 'MS' then 'Müşterili' when 'DG' then 'Değişken Adres' else '??' end) tipText`,
-							`'X' almaText`, `COUNT(*) fisSayi`, `SUM(ROUND(har.miktar * har.kdvlifiyat, 2)) bedel`
-						)
-						sent.groupByOlustur()
-						uni.add(sent)
-					}
-					let stm = new MQStm({ sent: uni, orderBy: ['oncelik'] })
-					let recs = await this.getGridData({ ...arguments[0], ...e, query: stm })
-					recs = recs.filter(r => r.fisSayi)
-					return recs
-				})
+						let uni = new MQUnionAll()
+						;{
+							let sent = new MQSent(), { where: wh, sahalar } = sent
+							this.baslikSentDuzele({ ...arguments[0], ...e, iptalAlma: true, sent })
+							sahalar.add(
+								`11 oncelik`,
+								`'IPT' tip`,
+								`'İptal Fiş' tipText`,
+								`'X' almaText`,
+								`COUNT(*) fisSayi`, `SUM(fis.fissonuc) bedel`
+							)
+							wh.add(`fis.biptalmi > 0`)
+							sent.groupByOlustur()
+							uni.add(sent)
+						}
+						;{
+							let sent = new MQSent(), { where: wh, sahalar } = sent
+							this.baslikSentDuzele({ ...arguments[0], ...e, sent, harTable: 'restorandetay' })
+							wh.add(new MQOrClause([
+								`har.biptalmi > 0`, `har.bikrammi > 0`]))
+							sahalar.add(
+								`(case when har.biptalmi > 0 then 20 else 22 end) oncelik`,
+								`(case when har.biptalmi > 0 then 'IHAR' when har.bikrammi > 0 then 'IKR' else '' end) tip`,
+								`(case when har.biptalmi > 0 then 'İPTAL Satırı' when har.bikrammi > 0 then 'İkram Satırı' else '??' end) tipText`,
+								`'X' almaText`, `COUNT(*) fisSayi`, `SUM(ROUND(har.miktar * har.kdvlifiyat, 2)) bedel`
+							)
+							sent.groupByOlustur()
+							uni.add(sent)
+						}
+						;{
+							let sent = new MQSent(), { where: wh, sahalar } = sent
+							this.baslikSentDuzele({ ...arguments[0], ...e, sent, harTable: 'restorandetay' })
+							wh.add(`har.biptalmi = 0`, `har.bikrammi = 0`)
+							wh.inDizi(['MS', 'DG'], 'fis.fisanatipi')          // 'YM' alınmaz
+							sahalar.add(
+								`(case fis.fisanatipi when 'MS' then 24 when 'DG' then 25 else 28 end) oncelik`,
+								`(case fis.fisanatipi when 'MS' then 'MUS' when 'DG' then 'DADR' else '' end) tip`,
+								`(case fis.fisanatipi when 'MS' then 'Müşterili' when 'DG' then 'Değişken Adres' else '??' end) tipText`,
+								`'X' almaText`, `COUNT(*) fisSayi`, `SUM(ROUND(har.miktar * har.kdvlifiyat, 2)) bedel`
+							)
+							sent.groupByOlustur()
+							uni.add(sent)
+						}
+						let stm = new MQStm({ sent: uni, orderBy: ['oncelik'] })
+						let recs = await this.getGridData({ ...arguments[0], ...e, query: stm })
+						recs = recs.filter(r => r.fisSayi)
+						return recs
+					})
 			}
 			//altForm.addBaslik().setEtiket('sube 1')
 			//altForm.addBaslik().setEtiket('sube 2')
@@ -635,15 +635,6 @@ class DRapor_PratikSatis_Eski extends DRaporMQ {
 						...await this.getGridData({ ..._e, query: getSatisStm(false) }),
 						...await this.getGridData({ ..._e, query: getSatisStm(true) })
 					]
-					/*;{
-						let t = { _toplam: true, stokAdi: 'TOPLAM', hasilat: 0, miktar: 0 }
-						for (let rec of recs) {
-							t.hasilat += rec.hasilat
-							t.miktar += rec.miktar
-						}
-						t.hasilat = roundToBedelFra(t.hasilat)
-						recs.unshift(t)
-					}*/
 					return recs
 				})
 		}

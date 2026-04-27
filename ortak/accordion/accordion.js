@@ -187,7 +187,7 @@ class AccordionPart extends Part {
 					})*/
 				}
 				setTimeout(() => {
-					let safeZone = 20
+					let safeZone = 10
 					let {length: N} = layout.children('.accordion.item')
 					if (fullScreen && N)
 						N = 1
@@ -198,7 +198,7 @@ class AccordionPart extends Part {
 					let collapsedItemHeight = headerH + (itemPadY * 2) + (border * 2)
 					let contentHeight = parseInt(H - collapsedItemHeight * N - safeZone)
 					elmContent.height(contentHeight)
-					makeScrollable(elmContent)
+					//makeScrollable(elmContent)
 					elmContent.scrollTop(0)
 					/*elmContent.css(
 						'height',

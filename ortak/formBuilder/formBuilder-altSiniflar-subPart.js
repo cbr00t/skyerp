@@ -337,14 +337,15 @@ class FBuilder_Label extends FBuilder_LabelBase {
 }
 class FBuilder_Baslik extends FBuilder_LabelBase {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get inputTagName() { return 'h4' }
+	static get inputTagName() { return 'div' }
 	static get inputCSSClass() { return 'baslik' }
 
 	buildDevam(e) {
 		super.buildDevam(e);
 		let {inputTagName, inputCSSClass} = this.class;
-		let {cssClasses} = this;
-		cssClasses.push('cadetblue')
+		let {cssClasses} = this
+		cssClasses.push('cadetblue fs-130')
+		this.addStyle(`$elementCSS { margin-top: 10px; margin-bottom: 5px }`)
 	}
 }
 class FBuilder_GroupBox extends FBuilder_LabelBase {

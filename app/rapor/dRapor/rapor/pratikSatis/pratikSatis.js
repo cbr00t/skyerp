@@ -20,70 +20,6 @@ class DRapor_PratikSatis extends DRaporMQ {
 		super(e)
 		// mergeInto(this.class, this, 'Panel', 'PanelDetay', 'PanelGrid')
 	}
-	getPanels(e = {}) {
-		let { class: { Panel, PanelGrid } } = this
-		return {
-			ozet: new Panel()
-				.setTitle('Özet')
-				.setExpanded()
-				.add(...[
-					new PanelGrid()
-						.setId('ozet').setTitle('Özet')//.setHeight(240)
-						.setUserData({ keyFields: ['tipText'], noSort: true })
-						.setToplamBelirtec('tipText')
-						.widgetArgsDuzenleIslemi(({ args }) =>
-							extend(args, {
-								autoHeight: true, showStatusBar: false,
-								showAggregates: false, showGroupAggregates: false
-							})
-						)
-						.setTabloKolonlari([
-							new GridKolon({ belirtec: 'tipText', text: `<span class=darkviolet>ÖZET</span>`, genislikCh: 16 }).checkedList(),
-							new GridKolon({ belirtec: 'fisSayi', text: 'Fiş Sayı', genislikCh: 10 }).tipNumerik().sum().checkedList(),
-							new GridKolon({ belirtec: 'bedel', text: 'Hasılat', genislikCh: 18 }).tipDecimal_bedel().sum()
-						]),
-						//.setQuery(...)
-					new PanelGrid()
-						.setId('ozetEk').setTitle('Özet Ek')//.setHeight(200)
-						.setUserData({ keyFields: ['tipText'], noSort: true })
-						.setToplamBelirtec('tipText')
-						.widgetArgsDuzenleIslemi(({ args }) =>
-							extend(args, { showGroupsHeader: false, columnsHeight: 25 }))
-						.setTabloKolonlari([
-							new GridKolon({ belirtec: 'tipText', text: `<span class=violet>ÖZET-EK</span>`, genislikCh: 16 }).checkedList(),
-							new GridKolon({ belirtec: 'fisSayi', text: 'Fiş Sayı', genislikCh: 10 }).tipNumerik().sum().checkedList(),
-							new GridKolon({ belirtec: 'bedel', text: 'Hasılat', genislikCh: 18 }).tipDecimal_bedel().sum()
-						])
-						//.setQuery(...)
-				]),
-			tahsilat: new Panel()
-				.setTitle('Tahsilat')
-				.add(...[
-					new PanelGrid()
-						.setId('tahsilat').setTitle('Tahsilat')
-						.setUserData({ sortFields: ['oncelik', 'aciklama'] })
-						.setToplamBelirtec('aciklama')
-						.widgetArgsDuzenleIslemi(({ args }) =>
-							extend(args, { showStatusBar: false, showAggregates: false, showGroupAggregates: false }))
-						.setTabloKolonlari([
-							new GridKolon({ belirtec: 'aciklama', text: `<span class=limegreen>TAHSİLAT</span>`, genislikCh: 25 }).checkedList(),
-							new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 18 }).tipDecimal_bedel().sum()
-						])
-						.setQuery(_e => {
-							let sent = new MQSent(), { where: wh, sahalar } = sent
-							this.baslikSentDuzele({ ...arguments[0], ...e, sent, harTable: 'restorantahsil' })
-							sent.har2TahSekliBagla()
-							sahalar.add(
-								'har.tahseklino kod', 'tsek.aciklama aciklama',
-								`(case tsek.tahsiltipi when 'NK' then 1 when 'PS' then 2 else 9 end) oncelik`,
-								'SUM(har.bedel) bedel'
-							)
-							sent.groupByOlustur()
-							return sent
-						})
-				])
-		}
-	}
 
 	async uiGirisOncesiIslemler(e) {
 		let { sender: tanimPart } = e, { sinifAdi: title } = this.class
@@ -174,6 +110,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 		let { otoTazele_minDk } = this
 		let { sender: tanimPart, islem, inst, rootBuilder: rfb, tanimFormBuilder: tanimForm } = e
 		extend(e, { tanimPart })
+
 		rfb.addNumberInput('_otoTazeleDk', null, null, 'Tazele (dk)')
 			.etiketGosterim_yok()
 			.setAltInst(tanimPart)
@@ -213,32 +150,49 @@ class DRapor_PratikSatis extends DRaporMQ {
 		
 		tanimForm.addAccordion('acc')
 			.fullScreen()
-			.addStyle_fullWH()
+			.addStyle_fullWH(null, 'calc(var(--full) - 45px)')
 			.addStyle(...[`
 				$elementCSS .accordion > .header > .collapsed-content > div {
-					margin-top: 14px;
+					margin-top: 10px;
 					line-height: 16px !important
 				}
 				@media (max-width: 600px) {
 					$elementCSS .accordion > .header > .collapsed-content > div {
-						margin-top: 18px;
+						margin-top: 16px;
 						line-height: 18px !important
 					}
+				}
+				$elementCSS accordion.item {
 				}
 				$elementCSS .accordion.item.expanded.has-error > .header {
 					background: linear-gradient(35deg, #fc8e8e 50%, #cececeee 100%) !important;
 					animation: anim-haserror 900ms ease-in-out infinite !important
 				}
-				$elementCSS .accordion.item > .content { overflow: hidden !important }
+				$elementCSS .accordion.item > .content {
+					overflow: hidden !important;
+					animation: anim-acc-content 500ms ease-out 1 !important
+				}
 				$elementCSS .accordion.item.has-error > .content > div {
 					box-shadow: 0 0px 15px 2px firebrick !important
+				}
+				$elementCSS .accordion.item > .content .formBuilder-element.empty {
+					animation: anim-defer-warn 1000ms ease-out 1 !important
 				}
 				$elementCSS .secimBilgi { margin-right: 250px }
 				$elementCSS .secimBilgi > * { background-color: whitesmoke !important }
 				@keyframes anim-haserror {
 					  0%, 100%  { filter: brightness(1) }
 					 50%        { filter: brightness(1.2) saturate(1.1) }
-				 }`
+				}
+				@keyframes anim-acc-content {
+					  0%       { opacity: 0.01 }
+					 50%       { opacity: 0.05 }
+					100%       { opacity: 1.00 }
+				}
+				@keyframes anim-defer-warn {
+					  0%, 80%  { opacity: .01 }
+					100%       { }
+				}`
 			])
 			.onAfterRun(({ builder: { part }}) =>
 				tanimPart.acc = e.acc = part)

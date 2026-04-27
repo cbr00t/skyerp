@@ -14,9 +14,7 @@
 <script src="<?=$_partRoot?>/mes.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/pdksBase.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/pdks.js?<?=$appVersion?>"></script>
-<!--<script src="<?=$_partRoot?>/pratikSatis_eski.js?<?=$appVersion?>"></script>-->
-<script src="<?=$_partRoot?>/pratikSatis.js?<?=$appVersion?>"></script>
-<script src="<?=$_partRoot?>/pratikSatis_ek.js?<?=$appVersion?>"></script>
+<?php require_once("$webRoot_rapor/dRapor/rapor/pratikSatis/include.php") ?>
 
 <?php
 /*let text = 'cbr00t', tmp = {}, r = {}

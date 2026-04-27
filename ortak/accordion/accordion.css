@@ -4,7 +4,7 @@
 	--acc-header-collapsed-lineHeight: 16px;
 	--border-size: 2px;
 	width: calc(var(--full) - var(--item-pad-x) * 2);
-	height: calc(var(--full) - var(--item-pad-y) * 2 + 5px)
+	height: calc(var(--full) - var(--item-pad-y) * 2 + 50px)
 }
 .accordion.part .accordion.item {
 	position: relative;
@@ -25,8 +25,8 @@
 .accordion.part .accordion.item:not(.expanded) > .content { display: none }
 .accordion.part .accordion.item > .header {
 	font-size: 110%; user-select: none; cursor: pointer;
-	height: var(--acc-header-height); padding: 0 8px;
-	padding-right: 5px;
+	height: var(--acc-header-height);
+	padding: 0 8px; padding-right: 5px;
 	border: 1px solid #ccc; border-bottom: 1px solid rgba(0, 0, 0, 0.15);
 	background: #f7f7f7; align-items: center;
 	overflow-y: hidden
@@ -78,11 +78,13 @@
 	white-space: nowrap
 }
 .accordion.part .accordion > .content {
-	width: var(--full);
+	width: calc(var(--full) - 4px);
 	height: calc(var(--full) - (var(--acc-header-height) + 2px));
-	padding: 3px 2px; box-sizing: content-box;
+	padding: 3px 2px; box-sizing: border-box;
 	border-top: 2px solid rgba(0 200, 255, .8);
-	overflow-x: hidden !important; overflow-y: auto !important;
+	overflow-x: hidden !important;
+	overflow-y: auto !important;
+	box-sizing: content-box;
 	animation: 100ms cubic-bezier(0.45, 0.05, 0.55, 0.95) 0ms 1 normal nav-item-open
 }
 .accordion.part .accordion > .content > * {

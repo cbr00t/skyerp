@@ -142,9 +142,9 @@ class SecimlerPart extends Part {
 		let {args} = e; $.extend(args, { ekButonlarIlk: ekButonlar, ekSagButonIdSet: ['temizle'] })
 	}
 	initFiltreForm(e) {
-		e = e || {}; let {header} = this;
-		let filtreFormPart = this.filtreFormPart = new FiltreFormPart({ layout: header.find(`#filtreForm`), degisince: e => this.filtreDegisti(e) });
-		filtreFormPart.run()
+		//e = e || {}; let {header} = this;
+		//let filtreFormPart = this.filtreFormPart = new FiltreFormPart({ layout: header.find(`#filtreForm`), degisince: e => this.filtreDegisti(e) });
+		//filtreFormPart.run()
 	}
 	initTabPages(e) {
 		let tabPanel = this.tabPanel = this.layout.find('#tabPanel');

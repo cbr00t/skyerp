@@ -176,7 +176,8 @@ class GridPart extends Part {
 					updaterow: (rowIndex, rec, commit) => { rec._degisti = true; commit(true) },
 					deleterow: (rowIndexes, commit) => { commit(true) },
 					loadServerData: async (wsArgs, source, callback) => {
-						let {gridWidget, grid} = this; if (!gridWidget && grid?.length) { gridWidget = this.gridWidget = grid.jqxGrid('getInstance') }
+						let {gridWidget, grid} = this
+						if (!gridWidget && grid?.length) { gridWidget = this.gridWidget = grid.jqxGrid('getInstance') }
 						let {_tazele_lastAction: action} = this
 						let result = await this.loadServerData({ ...e, wsArgs, source, callback, action })
 						if (result) {
@@ -398,8 +399,12 @@ class GridPart extends Part {
 			if ($.isArray(recs)) {
 				(async () => {
 					for (let i = 0; i < recs.length; i++) {
-						let rec = recs[i]; if (rec == null) continue; rec._rowNumber = (i + 1);
-						if (this.isDestroyed) { break }
+						let rec = recs[i];
+						if (rec == null)
+							continue
+						rec._rowNumber = (i + 1)
+						if (this.isDestroyed)
+							break
 					}
 				})();
 				let _recs = await this.loadServerData_recsDuzenle_ilk(e); recs = e.recs; if (_recs != null) { recs = _recs }

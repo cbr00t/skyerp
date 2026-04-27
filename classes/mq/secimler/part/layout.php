@@ -1,7 +1,7 @@
 <template id="secimler" class="part">
 	<div class="part">
 		<div class="header">
-			<div id="filtreForm"><?php require("$webRoot/ortak/filtreForm/ic-layout.php") ?></div>
+			<!--<div id="filtreForm"><?php require("$webRoot/ortak/filtreForm/ic-layout.php") ?></div>-->
 			<div class="islemTuslari"></div>
 		</div>
 		<div id="tabPanel" class="dock-bottom">
