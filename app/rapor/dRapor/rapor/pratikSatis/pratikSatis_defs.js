@@ -216,7 +216,7 @@ extend(DRapor_PratikSatis.prototype, {
 						.setTabloKolonlari(_e => [
 							new GridKolon({ belirtec: 'stokAdi', text: 'Stok', genislikCh: 23 }).checkedList(),
 							new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 9 }).tipDecimal().checkedList().sum(),
-							new GridKolon({ belirtec: 'brm', text: 'Brm', genislikCh: 4 }).checkedList(),
+							new GridKolon({ belirtec: 'brm', text: 'Brm', genislikCh: 5 }).checkedList(),
 							new GridKolon({ belirtec: 'hasilat', text: 'Hasılat (Kdvli)', genislikCh: 13 }).tipDecimal_bedel().sum(),
 							new GridKolon({ belirtec: 'grupAdi', text: 'Grup', genislikCh: 20 }).checkedList()
 						])
