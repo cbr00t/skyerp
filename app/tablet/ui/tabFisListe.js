@@ -143,7 +143,7 @@ class TabFisListe extends TabFisListeOrtak {
 			let { aciklama: unvan, yore, iladi: ilAdi } = mustRec
 			let { sahismi, vnumara: vkn, tckimlikno: tckn } = mustRec
 			let vkno = sahismi ? tckn : vkn
-			let { [mustKod]: { bakiye } } = await MQTabMusDurum.getGloKod2Rec() ?? {}
+			let { [mustKod]: { bakiye } = {} } = await MQTabMusDurum.getGloKod2Rec() ?? {}
 			let bakiyeRenk = bakiye ? ( bakiye ? 'orangered' : 'forestgreen' ) : '_'
 			unvan ??= ''
 			

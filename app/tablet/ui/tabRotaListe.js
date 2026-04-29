@@ -242,11 +242,13 @@ class TabRotaListe extends MQMasterOrtak {
 	static async getUstBilgiHTML(e = {}) {
 		let { gridPart = e.sender } = e
 		let { mustKod } = gridPart
-		let { params: { yerel, tablet }, sutAlimmi } = app
-		let { posta } = yerel
+		let { params: { yerel, tablet } } = app
+		let { sutToplama } = tablet
+		sutToplama ||= app.sutAlimmi
 
 		let result = []
-		;{
+		if (sutToplama) {
+			let { posta } = yerel
 			let { aciklama } = new TabPosta(posta)
 			if (aciklama) {
 				result.push(
@@ -264,6 +266,10 @@ class TabRotaListe extends MQMasterOrtak {
 	static islemTuslariDuzenle_listeEkrani(e) {
 		super.islemTuslariDuzenle_listeEkrani(e)
 		let { parentPart: gridPart, part, liste } = e
+		let { params: { tablet } } = app
+		let { sutToplama } = tablet
+		sutToplama ||= app.sutAlimmi
+		
 		let solItems = [ ]
 		let sagItems = [
 			{
@@ -292,7 +298,7 @@ class TabRotaListe extends MQMasterOrtak {
 				}
 				catch (ex) { cerr(ex); throw ex }
 			}}*/
-		]
+		].filter(Boolean)
 		let set = part.ekSagButonIdSet ??= {}
 		if (solItems.length)
 			liste.push(...solItems)
@@ -307,20 +313,39 @@ class TabRotaListe extends MQMasterOrtak {
 		let { args } = e.event ?? {}
 		let { row: rec } = args ?? {}
 		rec = rec?.bounddata ?? rec
-		this.yeniIstendi({ ...e, rec })
+		let { params: { tablet } } = app
+		let { sutToplama } = tablet
+		sutToplama ||= app.sutAlimmi
+		
+		this[sutToplama ? 'yeniIstendi' : 'fisListesiIstendi']({ ...e, rec })
 	}
 	static async yeniIstendi(e = {}) {
 		let { gridPart = e.parentPart ?? e.sender } = e
 		let { rec = gridPart?.selectedRec } = e
-		let { mustKod, rotaID, posta } = rec ?? {}
+		let { mustKod } = rec ?? {}
 		if (!mustKod)
 			return
 
-		let { fisTipi } = TabSutAlimFis
-		let args = { mustKod, rotaID, posta }
+		let { params: { tablet } } = app
+		let { sutToplama } = tablet
+		sutToplama ||= app.sutAlimmi
+
+		let fisTipi
+		let args = { mustKod }
+		if (sutToplama) {
+			let { rotaID, posta } = rec ?? {}
+			if (rotaID) {
+				fisTipi = TabSutAlimFis.fisTipi
+				extend(args, { rotaID, posta })
+			}
+		}
+
 		let _e = { ...e, sender: gridPart, islem: 'yeni', fisTipi, args }
 		let inst = await TabFisListe.yeniInstOlustur(_e)
-		let { part } = await inst.tanimla()
+		if (!inst)
+			return
+		
+		let { part } = await inst.tanimla() ?? {}
 		if (gridPart && part)
 			part.kapaninca(() => gridPart.tazele())
 	}

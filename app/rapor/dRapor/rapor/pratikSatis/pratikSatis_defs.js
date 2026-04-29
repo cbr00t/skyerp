@@ -18,9 +18,9 @@ extend(DRapor_PratikSatis.prototype, {
 							})
 						)
 						.setTabloKolonlari(_e => [
-							new GridKolon({ belirtec: 'tipText', text: `<span class=darkviolet>ÖZET</span>`, genislikCh: 16 }).checkedList(),
-							new GridKolon({ belirtec: 'fisSayi', text: 'Fiş Sayı', genislikCh: 10 }).tipNumerik().sum().checkedList(),
-							new GridKolon({ belirtec: 'bedel', text: 'Hasılat', genislikCh: 18 }).tipDecimal_bedel().sum()
+							new GridKolon({ belirtec: 'tipText', text: `<span class=darkviolet>ÖZET</span>`, genislikCh: 14 }).checkedList(),
+							new GridKolon({ belirtec: 'fisSayi', text: 'Fiş Sayı', genislikCh: 8 }).tipNumerik().sum().checkedList(),
+							new GridKolon({ belirtec: 'bedel', text: 'Hasılat', genislikCh: 17 }).tipDecimal_bedel().sum()
 						])
 						.setQuery(_e => {
 							let uni = new MQUnionAll()
@@ -65,9 +65,9 @@ extend(DRapor_PratikSatis.prototype, {
 						.widgetArgsDuzenleIslemi(({ args }) =>
 							extend(args, { showGroupsHeader: false, columnsHeight: 25 }))
 						.setTabloKolonlari(_e => [
-							new GridKolon({ belirtec: 'tipText', text: `<span class=violet>ÖZET-EK</span>`, genislikCh: 16 }).checkedList(),
-							new GridKolon({ belirtec: 'fisSayi', text: 'Fiş Sayı', genislikCh: 10 }).tipNumerik().sum().checkedList(),
-							new GridKolon({ belirtec: 'bedel', text: 'Hasılat', genislikCh: 18 }).tipDecimal_bedel().sum()
+							new GridKolon({ belirtec: 'tipText', text: `<span class=violet>ÖZET-EK</span>`, genislikCh: 14 }).checkedList(),
+							new GridKolon({ belirtec: 'fisSayi', text: 'Fiş Sayı', genislikCh: 8 }).tipNumerik().sum().checkedList(),
+							new GridKolon({ belirtec: 'bedel', text: 'Hasılat', genislikCh: 17 }).tipDecimal_bedel().sum()
 						])
 						.setQuery(_e => {
 							let uni = new MQUnionAll()
@@ -127,8 +127,8 @@ extend(DRapor_PratikSatis.prototype, {
 						.widgetArgsDuzenleIslemi(({ args }) =>
 							extend(args, { showStatusBar: false, showAggregates: false, showGroupAggregates: false }))
 						.setTabloKolonlari(_e => [
-							new GridKolon({ belirtec: 'aciklama', text: `<span class=limegreen>TAHSİLAT</span>`, genislikCh: 25 }).checkedList(),
-							new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 18 }).tipDecimal_bedel().sum()
+							new GridKolon({ belirtec: 'aciklama', text: `<span class=limegreen>TAHSİLAT</span>`, genislikCh: 22 }).checkedList(),
+							new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 17 }).tipDecimal_bedel().sum()
 						])
 						.setQuery(_e => {
 							let sent = new MQSent(), { where: wh, sahalar } = sent
@@ -153,9 +153,9 @@ extend(DRapor_PratikSatis.prototype, {
 						.widgetArgsDuzenleIslemi(({ args }) =>
 							extend(args, { showStatusBar: false, showAggregates: false, showGroupAggregates: false }))
 						.setTabloKolonlari(_e => [
-							new GridKolon({ belirtec: 'text', text: `<span class=orangered>KDV</span>`, genislikCh: 10 }).alignRight().checkedList(),
+							new GridKolon({ belirtec: 'text', text: `<span class=orangered>KDV</span>`, genislikCh: 9 }).alignRight().checkedList(),
 							new GridKolon({ belirtec: 'matrah', text: 'Matrah', genislikCh: 16 }).tipDecimal_bedel().sum(),
-							new GridKolon({ belirtec: 'kdv', text: 'Kdv', genislikCh: 16 }).tipDecimal_bedel().sum()
+							new GridKolon({ belirtec: 'kdv', text: 'Kdv', genislikCh: 15 }).tipDecimal_bedel().sum()
 						])
 						.setQuery(_e => {
 							let sent = new MQSent(), { where: wh, sahalar } = sent
@@ -188,8 +188,8 @@ extend(DRapor_PratikSatis.prototype, {
 						.widgetArgsDuzenleIslemi(({ args }) =>
 							extend(args, { showStatusBar: false, showAggregates: false, showGroupAggregates: false }))
 						.setTabloKolonlari(_e => [
-							new GridKolon({ belirtec: 'aciklama', text: `<span class=orange>KASİYER</span>`, genislikCh: 25 }).checkedList(),
-							new GridKolon({ belirtec: 'bedel', text: 'Hasılat', genislikCh: 18 }).tipDecimal_bedel().sum()
+							new GridKolon({ belirtec: 'aciklama', text: `<span class=orange>KASİYER</span>`, genislikCh: 23 }).checkedList(),
+							new GridKolon({ belirtec: 'bedel', text: 'Hasılat', genislikCh: 17 }).tipDecimal_bedel().sum()
 						])
 						.setQuery(_e => {
 							let sent = new MQSent(), { where: wh, sahalar } = sent
@@ -215,7 +215,7 @@ extend(DRapor_PratikSatis.prototype, {
 							extend(args, { showGroupsHeader: true, showGroupAggregates: true, rowsHeight: 40 }))
 						.setTabloKolonlari(_e => [
 							new GridKolon({ belirtec: 'stokAdi', text: 'Stok', genislikCh: 23 }).checkedList(),
-							new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 9 }).tipDecimal().checkedList().sum(),
+							new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 10 }).tipDecimal().checkedList().sum(),
 							new GridKolon({ belirtec: 'brm', text: 'Brm', genislikCh: 5 }).checkedList(),
 							new GridKolon({ belirtec: 'hasilat', text: 'Hasılat (Kdvli)', genislikCh: 13 }).tipDecimal_bedel().sum(),
 							new GridKolon({ belirtec: 'grupAdi', text: 'Grup', genislikCh: 20 }).checkedList()

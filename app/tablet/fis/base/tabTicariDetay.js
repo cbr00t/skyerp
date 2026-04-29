@@ -59,9 +59,11 @@ class TabTicariDetay extends TabTSDetay {
 	}
 	
 	getHTML(e) {
-		let _ = super.super_getHTML(e) ?? '', {dev} = config
-		let {bedelKullanilirmi} = TabTicariFis
-		let {stokAdi, stokKod, barkod, kdvOrani, miktar, brm, fiyat} = this
+		let _ = super.super_getHTML(e) ?? ''
+		let { dev } = config
+		let { bedelKullanilirmi } = TabTicariFis
+		let { stokAdi, stokKod, barkod, kdvOrani, miktar, brm, fiyat } = this
+
 		let iskHTMLListe = [], kosulKodHTMLListe = []
 		for (let {ioAttr: k} of TicIskYapi) {
 			let v = this[k]
@@ -92,6 +94,12 @@ class TabTicariDetay extends TabTSDetay {
 					`<div class="stokKod orangered">${stokKod}</div>`,
 					(stokKod == barkod ? null : `<div class="barkod bold float-right">${barkod}</div>`),
 					(!kdvOrani ? null : `<div class=kdvOrani><span>%</span><span class=purple>${kdvOrani}</span></div>`),
+					this.getHTML_hmr(e),
+					...(!empty(kosulKodHTMLListe) ? [
+						`<div style="margin-top: 13px" class="kosulBilgi ek-bilgi" style="gap: 0 13px">`,
+							...kosulKodHTMLListe,
+						`</div>`
+					] : []),
 				`</div>`,
 				`<div class="miktarFiyat ek-bilgi float-right" style="gap: 0 10px">`,
 					`<button class="miktar bold forestgreen" onclick="app.activeWndPart.inst.satirMiktarEditIstendi({ target: this })">${miktar} ${brm}</button>`,
@@ -105,11 +113,6 @@ class TabTicariDetay extends TabTSDetay {
 					] : []),
 					...iskHTMLListe,
 				`</div>`,
-				...(!empty(kosulKodHTMLListe) ? [
-					`<div style="margin-top: 13px" class="kosulBilgi ek-bilgi" style="gap: 0 13px">`,
-						...kosulKodHTMLListe,
-					`</div>`
-				] : []),
 			`</div>`
 		].filter(Boolean).join(CrLf)
 	}

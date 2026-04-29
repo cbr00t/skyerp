@@ -24,18 +24,19 @@ class TabDetay extends MQDetay {
 		let {class: { io2RowAttr }} = this
 		for (let k of keys(io2RowAttr)) {
 			let v = e[k]
-			if (v != null)
-				this[k] = v
+			//if (v !== undefined)
+			this[k] = v ?? null
 		}
 	}
 	static io2RowAttrOlustur({ result }) {
-		$.extend(result, { aciklama: 'ekaciklama' })
+		extend(result, { aciklama: 'ekaciklama' })
 	}
 	offlineBuildSQLiteQuery({ result: queries }) {
-		let {main: db} = app.dbMgr, {table} = this.class
+		let { main: db } = app.dbMgr
+		let { table } = this.class
 		if (db.hasTable(table)) {
 			let cd = db.getColumns(table)
-			for (let {rowAttr} of TicIskYapi.getIskIter()) {
+			for (let { rowAttr } of TicIskYapi.getIskIter()) {
 				if (!cd[rowAttr])
 					queries.push(`ALTER TABLE tabhar ADD ${rowAttr} REAL NOT NULL DEFAULT 0;`)
 			}

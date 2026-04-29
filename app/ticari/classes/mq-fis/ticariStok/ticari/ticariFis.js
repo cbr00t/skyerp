@@ -91,6 +91,12 @@ class TicariFis extends TSOrtakFis {
 			new GridKolon({ belirtec: 'xadresadi', text: 'Sevk Adres Adı', genislikCh: 35, sql: 'sadr.aciklama' })
 		)
 	}
+	static orjBaslikListesiDuzenle_son({ liste }) {
+		super.orjBaslikListesiDuzenle_son(...arguments)
+		liste.push(
+			new GridKolon({ belirtec: 'net', text: 'Belge Sonuç', genislikCh: 17 }).tipDecimal_bedel().sum()
+		)
+	}
 	static standartGorunumListesiDuzenle({ liste }) {
 		super.standartGorunumListesiDuzenle(...arguments)
 		liste.push('must', 'mustunvan')

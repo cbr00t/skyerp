@@ -201,7 +201,8 @@ class TSSHDDetay extends TSDetay {
 			let {belirtec, rowAttrPrefix, oranMax} = e, oranlar = iskYapi[belirtec];
 			for (let i = 0; i < oranMax; i++) { let oran = oranlar[i] || 0, rowAttr = `${rowAttrPrefix}oran${i + 1}`; hv[rowAttr] = oran }
 		};
-		for (let item of TicIskYapi.getIskYapiIter()) { iskHVEkle({ belirtec: item.key, rowAttrPrefix: item.belirtec, oranMax: item.maxSayi }) }
+		for (let item of TicIskYapi.getIskYapiIter())
+			iskHVEkle({ belirtec: item.key, rowAttrPrefix: item.belirtec, oranMax: item.maxSayi })
 	}
 	ticariSetValues(e) {
 		let {fis, rec} = e;

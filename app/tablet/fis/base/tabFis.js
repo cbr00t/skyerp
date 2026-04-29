@@ -200,10 +200,15 @@ class TabFis extends MQDetayliGUIDOrtak {
 		let e = arguments[0]
 		if (!offlineRequest) {
 			let { sutAlimmi, params: { tablet } } = app
-			let cacheClasses = [MQTabCari]
-			if ( sutAlimmi || tablet.sutToplama )
+			let cacheClasses = [
+				MQTabCari, MQTabStok,
+				...HMRBilgi.hmrIter()
+					.map(_ => _.mfSinif)
+			].filter(Boolean)
+			if (sutAlimmi || tablet.sutToplama)
 				cacheClasses.push(MQTabRota, MQTabMustahsil)
-			await Promise.allSettled(cacheClasses.map(_ => _.getGloKod2Rec()))
+			if(!empty(cacheClasses))
+				await promiseAllSet(cacheClasses.map(_ => _.getGloKod2Rec()))
 		}
 		let recs = await super.loadServerDataDogrudan(...arguments)
 		if (!offlineRequest) {
@@ -345,8 +350,8 @@ class TabFis extends MQDetayliGUIDOrtak {
 		return this
 	}
 	async rotaBelirle({ sender: tanimPart }) {
-		let { sutAlimmi, params: { tablet } } = app
 		let { mustKod, _prev: { mustKod: eskiMustKod } = {} } = this
+		let { sutAlimmi, params: { tablet } } = app
 		sutAlimmi ||= tablet.sutToplama
 		if (sutAlimmi) {
 			this.rotaID = mustKod
@@ -1071,9 +1076,9 @@ class TabFis extends MQDetayliGUIDOrtak {
 			acc.expand('detay')
 
 		acc.onExpand(_e => setTimeout(e =>
-			this.rootFormBuilderDuzenle_tablet_acc_onExpand(e), 1, { ...e, ..._e }))
+			this.rootFormBuilderDuzenle_tablet_acc_onExpand(e), 5, { ...e, ..._e }))
 		acc.onCollapse(_e => setTimeout(e =>
-			this.rootFormBuilderDuzenle_tablet_acc_onCollapse(e), 1, { ...e, ..._e }))
+			this.rootFormBuilderDuzenle_tablet_acc_onCollapse(e), 5, { ...e, ..._e }))
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_baslikOncesi({ sender: tanimPart, inst: fis, rfb }) { }
 	static async rootFormBuilderDuzenle_tablet_acc_baslikCollapsed({ sender: tanimPart, inst: fis, rfb }) {

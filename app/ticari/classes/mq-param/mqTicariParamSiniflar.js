@@ -322,13 +322,13 @@ class MQFiyatVeIskontoParam extends MQTicariParamBase {
 	static get sinifAdi() { return 'Fiyat ve İskonto Parametreleri' } static get paramKod() { return 'ISK' }
 	constructor(e) { e = e || {}; super(e); for (let key of ['iskSayi', 'iskOranMax']) this[key] = e[key] || {} }
 	static paramYapiDuzenle(e) {
-		super.paramYapiDuzenle(e); let {paramci} = e;
+		super.paramYapiDuzenle(e); let {paramci} = e
 		let form = paramci.addFormWithParent(); form.addBool('fiyatKDVlidir', 'KDVli Fiyat').setRowAttr('kdvliFiyat');
 		form.addNumber('fiyatSayi', 'Fiyat Sayısı'); form.addNumber('iskFra', 'İskonto Ondalık');
 		form = paramci.addKullanim().addGrup('Kullanım').addFormWithParent(); form.addBool('kademeliIskonto', 'Kademeli İskonto')
 	}
-	paramSetValues(e) {
-		e = e || {}; super.paramSetValues(e); let {rec} = e;
+	paramSetValues({ rec } = {}) {
+		super.paramSetValues(...arguments)
 		$.extend(this, {
 			iskSayi: { sabit: rec.sabitIskSayi || 0, kampanya: rec.kampanyaIskSayi || 0, kademeli: rec.kademeliIskSayi || 0 },
 			iskOranMax: { sabit: rec.sabitIskOranMax || 0, kampanya: rec.kampanyaIskOranMax || 0, kademeli: rec.kademeliIskOranMax || 0 }
@@ -337,8 +337,15 @@ class MQFiyatVeIskontoParam extends MQTicariParamBase {
 			let prefix = typeof e == 'object' ? e.prefix : e, key = `${prefix}EtiketListe`, result = {}, liste = rec[key];
 			if (liste) { for (let i = 0; i < liste.length; i++) { result[i + 1] = liste[i] } } return result
 		}
-		let iskEtiketDict = this.iskEtiketDict = { sabit: iskEtiketci('sabit'), kampanya: iskEtiketci('kampanya'), kademeli: iskEtiketci('kademeli') };
-		if (config.dev) { let {iskSayi} = this; if (!iskSayi.sabit) { iskSayi.sabit = 3 } }
+		let iskEtiketDict = this.iskEtiketDict = {
+			sabit: iskEtiketci('sabit'),
+			kampanya: iskEtiketci('kampanya'),
+			kademeli: iskEtiketci('kademeli')
+		}
+		/*if (config.dev) {
+			let { iskSayi } = this
+			iskSayi.sabit ||= 3
+		}*/
 	}
 }
 class MQAlimSatisParamOrtak extends MQTicariParamBase {

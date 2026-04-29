@@ -79,7 +79,7 @@ class MQKontorHareket extends MQSayacli {
 		}*/
 		if ((login.adminmi || login.sefmi) && this.faturalastirmaYapilirmi) {
 			form_ek.addButton('faturalastir', 'FAT').addStyle_wh(90)
-				.addStyle(`$elementCSS { left: 50px !important }`)
+				.addStyle(`$elementCSS { position: relative !important; left: 100px !important }`)
 				.onClick(async _e => {
 					let {selectedRecs: recs} = gridPart;
 					try { await this.kontorSinif.kontor_topluFaturalastirIstendi({ ..._e, ...e, recs }) }

@@ -35,7 +35,7 @@
 					.setPart(tanimPart)
 					.setLayout(layout)
 					.addStyle(...[
-						`$elementCSS > .formBuilder-element { overflow-y: auto !important }
+						`$elementCSS > .formBuilder-element:not(.full) { overflow-y: auto !important }
 						 $elementCSS .formBuilder-element.grid-container {}`
 					])
 			}
@@ -80,7 +80,7 @@
 			let form = e.form = rfb.addFormWithParent().altAlta()
 				.addStyle(
 					`$elementCSS { overflow: hidden !important }
-					 $elementCSS > div:last-child { margin-bottom: 300px !important }
+					 $elementCSS:not(.full) > div:last-child { margin-bottom: 300px !important }
 					 $elementCSS .formBuilder-element.baslik {
 						 box-shadow: 0 0 3px 0 #ccc;
 						 width: calc(var(--full) - 20px);
@@ -126,7 +126,10 @@
 				.setEtiket(`<b class="royalblue">TOPLAM</b>`)
 			for (let item of this.values()) {
 				// item.subesizmi = subesizmi
-				await item.run({ ...e, form: altForm })
+				await item.run({
+					...e,
+					parentForm: form, form: altForm
+				})
 			}
 
 			if (praUzakSubeVerisi) {
@@ -141,7 +144,11 @@
 						item.noTitle = noTitle
 						item.sube2Recs ??= {}
 						if (!subesizmi)
-							await item.initContent_subeYapilar({ ...e, form: altForm, noTitle, subeKod, def })
+							await item.initContent_subeYapilar({
+								...e,
+								parentForm: form, form: altForm,
+								noTitle, subeKod, def
+							})
 						noTitle = true
 					}
 				}
@@ -292,6 +299,7 @@
 			]
 		}
 		static get timeout() { return DRapor_PratikSatis.timeout }
+		static get defGridWidth() { return 430 }
 		get subemi() { return this.subeKod != null }
 
 		constructor(e = {}) {
@@ -312,7 +320,8 @@
 			let { id, userData, widgetArgsDuzenle, subemi, subeKod } = this
 			let { toplamBelirtec, width, height, noTitle } = this
 			let { cssDuzenle, tabloKolonlari, source, query, recsDuzenle, veriYuklenince } = this
-			let { tanimPart = e.sender, rfb, form, panelIciTekrarmi } = e
+			let { defGridWidth } = this.class
+			let { tanimPart = e.sender, rfb, parentForm, form, panelIciTekrarmi } = e
 			let gridId = [id, subeKod].filter(Boolean).join('_')
 
 			let cellClassName = (...rest) => {
@@ -321,25 +330,25 @@
 				return result
 			}
 
-			//form.addStyle(`$elementCSS { margin-bottom: 40px !important }`)
+			if (height == 'full')
+				parentForm.addCSS('full')
+			
+			// width ||= 'calc(var(--full) - 30px)'
+			// height = height == 'full' ? undefined : height ?? undefined
+			width = width == 'full' ? 'var(--full)' : width || min(defGridWidth, $(window).width() - 50)
+			height = height == 'full' ? 'calc(var(--full) - 60px)' : height ?? null
 			let parent = form.addFormWithParent()
+				.addStyle_wh(width, height)
 			parent.addStyle(`$elementCSS { border-top: 1px solid #ccc }`)
 			if (!(noTitle || panelIciTekrarmi)) {
 				parent.addForm('empty')
 					.addStyle(`$elementCSS { border-top: 0px solid firebrick; margin: 5px 0 30px 0 !important; padding: 3px 50px !important }`)
-					.addStyle_fullWH(null, 5)
+					.addStyle_wh('auto', 5)
 					.addCSS('jqx-hidden')
 					.setLayout(() => $(`<div class="empty fs-100 orangered">Bu şube için veri alınamadı</div>`))
 			}
-
-			// width ||= 'calc(var(--full) - 30px)'
-			width = width == 'full' ? undefined : width ||
-				min(445, $(window).width() - 50)
-			height = height == 'full' ? undefined : height ?? null
-			// height = height == 'full' ? undefined : height ?? undefined
-
 			let fbd_grid = this.builder = parent.addGridliGosterici(gridId)
-				.addStyle_fullWH(width, height)
+				.addStyle_fullWH()
 				.addStyle(`$elementCSS { padding-left: 10px }`)
 				.noAnimate().setUserData(userData)
 				.rowNumberOlmasin().notAdaptive()
@@ -491,7 +500,7 @@
 				}
 				subeItem[k] = v
 			})
-			await subeItem.run({ ...e, form: altForm, panelIciTekrarmi })
+			await subeItem.run({ ...e, parentForm: form, form: altForm, panelIciTekrarmi })
 			
 			initSubeSet?.add(subeKod)
 			return true

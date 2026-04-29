@@ -182,7 +182,8 @@ class TabletApp extends TicariApp {
 				MQTabStok, MQTabSonStok, MQTabCari, MQTabMusDurum, MQTabPlasiyer, MQTabSube, MQTabYer,
 				MQTabRota, MQTabStokGrup, MQTabStokAnaGrup, MQTabStokMarka, MQTabNakliyeSekli,
 				MQTabTahsilSekli, MQTabBarkodReferans, MQTabBarkodAyrisim,
-				MQCariSatis, MQTabUgramaNeden, MQTabCariTip, MQTabSevkAdres
+				MQCariSatis, MQTabUgramaNeden, MQTabCariTip, MQTabSevkAdres,
+				...HMRBilgi.hmrIter().map(_ => _.mfSinif).filter(Boolean)
 			])
 		}
 		;[TabRotaListe, TabFisListe, TabMusteriDurumu, TabSahaDurum]
@@ -310,7 +311,7 @@ class TabletApp extends TicariApp {
 			;{
 				await MQCogul.sqlExecNone({ offlineMode, query: 'BEGIN TRANSACTION' })
 				await this.cacheReset(e)
-				await MQParam.offlineSaveToLocalTable({ offlineRequest, offlineMode }).finally(() => pm.progressStep())
+				await MQParam.offlineSaveToLocalTableWithClear({ offlineRequest, offlineMode }).finally(() => pm.progressStep())
 				await MQCogul.sqlExecNone({ offlineMode, query: 'COMMIT' })
 				pm.progressStep(1)
 				// let params = this.params = {}

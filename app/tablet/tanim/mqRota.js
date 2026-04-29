@@ -69,16 +69,22 @@ class MQTabRota extends MQGuidVeAdiOrtak {
 			!plasiyerKod || kod)
 		if (empty(recs))
 			return recs
-		
+
+		let { params: { tablet } } = app
+		let { sutToplama } = tablet
+		sutToplama ||= app.sutAlimmi
+
+		let herGunKod = 'HER'
 		for (let rec of recs) {
 			let { tip, plasiyerKod, gunKod, kod } = rec
 			tip ||= 'T'
 			rec.id ||= newGUID()
-			gunKod ||= rec.gunKod = 'HER'
+			gunKod ||= rec.gunKod = herGunKod
+			let gunText = gunKod == herGunKod ? 'Her Gün' : gunKod
 			switch (tip) {
 				case 'T': {
 					let tokens = kod.split('-')
-					rec.aciklama = `<span class="royalblue">[ SATIŞ ROTASI ]</span>`
+					rec.aciklama = `<span class="royalblue">[ ${sutToplama ? 'SATIŞ ROTASI' : gunText} ]</span>`
 					rec.plasiyerKod = tokens[0].trimEnd()
 					rec.gunKod = tokens[1]?.trimEnd() || gunKod
 					rec.ekKod = ''

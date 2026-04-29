@@ -18,9 +18,18 @@ class MQModel extends MQHMR {
 class MQRenk extends MQHMR {
 	static get sinifAdi() { return 'Renk' } static get table() { return 'trenk' }
 	static get tableAlias() { return 'rnk' } static get kodListeTipi() { return 'RENK' }
+
+	offlineBuildSQLiteQuery({ result: r = [] }) {
+		super.offlineBuildSQLiteQuery(...arguments)
+		;r.forEach((l, i) => {
+			if (l.includes('oscolor'))
+				r[i] = l = l.replace(/ NOT NULL/i, '')    // case insensitive
+		})
+	}
 	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e); let {pTanim} = e;
-		$.extend(pTanim, { renk1: new PInstStr(), renk2: new PInstStr() })
+		super.pTanimDuzenle(e)
+		let { pTanim } = e
+		extend(pTanim, { renk1: new PInstStr(), renk2: new PInstStr() })
 	}
 	static hmrTabloKolonDuzenle(e) {
 		super.hmrTabloKolonDuzenle(e); let {colDef} = e;
@@ -48,31 +57,64 @@ class MQRenk extends MQHMR {
 		for (const key of ['oscolor1', 'oscolor2']) { temps[key] = rec[key] }
 	}
 	static rootFormBuilderDuzenle(e) {
-		e = e || {};
-		super.rootFormBuilderDuzenle(e);
-		const styleci_renk = e => `${e.builder.getCSSElementSelector(e.builder.layout)} {
+		super.rootFormBuilderDuzenle(e)
+		let styleci_renk = e => `${e.builder.getCSSElementSelector(e.builder.layout)} {
 			width: 50px !important;
 			min-width: 100px !important;
 			height: 100px !important;
 		    padding: 8px !important;
 			padding-left: 10px !important;
 		}`
-		const tanimForm = e.tanimFormBuilder;
-		let form = tanimForm.addFormWithParent().yanYana(4);
-		form.addColorInput('renk1', 'Renk 1').addStyle(styleci_renk);
+		let { tanimFormBuilder: tanimForm } = e
+		let form = tanimForm.addFormWithParent().yanYana(4)
+		form.addColorInput('renk1', 'Renk 1').addStyle(styleci_renk)
 		form.addColorInput('renk2', 'Renk 2').addStyle(styleci_renk)
 	}
-	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e);
-		const cellsRenderer = (colDef, rowIndex, columnField, value, html, jqxCol, rec) =>
+	static standartGorunumListesiDuzenle({ liste }) {
+		super.standartGorunumListesiDuzenle(...arguments)
+		liste.push('_html')
+	}
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		liste.push(new GridKolon({ belirtec: '_html', text: 'Renk', genislikCh: 10 }).noSql())
+		/*let cellsRenderer = (colDef, rowIndex, columnField, value, html, jqxCol, rec) =>
 			changeTagContent(html, `&nbsp;`)
-		const _liste = [
+		let _liste = [
 			new GridKolon({ belirtec: '_renk1', text: 'Renk', width: 160, cellsRenderer: cellsRenderer }).noSql(),
 			new GridKolon({ belirtec: '_renk2' }).hidden().noSql()
-		];
-		for (const colDef of _liste)
-			this.hmrTabloKolonDuzenle({ orjColDef: colDef, colDef: colDef })
-		e.liste.push(..._liste)
+		]
+		for (let colDef of liste)
+			this.hmrTabloKolonDuzenle({ orjColDef: colDef, colDef })
+		liste.push(..._liste)*/
+	}
+	static async loadServerDataDogrudan() {
+		let recs = await super.loadServerDataDogrudan(...arguments)
+		if (!recs)
+			return
+
+		let dark = $('body').hasClass('dark-theme')
+		;recs.forEach(r => {
+			let { aciklama, oscolor1: c1, oscolor2: c2 } = r
+			let styles_veri = []
+			if (c1) {
+				c1 = stOS2HTMLColor(c1)
+				c2 = c2 ? stOS2HTMLColor(c2) : null
+				styles_veri.push(
+					( c2 == null ? `background: ${c1}` : `background: linear-gradient(270deg, ${c2} 5%, ${c1} 90%)` ),
+					`color: ${getContrastedColor(c1,  'white', 'black')}`
+				)
+				if (dark)
+					styles_veri.push('filter: invert(1) hue-rotate(180deg)')
+			}
+			;{
+				let style = styles_veri.join('; ')
+				r._html = `<div class="color-container full-wh" style="${style}">&nbsp;</div>`
+				//if (style)
+				//	r.aciklama = `<div class="color-container full-wh">${aciklama}</div>`
+			}
+		})
+
+		return recs
 	}
 	static hmr_queryEkDuzenle(e) {
 		super.hmr_queryEkDuzenle(e)
@@ -83,18 +125,19 @@ class MQRenk extends MQHMR {
 			bosClausemi ? `'' oscolor2` : `${aliasVeNokta}oscolor2`
 		)
 	}
-	hostVarsDuzenle(e) {
-		super.hostVarsDuzenle(e); let {hv} = e;
-		$.extend(hv, {
-			oscolor1: html2OSColor(this.renk1) || 0,
-			oscolor2: html2OSColor(this.renk2) || 0
+	hostVarsDuzenle({ hv, offlineBuildQuery, offlineRequest, offlineMode }) {
+		super.hostVarsDuzenle(...arguments)
+		let { renk1, renk2 } = this
+		extend(hv, {
+			oscolor1: html2STOSColor(renk1) || 0,
+			oscolor2: html2STOSColor(renk2) || 0
 		})
 	}
 	setValues(e) {
 		super.setValues(e); let {rec} = e, {oscolor1, oscolor2} = rec;
-		$.extend(this, {
-			renk1: oscolor1 ? os2HTMLColor(oscolor1) : '',
-			renk2: oscolor1 ? os2HTMLColor(oscolor2) : ''
+		extend(this, {
+			renk1: oscolor1 ? stOS2HTMLColor(oscolor1) : '',
+			renk2: oscolor1 ? stOS2HTMLColor(oscolor2) : ''
 		})
 	}
 }

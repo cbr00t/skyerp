@@ -13,6 +13,7 @@ class MQKontor extends MQDetayliMaster {
 	static get silinebilirmi() { return super.silinebilirmi && MQLogin.current?.class?.adminmi }
 	static get gridHeight_bosluk() { return 90 } static get newFisNox() { return `SKY${now().toString('yyyyMMddHHmmss')}` }
 	static get vioSeri_eFat() { return 'KSE' } static get vioSeri_eArsiv() { return 'KSA' } static get vioSeri_yildizli() { return 'KSX' }
+	static get faturalastirmaYapilirmi() { return false }
 	
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
@@ -843,6 +844,7 @@ class MQKontor_EBelge extends MQKontor {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'BL' } static get detaySinif() { return MQKontorDetay_EBelge }
 	static get vioHizmetKod() { return 'H034' }
+	static get faturalastirmaYapilirmi() { return true }
 }
 class MQKontorDetay_EBelge extends MQKontorDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -851,7 +853,8 @@ class MQKontorDetay_EBelge extends MQKontorDetay {
 class MQKontor_Turmob extends MQKontor {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'TR' } static get detaySinif() { return MQKontorDetay_Turmob }
-	static get acikIslKodPrefix() { return 'TC' } static get vioHizmetKod() { return 'H035' }
+	static get acikIslKodPrefix() { return 'TC' }
+	static get vioHizmetKod() { return 'H035' }
 	static get faturalastirmaYapilirmi() { return true }
 
 	static async importRecords({ islemAdi, tarih }) {
@@ -983,6 +986,7 @@ class MQKontor_TokenliOrtak extends MQKontor {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get uygunmu() { return super.uygunmu && this != MQKontor_TokenliOrtak }
 	static get detaySinif() { return MQKontorDetay_TokenliOrtak }
+	static get faturalastirmaYapilirmi() { return config.dev }
 }
 class MQKontorDetay_TokenliOrtak extends MQKontorDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -1006,6 +1010,7 @@ class MQKontor_ZamanDamgasi extends MQKontor_TokenliOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'TS' }
 	static get detaySinif() { return MQKontorDetay_ZamanDamgasi }
+	static get vioHizmetKod() { return 'H036' }
 }
 class MQKontorDetay_ZamanDamgasi extends MQKontorDetay_TokenliOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -1018,4 +1023,5 @@ class MQKontor_SMS extends MQKontor_TokenliOrtak {
 }
 class MQKontorDetay_SMS extends MQKontorDetay_TokenliOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get vioHizmetKod() { return 'H037' }
 }

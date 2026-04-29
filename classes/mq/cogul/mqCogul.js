@@ -374,8 +374,16 @@ class MQCogul extends MQYapi {
 	static orjBaslikListesi_argsDuzenle(e) { this.forAltYapiClassesDo('orjBaslikListesi_argsDuzenle', e) }
 	static orjBaslikListesi_argsDuzenle_detaylar(e) { this.forAltYapiClassesDo('orjBaslikListesi_argsDuzenle_detaylar', e) }
 	static gridTazeleIstendi(e) { return this.forAltYapiClassesDo('gridTazeleIstendi', e) }
-	static orjBaslikListesi_recsDuzenle(e) { this.forAltYapiClassesDoAsync('orjBaslikListesi_recsDuzenle', e) }
-	static orjBaslikListesi_recsDuzenleSon(e) { this.forAltYapiClassesDoAsync('orjBaslikListesi_recsDuzenleSon', e) }
+	static orjBaslikListesi_recsDuzenle(e) {
+		let res = super.orjBaslikListesi_recsDuzenle(e)
+		this.forAltYapiClassesDoAsync('orjBaslikListesi_recsDuzenle', e)
+		return res
+	}
+	static orjBaslikListesi_recsDuzenleSon(e) {
+		let res = super.orjBaslikListesi_recsDuzenleSon(e)
+		this.forAltYapiClassesDoAsync('orjBaslikListesi_recsDuzenleSon', e)
+		return res
+	}
 	static orjBaslikListesi_recsDuzenle_hizliBulIslemi(e) { this.forAltYapiClassesDoAsync('orjBaslikListesi_recsDuzenle_hizliBulIslemi', e) }
 	tanimPart_hizliBulIslemi(e) { }
 	static orjBaslikListesi_getPanelDuzenleyici(e) { return null }

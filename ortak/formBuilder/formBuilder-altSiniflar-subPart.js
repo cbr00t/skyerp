@@ -73,23 +73,38 @@ class FormBuilder_SubPart extends FBuilderWithInitLayout {
 	}
 	set etiket(val) { this._etiket = val }
 	get value() {
-		let result = this._initValueSetFlag ? this._value : undefined; this._initValueSetFlag = false;
-		let func = this._getValue ?? (e => this.defaultGetValue(e));
-		if (func != null && typeof func == 'object') { let _e = this.getBuilderBlockArgs({ get initValue() { return this._value } }); result = getFuncValue.call(this, func, _e) }
+		let result = this._initValueSetFlag ? this._value : undefined
+		this._initValueSetFlag = false
+		let func = this._getValue ?? (e => this.defaultGetValue(e))
+		if (func != null && typeof func == 'object') {
+			let _e = this.getBuilderBlockArgs({
+				get initValue() { return this._value }
+			})
+			result = getFuncValue.call(this, func, _e)
+		}
 		if (result != null && typeof result == 'object' && (isFunction(result) || result.run)) {
-			let _e = this.getBuilderBlockArgs({ get initValue() { return result }, commitFlag: false }); result = getFuncValue.call(this, result, _e);
-			if (_e.commitFlag) this._value = result
+			let _e = this.getBuilderBlockArgs({
+				get initValue() { return result },
+				commitFlag: false
+			})
+				result = getFuncValue.call(this, result, _e)
+			if (_e.commitFlag)
+				this._value = result
 		}
 		return result
 	}
 	set value(val) {
-		let func = this._setValue || (e => this.defaultSetValue(e));
+		let func = this._setValue || 
+			(e => this.defaultSetValue(e))
 		if (func) {
 			if (val != null && !val.prototype && isFunction(val)) {
-				let e = this.getBuilderBlockArgs({ result: val }); val = val != null && typeof val == 'object' ? getFuncValue.call(this, val, e) : val;
-				if (e.commitFlag) this._value = val
+				let e = this.getBuilderBlockArgs({ result: val })
+				val = val != null && typeof val == 'object' ? getFuncValue.call(this, val, e) : val
+				if (e.commitFlag)
+					this._value = val
 			}
-			let _e = this.getBuilderBlockArgs({ value: val, get initValue() { return this._value } }); getFuncValue.call(this, func, _e);
+			let _e = this.getBuilderBlockArgs({ value: val, get initValue() { return this._value } })
+			getFuncValue.call(this, func, _e)
 			this._initValueSetFlag = true
 		}
 		return this
@@ -129,7 +144,7 @@ class FormBuilder_SubPart extends FBuilderWithInitLayout {
 	getConverted_getValue(e) { return this.getConvertedValue(e) }
 	getConverted_setValue(e) { return this.getConvertedValue(e) }
 	getConvertedValue(e) {
-		let {value} = e;
+		let { value } = e
 		if (value != null && value.char != null)
 			value = value.char
 		return value
@@ -145,7 +160,16 @@ class FormBuilder_SubPart extends FBuilderWithInitLayout {
 	setInput(value) { this.input = value; return this }
 	getValueIslemi(handler) { this._getValue = handler; return this }
 	setValueIslemi(handler) { this._setValue = handler; return this }
-	setValue(value) { let {input} = this; if (input?.length) { this.value = value } else { this._value = value; this._initValueSetFlag = true } return this }
+	setValue(value) {
+		let { input } = this
+		if (input?.length)
+			this.value = value
+		else {
+			this._value = value
+			this._initValueSetFlag = true
+		}
+		return this
+	}
 	setPlaceHolder(value) { this.placeHolder = value; return this }
 	setPlaceholder(value) { return this.setPlaceHolder(value) }
 }
@@ -198,7 +222,16 @@ class FBuilder_SimpleElement extends FormBuilder_SubPart {
 		return super.defaultGetValue(e)
 	}
 	defaultSetValue(e) {
-		let {input} = this; if (input?.length) { input.val(this.getConverted_setValue({ value: e.value })); return }
+		let { part, input } = this
+		let { value } = e
+		if (part?.val) {
+			part.val(this.getConverted_setValue({ value }))
+			return
+		}
+		if (input?.length) {
+			input.val(this.getConverted_setValue({ value }))
+			return
+		}
 		super.defaultSetValue(e)
 	}
 	signalChange(e) {
@@ -297,7 +330,7 @@ class FBuilder_InputOrtak extends FBuilder_DivOrtak {
 	}
 	getConvertedValue(e) {
 		let value = super.getConvertedValue(e)
-		let {maxLength} = this
+		let { maxLength } = this
 		if (value && maxLength && typeof value == 'string')
 			value = value.toString().slice(0, maxLength)
 		return value
@@ -416,9 +449,14 @@ class FBuilder_NumberInput extends FBuilder_InputOrtak {
 	setMin(value) { this.min = value; return this } setMax(value) { this.max = value; return this }
 	setStep(value) { this.step = value; return this } setFra(value) { this.fra = value; return this }
 	getConvertedValue(e) {
-		let value = super.getConvertedValue(e); value = value == null ? value : asFloat(value);
-		let {fra} = this; if (typeof value == 'number' && fra != null) { value = roundToFra(value, fra) }
-		let {maxLength} = this; if (value && maxLength) { value = asFloat(value.toString().slice(0, maxLength)) }
+		let value = super.getConvertedValue(e)
+		value = value == null ? value : asFloat(value)
+		let {fra} = this
+		if (typeof value == 'number' && fra != null)
+			value = roundToFra(value, fra)
+		let {maxLength} = this
+		if (value && maxLength)
+			value = asFloat(value.toString().slice(0, maxLength))
 		return value
 	}
 }
@@ -1264,7 +1302,7 @@ class FBuilder_SimpleComboBox extends FBuilder_TextInput {
 	}
     setId(v) { super.setId(v); this.part?.setId(v); return this }
     setName(v) { this.name = v; this.part?.setName(v); return this }
-    setValue(v) { this.value = v; this.part?.setItem(v); return this }                                     // * widget 'item' setter => (value, item) durumların her ikisini de destekler
+    setValue(v) { this.value = v; this.part?.setValue(v); return this }                                     // * widget 'item' setter => (value, item) durumların her ikisini de destekler
     setPlaceHolder(v) { super.setPlaceHolder(v); this.part?.setPlaceholder(v); return this }
 	setPlaceholder(v) { return this.setPlaceHolder(v) }
     setSource(v) { this._source = v; this.part?.setSource(v); return this }

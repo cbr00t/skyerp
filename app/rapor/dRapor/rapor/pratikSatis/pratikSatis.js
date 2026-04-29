@@ -32,6 +32,9 @@ class DRapor_PratikSatis extends DRaporMQ {
 		
 		tanimPart._promise_getSubeTanimlari = this.getSubeTanimlari({ ...e, tanimPart })
 		app.appTitleBar?.addClass('jqx-hidden')
+
+		if (!document.fullscreen)
+			requestFullScreen()
 		
 		return await super.uiGirisOncesiIslemler(e)
 	}

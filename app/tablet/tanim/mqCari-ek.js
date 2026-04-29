@@ -8,11 +8,10 @@ class MQTabPlasiyer extends MQKAOrtak {
 	static get createTableYapilmazmi() { return true }
 
 	static async loadServerData({ offlineRequest, offlineMode } = {}) {
-		// cache
-		if (offlineRequest && !offlineMode) {
+		/*if (offlineRequest && !offlineMode) {
 			// Bilgi Yükle
 			return []
-		}
+		}*/
 		return await super.loadServerData(...arguments)
 	}
 	static varsayilanKeyHostVarsDuzenle({ hv }) {
@@ -79,10 +78,10 @@ class MQTabMustahsil extends MQKAOrtak {
 		extend(hv, { kayittipi })
 	}
 	static async loadServerData({ basit, sender, offlineRequest, offlineMode }) {
-		if (offlineRequest && !offlineMode) {
+		/*if (offlineRequest && !offlineMode) {
 			// Bilgi Yükle
 			return []
-		}
+		}*/
 
 		let { rotaDisiMusteriAlinirmi: rotaDisi } = app.params?.tablet ?? {}
 		let { rotaKullanilirmi } = app

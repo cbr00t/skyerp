@@ -14,7 +14,7 @@ class MQYerelParam extends MQYerelParamTicari {
 	}
 	static paramYapiDuzenle({ paramci }) {
 		super.paramYapiDuzenle(...arguments)
-		
+		let { sicakSogukVeyaSutAlimmi } = app
 		;{
 			let form = paramci.addFormWithParent()
 			form.addSelect('dokumDevice', 'Döküm Türü')
@@ -33,7 +33,7 @@ class MQYerelParam extends MQYerelParamTicari {
 					input.val(inst[id])
 				})
 		}
-		if (app.sicakSogukVeyaSutAlimmi) {
+		if (sicakSogukVeyaSutAlimmi) {
 			// let tab = paramci.addTabPage('sutAlim', 'Süt Alım')
 			let form = paramci.addFormWithParent()
 			form.addSelect('posta', 'Posta')

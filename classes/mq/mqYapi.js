@@ -172,6 +172,8 @@ class MQYapi extends CIO {
 		let result = await this.sqlExecTekilDeger(_e)
 		return result
 	}
+	static orjBaslikListesi_recsDuzenle(e) {}
+	static orjBaslikListesi_recsDuzenleSon(e) {}
 	tekilOku(e) {
 		e = e || {}; if (this.class.tekilOkuYapilazmi) { return e.rec ?? e._rec }
 		e.query = this.tekilOku_queryOlustur(e); return this.class.tekilOku_querySonucu(e)
@@ -349,7 +351,8 @@ class MQYapi extends CIO {
 			return false
 		let offlineMode = true
 		let query = `DROP TABLE IF EXISTS ${offlineTable}`
-		return this.sqlExecNone({ ...e, offlineMode, query })
+		try { return this.sqlExecNone({ ...e, offlineMode, query }) }
+		finally { this.globalleriSil?.() }
 	}
 	static offlineClearTable(e = {}) {
 		if (!this.dbMgr_db) { return false }
@@ -357,7 +360,8 @@ class MQYapi extends CIO {
 		if (!offlineTable) { return false }
 		let {trnId} = e, offlineMode = e.offline ?? e.offlineMode ?? true
 		let query = new MQIliskiliDelete({ from: offlineTable })
-		return this.sqlExecNone({ ...e, offlineMode, trnId, query })
+		try { return this.sqlExecNone({ ...e, offlineMode, trnId, query }) }
+		finally { this.globalleriSil?.() }
 	}
 	static async offlineSaveToLocalTableOncesi({ temps } = {}) {
 		return this.dbMgr_db
@@ -373,7 +377,12 @@ class MQYapi extends CIO {
 		let { offlineDirect: directFlag, idSaha, gonderildiDesteklenirmi, gonderimTSSaha } = this
 		let { offlineSahaListe: attrListe, kodKullanilirmi, kodSaha, bosKodAlinirmi, emptyKodValue = '' } = this
 		let offlineMode = true, offlineRequest = true, offlineYukleRequest = true, internal = true
-		let recs = await this.loadServerData({ ...e, trnId, offlineMode: !offlineMode, offlineRequest, offlineYukleRequest })
+		let _e = { ...e, trnId, offlineMode: !offlineMode, offlineRequest, offlineYukleRequest }
+		
+		let recs = _e.recs = await this.loadServerData(_e)
+		//await this.orjBaslikListesi_recsDuzenle({ _e })
+		//await this.orjBaslikListesi_recsDuzenleSon({ _e })
+		
 		let inLocalTrn = false, okIdList = []
 		if (!inLocalTrn) {
 			try {
@@ -478,7 +487,8 @@ class MQYapi extends CIO {
 					await this.sqlExecNone({ trnId, offlineMode, query })
 			}
 			if (inLocalTrn)
-				await this.sqlExecNone({ ...e, offlineMode, query: 'COMMIT' }) 
+				await this.sqlExecNone({ ...e, offlineMode, query: 'COMMIT' })
+			this.globalleriSil?.()
 			globalThis.progressManager?.progressStep(5)
 		}
 		return true
@@ -500,7 +510,10 @@ class MQYapi extends CIO {
 		let { offlineDirect: directFlag, offlineSahaListe: attrListe } = this
 		let { idSaha, onlineIdSaha = idSaha, sayacSaha, gonderildiDesteklenirmi, gonderimTSSaha } = this
 		let offlineMode = false, offlineRequest = true, offlineGonderRequest = true
-		let recs = await this.loadServerData({ ...e, offlineMode: !offlineMode, offlineRequest, offlineGonderRequest })
+		let _e = { ...e, offlineMode: !offlineMode, offlineRequest, offlineGonderRequest }
+		let recs = _e.recs = await this.loadServerData(_e)
+		//await this.orjBaslikListesi_recsDuzenle({ _e })
+		//await this.orjBaslikListesi_recsDuzenleSon({ _e })
 		globalThis.progressManager?.progressStep(20)
 		if (attrListe && onlineIdSaha && onlineIdSaha != idSaha && !attrListe.includes(onlineIdSaha))
 			attrListe.push(onlineIdSaha)
@@ -612,6 +625,7 @@ class MQYapi extends CIO {
 					if (query)
 						await this.sqlExecNone({ trnId, offlineMode: !offlineMode, query })
 				}
+				this.globalleriSil?.()
 				globalThis.progressManager?.progressStep(5)
 			}
 		}

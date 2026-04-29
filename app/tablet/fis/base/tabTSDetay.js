@@ -26,7 +26,8 @@ class TabTSDetay extends TabDetay {
 		let _keys = ['stokKod', 'barkod', 'miktar', 'brm']
 		for (let k of _keys)
 			result[k] = k.toLowerCase()
-		extend(result, { stokAdi: null, aciklama: 'ekaciklama' })
+		for (let { ioAttr, rowAttr } of HMRBilgi)
+			result[ioAttr] = rowAttr
 	}
 	static loadServerData_queryDuzenle({ sent, sent: { from, sahalar } }) {
 		super.loadServerData_queryDuzenle(...arguments)
@@ -84,8 +85,8 @@ class TabTSDetay extends TabDetay {
 		let _ = super.getHTML(e) ?? ''
 		let { stokAdi, stokKod, barkod, miktar, brm } = this
 		let miktarsiz = this instanceof TabSutAlimFis.detaySinif
-			
 		brm ??= ''
+		
 		return [
 			_,
 			`<div class="full-wh">`,
@@ -102,8 +103,49 @@ class TabTSDetay extends TabDetay {
 						 `</button>` +
 					`</div>`
 				: null),
+				this.getHTML_hmr(e),
 			`</div>`
-		].filter(Boolean).join(CrLf)
+		].filter(Boolean).join('\n')
+	}
+	getHTML_hmr(e) {
+		let hmrGosterimler = []
+		for (let { belirtec, etiket, ioAttr: k } of HMRBilgi) {
+			let kod = this[k]
+			if (!kod)
+				continue
+
+			let styles_veri = []
+			if (belirtec == 'renk') {
+				let { [kod]: { oscolor1: c1, oscolor2: c2 } = {} } = MQRenk.globals?.kod2Rec ?? {}
+				if (c1) {
+					c1 = stOS2HTMLColor(c1)
+					c2 = c2 ? stOS2HTMLColor(c2) : null
+					styles_veri.push(
+						( c2 == null ? `background: ${c1}` : `background: linear-gradient(270deg, ${c2} 5%, ${c1} 90%)` ),
+						`color: ${getContrastedColor(c1,  'white', 'black')}`
+					)
+					if ($('body').hasClass('dark-theme'))
+						styles_veri.push('filter: invert(1) hue-rotate(180deg)')
+				}
+			}
+			else
+				styles_veri.push(`color: orange`)
+			
+			let pre = etiket[0]
+			hmrGosterimler.push(
+				`<div class="hmr-item ${belirtec} flex-row">` +
+					`<div class="etiket lightgray">${pre}:&nbsp;</div>` +
+					`<div class="bold veri" style="${styles_veri.filter(Boolean).join('; ')}">${kod}</div>` +
+				`</div>`
+			)
+		}
+		return empty(hmrGosterimler)
+			? null
+			: (
+				`<div class="hmr-container flex-row" style="gap: 3px">` +
+					hmrGosterimler.join(`<span class="separator" style="color: #ddd">|</span>`) +
+				`</div>`
+			)
 	}
 	super_getHTML(e) { return super.getHTML(e) }
 }

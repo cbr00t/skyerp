@@ -132,3 +132,8 @@ body.dark-theme .jqx-grid [role = row] .grid-cell-group { color: #ccc; backgroun
 		font-size: 90%; line-height: 16px
 	}
 }
+@media (max-width: 700px) {
+	.jqx-grid {
+		font-size: 90%
+	}
+}

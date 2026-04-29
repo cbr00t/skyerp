@@ -28,10 +28,6 @@ class TabTSFis extends TabFis {
 		$.extend(pTanim, { yerKod: new PInstStr('yerkod') })
 	}
 	static async loadServerDataDogrudan({ offlineRequest, offlineMode } = {}) {
-		/*if (!offlineRequest) {
-			let cacheClasses = [MQTabStok]
-			await Promise.allSettled(cacheClasses.map(_ => _.getGloKod2Rec()))
-		}*/
 		return await super.loadServerDataDogrudan(...arguments)
 	}
 	static async loadServerData_detaylar({ offlineRequest, offlineMode } = {}) {
@@ -101,7 +97,7 @@ class TabTSFis extends TabFis {
 				w.ensurerowvisible(0)
 				fis.topluHesaplaDefer(e)
 				setTimeout(() => acc?.render(), 1)
-				{
+				;{
 					let css = 'degisti'
 					acc.get('duzenle')?.contentLayout?.find(`.${css}`).removeClass(css)
 				}
@@ -141,7 +137,7 @@ class TabTSFis extends TabFis {
 				if (!rfb.builders?.length)
 					rfb.addStyle_fullWH(null, 1)
 				if (rfb.builders?.length)
-					setTimeout(() => rfb.run(), 100)
+					setTimeout(() => rfb.run(), 50)
 			}
 		})
 	}
@@ -405,7 +401,7 @@ class TabTSFis extends TabFis {
 		let { fiyatDegistirir, iskDegistirir, iskMaxSayi = 3 } = tablet
 		let { sender: tanimPart, inst: fis, rfb, item } = e
 		let { class: fisSinif } = fis
-		let { bedelKullanilirmi, detaySinif, ticarimi } = fisSinif
+		let { bedelKullanilirmi, detaySinif, ticarimi, stokmu } = fisSinif
 		let { stokSinif } = detaySinif
 		let { acc, gridPart = {}, barkodGirisYapi = {} } = tanimPart
 		let { gridWidget: w, selectedRec: det } = gridPart
@@ -420,10 +416,11 @@ class TabTSFis extends TabFis {
 		let updateUI = temps.updateUI = () => {
 			// recursive update builders
 			let det = getDetay()
-			let {detayForm} = rfb.id2Builder
+			let { detayForm } = rfb.id2Builder
 			if (detayForm) {
 				for (let fbd of detayForm) {
-					let {id} = fbd, value = det?.[id]
+					let { id } = fbd
+					let value = det?.[id]
 					if (value !== undefined)
 						fbd.setValue(value)
 					fbd.updateVisible()
@@ -436,7 +433,7 @@ class TabTSFis extends TabFis {
 			setTimeout(() => $(document.activeElement)?.select?.())
 		}
 		// rfb.setAltInst(() => getDetay())
-		{
+		;{
 			rfb.addButton('sil')
 				.addStyle_wh(38, 38)
 				.addStyle(`$elementCSS { top: 5px; right: 100px }`)
@@ -460,7 +457,7 @@ class TabTSFis extends TabFis {
 				.onClick(e =>
 					acc.expand('detay'))
 		}
-		{
+		;{
 			let timer
 			rfb.addSimpleComboBox('stokKod',
 				barkodGirisYapi.etiket ?? 'Barkod',
@@ -512,7 +509,7 @@ class TabTSFis extends TabFis {
 			updateUI()
 			input?.addClass('degisti')
 		}
-		{
+		;{
 			let form = detayForm.addFormWithParent().yanYana()
 				.addStyle(`$elementCSS > div:not(:first-child) { margin-left: 20px }`)
 			form.addNumberInput('miktar', 'Miktar', 'Miktar')
@@ -537,22 +534,21 @@ class TabTSFis extends TabFis {
 						tanimPart.ddKdvOrani = input)
 			}
 		}
-		if (ticarimi) {
-			if (iskMaxSayi) {
-				let form = detayForm.addFormWithParent().yanYana()
-					.addStyle(`$elementCSS > div:not(:first-child) { margin-left: 20px }`)
-				for (let i = 1; i <= iskMaxSayi; i++) {
-					form.addNumberInput(`iskOran${i}`, `İsk${i}`, `İsk${i}`)
-						.addStyle_wh(90).setFra(1)
-						.setMin(0).setMax(100)
-						[iskDegistirir ? 'editable' : 'readOnly']()
-						.degisince(({ builder: { id, input }, value }) => {
-							getDetay()[id] = value
-							degisinceOrtak({ input })
-						})
-				}
+		if (ticarimi && iskMaxSayi) {
+			let form = detayForm.addFormWithParent().yanYana()
+				.addStyle(`$elementCSS > div:not(:first-child) { margin-left: 20px }`)
+			for (let i = 1; i <= iskMaxSayi; i++) {
+				form.addNumberInput(`iskOran${i}`, `İsk${i}`, `İsk${i}`)
+					.addStyle_wh(90).setFra(1)
+					.setMin(0).setMax(100)
+					[iskDegistirir ? 'editable' : 'readOnly']()
+					.degisince(({ builder: { id, input }, value }) => {
+						getDetay()[id] = value
+						degisinceOrtak({ input })
+					})
 			}
-			
+		}
+		;{
 			let form = detayForm.addFormWithParent().yanYana()
 				.addStyle(`$elementCSS > div:not(:first-child) { margin-left: 20px }`)
 			for (let { ioAttr, etiket, numerikmi, kami, mfSinif } of HMRBilgi) {
@@ -563,7 +559,7 @@ class TabTSFis extends TabFis {
 						.degisince(({ sender: { input }, type, events = [], ...rest }) => {
 							if (type == 'batch') {
 								let { value } = events.at(-1) ?? {}
-								getDetay()[ioAttr].value = numerikmi ? asFloat(value) : (value ?? '')
+								getDetay()[ioAttr] = numerikmi ? asFloat(value) : (value ?? '')
 								degisinceOrtak()
 							}
 						})
@@ -571,17 +567,17 @@ class TabTSFis extends TabFis {
 				}
 				else {
 					fbd = form[numerikmi ? 'addNumberInput' : 'addTextInput'](ioAttr, etiket, etiket)
-						.degisince(({ builder: { input, value } }) => {
-							getDetay()[ioAttr].value = numerikmi ? asFloat(value) : (value ?? '')
+						.degisince(({ value, builder: { input } }) => {
+							getDetay()[ioAttr] = numerikmi ? asFloat(value) : (value ?? '')
 							degisinceOrtak({ input })
 						})
 						.addStyle_wh(150)
 				}
-				
 				if (fbd)
 					fbd.etiketGosterim_yok()
 			}
 		}
+		
 		if (bedelKullanilirmi) {
 			let form = detayForm.addFormWithParent().yanYana()
 				.addStyle(`$elementCSS > div:not(:first-child) { margin-left: 20px }`)
@@ -605,10 +601,14 @@ class TabTSFis extends TabFis {
 				.onAfterRun(({ builder: { input } }) =>
 					divBedel = tanimPart.divBedel = input)
 		}
+
+		setTimeout(() => updateUI(), 100)
 	}
+
 	static rootFormBuilderDuzenle_tablet_acc_onExpand({ sender: { parentPart: tanimPart = {} }, acc, id, item }) {
 		super.rootFormBuilderDuzenle_tablet_acc_onExpand(...arguments)
-		let {barkodPart, dBarkodPart, txtMiktar} = tanimPart, {temps, contentLayout} = item
+		let { barkodPart, dBarkodPart, txtMiktar } = tanimPart
+		let { temps, contentLayout } = item
 		switch (id) {
 			case 'detay': {
 				barkodPart?.clear()
@@ -631,7 +631,9 @@ class TabTSFis extends TabFis {
 	}
 	static rootFormBuilderDuzenle_tablet_acc_onCollapse({ sender: { parentPart: tanimPart = {} }, id, acc }) {
 		super.rootFormBuilderDuzenle_tablet_acc_onCollapse(...arguments)
-		if (id != 'detay' && !acc.hasActivePanel)
-			acc.expand('detay')
+		setTimeout(() => {
+			if (id != 'detay' && !acc.hasActivePanel)
+				acc.expand('detay')
+		})
 	}
 }
