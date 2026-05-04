@@ -1,6 +1,6 @@
 class TabRotaListe extends MQMasterOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get uygunmu() { return config.dev || app.rotaKullanilirmi }
+	static get uygunmu() { return app.rotaKullanilirmi }
 	static get araSeviyemi() { return true } static get notCacheable() { return true }
 	static get kodListeTipi() { return 'ROTA' } static get sinifAdi() { return 'Rota' }
 	static get table() { return 'rota' } static get tableAlias() { return 'rot' }
@@ -99,7 +99,7 @@ class TabRotaListe extends MQMasterOrtak {
 				( groupSet.durumText ? islemVarmi : null ),
 				( groupSet.aciklama ? tip : null )
 			].filter(Boolean).join(delimWS)
-			rec._html = this.getHTML({ ...e, rec })
+			rec._html = await this.getHTML({ ...e, rec })
 			mustKod2Rec[mustKod] = rec
 		}
 		let recs = values(mustKod2Rec).sort((a, b) =>
@@ -368,12 +368,14 @@ class TabRotaListe extends MQMasterOrtak {
 			// { id: 'musteriDurumu',  text: 'Müşteri Durumu', handler: _e => this.musteriDurumuIstendi({ ...e, ..._e }) }
 		]
 	}
-	static getHTML({ rec = {} }) {
-		let { eIslemKullanilirmi: eIslem } = app
+	static async getHTML({ rec = {} }) {
+		let { depomu, eIslemKullanilirmi: eIslem, params: { tablet } } = app
+		let bakiyeGosterim = tablet[`${depomu ? 'depo' : 'ss'}MusteriBakiye`] != false
 		let { mustKod, mustUnvan, eFatmi, sutMiktar, bedel, dvKod, sayi } = rec
 		let sutBrm = TabSutAlimFis.detaySinif.defaultBrm || 'LT'
 		dvKod ||= 'TL'
 		eIslem ??= true
+		
 		let eIslText = (
 			!eIslem ? '' :
 			eFatmi ? 'e-Fat' : 'e-Arş'
@@ -382,6 +384,13 @@ class TabRotaListe extends MQMasterOrtak {
 			!eIslem ? '' :
 			eFatmi ? ' firebrick' : ' forestgreen'
 		)
+
+		let { [mustKod]: mdr = {} } = await MQTabMusDurum.getGloKod2Rec() ?? {}
+		function getMDRRenk(value, ters) {
+			 return value
+					? ( ( ters ? -value : value ) < 0 ? 'orangered' : 'forestgreen' )
+					: '_'
+		}
 
 		return [
 			`<div class="aligned full-width relative">`,
@@ -412,6 +421,24 @@ class TabRotaListe extends MQMasterOrtak {
 							`<span class="ek-bilgi green">fiş</span>` +
 						`</div>`
 					): null ),
+					( bakiyeGosterim && mdr.bakiye ?
+						`<div class="item right float-right bakiye">` +
+							`<span class="etiket lightgray">Bak: </span>` +
+							`<span class="veri ${getMDRRenk(mdr.bakiye, true)} bold">${mdr.bakiye ? `${bedelToString(mdr.bakiye)} TL` : '-Yok-'}</span>` +
+						`</div>`
+					: null ),
+					( bakiyeGosterim && mdr.kalanRisk ?
+						`<div class="item right float-right kalanRisk">` +
+							`<span class="etiket lightgray">KR: </span>` +
+							`<span class="veri ${getMDRRenk(mdr.kalanRisk, false)} bold">${mdr.kalanRisk ? `${bedelToString(mdr.kalanRisk)} TL` : '-Yok-'}</span>` +
+						`</div>`
+					: null ),
+					( bakiyeGosterim && mdr.takipBorcu ?
+						`<div class="item right float-right takipBorc">` +
+							`<span class="etiket lightgray">TKP: </span>` +
+							`<span class="veri ${getMDRRenk(mdr.takipBorcu, true)} bold">${mdr.takipBorcu ? `${bedelToString(mdr.takipBorcutakipBorcu)} TL` : '-Yok-'}</span>` +
+						`</div>`
+					: null ),
 				`</div>`,
 			`</div>`
 		].filter(Boolean).join(CrLf)

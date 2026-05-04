@@ -9,8 +9,8 @@ class TabTicariFis extends TabTSFis {
 	static get iademi() { return false } static get ticarimi() { return true }
 	static get faturami() { return false } static get irsaliyemi() { return false }
 	static get siparismi() { return false }
-	static get dokumFormTip_normal() { return '3FA' }
-	// static get dokumFormTip_eIslem() { return this.dokumFormTip_normal }
+	static get dokumFormTip_normal() { return '3FS' }
+	static get dokumFormTip_eIslem() { return '3FA' }
 	static get defaultEIslTip() { return '' }
 	get defaultEIslTip() {
 		return !this.yildizlimi && (app.params.tablet.eIslem ?? true)
@@ -137,8 +137,16 @@ class TabTicariFis extends TabTSFis {
 				break
 			default:
 				let yeniVeyaKopyami = islem == 'yeni' || islem == 'kopya'
-				if (t && !(yeniVeyaKopyami && t.id))
-					await t?.kaydet()
+				if (!yeniVeyaKopyami) {
+					let { tahSekliNo } = this
+					if (tahSekliNo == -1)
+						await t.kaydet()
+					else {
+						if (t?.id)
+							await t.sil({ force: true })
+						this.tahFisId = this._tahsilatFis = null
+					}
+				}
 				extend(this, { tahFisId: t?.id ?? '' })
 				// t = this._tahsilatFis = null
 		}
@@ -279,7 +287,7 @@ class TabTicariFis extends TabTSFis {
 				r()
 			}))
 		}
-		await Promise.allSettled(promises)
+		await promiseAllSet(promises)
 		await this.topluHesapla(e)
 		detaylar.forEach(det =>
 			det.bedelHesapla().htmlOlustur())
@@ -289,7 +297,7 @@ class TabTicariFis extends TabTSFis {
 	}
 	async satisKosullariOlustur(e) {
 		await super.satisKosullariOlustur(e)
-		let {tarih, subeKod, mustKod, detaylar} = this
+		let { tarih, subeKod, mustKod, detaylar } = this
 		// let stokKodListe = detaylar.map(_ => _.stokKod)
 		let kapsam = { tarih, subeKod, mustKod }
 		try { this.kosulYapilar = await new SatisKosulYapi().uygunKosullar({ kapsam }) }
@@ -298,6 +306,33 @@ class TabTicariFis extends TabTSFis {
 			this.kosulYapilar = new SatisKosulYapi()
 		}
 		return this
+	}
+
+	async dokumGetValue({ tip, key } = {}) {
+		;{
+			let res = await super.dokumGetValue(...arguments)
+			if (res != null)
+				return res
+		}
+		let e = arguments[0]
+		switch (key) {
+			case 'dip': {
+				let { dipIslemci: dip, dvKod } = this
+				let { brut } = dip, { sonucBedel: sonuc } = this
+				return [
+					{ veri: '=' },
+					{ etiket: 'BRÜT', veri: brut },
+					{ etiket: 'SONUÇ', veri: sonuc }
+				]
+			}
+			case 'notlar': {
+				return [
+					`1. satır`,
+					`2. satır`,
+					`3. satır`
+				]
+			}
+		}
 	}
 
 	static async rootFormBuilderDuzenle_tablet_acc_baslik({ sender: tanimPart, inst: fis, rfb }) {

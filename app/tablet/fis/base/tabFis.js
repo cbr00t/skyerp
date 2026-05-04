@@ -31,10 +31,11 @@ class TabFis extends MQDetayliGUIDOrtak {
 	get defaultSeri() { return 'TAB' }
 	get eIslemmi() { return !this.yildizlimi && this.eIslTip }
 	get eFatmi() { return this.eIslemmi && this.eIslTip != 'A' }
+	static get mustKullanilirmi() { return true }
 	static get mustZorunlumu() { return true }
 	static get _bedelKullanilirmi() { return false }
 	static get eIslemKullanilirmi() { return false }
-	static get dokumFormTip_normal() { return null }
+	static get dokumFormTip_normal() { return '3VK' }
 	static get dokumFormTip_eIslem() { return this.dokumFormTip_normal }
 	get dokumFormTip_normal() { return this.class.dokumFormTip_normal }
 	get dokumFormTip_eIslem() { return this.class.dokumFormTip_eIslem }
@@ -109,7 +110,9 @@ class TabFis extends MQDetayliGUIDOrtak {
 		)
 	}
 	get bakiyeEtkileyenKisim() { return 0 }
-	get bakiyeArtis() { return ( this.bakiyeEtkileyenKisim * this.class.bedelEtkilesimKatsayi ) || 0 }
+	get bakiyeArtis() {
+		return ( this.bakiyeEtkileyenKisim * this.class.bedelEtkilesimKatsayi ) || 0
+	}
 
 	constructor({ isCopy, offlineBuildQuery } = {}) {
 		super(...arguments)
@@ -462,15 +465,21 @@ class TabFis extends MQDetayliGUIDOrtak {
 			result.push(`<b>Plasiyer [<span class=firebrick>${plasiyerKod}</span>]</b> hatalıdır`)
 		return null
 	}
-	async kaydetOncesiIslemler({ islem }) {
-		let e = arguments[0]
+	async kaydetOncesiIslemler(e = {}) {
 		await this._promise_topluHesapla
 		await super.kaydetOncesiIslemler(e)
+
+		let inst = this
+		let { islem, eskiInst = e.eskiFis ?? e.eskiObj ?? {} } = e
 		let yeniVeyaKopyami = islem == 'yeni' || islem == 'kopya'
-		let { eIslemmi, fisNo, numarator: num } = this
+		let { eIslemmi, fisNo, numarator: num, fisTopNet } = this
 		if (eIslemmi)
 			this.uuid ||= newGUID()
-		this.fisSonuc = this.fisTopNet
+
+		this.fisSonuc = fisTopNet
+
+		await MQTabMusDurum.check({ inst, eskiInst })
+
 		if (yeniVeyaKopyami) {
 			this.sayac = null
 			if (!fisNo && num) {
@@ -630,17 +639,20 @@ class TabFis extends MQDetayliGUIDOrtak {
 	tarihDegisti({ value = this.tarih }) {
 		this.satisKosullariOlusturWithReset(...arguments)
 	}
-	async seriDegisti({ tanimPart, builder: fbd, input, altInst, oldValue = this._prev.seri?.toUpperCase(), value = this.seri?.toUpperCase() }) {
+	async seriDegisti({ sender: tanimPart, builder: fbd, input, altInst, oldValue = this._prev.seri?.toUpperCase(), value = this.seri?.toUpperCase() }) {
 		if (oldValue == value)
 			return
 		input?.val(value)
 		this.seri = value
-		let { numarator: num } = this
+		let { numarator: num, fisNo } = this
 		if (num) {
+			extend(num, { id: '', seri: value })
+			if (!(await num.yukle() && num.seri == value)) {
+				extend(num, { seri: value, sonNo: 0 })
+				await num.kaydet()
+			}
 			let { sonNo } = num
-			num.seri = value
-			await num.yukle()
-			if (num.sonNo != sonNo && fbd)
+			if (!fisNo)
 				tanimPart?.txtFisNo?.attr('placeholder', sonNo)
 		}
 		this._prev.seri = value
@@ -662,7 +674,7 @@ class TabFis extends MQDetayliGUIDOrtak {
 
 	dipOlustur(e) {
 		let result = null, fis = this
-		let {dipKullanilirmi, dipSinif} = this.class
+		let { dipKullanilirmi, dipSinif } = this.class
 		if (dipKullanilirmi && dipSinif)
 			result = this.dipIslemci = new dipSinif({ fis })
 		return result
@@ -733,26 +745,39 @@ class TabFis extends MQDetayliGUIDOrtak {
 			return null
 		let { numarator: num } = oFis
 		if (num && this.onlineOtoNumKullanilirmi) {
-			app.online()
+			let { _offlineMode: saved } = app
 			try {
+				app.online()
 				while (await oFis.varmi()) {
 					await num.kesinlestir()
 					oFis.fisNo = num.sonNo
 				}
+				fisNo = oFis.fisNo
+				
+				let seriDegisti = this.seri != oFis.seri
+				let noDegisti = this.fisNo != oFis.fisNo
+				if (seriDegisti || noDegisti) {
+					app.offline()
+					let { id, numarator: num, class: { idSaha, seriSaha, fisNoSaha, table: from } } = this
+					;{
+						let upd = new MQIliskiliUpdate({ from }), {where: wh, set} = upd
+						wh.degerAta(id, idSaha)
+						if (seriDegisti)
+							set.degerAta(this.seri = seri, 'seri')
+						if (noDegisti)
+							set.degerAta(this.fisNo = fisNo, 'fisno')
+						await upd.execNone()
+					}
+					;{
+						await num?.yukle()
+						if (num?.id && num.sonNo < fisNo) {
+							num.sonNo = fisNo
+							await num.kaydet()
+						}
+					}
+				}
 			}
-			finally { app.resetOfflineStatus() }
-			let seriDegisti = this.seri != oFis.seri
-			let noDegisti = this.fisNo != oFis.fisNo
-			if (seriDegisti || noDegisti) {
-				let {id, class: { idSaha, seriSaha, fisNoSaha, table: from }} = this
-				let upd = new MQIliskiliUpdate({ from }), {where: wh, set} = upd
-				wh.degerAta(id, idSaha)
-				if (seriDegisti)
-					set.degerAta(this.seri = seri, 'seri')
-				if (noDegisti)
-					set.degerAta(this.fisNo = fisNo, 'fisno')
-				this.sqlExecNone(upd)    // async - no await
-			}
+			finally { app._offlineMode = saved }
 		}
 		return oFis
 	}
@@ -844,8 +869,12 @@ class TabFis extends MQDetayliGUIDOrtak {
 		let { eIslemmi } = this
 		return this[`dokumFormTip_${eIslemmi ? 'eIslem' : 'normal'}`]
 	}
+
 	async dokumGetValue({ tip, key } = {}) {
 		let e = arguments[0]
+		if (tip == 'cols')
+			return await this.dokumGetColText(...arguments)
+		
 		switch (key) {
 			case 'musteriKod': case 'mustKod':
 				return this.mustKod
@@ -921,6 +950,28 @@ class TabFis extends MQDetayliGUIDOrtak {
 				return '...'
 		}
 		return null
+	}
+	async dokumGetColText({ key } = {}) {
+		let e = arguments[0]
+		switch (key) {
+			case 'promosyonText': case 'promoText': case 'proText':
+			case 'promosyonKod': case 'promoKod': case 'proKod':
+				return 'Pro.'
+			case 'stokKod': return 'Kod'
+			case 'stokAdi': return 'Ürün'
+			case 'miktar': return 'Miktar'
+			case 'fiyat': return 'Fiyat'
+			case 'netFiyat': return 'Net Fy.'
+			case 'kdvOrani': return 'Kdv'
+			case 'kdv': return 'KDV'
+			case 'iskontoText': case 'iskontolarText':
+			case 'iskOranText': case 'iskOranlarText':
+				return 'İsk.'
+			case 'brutBedel': return 'Brüt Bedel'
+			case 'netBedel': return 'Net Bedel'
+			case 'bedel': return 'Bedel'
+		}
+		return key ? key[0].toUpperCase() + key.slice(1) : key
 	}
 
 	static getRootFormBuilder(e) { return MQCogul.getRootFormBuilder(e) }
@@ -1017,7 +1068,8 @@ class TabFis extends MQDetayliGUIDOrtak {
 							.addCSS('center')
 							.addStyle(`$elementCSS { max-width: 90px }`)
 							.setMaxLength(3)
-							.readOnly()
+							// .readOnly()
+							[config.dev ? 'editable' : 'readOnly']()
 							.degisince(({ builder, builder: { id, input, altInst }, ...rest }) => {
 								let oldValue = altInst[id]?.toUpperCase()
 								let value = oldValue?.toUpperCase()
@@ -1082,35 +1134,68 @@ class TabFis extends MQDetayliGUIDOrtak {
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_baslikOncesi({ sender: tanimPart, inst: fis, rfb }) { }
 	static async rootFormBuilderDuzenle_tablet_acc_baslikCollapsed({ sender: tanimPart, inst: fis, rfb }) {
-		let { mustKod, eFatmi, class: { cariSinif } } = fis
+		let { depomu, params: { tablet } } = app
+		let bakiyeGosterim = tablet[`${depomu ? 'depo' : 'ss'}MusteriBakiye`] != false
+		let { mustKod, dvKod, eFatmi, class: { cariSinif } } = fis
+		dvKod ||= 'TL'
+
+		let layoutList = []
 		if (mustKod) {
-			let aciklama = (await cariSinif.getGloKod2Adi())?.[mustKod] || mustKod
-			rfb
-				.addCSS('flex-row')
-				.addStyle(
-					`/*$elementCSS > div { width: max-content !important }*/
-					 $elementCSS > div:not(:first-child) { margin-left: 5px }`
-				)
-			rfb.addForm().setLayout(() => $([
-				`<div class="flex-row" style="gap: 5px">`,
-					// `<div class="orangered"><b>${dateKisaString(asDate(tarih))}</b></div>`,
-					`<div class="etiket lightgray">M:</div> `,
-					`<div class="royalblue"><b>${aciklama}</b></div>`,
-				`</div>`
-			].join(CrLf)))
+			;{
+				let { [mustKod]: mdr = {} } = await MQTabMusDurum.getGloKod2Rec() ?? {}
+				function getMDRRenk(value, ters) {
+					 return value
+							? ( ( ters ? -value : value ) < 0 ? 'orangered' : 'forestgreen' )
+							: '_'
+				}
+				layoutList.push(...[
+					( bakiyeGosterim ? (
+						`<div class="item flex-row" style="gap: 5px">` +
+							( mdr.takipBorcu ? `<span class="takipBorcu etiket gray">TKP: </span>` : '' ) +
+							( mdr.takipBorcu ? `<span class="takipBorcu veri bold ${getMDRRenk(mdr.takipBorcu, true)}">${mdr.takipBorcu ? `${bedelToString(mdr.takipBorcu)}` : '-'}</span>` : '' ) +
+							( mdr.takipBorcu ? `<span class="takipBorc separator lightgray"> | </span>` : '' ) +
+							( mdr.kalanRisk ? `<span class="kalanRisk etiket gray">KR: </span>` : '' ) +
+							( mdr.kalanRisk ? `<span class="kalanRisk veri bold ${getMDRRenk(mdr.kalanRisk, false)}">${mdr.kalanRisk ? `${bedelToString(mdr.kalanRisk)}` : '-'}</span>` : '' ) +
+							( mdr.kalanRisk ? `<span class="kalanRisk separator lightgray"> | </span>` : '' ) +
+							( mdr.bakiye ? `<span class="bakiye etiket gray">BK: </span>` : '' ) +
+							( mdr.bakiye ? `<span class="bakiye veri bold ${getMDRRenk(mdr.bakiye, true)}">${mdr.bakiye ? `${bedelToString(mdr.bakiye)}` : '-'}</span>` : '' ) +
+						`</div>`
+					) : null )
+				].filter(Boolean))
+			}
 		}
 		if (eFatmi) {
-			rfb.addForm().setLayout(() => $([
-				`<div class="flex-row" style="gap: 5px">`,
+			layoutList.push(...[
+				`<div class="item flex-row" style="gap: 5px">`,
 					`<span class="bold red">e-İşlem</span>`,
 				`</div>`
-			].join(CrLf)))
+			])
+		}
+
+		if (mustKod) {
+			let aciklama = (await cariSinif.getGloKod2Adi())?.[mustKod] || mustKod
+			layoutList.push(...[
+				`<div class="item flex-row" style="gap: 5px">`,
+					`<div class="etiket lightgray">M:</div> `,
+					`<div class="royalblue"><b>${aciklama || mustKod}</b></div>`,
+				`</div>`
+			])
+		}
+
+		if (!empty(layoutList)) {
+			layoutList = [
+				`<div class="flex-row" style="gap: 10px">`,
+				...layoutList,
+				`</div>`
+			]
+			rfb.addForm().setLayout(() =>
+				$(layoutList.join(CrLf)))
 		}
 	}
 	static rootFormBuilderDuzenle_tablet_acc_baslik({ sender: tanimPart, inst: fis, rfb, acc }) {
 		let e = arguments[0]
 		let { rotaID, class: fisSinif } = fis
-		let { sutAlimmi } = fisSinif
+		let { mustKullanilirmi, sutAlimmi } = fisSinif
 		
 		let { loginTipi } = config.session ?? {}
 		if (!(loginTipi == 'plasiyerLogin' || loginTipi == 'musteriLogin')) {
@@ -1128,7 +1213,7 @@ class TabFis extends MQDetayliGUIDOrtak {
 					}
 				})
 		}
-		{
+		if (mustKullanilirmi) {
 			let mfSinif = this.cariSinif, {sinifAdi: etiket} = mfSinif
 			let form = rfb.addFormWithParent().altAlta()
 			// addSimpleComboBox(e, _etiket, _placeholder, _value, _source, _autoClear, _delay, _minLength, _disabled, _name, _userData)

@@ -39,15 +39,17 @@ class SayimFis extends MQTicariGenelFis {
 	}
 	static varsayilanKeyHostVarsDuzenle({ hv }) {
 		super.varsayilanKeyHostVarsDuzenle(...arguments)
-		$.extend(hv, { bttip: 'SY' })
+		extend(hv, { bttip: 'SY' })
 	}
 }
+
 class SayimDetay extends MQDetay {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'butstok' }
+
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
-		$.extend(pTanim, {
+		extend(pTanim, {
 			stokKod: new PInstStr('stokkod'),
 			miktar: new PInstNum('miktar'),
 			miktar2: new PInstNum('miktar2')
@@ -76,7 +78,10 @@ class StokFis extends TSOrtakFis {
 	static detaySiniflarDuzenle(e) { super.detaySiniflarDuzenle(e) }
 	static get gridKontrolcuSinif() { return StokGridKontrolcu }
 	static get mustSaha() { return 'irsmust' }
-	static get stokmu() { return true } static get gcTipi() { return null } static get ozelTip() { return '' } static get fisEkAyrim() { return '' }
+	static get stokmu() { return true }
+	static get gcTipi() { return null }
+	static get ozelTip() { return '' }
+	static get fisEkAyrim() { return '' }
 	static get tsStokDetayTable() { return 'ststok' } static get tsFasonDetayTable() { return 'stfsstok' }
 	static get tsDemirbasDetayTable() { return 'stdemirbas' } static get tsAciklamaDetayTable() { return 'staciklama' }
 	static loadServerData_queryDuzenle({ sent, sent: { where: wh } }) {
@@ -92,7 +97,7 @@ class StokFis extends TSOrtakFis {
 	}
 	static varsayilanKeyHostVarsDuzenle({ hv }) {
 		super.varsayilanKeyHostVarsDuzenle(...arguments)
-		$.extend(hv, {
+		extend(hv, {
 			gctipi: this.gcTipi, ozeltip: this.ozelTip,
 			fisekayrim: this.fisEkAyrim, oncelik: this.oncelik
 		})
@@ -192,6 +197,12 @@ class StokTransferOrtakFis extends TransferVeGCOrtakFis {
 }
 class StokTransferFis extends StokTransferOrtakFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
+		extend(pTanim, {
+			refYerKod: new PInstStr('refyerkod')
+		})
+	}
 }
 class IrsaliyeliTransferFis extends StokTransferOrtakFis {
     static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -199,7 +210,7 @@ class IrsaliyeliTransferFis extends StokTransferOrtakFis {
 	static get numTipKod() { return SatisIrsaliyeFis.numTipKod } static get numYapi() { return SatisIrsaliyeFis.numYapi }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments); let {mustSaha} = this
-		$.extend(pTanim, { mustKod: new PInstStr(mustSaha), sevkYerKod: new PInstStr('xadreskod') })
+		extend(pTanim, { mustKod: new PInstStr(mustSaha), sevkYerKod: new PInstStr('xadreskod') })
 	}
 }
 

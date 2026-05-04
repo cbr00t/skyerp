@@ -44,8 +44,9 @@ class MQYapi extends CIO {
 		}
 		return result
 	}
-	static yeniInstOlustur({ args } = {}) {
-		return new this(args)
+	static yeniInstOlustur({ mfSinif, args } = {}) {
+		mfSinif ??= this
+		return new mfSinif(args)
 	}
 	async kaydet(e) {
 		return await this.varmi(e)
@@ -598,6 +599,8 @@ class MQYapi extends CIO {
 						await inst.setValues({ rec })
 						if (!await inst.yukle({ offlineMode: !offlineMode, offlineRequest, offlineGonderRequest }))
 							continue
+						//if (this == TabPlasTeslimFis)
+						//	debugger
 						inst = await inst.asOnlineFis?.({ ...e, rec }) ?? inst
 						if (inst.sayac)
 							inst.sayac = null

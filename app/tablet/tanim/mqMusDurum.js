@@ -73,7 +73,7 @@ class MQTabMusDurum extends MQKodOrtak {
 		return true
 	}
 	static async loadServerDataDogrudan(e = {}) {
-		let { offlineRequest, offlineMode, temps: { saved_kod2Rec = {} } = {} } = e
+		let { offlineBuildQuery, offlineRequest, offlineMode, temps: { saved_kod2Rec = {} } = {} } = e
 		if (offlineRequest && !offlineMode) {
 			// Bilgi Yükle
 			// let { plasiyerKod } = app
@@ -102,7 +102,22 @@ class MQTabMusDurum extends MQKodOrtak {
 			}
 			return recs
 		}
-		return await super.loadServerDataDogrudan(e)
+		
+		let recs = await super.loadServerDataDogrudan(e)
+		if (!(offlineRequest || offlineBuildQuery)) {
+			let { ioPostfixes } = this
+			for (let r of recs ?? [])
+			for (let pr of ioPostfixes) {
+				let k_agg = pr[0].toLowerCase() + pr.slice(1)
+				let v = r[k_agg]
+				if (v != null)
+					continue
+				let k_orj = `orj${pr}`, k_tab = `tab${pr}`
+				// r.bakiye = r.orjBakiye + r.tabBakiye
+				r[k_agg] = r[k_orj] + r[k_tab]
+			}
+		}
+		return recs
 	}
 	static loadServerData_queryDuzenle_son(e = {}) {
 		super.loadServerData_queryDuzenle_son(e)
@@ -112,7 +127,74 @@ class MQTabMusDurum extends MQKodOrtak {
 			return
 	}
 
-	static update({ yeni = {}, eski = {}, delta = {}, inst, eskiInst }) {
+	static update(e) {
+		let { same, yeni, eski, delta } = this.calc(e) ?? {}
+		let { table, kodSaha, ioPostfixes } = this
+		let getUpd = t => {
+			let { mustKod } = t ?? {}
+			if (!mustKod)
+				return null
+			let upd = new MQIliskiliUpdate(), { where: wh, set } = upd
+			upd.fromAdd(table)
+			wh.degerAta(mustKod, kodSaha)
+			for (let pf of ioPostfixes) {
+				let tk = pf[0].toLowerCase() + pf.slice(1)
+				let v = t[tk]
+				if (!v)
+					continue
+				let rk = `tab${pf}`
+				let op = v < 0 ? '-' : '+'
+				v = abs(v)
+				set.add(`${rk} = ${rk} ${op} ${v.sqlDegeri()}`)
+			}
+			return empty(set.liste) ? null : upd
+		}
+		
+		let toplu = new MQToplu()
+		if (same)
+			toplu.add(...[ getUpd(delta) ])
+		else {
+			toplu.add(...[
+				getUpd(yeni),
+				getUpd(eski)
+			].filter(Boolean))
+		}
+		if (empty(toplu.liste))
+			return null
+
+		;{
+			// bakiye için kayıt yoksa boş kayıt ekle
+			let { mustKod: kod } = yeni ?? delta
+			let ins = new MQInsert({ table, hv: { kod } }).insertIgnore()
+			toplu.liste.unshift(ins)
+		}
+		
+		this.globalleriSil()
+		return toplu.execNone()
+	}
+	static async check(e = {}) {
+		let { same, delta: d } = await this.calc(e) ?? {}
+		if (!same)
+			return
+
+		let { mustKod } = d
+		let { dvKod } = e.inst ?? {}
+		dvKod ??= 'TL'
+
+		let { [mustKod]: r } = await this.getGloKod2Rec() ?? {}
+		;{
+			let { kalanRisk: v = 0 } = d
+			v = roundToBedelFra( ( r.orjKalanRisk || 0) + ( r.tabKalanRisk || 0) + v )
+			if (v < 0)
+				throw { isError: true, errorText: `Risk Aşıldı: [<b class="royalblue">${bedelToString(v)} ${dvKod}</b>]` }
+		}
+	}
+	static calc({ yeni = {}, eski = {}, delta = {}, inst, eskiInst }) {
+		;{
+			yeni = { ...yeni }
+			eski = { ...eski }
+			delta = { ...delta }
+		}
 		;{
 			yeni.mustKod ??= inst?.mustKod
 			yeni.bakiye ??= inst?.bakiyeArtis ?? 0
@@ -130,51 +212,39 @@ class MQTabMusDurum extends MQKodOrtak {
 				eski[k] = -v
 		})
 
-		let { table, kodSaha, ioPostfixes } = this
+		let { table, kodSaha } = this
 		let fill = (...targets) => {
 			for (let t of targets) {
 				let { bakiye: ref } = t
-				t.kalanRisk ??= -ref
-				t.takipBorcu ??= ref
+				t.bakiye = ref || 0
+				t.kalanRisk ??= ref ? -ref : 0
+				t.takipBorcu ??= ref || 0
 			}
 		}
-		let getUpd = (mustKod, t) => {
-			if (!mustKod)
-				return null
-			let upd = new MQIliskiliUpdate(), { where: wh, set } = upd
-			upd.fromAdd(table)
-			wh.degerAta(mustKod, kodSaha)
-			for (let pf of ioPostfixes) {
-				let tk = pf[0].toLowerCase() + pf.slice(1)
-				let v = t[tk]
-				if (!v)
-					continue
-				let rk = `tab${pf}`
-				let op = v < 0 ? '-' : '+'
-				v = Math.abs(v)
-				set.add(`${rk} = ${rk} ${op} ${v.sqlDegeri()}`)
-			}
-			return empty(set.liste) ? null : upd
-		}
-		
-		let toplu = new MQToplu()
-		if (yeni.mustKod == eski.mustKod) {
-			delta ??= { bakiye: yeni.bakiye + eski.bakiye }
+
+		eski.mustKod ||= yeni.mustKod
+		let same = yeni.mustKod == eski.mustKod
+		let empty = false
+		if (same) {
+			delta ??= {}
+			delta.bakiye ??= roundToBedelFra( (yeni.bakiye || 0) + (eski.bakiye || 0) )
 			fill(delta)
-			toplu.add(...[ getUpd(yeni.mustKod, delta) ])
+			empty = values(delta).every(v => isNumber(v) && !v)
+			delta.mustKod = yeni.mustKod
 		}
 		else {
 			fill(yeni, eski)
-			toplu.add(...[
-				getUpd(yeni.mustKod, yeni),
-				getUpd(eski.mustKod, eski)
-			].filter(Boolean))
+			delta ??= {}
+			for (let k of keys(yeni)) {
+				let v1 = yeni[k], v2 = eski[k]
+				if (isNumber(v1) || isNumber(v2))
+					delta[k] = (v1 || 0) - (v2 || 0)
+			}
+			empty = values(delta).every(v => isNumber(v) && !v)
+			delta.mustKod = yeni.mustKod
 		}
-		if (empty(toplu.liste))
-			return null
 
-		this.globalleriSil()
-		return toplu.execNone()
+		return { same, yeni, eski, delta, empty }
 	}
 }
 

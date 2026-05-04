@@ -10,9 +10,9 @@ class MQCogul extends MQYapi {
 	static get ayrimTable() { return `${this.tableAlias}ayrim`} static get ayrimTableAlias() { return null } 
 	static get tanimlanabilirmi() { return !!this.tanimUISinif } static get degistirilebilirmi() { return this.tanimlanabilirmi }
 	static get silinebilirmi() { return true } static get raporKullanilirmi() { return false } static get silindiDesteklenirmi() { return false }
-	static get kolonDuzenlemeYapilirmi() { return true } static get kolonFiltreKullanilirmi() { return !isMiniDevice() }
-	static get seviyeAcKapatKullanilirmi() { return true }
+	static get kolonFiltreKullanilirmi() { return !isMiniDevice() } static get seviyeAcKapatKullanilirmi() { return true }
 	static get gridIslemTuslariKullanilirmi() { return !isMiniDevice() }
+	static get kolonDuzenlemeYapilirmi() { return true }
 	static get yerelParamBelirtec() { return this.classKey } static get sayacSahaGosterilirmi() { return false }
 	static get tumKolonlarGosterilirmi() { return false } static get gridDetaylimi() { return this.detaylimi }
 	static get ozelTanimIslemi() { return null }
@@ -313,13 +313,13 @@ class MQCogul extends MQYapi {
 		tabPage_genel.addStyle_fullWH(); e.tabPage_genel = tabPage_genel
 	}
 	static async getDefaultContextMenuArgs(e = {}) {
-		let {title = 'Menü', items} = e
+		let { title = 'Menü', items } = e
 		items ??= await this.getDefaultContextMenuItems(e)
 		return items ? { title, items } : null
 	}
 	static getDefaultContextMenuItems(e) { return null }
 	static async getTanimPartMenuArgs(e = {}) {
-		let {items} = e
+		let { items } = e
 		items ??= await this.getTanimPartMenuItems(e)
 		return this.getDefaultContextMenuArgs({ ...e, items })
 	}
@@ -890,21 +890,30 @@ class MQCogul extends MQYapi {
 		try { let part = new listeUISinif(e), result = part.run(); return { part, result } }
 		catch (ex) { displayMessage(getErrorText(ex)); throw ex }
 	}
-	static async tanimla(e) {
-		e = e || {}; let {tanimUISinif} = this, {tanimOncesiEkIslemler} = e; if (!tanimUISinif) { return null }
-		e.islem = e.islem || 'yeni'; e.mfSinif = e.mfSinif || this;
+	static async tanimla(e = {}) {
+		let { tanimUISinif } = this
+		if (!tanimUISinif)
+			return null
+		
+		e.islem ||= 'yeni'
+		e.mfSinif || this
 		try {
-			let part = e.tanimPart = new tanimUISinif(e);
+			let part = e.tanimPart = new tanimUISinif(e)
+			let { tanimOncesiEkIslemler } = e
 			if (tanimOncesiEkIslemler) {
-				let _result = await getFuncValue.call(this, tanimOncesiEkIslemler, e);
-				if (_result === false) { return ({ part, result: false }) }
+				let _result = await tanimOncesiEkIslemler.call(this, e)
+				if (_result === false)
+					return ({ part, result: false })
 			}
-			let result = await part.run();
+			let result = await part.run()
 			return { part, result }
 		}
 		catch (ex) { hConfirm(getErrorText(ex)); throw ex }
 	}
-	tanimla(e) { e = e || {}; e.inst = e.inst || this; return this.class.tanimla(e) }
+	tanimla(e = {}) {
+		e.inst ||= this
+		return this.class.tanimla(e)
+	}
 	cacheOlustur(e) { }
 	static async getGloAdi2KodListe(e) {
 		let { globals } = this

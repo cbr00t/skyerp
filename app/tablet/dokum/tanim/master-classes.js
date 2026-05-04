@@ -11,19 +11,22 @@ class MQTabDokumForm extends MQMasterOrtak {
 		if (!offlineRequest || offlineMode)
 			return null
 		
-		let sent = new MQSent(), {sahalar} = sent
-		sent
-			.fromAdd('tmatskydetay har')
-			.fromIliski('tmatbuu fis', 'fis.sayac = har.sayac')
-		sahalar
-			.addWithAlias('fis', 'tip')
-			.addWithAlias('har', 'sayac', 'seq', 'jsontext')
-		let orderBy = ['sayac', 'seq']
-		let query = new MQStm({ sent, orderBy })
-		let recs = await this.sqlExecSelect({ offlineRequest, offlineMode, query })
-		let {tableAlias: alias} = this
+		let { tableAlias: alias } = this
+		let recs
+		;{
+			let sent = new MQSent(), {sahalar} = sent
+			sent
+				.fromAdd('tmatskydetay har')
+				.fromIliski('tmatbuu fis', 'fis.sayac = har.sayac')
+			sahalar
+				.addWithAlias('fis', 'tip')
+				.addWithAlias('har', 'sayac', 'seq', 'jsontext')
+			let orderBy = ['sayac', 'seq']
+			let query = new MQStm({ sent, orderBy })
+			recs = await this.sqlExecSelect({ offlineRequest, offlineMode, query })
+		}
 		if (offlineRequest && !offlineMode) {
-			let {tablet} = app.params
+			let { tablet } = app.params
 			let dokumFormlar = tablet.dokumFormlar = {}
 			let sevListe = seviyelendir({ source: recs, attrListe: ['tip'] })
 			for (let { orjBilgi: { tip }, detaylar } of sevListe) {

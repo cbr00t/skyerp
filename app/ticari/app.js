@@ -34,8 +34,11 @@ class TicariApp extends App {
 	}
 	async ilkIslemler(e) {
 		await super.ilkIslemler(e)
-		try { this.violetmi = await app.sqlHasTable('isemri') }
-		catch (ex) { cerr(ex) }
+		let { offlineMode } = this
+		if (!offlineMode) {
+			try { this.violetmi = await app.sqlHasTable('isemri') }
+			catch (ex) { cerr(ex) }
+		}
 	}
 	async getAnaMenu() { const response = await ajaxGet({ url: this.getWSUrl({ api: 'frMenu' }) }); return response ? FRMenu.from(response) : null }
 	async getMailParam(e) {

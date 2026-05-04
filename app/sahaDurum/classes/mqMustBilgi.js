@@ -60,22 +60,27 @@ class MQMustBilgi extends MQKAOrtak {
 			new GridKolon({ belirtec: 'yore', text: 'Yöre', genislikCh: 20, cellClassName: 'darkgray' }),
 			new GridKolon({ belirtec: 'iladi', text: 'İl Adı', genislikCh: 13, cellClassName: 'darkgray' }),
 			new GridKolon({
-				belirtec: 'bakiye', text: 'Bakiye', genislikCh: 13, cellClassName: 'bold',
-				aggregates: [{ TOPLAM: gridDipIslem_sum }]
-			}).tipDecimal_bedel()
+				belirtec: 'bakiye', text: 'Bakiye',
+				genislikCh: 13, cellClassName: 'bold'
+			}).tipDecimal_bedel().sum().input()
 		])
 		for (let i = 1; i <= MustBilgi.kademeler.length; i++) {
-			liste.push(new GridKolon({
-				belirtec: `kademe${i}Bedel`, text: MustBilgi.getKademeText(i - 1),
-				genislikCh: 13, aggregates: [{ TOPLAM: gridDipIslem_sum }]
-			}).tipDecimal_bedel())
+			liste.push(
+				new GridKolon({
+					belirtec: `kademe${i}Bedel`,
+					text: MustBilgi.getKademeText(i - 1),
+					genislikCh: 13
+				}).tipDecimal_bedel().sum().input()
+			)
 		}
-		liste.push(new GridKolon({ belirtec: 'plasiyerText', text: 'Plasiyer', genislikCh: 10, cellClassName: 'darkgray' }))
+		liste.push(
+			new GridKolon({ belirtec: 'plasiyerText', text: 'Plasiyer', genislikCh: 10, cellClassName: 'darkgray' })
+		)
 	}
 	static gridVeriYuklendi(e) {
-		let {grid} = e, {session} = config, {yerel} = app.params
+		let { grid } = e, { session } = config, { yerel } = app.params
 		session ??= yerel.lastSession ?? {}
-		let {loginTipi, user} = session, groups = []
+		let { loginTipi, user } = session, groups = []
 		if (!(user && loginTipi == 'plasiyerLogin'))
 			groups.push('plasiyerText')
 		groups.push('iladi')

@@ -578,19 +578,32 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		catch (ex) { throw ex }
 	}
 	async degistirIstendi(e) {
-		e ??= {}; let {tanimOncesiEkIslemler, gridWidget} = this;
-		let rowIndex = e.rowIndex ?? this.selectedRowIndex, rec = e.rec ?? gridWidget.getrowdata(rowIndex), mfSinif = this.getMFSinif(e);
-		if (!rec) { wConfirm('Değiştirilecek satır seçilmelidir', ' '); return false }
-		let {args} = this, {ozelTanimIslemi, table, tableAlias, aliasVeNokta} = mfSinif, eskiInst, inst;
-		let _e = { sender: this, listePart: this, islem: 'degistir', mfSinif, rec, rowIndex, args, table, alias: tableAlias, aliasVeNokta };
-		let tanimUISinif = _e.tanimUISinif = this.getTanimUISinif(_e);
-		if (ozelTanimIslemi) {
-			let result = await getFuncValue.call(this, ozelTanimIslemi, _e);
-			if (result !== false) { return result }
+		e ??= {}; let {tanimOncesiEkIslemler, gridWidget} = this
+		let rowIndex = e.rowIndex ?? this.selectedRowIndex
+		let rec = e.rec ?? gridWidget.getrowdata(rowIndex), mfSinif = this.getMFSinif(e)
+		if (!rec) {
+			wConfirm('Değiştirilecek satır seçilmelidir', ' ')
+			return false
 		}
-		if (!tanimUISinif) { return false }
+		let { args } = this
+		let { ozelTanimIslemi, table, tableAlias, aliasVeNokta } = mfSinif
+		let eskiInst, inst
+		let _e = {
+			sender: this, listePart: this, islem: 'degistir', mfSinif, rec,
+			rowIndex, args, table, alias: tableAlias, aliasVeNokta
+		}
+		let tanimUISinif = _e.tanimUISinif = this.getTanimUISinif(_e)
+		if (ozelTanimIslemi) {
+			let result = await getFuncValue.call(this, ozelTanimIslemi, _e)
+			if (result !== false)
+				return result
+		}
+		if (!tanimUISinif)
+			return false
 		try {
-			let {yeniInstOlusturucu} = this; if (yeniInstOlusturucu) { eskiInst = await getFuncValue.call(this, yeniInstOlusturucu, _e) }
+			let { yeniInstOlusturucu } = this
+			if (yeniInstOlusturucu)
+				eskiInst = await getFuncValue.call(this, yeniInstOlusturucu, _e)
 			if (eskiInst === undefined) { eskiInst = await mfSinif.yeniInstOlustur?.(_e) }
 			if (eskiInst === undefined) { eskiInst = new mfSinif(_e) }
 			if (eskiInst == null) { return false }
@@ -602,7 +615,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			}
 			_e.islem = __e.islem
 			inst = eskiInst.deepCopy()
-			let {kaydedince: _kaydedince} = e ?? {}
+			let { kaydedince: _kaydedince } = e ?? {}
 			let kaydedince = e => { this.tazele(e); _kaydedince?.call(this, e) }
 			return inst.tanimla({ parentPart: this, islem: _e.islem, eskiInst, listePart: _e.listePart, tanimOncesiEkIslemler, kaydedince })
 		}

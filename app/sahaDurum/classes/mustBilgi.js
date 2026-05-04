@@ -30,13 +30,14 @@ class MustBilgi extends CObject {
 		}
 	}
 	kapanmayanHesap_yaslandirmaOlustur(e) {
-		let {kademeler} = this.class
+		let { kod: mustKod, class: { kademeler } } = this
 		let yaslandirmalar = this.yaslandirmalar ??= []
-		let kapanmayanHesaplar = this[MQKapanmayanHesaplar.dataKey] || []
-		let cariEkstreler = this[MQCariEkstre.dataKey] || []
+		let kapanmayanHesaplar = this[MQKapanmayanHesaplar.dataKey] ?? []
+		let cariEkstreler = this[MQCariEkstre.dataKey] ?? []
+		
 		kademeler.forEach((_, index) =>
 			yaslandirmalar[index] = new Yaslandirma({ index, gecmis: 0, gelecek: 0 }))
-		let {kod: mustKod} = this
+		
 		// if (mustKod == 'M05D47577') { debugger }
 		for (let rec of kapanmayanHesaplar) {
 			let {isaretligecikmegun: isaretliGecikmeGun} = rec
@@ -46,16 +47,16 @@ class MustBilgi extends CObject {
 				if (isDate(isaretliGecikmeGun))
 					isaretliGecikmeGun = ((isaretliGecikmeGun - minDate) / Date_OneDayNum) + 1
 				rec.gecikmegun = rec.gelecekgun = 0
-				{
+				;{
 					let selector = isaretliGecikmeGun < 0 ? 'gelecekgun' : 'gecikmegun'
-					rec[selector] += Math.abs(isaretliGecikmeGun)
+					rec[selector] += abs(isaretliGecikmeGun)
 				}
 				delete rec.isaretligecikmegun
 			}
-			let {gecikmegun: gecikmeGun, gelecekgun: gelecekGun} = rec
+			let { gecikmegun: gecikmeGun, gelecekgun: gelecekGun } = rec
 			let index = this.class.getGunIcinKademeIndex(gecikmeGun || gelecekGun)
 			let yaslandirma = yaslandirmalar[index]
-			{
+			;{
 				let selector = gelecekGun ? 'gelecek' : 'gecmis'
 				yaslandirma[selector] = (yaslandirma[selector] || 0) + acikKisim
 			}
@@ -67,7 +68,7 @@ class MustBilgi extends CObject {
 		if (cariEkstreler) {
 			let { bakiye } = this
 			let ekstreToplam = roundToFra2(topla(
-				r => r.bedel ?? (r.borcbedel - r.alacakbedel),
+				r => ( r.bedel ?? (r.borcbedel - r.alacakbedel) ) || 0,
 				cariEkstreler
 			))
 			if (bakiye != ekstreToplam) {
@@ -77,7 +78,7 @@ class MustBilgi extends CObject {
 		}
 	}
 	static getGunIcinKademeIndex(gun) {
-		let {kademeler} = this
+		let { kademeler } = this
 		for (let i = kademeler.length - 1; i >= 0; i--) {
 			let kademe = kademeler[i]
 			if (gun > kademe)
@@ -86,10 +87,11 @@ class MustBilgi extends CObject {
 		return 0
 	}
 	static getKademeText(index) {
-		let {kademeler, kademeEk} = this
+		let { kademeler, kademeEk } = this
 		let kademe = kademeler[index]
 		if (index == kademeler.length - 1)
 			return 'Sonrası'
+		
 		let _kademeBS = new CBasiSonu({ basi: kademe ? kademe + 1 : 0, sonu: kademeler[index + 1] })
 		if (kademeEk) {
 			for (let key in _kademeBS)
@@ -101,18 +103,20 @@ class MustBilgi extends CObject {
 		return this.yaslandirmalar[i]?.gecmis || 0
 	}
 }
+
 class Yaslandirma extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get bedel() { return (this.gecmis || 0) + (this.gelecek || 0) }
-	get kademe() { return MustBilgi.kademeler[this.index] }
+	get kademe() { return MustBilgi.kademeler[this.index] || 0 }
 	get kademeText() {
-		let {_kademeText: result} = this
+		let { _kademeText: result } = this
 		if (result === undefined)
 			result = this._kademeText = MustBilgi.getKademeText(this.index)
 		return result
 	}
+	
 	constructor(e = {}) {
 		super(e)
-		$.extend(this, e)
+		extend(this, e)
 	}
 }

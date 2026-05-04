@@ -57,6 +57,21 @@ class TabTicariDetay extends TabTSDetay {
 		this.bedel = bedel = roundToBedelFra(bedel)
 		return this
 	}
+
+	async dokumGetValue({ tip, key } = {}) {
+		let e = arguments[0]
+		switch (key) {
+			case 'fiyat':
+				return fiyatToString(this.fiyat)
+			case 'netFiyat':
+				return fiyatToString(this.netFiyat || this.fiyat)
+			case 'kdvOrani':
+				return '%' + numberToString(this.kdvOrani)
+			case 'kdv':
+				return bedelToString(this.kdv)
+		}
+		return null
+	}
 	
 	getHTML(e) {
 		let _ = super.super_getHTML(e) ?? ''
@@ -89,7 +104,7 @@ class TabTicariDetay extends TabTSDetay {
 		return [
 			_,
 			`<div class="full-width">`,
-				`<div class="asil flex-row float-left" style="gap: 0 10px">`,
+				`<div class="asil flex-row float-left" style="gap: 5px 10px">`,
 					`<div class="stokAdi">${stokAdi}</div>`,
 					`<div class="stokKod orangered">${stokKod}</div>`,
 					(stokKod == barkod ? null : `<div class="barkod bold float-right">${barkod}</div>`),
@@ -101,7 +116,7 @@ class TabTicariDetay extends TabTSDetay {
 						`</div>`
 					] : []),
 				`</div>`,
-				`<div class="miktarFiyat ek-bilgi float-right" style="gap: 0 10px">`,
+				`<div class="miktarFiyat ek-bilgi float-right" style="gap: 5px 10px">`,
 					`<button class="miktar bold forestgreen" onclick="app.activeWndPart.inst.satirMiktarEditIstendi({ target: this })">${miktar} ${brm}</button>`,
 					/*`<span class="miktar">`,
 						`<input class="bold forestgreen right" type="number" value="${miktar}" style="width: 50px"/>`,

@@ -2,10 +2,24 @@ class TabDokumDevice_Console extends TabDokumDevice {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kod() { return 'CON' } static get aciklama() { return 'Browser Console' }
 	static get question() { return 'consolemu' }
-	
+
+	async open(e) {
+		let res = await super.open(e)
+		console.group('Doküm:', e)
+		return res
+	}
+	async close(e) {
+		let res = await super.close(e)
+		console.groupEnd()
+		return res
+	}
 	async writeChunk(str) {
 		await super.writeChunk(str)
-		console.info('|', str)
+		if (!str)
+			return this
+		
+		;str.split('\n').forEach((l, i) =>
+			console.info(`${sifirlaDoldur(i + 1, 3)} `, '|', l, '|'))
 		return this
 	}
 }
@@ -28,7 +42,7 @@ class TabDokumDevice_Ekran extends TabDokumDevice {
 	}
 	async writeChunk(str) {
 		await super.writeChunk(str)
-		let {part: { txtData: input } = {}} = this
+		let { txtData: input } = this.part ?? {}
 		this.data ??= ''
 		if (str) {
 			let data = this.data += str
@@ -38,7 +52,7 @@ class TabDokumDevice_Ekran extends TabDokumDevice {
 		return this
 	}
 	async show(e = {}) {
-		let {part} = this
+		let { part } = this
 		if (!part || part.isDestroyed) {
 			let HeaderHeight = 60
 			let rfb = new RootFormBuilder()
@@ -47,11 +61,25 @@ class TabDokumDevice_Ekran extends TabDokumDevice {
 			rfb
 				.addStyle(
 					`$elementCSS [data-builder-id = 'data'] > :not(label) {
-						font-family: Monospace, Courier New; font-size: 95%;
-						padding: 5px 10px
+						font-family: Consolas, "Courier New", monospace !important;
+						font-size: 13pt !important;
+						font-weight: bold !important;
+						letter-spacing: 1px;
+						line-height: 13px !important;
+						color: forestgreen !important;
+						padding: 8px !important;
+						background-size: 10px 13px !important;
+						background-position: 6px 8px !important;
+						background-image: linear-gradient(to right, rgba(0, 0, 250, .007) 1px, transparent 1px),
+												linear-gradient(to bottom, rgba(0, 255, 100, .02) 1px, transparent 1px);
+						white-space: pre !important;
+						overflow: auto !important
 					}
 					body:not(.dark-theme) $elementCSS [data-builder-id = 'data'] > :not(label) {
-						color: forestgreen !important; background-color: #333 !important
+						background-color: #010101 !important
+					}
+					body.dark-theme $elementCSS [data-builder-id = 'data'] > :not(label) {
+						background-color: #fefefe !important
 					}`
 				)
 				.onAfterRun(({ builder: { part } }) =>
@@ -61,13 +89,15 @@ class TabDokumDevice_Ekran extends TabDokumDevice {
 				.addStyle_fullWH(null, HeaderHeight)
 				.setId2Handler({
 					yazdir: async () => {
-						let device = this, { data, part, yazdirIslemi } = this
+						let device = this
+						let { data, part, yazdirIslemi } = this
 						if (!data)
 							return false
-						yazdirIslemi ??= ({ device, data }) => {
-							TabDokumDevice.newDefault(device)
-						}
-						let result = await yazdirIslemi?.call(this, { ...e, device, data })
+						
+						yazdirIslemi ??= ({ device, data }) =>
+							void(TabDokumDevice.newDefault(device))    // no return
+						
+						let result = await yazdirIslemi?.call(this, { ...e, device, data, readOnly: true })
 						if (!result)
 							return false
 						
@@ -75,6 +105,7 @@ class TabDokumDevice_Ekran extends TabDokumDevice {
 							part?.close()
 							$('body').removeClass('bg-modal')
 						}, 100)
+						
 						return true
 					},
 					vazgec: () => {

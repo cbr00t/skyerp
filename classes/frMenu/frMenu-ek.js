@@ -58,15 +58,25 @@ class FRMenuItem extends CObject {
 			let result = filter2Uygunmu[filterText]; if (result !== undefined) { return result }
 			let {id, text} = this; let {mneText} = this; let uygunmu = true;
 			if (mneText) { mneText = mneText.toLocaleUpperCase(culture).trim() }
-			if (mneText && mneText.endsWith('-')) { mneText = mneText.slice(0, -1) }
-			for (let part of filter) {
-				if (!part) { continue } if (part.endsWith('-')) { part = part.slice(0, -1) }
-				let partUpper = part.toUpperCase(), partTRUpper = part.toLocaleUpperCase(culture);
-				let _uygunmu = (id == part) || (mneText.startsWith(part)) || (mneText.startsWith(partTRUpper));
-				if (!_uygunmu) { _uygunmu = (text.toUpperCase().includes(partUpper)) || (text.toLocaleUpperCase(culture).includes(partTRUpper)) }
-				if (!_uygunmu) { uygunmu = false; break }
+			mneText ??= ''
+			if (mneText && mneText.endsWith('-'))
+				mneText = mneText.slice(0, -1)
+			for (let token of filter) {
+				if (!token)
+					continue
+				if (token.endsWith('-'))
+					token = token.slice(0, -1)
+				let tokenUpper = token.toUpperCase(), tokenTRUpper = token.toLocaleUpperCase(culture)
+				let _uygunmu = (id == token) || (mneText.startsWith(token)) || (mneText.startsWith(tokenTRUpper))
+				if (!_uygunmu)
+					_uygunmu = (text.toUpperCase().includes(tokenUpper)) || (text.toLocaleUpperCase(culture).includes(tokenTRUpper))
+				if (!_uygunmu) {
+					uygunmu = false
+					break
+				}
 			}
-			filter2Uygunmu[filterText] = uygunmu; return uygunmu
+			filter2Uygunmu[filterText] = uygunmu
+			return uygunmu
 		}
 		return true
 	}

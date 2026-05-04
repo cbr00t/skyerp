@@ -632,6 +632,15 @@ class MQTabletParam extends MQTicariParamBase {
 	constructor(e = {}) {
 		super(e)
 		extend(this, { iskMaxSayi: e.iskMaxSayi ?? 3 })
+		;{
+			let _keys = [
+				'rotaDisiMusteriAlinirmi', 'ssMusteriBakiye', 'depoMusteriDurumu',
+				'yazdirilanTahsilatDegistirilir', 'depoBedelGorur',
+				'ertesiGunSiparisTeslimFisidir'
+			]
+			_keys.forEach(k =>
+				this[k] ??= true)
+		}
 	}
 	static paramYapiDuzenle({ paramci }) {
 		super.paramYapiDuzenle(...arguments)
@@ -647,6 +656,7 @@ class MQTabletParam extends MQTicariParamBase {
 			form.addBool('sutToplama', 'Süt Toplama')
 			form.addBool('eIslem', 'e-İşlem')
 			form.addNumber('iskMaxSayi', 'İsk. Max Sayı')
+			form.addBool('sogukSipBakiyeEtkiler', 'Soğuk Sipariş Bakiye Etkilenir')
 			form.addAltObject('dokumFormlar')
 			form.addAltObject('numYapilar')
 		}

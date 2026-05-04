@@ -7,7 +7,8 @@ class TabDokumForm extends MQKA {
 		return [
 			'nakil', 'darDokum', 'dipYok', 'kolonBaslik', 'sayfaBoyut',
 			'dipX', 'otoYBasiSonu', 'tekDetaySatirSayisi',
-			'sabit', 'detay', 'oto', '_comment'
+			'sabit', 'detay', 'oto', '_comment',
+			'dipX', 'dipEtiketWidth', 'dipVeriWidth'
 		]
 	}
 	constructor(e = {}) {
@@ -36,8 +37,9 @@ class TabDokumForm extends MQKA {
 	}
 	setValues({ rec }) {
 		super.setValues(...arguments)
-		let {ioKeys} = this.class
+		let { ioKeys } = this.class
 		this.tekDetaySatirSayisi ||= 1
+		this.dipEtiketWidth ||= 20
 		;['nakil', 'darDokum', 'dipYok', 'kolonBaslik'].forEach(k =>
 			this[k] ??= false)
 		;['sayfaBoyut', 'otoYBasiSonu'].forEach(k =>
@@ -63,9 +65,14 @@ class TabDokumForm extends MQKA {
 	async dataDuzenle(e = {}) {
 		let { inst = {} } = e
 		let { dokumDetaylar = [] } = inst
-		let { kolonBaslik, tekDetaySatirSayisi, dipYok, sayfaBoyut: { x: maxX, y: maxY } = {} } = this
+		let { kolonBaslik, tekDetaySatirSayisi, dipYok, sayfaBoyut = {}, otoYBasiSonu = {} } = this
+		let { x: maxX, y: maxY } = sayfaBoyut
+		let { x: detBasi, y: detSonu } = otoYBasiSonu
 		let { sabit, detay: detSahalar, oto } = this
-		maxX ??= 0; maxY ??= 0; tekDetaySatirSayisi ??= 1
+		let { dipX, dipEtiketWidth, dipVeriWidth } = this
+		maxX ??= 0; maxY ??= 0
+		detBasi ??= 0; detSonu ??= 0
+		tekDetaySatirSayisi ??= 1
 		sabit ??= []; detSahalar ??= []; oto ??= []
 		let y2Sabitler = {}, y2DetaySahalar = {}
 		let curY = 1
@@ -76,70 +83,126 @@ class TabDokumForm extends MQKA {
 				- yoksa =>
 					- (curY + 1)'e yazılır (son kaldığı yerin +1 sonrasına)
 			*/
-			if (s.y)
-				curY = Math.max(curY, s.y)
-			let y = s.y || ++curY
+			let { y } = s, otoPos = !y
+			y = max(y, curY)
+			if (otoPos)
+				curY++
+			maxY = max(maxY, y, curY)
 			;(y2Sabitler[y] ??= []).push(s)
 		}
-		for (let s of detSahalar)
-			(y2DetaySahalar[s.y || 1] ??= []).push(s)
-		
+
+		let key2DetSahalar = {}
+		for (let s of detSahalar) {
+			let { key: k, y } = s
+			;(y2DetaySahalar[y || 1] ??= []).push(s)
+			key2DetSahalar[k] = s
+		}
+		maxY = max(maxY, curY, detSonu, detSahalar.length * tekDetaySatirSayisi)
+
 		let _e = { ...e, form: this, fis: inst }
-		let data = maxY ? new Array(maxY).fill(null) : []
-		curY = 1
-		
+		let data = _e.data = maxY ? new Array(maxY).fill(null) : []
+
 		// sabitler
 		_e.tip = 'sabit'
+		curY = 1
 		for (let [y, arr] of entries(y2Sabitler)) {
 			arr = arr.filter(s => s.uygunmu)
 			if (empty(arr))
 				continue
 			_e.chars = data[y - 1] ??= new Array(maxX).fill(' ')
+			_e.curY = curY
 			for (let s of arr)
 				await s.satirDuzenle(_e)
-			curY = Math.max(curY, y)
+			curY = _e.curY = max(curY, y)
 		}
 
+		curY = detBasi || curY
+		let sortedDetYKeys = keys(y2DetaySahalar)
+			.map(Number)
+			.filter(y => y <= tekDetaySatirSayisi)
+			.sort()
+	
+		// kolon başlıklar
 		if (kolonBaslik) {
 			_e.tip = 'cols'
-			// ...
-			curY += 2
+			;{
+				for (let y of sortedDetYKeys) {
+					let arr = y2DetaySahalar[y]?.filter(s => s.uygunmu)
+					if (empty(arr))
+						continue
+					let relY = _e.relY = curY + y
+					_e.curY = curY
+					_e.chars = data[relY - 1] ??= new Array(maxX).fill(' ')
+					for (let s of arr)
+						await s.satirDuzenle(_e)
+				}
+				curY += tekDetaySatirSayisi
+			}
+			;{
+				curY++
+				for (let y of sortedDetYKeys) {
+					let arr = y2DetaySahalar[y]?.filter(s => s.uygunmu)
+					if (empty(arr))
+						continue
+					let relY = _e.relY = curY  // + y
+					_e.curY = curY
+					_e.chars = data[relY - 1] ??= new Array(maxX).fill(' ')
+					for (let s of arr) {
+						_e.text = '-'.repeat(s.length)
+						await s.satirDuzenle(_e)
+					}
+					delete _e.text
+				}
+			}
 		}
 
-		// detay yBas -> ySon tanım olabilir veya kaldığı yerden
+		// detaylar
+		// detay yBas -> ySon tanım olabilir veya kaldığı yerden devam eder
 		_e.tip = 'detay'
 		for (let det of dokumDetaylar) {
 			_e.inst = det
-			for (let y of keys(y2DetaySahalar).map(Number).sort()) {
-				// y = asInteger(y)
-				if (y > tekDetaySatirSayisi)
-					break
+			for (let y of sortedDetYKeys) {
 				let arr = y2DetaySahalar[y].filter(s => s.uygunmu)
 				if (empty(arr))
 					continue
-				let relY = curY + y
+				let relY = _e.relY = curY + y
+				_e.curY = curY
 				_e.chars = data[relY - 1] ??= new Array(maxX).fill(' ')
 				for (let s of arr)
 					await s.satirDuzenle(_e)
 			}
 			curY += tekDetaySatirSayisi
 		}
+		deleteKeys(_e, 'inst', 'relY')
+		curY = detSonu || curY
 
-		_e.inst = inst
-		if (!dipYok) {
-			_e.tip = 'dip'
-			// ...
+		if (!dipYok || !(dipX && dipVeriWidth)) {
+			let bedelKeys = ['netBedel', 'bedel', 'brutBedel', 'topBedel']
+			for (let k of bedelKeys) {
+				let { x, length: w } = key2DetSahalar[k] ?? {}
+				if (x) {
+					dipX ||= this.dipX = x
+					dipVeriWidth ||= this.dipVeriWidth ||= ( w || 15 )
+					break
+				}
+			}
 		}
-
-		// maxY varsa sondan ...
-		curY++
-		_e.tip = 'oto'
+		// curY++
+		extend(_e, { inst, tip: 'oto', dipX, dipEtiketWidth, dipVeriWidth })
 		for (let s of oto) {
 			if (!s.uygunmu)
 				continue
+			let { key } = s
+			if (key == 'dip') {
+				if (dipYok)
+					continue
+				if (dipX)
+					s.x = dipX
+			}
 			_e.chars = data[curY - 1] ??= new Array(maxX).fill(' ')
+			_e.curY = curY
 			await s.satirDuzenle(_e)
-			curY++
+			curY = _e.curY = _e.curY + 1
 		}
 
 		for (let chars of data) {

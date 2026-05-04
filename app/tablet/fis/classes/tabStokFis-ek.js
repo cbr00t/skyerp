@@ -10,13 +10,18 @@ class TabTransferFis extends TabStokFis {
 	static get kodListeTipi() { return 'TRF' } static get sinifAdi() { return 'Transfer' }
 	static get onlineFisSinif() { return StokTransferFis }
 	static get transfermi() { return true }
+	static get refYerKullanilirmi() { return true }
 
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
-		$.extend(pTanim, { refYerKod: new PInstStr('refyerkod') })
+		extend(pTanim, { refYerKod: new PInstStr('refyerkod') })
+	}
+	async onlineFisDuzenle({ rec, oFis }) {
+		await super.onlineFisDuzenle(...arguments)
+		mergeIntoIfExists(this, oFis, 'refYerKod')
 	}
 	async dataDuzgunmuDuzenle({ eskiInst: eskiFis, parentPart, gridPart, result }) {
-		let {refYerKod} = this
+		let { refYerKod } = this
 		if (refYerKod && !await MQTabYer.kodVarmi(refYerKod))
 			result.push(`<b>Ref.Yer (Depo) [<span class=firebrick>${refYerKod}</span>]</b> hatalıdır`)
 		return await super.dataDuzgunmuDuzenle(...arguments)
@@ -27,8 +32,8 @@ class TabTransferFis extends TabStokFis {
 	static async rootFormBuilderDuzenle_tablet_acc_baslik({ sender: tanimPart, inst: fis, rfb }) {
 		let e = arguments[0]
 		await super.rootFormBuilderDuzenle_tablet_acc_baslik(e)
-		{
-			let mfSinif = MQTabYer, {sinifAdi: etiket} = mfSinif
+		if (this.refYerKullanilirmi) {
+			let mfSinif = MQTabYer, { sinifAdi: etiket } = mfSinif
 			etiket = `Ref. ${etiket}`
 			let form = rfb.addFormWithParent().altAlta()
 			form.addSimpleComboBox('refYerKod', etiket, etiket)

@@ -21,7 +21,7 @@ class TabDetay extends MQDetay {
 
 	constructor(e = {}) {
 		super(e)
-		let {class: { io2RowAttr }} = this
+		let  {class: { io2RowAttr } } = this
 		for (let k of keys(io2RowAttr)) {
 			let v = e[k]
 			//if (v !== undefined)
@@ -99,13 +99,14 @@ class TabDetay extends MQDetay {
 			case 'stokText':
 				return new CKodVeAdi(this.stokKod, await MQTabStok.getGloKod2Adi(this.stokKod)).parantezliOzet()
 			case 'miktar':
-				return this.miktar
-			case 'fiyat':
-				return this.fiyat
+				return this.miktar ?? null
 			case 'bedel':
-				return this.bedel
-			case 'netBedel':
-				return this.netBedel
+				return this.bedel ? bedelToString(this.bedel) : null
+			case 'netBedel': {
+				let { netBedel } = this
+				netBedel ||= this.bedel
+				return netBedel ? bedelToString(netBedel) : null
+			}
 		}
 		return null
 	}

@@ -4,5 +4,5 @@ class TabStokFis extends TabTSFis {
 	static get kodListeTipi() { return 'TABSTOK' } static get sinifAdi() { return 'Stok' }
 	static get detaySinif() { return TabStokDetay } static get mustZorunlumu() { return false }
 	static get stokmu() { return true }
-	// static get onlineFisSinif() { return StokTransferFis }
+	static get mustKullanilirmi() { return false }
 }

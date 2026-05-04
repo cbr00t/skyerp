@@ -1,13 +1,15 @@
 class OnayciApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this }
+	get ntfyDefTopic() { return 'onayci' }
 	get autoExecMenuId() { return 'ONAYCI' }
+
 	paramsDuzenle({ params }) {
 		super.paramsDuzenle(...arguments)
 		// $.extend(params, {  })
 	}
 	async anaMenuOlustur(e) {
 		try {
-			let {yetkiVarmi, dbName} = config.session ?? {}
+			let { yetkiVarmi, dbName } = config.session ?? {}
 			if (!yetkiVarmi) {
 				this.noMenuFlag = true
 				let wnd = createJQXWindow({

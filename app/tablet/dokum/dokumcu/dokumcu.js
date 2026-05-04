@@ -12,7 +12,7 @@ class TabDokumcu extends CObject {
 		extend(this, { orjDevice, device: orjDevice, yontem, dokumEkranami })
 	}
 	async yazdir(e = {}) {
-		let {orjDevice, device, yontem, dokumEkranami = e.dokumEkrana} = e
+		let { orjDevice, device, yontem, dokumEkranami = e.dokumEkrana } = e
 		device ??= this.device
 		orjDevice ??= device
 		yontem ??= this.yontem
@@ -37,15 +37,18 @@ class TabDokumcu extends CObject {
 		finally { await device.close(e) }
 		return this
 	}
-	async _yazdir({ device, yontem, source, data, prefix, postfix, count }) {
+	async _yazdir({ device, yontem, source, data, prefix, postfix, count, readOnly }) {
 		source ??= this.source
 		data ??= this.data ?? []
+	
 		let e = { ...arguments[0], data }
-		data = e.data = source?.dataDuzenle
-			? await source.dataDuzenle(e)
-			: isFunction(source)
-				? await source.call(this, e)
-				: source
+		if (!readOnly || empty(data)) {
+			data = e.data = source?.dataDuzenle
+				? await source.dataDuzenle(e)
+				: isFunction(source)
+					? await source.call(this, e)
+					: source
+		}
 		
 		// data: string / string[] / TabDokumForm
 		data = e.data = makeArray(data)
@@ -55,7 +58,7 @@ class TabDokumcu extends CObject {
 		data = data.map(l =>
 			l?.join?.('') ?? l ?? '')
 
-		let {tablet} = app.params
+		let { tablet } = app.params
 		count ??= this.nushaSayi ?? tablet.dokumNushaSayi
 		count ||= 1
 		prefix ??= this.prefix ?? tablet.dokumPrefix

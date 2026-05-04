@@ -59,27 +59,26 @@ class MQKapanmayanHesaplar extends MQMasterOrtak {
 			changeTagContent(html, dateToString(asDate(value)) ?? '')
 		let { cariHareketTakipNo } = app.params.tablet
 		liste.push(...[
-			new GridKolon({ belirtec: 'isladi', text: 'İşlem Adı', maxWidth: 40 * katSayi_ch2Px, filterType: 'checkedlist' }),
-			new GridKolon({ belirtec: 'belgeNox', text: 'Belge Seri/No', genislikCh: 20, filterType: 'input' }),
+			new GridKolon({ belirtec: 'isladi', text: 'İşlem Adı', maxWidth: 40 * katSayi_ch2Px }).checkedList(),
+			new GridKolon({ belirtec: 'belgeNox', text: 'Belge Seri/No', genislikCh: 20 }).input(),
 			new GridKolon({
 				belirtec: 'tarih', text: 'Tarih', genislikCh: 12, agggregates: [],
 				cellsRenderer: (...args) => tarihGosterim(...args)
-			}).tipDate(),
+			}).tipDate().checkedList(),
 			new GridKolon({
 				belirtec: 'vade', text: 'Vade', genislikCh: 12, agggregates: [],
 				cellsRenderer: (...args) => tarihGosterim(...args)
-			}).tipDate(),
+			}).tipDate().input(),
 			new GridKolon({
 				belirtec: 'bedel', text: 'Orj. Bedel', genislikCh: 15,
 				aggregates: [{ TOPLAM: gridDipIslem_sum }]
-			}).tipDecimal_bedel(),
+			}).tipDecimal_bedel().sum().checkedList(),
 			new GridKolon({
 				belirtec: 'acikkisim', text: 'Açık Kısım', genislikCh: 15, cellClassName: 'bold',
-				aggregates: [{ TOPLAM: gridDipIslem_sum }]
-			}).tipDecimal_bedel(),
-			new GridKolon({ belirtec: 'gecikmegun', text: 'Gecikme', genislikCh: 8 }).tipDecimal(),
-			new GridKolon({ belirtec: 'gelecekgun', text: 'Gel.Gün', genislikCh: 8 }).tipDecimal(),
-			( cariHareketTakipNo ? new GridKolon({ belirtec: 'takiptext', text: 'Takip', genislikCh: 45, filterType: 'checkedlist' }) : null )
+			}).tipDecimal_bedel().sum().checkedList(),
+			new GridKolon({ belirtec: 'gecikmegun', text: 'Gecikme', genislikCh: 8 }).tipDecimal().checkedList(),
+			new GridKolon({ belirtec: 'gelecekgun', text: 'Gel.Gün', genislikCh: 8 }).tipDecimal().checkedList(),
+			( cariHareketTakipNo ? new GridKolon({ belirtec: 'takiptext', text: 'Takip', genislikCh: 45 }).checkedList() : null )
 		].filter(Boolean))
 	}
 	static orjBaslikListesi_gridInit({ gridPart, grid }) {
@@ -345,15 +344,15 @@ class MQCariEkstre extends MQMasterOrtak {
 		let { cariHareketTakipNo } = app.params.tablet
 		liste.push(...[
 			/*new GridKolon({ belirtec: 'must', text: 'Müşteri', genislikCh: 16 }),*/
-			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 11, cellsRenderer: (...args) => tarihGosterim(...args) }).tipDate(),
-			new GridKolon({ belirtec: 'fisnox', text: 'Belge Seri/No', genislikCh: 18 }),
-			new GridKolon({ belirtec: 'isladi', text: 'İşlem Adı', genislikCh: 15 }),
-			new GridKolon({ belirtec: 'sonuciskoran', text: 'İsk%', genislikCh: 6, aggregates: [{ ORT: gridDipIslem_avg }] }).tipDecimal(),
-			new GridKolon({ belirtec: 'borcbedel', text: 'Borç Bedel.', genislikCh: 13, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel(),
-			new GridKolon({ belirtec: 'alacakbedel', text: 'Alacak Bedel.', genislikCh: 13, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel(),
-			// new GridKolon({ belirtec: 'bedel', text: 'İşr. Bedel.', genislikCh: 13, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal_bedel(),
-			new GridKolon({ belirtec: 'bakiye', text: 'Bakiye', genislikCh: 17 }).tipDecimal_bedel(),
-			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 9, aggregates: [{ TOPLAM: gridDipIslem_sum }] }).tipDecimal(),
+			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 11, cellsRenderer: (...args) => tarihGosterim(...args) }).tipDate().checkedList(),
+			new GridKolon({ belirtec: 'fisnox', text: 'Belge Seri/No', genislikCh: 18 }).input(),
+			new GridKolon({ belirtec: 'isladi', text: 'İşlem Adı', genislikCh: 18 }).checkedList(),
+				new GridKolon({ belirtec: 'sonuciskoran', text: 'İsk%', genislikCh: 6 }).tipDecimal().avg().checkedList(),
+			new GridKolon({ belirtec: 'borcbedel', text: 'Borç Bedel.', genislikCh: 13 }).tipDecimal_bedel().sum().checkedList(),
+			new GridKolon({ belirtec: 'alacakbedel', text: 'Alacak Bedel.', genislikCh: 13 }).tipDecimal_bedel().sum().checkedList(),
+			// new GridKolon({ belirtec: 'bedel', text: 'İşr. Bedel.', genislikCh: 13 }).tipDecimal_bedel().sum(),
+			new GridKolon({ belirtec: 'bakiye', text: 'Bakiye', genislikCh: 17 }).tipDecimal_bedel().checkedList(),
+			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 9 }).tipDecimal().sum(),
 			new GridKolon({ belirtec: 'brm', text: 'Brm', genislikCh: 5, filterType: 'checkedlist' }),
 			( cariHareketTakipNo ? new GridKolon({ belirtec: 'takiptext', text: 'Takip No', filterType: 'checkedlist' }) : null )
 		].filter(Boolean))

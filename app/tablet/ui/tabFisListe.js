@@ -69,12 +69,12 @@ class TabFisListe extends TabFisListeOrtak {
 		await super.gridVeriYuklendi(e)
 		let { sender: gridPart } = e
 		let { boundRecs: recs, selectedRec: rec, selectedUid, gridWidget: w } = gridPart
-		let { rotaID, belirtec2Kolon } = gridPart
+		let { rotaID, belirtec2Kolon, ustBilgiForm } = gridPart
 		if (rotaID && belirtec2Kolon.rotaText) {
 			try { w.hidecolumn('rotaText') }
 			catch (ex) {}
 		}
-		setTimeout(() => {
+		setTimeout(async () => {
 			let { groups } = w
 			//try { w[groups.includes('rotaText') ? 'showcolumn' : 'hidecolumn']('rotaText') }
 			//catch (ex) { }
@@ -89,6 +89,23 @@ class TabFisListe extends TabFisListeOrtak {
 					w.ensurerowvisible(ind)
 				}
 			}
+
+			if (ustBilgiForm) {
+				let html = await this.getUstBilgiHTML({ ...e, gridPart })
+				if (html?.html) {
+					if (html.children().length) {
+						ustBilgiForm.children.remove()
+						ustBilgiForm.removeClass('jqx-hidden basic-hidden')
+						html.appendTo(ustBilgiForm)
+					}
+				}
+				else if (html) {
+					ustBilgiForm.removeClass('jqx-hidden basic-hidden')
+					ustBilgiForm.html(html)
+				}
+				else
+					ustBilgiForm.addClass('jqx-hidden')
+			}
 		}, 10)
 	}
 	
@@ -102,27 +119,13 @@ class TabFisListe extends TabFisListeOrtak {
 				.addStyle_fullWH(null, 35)
 				.addCSS('jqx-hidden')
 				.addStyle(...[
-					`$elementCSS { font-size: 110%; padding: 15px 5px !important; overflow-y: auto !important }
+					`$elementCSS { font-size: 95%; padding: 13px 10px !important; overflow-y: auto !important }
 					 $elementCSS > .item > div { gap: 10px; line-height: 10px }`
 				])
-				.setLayout(({ builder: fbd }) => {
-					let { id } = fbd
-					let result = $(`<div class="${id}"></div>`)
-					;(async () => {
-						let html = await this.getUstBilgiHTML({ ...e, gridPart, rfb, fbd })
-						if (html?.html) {
-							if (html.children().length) {
-								ustBilgiForm.layout.removeClass('jqx-hidden basic-hidden')
-								html.appendTo(result)
-							}
-						}
-						else if (html) {
-							ustBilgiForm.layout.removeClass('jqx-hidden basic-hidden')
-							result.html(html)
-						}
-					})()
-					return result
-				})
+				.setLayout(({ builder: { id } }) => 
+					$(`<div class="${id}"></div>`))
+				.onAfterRun( ({ builder: { layout } }) =>
+					gridPart.ustBilgiForm = layout)
 		}
 	}
 	static async getUstBilgiHTML(e = {}) {
@@ -130,8 +133,8 @@ class TabFisListe extends TabFisListeOrtak {
 		let { mustKod } = gridPart
 		let { params: { tablet }, depomu, sutAlimmi } = app
 		sutAlimmi ||= tablet.sutToplama
+		
 		let bakiyeGosterim = tablet[`${depomu ? 'depo' : 'ss'}MusteriBakiye`] != false
-
 		let mustRec = mustKod ? (
 			(await MQTabCari.getGloKod2Rec())?.[mustKod] ??
 			( sutAlimmi ? (await MQTabMustahsil.getGloKod2Rec())?.[mustKod] : null )
@@ -140,12 +143,16 @@ class TabFisListe extends TabFisListeOrtak {
 		// await super.getUstBilgiHTML(...arguments)
 		let result = []
 		if (mustRec) {
-			let { aciklama: unvan, yore, iladi: ilAdi } = mustRec
+			let { aciklama: unvan = '', yore, iladi: ilAdi } = mustRec
 			let { sahismi, vnumara: vkn, tckimlikno: tckn } = mustRec
 			let vkno = sahismi ? tckn : vkn
-			let { [mustKod]: { bakiye } = {} } = await MQTabMusDurum.getGloKod2Rec() ?? {}
-			let bakiyeRenk = bakiye ? ( bakiye ? 'orangered' : 'forestgreen' ) : '_'
-			unvan ??= ''
+
+			let { [mustKod]: mdr = {} } = await MQTabMusDurum.getGloKod2Rec() ?? {}
+			function getMDRRenk(value, ters) {
+				 return value
+						? ( ( ters ? -value : value ) < 0 ? 'orangered' : 'forestgreen' )
+						: '_'
+			}
 			
 			result.push(...[
 				`<div class="mustBilgi item">`,
@@ -163,10 +170,22 @@ class TabFisListe extends TabFisListeOrtak {
 								 `<span class="orangered bold">${vkno || ''}</span>` +
 							 `</div>`
 						: null ),
-						( bakiyeGosterim ?
+						( bakiyeGosterim && mdr.bakiye ?
 							`<div class="bakiye">` +
-								`<span class="bakiye etiket lightgray">Bak: </span>` +
-								`<span class="bakiye veri ${bakiyeRenk} bold">${bakiye ? `${bedelToString(bakiye)} TL` : '-Yok-'}</span>` +
+								`<span class="etiket lightgray">Bak: </span>` +
+								`<span class="veri ${getMDRRenk(mdr.bakiye, true)} bold">${mdr.bakiye ? `${bedelToString(mdr.bakiye)} TL` : '-Yok-'}</span>` +
+							`</div>`
+						: null ),
+						( bakiyeGosterim && mdr.kalanRisk ?
+							`<div class="kalanRisk">` +
+								`<span class="etiket lightgray">KR: </span>` +
+								`<span class="veri ${getMDRRenk(mdr.kalanRisk, false)} bold">${mdr.kalanRisk ? `${bedelToString(mdr.kalanRisk)} TL` : '-Yok-'}</span>` +
+							`</div>`
+						: null ),
+						( bakiyeGosterim && mdr.takipBorcu ?
+							`<div class="takipBorc">` +
+								`<span class="etiket lightgray">TKP: </span>` +
+								`<span class="veri ${getMDRRenk(mdr.takipBorcu, true)} bold">${mdr.takipBorcu ? `${bedelToString(mdr.takipBorcutakipBorcu)} TL` : '-Yok-'}</span>` +
 							`</div>`
 						: null ),
 					`</div>`,

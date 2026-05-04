@@ -5,3 +5,4 @@
 <script src="<?=$_partRoot?>/tabTahsilatFis.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/tabUgramaFis.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/tabSutAlimFis.js?<?=$appVersion?>"></script>
+<script src="<?=$_partRoot?>/tabDigerFis-ek.js?<?=$appVersion?>"></script>

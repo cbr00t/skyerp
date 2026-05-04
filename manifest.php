@@ -4,15 +4,32 @@
 	/* "display_override": ["fullscreen", "standalone", "window-controls-overlay"] */
 ?>
 {
-	"manifest_version": 3, "offline_enabled": true, "id": "<?=$appClass?>", "version": "<?=$appVersion?>",
-	"short_name": "<?=$appName?>", "name": "<?=$appName?>", "description": "<?=$appName?> Uygulaması",
-	"categories": ["business"], "display": "standalone", "display_override": ["standalone", "minimal-ui", "fullscreen"],
-	"launch_handler": { "client_mode": ["focus-existing", "auto"] },
-	"scope": "/skyerp", "start_url": "/skyerp<?=$startURL_postfix?>/", "orientation": "any",
+	"manifest_version": 3, "offline_enabled": true,
+	"id": "<?=$appClass?>",
+	"version": "<?=$appVersion?>",
+	"short_name": "<?=$appName?>",
+	"name": "<?=$appName?>", "description": "<?=$appName?> Uygulaması",
+	"categories": ["business"],
+	"display": "standalone",
+	"display_override": ["standalone", "fullscreen", "window-controls-overlay", "minimal-ui"],
+	"launch_handler": {
+		"client_mode": ["focus-existing", "auto"]
+	},
+	"scope": "/skyerp",
+	"start_url": "/skyerp<?=$startURL_postfix?>/",
+	"orientation": "any",
 	"scope_extensions": [],
-	"prefer_related_applications": false, "related_applications": [],
-	"background_color": "#3367D6", "theme_color": "#3367D6", "lang": "tr", "dir": "ltr",
-	"protocol_handlers": [{ "protocol": "web+erp", "url": "app/%s/" }],
+	"prefer_related_applications": false,
+	"related_applications": [],
+	"background_color": "#3367D6", "theme_color": "#3367D6",
+	"lang": "tr", "dir": "ltr",
+	"protocol_handlers": [
+		{ "protocol": "web+empty", "url": "../empty/?%s&" },
+		{ "protocol": "web+rapor", "url": "../rapor/?%s&" },
+		{ "protocol": "web+praRapor", "url": "../praRapor/?%s&" },
+		{ "protocol": "web+onayci", "url": "../onayci/?%s&" },
+		{ "protocol": "web+ticari", "url": "../ticari/?%s&" }
+	],
 	"bluetooth": { "socket": true, "uuids": ["00001101-0000-1000-8000-00805f9b34fb"] },
 	"icons": [
 	  { "src": "<?=$webRoot?>/images/logo_217x217.png", "type": "image/png", "sizes": "217x217" },

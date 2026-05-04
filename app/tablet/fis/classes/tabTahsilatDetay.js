@@ -27,6 +27,11 @@ class TabTahsilatDetay extends TabDetay {
 		$.extend(this, { tahSekliAdi })
 	}
 	async dokumGetValue({ tip, key } = {}) {
+		;{
+			let res = await super.dokumGetValue(...arguments)
+			if (res != null)
+				return res
+		}
 		let e = arguments[0]
 		switch (key) {
 			case 'tahSekliNo':

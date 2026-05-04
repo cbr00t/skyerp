@@ -34,7 +34,7 @@ class TabFisGirisPart extends ModelTanimPart {
 	async afterRun(e) {
 		await super.afterRun(e)
 		let sender = this, {mfSinif, inst, builder: rootBuilder, tanimFormBuiler, acc} = this
-		$.extend(e, { sender, mfSinif, inst, acc, rootBuilder, tanimFormBuiler })
+		extend(e, { sender, mfSinif, inst, acc, rootBuilder, tanimFormBuiler })
 		acc?.deferRedraw(async () =>
 			await mfSinif.rootFormBuilderDuzenle_tablet_acc?.(e))
 	}

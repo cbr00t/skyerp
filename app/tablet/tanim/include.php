@@ -1,5 +1,6 @@
 <?php $_partRoot = "$webRoot_tablet/tanim" ?>
 <script src="<?=$_partRoot?>/mqMaster.js?<?=$appVersion?>"></script>
+<script src="<?=$_partRoot?>/mqTabSubeParam.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqTabNum.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqStok.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqSonStok.js?<?=$appVersion?>"></script>

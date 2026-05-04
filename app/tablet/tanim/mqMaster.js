@@ -147,6 +147,19 @@ class MQTabYer extends MQKAOrtak {
 			)
 		)
 	}
+	static async loadServerDataDogrudan({ offlineRequest, offlineMode }) {
+		let recs = await super.loadServerDataDogrudan(...arguments)
+		if (recs == null)
+			return recs
+
+		let { yerKod } = app
+		if (yerKod && !recs.find(r => r.yerKod == yerKod)) {
+			let { subeKod: bizsubekod } = app
+			recs.push({ kod: yerKod, aciklama: 'Plasiyer Depo', aum: 'A', bizsubekod })
+		}
+		
+		return recs
+	}
 	static loadServerData_queryDuzenle_son({ sent, sent: { sahalar, where: wh }, offlineRequest, offlineMode, alias = this.tableAlias }) {
 		let e = arguments[0]
 		super.loadServerData_queryDuzenle_son(e)
@@ -154,10 +167,12 @@ class MQTabYer extends MQKAOrtak {
 		sahalar.addWithAlias(alias, 'aum')
 		if (offlineRequest && !offlineMode) {
 			// Bilgi Yükle
-			let {adminmi, sefmi, session: { subeKod } = {}} = config
+			let { adminmi, sefmi, session: { subeKod } = {} } = config
+			let { yerKod } = app
+			let yerKodInListe = ['', yerKod, 'A'].filter(_ => _ != null)
 			if (!(adminmi || sefmi) && subeKod)
 				wh.degerAta(subeKod, `${alias}.bizsubekod`)
-			wh.inDizi(['', 'A'], `${alias}.aum`)
+			wh.inDizi(yerKodInListe, `${alias}.aum`)
 		}
 	}
 	static getMFSinif_subeFiltreli(getter, uid) {

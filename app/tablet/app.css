@@ -30,20 +30,20 @@
 	--width-sag-ek: 20px
 }
 
-.jqx-grid [role = row] > div * { font-size: 95%; line-height: 14px }
+.jqx-grid [role = row] > div * { font-size: 95%; line-height: 13px }
 @media (max-width: 800px) {
 	.jqx-grid [role = row] > div * { line-height: 16px }
 }
 @media (max-width: 700px) {
-	body > * { font-size: 95% }
-	.jqx-grid [role = row] > div * { line-height: 14px }
+	body > * { font-size: 100% }
+	.jqx-grid [role = row] > div * { font-size: 100%; line-height: 14px }
 }
 @media (max-width: 600px) {
-	body > * { font-size: 90% }
+	body > * { font-size: 93% }
 	.jqx-grid [role = row] > div * { line-height: 13px }
 }
 @media (max-width: 500px) {
-	body > * { font-size: 85% }
-	.jqx-grid [role = row] > div * { line-height: 13px }
+	body > * { font-size: 90% }
+	.jqx-grid [role = row] > div * { line-height: 13px; font-size: 100% }
 }
 

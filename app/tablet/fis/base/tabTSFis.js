@@ -10,22 +10,26 @@ class TabTSFis extends TabFis {
 			placeholder: 'Yeni Satır eklemek için Barkod giriniz veya Ürün seçiniz'
 		}
 	}
+	static get yerKullanilirmi() { return true }
 
 	constructor(e = {}) {
 		super(e)
-		let {offlineBuildQuery} = e
+		let { offlineBuildQuery } = e
 		if (!offlineBuildQuery) {
-			['yerKod'].forEach(k => {
-				let bu = this[k], def = app[k]
-				if (!bu && def != null)
-					this[k] = bu = def
-			})
+			let { yerKod } = this
+			let { yerKod: defYerKod } = app
+			if (!(yerKod || defYerKod == null))
+				yerKod = this.yerKod = defYerKod
 		}
 	}
 	static pTanimDuzenle({ pTanim }) {
 		// MQOrtakFis.pTanimDuzenle(...arguments)
 		super.pTanimDuzenle(...arguments)
-		$.extend(pTanim, { yerKod: new PInstStr('yerkod') })
+		extend(pTanim, { yerKod: new PInstStr('yerkod') })
+	}
+	async onlineFisDuzenle({ rec, oFis }) {
+		await super.onlineFisDuzenle(...arguments)
+		mergeIntoIfExists(this, oFis, 'yerKod')
 	}
 	static async loadServerDataDogrudan({ offlineRequest, offlineMode } = {}) {
 		return await super.loadServerDataDogrudan(...arguments)
@@ -83,7 +87,7 @@ class TabTSFis extends TabFis {
 			w.beginupdate()
 			try {
 				for (let item of results) {
-					$.extend(item, { stokKod: item.shKod, stokAdi: item.shAdi })
+					extend(item, { stokKod: item.shKod, stokAdi: item.shAdi })
 					let det = new detaySinif(item)
 					await det.detayEkIslemler({ ...arguments, fis })
 					det.htmlOlustur?.()
@@ -143,36 +147,8 @@ class TabTSFis extends TabFis {
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_baslikCollapsed({ sender: tanimPart, inst: fis, rfb }) {
 		let { depomu, params: { tablet } } = app
-		let bakiyeGosterim = tablet[`${depomu ? 'depo' : 'ss'}MusteriBakiye`] != false
-		let { mustKod, dvKod, yerKod } = fis
-		let { dipIslemci = {}, detaylar: { length: topSatir } } = fis
-		let { brut, topIskBedel, topKdv, sonuc } = dipIslemci
-		let mustRec = ( mustKod ? (await MQTabCari.getGloKod2Rec())?.[mustKod] : null ) ?? {}
-		dvKod ||= 'TL'
+		let { yerKod } = fis
 		let layoutList = []
-		if (mustRec) {
-			let { [mustKod]: rec } = await MQTabMusDurum.getGloKod2Rec() ?? {}
-			let bakiye = rec?.orjBakiye + rec?.tabBakiye
-			let kalanRisk = rec?.orjKalanRisk + rec?.tabKalanRisk
-			let takipBorc = rec?.orjTakipBorc + rec?.tabTakipBorc
-			let bakiyeRenk = bakiye ? ( bakiye < 0 ? 'orangered' : 'forestgreen' ) : '_'
-			let kalanRiskRenk = kalanRisk ? ( kalanRisk < 0 ? 'forestgreen' : 'orangered' ) : '_'
-			let takipBorcRenk = takipBorc ? ( takipBorc < 0 ? 'orangered' : 'forestgreen' ) : '_'
-			layoutList.push(...[
-				( bakiyeGosterim ? (
-					`<div class="item flex-row" style="gap: 5px">` +
-						( takipBorc ? `<span class="takipBorc etiket gray">TKP: </span>` : '' ) +
-						( takipBorc ? `<span class="takipBorc veri bold ${takipBorcRenk}">${takipBorc ? `${bedelToString(takipBorc)}` : '-'}</span>` : '' ) +
-						( takipBorc ? `<span class="takipBorc separator lightgray"> | </span>` : '' ) +
-						( kalanRisk ? `<span class="kalanRisk etiket gray">KR: </span>` : '' ) +
-						( kalanRisk ? `<span class="kalanRisk veri bold ${kalanRiskRenk}">${kalanRisk ? `${bedelToString(kalanRisk)}` : '-'}</span>` : '' ) +
-						( kalanRisk ? `<span class="kalanRisk separator lightgray"> | </span>` : '' ) +
-						( bakiye ? `<span class="bakiye etiket gray">BK: </span>` : '' ) +
-						( bakiye ? `<span class="bakiye veri bold ${bakiyeRenk}">${bakiye ? `${bedelToString(bakiye)}` : '-'}</span>` : '' ) +
-					`</div>`
-				) : null )
-			].filter(Boolean))
-		}
 		if (yerKod) {
 			let aciklama = (await MQTabYer.getGloKod2Adi(yerKod)) || yerKod
 			layoutList.push(...[
@@ -182,31 +158,24 @@ class TabTSFis extends TabFis {
 				`</div>`
 			].filter(Boolean))
 		}
-
-		layoutList = layoutList?.filter(Boolean)
+		
 		if (!empty(layoutList)) {
-			rfb.addForm().setLayout(() => {
-				/*layoutList = [
-					`<div style="gap: 10px">`,
-					...layoutList,
-					`</div>`
-				]*/
-				return $(layoutList.join(CrLf))
-			})
+			rfb.addForm().setLayout(() =>
+				$(layoutList.join(CrLf)))
 		}
 		
 		await super.rootFormBuilderDuzenle_tablet_acc_baslikCollapsed(...arguments)
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_baslik({ sender: tanimPart, inst: fis, rfb, acc }) {
 		let e = arguments[0]
-		let { siparismi } = this
+		let { yerKullanilirmi, siparismi } = this
 		await super.rootFormBuilderDuzenle_tablet_acc_baslik(e)
 		{
 			let { wndId } = tanimPart.wndPart
 			let mfSinif = MQTabYer.getMFSinif_subeFiltreli(() => fis.subeKod, wndId)
 			let { sinifAdi: etiket } = mfSinif
 			let form = rfb.addFormWithParent().altAlta()
-			if (!siparismi) {
+			if (yerKullanilirmi && !siparismi) {
 				form.addSimpleComboBox('yerKod', etiket, etiket)
 					.etiketGosterim_yok()
 					.kodsuz().setMFSinif(mfSinif)
@@ -228,7 +197,7 @@ class TabTSFis extends TabFis {
 		await super.rootFormBuilderDuzenle_tablet_acc_dipCollapsed(...arguments)
 		let { depomu, params: { tablet } } = app
 		let bakiyeGosterim = tablet[`${depomu ? 'depo' : 'ss'}MusteriBakiye`] != false
-		let { mustKod, dvKod } = fis
+		let { dvKod } = fis
 		let { dipIslemci = {}, detaylar: { length: topSatir } } = fis
 		let { brut, topIskBedel, topKdv, sonuc } = dipIslemci
 		dvKod ||= 'TL'
@@ -320,7 +289,7 @@ class TabTSFis extends TabFis {
 		rfb.addGridliGosterici('grid')
 			.addStyle_fullWH(null, `calc(var(--full) - 55px)`)
 			.rowNumberOlmasin().notAdaptive()
-			.widgetArgsDuzenleIslemi(({ args }) => $.extend(args, {
+			.widgetArgsDuzenleIslemi(({ args }) => extend(args, {
 				rowsHeight: 70, selectionMode: 'singlerow'
 			}))
 			.setTabloKolonlari([
@@ -350,7 +319,7 @@ class TabTSFis extends TabFis {
 			})
 			.onAfterRun(({ builder: fbd, builder: { rootPart, part: gridPart, part: { gridWidget: gw } } }) => {
 				rootPart.gridPart = gridPart
-				$.extend(gridPart, {
+				extend(gridPart, {
 					gridSatirCiftTiklandiBlock: ({ sender: tanimPart, event: { args } = {} }) => {
 						let {gridWidget: w, selectedRec: det} = tanimPart ?? {}
 						let {row: { bounddata: _det } = {}} = args ?? {}
@@ -396,16 +365,19 @@ class TabTSFis extends TabFis {
 		tanimPart.sonEklemeDuzenleEkranindanmi = false
 	}
 	static async rootFormBuilderDuzenle_tablet_acc_duzenle(e) {
-		let { params: { zorunlu, tablet } } = app
+		let { depomu, params: { zorunlu, tablet } } = app
 		let { fiyatFra, bedelFra } = zorunlu
-		let { fiyatDegistirir, iskDegistirir, iskMaxSayi = 3 } = tablet
+		let { fiyatDegistirir, iskDegistirir, depoBedelGorur, iskMaxSayi = 3 } = tablet
 		let { sender: tanimPart, inst: fis, rfb, item } = e
 		let { class: fisSinif } = fis
 		let { bedelKullanilirmi, detaySinif, ticarimi, stokmu } = fisSinif
 		let { stokSinif } = detaySinif
 		let { acc, gridPart = {}, barkodGirisYapi = {} } = tanimPart
 		let { gridWidget: w, selectedRec: det } = gridPart
+		
 		fiyatFra ??= 5; bedelFra ||= 2
+		bedelKullanilirmi &&= !(depomu && depoBedelGorur === false)
+		
 		let getDetay = () =>
 			gridPart?.selectedRec ?? {}
 		let initFlag = !getDetay()
@@ -436,7 +408,7 @@ class TabTSFis extends TabFis {
 		;{
 			rfb.addButton('sil')
 				.addStyle_wh(38, 38)
-				.addStyle(`$elementCSS { top: 5px; right: 100px }`)
+				.addStyle(`$elementCSS { top: 0; right: 100px }`)
 				.addCSS('absolute')
 				.onClick(e => {
 					let { uid } = getDetay()
@@ -452,7 +424,7 @@ class TabTSFis extends TabFis {
 				})
 			rfb.addButton('tamam')
 				.addStyle_wh(38, 38)
-				.addStyle(`$elementCSS { top: 5px; right: 15px }`)
+				.addStyle(`$elementCSS { top: 0; right: 15px }`)
 				.addCSS('absolute')
 				.onClick(e =>
 					acc.expand('detay'))

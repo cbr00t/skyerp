@@ -90,20 +90,20 @@ class TabTSDetay extends TabDetay {
 		return [
 			_,
 			`<div class="full-wh">`,
-				`<div class="asil flex-row float-left" style="gap: 0 10px">`,
+				`<div class="asil flex-row float-left" style="gap: 5px 10px">`,
 					( stokAdi ? `<div class="stokAdi">${stokAdi}</div>` : null ),
 					( stokKod ? `<div class="stokKod orangered">${stokKod}</div>` : null ),
 					( !barkod || stokKod == barkod ? null : `<div class="barkod bold float-right">${barkod}</div>` ),
+					this.getHTML_hmr(e),
 				`</div>`,
 				( miktar ?
-					`<div class="miktarFiyat ek-bilgi float-right" style="gap: 0 10px">` +
+					`<div class="miktarFiyat ek-bilgi float-right" style="gap: 3px 10px">` +
 						`<button class="miktar bold forestgreen" onclick="app.activeWndPart.inst.satirMiktarEditIstendi({ target: this })">` + 
 							 `${miktarsiz ? '' : miktar}` +
 							 ` ${brm}`+
 						 `</button>` +
 					`</div>`
 				: null),
-				this.getHTML_hmr(e),
 			`</div>`
 		].filter(Boolean).join('\n')
 	}
@@ -126,6 +126,7 @@ class TabTSDetay extends TabDetay {
 					)
 					if ($('body').hasClass('dark-theme'))
 						styles_veri.push('filter: invert(1) hue-rotate(180deg)')
+					styles_veri.push('padding: 0 5px')
 				}
 			}
 			else
@@ -133,7 +134,7 @@ class TabTSDetay extends TabDetay {
 			
 			let pre = etiket[0]
 			hmrGosterimler.push(
-				`<div class="hmr-item ${belirtec} flex-row">` +
+				`<div class="hmr-item ${belirtec} flex-row" style="gap: 2px">` +
 					`<div class="etiket lightgray">${pre}:&nbsp;</div>` +
 					`<div class="bold veri" style="${styles_veri.filter(Boolean).join('; ')}">${kod}</div>` +
 				`</div>`
@@ -142,7 +143,7 @@ class TabTSDetay extends TabDetay {
 		return empty(hmrGosterimler)
 			? null
 			: (
-				`<div class="hmr-container flex-row" style="gap: 3px">` +
+				`<div class="hmr-container flex-row" style="gap: 0">` +
 					hmrGosterimler.join(`<span class="separator" style="color: #ddd">|</span>`) +
 				`</div>`
 			)

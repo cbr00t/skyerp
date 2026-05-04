@@ -68,21 +68,30 @@ class MQOnayci extends MQCogul {
 		return result
 	}
 
-	static listeEkrani_init({ sender: gridPart }) {
-		super.listeEkrani_init(...arguments)
-		let {dev} = config
-		$.extend(gridPart, {
-			otoTazeleSecs: qs.otoTazeleYok ? null : qs.otoTazeleSecs || (dev ? 20: 60),
-			otoTazeleDisabled: false
+	static listeEkrani_init(e) {
+		super.listeEkrani_init(e)
+		let { sender: gridPart } = e
+		// let { dev } = config
+		extend(gridPart, {
+			// otoTazeleSecs: qs.otoTazeleYok ? null : qs.otoTazeleSecs || (dev ? 20: 60),
+			otoTazeleDisabled: qs.otoTazeleYok ?? false,
+			serviceProc_delaySecs: max(qs.serviceProc_delaySecs || 10, 2)
 		})
 	}
-	static listeEkrani_afterRun({ sender: gridPart }) {
-		super.listeEkrani_afterRun(...arguments)
+	static listeEkrani_afterRun(e = {}) {
+		super.listeEkrani_afterRun(e)
+		if (config.service)
+			this.startServiceProc(e)
+		else
+			this.registerNTFY(e)
+		try { Notification.requestPermission() }
+		catch (ex) { cerr(ex) }
 	}
-	static listeEkrani_destroyPart({ sender: gridPart } = {}) {
-		let e = arguments[0]
+	static listeEkrani_destroyPart(e = {}) {
 		super.listeEkrani_destroyPart(e)
-		this.otoTazele_stopTimer(e)
+		this.unregisterNTFY(e)
+		this.stopServiceProc(e)
+		// this.otoTazele_stopTimer(e)
 	}
 	static listeEkrani_activated({ sender: gridPart }) { super.listeEkrani_activated(...arguments) }
 	static listeEkrani_deactivated({ sender: gridPart }) { super.listeEkrani_deactivated(...arguments) }
@@ -95,7 +104,7 @@ class MQOnayci extends MQCogul {
 			{ id: 'eIslemIzle', handler: _e => this.izleIstendi({ ..._e, ...e }) }
 		]
 		liste.push(...items)
-		$.extend(sagSet, asSet(items.map(_ => _.id)))
+		extend(sagSet, asSet(items.map(_ => _.id)))
 	}
 	static rootFormBuilderDuzenle_listeEkrani({ sender: gridPart, rootBuilder: rfb }) {
 		super.rootFormBuilderDuzenle_listeEkrani(...arguments)
@@ -112,7 +121,7 @@ class MQOnayci extends MQCogul {
 	static orjBaslikListesi_argsDuzenle({ args }) {
 		super.orjBaslikListesi_argsDuzenle(...arguments)
 		let mini = isMiniDevice()
-		$.extend(args, {
+		extend(args, {
 			columnsMenu: !mini, groupsExpandedByDefault: true,
 			rowsHeight: mini ? 75 : 65
 		})
@@ -148,24 +157,29 @@ class MQOnayci extends MQCogul {
 	}
 	static async _loadServerDataDogrudan({ sender: gridPart }) {
 		let e = arguments[0]
-		let {encUser, user /*, dbName: db*/} = config.session
-		let {ay: buAy, yil2: buKisaYil} = today()
-		let {hepsiniGoster} = gridPart
+		let { encUser, user /*, dbName: db*/ } = config.session
+		let { ay: buAy, yil2: buKisaYil } = today()
+		let { hepsiniGoster } = gridPart
 		let _cache = /*this._cache ??=*/ await (async () => {
 			// let kurallar = [], kuralKey2Kural = {}
 			let kisaYilSet = {}, tip2Kurallar = {}, dbSet = {}
 			{
-				let {onayYili} = app.params?.ortak ?? {}
+				let { onayYili } = app.params?.ortak ?? {}
 				kisaYilSet[onayYili || buKisaYil] = true
 				if (buAy == 1)
 					kisaYilSet[buKisaYil - 1] = true
 			}
-			let sent = new MQSent(), {where: wh, sahalar} = sent
-			sent.fromAdd('ORTAK..firmaonayci k')
-			wh.degerAta(encUser, 'k.xuserkod')
+			let sent = new MQSent(), { where: wh, sahalar } = sent
+			sent
+				.fromAdd('ORTAK..firmabilgi fbil')
+				.innerJoin('fbil', 'ORTAK..firmatipbilgi ftip', 'fbil.id = ftip.firmaid')
+				.innerJoin('ftip', 'ORTAK..onaybildirim fis', 'ftip.id = fis.firmatipid')
+				.innerJoin('fis', 'ORTAK..islemonayci har', 'fis.id = har.fisid')
+			wh.degerAta(encUser, 'har.xuserkod')
 			sahalar.add(
-				'k.firmaadi firmaAdi', 'k.tip',
-				`(case when COALESCE(k.onayno, 0) = 0 then 1 else k.onayno end) onayNo`
+				'fis.id', 'fbil.firmaadi firmaAdi', 'ftip.tip',
+				`(case when COALESCE(fis.onayno, 0) = 0 then 1 else fis.onayno end) onayNo`,
+				'har.onaylimiti onayLimiti'
 			)
 			let kurallar = await this.sqlExecSelect(sent)
 			let allDBNames = await app.wsDBListe()
@@ -175,7 +189,7 @@ class MQOnayci extends MQCogul {
 				kisaYilSet[asInteger(_.substr(2, 2))]
 			)
 			for (let rec of kurallar) {
-				let {tip, firmaAdi} = rec
+				let { tip, firmaAdi } = rec
 				// kuralKey2Kural[this.getKey(rec)] = rec
 				;(tip2Kurallar[tip] ??= []).push(rec)
 				for (let db of allDBNames) {
@@ -187,10 +201,10 @@ class MQOnayci extends MQCogul {
 			{
 				// eksik tablolu db'leri listeden at
 				let dbListe = keys(dbSet)
-				let results = await Promise.allSettled(
+				let results = await promiseAllSet(
 					dbListe.map(db => app.sqlHasColumn(`${db}..webonay`, 'id')))
 				dbListe.forEach((db, i) => {
-					let {status, value} = results[i]
+					let { status, value } = results[i]
 					let uygunmu = status == 'fulfilled' && value    // promise hata almadı ve result == true
 					if (!uygunmu)
 						delete dbSet[db]
@@ -206,7 +220,7 @@ class MQOnayci extends MQCogul {
 		let userSql = user.sqlServerDegeri()
 		let uni = new MQUnionAll()
 		for (let db in dbSet) {
-			let sent = new MQSent(), {where: wh, sahalar} = sent
+			let sent = new MQSent(), { where: wh, sahalar } = sent
 			uni.add(sent)
 			
 			sent.fromAdd(`${db}..webonay ony`)
@@ -248,10 +262,8 @@ class MQOnayci extends MQCogul {
 			let caseDegerKeys = ['oncelik']
 			let caseClauseKeys = ['eIslTip', 'uuid', 'mustKod', 'mustUnvan', 'tarih', 'fisNox', 'bedel', 'ekBilgi']
 			let cases = {}
-			{
-				[...caseDegerKeys, ...caseClauseKeys].forEach(k =>
-					cases[k] = [])
-			}
+			;[...caseDegerKeys, ...caseClauseKeys].forEach(k =>
+				cases[k] = [])
 
 			let sqlNull = 'NULL', sqlEmpty = `''`
 			for (let [table, item] of entries(table2Yapi)) {
@@ -373,27 +385,104 @@ class MQOnayci extends MQCogul {
 		
 		return recs
 	}
-	static gridVeriYuklendi({ sender: gridPart }) {
+	static gridVeriYuklendi(e = {}) {
+		let { sender: gridPart } = e
 		let { gridWidget: w, gridWidget: { groups } } = gridPart
 		let { hepsiniGoster, prevRecs, boundRecs } = gridPart
 		groups.forEach(g =>
 			w.hidecolumn(g))
 		;['onayRedNedeni', 'onayTS'].forEach(k =>
 			w[hepsiniGoster ? 'showcolumn' : 'hidecolumn'](k))
-		let degistimi = false
-		if (!prevRecs)
-			prevRecs = boundRecs
-		else if (boundRecs.length > prevRecs?.length)
-			degistimi = true
-		if (degistimi && !appActivatedFlag) {
-			try { new Notification(this.sinifAdi, { body: `Onay Bekleyen yeni belgeler var` }) }
-			catch (ex) { }
-		}
 		gridPart.prevRecs = boundRecs
-		this.otoTazele_startTimer(...arguments)
+		// this.otoTazele_startTimer(...arguments)
 	}
-	static otoTazele_startTimer({ sender: gridPart }) {
-		let e = arguments[0], {otoTazeleSecs} = gridPart
+	static startServiceProc(e = {}) {
+		let { sender: gridPart } = e
+		let { serviceProc_delaySecs: delaySecs } = gridPart
+		this.stopServiceProc(e)
+		if (!delaySecs)
+			return null
+		return this._timer_serviceProc = setTimeout(async (...rest) => {
+			let aborted = false
+			try { aborted = await this.serviceProc(e) === false }
+			finally {
+				this._timer_serviceProc = null
+				if (!aborted)
+					this.startServiceProc(e)
+			}
+		}, delaySecs * 1_000)
+	}
+	static stopServiceProc(e = {}) {
+		let { _timer_serviceProc: timer } = this
+		clearTimeout(timer)
+		return timer
+	}
+	static async serviceProc(e = {}) {
+		let { sender: gridPart } = e
+		let { prevRecs } = gridPart
+		let recs = await this._loadServerDataDogrudan(e)
+		let degistimi = prevRecs && recs.length > prevRecs.length
+		if (degistimi) {
+			let topic = [...app.ntfyTopic, 'onayci'].join('-')
+			let priority = 1, message = 'changed'
+			await ntfy({ topic, priority, message })
+		}
+		return true
+	}
+	static registerNTFY(e = {}) {
+		let { otoTazeleDisabled, ws_ntfy: ws } = this
+		if (ws?.state == WebSocket.CLOSED)
+			ws = this.ws_ntfy = null
+		if (otoTazeleDisabled || ws)
+			return ws
+
+		let { sender: gridPart } = e
+		let topic = [...app.ntfyTopic, 'onayci'].join('-')
+		let url = [app.ntfyWSUrl, topic, 'ws'].filter(Boolean).join('/')
+		ws = new WebSocket(url)
+		ws.onmessage = async ({ data: _ }) => {
+			if (_ && isString(_))
+				_ = JSON.parse(_) ?? {}
+			let { tags = [], message: msg } = _
+			//if (!msg || msg == 'triggered')
+			//	return
+			//if (isString(msg))
+			//	msg = JSON.parse(msg)
+			;{
+				let ind = tags?.indexOf('_new') ?? -1
+				if (ind > -1) {
+					// let count = asInteger(tags[i + 1])
+					gridPart?.tazele()
+					;{
+						let { sinifAdi: title } = this
+						let body = `Onay Bekleyen ${count ? `${count} yeni belge` : 'yeni belgeler'} var`
+						notify({ title, body })
+						if (!isTouchDevice()) {
+							try { new Notification(title, { body }) }
+							catch (ex) { }
+						}
+					}
+				}
+			}
+		}
+		ws.onclose = ws.onerror = async ({ data: err }) => {
+			if (err)
+				cerr(getErrorText(err))
+			this.unregisterNTFY(e)
+			await delay(2_000)
+			this.registerNTFY(e)
+		}
+		return ws
+	}
+	static unregisterNTFY({ sender: gridPart }) {
+		let { ws_ntfy: ws } = this
+		if (ws?.state == WebSocket.OPEN)
+			ws.close()
+		this.ws_ntfy = null
+		return this
+	}
+	/*static otoTazele_startTimer({ sender: gridPart }) {
+		let e = arguments[0], { otoTazeleSecs } = gridPart
 		this.otoTazele_stopTimer(e)
 		gridPart._timer_otoTazele = setTimeout(e =>
 			this.otoTazele_timerProc(e),
@@ -408,7 +497,7 @@ class MQOnayci extends MQCogul {
 			return
 		if (!gridPart.isDestroyed)
 			gridPart.tazele()
-	}
+	}*/
 
 	static async onayRedIstendi({ sender: gridPart, state: onaymi }) {
 		let islemAdi = `${onaymi ? 'ONAY' : 'RED'} İşlemi`
@@ -463,7 +552,7 @@ class MQOnayci extends MQCogul {
 				; (key2OnayIdListe[key] ??= []).push(onayId)
 			}
 			
-			let {user} = config, _now = now()
+			let { user } = config, _now = now()
 			let toplu = new MQToplu().withTrn()
 			for (let [key, onayIdListe] of entries(key2OnayIdListe)) {
 				let [ db, onayNo ] = key.split(delimWS)
@@ -491,7 +580,7 @@ class MQOnayci extends MQCogul {
 			
 			w?.clearselection()
 			gridPart.tazele()
-			{
+			;{
 				let middleText = onaymi ? `<b class=forestgreen>ONAYLANDI</b>` : `<b class=orangered>REDDEDİLDİ</b>`
 				window[onaymi ? 'eConfirm' : 'wConfirm']({
 					content: `<b class=royalblue>${recs.length}</b> adet kayıt ${middleText}!`,

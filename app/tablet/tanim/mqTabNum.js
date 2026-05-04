@@ -138,6 +138,10 @@ class MQTabNum extends MQKAOrtak {
 			]
 		}
 	}
+	kaydetOncesiIslemler(e = {}) {
+		this.id ||= newGUID()
+		return super.kaydetOncesiIslemler(e)
+	}
 	alternateKeyHostVarsDuzenle({ hv }) {
 		super.alternateKeyHostVarsDuzenle(...arguments)
 		let { id } = this

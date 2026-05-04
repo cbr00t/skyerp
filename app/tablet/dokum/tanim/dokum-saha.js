@@ -44,7 +44,7 @@ class TabDokumSaha extends CObject {
 		})
 		this.length ??= 0
 		this.right ??= false
-		let {kosul} = rec
+		let { kosul } = rec
 		if (!empty(kosul))
 			extend(this, kosul)
 		for (let [k, v] of entries(rec)) {
@@ -66,14 +66,49 @@ class TabDokumSaha extends CObject {
 			}
 		})
 	}
-	async satirDuzenle({ chars, inst }) {
+	async satirDuzenle({ form, data, chars, inst, maxX, curY, dipEtiketWidth, dipVeriWidth }) {
 		let e = arguments[0]
-		let v = await this.getValue(e)
-		if (!v)
+		let res = await this.getValue(e)
+		if (!res)
 			return this
-		let {x} = this, x0 = x - 1
-		for (let i = 0; i < v.length; i++)
-			chars[i + x0] = v[i]
+		let { key, x } = this, x0 = x - 1
+		if (isArray(res) && res.length < 2)
+			res = res[0] ?? ''
+
+		let writeChars = (v, relX = 0) => {
+			for (let i = 0; i < v.length; i++)
+				chars[i + x0 + relX] = v[i]
+		}
+		if (isArray(res)) {
+			let dipmi = key == 'dip'
+			let { x: maxX } = form?.sayfaBoyut ?? {}
+			maxX ??= 0
+			for (let item of res) {
+				if (item == null)
+					continue
+				
+				let { etiket: l, veri: v } = item
+				v ??= isObject(item) ? '' : ( item ?? '' )
+				
+				curY++
+				chars = data[curY - 1] ??= new Array(maxX).fill(' ')
+				if (l) {
+					let w = ( dipmi ? dipEtiketWidth : 0 ) || 0
+					writeChars(l, -w)
+				}
+				;{
+					let w = dipmi ? this.length || dipVeriWidth : null
+					let sep = dipmi ? ( isString(v) && v.length == 1 ? v : ' ' ) : null
+					v = dipmi && isNumber(v) ? bedelToString(v) : v
+					if (w && v)
+						v = v.padStart(w,  sep)
+				}
+				writeChars(v)
+			}
+			e.curY = curY - 1
+		}
+		else
+			writeChars(res)
 		return this
 	}
 	async getValue(e = {}) {
@@ -92,7 +127,7 @@ class TabDokumSaha extends CObject {
 			let r = await f.call(this, { ..._e, key, text, value: null })
 			return r === undefined ? text : r
 		}
-		{
+		;{
 			let Prefix = '!FUNC'
 			let v = key || text
 			if (isString(v) && v.startsWith(Prefix) && v.length > Prefix.length) {
@@ -117,22 +152,25 @@ class TabDokumSaha extends CObject {
 		if (text == null || text == '')
 			return null
 
-		let {converter = this.converter, block = this.block} = e
+		let { converter = this.converter, block = this.block } = e
 		text = await convertWith(converter)
 		if (isNumber(text))
 			text = numberToString(text, { useGrouping: false })
 		else if (!isInvalidDate(text))
 			text = hasTime(text) ? dateTimeToString(text) : dateToString(text)
-		else if (!isString(text))
+		else if (!(isArray(text) || isString(text)))
 			text = text?.toString() ?? ''
+		
 		text = await convertWith(block)
+		if (isArray(text))
+			return text
 		
 		let length = this.getActualLength({ ...e, text: null, value: text })
 		if (length) {
 			// let targetLength = fullLength || length
 			text = right
 				? text.padStart(fullLength, ' ')
-				: text.slice(0, length)
+				: text.length == length ? text : text.slice(0, length)
 			//if (text.length < targetLength)
 			//	text = text.padEnd(targetLength, ' ')
 		}
@@ -140,18 +178,18 @@ class TabDokumSaha extends CObject {
 		return text
 	}
 	getActualLength({ form, value }) {
-		let {x, length: len} = this
+		let { x, length: len } = this
 		x ??= 0; len ??= 0
 		let x0 = x - 1
 		if (x0 < 0)
 			return 0
 		value = value?.toString() ?? ''
 		if (value)
-			len = len ? Math.min(len, value.length) : value.length
+			len = len ? min(len, value.length) : value.length
 		if (!TabDokumYontemi.isPOSCommand(value)) {
 			let {sayfaBoyut: { x: maxX } = {}} = form ?? {}
 			if (maxX)
-				len = len ? Math.min(len, maxX - x0 + 1) : maxX - x0 + 1
+				len = len ? min(len, maxX - x0 + 1) : maxX - x0 + 1
 		}
 		return len < 0 ? 0 : len
 	}
