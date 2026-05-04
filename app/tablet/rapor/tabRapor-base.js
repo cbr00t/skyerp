@@ -3,7 +3,8 @@ class TabRapor extends MQKAOrtak {
 	static get kodListeTipi() { return this.kod ?? 'RAPOR' }
 	static get sinifAdi() { return this.aciklama ?? 'Raporlar' }
 	static get kod() { return null } static get aciklama() { return null }
-	static get uygunmu() { return true } static get araSeviyemi() { return this == TabRapor }
+	static get uygunmu() { return config.dev }
+	static get araSeviyemi() { return this == TabRapor }
 	static get tanimlanabilirmi() { return false } static get degistirilebilirmi() { return true }
 	static get silinebilirmi() { return false } static get kolonFiltreKullanilirmi() { return false }
 	static get seviyeAcKapatKullanilirmi() { return false } static get gridIslemTuslariKullanilirmi() { return false }

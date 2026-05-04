@@ -71,9 +71,9 @@ class MQOnayci extends MQCogul {
 	static listeEkrani_init(e) {
 		super.listeEkrani_init(e)
 		let { sender: gridPart } = e
-		// let { dev } = config
+		let { dev } = config
 		extend(gridPart, {
-			// otoTazeleSecs: qs.otoTazeleYok ? null : qs.otoTazeleSecs || (dev ? 20: 60),
+			otoTazeleSecs: qs.otoTazeleYok ? null : qs.otoTazeleSecs || (dev ? 20: 60),
 			otoTazeleDisabled: qs.otoTazeleYok ?? false,
 			serviceProc_delaySecs: max(qs.serviceProc_delaySecs || 10, 2)
 		})
@@ -82,8 +82,10 @@ class MQOnayci extends MQCogul {
 		super.listeEkrani_afterRun(e)
 		if (config.service)
 			this.startServiceProc(e)
-		else
+		else {
 			this.registerNTFY(e)
+			this.otoTazele_startTimer(e)
+		}
 		try { Notification.requestPermission() }
 		catch (ex) { cerr(ex) }
 	}
@@ -227,12 +229,12 @@ class MQOnayci extends MQCogul {
 			let or = new MQOrClause().add(
 				new MQAndClause([
 					{ degerAta: user, saha: 'ony.w1onayuser' },
-					( hepsiniGoster ? null : `ony.bw1onay IS NULL` )
+					( hepsiniGoster ? null : `ony.w1onaydurum = ''` )
 				].filter(Boolean)),
 				new MQAndClause([
 					{ degerAta: user, saha: 'ony.w2onayuser' },
-					`ony.bw1onay = 1`,
-					( hepsiniGoster ? null : `ony.bw2onay IS NULL` )
+					`ony.w1onaydurum = 'O'`,
+					( hepsiniGoster ? null : `ony.w2onaydurum = ''` )
 				].filter(Boolean))
 			)
 			wh.add(or)
@@ -241,21 +243,21 @@ class MQOnayci extends MQCogul {
 				`'${db}' _db`, 'ony.asiltablo _table', 'ony.adimtipi tip', 'ony.id onayId',
 				'ony.adimsayac sayac', 'ony.adimid id',
 				`(case
-						when ony.w2onayuser = ${userSql} AND ony.bw2onay IS NULL then 2
-						when ony.w1onayuser = ${userSql} AND ony.bw1onay IS NULL then 1
+						when ony.w2onayuser = ${userSql} AND ony.w2onaydurum = '' then 2
+						when ony.w1onayuser = ${userSql} AND ony.w1onaydurum = '' then 1
 					else NULL end) onayNo`,
 				`(case
-						when (ony.bw1onay IS NULL OR ony.w2onayuser = ${userSql} AND ony.bw2onay IS NULL)
+						when (ony.w1onaydurum = '' OR ony.w2onayuser = ${userSql} AND ony.w2onaydurum = '')
 							then '<span class=forestgreen>Cevap Bekleyenler</span>'
 							else '<span class=orangered>Cevaplananlar</span>'
 					end) onayDurumText`,
 				`(case
-						when ony.w2onayuser = ${userSql} AND ony.bw2onay IS NOT NULL then ony.w2onayredts
-						when ony.w1onayuser = ${userSql} AND ony.bw1onay IS NOT NULL then ony.w1onayredts
+						when ony.w2onayuser = ${userSql} AND ony.w2onaydurum <> '' then ony.w2onayredts
+						when ony.w1onayuser = ${userSql} AND ony.w1onaydurum <> '' then ony.w1onayredts
 					else NULL end) onayTS`,
 				`(case
-						when ony.w2onayuser = ${userSql} AND ony.bw2onay IS NOT NULL then ony.w2onayredtext
-						when ony.w1onayuser = ${userSql} AND ony.bw1onay IS NOT NULL then ony.w1onayredtext
+						when ony.w2onayuser = ${userSql} AND ony.w2onaydurum <> '' then ony.w2onayredtext
+						when ony.w1onayuser = ${userSql} AND ony.w1onaydurum <> '' then ony.w1onayredtext
 					else NULL end) onayRedNedeni`
 			])
 
@@ -362,7 +364,7 @@ class MQOnayci extends MQCogul {
 			}
 			
 			if (!empty(promises))
-				await Promise.all(promises)
+				await promiseAll(promises)
 			
 			if (!empty(db2Sayac2RecDurum)) {
 				recs.forEach(rec => {
@@ -394,7 +396,6 @@ class MQOnayci extends MQCogul {
 		;['onayRedNedeni', 'onayTS'].forEach(k =>
 			w[hepsiniGoster ? 'showcolumn' : 'hidecolumn'](k))
 		gridPart.prevRecs = boundRecs
-		// this.otoTazele_startTimer(...arguments)
 	}
 	static startServiceProc(e = {}) {
 		let { sender: gridPart } = e
@@ -423,13 +424,26 @@ class MQOnayci extends MQCogul {
 		let recs = await this._loadServerDataDogrudan(e)
 		let degistimi = prevRecs && recs.length > prevRecs.length
 		if (degistimi) {
-			let topic = [...app.ntfyTopic, 'onayci'].join('-')
-			let priority = 1, message = 'changed'
-			await ntfy({ topic, priority, message })
+			let topic = [...app.ntfyTopic].join('-')
+			let priority = 1, tags = ['_new']
+			await ntfy({ topic, priority, tags })
 		}
 		return true
 	}
-	static registerNTFY(e = {}) {
+	static async registerNTFY(e = {}) {
+		if (!app.portalMustKod) {
+			try {
+				let res = await app.wsGetMustKod()
+				if (!res)
+					throw { isError: true }
+			}
+			catch (ex) {
+				this.unregisterNTFY(e)
+				cerr(ex)
+				return
+			}
+		}
+		
 		let { otoTazeleDisabled, ws_ntfy: ws } = this
 		if (ws?.state == WebSocket.CLOSED)
 			ws = this.ws_ntfy = null
@@ -437,13 +451,15 @@ class MQOnayci extends MQCogul {
 			return ws
 
 		let { sender: gridPart } = e
-		let topic = [...app.ntfyTopic, 'onayci'].join('-')
+		let topic = [...app.ntfyTopic].join('-')
 		let url = [app.ntfyWSUrl, topic, 'ws'].filter(Boolean).join('/')
-		ws = new WebSocket(url)
+		ws = this.ws_ntfy = new WebSocket(url)
 		ws.onmessage = async ({ data: _ }) => {
 			if (_ && isString(_))
 				_ = JSON.parse(_) ?? {}
 			let { tags = [], message: msg } = _
+			if (msg == 'triggered')
+				msg = null
 			//if (!msg || msg == 'triggered')
 			//	return
 			//if (isString(msg))
@@ -451,11 +467,11 @@ class MQOnayci extends MQCogul {
 			;{
 				let ind = tags?.indexOf('_new') ?? -1
 				if (ind > -1) {
-					// let count = asInteger(tags[i + 1])
+					let count = asInteger(tags[ind + 1])
 					gridPart?.tazele()
-					;{
+					if (msg != null) {
 						let { sinifAdi: title } = this
-						let body = `Onay Bekleyen ${count ? `${count} yeni belge` : 'yeni belgeler'} var`
+						let body = msg == '.' ? ( `Onay Bekleyen ${count ? `${count} yeni belge` : 'yeni belgeler'} var` ) : msg
 						notify({ title, body })
 						if (!isTouchDevice()) {
 							try { new Notification(title, { body }) }
@@ -481,7 +497,7 @@ class MQOnayci extends MQCogul {
 		this.ws_ntfy = null
 		return this
 	}
-	/*static otoTazele_startTimer({ sender: gridPart }) {
+	static otoTazele_startTimer({ sender: gridPart }) {
 		let e = arguments[0], { otoTazeleSecs } = gridPart
 		this.otoTazele_stopTimer(e)
 		gridPart._timer_otoTazele = setTimeout(e =>
@@ -492,12 +508,12 @@ class MQOnayci extends MQCogul {
 		clearTimeout(gridPart._timer_otoTazele)
 	}
 	static otoTazele_timerProc({ sender: gridPart }) {
-		let {otoTazeleSecs, otoTazeleDisabled} = gridPart
+		let { otoTazeleSecs, otoTazeleDisabled } = gridPart
 		if (!otoTazeleSecs || otoTazeleDisabled)
 			return
 		if (!gridPart.isDestroyed)
 			gridPart.tazele()
-	}*/
+	}
 
 	static async onayRedIstendi({ sender: gridPart, state: onaymi }) {
 		let islemAdi = `${onaymi ? 'ONAY' : 'RED'} İşlemi`
@@ -521,7 +537,8 @@ class MQOnayci extends MQCogul {
 					return
 			}
 			let {
-				onayci_onayNedenIstenir: onayNedenIstenir, onayci_redNedenIstenir: redNedenIstenir,
+				onayci_onayNedenIstenir: onayNedenIstenir,
+				onayci_redNedenIstenir: redNedenIstenir,
 				onayci_nedenZorunludur: nedenZorunludur
 			} = app.params.web ?? {}
 			let nedenIstenir = onaymi ? onayNedenIstenir : redNedenIstenir
@@ -549,7 +566,7 @@ class MQOnayci extends MQCogul {
 			for (let rec of recs) {
 				let { _db, onayNo, onayId } = rec
 				let key = [ _db, onayNo ].join(delimWS)
-				; (key2OnayIdListe[key] ??= []).push(onayId)
+				;(key2OnayIdListe[key] ??= []).push(onayId)
 			}
 			
 			let { user } = config, _now = now()
@@ -564,16 +581,12 @@ class MQOnayci extends MQCogul {
 							{ inDizi: onayIdListe, saha: 'id' }
 						],
 						set: [
-							{ degerAta: bool2Int(onaymi), saha: `bw${onayNo}onay` },
+							{ degerAta: onaymi ? 'O' : 'R', saha: `w${onayNo}onaydurum` },
 							{ degerAta: _now, saha: `w${onayNo}onayredts` },
 							{ degerAta: nedenText, saha: `w${onayNo}onayredtext` }
 						].filter(Boolean)
 					})
 				)
-				
-				// ...
-				// bw1onay, w1onayuser, w1onayredts ... wredtext
-				// /efgecicialfatfis, sipfis)
 			}
 			if (toplu?.bosDegilmi)
 				await this.sqlExecNone(toplu)
@@ -842,118 +855,3 @@ class MQOnayci extends MQCogul {
 		].filter(_ => _).join(CrLf)
 	}
 }
-
-
-/*
-App = Onaycı
-[ ONAY İŞLEMLERİ ] adımı
-								[ ONAY ] [ RED ]  { İZLE ] (eişlem göster)
-	VERİTABANI
-		  TİP         TARİH   BELGE NO    CARİ    BEDEL    EK BİLGİ
-        (GAF)  Alım e-Fat.     ....     ....    ....     ...        ??
-         (TS)  Sat. Sip.
-
-	ORTAK PARAM: {
-		onayciKurallari: {
-			user: {
-				db: {
-					YI25ABC: [
-						...
-						{ tip: 'GAF, TS, AF, ...', onayNo: 2 },
-						...
-					],
-					YI25XYZ: [
-						...
-						{ tip: 'GAF, TS, AF, ...', onayNo: 1 },
-						{ tip: 'GAF, TS, AF, ...', onayNo: 2 },
-						...
-					]
-				}
-			}
-		}
-	}
-	onaysiz ==> onay[n] = NULL
-	[ONAY / RED] butona basınca:
-		db2Kurallar = ortakParam.onayciKurallari[user].db
-		uygunRecs = []
-		selectedRecs.filter(_ => db2Kurallar [_.db]) as recs:
-			recs:
-				kurallar = db2Kurallar [rec.db]
-				kurallar as kural:
-					if rec.tip == kural.tip && rec.onayno == kural.onayNo:
-						uygunRecs.push(rec)
-		onayRedYap({ islem, recs: uygunRecs })
-		
-		
-		onayRedYap({ islem, recs }):
-			(islem):
-				- 'onay':
-					- {rec.table].onay[n] = 1
-						n = 1-based
-				- 'red':
-					redtext = ...
-					- {rec.table].onayno[n] = 0
-					  {rec.table].redtext = redtext
-				sql-update
-
-
-	ONAY BEKLEYENLER
-	QUERY: db, table(sipfis|piffis), kaysayac, ...
-		onayciKurallari[userKod].db:
-			- (tip, onayno)
-			- rec.onayno == null
-			- onayno > 1:
-				rec[onayno - 1] == true
-			* Önceki onaycı (varsa) onaylamış olmalı
-
-	-- onaykurali: { tip: GAF }, { tip: TS, OnayNo: 2}	-- onayNo yoksa =1 demektir
-	create table firmaonayci								--adi Firma Onaycı
-		( xuserkod		char(10) not null		-- xenc
-		, firmaadi		varchar(30) not null
-		, tip           varchar(20) not null
-		, onayno        tinyint not null default 1
-		);
-	alter table firmaonayci add constraint prifirmaonayci primary key (xuserkod, firmaadi, tip, onayno);		--adi Firma Onaycı anahtarı
-
-
-	let {encUser: xuserkod} = config.session
-	let hvListe = [
-		{ xuserkod, firmaadi: 'YDDENIZ', onayno: 1, tip: 'TF' },
-		{ xuserkod, firmaadi: 'YDDENIZ', onayno: 2, tip: 'TF' },
-		{ xuserkod, firmaadi: 'YDCASTROL', onayno: 1, tip: 'AF' },
-		{ xuserkod, firmaadi: 'CNGAS', onayno: 1, tip: 'TS' },
-		{ xuserkod, firmaadi: 'CNGAS', onayno: 1, tip: 'TF' },
-		{ xuserkod, firmaadi: 'CNGAS', onayno: 1, tip: 'AF' },
-		{ xuserkod, firmaadi: 'CNGAS', onayno: 2, tip: 'AF' }
-	]
-	let table = 'ORTAK..firmaonayci'
-	let toplu = new MQToplu([
-		new MQIliskiliDelete({ from: table }),
-		new MQInsert({ table, hvListe })
-	]).withTrn()
-	try { await app.sqlExecNone(toplu) }
-	catch (ex) { cerr(ex) }
-
-
-	-- onayuser decr durumdadir
-	alter table efgecicialfatfis
-		add bw1onay				bit		-- null olmali
-		, w1onayuser			char(10)
-		, w1onayredts			datetime
-		, bw2onay				bit		-- null olmali
-		, w2onayuser			char(10)
-		, w2onayredts			datetime
-		, wredtext				varchar(40) not null default '';		-- ilk red yapan kisi icin
-	-- max 2 onay
-	
-	alter table sipfis
-		add bw1onay				bit		-- null olmali
-		, w1onayuser			char(10)
-		, w1onayredts			datetime
-		, bw2onay				bit		-- null olmali
-		, w2onayuser			char(10)
-		, w2onayredts			datetime
-		, wredtext				varchar(40) not null default '';		-- ilk red yapan kisi icin
-
-	
-*/

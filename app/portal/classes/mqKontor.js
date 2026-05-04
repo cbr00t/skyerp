@@ -12,7 +12,9 @@ class MQKontor extends MQDetayliMaster {
 	static get tanimlanabilirmi() { return super.tanimlanabilirmi && MQLogin.current?.class?.adminmi && config.dev }
 	static get silinebilirmi() { return super.silinebilirmi && MQLogin.current?.class?.adminmi }
 	static get gridHeight_bosluk() { return 90 } static get newFisNox() { return `SKY${now().toString('yyyyMMddHHmmss')}` }
-	static get vioSeri_eFat() { return 'KSE' } static get vioSeri_eArsiv() { return 'KSA' } static get vioSeri_yildizli() { return 'KSX' }
+	static get vioSeri_eFat() { return 'KNE' }
+	static get vioSeri_eArsiv() { return 'KNA' }
+	static get vioSeri_yildizli() { return 'KN2' }
 	static get faturalastirmaYapilirmi() { return false }
 	
 	static pTanimDuzenle({ pTanim }) {
@@ -396,8 +398,8 @@ class MQKontor extends MQDetayliMaster {
 			}
 		}
 		let kontrolMustKodListe = keys(kontrolMustKodSet)
-		let vkn2Must = {}, must2VKN = {}, efatVKNSet = {}, hizRec = {};
-		let withFatDBDo = block => app.onMuhDBDo(db, block);
+		let vkn2Must = {}, must2VKN = {}, efatVKNSet = {}, hizRec = {}
+		let withFatDBDo = block => app.onMuhDBDo(db, block)
 		await withFatDBDo(async e => {
 			;{
 				let sent = new MQSent(), {where: wh, sahalar} = sent
@@ -602,12 +604,12 @@ class MQKontor extends MQDetayliMaster {
 		return null
 	}
 	static getConvertedVIOSeri(seri, db) {
-		if (seri?.length == 3) {
-			let {polen: postfix} = app.dbNames
+		/*if (seri?.length == 3) {
+			let { polen: postfix } = app.dbNames
 			postfix = postfix.slice(4)
 			if (db?.endsWith(postfix))
 				return `${seri[0]}P${seri[2]}`
-		}
+		}*/
 		return seri
 	}
 }

@@ -181,9 +181,9 @@ class MQTabMusDurum extends MQKodOrtak {
 		let { dvKod } = e.inst ?? {}
 		dvKod ??= 'TL'
 
-		let { [mustKod]: r } = await this.getGloKod2Rec() ?? {}
 		;{
 			let { kalanRisk: v = 0 } = d
+			let { [mustKod]: r = {} } = await this.getGloKod2Rec() ?? {}
 			v = roundToBedelFra( ( r.orjKalanRisk || 0) + ( r.tabKalanRisk || 0) + v )
 			if (v < 0)
 				throw { isError: true, errorText: `Risk Aşıldı: [<b class="royalblue">${bedelToString(v)} ${dvKod}</b>]` }

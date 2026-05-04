@@ -1,11 +1,16 @@
 class OnayciApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	get ntfyDefTopic() { return 'onayci' }
+	get ntfyTopic() { return [this.portalMustKod, 'onayci'].filter(Boolean) }
 	get autoExecMenuId() { return 'ONAYCI' }
 
+	async afterRun(e) {
+		await super.afterRun(e)
+		try { this.portalMustKod = await this.wsGetMustKod() }
+		catch (ex) { cerr(ex) }
+	}
 	paramsDuzenle({ params }) {
 		super.paramsDuzenle(...arguments)
-		// $.extend(params, {  })
+		// extend(params, {  })
 	}
 	async anaMenuOlustur(e) {
 		try {
