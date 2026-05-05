@@ -1,16 +1,50 @@
 class OnayciApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	get ntfyTopic() { return [this.portalMustKod, 'onayci'].filter(Boolean) }
+	get ntfyTopic() {
+		let { portalMustKod: must, ntfyEkId: id } = this
+		return [must, 'onayci', id].filter(Boolean)
+	}
 	get autoExecMenuId() { return 'ONAYCI' }
 
 	async afterRun(e) {
 		await super.afterRun(e)
-		try { this.portalMustKod = await this.wsGetMustKod() }
-		catch (ex) { cerr(ex) }
+		this._promise_ilkBilgiler = this.ilkBilgileriBelirle(e)
 	}
 	paramsDuzenle({ params }) {
 		super.paramsDuzenle(...arguments)
 		// extend(params, {  })
+	}
+	async ilkBilgileriBelirle(e) {
+		let res = this.portalMustKod = await this.wsGetMustKod()
+		for (let i = 0; i < 3; i++) {
+			if (res)
+				break
+			await delay(500)
+			res = this.portalMustKod = await this.wsGetMustKod()
+		}
+		if (!res)
+			return false
+
+		let { session } = config
+		if (!session)
+			return false
+		
+		let { modulBilgi } = session
+		let perKod = session.perKod = modulBilgi?.Tic?.[0]    // ??
+		if (perKod) {
+			let sent = new MQSent(), { where: wh, sahalar } = sent
+			sent.fromAdd('personel p')
+			wh.degerAta(perKod, 'p.kod')
+			sahalar.add('p.*')
+			let rec = this.perRec = await sent.execTekil()
+			if (rec) {
+				this.ntfyEkId = arrayFrom(rec.ceptel?.trim())
+					.filter(isDigit)
+					.join('')
+			}
+		}
+		
+		return true
 	}
 	async anaMenuOlustur(e) {
 		try {

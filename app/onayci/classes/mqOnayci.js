@@ -70,12 +70,12 @@ class MQOnayci extends MQCogul {
 
 	static listeEkrani_init(e) {
 		super.listeEkrani_init(e)
-		let { sender: gridPart } = e
-		let { dev } = config
+		let { sender: gridPart } = e, { dev } = config
 		extend(gridPart, {
-			otoTazeleSecs: qs.otoTazeleYok ? null : qs.otoTazeleSecs || (dev ? 20: 60),
+			// otoTazeleSecs: qs.otoTazeleYok ? null : qs.otoTazeleSecs || (dev ? 20: 60),
+			otoTazeleSecs: qs.otoTazeleYok ? null : ( Number(qs.otoTazeleSecs) || null ),
 			otoTazeleDisabled: qs.otoTazeleYok ?? false,
-			serviceProc_delaySecs: max(qs.serviceProc_delaySecs || 10, 2)
+			serviceProc_delaySecs: max(Number(qs.serviceProc_delaySecs) || 10, 2)
 		})
 	}
 	static listeEkrani_afterRun(e = {}) {
@@ -421,6 +421,10 @@ class MQOnayci extends MQCogul {
 	static async serviceProc(e = {}) {
 		let { sender: gridPart } = e
 		let { prevRecs } = gridPart
+		
+		try { await app._promise_ilkBilgiler }
+		catch (ex) { cerr(ex) }
+		
 		let recs = await this._loadServerDataDogrudan(e)
 		let degistimi = prevRecs && recs.length > prevRecs.length
 		if (degistimi) {
@@ -431,17 +435,12 @@ class MQOnayci extends MQCogul {
 		return true
 	}
 	static async registerNTFY(e = {}) {
+		try { await app._promise_ilkBilgiler }
+		catch (ex) { cerr(ex) }
 		if (!app.portalMustKod) {
-			try {
-				let res = await app.wsGetMustKod()
-				if (!res)
-					throw { isError: true }
-			}
-			catch (ex) {
-				this.unregisterNTFY(e)
-				cerr(ex)
-				return
-			}
+			this.unregisterNTFY(e)
+			cerr(ex)
+			return
 		}
 		
 		let { otoTazeleDisabled, ws_ntfy: ws } = this
