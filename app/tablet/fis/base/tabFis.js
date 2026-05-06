@@ -555,7 +555,7 @@ class TabFis extends MQDetayliGUIDOrtak {
 		let { class: { ba } } = this
 		let { tarih, kayitTS } = hv
 		if ('tarih' in hv)
-			hv.tarih = tarih = asReverseDateString(kayitTS || now())
+			hv.tarih = tarih = asReverseDateString(tarih || now())
 		if ('kayitTS' in hv)
 			hv.kayitTS = kayitTS = asReverseDateTimeString(kayitTS || now())
 		extend(hv, { ba })
@@ -978,11 +978,9 @@ class TabFis extends MQDetayliGUIDOrtak {
 	static getRootFormBuilder_fis(e) { return null }
 	static rootFormBuilderDuzenle_listeEkrani({ sender: gridPart, rootBuilder: rfb }) {
 		super.rootFormBuilderDuzenle_listeEkrani(...arguments)
-		rfb.addStyle(`$elementCSS .header > .islemTuslari > div #menu { margin-right: 15px }`)
 	}
 	static rootFormBuilderDuzenle_islemTuslari({ fbd_islemTuslari: fbd }) {
 		super.rootFormBuilderDuzenle_islemTuslari(...arguments)
-		fbd.addStyle(`$elementCSS > div #tamam { margin-left: 20px }`)
 	}
 	static tanimPart_islemTuslariDuzenle({ parentPart: tanimPart, part, liste }) {
 		super.tanimPart_islemTuslariDuzenle(...arguments)

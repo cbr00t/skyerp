@@ -124,16 +124,13 @@ class MQEMutOnay extends MQCogul {
 				width: 850px !important; height: 700px !important;
 				max-width: calc(var(--full) - 80px) !important;
 				max-height: calc(var(--full) - 80px) !important;
-				margin: 10px auto !important; padding: 30px !important;
+				margin: 10px auto !important; padding: 30px;
 				border-radius: 15px !important; box-shadow: 0 0 13px 0px darkcyan !important;
 				overflow-x: hidden !important; overflow-y: auto !important
 			}
 			$elementCSS > div { margin-bottom: 10px !important }
-			@media (max-width: 800px) {
-				$elementCSS { width: 500px !important }
-			}
-			@media (max-height: 850px) {
-				$elementCSS { margin: -35px auto !important }
+			@media (max-height: 900px) {
+				$elementCSS { margin: -50px auto !important }
 			}
 		`])
 		if (!uygunmu) {
@@ -186,8 +183,8 @@ class MQEMutOnay extends MQCogul {
 					 $elementCSS .warn-etiket { font-weight: bolder; color: orange !important }
 					 $elementCSS .warn { color: #553333 !important }
 					 $elementCSS .info { color: #888 !important }
-					 $elementCSS .isyeri,
-						 $elementCSS .musteri { min-height: 70px !important }
+					 $elementCSS > div { line-height: 30px !important }
+					 $elementCSS .isyeri, $elementCSS .musteri { min-height: 70px !important }
 					 $elementCSS .isyeri .etiket { font-size: 90% }
 					 $elementCSS .isyeri .veri { font-size: unset; color: violetred !important }
 					 $elementCSS > .tarihVeBakiyeBilgi { padding: 5px 0 }
@@ -195,7 +192,7 @@ class MQEMutOnay extends MQCogul {
 					 $elementCSS .logo {
 						position: absolute !important;
 						width: 150px; height: 100px;
-						top: 150px; right: -10px;
+						top: 150px; right: 20px;
 						opacity: .8; pointer-events: none;
 						background-size: contain;
 						background-repeat: no-repeat;
@@ -203,8 +200,12 @@ class MQEMutOnay extends MQCogul {
 					}
 					@media (max-width: 800px) {
 						$elementCSS .logo {
-							height: 80px;
-							top: 140px; right: -75px
+							top: 150px; right: 15px
+						}
+					}
+					@media (max-width: 600px) {
+						$elementCSS .logo {
+							top: -20px
 						}
 					}`
 				])
@@ -414,11 +415,11 @@ class MQEMutOnay extends MQCogul {
 		let cevaplandimi = !!cevapTS
 		let stateHTML = !cevaplandimi ? '' :
 			`${state ? `<b class=forestgreen>ONAY</b>` : `<b class=firebrick>RED</b>`} cevabı verilmiştir`
-		let tsUyariHTML = zamanDamgasi || cevaplandimi
+		let tsUyariHTML = cevaplandimi || onayTipi
 			? [
-				`<p> <span class="warn-etiket">⚠ Uyarı</span>:`,
+				`<p> <span class="warn-etiket" style="margin-right: 10px">⚠</span>`,
 					(cevaplandimi
-						? `<span class="warn">Bu mutabakat <b class=royalblue>${dateTimeAsKisaString(cevapTS)}</b> tarih-saatinde ${stateHTML}</span>`
+						? `<span class="warn">Bu mutabakata <b class=royalblue>${dateTimeAsKisaString(cevapTS)}</b> tarih-saatinde ${stateHTML}</span>`
 						: onayTipi
 							 ? `<span class="warn">Onay veya Red butonuna tıklandığında Zaman Damgası için <b class=royalblue>${onayTipi.toLocaleUpperCase()} Onayı</b> alınacaktır</span>`
 							 : null
@@ -431,8 +432,8 @@ class MQEMutOnay extends MQCogul {
 		return $([
 			`<div>`,
 				`<div class="isyeri">`,
-					`<span class="etiket">Mutabakat İsteyen:</span>`,
-					`<span class="veri">${isyeri.unvan || ''}<span>`,
+					`<div class="etiket">Mutabakat İsteyen</div>`,
+					`<div class="veri">${isyeri.unvan || ''}</div>`,
 				`</div>`,
 				`<hr>`,
 				`<div class="musteri">`,
@@ -444,7 +445,7 @@ class MQEMutOnay extends MQCogul {
 				`</div>`,
 				`<div class="tarihVeBakiyeBilgi">`,
 					`<div>`,
-						`<span class="etiket">İşletmemizdeki Cari hesabınız:</span> &nbsp;`,
+						`<span class="etiket">İşletmemizdeki Cari hesabınız</span> &nbsp;`,
 					`</div>`,
 					`<div>`,
 						`<span class="veri orangered">${dateToString(tarih)}<span> `,

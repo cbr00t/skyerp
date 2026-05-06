@@ -659,6 +659,7 @@ class MQTabletParam extends MQTicariParamBase {
 			form.addBool('sogukSipBakiyeEtkiler', 'Soğuk Sipariş Bakiye Etkilenir')
 			form.addAltObject('dokumFormlar')
 			form.addAltObject('numYapilar')
+			form.addBool('sutAksamSonrakiGun', 'Süt Akşam Postası: Sonraki Güne Kaydeder')
 		}
 		;{
 			let form = paramci.addFormWithParent()

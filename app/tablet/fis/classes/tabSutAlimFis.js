@@ -9,6 +9,12 @@ class TabSutAlimFis extends TabFis {
 	// get sonucBedel() { return this.topMiktar }
 	get topMiktar() { return topla(_ => _.miktar || 0, ...this.detaylar) }
 
+	constructor(e = {}) {
+		super(e)
+		/*let { isCopy, offlineBuildQuery, offlineRequest } = e
+		if (!(isCopy || offlineBuildQuery || offlineRequest)) {
+		}*/
+	}
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		extend(pTanim, {
@@ -23,6 +29,8 @@ class TabSutAlimFis extends TabFis {
 		let { posta: defPosta } = app.params.yerel ?? {}
 		if (defPosta)
 			this.posta = defPosta
+
+		await this.postaDegisti({ ...e, oldValue: null, value: this.posta })
 	}
 	async yeniTanimOncesiVeyaYukleSonrasiIslemler(e) {
 		let { detaySinif: { stokSinif } } = this.class
@@ -83,8 +91,21 @@ class TabSutAlimFis extends TabFis {
 	yerDegisti({ oldValue = this._prev.yerKod, value = this.yerKod }) {
 		this._prev.yerKod = value
 	}
-	postaDegisti({ oldValue = this._prev.posta, value = this.posta }) {
+	postaDegisti({ oldValue = this._prev.posta, value = this.posta } = {}) {
 		this._prev.posta = value
+		let { tablet: { sutAksamSonrakiGun } = {} } = app.params
+		if (sutAksamSonrakiGun) {
+			let { tarih } = this
+			let bugun = today(), yarin = today().yarin()
+			let bugunmu = (tarih.getTime() == bugun.getTime())
+			let yarinmi = (tarih.getTime() == yarin.getTime())
+
+			let posta = value?.char ?? value
+			if (bugunmu && posta == 'A')
+				tarih = this.tarih = yarin
+			else if (yarinmi && posta != 'A')
+				tarih = this.tarih = bugun
+		}
 	}
 
 	getDokumForm(e) {

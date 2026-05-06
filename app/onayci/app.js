@@ -1,8 +1,9 @@
 class OnayciApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this }
+	get onayMax() { return 2 }
 	get ntfyTopic() {
-		let { portalMustKod: must, ntfyEkId: id } = this
-		return [must, 'onayci', id].filter(Boolean)
+		let { portalMustKod: must, ntfyEkId: id, onayNo } = this
+		return [must, 'onayci', id, onayNo?.toString()].filter(Boolean)
 	}
 	get autoExecMenuId() { return 'ONAYCI' }
 

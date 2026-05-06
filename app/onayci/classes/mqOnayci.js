@@ -83,7 +83,10 @@ class MQOnayci extends MQCogul {
 		if (config.service)
 			this.startServiceProc(e)
 		else {
-			this.registerNTFY(e)
+			setTimeout(() => {
+				if (!this.ws_ntfy)
+					this.registerNTFY(e)
+			}, 5_000)
 			this.otoTazele_startTimer(e)
 		}
 		try { Notification.requestPermission() }
@@ -242,6 +245,7 @@ class MQOnayci extends MQCogul {
 			sahalar.add(...[
 				`'${db}' _db`, 'ony.asiltablo _table', 'ony.adimtipi tip', 'ony.id onayId',
 				'ony.adimsayac sayac', 'ony.adimid id',
+				'ony.w2onayuser onay2User',
 				`(case
 						when ony.w2onayuser = ${userSql} AND ony.w2onaydurum = '' then 2
 						when ony.w1onayuser = ${userSql} AND ony.w1onaydurum = '' then 1
@@ -294,7 +298,6 @@ class MQOnayci extends MQCogul {
 				;['sentDuzenle', 'tipIcinSentDuzenle'].forEach(selector =>
 					item[selector]?.call?.(this, _e))
 			}
-			
 			for (let [key, whenThenListe] of entries(cases)) {
 				// (CASE ony.asiltablo WHEN ... THEN ... END) oncelik`
 				let clause = [
@@ -305,8 +308,7 @@ class MQOnayci extends MQCogul {
 				].join(' ')
 				sahalar.add(clause)
 			}
-
-			{
+			;{
 				let or = new MQOrClause()
 				for (let [table, { idVarmi }] of entries(table2Yapi)) {
 					let keySaha = idVarmi ? 'id' : 'kaysayac'
@@ -325,6 +327,18 @@ class MQOnayci extends MQCogul {
 		
 		let stm = new MQStm({ sent: uni, orderBy: ['onayDurumText', '_db', 'oncelik'] })
 		let recs = await this.sqlExecSelect(stm)
+		if (!app.onayNo) {
+			let onayNo = app.onayNo = recs?.find(_r => _r.onayNo)?.onayNo
+			if (onayNo) {
+				await this.unregisterNTFY(e)
+				await this.registerNTFY(e)
+			}
+		}
+		;{
+			let { onayNo, onayMax } = app
+			if (onayNo && onayNo < onayMax && app.onay2User === undefined)
+				app.onay2User = recs?.find(_r => _r.onay2User)?.onay2User
+		}
 		
 		/*let uymayanRecs = recs.filter(rec => !kuralKey2Kural[this.getKey(rec)])
 		recs = recs.filter(rec => kuralKey2Kural[this.getKey(rec)])*/
@@ -428,7 +442,7 @@ class MQOnayci extends MQCogul {
 		let recs = await this._loadServerDataDogrudan(e)
 		let degistimi = prevRecs && recs.length > prevRecs.length
 		if (degistimi) {
-			let topic = [...app.ntfyTopic].join('-')
+			let { ntfyTopic: topic } = app
 			let priority = 1, tags = ['_new']
 			await ntfy({ topic, priority, tags })
 		}
@@ -444,15 +458,16 @@ class MQOnayci extends MQCogul {
 		}
 		
 		let { otoTazeleDisabled, ws_ntfy: ws } = this
-		if (ws?.state == WebSocket.CLOSED)
+		if (ws?.state == EventSource.CLOSED)
 			ws = this.ws_ntfy = null
+
 		if (otoTazeleDisabled || ws)
 			return ws
 
 		let { sender: gridPart } = e
-		let topic = [...app.ntfyTopic].join('-')
-		let url = [app.ntfyWSUrl, topic, 'ws'].filter(Boolean).join('/')
-		ws = this.ws_ntfy = new WebSocket(url)
+		let { ntfyTopic: topic } = app
+		let url = [app.ntfyWSUrl, topic, 'sse'].filter(Boolean).join('/')
+		ws = this.ws_ntfy = new EventSource(url)
 		ws.onmessage = async ({ data: _ }) => {
 			if (_ && isString(_))
 				_ = JSON.parse(_) ?? {}
@@ -480,7 +495,10 @@ class MQOnayci extends MQCogul {
 				}
 			}
 		}
-		ws.onclose = ws.onerror = async ({ data: err }) => {
+		ws.onopen = evt =>
+			clog(evt)
+		ws.onclose = ws.onerror = async evt => {
+			let { data: err } = evt
 			if (err)
 				cerr(getErrorText(err))
 			this.unregisterNTFY(e)
@@ -489,9 +507,9 @@ class MQOnayci extends MQCogul {
 		}
 		return ws
 	}
-	static unregisterNTFY({ sender: gridPart }) {
+	static unregisterNTFY(e = {}) {
 		let { ws_ntfy: ws } = this
-		if (ws?.state == WebSocket.OPEN)
+		if (ws?.state == EventSource.OPEN)
 			ws.close()
 		this.ws_ntfy = null
 		return this
@@ -587,11 +605,53 @@ class MQOnayci extends MQCogul {
 					})
 				)
 			}
-			if (toplu?.bosDegilmi)
-				await this.sqlExecNone(toplu)
+			if (toplu?.bosDegilmi) {
+				let { onayMax, onayNo } = app
+				if (onayNo < onayMax) {
+					let { ntfyTopic: topic, onay2User: user } = app
+					let _qs = { ...qs }
+					if (user) {
+						let { _: encVal } = qs
+						if (encVal) {
+							delete _qs._
+							extend(_qs, JSON.parse(Base64.decode(encVal)))
+						}
+						deleteKeys(_qs, 'session', 'sessionID', 'loginTipi', 'user', 'pass')
+						let { DefaultLoginTipi: loginTipi } = Session
+						let { pass } = await Session.getSessionBasit({ user }) ?? {}
+						if (pass) {
+							if (pass.length != md5Length)
+								pass = md5(pass)
+							extend(_qs, { loginTipi, user, pass })
+						}
+					}
+					;{
+						let topicOnayNo = Number(topic.at(-1))
+						if (topicOnayNo == onayNo)
+							topic = topic.slice(0, -1).concat(String(++topicOnayNo))
+						let priority = 5
+						let tags = ['hourglass', '_new']
+						let title = 'VIO Onay İşlemleri'
+						let message = 'Onay bekleyen yeni belgeler var'
+						let actions = []
+						if (_qs) {
+							let { origin, pathname: path } = location
+							let url = `${origin}${path}?${$.param(_qs)}`
+							actions.push({
+								action: 'view',
+								label: 'Onay Portalını Aç (2)',
+								url
+							})
+						}
+						await ntfy({ topic, priority, tags, title, message, actions })
+					}
+				}
+				await toplu.execute()
+			}
 			
 			w?.clearselection()
 			gridPart.tazele()
+
 			;{
 				let middleText = onaymi ? `<b class=forestgreen>ONAYLANDI</b>` : `<b class=orangered>REDDEDİLDİ</b>`
 				window[onaymi ? 'eConfirm' : 'wConfirm']({
@@ -661,12 +721,12 @@ class MQOnayci extends MQCogul {
 						let xml = $.parseXML(xmlData)
 						let docRefs = Array.from(xml.documentElement.querySelectorAll(`AdditionalDocumentReference`))
 						let xsltData
-						{
+						;{
 							let xbinDocs, subName = 'EmbeddedDocumentBinaryObject'
 							xbinDocs = docRefs.filter(elm =>
 								elm.querySelector(subName) && (
 									elm.querySelector(subName)?.getAttribute('filename')?.includes('.xslt') ||
-									elm.querySelector(subName)?.innerHTML?.toUpperCase() == 'XSLT' ||
+									// elm.querySelector(subName)?.innerHTML?.toUpperCase() == 'XSLT' ||
 									elm.querySelector('DocumentType')?.innerHTML?.toUpperCase() == 'XSLT' ||
 									elm.querySelector('DocumentTypeCode')?.innerHTML?.toUpperCase() == 'XSLT' ||
 									elm.querySelector('ID')?.innerHTML?.toUpperCase() == 'XSLT'
@@ -681,8 +741,8 @@ class MQOnayci extends MQCogul {
 							}
 							xsltData = (
 								xbinDocs.find(elm =>
-									elm.querySelector('filename')?.includes('.xslt')) ??
-								xbinDocs?.at(-1)
+									elm.getAttribute('filename')?.toLowerCase()?.includes('.xslt')) ??
+									xbinDocs?.at(-1)
 							)?.textContent
 						}
 						if (!xsltData)

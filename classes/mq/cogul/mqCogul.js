@@ -897,6 +897,7 @@ class MQCogul extends MQYapi {
 		
 		e.islem ||= 'yeni'
 		e.mfSinif || this
+		e.inst ??= new this(e)
 		try {
 			let part = e.tanimPart = new tanimUISinif(e)
 			let { tanimOncesiEkIslemler } = e
@@ -911,7 +912,7 @@ class MQCogul extends MQYapi {
 		catch (ex) { hConfirm(getErrorText(ex)); throw ex }
 	}
 	tanimla(e = {}) {
-		e.inst ||= this
+		e.inst ??= this
 		return this.class.tanimla(e)
 	}
 	cacheOlustur(e) { }

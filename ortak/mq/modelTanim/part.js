@@ -112,7 +112,7 @@ class ModelTanimPart extends Part {
 	}
 	async initFormBuilder(e) {
 		try {
-			let {builder, inst} = this
+			let { builder, inst } = this
 			let _e = { ...e, sender: this }
 			if (!builder && inst)
 				builder = _e.builder = _e.rootBuilder = (await inst.getRootFormBuilder(_e)) ?? (await inst.getFormBuilders(_e))
@@ -150,8 +150,8 @@ class ModelTanimPart extends Part {
 		catch (ex) { console.error(ex); throw ex }
 	}
 	async rootFormBuilderDuzenle({ rootBuilder: rfb }) {
-		let e = arguments[0], {layout} = this
-		let fbd_islemTuslari = rfb.addForm().setLayout(layout.find('.header > .islemTuslari'))
+		let e = arguments[0], { layout } = this
+		let fbd_islemTuslari = rfb?.addForm()?.setLayout(layout.find('.header > .islemTuslari'))
 		e.fbd_islemTuslari = this.fbd_islemTuslari = fbd_islemTuslari
 		await this.rootFormBuilderDuzenle_islemTuslari(e)
 	}

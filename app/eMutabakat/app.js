@@ -48,8 +48,9 @@ class EMutabakatApp extends App {
 							return null
 						let result = await (
 							cls.sadeceTanimmi
-								? cls.tanimla({ ...e, islem: 'izle' })
-								: cls.listeEkraniAc ? cls.listeEkraniAc(e) : new cls(e).run()
+								? new cls(e).tanimla({ ...e, islem: 'izle' })
+								: cls.listeEkraniAc ? cls.listeEkraniAc(e)
+								: new cls(e).run()
 						)
 						let part = result?.part ?? result
 						if (qs.inNewWindow && part?.kapaninca)

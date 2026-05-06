@@ -193,7 +193,7 @@ body #ust-parent > #nav ul > li#_logout > a:hover .text { color: firebrick }
 body #ust-parent > #nav ul > li#_logout > a:hover .img { background-color: firebrick }
 
 body #ust-parent > #parent > main { position: absolute; top: calc(var(--appTitle-bottom) + var(--background-image-height) - 20px) }
-.part > .header { width: calc(var(--full) - 13px); /* text-align: right; */ padding-right: 0 }
+.part > .header { width: calc(var(--full) - 5px); /* text-align: right; */ padding-right: 0 }
 #windows .tabs .tabPage.nav-item .header .wnd-title.sinifAdi { /* font-size: 110% */ }
 body #ust-parent > #parent .part.wnd-content { /* height: var(--full); */ box-sizing: border-box }
 body #ust-parent > #parent .part.wnd-content:not(.slow-animation),

@@ -27,7 +27,8 @@
 	margin-left: 5px !important
 }
 .part .header > .islemTuslari {
-	--width-sag-ek: 20px
+	--width-sag-ek: 20px;
+	width: var(--full) !important
 }
 
 .jqx-grid [role = row] > div * { font-size: 95%; line-height: 13px }

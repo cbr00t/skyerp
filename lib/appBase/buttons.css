@@ -9,7 +9,7 @@
 	--button-form-margin-x: 1px;
 	--button-right-katsayi: 20;
 	--button-right: calc(var(--button-width) + var(--button-margin-x) * var(--button-right-katsayi) + var(--button-form-margin-x));
-	--width-sag: calc((var(--button-right) + 10px) * 2);
+	--width-sag: calc((var(--button-right) + 10px) * 2 + var(--width-sag-ek));
 	--width-sag-ek: 5px;
 	width: var(--full) !important;
 	height: var(--button-height);
@@ -63,7 +63,7 @@ body.kiosk .butonlar.part {
 /*body.kiosk .butonlar.part > .sag { background: linear-gradient(90deg, transparent 80%, #f2f2f2 100%) }*/
 .butonlar.part > .sag > button:nth-last-child(2) {
 	margin-left: 10px;
-	margin-right: 5px !important
+	margin-right: 5px
 }
 
 .butonlar.part button {
@@ -71,7 +71,8 @@ body.kiosk .butonlar.part {
 	width: var(--button-width);
 	height: var(--button-height);
 	border: 0;
-	margin-inline-end: var(--button-margin-x); line-height: 100%
+	margin-inline-end: var(--button-margin-x);
+	line-height: 100%
 }
 
 button, .jqx-button {
