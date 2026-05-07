@@ -6,8 +6,7 @@ class TabDokumSaha extends CObject {
 	static get ioKeys() {
 		return [
 			'key', 'text', 'pos', 'length', 'right',
-			'ozelIsaret', 'iade',
-			'converter', 'block', '_comment'
+			'ozelIsaret', 'iade', 'converter', 'block', '_comment'
 		]
 	}
 	get x() { return this.pos?.x } set x(value) { (this.pos ??= {}).x = value }
@@ -124,7 +123,7 @@ class TabDokumSaha extends CObject {
 				return text
 			if (!isFunction(f))
 				f = eval(f)
-			let r = await f.call(this, { ..._e, key, text, value: null })
+			let r = await f.call(this, { ..._e, inst, key, text, value: inst?.[key] })
 			return r === undefined ? text : r
 		}
 		;{

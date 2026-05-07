@@ -130,7 +130,83 @@ class TabRapor extends MQKAOrtak {
 		gridPart?.tazele(e)
 		return this
 	}
-	async yazdir(e = {}) { }
+	async yazdir(e = {}) {
+		let { tanimPart } = e
+		let { gridPart } = tanimPart
+		let { duzKolonTanimlari: colDefs } = gridPart
+		colDefs = colDefs.filter(c => !c.isHidden)
+		if (empty(colDefs))
+			return null
+		
+		let { boundRecs: recs } = gridPart
+		if (empty(recs))
+			return null
+
+		let { tablet: { dokumEkrana, dokumPrefix } = {} } = app.params
+		let prefix = await this.getUstBilgi(e)
+		let darDokum = true, kolonBaslik = true, tekDetaySatirSayisi = 2
+		let sayfaBoyut = { x: 55 },  otoYBasiSonu = { basi: 5 }
+
+		let detay = []
+		; {
+			let x = 1, y = 1
+			for (let cd of colDefs) {
+				let { belirtec: key, text, genislikCh: length, tip: { class: tipSinif } = {}, userData: ud } = cd
+				let { mfbmi: right } = tipSinif
+				let { dokumSaha: d } = ud ?? {}
+				d ??= {}
+				key = d.key ||= key
+				if (key[0] == '_')
+					continue
+				length = d.length ??= length || 18
+				right = d.right ??= right
+				if (!(key || text))
+					continue
+
+				d.pos = { x, y }
+				x += length
+				if (x >= sayfaBoyut.x) {
+					x = 1
+					y++
+				}
+				if (y > tekDetaySatirSayisi)
+					continue
+				
+				let s = new TabDokumSaha(d)
+				detay.push(s)
+			}
+		}
+		
+		/*let curY = 1
+		let sabit = [ ]
+		// let curY = max(...sabit.map(s => s.y || 0), 1)
+		// curY += 1 + ( recs.length * tekDetaySatirSayisi )*/
+
+		let form = ( await TabStokFis.instance.getDokumForm() ) ?? new TabDokumForm()
+		let defaults = {
+			darDokum, kolonBaslik, tekDetaySatirSayisi,
+			sayfaBoyut, otoYBasiSonu, detay
+		}
+		mergeIntoIfTargetEmpty(defaults, form)
+		if (isPlainObject(form))
+			form = new TabDokumForm(form)
+
+		let device = TabDokumDevice.newDefault(e)
+		let yontem = TabDokumYontemi.newDefault()
+		let dokumcu = new TabDokumcu()
+			.setSource(form).setDevice(device)
+			.setYontem(yontem)
+		if (dokumEkrana)
+			dokumcu.ekrana()
+		prefix ||= []
+		if (!empty(dokumPrefix))
+			prefix = empty(prefix) ? dokumPrefix : dokumPrefix.concat(prefix)
+		if (prefix)
+			dokumcu.setPrefix(prefix.concat(['', '']))
+		
+		let inst = { dokumDetaylar: recs }
+		return await dokumcu.yazdir({ inst })
+	}
 
 	static getTanimPartMenuItems(e = {}) {
 		super.getTanimPartMenuItems(e)

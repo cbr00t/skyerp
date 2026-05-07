@@ -842,7 +842,7 @@ class TabFis extends MQDetayliGUIDOrtak {
 				{ key: 'notlar', _comment: 'gizli' }
 			]
 		})*/
-		let {tablet: { dokumEkrana } = {}} = app.params
+		let { tablet: { dokumEkrana } = {} } = app.params
 		// let form = this.getDokumForm(e) ?? new TabDokumForm(data)
 		let form = this.getDokumForm(e) ?? new TabDokumForm()
 		if (isPlainObject(form))

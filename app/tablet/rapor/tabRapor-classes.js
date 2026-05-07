@@ -16,7 +16,12 @@ class TabRapor_IlkIrsaliye extends TabRapor {
 		]
 	}
 	async getSource(e) {
-		return await super.getSource(e)
+		let recs = await super.getSource(e) ?? []
+		recs.push(
+			{ stokText: 'stok 1', miktar: 10 },
+			{ stokText: 'stok 2', miktar: 13.5 }
+		)
+		return recs
 	}
 }
 

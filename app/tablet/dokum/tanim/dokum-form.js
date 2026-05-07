@@ -67,7 +67,7 @@ class TabDokumForm extends MQKA {
 		let { dokumDetaylar = [] } = inst
 		let { kolonBaslik, tekDetaySatirSayisi, dipYok, sayfaBoyut = {}, otoYBasiSonu = {} } = this
 		let { x: maxX, y: maxY } = sayfaBoyut
-		let { x: detBasi, y: detSonu } = otoYBasiSonu
+		let { x: detBasi = otoYBasiSonu.basi, y: detSonu = otoYBasiSonu.sonu } = otoYBasiSonu
 		let { sabit, detay: detSahalar, oto } = this
 		let { dipX, dipEtiketWidth, dipVeriWidth } = this
 		maxX ??= 0; maxY ??= 0
@@ -97,7 +97,12 @@ class TabDokumForm extends MQKA {
 			;(y2DetaySahalar[y || 1] ??= []).push(s)
 			key2DetSahalar[k] = s
 		}
-		maxY = max(maxY, curY, detSonu, detSahalar.length * tekDetaySatirSayisi)
+		maxY = max(
+			maxY, curY, detSonu,
+			max(Number(
+				keys(y2DetaySahalar)[0]
+			))
+		)
 
 		let _e = { ...e, form: this, fis: inst }
 		let data = _e.data = maxY ? new Array(maxY).fill(null) : []
@@ -218,6 +223,13 @@ class TabDokumForm extends MQKA {
 		
 		return data
 	}
+	darDokumYap() { this.darDokum = true; return this }
+	genisDokumYap() { return this.darDokkum = false; return this }
+	kolonBaslikGoster() { this.kolonBaslik = true; return this }
+	dipOlmasin() { this.dipYok = true; return this }
+	dipOlsun() { this.dipYok = false; return this }
+	detayTekSatir() { this.tekDetaySatirSayisi = 1; return this }
+	detayCiftSatir() { this.tekDetaySatirSayisi = 2; return this }
 }
 
 class TabDokumFormDetay extends MQDetay {
