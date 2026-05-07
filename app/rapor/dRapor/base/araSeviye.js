@@ -36,13 +36,14 @@ class DRapor_AraSeviye extends DGrupluPanelRapor {
 	async ilkIslemler(e) {
 		await super.ilkIslemler(e)
 		await this.dovizListeBelirle(e)
+		await this.ozelSahalarBelirle(e)
 	}
 	async dovizListeBelirle(e) {
 		let dvKod2Rec = this.dvKod2Rec = {}
 		let degerlemeDvKod2Rec = this.degerlemeDvKod2Rec = {}
 		let recs = await MQDoviz.loadServerData()
 		for (let rec of recs) {
-			let {kod, aciklama, degerlemeyapilir} = rec
+			let { kod, aciklama, degerlemeyapilir } = rec
 			if (!kod)
 				continue
 			kod = kod.toUpperCase()
@@ -50,6 +51,33 @@ class DRapor_AraSeviye extends DGrupluPanelRapor {
 			dvKod2Rec[kod] = rec
 			if (degerlemeyapilir)
 				degerlemeDvKod2Rec[kod] = rec
+		}
+		return this
+	}
+	async ozelSahalarBelirle(e) {
+		let { tip2OzelSahalar: res } = this
+		if (res == null) {
+			let stm
+			;{
+				let sent = new MQSent(), { where: wh, sahalar } = sent
+				sent.fromAdd('OSahaTanim tan')
+				sahalar.addWithAlias('tan',
+					'adimTipi anaTip', 'kaysayac id', 'gorunumSirano seq',
+					'attr kod', 'aciklama', 'tipi tip',
+					'genislik', 'fra'
+				)
+				let orderBy = ['anaTip', 'seq']
+				stm = new MQStm({ sent, orderBy })
+			}
+			
+			res = {}
+			;{
+				let recs = await stm.execSelect(e)
+				;recs.forEach(r =>
+					(res[r.anaTip] ??= []).push(r))
+			}
+
+			this.tip2OzelSahalar = res
 		}
 		return this
 	}
@@ -829,19 +857,52 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return this
 	}
 	tabloYapiDuzenle_cari({ result }) {
-		result.addKAPrefix('tip', 'bolge', 'cistgrup', 'cari', 'il', 'ulke')
+		result
+			.addKAPrefix('tip', 'bolge', 'cistgrup', 'cari', 'il', 'ulke')
 			.addGrupBasit('CRTIP', 'Cari Tip', 'tip', DMQCariTip)
-			.addGrupBasit('CRANABOL', 'Ana Bölge', 'anabolge', DMQCariAnaBolge).addGrupBasit('CRBOL', 'Bölge', 'bolge', DMQCariBolge)
-			.addGrupBasit('CRISTGRP', 'Cari İst. Grup', 'cistgrup', DMQCariIstGrup).addGrupBasit('CARI', 'Cari', 'cari', DMQCari)
+			.addGrupBasit('CRANABOL', 'Ana Bölge', 'anabolge', DMQCariAnaBolge)
+			.addGrupBasit('CRBOL', 'Bölge', 'bolge', DMQCariBolge)
+			.addGrupBasit('CRISTGRP', 'Cari İst. Grup', 'cistgrup', DMQCariIstGrup)
+			.addGrupBasit('CARI', 'Cari', 'cari', DMQCari)
 			.addGrupBasit('CRIL', 'Cari İl', 'il', DMQIl).addGrupBasit('CRULKE', 'Ülke', 'ulke', DMQUlke)
+		
+		let { tip2OzelSahalar } = this.rapor
+		let { CAR: ozelSahalar = [] } = tip2OzelSahalar ?? {}
+		;ozelSahalar.forEach(r => {
+			let { kod, aciklama, tip, genislik, fra } = r
+			let sayimi = tip == 'NR'
+			let tekSecimmi = tip == 'TS'
+			// addGrupBasit(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha, sql)
+			let selector = sayimi ? 'addGrupBasit_numerik' : 'addGrupBasit'
+			result[selector](
+				kod, aciklama, kod, null,
+				min(max(genislik || 0, 15), 30),
+				({ item, colDef }) => {
+					if (sayimi)
+						colDef.tipDecimal(fra)
+					item.setSQL([
+						({ item: { colDefs: [c] } }) => {
+							let { belirtec: saha } = c
+							return `car.${saha}`
+						}
+					])
+				}
+			)
+		})
+		
 		return this
 	}
 	loadServerData_queryDuzenle_cari(e) {
-		let {stm, attrSet, kodClause} = e; if (!kodClause) { return this }
-		let sent = e.sent ?? stm.sent, {where: wh, sahalar} = sent;
+		let { stm, attrSet, kodClause } = e
+		if (!kodClause)
+			return this
+		let sent = e.sent ?? stm.sent, { where: wh, sahalar } = sent
 		if (attrSet.CRTIP || attrSet.CRBOL || attrSet.CRANABOL || attrSet.CARI ||
-				attrSet.CRIL || attrSet.CRULKE || attrSet.CRISTGRP) { sent.fromIliski('carmst car', `${kodClause} = car.must`) }
-		if (attrSet.CRANABOL) { sent.cari2BolgeBagla() }
+				attrSet.CRIL || attrSet.CRULKE || attrSet.CRISTGRP) {
+			sent.fromIliski('carmst car', `${kodClause} = car.must`)
+		}
+		if (attrSet.CRANABOL)
+			sent.cari2BolgeBagla()
 		for (let key in attrSet) {
 			switch (key) {
 				case 'CRTIP': sent.cari2TipBagla(); sent.sahalar.add('car.tipkod', 'ctip.aciklama tipadi'); wh.icerikKisitDuzenle_cariTip({ ...e, saha: 'car.tipkod' }); break
@@ -891,7 +952,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return this
 	}
 	tabloYapiDuzenle_stok({ result }) {
-		result.addKAPrefix('anagrup', 'grup', 'sistgrup', 'stok', 'stokmarka')
+		result
+			.addKAPrefix('anagrup', 'grup', 'sistgrup', 'stok', 'stokmarka')
 			.addGrupBasit('STANAGRP', 'Stok Ana Grup', 'anagrup', DMQStokAnaGrup)
 			.addGrupBasit('STGRP', 'Stok Grup', 'grup', DMQStokGrup)
 			.addGrupBasit('STISTGRP', 'Stok İst. Grup', 'sistgrup', DMQStokIstGrup)
@@ -901,6 +963,32 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			.addGrupBasit('BRM2', 'Br2', 'brm2', null, 9, ({ colDef }) => colDef.alignCenter())
 			.addGrupBasit('BRMORANI', 'Brm Oranı', 'brmorani', null, 10, ({ colDef }) => colDef.tipDecimal())
 			.addGrupBasit('STOKRESIM', 'Stok Resim', 'stokresim')
+
+		let { tip2OzelSahalar } = this.rapor
+		let { STK: ozelSahalar = [] } = tip2OzelSahalar ?? {}
+		;ozelSahalar.forEach(r => {
+			let { kod, aciklama, tip, genislik, fra } = r
+			let sayimi = tip == 'NR'
+			let tekSecimmi = tip == 'TS'
+			// addGrupBasit(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha, sql)
+			let selector = sayimi ? 'addGrupBasit_numerik' : 'addGrupBasit'
+			result[selector](
+				kod, aciklama, kod, null,
+				min(max(genislik || 0, 15), 30),
+				({ item, colDef }) => {
+					if (sayimi)
+						colDef.tipDecimal(fra)
+					item.setSQL([
+						({ sent: { from } = {}, item: { colDefs: [c] } }) => {
+							let { belirtec: saha } = c
+							let hizmetmi = from?.aliasIcinTable('hiz')
+							return hizmetmi ? sqlNull : `stk.${saha}`
+						}
+					])
+				}
+			)
+		})
+		
 		return this
 	}
 	loadServerData_queryDuzenle_stok({ stm, sent, attrSet, kodClause }) {
@@ -1011,7 +1099,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return this
 	}
 	tabloYapiDuzenle_sh({ result }) {
-		result.addKAPrefix('anagrup', 'grup', 'sistgrup', 'sh', 'marka')
+		result
+			.addKAPrefix('anagrup', 'grup', 'sistgrup', 'sh', 'marka')
 			.addGrupBasit('SHANAGRP', 'S/H Ana Grup', 'anagrup', DMQStokAnaGrup)
 			.addGrupBasit('SHGRP', 'S/H Grup', 'grup', DMQStokGrup)
 			.addGrupBasit('SHISTGRP', 'S/H  İst. Grup', 'istgrup', DMQStokIstGrup)
@@ -1021,6 +1110,33 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			.addGrupBasit('BRM2', 'Br2', 'brm2', null, 5, ({ colDef }) => colDef.alignCenter())
 			.addGrupBasit('BRMORANI', 'Brm Oranı', 'brmorani', null, 100, ({ colDef }) => colDef.tipDecimal())
 			.addGrupBasit('STOKRESIM', 'Stok Resim', 'stokresim')
+
+		let { sqlNull } = Hareketci_UniBilgi.ortakArgs
+		let { tip2OzelSahalar } = this.rapor
+		let { STK: ozelSahalar = [] } = tip2OzelSahalar ?? {}
+		;ozelSahalar.forEach(r => {
+			let { kod, aciklama, tip, genislik, fra } = r
+			let sayimi = tip == 'NR'
+			let tekSecimmi = tip == 'TS'
+			// addGrupBasit(kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha, sql)
+			let selector = sayimi ? 'addGrupBasit_numerik' : 'addGrupBasit'
+			result[selector](
+				kod, aciklama, kod, null,
+				min(max(genislik || 0, 15), 30),
+				({ item, colDef }) => {
+					if (sayimi)
+						colDef.tipDecimal(fra)
+					item.setSQL([
+						({ sent: { from } = {}, item: { colDefs: [c] } }) => {
+							let { belirtec: saha } = c
+							let hizmetmi = from?.aliasIcinTable('hiz')
+							return hizmetmi ? sqlNull : `stk.${saha}`
+						}
+					])
+				}
+			)
+		})
+		
 		return this
 	}
 	loadServerData_queryDuzenle_sh({ stm, sent, attrSet }) {

@@ -423,8 +423,8 @@ class TabloYapiItem extends CObject {
 
 	constructor(e = {}) {
 		super(e)
-		$.extend(this, {
-			tip: e.tip == 'string' ? null : e.tip,
+		extend(this, {
+			tip: isString(e.tip) ? null : e.tip,
 			mfSinif: e.mfSinif, secimKullanilirFlag: e.secimKullanilirFlag,
 			ozelWhereClauseFlag: e.ozelWhereClauseFlag, orderBySaha: e.orderBySaha,
 			hrkAttr: e.hrkAttr, colDefs: e.colDefs ?? [],

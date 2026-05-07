@@ -43,13 +43,13 @@ class CBasiSonu extends CObject {
 		}
 	    if (!(basi && sonu))
 			return `${basi ? gA(basi) : '...'} -> ${sonu ? gA(sonu) : '...'}`
-	    let b = { gun: basi.gun.sifirlaDoldur(2), ay: basi.ay, yil: basi.yil }
-		let s = { gun: sonu.gun.sifirlaDoldur(2), ay: sonu.ay, yil: sonu.yil }
+	    let b = { gun: sifirlaDoldur(basi.gun, 2), ay: basi.ay, yil: basi.yil }
+		let s = { gun: sifirlaDoldur(sonu.gun, 2), ay: sonu.ay, yil: sonu.yil }
 	    if (b.yil === s.yil && b.ay === s.ay)
 			return `${b.gun} -> ${s.gun} ${kisaAy[b.ay - 1]} ${b.yil}`
 	    if (b.yil === s.yil)
 			return `${b.gun}.${kisaAy[b.ay - 1]} -> ${s.gun}.${kisaAy[s.ay - 1]} ${b.yil}`
-	    return `${b.gun}.${kisaAy[b.ay - 1]}.${(b.yil % 100).sifirlaDoldur(2)} -> ${s.gun}.${kisaAy[s.ay - 1]}.${(s.yil % 100).sifirlaDoldur(2)}`
+	    return `${b.gun}.${kisaAy[b.ay - 1]}.${sifirlaDoldur(b.yil % 100, 2)} -> ${s.gun}.${kisaAy[s.ay - 1]}.${sifirlaDoldur(s.yil % 100, 2)}`
 	}
 	
 	constructor(e) { e = e || {}; super(e); $.extend(this, { basi: e.basi ?? e.Basi, sonu: e.sonu ?? e.Sonu }) }

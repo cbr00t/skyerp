@@ -404,12 +404,13 @@ class DRapor_Hareketci_Cari_Main extends DRapor_Hareketci_Main {
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
 		super.loadServerData_queryDuzenle_hrkSent(e)
-		let {hvDegeri} = e, kodClause = hvDegeri('must')
+		let { hvDegeri } = e
+		let kodClause = hvDegeri('must')
 		this.loadServerData_queryDuzenle_cari({ ...e, kodClause })
 		this.loadServerData_queryDuzenle_odemeGun({ ...e, kodClause: hvDegeri('odgunkod') })
 	}
 	tabloYapiDuzenle_odemeGun(e) { super.super_tabloYapiDuzenle_odemeGun(e) }
-}
+} 
 
 class DRapor_Hareketci_Kasa extends DRapor_Hareketci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -422,15 +423,25 @@ class DRapor_Hareketci_Kasa_Main extends DRapor_Hareketci_Main {
 	static get raporClass() { return DRapor_Hareketci_Kasa }
 	static get ticarimi() { return true }
 	tabloYapiDuzenle({ result }) {
-		result.addKAPrefix('kasa').addGrupBasit('KASA', 'Kasa', 'kasa', DMQKasa)
+		result
+			.addKAPrefix('kasa')
+			.addGrupBasit('KASA', 'Kasa', 'kasa', DMQKasa)
 		super.tabloYapiDuzenle(...arguments)
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
-		super.loadServerData_queryDuzenle_hrkSent(e);
-		let {attrSet, sent, hvDegeri} = e, {where: wh, sahalar} = sent, kodClause = hvDegeri('kasakod');
-		if (attrSet.KASA) { sent.fromIliski('kasmst kas', `${kodClause} = kas.kod`) }
+		super.loadServerData_queryDuzenle_hrkSent(e)
+		let { attrSet, sent, hvDegeri } = e, { where: wh, sahalar } = sent
+		let kodClause = hvDegeri('kasakod')
+		if (attrSet.KASA)
+			sent.fromIliski('kasmst kas', `${kodClause} = kas.kod`)
 		for (let key in attrSet) {
-			switch (key) { case 'KASA': sahalar.add(`${kodClause} kasakod`, 'kas.aciklama kasaadi'); wh.icerikKisitDuzenle_kasa({ ...e, saha: kodClause }); break }
+			switch (key) {
+				case 'KASA': {
+					sahalar.add(`${kodClause} kasakod`, 'kas.aciklama kasaadi')
+					wh.icerikKisitDuzenle_kasa({ ...e, saha: kodClause })
+					break
+				}
+			}
 		}
 	}
 }

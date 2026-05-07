@@ -174,8 +174,9 @@ class TabSutAlimFis extends TabFis {
 						fisRecs = await stm.execSelect({ ...e, offlineMode: true })
 					}
 					;fisRecs.forEach(r => {
+						let { posta } = r
 						let tarih = asDate(r.tarih)
-						if (sutAksamSonrakiGun)
+						if (sutAksamSonrakiGun && posta == 'A')
 							tarih = tarih.yarin()
 						r.tarih = tarih
 					})
