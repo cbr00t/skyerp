@@ -164,7 +164,7 @@ class TabRapor extends MQKAOrtak {
 					continue
 
 				d.pos = { x, y }
-				x += length
+				x += length + 1
 				if (x >= sayfaBoyut.x) {
 					x = 1
 					y++
@@ -182,10 +182,13 @@ class TabRapor extends MQKAOrtak {
 		// let curY = max(...sabit.map(s => s.y || 0), 1)
 		// curY += 1 + ( recs.length * tekDetaySatirSayisi )*/
 
+		let oto = [
+			new TabDokumSaha({ key: 'dip', x: 1 })
+		]
 		let form = ( await TabStokFis.instance.getDokumForm() ) ?? new TabDokumForm()
 		let defaults = {
 			darDokum, kolonBaslik, tekDetaySatirSayisi,
-			sayfaBoyut, otoYBasiSonu, detay
+			sayfaBoyut, otoYBasiSonu, detay, oto
 		}
 		mergeIntoIfTargetEmpty(defaults, form)
 		if (isPlainObject(form))
@@ -204,8 +207,21 @@ class TabRapor extends MQKAOrtak {
 		if (prefix)
 			dokumcu.setPrefix(prefix.concat(['', '']))
 		
-		let inst = { dokumDetaylar: recs }
+		let inst = {
+			dokumDetaylar: recs,
+			dokumGetValue: (...args) =>
+				this.dokumGetValue(...args)
+		}
 		return await dokumcu.yazdir({ inst })
+	}
+	dokumGetColText({ key }) {
+		return null
+	}
+	async dokumGetValue({ tip, key } = {}) {
+		let e = arguments[0]
+		if (tip == 'cols')
+			return await this.dokumGetColText(...arguments)
+		return null
 	}
 
 	static getTanimPartMenuItems(e = {}) {

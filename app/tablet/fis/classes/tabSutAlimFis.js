@@ -4,7 +4,7 @@ class TabSutAlimFis extends TabFis {
 	static get kodListeTipi() { return 'SUT' } static get sinifAdi() { return 'Süt Alım' }
 	static get numTipKod() { return 'SUT' } get defaultSeri() { return '' }
 	static get detaySinif() { return TabSutAlimDetay }
-	static get onlineFisSinif() { return SutAlimOnlineFis }
+	// static get onlineFisSinif() { return SutAlimOnlineFis }
 	static get cariSinif() { return MQTabMustahsil }
 	// get sonucBedel() { return this.topMiktar }
 	get topMiktar() { return topla(_ => _.miktar || 0, ...this.detaylar) }
@@ -55,7 +55,7 @@ class TabSutAlimFis extends TabFis {
 		// let { tarih, mustKod: must, rotaID, posta, class: { table } } = this
 	}
 	async dataDuzgunmuDuzenle({ islem, eskiInst: eskiFis, parentPart, gridPart, result }) {
-		let { tarih, mustKod: must, rotaID, posta, class: { table } } = this
+		let { tarih, mustKod: must, rotaID, posta, class: { table /*, gonderimTSSaha*/ } } = this
 		tarih = tarih.clone().clearTime()
 		if (islem == 'yeni' || islem == 'kopya') {
 			let keyHV = extend(
@@ -65,7 +65,7 @@ class TabSutAlimFis extends TabFis {
 			let sent = new MQSent(), { where: wh, sahalar } = sent
 			sent.fromAdd(table)
 			wh
-				.add(`silindi = ''`, `gecici = ''`, `merkez = ''`)
+				.add(`silindi = ''`, `gecici = ''`, `merkez = ''` /*, `${gonderimTSSaha} = ''`*/)
 				.birlestirDict(keyHV)
 			sahalar.add('COUNT(*) sayi')
 			let res = await sent.execTekilDeger()
@@ -93,7 +93,7 @@ class TabSutAlimFis extends TabFis {
 	}
 	postaDegisti({ oldValue = this._prev.posta, value = this.posta } = {}) {
 		this._prev.posta = value
-		let { tablet: { sutAksamSonrakiGun } = {} } = app.params
+		/*let { tablet: { sutAksamSonrakiGun } = {} } = app.params
 		if (sutAksamSonrakiGun) {
 			let { tarih } = this
 			let bugun = today(), yarin = today().yarin()
@@ -105,7 +105,7 @@ class TabSutAlimFis extends TabFis {
 				tarih = this.tarih = yarin
 			else if (yarinmi && posta != 'A')
 				tarih = this.tarih = bugun
-		}
+		}*/
 	}
 
 	getDokumForm(e) {
@@ -157,26 +157,34 @@ class TabSutAlimFis extends TabFis {
 				// Burada yerelden veri okuyoruz
 				;{
 					// Yerel Fişler
+					let { tablet: { sutAksamSonrakiGun } = {} } = app.params
 					let { tableAlias: alias } = this
-					let sent = new MQSent(), { where: wh, sahalar } = sent
-					sent.fromAdd(`${offlineTable} ${alias}`)
-					if (gonderildiDesteklenirmi)
-						wh.add(`COALESCE(${alias}.${gonderimTSSaha}, '') = ''`)
-					wh
-						.add(`${alias}.silindi = ''`, `${alias}.gecici = ''`, `${alias}.merkez = ''`)
-						.birlestirDict(keyHV)
-					sahalar.addWithAlias(alias,
-						`${idSaha} id`, 'kayitTS', 'tarih', 'fisno', 'must', 'yerkod', 'rotaID', 'posta', 'cariaciklama')
-					let orderBy = [`${alias}.tarih`, `${alias}.rotaID`, `${alias}.posta`]
-					fisRecs = await new MQStm({ sent, orderBy }).execSelect({ ...e, offlineMode: true })
-					;fisRecs.forEach(r =>
-						r.tarih = asDate(r.tarih))
+					;{
+						let sent = new MQSent(), { where: wh, sahalar } = sent
+						sent.fromAdd(`${offlineTable} ${alias}`)
+						if (gonderildiDesteklenirmi)
+							wh.add(`COALESCE(${alias}.${gonderimTSSaha}, '') = ''`)
+						wh
+							.add(`${alias}.silindi = ''`, `${alias}.gecici = ''`, `${alias}.merkez = ''`)
+							.birlestirDict(keyHV)
+						sahalar.addWithAlias(alias,
+							`${idSaha} id`, 'kayitTS', 'tarih', 'fisno', 'must', 'yerkod', 'rotaID', 'posta', 'cariaciklama')
+						let orderBy = [`${alias}.tarih`, `${alias}.rotaID`, `${alias}.posta`]
+						let stm = new MQStm({ sent, orderBy })
+						fisRecs = await stm.execSelect({ ...e, offlineMode: true })
+					}
+					;fisRecs.forEach(r => {
+						let tarih = asDate(r.tarih)
+						if (sutAksamSonrakiGun)
+							tarih = tarih.yarin()
+						r.tarih = tarih
+					})
 				}
-				window.progressManager?.progressStep(5)
+				globalThis.progressManager?.progressStep(5)
 				
 				// Fiş ID Liste
 				idListe = fisRecs.map(r => r.id)
-				window.progressManager?.progressStep(1)
+				globalThis.progressManager?.progressStep(1)
 				
 				;{
 					// Yerel Fiş Detayları
@@ -189,7 +197,7 @@ class TabSutAlimFis extends TabFis {
 					let orderBy = [`${alias}.${fisSayacSaha}`, `${alias}.${seqSaha}`]
 					detRecs = await new MQStm({ sent, orderBy }).execSelect({ ...e, offlineMode: true })
 				}
-				window.progressManager?.progressStep(7)
+				globalThis.progressManager?.progressStep(7)
 
 				;{
 					// Fiş -> Detay bağlantı ve düzenleme
@@ -201,7 +209,8 @@ class TabSutAlimFis extends TabFis {
 							let { fisRec: { kayitTS, must } } = yapi
 							detRec.tabletkayitts = asDate(kayitTS)
 							detRec.must = must
-							;(yapi.detRecs ??= []).push(detRec)
+							;(yapi.detRecs ??= [])
+								.push(detRec)
 						}
 					})
 					fisRecs.forEach(r =>
@@ -226,7 +235,7 @@ class TabSutAlimFis extends TabFis {
 						yapi.detRecs.push(...detRecs)
 					}
 				}
-				window.progressManager?.progressStep(3)
+				globalThis.progressManager?.progressStep(3)
 			}
 
 			if (!empty(fisKey2Yapi)) {
@@ -403,7 +412,7 @@ class TabSutAlimFis extends TabFis {
 					}
 				}
 				catch (ex) { errors.push(ex) }
-				window.progressManager?.progressStep(toplu.liste.length)
+				globalThis.progressManager?.progressStep(toplu.liste.length)
 				
 				app.offline()
 				;{

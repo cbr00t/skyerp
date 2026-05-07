@@ -49,22 +49,6 @@ class MQTabSonStok extends MQMasterOrtak {
 			)
 		)
 	}
-	static async loadServerData({ offlineRequest, offlineMode } = {}) {
-		let recs = await super.loadServerData(...arguments)
-		if (empty(recs) || (offlineRequest && offlineMode))
-			return recs
-		;{
-			let key2Orj = {
-				sonMiktar: 'orjSonMiktar', sonMiktar2: 'orjSonMiktar2',
-				sonGelecekMiktar: 'orjSonGelecekMiktar', sonGidecekMiktar: 'orjSonGidecekMiktar'
-			}
-			;recs.forEach(rec => {
-				entries(key2Orj).forEach(([k, ok]) =>
-					rec[ok] ??= rec[k])
-			})
-		}
-		return recs
-	}
 	static loadServerData_queryDuzenle_son(e) {
 		super.loadServerData_queryDuzenle_son(e)
 		let { alias = this.tableAlias, offlineRequest, offlineMode, stm, sent } = e
@@ -80,6 +64,9 @@ class MQTabSonStok extends MQMasterOrtak {
 			for (let { rowAttr, ioAttr } of HMRBilgi)
 				sahalar.add(`${alias}.${rowAttr} ${ioAttr}`)
 			sahalar.add(
+				`SUM(${alias}.sonmiktar) orjSonMiktar`, `SUM(${alias}.sonmiktar2) orjSonMiktar2`,
+				`SUM(${alias}.songelecekmiktar) orjSonGelecekMiktar`, `SUM(${alias}.songidecekmiktar) orjSonGidecekMiktar`,
+
 				`SUM(${alias}.sonmiktar) sonMiktar`, `SUM(${alias}.sonmiktar2) sonMiktar2`,
 				`SUM(${alias}.songelecekmiktar) sonGelecekMiktar`, `SUM(${alias}.songidecekmiktar) sonGidecekMiktar`
 			)
@@ -100,10 +87,11 @@ class MQTabSonStok extends MQMasterOrtak {
 				}
 			}
 			sahalar.add(
-				`SUM(${alias}.sonMiktar) sonMiktar`,
-				`SUM(${alias}.sonMiktar2) sonMiktar2`,
-				`SUM(${alias}.sonGelecekMiktar) sonGelecekMiktar`,
-				`SUM(${alias}.sonGidecekMiktar) sonGidecekMiktar`
+				`SUM(${alias}.orjSonMiktar) orjSonMiktar`, `SUM(${alias}.orjSonMiktar2) orjSonMiktar2`,
+				`SUM(${alias}.orjSonGelecekMiktar) orjSonGelecekMiktar`, `SUM(${alias}.orjSonGidecekMiktar) orjSonGidecekMiktar`,
+				
+				`SUM(${alias}.sonMiktar) sonMiktar`, `SUM(${alias}.sonMiktar2) sonMiktar2`,
+				`SUM(${alias}.sonGelecekMiktar) sonGelecekMiktar`, `SUM(${alias}.sonGidecekMiktar) sonGidecekMiktar`
 			)
 			orderBy.liste = [`${alias}.yerKod`, `${alias}.stokKod`, `${alias}.sonMiktar DESC`]
 		}
