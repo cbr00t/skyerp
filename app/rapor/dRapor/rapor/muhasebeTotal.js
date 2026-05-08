@@ -14,13 +14,13 @@ class DRapor_Muhasebe_Main extends DRapor_Donemsel_Main {
 		let {muhasebe: muhParam = {}} = app.params
 		let buYil = today().yil
 		let maliYil = muhParam.maliYil || buYil
-		{
-			let {donem, tarihAralik} = sec
+		;{
+			let { donem, tarihAralik } = sec
 			if (!maliYil || maliYil == buYil)
 				donem.tekSecim.buYil()
 			else {
 				donem.tekSecim.tarihAralik()
-				$.extend(tarihAralik, { basi: asDate(`01.01.${maliYil}`), sonu: asDate(`31.12.${maliYil}`) })
+				extend(tarihAralik, { basi: asDate(`01.01.${maliYil}`), sonu: asDate(`31.12.${maliYil}`) })
 			}
 		}
 	}
@@ -39,7 +39,7 @@ class DRapor_Muhasebe_Main extends DRapor_Donemsel_Main {
 			.addGrupBasit('MUHGRUP', 'Muh. Grup', 'muhgrup', DMQMuhGrup)
 			/*.addToplamBasit_bedel('BORC', 'Borç', 'borc')
 			.addToplamBasit_bedel('ALACAK', 'Alacak', 'alacak')*/
-		this.tabloYapiDuzenle_baBedelBasit(e)
+		this.tabloYapiDuzenle_baBedel(e)
 		this.tabloYapiDuzenle_baBakiye(e)
 	}
 	loadServerData_queryDuzenle(e) {

@@ -742,11 +742,11 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			].filter(x => !!x);
 			let gtTip2ColDefs = { sabit: [], toplam: [] }
 			for (let colDef of colDefs) {
-				let {kod} = colDef.userData ?? {}
+				let { kod } = colDef.userData ?? {}
 				let toplammi = tabloYapi.toplam[kod]
 				let selector = toplammi ? 'toplam' : 'sabit'
 				gtTip2ColDefs[selector].push(colDef)
-				if (toplammi && !colDef?.aggregates)
+				if (toplammi && !colDef?.aggregates && !kod.includes('BAKIYE'))
 					colDef.aggregates = ['sum']
 			}
 			if (!empty(colDefs)) {

@@ -73,8 +73,8 @@ class TabloYapi extends CObject {
 	addItemBasit(selector, kod, text, belirtec, mfSinif, genislikCh, duzenleyici, orderBySaha, sql) {
 		let toplammi = selector == 'addToplam'
 		let width = 'auto'
-		let minWidth = (genislikCh == null ? 10 : Math.max(genislikCh, 0) - 5) * katSayi_ch2Px
-		let maxWidth = (genislikCh == null ? (toplammi ? 20 : 60) : genislikCh) * katSayi_ch2Px
+		let minWidth = (genislikCh == null ? 15 : Math.max(genislikCh, 0) - 5) * katSayi_ch2Px
+		let maxWidth = (genislikCh == null ? (toplammi ? 25 : 60) : genislikCh) * katSayi_ch2Px
 		let colDef = new GridKolon({
 			belirtec, text, width,
 			minWidth, maxWidth,
