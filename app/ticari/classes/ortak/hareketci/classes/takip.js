@@ -37,7 +37,13 @@ class TakipHareketci extends Hareketci {
 		for (let key of ['belgenox', 'miktar', 'kdv', 'maliyet']) { hv[key] = sqlZero }
 		for (let key of ['mustkod', 'ticmust', 'fisaciklama', 'detaciklama']) { delete hv[key] }
 		extend(hv, {
-			tarih: ({ hv }) => hv.belgetarih, fistarih: ({ hv }) => hv.tarih, fisnox: ({ hv }) => hv.belgenox
+			tarih: ({ hv }) => {
+				let res = hv.belgetarih
+				if (!res?.sqlDoluDegermi())
+					res = 'fis.tarih'
+			},
+			fistarih: ({ hv }) => hv.tarih,
+			fisnox: ({ hv }) => hv.belgenox
 		})
     }
     /** UNION sorgusu hazırlama – hareket tipleri için */
@@ -58,7 +64,7 @@ class TakipHareketci extends Hareketci {
 					wh.fisSilindiEkle().degerAta('F', 'fis.piftipi').inDizi(['A', 'T'], 'fis.almsat')
                 }).hvDuzenleIslemi(({ hv }) => {
                     extend(hv, {
-						kayittipi: `'FAT'`, anaislemadi: `'Fatura'`,
+						kayittipi: `'FAT'`, anaislemadi: `'Fatura'`, tarih: 'fis.tarih',
 						islemadi: `dbo.iadetext(fis.iade, dbo.almsattext (fis.almsat, 'Alım Fatura', 'Satış Fatura'))`,
 						refkod: 'har.stokkod', refadi: 'coalesce(har.degiskenadi, stk.aciklama)',
 						takipno: 'har.dettakipno', must: 'fis.must', bedel: 'har.harciro', kdv: 'har.perkdv',
@@ -94,7 +100,7 @@ class TakipHareketci extends Hareketci {
 					wh.fisSilindiEkle().inDizi(['F', 'P'], 'fis.piftipi')
                 }).hvDuzenleIslemi(({ hv }) => {
                     extend(hv, {
-						kayittipi: `'FAT'`, anaislemadi: `'Fatura'`,
+						kayittipi: `'FAT'`, anaislemadi: `'Fatura'`, tarih: 'fis.tarih',
 						islemadi: `dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Alım Fatura', 'Satış Fatura'))`,
 						refkod: 'har.hizmetkod', refadi: 'hiz.aciklama', ekrefkod: 'kdet.kdetay',
 						takipno: 'har.dettakipno', must: 'fis.must', bedel: 'har.harciro', kdv: 'har.perkdv',

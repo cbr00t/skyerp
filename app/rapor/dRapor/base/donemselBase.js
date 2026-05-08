@@ -52,6 +52,7 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 		return this
 	}
 	loadServerData_queryDuzenle_tarih({ attrSet, stm, sent, alias = 'fis', tarihSaha, tarihClause }) {
+		let { sqlNull } = Hareketci_UniBilgi.ortakArgs
 		let sentOrUni = sent ?? stm?.sent
 		let aliasVeNokta = alias ? `${alias}.` : ''
 		tarihSaha ??= 'tarih'
@@ -59,7 +60,12 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 			alias = aliasVeNokta = ''
 		tarihClause = tarihClause ?? (tarihSaha ? aliasVeNokta + tarihSaha : null)
 		let tarihClauseVarmi = tarihClause.sqlDoluDegermi()
-		let { sqlNull } = Hareketci_UniBilgi.ortakArgs
+		if (!tarihClauseVarmi) {
+			let { from } = sent
+			let { alias } = ( from.aliasIcinTable('fis') ?? from.aliasIcinTable('bel') ) ?? {}
+			tarihClause = [alias, 'tarih'].filter(Boolean).join('.')
+			tarihClauseVarmi = true
+		}
 		for (let { sahalar } of sentOrUni) {
 			for (let key in attrSet) {
 				switch (key) {

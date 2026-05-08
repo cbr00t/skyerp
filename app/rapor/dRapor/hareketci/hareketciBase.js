@@ -71,14 +71,16 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	static get totalmi() { return this.raporClass.totalmi } static get hareketmi() { return this.raporClass.hareketmi }
 	static get envantermi() { return this.raporClass.envantermi }
 	static get ticarimi() { return false }
+
 	onInit(e) {
 		super.onInit(e)
-		let {hareketciSinif} = this.class
+		let { hareketciSinif } = this.class
 		if (hareketciSinif)
 			this.hareketci = new hareketciSinif()
 	}
 	tazele(e) {
-		let {rapor: { isPanelItem }, class: { totalmi } } = this, {secimler: sec = {}} = this, {tarihBS} = sec
+		let { rapor: { isPanelItem }, class: { totalmi } } = this
+		let { secimler: sec = {} } = this, { tarihBS } = sec
 		if (!(isPanelItem || totalmi || tarihBS?.basi || this.secimlerIstendimi)) {
 			this.secimlerIstendi(); this.secimlerIstendimi = true
 			return
@@ -87,10 +89,13 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	}
 	secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments)
-		let grupKod = 'donemVeTarih', {hareketci} = this, {totalmi} = this.class
-		let {hareketTipSecim: tekSecim} = hareketci?.class ?? {};
-		let liste = {}; if (tekSecim) { liste.tip = new SecimBirKismi({ etiket: 'Tip', tekSecim, grupKod }).birKismi().autoBind() }
-		if (!totalmi) { liste.devirAlinmasin = new SecimBool({ grupKod, etiket: `Devir <b class=firebrick>AlınMAsın</b>` }) }
+		let grupKod = 'donemVeTarih', { hareketci } = this, { totalmi } = this.class
+		let { hareketTipSecim: tekSecim } = hareketci?.class ?? {};
+		let liste = {}
+		if (tekSecim)
+			liste.tip = new SecimBirKismi({ etiket: 'Tip', tekSecim, grupKod }).birKismi().autoBind()
+		if (!totalmi)
+			liste.devirAlinmasin = new SecimBool({ grupKod, etiket: `Devir <b class=firebrick>AlınMAsın</b>` })
 		if (!empty(liste))
 			sec.secimTopluEkle(liste)
 		if (!totalmi) {
@@ -154,12 +159,12 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	tabloYapiDuzenle_odemeGun(e) { /* do nothing */ }
 	super_tabloYapiDuzenle_odemeGun(e) { super.tabloYapiDuzenle_odemeGun(e) }
 	async loadServerDataInternal(e = {}) {
-		let {hareketci} = e
+		let { hareketci } = e
 		e.rapor = this
 		hareketci ??= this.hareketci
-		let {secimler, raporTanim, class: { totalmi }} = this
-		let {value: devirAlinmasin} = secimler.devirAlinmasin ?? { value: true }
-		let {attrSet, donemBS} = e, {basi: tarihBasi} = donemBS ?? {}
+		let { secimler, raporTanim, class: { totalmi } } = this
+		let { value: devirAlinmasin } = secimler.devirAlinmasin ?? { value: true }
+		let { attrSet, donemBS } = e, {basi: tarihBasi} = donemBS ?? {}
 		attrSet ??= raporTanim.attrSet
 		if (!(totalmi || attrSet.TARIH))
 			devirAlinmasin = true
@@ -197,18 +202,18 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	loadServerData_queryDuzenle(e) {
 		e.alias ??= 'hrk'
 		super.loadServerData_queryDuzenle(e)
-		let {stm, attrSet, hareketci} = e
-		let {raporTanim} = this, {kullanim: { yatayAnaliz }} = raporTanim
+		let { stm, attrSet, hareketci } = e
+		let { raporTanim } = this, { kullanim: { yatayAnaliz } } = raporTanim
 		hareketci ??= this.hareketci
 		hareketci.reset()
-		let {uygunluk} = hareketci, uygunlukVarmi = !empty(uygunluk)
+		let { uygunluk}  = hareketci, uygunlukVarmi = !empty(uygunluk)
 		if (!uygunlukVarmi) {
-			let {hareketTipSecim} = hareketci.class
+			let { hareketTipSecim } = hareketci.class
 			uygunlukVarmi = !empty(hareketTipSecim.kaListe)
 			if (uygunlukVarmi)
 				uygunluk = asSet(hareketTipSecim.kaListe.map(({ kod }) => kod))
 		}
-		let {varsayilanHV: hrkDefHV} = hareketci.class
+		let { varsayilanHV: hrkDefHV } = hareketci.class
 		extend(e, { hareketci, hrkDefHV })
 		if (yatayAnaliz)
 			attrSet[DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod] = true
@@ -264,8 +269,8 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
-		let {attrSet, sentHVEkle, sent, hrkHV: hv, hrkDefHV: defHV, hvDegeri} = e
-		let {sahalar} = sent, tarihClause = hvDegeri('tarih')
+		let { attrSet, sentHVEkle, sent, hrkHV: hv, hrkDefHV: defHV, hvDegeri } = e
+		let { sahalar } = sent, tarihClause = hvDegeri('tarih')
 		this.donemBagla({ ...e, tarihClause })
 		for (let key in attrSet) {
 			switch (key) {

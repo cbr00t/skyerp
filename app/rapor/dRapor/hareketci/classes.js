@@ -825,11 +825,13 @@ class DRapor_Hareketci_Takip_Main extends DRapor_Hareketci_Main {
 		}
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
-		super.loadServerData_queryDuzenle_hrkSent(e); let {attrSet, sent, hvDegeri} = e;
-		let {where: wh, sahalar} = sent, kodClause = hvDegeri('takipno');
-		sent.fromIliski('takipno tak', `${kodClause} = tak.kod`);
-		this.loadServerData_queryDuzenle_takip({ ...e, kodClause });
-		this.loadServerData_queryDuzenle_cari({ ...e, kodClause: 'car.must' });
+		super.loadServerData_queryDuzenle_hrkSent(e)
+		let { attrSet, sent, hvDegeri } = e
+		let { where: wh, sahalar } = sent
+		let kodClause = hvDegeri('takipno')
+		sent.fromIliski('takipno tak', `${kodClause} = tak.kod`)
+		this.loadServerData_queryDuzenle_takip({ ...e, kodClause })
+		this.loadServerData_queryDuzenle_cari({ ...e, kodClause: 'car.must' })
 		for (let key in attrSet) {
 			switch (key) {
 				case 'TUMMALIYET': sahalar.add(`${hvDegeri('maliyet').asSumDeger()} tummaliyet`); break

@@ -248,8 +248,10 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	}
 	loadServerDataInternal(e) { return null }
 	loadServerData_wsArgsDuzenle(e) {
-		super.loadServerData_wsArgsDuzenle(e);
-		let _value = qs.maxRow ?? qs.maxrow; if (_value != null) { e.maxRow = asInteger(_value) }
+		super.loadServerData_wsArgsDuzenle(e)
+		let _value = qs.maxRow ?? qs.maxrow
+		if (_value != null)
+			e.maxRow = asInteger(_value)
 	}
 	loadServerData_recsDuzenleIlk(e) {
 		let {recs} = e, {gridPart: { filtreTokens }} = this

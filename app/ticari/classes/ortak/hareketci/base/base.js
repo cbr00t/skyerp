@@ -136,8 +136,9 @@ class Hareketci extends CObject {
 	static get varsayilanHV() {
 		let {_varsayilanHV: result} = this, e;
 		if (result == null) {
-			let hv = {}, e = { hv, ...Hareketci_UniBilgi.ortakArgs };
-			this.varsayilanHVDuzenle_ortak(e); this.varsayilanHVDuzenle(e);
+			let hv = {}, e = { hv, ...Hareketci_UniBilgi.ortakArgs }
+			this.varsayilanHVDuzenle_ortak(e)
+			this.varsayilanHVDuzenle(e)
 			result = this._varsayilanHV = hv = e.hv
 		}
 		return result
@@ -180,8 +181,13 @@ class Hareketci extends CObject {
 		for (let ext of this.getExtIter())
 			ext.hareketTipSecim_kaListeDuzenle(e)
 	}
-	static ilkIslemler(e) { }
-	ilkIslemler(e) { }
+	static ilkIslemler(e = {}) { }
+	ilkIslemler(e = {}) {
+		/*let { attrSet } = e
+		let tarihKeyVarmi = attrSet && ['YILAY', 'YIL', 'CEYREK', 'YILHAFTA', 'AYADI', 'HAFTA', 'SAAT'].some(k => attrSet[k])
+		if (tarihKeyVarmi && !attrSet.TARIH)
+			this.attrSet = { ...this.attrSet, tarih: true }*/
+	}
 	sonIslemler(e) { }
 	uniOrtakSonIslem({ sender, hv, sent, sent: { from, where: wh, sahalar }, secimler, det = {}, detSecimler = {}, donemTipi, sqlNull, sqlEmpty, sqlZero }) {
 		let {sonIslem_whereBaglanmazFlag} = this
@@ -209,7 +215,7 @@ class Hareketci extends CObject {
 	}
 	static varsayilanHVDuzenle_ortak({ hv, sqlNull, sqlEmpty, sqlZero }) {
 		for (let key of [
-			'finanalizkullanilmaz', 'ayadi', 'saat', 'unionayrim',
+			'finanalizkullanilmaz', 'unionayrim',
 			'iceriktipi', 'islkod', 'isladi', 'anaislemadi', 'dvkod', 'ba'
 		]) { hv[key] = sqlEmpty }
 		for (let key of ['bedel'])
@@ -225,20 +231,65 @@ class Hareketci extends CObject {
 		]) { hv[key] = sqlEmpty }
 		for (let key of [ 'yilay', 'yilhafta', 'haftano', 'oncelik', 'seq', 'belgeno', 'noyil', 'dvkur' ])
 			hv[key] = sqlZero
-		$.extend(hv, {
+
+		let getTarihClause = hv => {
+			let res = hv.tarih
+			if (!res?.sqlDoluDegermi())
+				res = hv.fistarih
+			if (!res?.sqlDoluDegermi())
+				res = hv.belgetarih
+			if (!res?.sqlDoluDegermi())
+				res = 'tarih'
+			return res
+		}
+		extend(hv, {
 			fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac', ozelisaret: 'fis.ozelisaret', bizsubekod: 'fis.bizsubekod', tarih: 'fis.tarih',
 			seri: 'fis.seri', fisno: 'fis.no', fisnox: 'fis.fisnox', disfisnox: 'fis.fisnox', ba: 'fis.ba', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
 			fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama', muhfissayac: 'fis.muhfissayac', sonzamants: 'fis.sonzamants',
-			isladi: ({ hv }) => hv.islemadi || hv.anaislemadi, fistarih: ({ hv }) => hv.tarih,
-			karsiodemetarihi: ({ hv }) => hv.vade, isaretlibedel: ({ hv }) => hv.bedel,
+			isladi: ({ hv }) => hv.islemadi || hv.anaislemadi,
+			fistarih: ({ hv }) => hv.tarih,
+			karsiodemetarihi: ({ hv }) => hv.vade,
+			isaretlibedel: ({ hv }) => hv.bedel,
 			aciklama: ({ hv }) => {
                 let withCoalesce = clause =>
-					(clause?.sqlDoluDegermi() ?? false) ? `COALESCE(${clause}, '')` : sqlEmpty
-                let {fisaciklama: fisAciklama, detaciklama: detAciklama} = hv
+					( clause?.sqlDoluDegermi() ?? false ) ? `COALESCE(${clause}, '')` : sqlEmpty
+                let { fisaciklama: fisAciklama, detaciklama: detAciklama } = hv
                 return fisAciklama && detAciklama
                     ? `${withCoalesce(fisAciklama)} + ' ' + ${withCoalesce(detAciklama)}` 
                     : withCoalesce(detAciklama || fisAciklama || sqlEmpty)
-            }
+            },
+			yilay: ({ hv }) => `CAST(DATEPART(YEAR, ${getTarihClause(hv)}) AS CHAR(4)) + ' - ' + dbo.ayadi(${getTarihClause(hv)}))`,
+			yil: ({ hv }) => `DATEPART(YEAR, ${getTarihClause(hv)})`,
+			ceyrekkod: ({ hv }) => {
+				let _ = `DATEPART(MONTH, ${getTarihClause(hv)})`
+				let clause = (
+					'(case' +
+						` when ${_} <= 3 then 'Oca->Mar'` +
+						` when ${_} <= 6 then 'Nis->Haz'` +
+						` when ${_} <= 9 then 'Tem->Eyl'` +
+						` when ${_} <= 12 then 'Eki->Ara'` +
+						` else '??'` +
+					' end )'
+				)
+				return `${_}`
+			},
+			ceyrekadi: ({ hv }) => {
+				let _ = `DATEPART(MONTH, ${getTarihClause(hv)})`
+				let clause = (
+					'(case' +
+						` when ${_} <= 3 then 'Oca->Mar'` +
+						` when ${_} <= 6 then 'Nis->Haz'` +
+						` when ${_} <= 9 then 'Tem->Eyl'` +
+						` when ${_} <= 12 then 'Eki->Ara'` +
+						` else '??'` +
+					' end )'
+				)
+				return `${clause}`
+			},
+			yilhafta: ({ hv }) => `(CAST(DATEPART(YEAR, ${getTarihClause(hv)}) AS CHAR(4)) + ' - ' + CAST(DATEPART(WEEK, ${getTarihClause(hv)}) AS VARCHAR(2)))`,
+			ayadi: ({ hv }) => `dbo.ayadi(${getTarihClause(hv)})`,
+			haftano: ({ hv }) => `DATEPART(WEEK, ${getTarihClause(hv)})`,
+			saat: ({ hv }) => `CONVERT(VARCHAR(10), ${getTarihClause(hv)}, 108)`
 		})
 	}
 	uygunluk2UnionBilgiListeDuzenle(e) {

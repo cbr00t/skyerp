@@ -495,10 +495,11 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		}
 	}
 	loadServerData_queryDuzenle_tekilSonrasi(e) {
-		this.loadServerData_queryDuzenle_tekilSonrasi_ilk_ozel?.(e);
-		let {stm, attrSet} = e, {with: _with} = stm, {konsolideVarmi, secimler: sec} = this
+		this.loadServerData_queryDuzenle_tekilSonrasi_ilk_ozel?.(e)
+		let { yatayAnaliz, stm, attrSet } = e, { with: _with } = stm, { konsolideVarmi, secimler: sec } = this
 		if (konsolideVarmi && !_with.toplamVarmi) {
-			let {session} = config, {dbName: buDBName} = session, {ekDBListe} = app.params?.dRapor ?? {}, alias_db = 'db'
+			let { session } = config, { dbName: buDBName } = session
+			let { ekDBListe } = app.params?.dRapor ?? {}, alias_db = 'db'
 			let {value: filtreDBListe} = sec.db ?? {}, filtreDBSet = filtreDBListe?.length ? asSet(filtreDBListe) : null;
 			if (filtreDBListe?.length) {
 				ekDBListe = filtreDBListe.filter(name => name != buDBName)
@@ -551,7 +552,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 						}
 					}
 					let tmpTableSet = asSet(keys(tmpName2Yapi))
-					let {liste} = asilUni.deepCopy()
+					let { liste } = asilUni.deepCopy()
 					for (let {from, sahalar} of liste) {
 						// for (let item of from.liste) {
 						for (let item of from) {                                                                          // from.liste değil from sadece. from kendisi ve altındaki joinler için iterasyon
@@ -586,18 +587,22 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	loadServerData_queryDuzenle_genelSon(e) {
 		this.loadServerData_queryDuzenle_genelSon_ilk_ozel?.(e)
-		let {stm, attrSet} = e, {grup} = this.tabloYapi
+		let { yatayAnaliz, stm, attrSet } = e
 		for (let sent of stm)
 			sent.groupByOlustur()
 		if (stm.sent.unionmu)
 			stm = e.stm = stm.asToplamStm()
 		/* stm.sent => bu noktada #asToplamStm sonucudur */
 		this.loadServerData_queryDuzenle_genelSon_havingOlustur(e)
-		let {orderBy} = stm
+		let { orderBy } = stm, { grup } = this.tabloYapi
 		for (let kod in attrSet) {
-			let {orderBySaha} = grup[kod] ?? {}
+			let { orderBySaha } = grup[kod] ?? {}
 			if (orderBySaha)
 				orderBy.add(orderBySaha)
+		}
+		if (yatayAnaliz) {
+			for (let sent of stm)
+				sent.distinctYap()
 		}
 		this.loadServerData_queryDuzenle_genelSon_son_ozel?.(e)
 	}
