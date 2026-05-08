@@ -162,6 +162,7 @@ class MQOnayci extends MQCogul {
 	}
 	static async _loadServerDataDogrudan({ sender: gridPart }) {
 		let e = arguments[0]
+		let { onayMax } = app
 		let { encUser, user /*, dbName: db*/ } = config.session
 		let { ay: buAy, yil2: buKisaYil } = today()
 		let { hepsiniGoster } = gridPart
@@ -229,7 +230,8 @@ class MQOnayci extends MQCogul {
 			uni.add(sent)
 			
 			sent.fromAdd(`${db}..webonay ony`)
-			let or = new MQOrClause().add(
+			let or = new MQOrClause()
+			or.add(
 				new MQAndClause([
 					{ degerAta: user, saha: 'ony.w1onayuser' },
 					( hepsiniGoster ? null : `ony.w1onaydurum = ''` )
@@ -292,7 +294,10 @@ class MQOnayci extends MQCogul {
 				let { oncelik, idVarmi, fisBaglantiDuzenle } = item
 				let alias = `fis_${table}`
 				let _e = { ...e, ...item, table, alias, sent }
-				let fisIliskiClauses = [idVarmi ? `ony.adimid = ${alias}.id` : `ony.adimsayac = ${alias}.kaysayac`]
+				let fisIliskiClauses = [
+					( idVarmi ? `ony.adimid = ${alias}.id` : `ony.adimsayac = ${alias}.kaysayac` ),
+					`ony.asiltablo = ${table.sqlServerDegeri()}`
+				].filter(Boolean)
 				fisBaglantiDuzenle?.call?.(this, { ..._e, clauses: fisIliskiClauses })
 				sent.leftJoin('ony', `${db}..${table} ${alias}`, fisIliskiClauses)
 				;['sentDuzenle', 'tipIcinSentDuzenle'].forEach(selector =>
