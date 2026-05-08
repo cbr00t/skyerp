@@ -29,20 +29,21 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 	super_loadServerDataInternal(e) { super.loadServerDataInternal(e) }
 	superSuper_loadServerDataInternal(e) { super.super_loadServerDataInternal(e) }
 	loadServerData(e = {}) {
-		let {secimler: sec, secimler: { tarihBS: donemBS }} = this
+		let { secimler: sec, secimler: { tarihBS: donemBS } } = this
 		extend(e, { donemBS }) /* e.donemBS = sec.tarihBSVeyaCariDonem; */
 		return super.loadServerData(e)
 	}
 	donemBagla({ donemBS, alias = 'fis', tarihSaha, tarihClause, sent }) {
-		let {hareketmi, envantermi} = this.class, {where: wh} = sent
+		let { hareketmi, envantermi } = this.class
+		let { where: wh } = sent
 		let aliasVeNokta = alias ? `${alias}.` : ''
-		tarihSaha = tarihSaha ?? 'tarih'
+		tarihSaha ??= 'tarih'
 		if (tarihSaha.includes('.'))
 			alias = aliasVeNokta = ''
-		tarihClause = tarihClause ?? `${aliasVeNokta}${tarihSaha}`
-		if (donemBS) {
+		tarihClause = tarihClause ?? (tarihSaha ? aliasVeNokta + tarihSaha : null)
+		if (donemBS && tarihClause.sqlDoluDegermi()) {
 			if (hareketmi || envantermi) {
-				let {sonu} = donemBS
+				let { sonu } = donemBS
 				wh.basiSonu({ sonu }, tarihClause)
 			}
 			else
@@ -53,15 +54,26 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 	loadServerData_queryDuzenle_tarih({ attrSet, stm, sent, alias = 'fis', tarihSaha, tarihClause }) {
 		let sentOrUni = sent ?? stm?.sent
 		let aliasVeNokta = alias ? `${alias}.` : ''
-		tarihSaha = tarihSaha ?? 'tarih'
+		tarihSaha ??= 'tarih'
 		if (tarihSaha.includes('.'))
 			alias = aliasVeNokta = ''
-		tarihClause = tarihClause ?? `${aliasVeNokta}${tarihSaha}`
-		for (let {sahalar} of sentOrUni) {
+		tarihClause = tarihClause ?? (tarihSaha ? aliasVeNokta + tarihSaha : null)
+		let tarihClauseVarmi = tarihClause.sqlDoluDegermi()
+		let { sqlNull } = Hareketci_UniBilgi.ortakArgs
+		for (let { sahalar } of sentOrUni) {
 			for (let key in attrSet) {
 				switch (key) {
-					case 'YILAY': sahalar.add(`(CAST(DATEPART(YEAR, ${tarihClause}) AS CHAR(4)) + ' - ' + dbo.ayadi(${tarihClause})) yilay`); break
-					case 'YIL': sahalar.add(`DATEPART(YEAR, ${tarihClause}) yil`); break
+					case 'YILAY': {
+						if (tarihClauseVarmi)
+							sahalar.add(`(CAST(DATEPART(YEAR, ${tarihClause}) AS CHAR(4)) + ' - ' + dbo.ayadi(${tarihClause})) yilay`)
+						else
+							sahalar.add(`${sqlNull} yilay`)
+						break
+					}
+					case 'YIL': {
+						sahalar.add(`${tarihClauseVarmi ? `DATEPART(YEAR, ${tarihClause})` : sqlNull} yil`)
+						break
+					}
 					case 'CEYREK': {
 						let _ = `DATEPART(MONTH, ${tarihClause})`
 						let clause = (
@@ -73,15 +85,36 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 								` else '??'` +
 							' end )'
 						)
-						sahalar.add(`${_} ceyrekkod`, `${clause} ceyrekadi`)
+						if (tarihClauseVarmi)
+							sahalar.add(`${_} ceyrekkod`, `${clause} ceyrekadi`)
+						else
+							sahalar.add(`${sqlNull} ceyrekkod`, `${sqlNull} ceyrekadi`)
+						break
 					}
-					break
-					case 'YILHAFTA': sahalar.add(`(CAST(DATEPART(YEAR, ${tarihClause}) AS CHAR(4)) + ' - ' + CAST(DATEPART(WEEK, ${tarihClause}) AS VARCHAR(2))) yilhafta`); break
-					case 'AYADI': sahalar.add(`dbo.ayadi(${tarihClause}) ayadi`); break
-					case 'HAFTA': sahalar.add(`DATEPART(WEEK, ${tarihClause}) haftano`); break
-					case 'TARIH': sahalar.add(`${tarihClause} tarih`); break
-					                      // `CONVERT(VARCHAR(10), ${tarihClause}, 104) tarihstr`)
-					case 'SAAT': sahalar.add(`CONVERT(VARCHAR(10), ${tarihClause}, 108) saat`); break
+					case 'YILHAFTA': {
+						if (tarihClauseVarmi)
+							sahalar.add(`(CAST(DATEPART(YEAR, ${tarihClause}) AS CHAR(4)) + ' - ' + CAST(DATEPART(WEEK, ${tarihClause}) AS VARCHAR(2))) yilhafta`)
+						else
+							sahalar.add(`${sqlNull} yilhafta`)
+						break
+					}
+					case 'AYADI': {
+						sahalar.add(`${tarihClauseVarmi ? `dbo.ayadi(${tarihClause})` : sqlNull} ayadi`)
+						break
+					}
+					case 'HAFTA': {
+						sahalar.add(`${tarihClauseVarmi ? `DATEPART(WEEK, ${tarihClause})` : sqlNull} haftano`)
+						break
+					}
+					case 'TARIH': {
+					    // `CONVERT(VARCHAR(10), ${tarihClause}, 104) tarihstr`)
+						sahalar.add(`${tarihClauseVarmi ? tarihClause : sqlNull} tarih`)
+						break
+					}
+					case 'SAAT': {
+						sahalar.add(`${tarihClauseVarmi ? `CONVERT(VARCHAR(10), ${tarihClause}, 108)` : sqlNull} saat`)
+						break
+					}
 				}
 			}
 		}
