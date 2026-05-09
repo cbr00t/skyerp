@@ -1,13 +1,26 @@
 class MQClause extends MQSQLOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get addDogrudanKullanilirmi() { return false } static get baglacsizmi() { return false } static get baglac() { return ', ' } static get onEk() { return '' }
-	constructor(e) {
-		e = e || {}; super(e);
+	static get addDogrudanKullanilirmi() { return false }
+	static get baglacsizmi() { return false } static get baglac() { return ', ' }
+	static get onEk() { return '' } static get sonEk() { return '' }
+
+	constructor(e = {}) {
+		super(e)
 		if (isArray(e)) { e = { liste: e } } else if (typeof e != 'object') { e = { liste: [e] } }
 		this.parantezlimi = asBool(e.parantezlimi || e.parantezli);
 		let liste = this.liste = [], _liste = e.liste;
-		if (!empty(_liste)) { let {addDogrudanKullanilirmi} = this.class; for (let item of _liste) { if (addDogrudanKullanilirmi) { this.addDogrudan(item) } else { this.add(item) } } }
-		let value = e.birlestir; if (value) { this.birlestir(value) }
+		if (!empty(_liste)) {
+			let {addDogrudanKullanilirmi} = this.class
+			for (let item of _liste) {
+				if (addDogrudanKullanilirmi) { this.addDogrudan(item) }
+				else { this.add(item) }
+			}
+		}
+		;{
+			let { birlestir: v } = e
+			if (v)
+				this.birlestir(v)
+		}
 	}
 	add(...sahalar) {
 		let {liste} = this
@@ -25,9 +38,10 @@ class MQClause extends MQSQLOrtak {
 		return this
 	}
 	addDogrudan(...sahalar) {
-		let {liste} = this
+		let { liste } = this
 		for (let saha of sahalar) {
-			if (saha == null) { continue } if (isArray(saha)) { this.add(...saha); continue }
+			if (saha == null) { continue }
+			if (isArray(saha)) { this.add(...saha); continue }
 			let value = this.donusmusDeger(saha)
 			liste.push(value)
 		}
@@ -58,21 +72,23 @@ class MQClause extends MQSQLOrtak {
 		/* return (item == null || item == '') ? null : item ^-- inDizi'deki '' değer için sorun çıktığı için kaldırıldı */
 		return item ?? null
 	}
-	addIcinUygunmu(item) { return !(item == null || item == '' || (typeof item == 'string' && item.trimEnd() == '')) }
+	addIcinUygunmu(item) {
+		return !(item == null || item == '' || (isString(item)  && item.trimEnd() == ''))
+	}
 	buildString(e) {
 		//if (this instanceof MQOuterApply)
 		//	debugger
 		super.buildString(e)
 		let clause = this.toString_baslangicsiz(e)
 		if (clause) { 
-			let {onEk} = this.class
-			e.result += `${onEk ? onEk + ' ' : ''}${clause}`
+			let { onEk, sonEk } = this.class
+			e.result += [onEk, clause, sonEk].filter(Boolean).join(' ')
 		}
 		return this
 	}
 	getQueryYapi_baslangicsiz(e = {}) {
 		let query = this.toString_baslangicsiz(e)
-		let {params} = this
+		let { params } = this
 		return { query, params }
 	}
 	toString_baslangicsiz(e) {
@@ -82,7 +98,7 @@ class MQClause extends MQSQLOrtak {
 	}
 	buildString_baslangicsiz(e) {
 		let {liste, parantezlimi, class: { baglac }} = this
-		let doluListe = liste.filter(item => typeof item != 'string' || item.trim())
+		let doluListe = liste.filter(_ => !isString(_) || _?.trim())
 		if (!empty(doluListe)) {
 			if (parantezlimi)
 				e.result += '('
@@ -95,17 +111,17 @@ class MQClause extends MQSQLOrtak {
 				if (i && !baglacsizmi)
 					e.result += baglac
 				e.result += text
-				let {params: _params} = item
+				let  {params: _params } = item
 				if (!empty(_params))
 					e.params?.push(..._params)
 			}
 			if (parantezlimi)
 				e.result += ')'
 		}
-		let {params: _params} = this
+		let { params: _params } = this
 		if (!empty(_params)) {
 			_params = _params.filter(x => !!x)
-			let resultParams = e.params || []
+			let resultParams = e.params ?? []
 			let keySet = asSet(resultParams.filter(x => !!x).map(_param => _param.name || _param.key))
 			for (let _ in _params) {
 				let _param = _params[_], name = _param.name || _param.key
@@ -119,6 +135,7 @@ class MQClause extends MQSQLOrtak {
 	}
 	parantezli() { this.parantezlimi = true; return this }
 	parantezsiz() { this.parantezlimi = false; return this }
+	setListe(v) { this.liste = v; return this }
 	*iter() {
 		let {liste} = this
 		for (let item of liste ?? [])
@@ -127,15 +144,21 @@ class MQClause extends MQSQLOrtak {
 	[Symbol.iterator]() { return this.iter() }
 }
 class MQToplu extends MQClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get toplumu() { return true } get toplumu() { return this.class.toplumu }
-	static get baglac() { return `${MQCogul.isOfflineMode ? ';' : ''}${CrLf}${CrLf}` }
-	constructor(e) { e = e || {}; super(e); this.trnFlag = asBool(e.trnFlag) }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get toplumu() { return true }
+	get toplumu() { return this.class.toplumu }
+	static get baglac() { return `${MQCogul.isOfflineMode ? ';' : ''}\n\n` }
+
+	constructor(e = {}) {
+		super(e)
+		this.trnFlag = asBool(e.trnFlag)
+	}
 	buildString_baslangicsiz(e) {
-		let {trnFlag} = this
+		let { trnFlag } = this
 		if (trnFlag) {
 			// e.result += 'DECLARE @tranCount INT = @@TRANCOUNT' + CrLf;
-			e.result += `DECLARE @trnUsed BIT = (case @@TRANCOUNT when 0 then 1 else 0 end)`
-			if (typeof trnFlag == 'string' && trnFlag.toLowerCase() == 'deftrn') {
+			e.result += `DECLARE @trnUsed BIT = (case @@TRANCOUNT when 0 then 1 else 0 end)` + CrLf
+			if (isString(trnFlag) && trnFlag.toLowerCase() == 'deftrn') {
 				e.result += 'IF @@TRANCOUNT > 0 BEGIN' + CrLf;
 				e.result += 'ROLLBACK' + CrLf;
 				e.result += `RAISERROR(N'Açık bir transaction var, işleme devam edilemez', 11, 0)` + CrLf;
@@ -286,7 +309,7 @@ class MQFromClause extends MQClause {
 	[Symbol.iterator]() { return this.iter() }
 }
 class MQSubWhereClause extends MQClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get baglac() { return `${CrLf}	  AND	 ` }
+	static { window[this.name] = this; this._key2Class[this.name] = this } static get baglac() { return `\n	  AND	 ` }
 	constructor(e) {
 		e = e || {}; let initBlock = e => {
 			if (!isPlainObject(e)) { this.add(e); return true }
@@ -761,7 +784,8 @@ class MQOrClause extends MQAndOrClause {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get baglac() { return ' OR ' }
 }
 class MQInClause extends MQClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get addDogrudanKullanilirmi() { return true }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get addDogrudanKullanilirmi() { return true }
 	constructor(e) { e = e || {}; super(e); this.isNot = asBool(e.not); this.saha = e.saha || ''; }
 	buildString(e) {
 		let {liste, isNot} = this; if (empty(liste)) { e.result += `1 ${isNot ? '<>' : '='} 2` }
@@ -823,13 +847,90 @@ class MQOrderByClause extends MQClause {
 }
 class MQWith extends MQClause {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get onEk() { return `WITH	` } static get baglac() { return `,${CrLf}` }
+	static get onEk() { return `WITH	` } static get baglac() { return `,\n` }
 	get toplamTable() {
-		let {liste} = this, {toplamTable} = MQStm;
+		let { liste } = this, {toplamTable} = MQStm;
 		return liste.find(({ table }) => table.startsWith(toplamTable))
 	}
 	get toplamVarmi() { return !!this.toplamTable }
 	get debugListe() { return this.sent.liste.map(sent => ({ from: sent.from.toString(), sahalar: sent.sahalar.toString(), where: sent.where.liste.join(' ') })) }
 	getTable(value) { let {liste} = this; return liste.find(({ table }) => table == value) }
 	hasTable(value) { return !!this.getTable(value) }
+}
+
+
+class MQCase extends MQClause {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get casemi() { return true } get casemi() { return this.class.casemi }
+	static get onEk() { return 'CASE ' } static get sonEk() { return 'END' }
+	static get baglac() { return ' ' }
+	static get addDogrudanKullanilirmi() { return true }
+
+	constructor(e = {}) {
+		super(e)
+		let { clause = e.saha ?? e.name, dict } = e
+		this.parantezli()
+		if (clause)
+			this.clause = clause
+		if (!empty(dict))
+			this.addAll(dict)
+	}
+	when(when, then) {
+		this.addDogrudan([when, then])
+		return this
+	}
+	else(clause) { return this.when('', clause) }
+	add(...items) { return this.addDogrudan(...items) }
+	addDogrudan(...items) {
+		if (!empty(items))
+			this.liste.push(...items)
+		return this
+	}
+	addAll(arr) {
+		if (empty(arr))
+			return this
+		if (!isArray(arr))
+			arr = entries(arr)
+		;arr.forEach(ent =>
+			this.addDogrudan(ent))
+		return this
+	}
+	donusmusDeger(v) { return super.donusmusDeger(v) }
+	addIcinUygunmu(v) { return super.addIcinUygunmu(v) || isArray(v) }
+	buildString(e) {
+		let doluListe = this.liste.filter(_ => !isString(_) || _?.trim())
+		if (empty(doluListe))
+			return ''
+		let { parantezlimi: parantezli, class: { onEk, sonEk, baglac } } = this
+		if (parantezli)
+			e.result += '('
+		e.result += onEk
+		this.buildString_baslangicsiz(e)
+		e.result += sonEk
+		if (parantezli)
+			e.result += ')'
+		return this
+	}
+	buildString_baslangicsiz(e) {
+		// super.buildString_baslangicsiz(e)
+		let { liste, clause, class: { baglac } } = this
+		let doluListe = liste.filter(_ => !isString(_) || _?.trim())
+		if (empty(doluListe))
+			return this
+		if (clause)
+			e.result += `${clause.toString()} `
+		;doluListe.forEach((ent, i) => {
+			if (isArray(ent) && ent.length == 2) {
+				let [ k, v ] = ent
+				k = k?.toString(); v = v?.toString()
+				e.result += k
+					? `WHEN ${k} THEN ${v}${baglac}`
+					: `ELSE ${v}${baglac}`
+			}
+			else
+				e.result += `${ent.toString()}${baglac}`
+		})
+		return this
+	}
+	setClause(v) { this.clause = v; return this }
 }

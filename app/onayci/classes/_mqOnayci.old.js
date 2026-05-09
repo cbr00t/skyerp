@@ -9,42 +9,39 @@ class MQOnayci extends MQCogul {
 		if (result == null) {
 			result = this._table2Yapi = {
 				efgecicialfatfis: {
-					idVarmi: true,
-					harTable: 'efgecicialfatdetay',
+					oncelik: 1, idVarmi: true,
 					tipler: {
 						GeciciAlimEFat: { tipText: 'Gecici Alım e-İşlem' }
 					},
+					harTable: 'efgecicialfatdetay',
+					eIslTipClause: ({ alias }) => `${alias}.efbelge`,
+					uuidClause: ({ alias }) => `${alias}.efuuid`,
+					mustUnvanClause: ({ alias }) => `${alias}.efmustunvan`,
+					tarihClause: ({ alias }) => `${alias}.tarih`,
+					fisNoxClause: ({ alias }) => `${alias}.effatnox`,
+					bedelClause: ({ alias }) => `${alias}.efsonuc`,
 					fisBaglantiDuzenle: ({ alias, clauses }) =>
-						clauses.push(`${alias}.efbelge IN ('', 'E')`),
-					clauses: {
-						oncelik: '1',
-						eIslTip: ({ alias }) => `${alias}.efbelge`,
-						uuid: ({ alias }) => `${alias}.efuuid`,
-						mustUnvan: ({ alias }) => `${alias}.efmustunvan`,
-						tarih: ({ alias }) => `${alias}.tarih`,
-						fisNox: ({ alias }) => `${alias}.effatnox`,
-						bedel: ({ alias }) => `${alias}.efsonuc`
-					}
+						clauses.push(`${alias}.efbelge IN ('', 'E')`)
 				},
 				sipfis: {
-					harTable: ['sipstok', 'siphizmet'],
+					oncelik: 2,
 					tipler: {
 						AlimSip: { tipText: 'Alım Sipariş' },
 						SatisSip: { tipText: 'Satış Sipariş' }
 					},
+					harTable: ['sipstok', 'siphizmet'],
+					eIslTipClause: ({ alias }) => `${alias}.efayrimtipi`,
+					uuidClause: ({ alias }) => `${alias}.efatuuid`,
+					mustKodClause: ({ alias }) => `${alias}.must`,
+					mustUnvanClause: ({ alias }) => `${alias}_car.birunvan`,
+					tarihClause: ({ alias }) => `${alias}.tarih`,
+					fisNoxClause: ({ alias }) => `${alias}.fisnox`,
+					bedelClause: ({ alias }) => `${alias}.net`,
+					ekBilgiClause: ({ alias }) => `${alias}.cariaciklama`,
 					fisBaglantiDuzenle: ({ alias, clauses }) =>
 						clauses.push(`${alias}.silindi = ''`, `${alias}.ozeltip = ''`),
-					clauses: {
-						oncelik: '2',
-						eIslTip: ({ alias }) => `${alias}.efayrimtipi`,
-						uuid: ({ alias }) => `${alias}.efatuuid`,
-						mustKod: ({ alias }) => `${alias}.must`,
-						mustUnvan: 'fis_carmst.birunvan',
-						tarih: ({ alias }) => `${alias}.tarih`,
-						fisNox: ({ alias }) => `${alias}.fisnox`,
-						bedel: ({ alias }) => `${alias}.net`,
-						ekBilgi: ({ alias }) => `${alias}.cariaciklama`
-					}
+					sentDuzenle: ({ alias, sent, sent: { where: wh } }) =>
+						sent.leftJoin(alias, `carmst ${alias}_car`, `${alias}.must = ${alias}_car.must`)
 				}
 			}
 			for (let [table, item] of entries(result))
@@ -165,7 +162,6 @@ class MQOnayci extends MQCogul {
 	}
 	static async _loadServerDataDogrudan({ sender: gridPart }) {
 		let e = arguments[0]
-		let sqlNull = 'NULL', sqlEmpty = `''`
 		let { onayMax } = app
 		let { encUser, user /*, dbName: db*/ } = config.session
 		let { ay: buAy, yil2: buKisaYil } = today()
@@ -227,151 +223,117 @@ class MQOnayci extends MQCogul {
 		extend(gridPart, { kurallar, tip2Kurallar, dbSet })
 
 		let { table2Yapi, tip2Yapi } = this
-		// let userSql = user.sqlServerDegeri()
-		
-		let orderBy = ['onayDurumText', '_db', 'oncelik']
-		let stm = new MQStm({ orderBy }), { with: $with } = stm
+		let userSql = user.sqlServerDegeri()
+		let uni = new MQUnionAll()
 		for (let db in dbSet) {
-			let uni = new MQUnionAll()
-			for (let i = 1; i <= onayMax; i++) {
-				let ilkmi = i == 1, sonmu = i == onayMax
-				let sent = new MQSent(), { where: wh, sahalar } = sent
-				;{
-					sent.fromAdd(`${db}..webonay ony`)
-					wh.degerAta(user, `ony.w${i}onayuser`)    // her asama icin ayri sent
-					if (!hepsiniGoster)
-						wh.degerAta('', `ony.w${i}onaydurum`)
-					if (!ilkmi)
-						wh.degerAta('O', `ony.w${i - 1}onaydurum`)
-				}
-				;{
-					let cl = {
-						once: {
-							text: ilkmi ? sqlEmpty : `ony.w${i - 1}onayredtext`,
-							user: ilkmi ? sqlEmpty : `ony.w${i - 1}onayuser`
-						},
-						sonra: {
-							user: sonmu ? sqlEmpty : `ony.w${i + 1}onayuser`
-						}
-					}
-					sahalar
-						.addWithAlias('ony', ...[
-							'asiltablo _table', 'adimtipi tip', 'id onayId', 'adimsayac sayac', 'adimid id',
-							`w${i}onaydurum onayDurum`, `w${i}onayredts onayTS`, `w${i}onayredtext onayRedNedeni`
-						])
-						.add(...[
-							`${i.sqlServerDegeri()} onayNo`, `${cl.once.text} onceText`,
-							`${cl.once.user} onceUser`, `${cl.sonra.user} sonraUser`
-						])
-				}
-				uni.add(sent)
+			let sent = new MQSent(), { where: wh, sahalar } = sent			
+			sent.fromAdd(`${db}..webonay ony`)
+			
+			;{
+				let or = new MQOrClause()
+				or.add(
+					new MQAndClause([
+						{ degerAta: user, saha: 'ony.w1onayuser' },
+						( hepsiniGoster ? null : `ony.w1onaydurum = ''` )
+					].filter(Boolean)),
+					new MQAndClause([
+						{ degerAta: user, saha: 'ony.w2onayuser' },
+						`ony.w1onaydurum = 'O'`,
+						( hepsiniGoster ? null : `ony.w2onaydurum = ''` )
+					].filter(Boolean))
+				)
+				wh.add(or)
 			}
-			if (!empty(uni.liste))
-				$with.add(uni.asTmpTable(`${db}_onayci`))    // bu vt coklu onay asamalari saklanir
-		}
-		if (empty($with.liste))
-			return []
+			
+			sahalar.add(...[
+				`'${db}' _db`, 'ony.asiltablo _table', 'ony.adimtipi tip', 'ony.id onayId',
+				'ony.adimsayac sayac', 'ony.adimid id',
+				'ony.w2onayuser onay2User',
+				`(case
+						when ony.w2onayuser = ${userSql} AND ony.w2onaydurum = '' then 2
+						when ony.w1onayuser = ${userSql} AND ony.w1onaydurum = '' then 1
+					else NULL end) onayNo`,
+				`(case
+						when (ony.w1onaydurum = '' OR ony.w2onayuser = ${userSql} AND ony.w2onaydurum = '')
+							then '<span class=forestgreen>Cevap Bekleyenler</span>'
+							else '<span class=orangered>Cevaplananlar</span>'
+					end) onayDurumText`,
+				`(case
+						when ony.w2onayuser = ${userSql} AND ony.w2onaydurum <> '' then ony.w2onayredts
+						when ony.w1onayuser = ${userSql} AND ony.w1onaydurum <> '' then ony.w1onayredts
+					else NULL end) onayTS`,
+				`(case
+						when ony.w2onayuser = ${userSql} AND ony.w2onaydurum <> '' then ony.w2onayredtext
+						when ony.w1onayuser = ${userSql} AND ony.w1onaydurum <> '' then ony.w1onayredtext
+					else NULL end) onayRedNedeni`
+			])
+			
+			let caseDegerKeys = ['oncelik']
+			let caseClauseKeys = ['eIslTip', 'uuid', 'mustKod', 'mustUnvan', 'tarih', 'fisNox', 'bedel', 'ekBilgi']
+			let cases = {}
+			;[...caseDegerKeys, ...caseClauseKeys].forEach(k =>
+				cases[k] = [])
 
-		let saha2Table2Clause = {}
-		for (let [table, tableYapi] of entries(table2Yapi)) {
-			let alias = `fis_${table}`
-			let { clauses = {} } = tableYapi
-			for (let [saha, clause] of entries(clauses)) {
-				if (isFunction(clause))
-					clause = await clause.call(this, { ...e, ...tableYapi, table, saha, alias })
-				if (clause) {
-					let t2c = saha2Table2Clause[saha] ??= {}
-					t2c[table] = clause
+			let sqlNull = 'NULL', sqlEmpty = `''`
+			for (let [table, item] of entries(table2Yapi)) {
+				let alias = `fis_${table}`
+				let tableClause = table.sqlServerDegeri()
+				// cases._table.push(`WHEN ${tableClause} THEN ${table.sqlServerDegeri()}`)
+				for (let k of caseDegerKeys)
+					cases[k].push(`WHEN ${tableClause} THEN ${item[k].sqlServerDegeri()}`)
+				for (let key of caseClauseKeys) {
+					let clause = item[`${key}Clause`]
+					if (!clause)
+						continue
+					if (isFunction(clause))
+						clause = clause.call(this, { ...e, ...item, table, key, alias })
+					clause ||= sqlEmpty
+					cases[key].push(`WHEN ${tableClause} THEN ${clause}`)
 				}
 			}
-		}
-		;{
-			let uni = stm.sent = new MQUnionAll()
-			for (let db in dbSet) {
-				let dbClause = db.sqlServerDegeri()
-				
-				let sent = new MQSent(), { where: wh, sahalar } = sent
-				sent.fromAdd(`${db}_onayci ony`)
-				for (let [table, tableYapi] of entries(table2Yapi)) {
-					let { idVarmi, fisBaglantiDuzenle } = tableYapi
+			for (let [table, item] of entries(table2Yapi)) {
+				let { oncelik, idVarmi, fisBaglantiDuzenle } = item
+				let alias = `fis_${table}`
+				let _e = { ...e, ...item, table, alias, sent }
+				let fisIliskiClauses = [
+					( idVarmi ? `ony.adimid = ${alias}.id` : `ony.adimsayac = ${alias}.kaysayac` ),
+					`ony.asiltablo = ${table.sqlServerDegeri()}`
+				].filter(Boolean)
+				fisBaglantiDuzenle?.call?.(this, { ..._e, clauses: fisIliskiClauses })
+				sent.leftJoin('ony', `${db}..${table} ${alias}`, fisIliskiClauses)
+				;['sentDuzenle', 'tipIcinSentDuzenle'].forEach(selector =>
+					item[selector]?.call?.(this, _e))
+			}
+			for (let [key, whenThenListe] of entries(cases)) {
+				// (CASE ony.asiltablo WHEN ... THEN ... END) oncelik`
+				let clause = [
+					...(empty(whenThenListe)
+						? [sqlEmpty]
+						: [`(CASE ony.asiltablo`, ...whenThenListe, 'END)']),
+					key
+				].join(' ')
+				sahalar.add(clause)
+			}
+			;{
+				let or = new MQOrClause()
+				for (let [table, { idVarmi }] of entries(table2Yapi)) {
+					let keySaha = idVarmi ? 'id' : 'kaysayac'
 					let alias = `fis_${table}`
-					let idSaha_ony = idVarmi ? 'id' : 'sayac'
-					let idSaha_asil = idVarmi ? 'id' : 'kaysayac'
-					let _e = {
-			            ...e, table, tableYapi,
-						sent, alias,
-						clauses: [    // fis iliski clauses
-							`ony._table = ${table.sqlServerDegeri()}`,
-							`ony.${idSaha_ony} = ${alias}.${idSaha_asil}`
-						]
-			        }
-					await fisBaglantiDuzenle?.call?.(this, _e)
-					sent.leftJoin('ony', `${db}..${table} ${alias}`, _e.clauses)
+					or.add(
+						new MQAndClause()
+							.degerAta(table, 'ony.asiltablo')
+							.add(`${alias}.${keySaha} IS NOT NULL`)
+					)
 				}
-				
-				let { mustKod: table2MustKodClause } = saha2Table2Clause
-				if (!empty(table2MustKodClause)) {
-		            let $case = new MQCase()
-						.setClause('ony._table')
-					for (let [table, clause] of entries(table2MustKodClause))
-						$case.when(table.sqlServerDegeri(), clause)
-					$case.else(sqlNull)
-		            sent.leftJoin(
-		                'ony', `${db}..carmst fis_carmst`,
-		                `${$case} = fis_carmst.must`
-		            )
-		        }
-
-				;{
-					sahalar
-						.add(`${dbClause} _db`)
-						.addWithAlias('ony', ...[
-							'_table', 'tip', 'onayId', 'sayac', 'id', 'onayNo', 'onayDurum',
-							'onayTS', 'onayRedNedeni', 'onceText', 'onceUser', 'sonraUser'
-						])
-						.add(
-							`${new MQCase()
-								.when(`ony.onayDurum = ${sqlEmpty}`, `<span class=forestgreen>Cevap Bekleyenler</span>`.sqlServerDegeri())
-								.else(`<span class=orangered>Cevaplananlar</span>`.sqlServerDegeri())
-							 } onayDurumText`
-						)
-				}
-
-				for (let [saha, table2Clause] of entries(saha2Table2Clause)) {
-					let $case = new MQCase()
-						.setClause('ony._table')
-					for (let [table, clause] of entries(table2Clause)) {
-						let alias = `fis_${table}`
-						if (isFunction(clause))
-							clause = clause.call(this, { ...e, saha, table, sent, alias })
-						if (clause)
-							$case.when(table.sqlServerDegeri(), clause)
-					}
-					if (!empty($case.liste)) {
-						$case.else(sqlNull)
-						sahalar.add(`${$case} ${saha}`)
-					}
-				}
-
-				;{
-				    let or = new MQOrClause()
-				    for (let [table, tableYapi] of entries(table2Yapi)) {
-				        let { idVarmi } = tableYapi
-				        let alias = `fis_${table}`
-				        let keySaha = idVarmi ? 'id' : 'kaysayac'
-				        or.add(
-				            new MQAndClause()
-				                .degerAta(table, 'ony._table')
-				                .add(`${alias}.${keySaha} IS NOT NULL`)
-				        )
-				    }
-				    wh.add(or)
-				}
-				
-				uni.add(sent)
+				wh.add(or)
 			}
+			
+			uni.add(sent)
 		}
+		if (!uni.liste.length)
+			return []
 		
+		let stm = new MQStm({ sent: uni, orderBy: ['onayDurumText', '_db', 'oncelik'] })
 		let recs = await this.sqlExecSelect(stm)
 		if (!app.onayNo) {
 			let onayNo = app.onayNo = recs?.find(_r => _r.onayNo)?.onayNo
@@ -380,13 +342,15 @@ class MQOnayci extends MQCogul {
 				await this.registerNTFY(e)
 			}
 		}
-		
 		;{
 			let { onayNo, onayMax } = app
-			if (onayNo && onayNo < onayMax && app.onaySonraUser === undefined)
-				app.onaySonraUser = recs?.find(_r => _r.sonraUser)?.sonraUser
+			if (onayNo && onayNo < onayMax && app.onay2User === undefined)
+				app.onay2User = recs?.find(_r => _r.onay2User)?.onay2User
 		}
 		
+		/*let uymayanRecs = recs.filter(rec => !kuralKey2Kural[this.getKey(rec)])
+		recs = recs.filter(rec => kuralKey2Kural[this.getKey(rec)])*/
+
 		let db2GecAlimSayacListe = {}
 		;recs.forEach(({ _db: db, tip, eIslTip, sayac }) => {
 			if (tip == 'GeciciAlimEFat' && eIslTip != 'IR')
@@ -396,7 +360,7 @@ class MQOnayci extends MQCogul {
 		if (!empty(db2GecAlimSayacListe)) {
 			let db2Sayac2RecDurum = {}, promises = []
 			for (let [db, gecAlimSayacListe] of entries(db2GecAlimSayacListe)) {
-				let sent = new MQSent(), { where: wh, sahalar } = sent
+				let sent = new MQSent(), {where: wh, sahalar} = sent
 				sent
 					.fromAdd(`${db}..efgecicialfatirs irs`)
 					.innerJoin('irs', `${db}..efgecicialfatfis fis`, 'irs.fissayac = fis.kaysayac')
@@ -409,13 +373,15 @@ class MQOnayci extends MQCogul {
 				wh.inDizi(gecAlimSayacListe, 'irs.fissayac')
 				sahalar.add('irs.fissayac sayac', 'irs.efirsnobilgi nox', 'COUNT(virs.kaysayac) sayi')
 				sent.groupByOlustur()
-				
-				promises.push(promise(async () => {
-					db2Sayac2RecDurum[db] ??= fromEntries(
-						(await app.sqlExecSelect(sent))
-							.map(_ => [_.sayac, { irsNox: _.nox, irsVarmi: !!_.sayi }])
-					)
-					return null   // resolve(null) | on error => fail(ex)
+				promises.push(new Promise(async (r, f) => {
+					try {
+						db2Sayac2RecDurum[db] ??= fromEntries(
+							(await app.sqlExecSelect(sent))
+								.map(_ => [_.sayac, { irsNox: _.nox, irsVarmi: !!_.sayi }])
+						)
+						r()
+					}
+					catch (ex) { f(ex) }
 				}))
 			}
 			
@@ -423,7 +389,7 @@ class MQOnayci extends MQCogul {
 				await promiseAll(promises)
 			
 			if (!empty(db2Sayac2RecDurum)) {
-				;recs.forEach(rec => {
+				recs.forEach(rec => {
 					let { _db: db, tip, sayac } = rec
 					let durum = db2Sayac2RecDurum[db]?.[sayac]
 					if (durum)
@@ -575,12 +541,11 @@ class MQOnayci extends MQCogul {
 	}
 
 	static async onayRedIstendi({ sender: gridPart, state: onaymi }) {
-		let { dev } = config
 		let islemAdi = `${onaymi ? 'ONAY' : 'RED'} İşlemi`
 		let styledIslemAdi = `${onaymi ? '<b class=forestgreen>ONAY</b>' : '<b class=orangered>RED</b>'} İşlemi`
 		try {
-			let { selectedRecs: recs, gridWidget: w } = gridPart
-			recs = recs.filter(rec => rec.onayNo && (dev || !rec.onayDurum))
+			let { selectedRecs: recs, kuralKey2Kural, gridWidget: w } = gridPart
+			recs = recs.filter(rec => rec.onayNo /*&& kuralKey2Kural[this.getKey(rec)] */)
 			if (empty(recs)) {
 				hConfirm('Cevaplanacak uygun belge bulunamadı', islemAdi)
 				return
@@ -651,43 +616,42 @@ class MQOnayci extends MQCogul {
 			if (toplu?.bosDegilmi) {
 				let { onayMax, onayNo } = app
 				if (onayNo < onayMax) {
-					let { ntfyTopic: topic, onaySonraUser: user } = app
+					let { ntfyTopic: topic, onay2User: user } = app
 					let _qs = { ...qs }
 					if (user) {
-						;{
-							let { _: encVal } = qs
-							if (encVal)
-								extend(_qs, JSON.parse(Base64.decode(encVal)))
-							deleteKeys(_qs, '#', '_',  'session', 'sessionID', 'loginTipi', 'user', 'pass')
-							let { DefaultLoginTipi: loginTipi } = Session
-							let { pass } = await Session.getSessionBasit({ user }) ?? {}
-							if (pass) {
-								if (pass.length != md5Length)
-									pass = md5(pass)
-								extend(_qs, { loginTipi, user, pass })
-							}
+						let { _: encVal } = qs
+						if (encVal) {
+							delete _qs._
+							extend(_qs, JSON.parse(Base64.decode(encVal)))
 						}
-						
-						;{
-							let topicOnayNo = Number(topic.at(-1))
-							if (topicOnayNo == onayNo)
-								topic = topic.slice(0, -1).concat(String(++topicOnayNo))
-							let priority = 5
-							let tags = ['hourglass', '_new']
-							let title = 'VIO Onay İşlemleri'
-							let message = 'Onay bekleyen yeni belgeler var'
-							let actions = []
-							if (_qs) {
-								let { origin, pathname: path } = location
-								let url = `${origin}${path}?${$.param(_qs)}`
-								actions.push({
-									action: 'view',
-									label: 'Onay Portalını Aç (2)',
-									url
-								})
-							}
-							await ntfy({ topic, priority, tags, title, message, actions })
+						deleteKeys(_qs, 'session', 'sessionID', 'loginTipi', 'user', 'pass')
+						let { DefaultLoginTipi: loginTipi } = Session
+						let { pass } = await Session.getSessionBasit({ user }) ?? {}
+						if (pass) {
+							if (pass.length != md5Length)
+								pass = md5(pass)
+							extend(_qs, { loginTipi, user, pass })
 						}
+					}
+					;{
+						let topicOnayNo = Number(topic.at(-1))
+						if (topicOnayNo == onayNo)
+							topic = topic.slice(0, -1).concat(String(++topicOnayNo))
+						let priority = 5
+						let tags = ['hourglass', '_new']
+						let title = 'VIO Onay İşlemleri'
+						let message = 'Onay bekleyen yeni belgeler var'
+						let actions = []
+						if (_qs) {
+							let { origin, pathname: path } = location
+							let url = `${origin}${path}?${$.param(_qs)}`
+							actions.push({
+								action: 'view',
+								label: 'Onay Portalını Aç (2)',
+								url
+							})
+						}
+						await ntfy({ topic, priority, tags, title, message, actions })
 					}
 				}
 				await toplu.execute()
