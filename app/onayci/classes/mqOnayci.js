@@ -579,7 +579,7 @@ class MQOnayci extends MQCogul {
 		let islemAdi = `${onaymi ? 'ONAY' : 'RED'} İşlemi`
 		let styledIslemAdi = `${onaymi ? '<b class=forestgreen>ONAY</b>' : '<b class=orangered>RED</b>'} İşlemi`
 		try {
-			let { selectedRecs: recs, gridWidget: w } = gridPart
+			let { boundRecs: allRecs, selectedRecs: recs, gridWidget: w } = gridPart
 			recs = recs.filter(rec => rec.onayNo && (dev || !rec.onayDurum))
 			if (empty(recs)) {
 				hConfirm('Cevaplanacak uygun belge bulunamadı', islemAdi)
@@ -622,6 +622,7 @@ class MQOnayci extends MQCogul {
 				if (!rdlg)
 					return
 			}
+			
 			let key2OnayIdListe = {}
 			for (let rec of recs) {
 				let { _db, onayNo, onayId } = rec
@@ -629,7 +630,7 @@ class MQOnayci extends MQCogul {
 				;(key2OnayIdListe[key] ??= []).push(onayId)
 			}
 			
-			let { user } = config, _now = now()
+			let _now = now()
 			let toplu = new MQToplu().withTrn()
 			for (let [key, onayIdListe] of entries(key2OnayIdListe)) {
 				let [ db, onayNo ] = key.split(delimWS)
@@ -649,48 +650,72 @@ class MQOnayci extends MQCogul {
 				)
 			}
 			if (toplu?.bosDegilmi) {
-				let { onayMax, onayNo } = app
-				if (onayNo < onayMax) {
-					let { ntfyTopic: topic, onaySonraUser: user } = app
-					let _qs = { ...qs }
-					if (user) {
-						;{
-							let { _: encVal } = qs
-							if (encVal)
-								extend(_qs, JSON.parse(Base64.decode(encVal)))
-							deleteKeys(_qs, '#', '_',  'session', 'sessionID', 'loginTipi', 'user', 'pass')
-							let { DefaultLoginTipi: loginTipi } = Session
-							let { pass } = await Session.getSessionBasit({ user }) ?? {}
-							if (pass) {
-								if (pass.length != md5Length)
-									pass = md5(pass)
-								extend(_qs, { loginTipi, user, pass })
-							}
-						}
-						
-						;{
-							let topicOnayNo = Number(topic.at(-1))
-							if (topicOnayNo == onayNo)
-								topic = topic.slice(0, -1).concat(String(++topicOnayNo))
-							let priority = 5
-							let tags = ['hourglass', '_new']
-							let title = 'VIO Onay İşlemleri'
-							let message = 'Onay bekleyen yeni belgeler var'
-							let actions = []
-							if (_qs) {
-								let { origin, pathname: path } = location
-								let url = `${origin}${path}?${$.param(_qs)}`
-								actions.push({
-									action: 'view',
-									label: 'Onay Portalını Aç (2)',
-									url
-								})
-							}
-							await ntfy({ topic, priority, tags, title, message, actions })
-						}
+				let topic, seqId
+				let aktifOnayNo, sonraUser
+				
+				let { onayMax } = app
+				for (let r of allRecs) {
+					let { onayDurum, onayNo, sonraUser: u } = r
+					if (onayDurum)  // cevaplanan kayıtlar dahil edilmez
+						continue
+					if (!aktifOnayNo || onayNo > aktifOnayNo) {
+						aktifOnayNo = onayNo
+						sonraUser = u
 					}
 				}
-				await toplu.execute()
+				aktifOnayNo ||= 1
+				
+				if (sonraUser && aktifOnayNo < onayMax) {
+					topic = app.ntfyTopic
+					let user = sonraUser
+					let _qs = { ...qs }
+					;{
+						let { _: encVal } = _qs
+						if (encVal)
+							extend(_qs, JSON.parse(Base64.decode(encVal)))
+						deleteKeys(_qs, '#', '_',  'session', 'sessionID', 'loginTipi', 'user', 'pass')
+						let { DefaultLoginTipi: loginTipi } = Session
+						let { pass } = await Session.getSessionBasit({ user }) ?? {}
+						if (pass) {
+							if (pass.length != md5Length)
+								pass = md5(pass)
+							extend(_qs, { loginTipi, user, pass })
+						}
+					}
+					;{
+						let topicOnayNo = Number(topic.at(-1))
+						if (topicOnayNo == aktifOnayNo)
+							topic = topic.slice(0, -1).concat(String(++topicOnayNo))
+						let priority = 5
+						let tags = ['hourglass', '_new']
+						let title = 'VIO Onay İşlemleri'
+						let message = 'Onay bekleyen yeni belgeler var'
+						let actions = []
+						if (_qs) {
+							let { origin, pathname: path } = location
+							let url = `${origin}${path}?${$.param(_qs)}`
+							actions.push({
+								action: 'view',
+								label: 'Onay Portalını Aç (2)',
+								url
+							})
+						}
+						seqId = newGUID()
+						await ntfy({ topic, seqId, priority, tags, title, message, actions })
+					}
+				}
+				
+				try { await toplu.execute() }
+				catch (ex) {
+					if (seqId && !empty(topic)) {
+						// clear nextUser notification
+						if (isArray(topic))
+							topic = topic.join('-')
+						let url = [app.ntfyWSUrl, topic, seqId].join('/')
+						ajaxCall({ method: 'DELETE', url })    // no await - send & forget
+					}
+					throw ex
+				}
 			}
 			
 			w?.clearselection()
