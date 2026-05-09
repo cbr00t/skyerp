@@ -456,17 +456,13 @@ class MQOnayci extends MQCogul {
 			let eksikUserSet = new Set()
 			;recs
 				.flatMap(r => [r.onceUser, r.sonraUser])
-				.filter(Boolean)
-				.forEach(user => {
-					let hasName = user2Adi[user] ??= undefined
-					if (!hasName)
-						eksikUserSet.add(user)
-				})
+				.filter(u => u && user2Adi[u] === undefined)
+				.forEach(u => eksikUserSet.add(u))
 			if (!empty(eksikUserSet)) {
 				await promiseAll(
-					eksikUserSet.map(user =>
+					arrayFrom(eksikUserSet).map(user =>
 						Session.getSessionBasit({ user }).then(s =>
-							user2Adi[user] = s.userDesc)
+							user2Adi[user] = s?.userDesc ?? null)
 					)
 				)
 			}
@@ -712,7 +708,7 @@ class MQOnayci extends MQCogul {
 					app.onayNo = aktifOnayNo = max(1, ...boundRecs.map(r => r.onayNo || 0))
 				
 				let onayBilgiSet = new Set()
-				if (aktifOnayNo < onayMax) {
+				if (onaymi && aktifOnayNo < onayMax) {
 					recs
 						.filter(r => r.sonraUser)
 						.forEach(r =>
@@ -1074,7 +1070,7 @@ class MQOnayci extends MQCogul {
 				( sonraUser ?
 					 `<div class="sonraUser ek-bilgi">` +
 						 `<span class="etiket lightgray">Sonraki: </span>` +
-						 `<span class="veri bold royalblue">${sonraUser[onceUser] || sonraUser}</span>` +
+						 `<span class="veri bold royalblue">${user2Adi[sonraUser] || sonraUser}</span>` +
 					 `</div>`
 				 : null ),
 			`</div>`
