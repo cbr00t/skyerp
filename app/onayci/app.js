@@ -9,6 +9,7 @@ class OnayciApp extends TicariApp {
 
 	async afterRun(e) {
 		await super.afterRun(e)
+		this.onayNo = Number(qs.onayNo) || this.onayNo
 		this._promise_ilkBilgiler = this.ilkBilgileriBelirle(e)
 	}
 	paramsDuzenle({ params }) {

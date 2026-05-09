@@ -166,15 +166,16 @@ class MQOnayci extends MQCogul {
 	static async _loadServerDataDogrudan({ sender: gridPart }) {
 		let e = arguments[0]
 		let sqlNull = 'NULL', sqlEmpty = `''`
-		let { onayMax } = app
+		let { onayNo: aktifOnayNo, onayMax } = app
 		let { encUser, user /*, dbName: db*/ } = config.session
 		let { ay: buAy, yil2: buKisaYil } = today()
 		let { hepsiniGoster } = gridPart
+		aktifOnayNo ||= 1
 	
 		let _cache = /*this._cache ??=*/ await (async () => {
 			// let kurallar = [], kuralKey2Kural = {}
-			let kisaYilSet = {}, tip2Kurallar = {}, dbSet = {}
-			{
+			let kisaYilSet = {}, tip2Kurallar = {}, tip2Param = {}, dbSet = {}
+			;{
 				let { onayYili } = app.params?.ortak ?? {}
 				kisaYilSet[onayYili || buKisaYil] = true
 				if (buAy == 1)
@@ -187,11 +188,11 @@ class MQOnayci extends MQCogul {
 				.innerJoin('ftip', 'ORTAK..onaybildirim fis', 'ftip.id = fis.firmatipid')
 				.innerJoin('fis', 'ORTAK..islemonayci har', 'fis.id = har.fisid')
 			wh.degerAta(encUser, 'har.xuserkod')
-			sahalar.add(
+			sahalar.add(...[
 				'fis.id', 'fbil.firmaadi firmaAdi', 'ftip.tip',
 				`(case when COALESCE(fis.onayno, 0) = 0 then 1 else fis.onayno end) onayNo`,
-				'har.onaylimiti onayLimiti'
-			)
+				'har.onaylimiti onayLimiti', `ftip.paramjson paramJSON`
+			])
 			let kurallar = await this.sqlExecSelect(sent)
 			let allDBNames = await app.wsDBListe()
 			let ignoreProgBelirtecSet = ['BR', 'MH', 'IS', 'AK']
@@ -200,40 +201,50 @@ class MQOnayci extends MQCogul {
 				kisaYilSet[asInteger(_.substr(2, 2))]
 			)
 			for (let rec of kurallar) {
-				let { tip, firmaAdi } = rec
+				let { tip, firmaAdi, paramJSON: par } = rec
 				// kuralKey2Kural[this.getKey(rec)] = rec
 				;(tip2Kurallar[tip] ??= []).push(rec)
+				if (par) {
+					try {
+						par = JSON.parse(par)
+						if (!empty(par))
+							tip2Param[tip] = par
+					}
+					catch (ex) { console.error(ex) }
+				}
 				for (let db of allDBNames) {
 					let db_firmaAdi = db.substr(4)
 					if (db_firmaAdi == firmaAdi)
 						dbSet[db] = true
 				}
 			}
-			{
+			;{
 				// eksik tablolu db'leri listeden at
 				let dbListe = keys(dbSet)
 				let results = await promiseAllSet(
 					dbListe.map(db => app.sqlHasColumn(`${db}..webonay`, 'id')))
-				dbListe.forEach((db, i) => {
+				;dbListe.forEach((db, i) => {
 					let { status, value } = results[i]
 					let uygunmu = status == 'fulfilled' && value    // promise hata almadı ve result == true
 					if (!uygunmu)
 						delete dbSet[db]
 				})
 			}
-			return ({ kurallar, tip2Kurallar, dbSet })  // , kurallar, kuralKey2Kural
+			return ({ kurallar, tip2Kurallar, tip2Param, dbSet })  // , kurallar, kuralKey2Kural
 		})()
-		let { kurallar, tip2Kurallar, dbSet } = _cache
-		extend(gridPart, { kurallar, tip2Kurallar, dbSet })
+		;mergeInto(_cache, app, 'kurallar', 'tip2Kurallar', 'tip2Param', 'dbSet')
 
 		let { table2Yapi, tip2Yapi } = this
 		// let userSql = user.sqlServerDegeri()
-		
+
+		let { dbSet } = app
 		let orderBy = ['onayDurumText', '_db', 'oncelik']
 		let stm = new MQStm({ orderBy }), { with: $with } = stm
 		for (let db in dbSet) {
 			let uni = new MQUnionAll()
-			for (let i = 1; i <= onayMax; i++) {
+			// for (let i = 1; i <= onayMax; i++) {
+			let i = aktifOnayNo
+			;{
 				let ilkmi = i == 1, sonmu = i == onayMax
 				let sent = new MQSent(), { where: wh, sahalar } = sent
 				;{
@@ -374,17 +385,11 @@ class MQOnayci extends MQCogul {
 		
 		let recs = await this.sqlExecSelect(stm)
 		if (!app.onayNo) {
-			let onayNo = app.onayNo = recs?.find(_r => _r.onayNo)?.onayNo
+			let onayNo = app.onayNo = max(1, ...(recs?.map(_r => Number(_r.onayNo)) ?? []))
 			if (onayNo) {
 				await this.unregisterNTFY(e)
 				await this.registerNTFY(e)
 			}
-		}
-		
-		;{
-			let { onayNo, onayMax } = app
-			if (onayNo && onayNo < onayMax && app.onaySonraUser === undefined)
-				app.onaySonraUser = recs?.find(_r => _r.sonraUser)?.sonraUser
 		}
 		
 		let db2GecAlimSayacListe = {}
@@ -424,7 +429,7 @@ class MQOnayci extends MQCogul {
 			
 			if (!empty(db2Sayac2RecDurum)) {
 				;recs.forEach(rec => {
-					let { _db: db, tip, sayac } = rec
+					let { _db: db, tip, sayac, onayNo } = rec
 					let durum = db2Sayac2RecDurum[db]?.[sayac]
 					if (durum)
 						extend(rec, durum)
@@ -432,14 +437,42 @@ class MQOnayci extends MQCogul {
 					let item = tip2Yapi[tip]
 					if (item) {
 						let { tipText } = item
+						if (onayNo) {
+							tipText += [
+								' ',
+								`<span class="etiket darkgray"> | </span>`,
+								`<span class="etiket gray">Onay: </span>`,
+								`<span class="veri bold orangered">${String(onayNo)}</span>`
+							].join('')
+						}
 						extend(rec, { tipText })
 					}
 				})
 			}
 		}
-		
-		for (let rec of recs)
-			rec._text = this.getHTML({ rec })
+
+		let user2Adi = app.user2Adi ??= {}
+		;{
+			let eksikUserSet = new Set()
+			;recs
+				.flatMap(r => [r.onceUser, r.sonraUser])
+				.filter(Boolean)
+				.forEach(user => {
+					let hasName = user2Adi[user] ??= undefined
+					if (!hasName)
+						eksikUserSet.add(user)
+				})
+			if (!empty(eksikUserSet)) {
+				await promiseAll(
+					eksikUserSet.map(user =>
+						Session.getSessionBasit({ user }).then(s =>
+							user2Adi[user] = s.userDesc)
+					)
+				)
+			}
+			for (let rec of recs)
+				rec._text = await this.getHTML({ rec })
+		}
 		
 		return recs
 	}
@@ -576,7 +609,8 @@ class MQOnayci extends MQCogul {
 
 	static async onayRedIstendi({ sender: gridPart, state: onaymi }) {
 		let { dev } = config
-		let islemAdi = `${onaymi ? 'ONAY' : 'RED'} İşlemi`
+		let kisaIslemAdi = `${onaymi ? 'ONAY' : 'RED'}`
+		let islemAdi = `${kisaIslemAdi} İşlemi`
 		let styledIslemAdi = `${onaymi ? '<b class=forestgreen>ONAY</b>' : '<b class=orangered>RED</b>'} İşlemi`
 		try {
 			let { boundRecs: allRecs, selectedRecs: recs, gridWidget: w } = gridPart
@@ -596,14 +630,32 @@ class MQOnayci extends MQCogul {
 				if (!rdlg)
 					return
 			}
-			let {
+			
+			/*let {
 				onayci_onayNedenIstenir: onayNedenIstenir,
 				onayci_redNedenIstenir: redNedenIstenir,
 				onayci_nedenZorunludur: nedenZorunludur
-			} = app.params.web ?? {}
-			let nedenIstenir = onaymi ? onayNedenIstenir : redNedenIstenir
-			nedenIstenir ??= !onaymi
-			nedenZorunludur ??= !onaymi
+			} = app.params.web ?? {}*/
+			let { web = {} } = app.params
+			let fl = fromEntries(
+				['onayNedenIstenir', 'redNedenIstenir', 'nedenZorunludur']
+					.map(k => [k, null])
+			)
+			let { tip2Param } = app
+			let tipSet = asSet(recs.map(r => r.tip).filter(Boolean))
+			for (let tip in tipSet) {
+				let par = tip2Param[tip]
+				if (empty(par))
+					continue
+				for (let k in fl)
+					fl[k] ||= asBoolQ(par[k])
+			}
+			for (let k in fl)
+				fl[k] ??= asBoolQ(web[`onayci_${k}`])
+			
+			let nedenIstenir = ( onaymi ? fl.onayNedenIstenir : fl.redNedenIstenir ) ?? !onaymi
+			let nedenZorunludur = fl.nedenZorunludur ?? !onaymi
+			
 			let nedenText
 			if (nedenIstenir) {
 				nedenText = await jqxPrompt({
@@ -613,8 +665,12 @@ class MQOnayci extends MQCogul {
 						fbd.setMaxLength(40)
 				})
 				nedenText = nedenText?.trim()
-				if (nedenText == null || (nedenZorunludur && !nedenText))
+				if (nedenText == null)
+					return 
+				if (nedenZorunludur && !nedenText) {
+					hConfirm(`<b>${kisaIslemAdi} Nedeni</b> belirtilmelidir`, islemAdi)
 					return
+				}
 			}
 			else {
 				let middleText = onaymi ? `<b class=forestgreen>ONAYLAMAK</b>` : `<b class=firebrick>REDDETMEK</b>`
@@ -650,44 +706,63 @@ class MQOnayci extends MQCogul {
 				)
 			}
 			if (toplu?.bosDegilmi) {
-				let topic, seqId
-				let aktifOnayNo, sonraUser
+				let topicSet = new Set()
+				let { onayMax, onayNo: aktifOnayNo } = app
+				if (!aktifOnayNo)
+					app.onayNo = aktifOnayNo = max(1, ...boundRecs.map(r => r.onayNo || 0))
 				
-				let { onayMax } = app
-				for (let r of allRecs) {
-					let { onayDurum, onayNo, sonraUser: u } = r
-					if (onayDurum)  // cevaplanan kayıtlar dahil edilmez
-						continue
-					if (!aktifOnayNo || onayNo > aktifOnayNo) {
-						aktifOnayNo = onayNo
-						sonraUser = u
-					}
+				let onayBilgiSet = new Set()
+				if (aktifOnayNo < onayMax) {
+					recs
+						.filter(r => r.sonraUser)
+						.forEach(r =>
+							onayBilgiSet.add(
+								[r.sonraUser, r.onayNo || aktifOnayNo]
+									.join(delimWS)
+							)
+						)
 				}
-				aktifOnayNo ||= 1
-				
-				if (sonraUser && aktifOnayNo < onayMax) {
-					topic = app.ntfyTopic
-					let user = sonraUser
-					let _qs = { ...qs }
+				for (let _ of onayBilgiSet) {
+					let [ user, onayNo ] = _.split(delimWS)
+					onayNo = ( Number(onayNo) || aktifOnayNo ) + 1
+					let onayNoStr = String(onayNo)
+					
+					let tempQS = { ...qs, onayNo }
 					;{
-						let { _: encVal } = _qs
+						let { _: encVal } = tempQS
 						if (encVal)
-							extend(_qs, JSON.parse(Base64.decode(encVal)))
-						deleteKeys(_qs, '#', '_',  'session', 'sessionID', 'loginTipi', 'user', 'pass')
-						let { DefaultLoginTipi: loginTipi } = Session
+							extend(tempQS, JSON.parse(Base64.decode(encVal)))
+						deleteKeys(tempQS, '#', '_',  'session', 'sessionID', 'user', 'pass')
+						tempQS.loginTipi = Session.DefaultLoginTipi
 						let { pass } = await Session.getSessionBasit({ user }) ?? {}
 						if (pass) {
 							if (pass.length != md5Length)
 								pass = md5(pass)
-							extend(_qs, { loginTipi, user, pass })
+							extend(tempQS, {  user, pass })
 						}
 					}
+					
+					let _qs = {}
+					;['port', 'dev', 'newWindow', 'inNewWindow'].forEach(k => {
+						if (k in tempQS) {
+							_qs[k] = tempQS[k]
+							delete tempQS[k]
+						}
+					})
+					if (!empty(tempQS))
+						_qs._ = Base64.encode($.param(tempQS))
+					
+					let { ntfyTopic: topic } = app
+					let seqId
 					;{
 						let topicOnayNo = Number(topic.at(-1))
 						if (topicOnayNo == aktifOnayNo)
-							topic = topic.slice(0, -1).concat(String(++topicOnayNo))
+							topic = topic.slice(0, -1)
+						topic = topic.concat(onayNoStr)
+						topicSet.add(topic.join('-'))
+						
 						let priority = 5
-						let tags = ['hourglass', '_new']
+						let tags = ['hourglass', '_new', user, onayNoStr]
 						let title = 'VIO Onay İşlemleri'
 						let message = 'Onay bekleyen yeni belgeler var'
 						let actions = []
@@ -696,10 +771,11 @@ class MQOnayci extends MQCogul {
 							let url = `${origin}${path}?${$.param(_qs)}`
 							actions.push({
 								action: 'view',
-								label: 'Onay Portalını Aç (2)',
+								label: `Onay Portalını Aç (${onayNo})`,
 								url
 							})
 						}
+
 						seqId = newGUID()
 						await ntfy({ topic, seqId, priority, tags, title, message, actions })
 					}
@@ -707,12 +783,14 @@ class MQOnayci extends MQCogul {
 				
 				try { await toplu.execute() }
 				catch (ex) {
-					if (seqId && !empty(topic)) {
-						// clear nextUser notification
-						if (isArray(topic))
-							topic = topic.join('-')
-						let url = [app.ntfyWSUrl, topic, seqId].join('/')
-						ajaxCall({ method: 'DELETE', url })    // no await - send & forget
+					if (seqId && !empty(topicSet)) {
+						// clear nextUser notifications
+						for (let topic of topicSet) {
+							if (isArray(topic))
+								topic = topic.join('-')
+							let url = [app.ntfyWSUrl, topic, seqId].join('/')
+							ajaxCall({ method: 'DELETE', url })    // no await - send & forget
+						}
 					}
 					throw ex
 				}
@@ -964,7 +1042,9 @@ class MQOnayci extends MQCogul {
 	}
 	static getHTML({ rec }) {
 		let { dev } = config
+		let { user2Adi } = app
 		let { tarih, mustUnvan, fisNox, uuid, irsNox, irsVarmi, ekBilgi } = rec
+		let { onceUser, onceText, sonraUser, onayNo } = rec
 		uuid = uuid?.toLowerCase() ?? ''
 		irsNox ??= ''; ekBilgi ??= ''
 		return [
@@ -975,11 +1055,29 @@ class MQOnayci extends MQCogul {
 				`<div class="ek-bilgi orangered bold float-right">${fisNox}</div>`,
 				(dev ? `<div class="ek-bilgi gray">${uuid}</div>` : null),
 				(irsNox ? `<div class="ek-bilgi">` +
-					 `<span class="bold">İrs: </span>`+
-					 `<span class="bold ${irsVarmi ? 'bg-lightgreen' : 'ghostwhite bg-lightred'}"}>&nbsp;${irsNox}&nbsp;</span>` +
+					 `<span class="etiket bold">İrs: </span>`+
+					 `<span class="veri bold ${irsVarmi ? 'bg-lightgreen' : 'ghostwhite bg-lightred'}"}>&nbsp;${irsNox}&nbsp;</span>` +
 				 `</div>` : ''),
 				`<div class="asil orangered">${ekBilgi}</div>`,
+				( onceUser ?
+					 `<div class="onceUser ek-bilgi">` +
+						 `<span class="etiket lightgray">Önceki: </span>` +
+						 `<span class="veri bold cadetblue">${user2Adi[onceUser] || onceUser}</span>` +
+					 `</div>`
+				 : null ),
+				( onceText ?
+					 `<div class="onceText ek-bilgi">` +
+						 `<span class="etiket lightgray"> - </span>` +
+						 `<span class="veri blue">${onceText}</span>` +
+					 `</div>`
+				 : null ),
+				( sonraUser ?
+					 `<div class="sonraUser ek-bilgi">` +
+						 `<span class="etiket lightgray">Sonraki: </span>` +
+						 `<span class="veri bold royalblue">${sonraUser[onceUser] || sonraUser}</span>` +
+					 `</div>`
+				 : null ),
 			`</div>`
-		].filter(_ => _).join(CrLf)
+		].filter(Boolean).join('\n')
 	}
 }
