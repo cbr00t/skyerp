@@ -4,6 +4,7 @@ class MQOnayci extends MQCogul {
 	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false }
 	static get secimSinif() { return null } static get kolonFiltreKullanilirmi() { return false }
 	static get gridIslemTuslariKullanilirmi() { return false }
+	static get noAutoFocus() { return true }
 	static get table2Yapi() {
 		let { _table2Yapi: result } = this
 		if (result == null) {
@@ -46,6 +47,25 @@ class MQOnayci extends MQCogul {
 						ekBilgi: ({ alias }) => `${alias}.cariaciklama`
 					}
 				}
+				/*butanlsonucfis: {
+					harTable: ['butanlsonucdetay'],
+					tipler: {
+						AlimAnlasma: { tipText: 'Alım Alım Anlaşması' }
+					},
+					fisBaglantiDuzenle: ({ alias, clauses }) =>
+						clauses.push(`${alias}.silindi = ''`),
+					clauses: {
+						oncelik: '2',
+						eIslTip: ({ alias }) => `${alias}.efayrimtipi`,
+						uuid: ({ alias }) => `${alias}.efatuuid`,
+						mustKod: ({ alias }) => `${alias}.must`,
+						mustUnvan: 'fis_carmst.birunvan',
+						tarih: ({ alias }) => `${alias}.tarih`,
+						fisNox: ({ alias }) => `${alias}.fisnox`,
+						bedel: ({ alias }) => `${alias}.net`,
+						ekBilgi: ({ alias }) => `${alias}.cariaciklama`
+					}
+				}*/
 			}
 			for (let [table, item] of entries(result))
 				item.table = table
@@ -94,6 +114,16 @@ class MQOnayci extends MQCogul {
 		}
 		try { Notification.requestPermission() }
 		catch (ex) { cerr(ex) }
+		if (!qs.tamEkranYok) {
+			setTimeout(async () => {
+				for (let i = 0; i < 5; i++) {
+					if (document.fullscreen)
+						break
+					requestFullScreen()
+					await delay(500)
+				}
+			}, 100)
+		}
 	}
 	static listeEkrani_destroyPart(e = {}) {
 		super.listeEkrani_destroyPart(e)
@@ -139,7 +169,11 @@ class MQOnayci extends MQCogul {
 		let {hepsiniGoster} = gridPart
 		if (hepsiniGoster)
 			liste.push('onayDurumText')
-		liste.push('_db', 'tipText')
+		
+		let dbListe = keys(app.dbSet)
+		if (dbListe?.length != 1)
+			liste.push('_db')
+		liste.push('tipText')
 	}
 	static orjBaslikListesiDuzenle({ sender: gridPart, liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
@@ -722,20 +756,38 @@ class MQOnayci extends MQCogul {
 					let [ user, onayNo ] = _.split(delimWS)
 					onayNo = ( Number(onayNo) || aktifOnayNo ) + 1
 					let onayNoStr = String(onayNo)
-					
+
 					let tempQS = { ...qs, onayNo }
+					//if (!asBool(qs.light))
+					//	tempQS.dark = true
+					;{
+						let { ws } = config
+						if (ws) {
+							let { url: wsURL } = ws
+							mergeInto(ws, tempQS, 'host', 'port', 'ssl')
+							if (wsURL)
+								tempQS.wsURL = wsURL
+						}
+						if (tempQS.ssl == null)
+							delete tempQS.ssl
+					}
 					;{
 						let { _: encVal } = tempQS
 						if (encVal)
 							extend(tempQS, JSON.parse(Base64.decode(encVal)))
-						deleteKeys(tempQS, '#', '_',  'session', 'sessionID', 'user', 'pass')
+						deleteKeys(tempQS, '#', '_',  'session', 'sessionID', 'user', 'pass', 'sql')
+						
 						tempQS.loginTipi = Session.DefaultLoginTipi
 						let { pass } = await Session.getSessionBasit({ user }) ?? {}
 						if (pass) {
 							if (pass.length != md5Length)
 								pass = md5(pass)
-							extend(tempQS, {  user, pass })
+							extend(tempQS, { user, pass })
 						}
+
+						let { wsSQL: sql } = app
+						if (!empty(sql))
+							tempQS.sql = toJSONStr(sql)
 					}
 					
 					let _qs = {}
@@ -747,7 +799,9 @@ class MQOnayci extends MQCogul {
 					})
 					if (!empty(tempQS))
 						_qs._ = Base64.encode($.param(tempQS))
-					
+					deleteKeys(_qs, '#', 'session', 'sessionID', 'user', 'pass', 'host', 'port', 'url', 'wsURL', 'sql')
+
+					let { DefaultWSHostName_SkyServer: cloudHost } = config.class
 					let { ntfyTopic: topic } = app
 					let seqId
 					;{
@@ -764,6 +818,9 @@ class MQOnayci extends MQCogul {
 						let actions = []
 						if (_qs) {
 							let { origin, pathname: path } = location
+							origin = origin
+								.replace('http://localhost:81', `https://${cloudHost}:90`)
+								.replace('https://localhost:90', `https://${cloudHost}:90`)
 							let url = `${origin}${path}?${$.param(_qs)}`
 							actions.push({
 								action: 'view',
