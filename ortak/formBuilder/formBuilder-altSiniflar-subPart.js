@@ -213,8 +213,11 @@ class FBuilder_SimpleElement extends FormBuilder_SubPart {
 		super.afterBuild(e); let {input} = this;
 		if (input?.length) {
 			// let elmLabel_width = this.elmLabel_width || 0;
-			if (!!this.etiketGosterim) { input.attr('placeholder', (this.placeHolder == null ? this.etiket : this.placeHolder) ?? '') }
-			let {value} = this; if (value != null && this.ioAttr && this.altInst) { this.value = value }
+			if (!!this.etiketGosterim)
+				input.attr('placeholder', (this.placeHolder == null ? this.etiket : this.placeHolder) ?? '')
+			let { value } = this
+			if (value != null && this.ioAttr && this.altInst)
+				this.value = value
 		}
 	}
 	defaultGetValue(e) {
@@ -505,7 +508,7 @@ class FBuilder_ToggleButton extends FBuilder_DivOrtak {
 	constructor(e) {
 		e = e || {}; super(e);
 		if (this.etiketGosterim == null) { this.etiketGosterim_placeholder() }
-		$.extend(this, {
+		extend(this, {
 			_value: e.value, inputType: e.inputType || this.class.inputType, maxLength: e.maxLength ?? this.class.maxLength,
 			isReadOnly: e.readOnly ?? e.readonly ?? e.isReadOnly ?? e.isReadonly
 		})
@@ -596,7 +599,7 @@ class FBuilder_SwitchButton extends FBuilder_ToggleButton {
 		let {value} = this; super.buildDevam(e); let {input} = this;
 		if (input?.length) {
 			let {layout, isReadOnly} = this; layout.addClass('flex-row');
-			let {widgetArgsDuzenle} = this; let _e = $.extend({}, e, { args: { theme, width: '100%', height: this.class.defaultHeight, value } });
+			let {widgetArgsDuzenle} = this; let _e = $.extend({}, e, { args: { theme, width: '100%', height: this.class.defaultHeight, checked: value } });
 			for (let key of ['onLabel', 'offLabel']) { let _value = this[key]; if (_value != null) { _e.args[key] = _value } }
 			if (isReadOnly) { _e.args.disabled = true }
 			if (widgetArgsDuzenle) { getFuncValue.call(this, widgetArgsDuzenle, _e); }
@@ -618,6 +621,8 @@ class FBuilder_SwitchButton extends FBuilder_ToggleButton {
 		let {input} = this; if (input?.length) { input.jqxSwitchButton('checked', this.getConverted_setValue({ value: e.value })); return }
 		return super.defaultSetValue(e)
 	}
+	setOnLabel(v) { this.onLabel = v; return this }
+	setOffLabel(v) { this.offLabel = v; return this }
 }
 class FBuilder_OptionBase extends FBuilder_DivOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -723,8 +728,15 @@ class FBuilder_RadioButton extends FBuilder_OptionBase {
 	static get inputTagName() { return 'div' }
 	
 	buildDevam(e) {
-		super.buildDevam(e); let {input, styles} = this;
-		if (input?.length) { input.addClass('options') }
+		super.buildDevam(e)
+		let { _initValueSetFlag, input, styles } = this
+		/*if (_initValueSetFlag) {
+			this.value = _value
+			this._initValueSetFlag = false
+		}*/
+		
+		if (input?.length)
+			input.addClass('options')
 		styles.push(...[
 			e => `$elementCSS { height: 40px }`,
 			e => `$elementCSS > label { margin-top: 8px }`,
@@ -737,45 +749,64 @@ class FBuilder_RadioButton extends FBuilder_OptionBase {
 		])
 	}
 	sourceAtandiDevam(e) {
-		let {input} = this; if (!input?.length) { return }
-		let {source} = e; if (!source) return
-		let {kodAttr, adiAttr} = this; if (!(kodAttr || adiAttr)) return
-		this.input = null; let {value} = this; this.input = input;
-		input.children().remove();
+		let {input} = this
+		if (!input?.length)
+			return
+		let {source} = e
+		if (!source)
+			return
+		let {kodAttr, adiAttr} = this
+		if (!(kodAttr || adiAttr))
+			return
+		
+		this.input = null
+		let value = this._value ?? this.value
+	
+		this.input = input
+		input.children().remove()
 		for (let key in source) {
-			let item = source[key], kod = item[kodAttr], aciklama = item[adiAttr];
-			let optValue = coalesce(kod, aciklama), optLabel = coalesce(aciklama, kod) || '';
-			let elm = $(`<button data-value="${optValue}">${optLabel}</button>`); elm.appendTo(input);
-			if (value != null && value == optValue) { elm.addClass('selected') }
+			let item = source[key]
+			let kod = item[kodAttr], aciklama = item[adiAttr]
+			let optValue = kod ?? aciklama
+			let optLabel = coalesce(aciklama, kod) || ''
+			let elm = $(`<button data-value="${optValue}">${optLabel}</button>`)
+			elm.appendTo(input)
+			if (value != null && value == optValue)
+				elm.addClass('selected')
 		}
-		let buttons = input.find('button').jqxButton({ theme });
+		let buttons = input.find('button').jqxButton({ theme })
 		buttons.on('click', evt => {
-			let elm = $(evt.currentTarget);
-			let value = elm.data('value'); if (value == null) { return }
-			input.find(`button:not([data-value="${value}"])`).removeClass('selected'); elm.addClass('selected');
+			let elm = $(evt.currentTarget)
+			let value = elm.data('value')
+			if (value == null)
+				return
+			input.find(`button:not([data-value="${value}"])`).removeClass('selected')
+			elm.addClass('selected')
 			value = this.getConverted_getValue({ value });
-			let {ioAttr} = this;
+			let {ioAttr} = this
 			if (ioAttr) {
-				let {altInst} = this;
+				let {altInst} = this
 				if (altInst) {
-					let {_p} = altInst, pInst = (_p || {})[ioAttr];
-					if (pInst) { pInst.setValues({ value }) } else { altInst[ioAttr] = value }
+					let {_p} = altInst, pInst = (_p || {})[ioAttr]
+					if (pInst) { pInst.setValues({ value }) }
+					else { altInst[ioAttr] = value }
 				}
 			}
 			this.signalChange({ sender: this, builder: this, event: evt, value })
 		})
 	}
 	defaultGetValue(e) {
-		let {input} = this;
-		if (input && input.length)
-			return this.getConverted_getValue({ value: input.find(`button.selected`).data('value') });
+		let { input } = this
+		if (input.length)
+			return this.getConverted_getValue({ value: input.find(`button.selected`).data('value') }) ?? _value
 		return super.defaultGetValue(e)
 	}
 	defaultSetValue(e) {
-		let {input} = this;
+		let { input } = this
 		if (input?.length) {
-			let value = this.getConverted_setValue({ value: e.value }), filterSelector = `[data-value="${value}"]`;
-			input.find(`:not(${filterSelector})`).removeClass('selected'); input.find(filterSelector).addClass('selected');
+			let value = this.getConverted_setValue({ value: e.value }), filterSelector = `[data-value="${value}"]`
+			input.find(`:not(${filterSelector})`).removeClass('selected')
+			input.find(filterSelector).addClass('selected')
 			return
 		}
 		return super.defaultSetValue(e)

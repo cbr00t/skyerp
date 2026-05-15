@@ -901,7 +901,7 @@ class MQOnayci extends MQCogul {
 		let islemAdi = 'Anlaşma Göster'
 
 		orjRecs ??= gridPart?.selectedRecs
-		orjRecs = orjRecs?.filter(r => r?.anlasmaSayac)
+		// orjRecs = orjRecs?.filter(r => r?.anlasmaSayac)
 		if (empty(orjRecs)) {
 			hConfirm('Gösterilecek Anlaşma yok', islemAdi)
 			return
@@ -916,6 +916,7 @@ class MQOnayci extends MQCogul {
 		
 		let db2IskSayi = app._db2IskSayi ??= {}
 		let db2AnlSayac2Rec = {}
+		let { tip2Yapi } = this
 		try {
 			let db2SayacListe = {}
 			for (let { _db: db, anlasmaSayac } of orjRecs) {
@@ -934,8 +935,18 @@ class MQOnayci extends MQCogul {
 						.map(r => [r.sayac, r])
 				)
 			}
+			
+			let mini = isMiniDevice()
 			for (let _rec of orjRecs) {
-				let { _db: db, anlasmaSayac } = _rec
+				let { tip, _db: db, sayac: fisSayac, anlasmaSayac } = _rec
+				let efmi = tip == 'GeciciAlimEFat'
+				
+				let iskMax = db2IskSayi[db] ??= await promise(async () =>
+					keys(await app.sqlGetColumns(`${db}..anlastarife`))
+						.filter(s => s.startsWith('iskoran'))
+						.length
+				)
+				
 				let rec = {
 					..._rec,
 					tip: '_AlimAnlasma',
@@ -943,67 +954,154 @@ class MQOnayci extends MQCogul {
 					sayac: anlasmaSayac,
 					fisNox: (() => {
 						let { tarihBasi: basi, tarihSonu: sonu } = db2AnlSayac2Rec[db]?.[anlasmaSayac] ?? {}
+						basi = asDate(basi); sonu = asDate(sonu)
 						return new CBasiSonu({ basi, sonu }).toString()
 					})(),
 					_text: await promise(() => {
 						let { tarihBasi, tarihSonu } = db2AnlSayac2Rec[db]?.[anlasmaSayac] ?? {}
 						return [
-							`<div class="flex-row" style="gap: 0 10px">`,
-								`<div class="tarih item">`,
-									`<div class="basi asil royalblue">${dateKisaString(asDate(tarihBasi)) || '..'}</div>`,
-									`<div class="etiket darkgray">&nbsp;-&gt;&nbsp;</div>`,
-									`<div class="sonu asil royalblue">${dateKisaString(asDate(tarihSonu)) || '..'}</div>`,
-								`</div>`,
+							`<div class="tarih item flex-row" style="gap: 0 10px">`,
+								`<div class="basi asil royalblue">${dateKisaString(asDate(tarihBasi)) || '..'}</div>`,
+								`<div class="etiket darkgray">&nbsp;-&gt;&nbsp;</div>`,
+								`<div class="sonu asil royalblue">${dateKisaString(asDate(tarihSonu)) || '..'}</div>`,
 							`</div>`
 						].filter(Boolean).join('\n')
 					})
 				}
+				let temps = {}
 				let _e = {
-					...e, rec,
-					colDefs: [
-						...this.getKAKolonlar(
-							new GridKolon({ belirtec: 'stokKod', text: 'Ürün', genislikCh: 16 }).checkedList(),
-							new GridKolon({ belirtec: 'stokAdi', text: 'Ürün Adı', genislikCh: 30 }).checkedList(),
-						),
-						new GridKolon({ belirtec: 'fiyat', text: 'Fiyat', genislikCh: 16 }).tipDecimal_fiyat().checkedList(),
-						new GridKolon({ belirtec: 'iskOranText', text: 'İskonto', genislikCh: 10 }).checkedList()
-					],
+					...e, rec, temps,
+					anlasmami: true,
 					async source(_e) {
-						let sent = new MQSent(), { where: wh, sahalar } = sent
-						sent
-							.fromAdd(`${db}..alimanlasma anl`)
-							.innerJoin('anl', `${db}..anlastarife det`, 'anl.kaysayac = det.anlassayac')
-							.innerJoin('det', `${db}..stkmst stk`, 'det.stokkod = stk.kod')
-						wh.degerAta(anlasmaSayac, 'anl.kaysayac')
-						sahalar
-							.addWithAlias('anl', 'tarihb tarihBasi', 'tarihs tarihSonu')
-							.addWithAlias('det', 'seq', 'stokkod stokKod', 'ozelfiyat ozelFiyat')
-							.addWithAlias('stk', 'aciklama stokAdi', 'almfiyat alimFiyat')
-						let iskMax = db2IskSayi[db] ??= await promise(async () =>
-							keys(await app.sqlGetColumns(`${db}..anlastarife`))
-								.filter(s => s.startsWith('iskoran'))
-								.length
-						)
-						for (let i = 1; i <= iskMax; i++)
-							sahalar.add(`det.iskoran${i} iskOran${i}`)
+						let { belgeAnlasma } = temps
+						let anlasmami = belgeAnlasma == 'A'
+						let promise_stok2AnlRec = promise(async () => {
+							let sent = new MQSent(), { where: wh, sahalar } = sent
+							sent
+								.fromAdd(`${db}..alimanlasma anl`)
+								.innerJoin('anl', `${db}..anlastarife det`, 'anl.kaysayac = det.anlassayac')
+								.innerJoin('det', `${db}..stkmst stk`, 'det.stokkod = stk.kod')
+							wh.degerAta(anlasmaSayac, 'anl.kaysayac')
+							sahalar
+								.addWithAlias('anl', 'tarihb tarihBasi', 'tarihs tarihSonu')
+								.addWithAlias('det', 'stokkod stokKod', 'ozelfiyat ozelFiyat')
+								.addWithAlias('stk', 'aciklama stokAdi', 'almfiyat alimFiyat')
+							for (let i = 1; i <= iskMax; i++)
+								sahalar.add(`det.iskoran${i} iskOran${i}`)
+							
+							let orderBy = ['stokKod']
+							let stm = new MQStm({ sent, orderBy })
+							let _ = await stm.execSelect()
+							return fromEntries(_.map(r => [r.stokKod, r]))
+						})
 						
-						let orderBy = ['seq']
-						let stm = new MQStm({ sent, orderBy })
-						return await stm.execSelect().then(recs => {
-							;recs.forEach(r => {
-								let { ozelFiyat, alimFiyat } = r
-								r.fiyat = ozelFiyat || alimFiyat
+						let stok2AnlRec = await promise_stok2AnlRec
+						let recs = anlasmami
+							? values(stok2AnlRec)
+							: await promise(async () => {
+								let { table, harTable } = tip2Yapi[tip] ?? {}
+								if (isString(harTable))
+									harTable = harTable ? harTable.split(delimWS)[0] : null
+								if (isArray(harTable))
+									harTable = harTable[0]
+								
+								if (!(table && fisSayac && harTable))
+									return null
+								
+								let sent = new MQSent(), { where: wh, sahalar } = sent
+								sent
+									.fisHareket(table, harTable)
+									.har2StokBagla()
+								wh.degerAta(fisSayac, 'fis.kaysayac')
+								sahalar.add(
+									'har.kaysayac sayac', 'har.seq', 'har.stokkod stokKod',
+									'har.miktar miktar', 'stk.brm', 'har.fiyat', 'har.bedel'
+								)
+								if (efmi)
+									sahalar.add('dbo.emptycoalesce(stk.aciklama, har.efstokadi) stokAdi', 'har.iskoranstr iskOranText')
+								else {
+									sent.fisSilindiEkle()
+									sahalar.add('stk.aciklama stokAdi', 'har.iskorantext iskOranText', 'fis.dvkod dvKod')
+								}
+								let stm = new MQStm({ sent, orderBy: ['seq'] })
+								return await stm.execSelect()
+							})
+
+						;recs?.forEach(r => {
+							let { stokKod, miktar, fiyat, iskOranText, dvKod, bedel } = r
+							let belgeFiyat = fiyat, belgeIskOranText = iskOranText
+							let { [stokKod]: ar } = stok2AnlRec ?? {}
+							let { ozelFiyat, alimFiyat, iskOranText: anlIskOranText } = ar ?? {}
+							let anlFiyat = ozelFiyat || alimFiyat
+							//fiyat = ozelFiyat || alimFiyat || fiyat
+							//if (fiyat != r.fiyat) {
+							//	r.fiyat = fiyat
+							//	// bedel = r.bedel = roundToBedelFra(miktar * fiyat)
+							//}
+							dvKod ||= 'TL'
+							if (!anlIskOranText && ar) {
 								let oranlar = []
 								for (let i = 1; i <= iskMax; i++) {
-									let v = r[`iskOran${i}`] || 0
+									let v = ar[`iskOran${i}`] || 0
 									oranlar.push(v)
 								}
 								while (oranlar.length && !oranlar.at(-1))    // son eleman =0 olmayana kadar sondan silerek gridIslemTuslariKullanilirmi
 									oranlar.pop()
-								r.iskOranText = oranlar.map(numberToString).join('+')
-							})
-							return recs
+								anlIskOranText = r.anlIskOranText = oranlar.map(numberToString).join('+')
+							}
+							
+							if (anlasmami) {
+								fiyat = r.fiyat = anlFiyat
+								iskOranText = r.iskOranText = anlIskOranText
+							}
+							else {
+								if (ar) {
+									let { stokAdi } = r
+									r.stokAdi = (
+										`<div class="float-left" style="margin-left: 10px">
+											<div>${stokAdi}</div>
+											<div>
+												<span class="fs-110 bold forestgreen" style="margin-left: 10px">Anl:</span>
+												<span class="fs-90 royalblue">${numberToString(anlFiyat)} ${dvKod}</span>
+												${ anlIskOranText ? `<span class="fs-90 gray"> | </span>` : '' }
+												${ anlIskOranText ? `<span class="fs-90 purple">%${anlIskOranText}</span>` : '' }
+											</div>
+										</div>`
+									)
+									let uygunmu = belgeFiyat == anlFiyat && belgeIskOranText == anlIskOranText
+									r._css = [uygunmu ? 'bg-verylightgreen' : 'bg-lightred-transparent']
+								}
+							}
+							r.bedelStr ||= (anlasmami
+								? [
+									fiyat ? (
+										`<div>
+											<div class="float-right mt-1 fs-110 bold royalblue">
+												<span class="lightgray">FY: </span> <span>${fiyatToString(fiyat)}</span>
+											</div>
+										 </div>`
+									) : null
+								]
+								: [
+									`<div>`,
+										( fiyat
+											 ? `<div class="float-left fs-90 royalblue">
+													<span class="lightgray">FY: </span>
+													<span>${fiyatToString(fiyat)}</span>
+												</div>`
+											 : null
+										),
+										( bedel
+											 ? `<div class="float-right mt-1 fs-110 bold forestgreen">
+													 <span>${bedelToString(bedel)} ${dvKod}</span>
+												</div>`
+											 : null
+										),
+									`</div>`
+								]
+							).filter(Boolean).join(' ')
 						})
+						return recs
 					}
 				}
 				await this.izleIstendi(_e)
@@ -1020,7 +1118,7 @@ class MQOnayci extends MQCogul {
 			throw ex
 		}
 	}
-	static async izleIstendi({ sender: gridPart, recs, rec }) {
+	static async izleIstendi({ sender: gridPart, recs, rec, anlasmami, temps = {} }) {
 		let orj_e = arguments[0]
 		let e = { ...orj_e }
 		let islemAdi = 'Belge İçerik Göster'
@@ -1037,14 +1135,13 @@ class MQOnayci extends MQCogul {
 			pm.setProgressMax(recs.length * 3)
 		}
 
-		let errors = []
-		let eDocs = [], eDocCount = 0
+		let mini = isMiniDevice()
+		let errors = [], eDocs = [], eDocCount = 0
 		try {
-			let eConf
-			let { tip2Yapi } = this
+			let eConf, { tip2Yapi } = this
 			for (let rec of recs) {
 				let { tip } = rec
-				if (tip == 'GeciciAlimEFat') {
+				if (!anlasmami && tip == 'GeciciAlimEFat') {
 					let { uuid, eIslTip } = rec
 					if (!uuid)
 						continue
@@ -1169,41 +1266,53 @@ class MQOnayci extends MQCogul {
 					
 					let _e = { ...e, rec, tip, sayac }
 					deleteKeys(_e, 'colDefs', 'source')
-					let _recs = isFunction(source) ? await source?.call(this, _e) : source
-					if (_recs === undefined) {
-						let { table, harTable: harTables } = tip2Yapi[tip] ?? {}
-						harTables = makeArray(harTables ?? [])
-						// _table: table, _harTable: harTables
-						if (isString(harTables))
-							harTables = harTables ? harTables.split(delimWS) : null
-						if (!(table && sayac) || empty(harTables))
-							continue
-						
-						let uni = new MQUnionAll()
-						if (harTables.length > 1)
-							harTables = [harTables[0]]
-						for (let harTable of harTables) {
-							let sent = new MQSent(), {where: wh, sahalar} = sent
-							sent
-								.fisHareket(table, harTable)
-								.har2StokBagla()
-							wh
-								.fisSilindiEkle()
-								.degerAta(sayac, 'fis.kaysayac')
-							sahalar.add(
-								'har.kaysayac sayac', 'har.seq',
-								'har.stokkod stokKod', 'stk.aciklama stokAdi',
-								'SUM(har.miktar) miktar', 'stk.brm',
-								'SUM(har.brutbedel) brutBedel', 'SUM(har.bedel) bedel'
-							)
-							sent.groupByOlustur()
-							uni.add(sent)
+
+					let getSource = async () => {
+						let _recs = isFunction(source) ? await source?.call(this, _e) : source
+						if (_recs === undefined) {
+							let { table, harTable } = tip2Yapi[tip] ?? {}
+							if (isString(harTable))
+								harTable = harTable ? harTable.split(delimWS)[0] : null
+							if (isArray(harTable))
+								harTable = harTable[0]
+							
+							if (!(table && fisSayac && harTable))
+								return null
+							
+							;{
+								let sent = new MQSent(), { where: wh, sahalar } = sent
+								sent
+									.fisHareket(table, harTable)
+									.har2StokBagla()
+								wh
+									.fisSilindiEkle()
+									.degerAta(sayac, 'fis.kaysayac')
+								sahalar.add(
+									'har.kaysayac sayac', 'har.seq',
+									'har.stokkod stokKod', 'stk.aciklama stokAdi',
+									'har.miktar', 'stk.brm',
+									'har.belgefiyat fiyat', 'har.bedel',
+									'fis.dvkod dvKod'
+								)
+								uni.add(sent)
+							}
+							let stm = new MQStm({ sent: uni, orderBy: ['seq'] })
+							_recs = await stm.execSelect()
+							_recs?.forEach(r => {
+								let { bedel, dvKod } = r
+								dvKod ||= 'TL'
+								r.bedelStr ||= [
+									`<div>`,
+										`<div class="float-left fs-90 royalblue"><span class="lightgray">FY: </span> <span>${fiyatToString(fiyat)}</span></div>`,
+										`<div class="float-right mt-1 fs-110 bold forestgreen">${bedelToString(bedel)} ${dvKod}</div>`,
+									`</div>`
+								].filter(Boolean).join(' ')
+							})
 						}
-						let stm = new MQStm({ sent: uni, orderBy: ['seq'] })
-						_recs = await stm.execSelect()
+						return _recs
 					}
-					if (empty(_recs))
-						continue
+					//if (empty(_recs))
+					//	continue
 
 					pm?.progressStep()
 					if (orj_e.aborted)
@@ -1211,50 +1320,106 @@ class MQOnayci extends MQCogul {
 					
 					let _colDefs = isFunction(colDefs) ? await colDefs.call?.(this, _e) : colDefs
 					if (!_colDefs) {
+						let cellClassName = (colDef, rowIndex, belirtec, value, r) => {
+							let result = [belirtec]
+							let { _css } = r ?? {}
+							if (_css)
+								result.push(...makeArray(_css))
+							return result
+						}
 						_colDefs = [
 							...this.getKAKolonlar(
 								new GridKolon({ belirtec: 'stokKod', text: 'Ürün', genislikCh: 16 }).checkedList(),
-								new GridKolon({ belirtec: 'stokAdi', text: 'Ürün Adı', genislikCh: 30 }).checkedList(),
+								new GridKolon({ belirtec: 'stokAdi', text: 'Ürün Adı', genislikCh: mini ? 25 : 50 }).checkedList(),
 							),
-							new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 9 }).tipDecimal().input(),
-							new GridKolon({ belirtec: 'brm', text: 'Brm', genislikCh: 4 }).checkedList(),
-							new GridKolon({ belirtec: 'bedel', text: 'Net Bedel', genislikCh: 16 }).tipDecimal_bedel()
+							...(mini
+								?  this.getKAKolonlar(
+									new GridKolon({ belirtec: 'brm', text: 'Brm', genislikCh: 4 }).checkedList(),
+									new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 9 }).tipDecimal().input()
+								)
+								: this.getKAKolonlar(
+									new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 8 }).tipDecimal().input(),
+									new GridKolon({ belirtec: 'brm', text: 'Brm', genislikCh: 4 }).checkedList()
+								)
+							),
+							new GridKolon({ belirtec: 'iskOranText', text: 'İsk.', genislikCh: 5 }).checkedList().alignRight(),
+							new GridKolon({ belirtec: 'bedelStr', text: 'Bedel', genislikCh: 15 }).input()
 						]
+						;_colDefs.forEach(cd => {
+							;{
+								let { cellClassName: handler } = cd
+								cd.cellClassName = (...rest) => {
+									let result = cellClassName(...rest)
+									result.push(...makeArray( handler?.call(this, ...rest) ))
+									return result.join(' ')
+								}
+							}
+						})
 					}
 					
 					tipText ||= 'Belge'
 					if (orj_e.aborted)
 						break
-					
+
+					let gridPart
+					let rfb = new RootFormBuilder()
+						.addStyle_fullWH()
+						.asWindow(`${tipText} İzle: [<span class=orangered>${fisNox}</span>]`)
 					;{
-						let rfb = new RootFormBuilder()
-							.addStyle_fullWH()
-							.asWindow(`${tipText} İzle: [<span class=orangered>${fisNox}</span>]`)
-						rfb.addButton('vazgec')
-							.addStyle_wh(50, 40)
+						let form = rfb.addFormWithParent().yanYana()
 							.addCSS('absolute')
-							.addStyle(`$elementCSS { top: 0; right: 10px; min-width: unset !important; z-index: 1005 !important }`)
+							.addStyle_wh('auto', 40)
+							.addStyle(
+								`$elementCSS { right: 0; z-index: 1005 !important }
+								 $elementCSS > * { position: relative !important; min-width: unset !important; width: unset !important; height: var(--full) !important }
+								 $elementCSS button { width: 50px !important }`
+							)
+						form.addRadioButton('belgeAnlasmaToggle')
+							.etiketGosterim_yok()
+							.setSource([
+								{ kod: 'B', aciklama: 'Belge' },
+								{ kod: 'A', aciklama: 'Anlaşma' }
+							])
+							.setValue('B')
+							.addStyle(`$elementCSS { margin-right: 30px !important }`)
+							.degisince(({ value }) => {
+								temps.belgeAnlasma = value
+								gridPart?.tazele()
+							})
+						form.addButton('tazele')
+							.onClick(() =>
+								gridPart.tazele())
+						form.addButton('vazgec')
 							.onClick(({ builder: { rootPart } }) =>
 								rootPart.close())
+					}
+					;{
 						rfb.addForm('header').setLayout(({ builder: { parent }}) =>
-							$(`<div class="full-width" style="font-size: 110%; padding: 3px 10px; min-height: 60px; max-height: 90px; overflow-y: auto !important">` +
+							$(`<div class="full-width fs-120 bold" style="padding: 5px 10px; min-height: 60px; max-height: 90px; overflow-y: auto !important">` +
 								headerHTML +
 							`</div>`)
 						)
 					}
-					pm?.progressStep()
-					if (orj_e.aborted)
-						break
-					
 					;{
 						rfb.addGridliGosterici('grid')
-							.addStyle_fullWH(null, 'calc(var(--full) - 90px)')
 							.addCSS('dock-bottom')
+							.addStyle_fullWH(null, 'calc(var(--full) - 90px)')
+							.addStyle(
+								`$elementCSS [role = columnheader] { }`
+							)
 							.widgetArgsDuzenleIslemi(({ args }) =>
-								extend(args, { rowsHeight: 50 })
+								extend(args, { rowsHeight: 50, selectionMode: 'multipleRowsExtended' })
 							)
 							.setTabloKolonlari(_colDefs)
-							.setSource(_recs)
+							.setSource(_e => getSource({ ...e, ..._e }))
+							.onAfterRun(({ builder: { part, rootPart } }) =>
+								gridPart = rootPart.gridPart = part)
+							.veriYukleninceIslemi(({ recs }) => {
+								let { gridWidget: w } = gridPart
+								let anlasmami = temps?.belgeAnlasma == 'A'
+								;['miktar'].forEach(k =>
+									w[anlasmami ? 'hidecolumn' : 'showcolumn'](k))
+							})
 					}
 
 					if (orj_e.aborted)

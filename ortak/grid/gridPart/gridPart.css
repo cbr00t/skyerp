@@ -41,7 +41,7 @@
 .jqx-grid .jqx-clear >.jqx-widget-header { color: #999; background: linear-gradient(90deg, #47608d29 5%, #fdfeff2b 50%) !important }
 .jqx-grid .jqx-clear > .jqx-grid-groups-header > div > div { font-weight: bold; font-size: 100% }
 .jqx-grid .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header {
-	font-weight: bold; color: #616161; text-wrap: pretty
+	font-weight: bold; color: #999; text-wrap: pretty
 }
 .jqx-grid .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header > * {
 	padding: 0 !important
@@ -106,11 +106,11 @@ body.dark-theme .jqx-grid [role = row] .grid-cell-group { color: #ccc; backgroun
 		.jqx-widget-content.jqx-grid-content {
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important; /* momentum scroll */
-    scroll-behavior: smooth !important;           /* daha yumuÃƒâ€¦Ã…Â¸ak kaydÃƒâ€žÃ‚Â±rma */
-    touch-action: pan-y !important;               /* dikey kaydÃƒâ€žÃ‚Â±rma kontrolÃƒÆ’Ã‚Â¼ */
+    scroll-behavior: smooth !important;           /* daha yumuÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€¦Ã‚Â¸ak kaydÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±rma */
+    touch-action: pan-y !important;               /* dikey kaydÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±rma kontrolÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼ */
     overscroll-behavior: contain !important       /* Android bounce/geri tepme fix */
 }
-/* Nested scroll katmanlarÃƒâ€žÃ‚Â±nÃƒâ€žÃ‚Â± sadeleÃƒâ€¦Ã…Â¸tir */
+/* Nested scroll katmanlarÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â±nÃƒÆ’Ã¢â‚¬Å¾Ãƒâ€šÃ‚Â± sadeleÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€¦Ã‚Â¸tir */
 .jqx-grid-content-wrapper { height: auto !important; overflow-y: visible !important }
 .jqx-grid-content * { touch-action: pan-y !important }
 .jqx-grid-content { will-change: scroll-position !important }
