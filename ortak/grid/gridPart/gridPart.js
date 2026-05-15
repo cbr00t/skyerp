@@ -509,7 +509,7 @@ class GridPart extends Part {
 		}
 	}
 	loadServerData_recsDuzenle_hizliBulIslemi(e) {
-		let {recs} = e
+		let { recs } = e
 		if (empty(recs))
 			return
 		let mfSinif = e.mfSinif = this.getMFSinif ? this.getMFSinif(e) : null
@@ -517,11 +517,12 @@ class GridPart extends Part {
 			if (mfSinif.orjBaslikListesi_recsDuzenle_hizliBulIslemi(e) === false)
 				return
 		}
-		let {filtreTokens, _hizliBulFiltreAttrListe: attrListe} = this
+		let { filtreTokens, _hizliBulFiltreAttrListe: attrListe } = this
+		filtreTokens ??= []
 		if (empty(attrListe)) {
 			attrListe = mfSinif?.orjBaslikListesi_getHizliBulFiltreAttrListe({ ...e, gridPart: this, filtreTokens })
 			if (empty(attrListe)) {
-				let {duzKolonTanimlari} = this
+				let { duzKolonTanimlari } = this
 				attrListe = []
 				for (let colDef of duzKolonTanimlari) {
 					if (!(colDef.ekKolonmu || !colDef.text?.trim))
@@ -530,7 +531,8 @@ class GridPart extends Part {
 			}
 			this._hizliBulFiltreAttrListe = attrListe
 		}
-		let orjRecs = recs; recs = []
+		let orjRecs = recs
+		recs = []
 		for (let rec of orjRecs) {
 			let uygunmu = true
 			let values = attrListe

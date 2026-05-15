@@ -102,17 +102,23 @@ class OnayciApp extends TicariApp {
 		finally { await super.anaMenuOlustur(e) }
 	}
 	getAnaMenu(e) {
-		let {noMenuFlag, mainRaporBase} = this
+		let { noMenuFlag, mainRaporBase } = this
 		if (noMenuFlag)
 			return new FRMenu()
-		let {dev} = config, {isAdmin} = config.session ?? {}
-		let classes = [MQOnayci]
+		
+		let { dev } = config, { isAdmin } = config.session ?? {}
+		let { inNewWindow } = qs
 		let items = []
-		for (let cls of classes) {
+		
+		for (let cls of [MQOnayci]) {
 			let {vioAdim, kodListeTipi: mne, sinifAdi: text} = cls
 			items.push(new FRMenuChoice({
 				mne, vioAdim, text,
-				block: e => cls.listeEkraniAc(e)
+				block: e => {
+					let { part } = cls.listeEkraniAc(e) ?? {}
+					if (inNewWindow)
+						part?.kapaninca?.(() => self.close())
+				}
 			}))
 		}
 		if (dev && isAdmin) {

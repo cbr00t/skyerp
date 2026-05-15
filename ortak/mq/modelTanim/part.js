@@ -100,7 +100,7 @@ class ModelTanimPart extends Part {
 	}
 	async afterRun(e = {}) {
 		await super.afterRun(e)
-		let sender = this, {inst} = this
+		let sender = this, { inst } = this
 		extend(e, { sender, inst })
 		if (this.hasTabPages) {
 			let {wnd, wndContent, class: { rootPartName }} = this

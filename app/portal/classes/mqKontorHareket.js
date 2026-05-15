@@ -61,25 +61,20 @@ class MQKontorHareket extends MQSayacli {
 		e.liste = e.liste.filter(item => item.id != 'kopya')
 	}
 	static rootFormBuilderDuzenle_listeEkrani(e) {
-		super.rootFormBuilderDuzenle_listeEkrani(e); let {current: login} = MQLogin;
-		let gridPart = e.gridPart ?? e.sender, {header, islemTuslariPart} = gridPart, {layout: islemTuslari, sol} = islemTuslariPart;
-		let {rootBuilder: rfb} = e; rfb.setInst(gridPart)
-			.addStyle(`$elementCSS .islemTuslari { overflow: hidden hidden !important; margin-bottom: 0 !important }`);
-		let form_ek = rfb.addFormWithParent('ekForm').setParent(islemTuslari).yanYana().addStyle(
-			`$elementCSS { position: absolute !important; width: max-content !important; left: 510px !important }
-			$elementCSS button { min-width: unset !important }`);
-		/*if (login.adminmi || login.bayimi) {
-			form_ek.addButton('degistir').addStyle_wh(90)
-				.addStyle(`$elementCSS { left: 0 !important }`)
-				.onClick(async _e => {
-					let {selectedRec: rec} = gridPart, parentRec = rec;
-					try { await this.kontorSinif.detaySinif.kontor_degistirIstendi({ ..._e, ...e, rec, parentRec }) }
-					catch (ex) { hConfirm(getErrorText(ex), 'Kontör Satışı'); throw ex }
-			})
-		}*/
+		super.rootFormBuilderDuzenle_listeEkrani(e)
+		let { current: login } = MQLogin
+		let gridPart = e.gridPart ?? e.sender
+		let { header, islemTuslariPart } = gridPart
+		let { layout: islemTuslari, sol } = islemTuslariPart
+		let { rootBuilder: rfb } = e
+		rfb.setInst(gridPart)
+			.addStyle(`$elementCSS .islemTuslari { overflow: hidden hidden !important; margin-bottom: 0 !important }`)
 		if ((login.adminmi || login.sefmi) && this.faturalastirmaYapilirmi) {
-			form_ek.addButton('faturalastir', 'FAT').addStyle_wh(90)
-				.addStyle(`$elementCSS { position: relative !important; left: 100px !important }`)
+			rfb.addButton('faturalastir', 'FAT')
+				.addStyle_fullWH(90)
+				.setParent(sol)
+				.addCSS('relative')
+				.addStyle(`$elementCSS { top: -48px !important; left: 580px !important }`)
 				.onClick(async _e => {
 					let {selectedRecs: recs} = gridPart;
 					try { await this.kontorSinif.kontor_topluFaturalastirIstendi({ ..._e, ...e, recs }) }

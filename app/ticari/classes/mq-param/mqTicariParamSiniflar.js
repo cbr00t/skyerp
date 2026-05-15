@@ -319,23 +319,34 @@ class MQDemirbasGenelParam extends MQTicariParamBase {
 }
 class MQFiyatVeIskontoParam extends MQTicariParamBase {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get sinifAdi() { return 'Fiyat ve İskonto Parametreleri' } static get paramKod() { return 'ISK' }
-	constructor(e) { e = e || {}; super(e); for (let key of ['iskSayi', 'iskOranMax']) this[key] = e[key] || {} }
+	static get sinifAdi() { return 'Fiyat ve İskonto Parametreleri' }
+	static get paramKod() { return 'ISK' }
+	constructor(e = {}) {
+		super(e)
+		for (let key of ['iskSayi', 'iskOranMax'])
+			this[key] = e[key] || {}
+	}
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e); let {paramci} = e
-		let form = paramci.addFormWithParent(); form.addBool('fiyatKDVlidir', 'KDVli Fiyat').setRowAttr('kdvliFiyat');
-		form.addNumber('fiyatSayi', 'Fiyat Sayısı'); form.addNumber('iskFra', 'İskonto Ondalık');
+		let form = paramci.addFormWithParent(); form.addBool('fiyatKDVlidir', 'KDVli Fiyat').setRowAttr('kdvliFiyat')
+		form.addNumber('fiyatSayi', 'Fiyat Sayısı'); form.addNumber('iskFra', 'İskonto Ondalık')
 		form = paramci.addKullanim().addGrup('Kullanım').addFormWithParent(); form.addBool('kademeliIskonto', 'Kademeli İskonto')
 	}
 	paramSetValues({ rec } = {}) {
 		super.paramSetValues(...arguments)
-		$.extend(this, {
+		extend(this, {
 			iskSayi: { sabit: rec.sabitIskSayi || 0, kampanya: rec.kampanyaIskSayi || 0, kademeli: rec.kademeliIskSayi || 0 },
 			iskOranMax: { sabit: rec.sabitIskOranMax || 0, kampanya: rec.kampanyaIskOranMax || 0, kademeli: rec.kademeliIskOranMax || 0 }
-		});
+		})
 		let iskEtiketci = e => {
-			let prefix = typeof e == 'object' ? e.prefix : e, key = `${prefix}EtiketListe`, result = {}, liste = rec[key];
-			if (liste) { for (let i = 0; i < liste.length; i++) { result[i + 1] = liste[i] } } return result
+			let prefix = typeof e == 'object' ? e.prefix : e
+			let key = `${prefix}EtiketListe`
+			let result = {}, liste = rec[key]
+			if (liste) {
+				for (let i = 0; i < liste.length; i++)
+					result[i + 1] = liste[i]
+			}
+			return result
 		}
 		let iskEtiketDict = this.iskEtiketDict = {
 			sabit: iskEtiketci('sabit'),

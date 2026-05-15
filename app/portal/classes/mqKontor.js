@@ -83,12 +83,14 @@ class MQKontor extends MQDetayliMaster {
 		let {rootBuilder: rfb} = e; rfb.setInst(gridPart).addStyle(
 			`$elementCSS .islemTuslari { overflow: hidden hidden !important; margin-bottom: -23px !important }`);
 		let form_ek = rfb.addFormWithParent('ekForm').yanYana().setParent(islemTuslari).addStyle(
-			`$elementCSS { position: absolute !important; width: max-content !important; left: 300px !important }
-			 $elementCSS button { min-width: unset !important }`);
+			`$elementCSS { position: absolute !important; width: max-content !important; left: 530px !important }
+			 $elementCSS button { min-width: unset !important }`)
 		if (login.adminmi || login.bayimi) {
 			let form = form_ek.addFormWithParent('kontor').yanYana().addStyle_fullWH('max-content');
-			form.addNumberInput('kontorSayi', 'Kontör Satışı').setAltInst(gridPart)
-				.etiketGosterim_yok().addStyle_wh(130).addCSS('center')
+			form.addNumberInput('kontorSayi', 'Kontör Satışı')
+				.setAltInst(gridPart)
+				.etiketGosterim_yok()
+				.addStyle_wh(130).addCSS('center')
 				.onAfterRun(({ builder: fbd }) =>
 					fbd.input.on('keyup', ({ key }) => {
 						key = key.toLowerCase();
@@ -98,7 +100,8 @@ class MQKontor extends MQDetayliMaster {
 						}
 					})
 				);
-			form.addButton('kontorEkle', '+').addStyle_wh(80)
+			form.addButton('kontorEkle', '+')
+				.addStyle_wh(80)
 				.onClick(async _e => {
 					try { await this.kontor_yeniIstendi(({ ..._e, ...e })) }
 					catch (ex) { hConfirm(getErrorText(ex), 'Kontör Satışı'); throw ex }

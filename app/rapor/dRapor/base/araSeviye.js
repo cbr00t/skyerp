@@ -54,9 +54,10 @@ class DRapor_AraSeviye extends DGrupluPanelRapor {
 		}
 		return this
 	}
-	async ozelSahalarBelirle(e) {
+	async ozelSahalarBelirle(e = {}) {
 		let { tip2OzelSahalar: res } = this
 		if (res == null) {
+			let { offlineRequest, offlineMode, trnId } = e
 			let stm
 			;{
 				let sent = new MQSent(), { where: wh, sahalar } = sent
@@ -72,7 +73,7 @@ class DRapor_AraSeviye extends DGrupluPanelRapor {
 			
 			res = {}
 			;{
-				let recs = await stm.execSelect(e)
+				let recs = await stm.execSelect({ offlineRequest, offlineMode, trnId })
 				;recs.forEach(r =>
 					(res[r.anaTip] ??= []).push(r))
 			}

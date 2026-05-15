@@ -10,7 +10,8 @@ class MQCogul extends MQYapi {
 	static get ayrimTable() { return `${this.tableAlias}ayrim`} static get ayrimTableAlias() { return null } 
 	static get tanimlanabilirmi() { return !!this.tanimUISinif } static get degistirilebilirmi() { return this.tanimlanabilirmi }
 	static get silinebilirmi() { return true } static get raporKullanilirmi() { return false } static get silindiDesteklenirmi() { return false }
-	static get kolonFiltreKullanilirmi() { return !isMiniDevice() } static get seviyeAcKapatKullanilirmi() { return true }
+	static get kolonFiltreKullanilirmi() { return !isMiniDevice() }
+	static get seviyeAcKapatKullanilirmi() { return true }
 	static get gridIslemTuslariKullanilirmi() { return !isMiniDevice() }
 	static get kolonDuzenlemeYapilirmi() { return true }
 	static get yerelParamBelirtec() { return this.classKey } static get sayacSahaGosterilirmi() { return false }

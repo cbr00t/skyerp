@@ -38,6 +38,15 @@ class TabRapor extends MQKAOrtak {
 		return result
 	}
 
+	async uiGirisSonrasiIslemler({ sender: tanimPart }) {
+		await super.uiGirisSonrasiIslemler(...arguments)
+		let { bulPart, gridPart } = tanimPart
+		bulPart?.degisince(_e => {
+			let { tokens } = _e
+			gridPart.filtreTokens = tokens
+			gridPart.tazele()
+		})
+	}
 	static islemTuslariDuzenle_listeEkrani({ liste, part }) {
 		super.islemTuslariDuzenle_listeEkrani(...arguments)
 		liste.find(_ => _.id == 'degistir').id = 'izle'
@@ -116,13 +125,34 @@ class TabRapor extends MQKAOrtak {
 				.addCSS('bg-ghostwhite')
 				.readOnly()
 				.setValue(ustBilgiLines.join('\n'))
-				.onAfterRun(({ builder: fbd }) => tanimPart.fbd_ustBilgi = fbd)
+				.onAfterRun(({ builder: fbd }) =>
+					tanimPart.fbd_ustBilgi = fbd)
 		}
 		tanimForm.addGridliGosterici('grid').etiketGosterim_yok()
 			.addStyle_fullWH(null, `calc(var(--full) - (${ustBilgiHeight + 10}px))`)
-			.setTabloKolonlari(_e => this.getTabloKolonlari({ ...e, ..._e }))
-			.setSource(_e => this.getSource({ ...e, ..._e }))
-			.onAfterRun(({ builder: { part } }) => tanimPart.gridPart = part)
+			.widgetArgsDuzenleIslemi(_e => {
+				let { args } = _e
+				_e = { ...e, ..._e, args }
+				return this.gridArgsDuzenleIslemi(_e)
+			})
+			.setTabloKolonlari(_e =>
+				this.getTabloKolonlari({ ...e, ..._e }))
+			.setSource(async _e => {
+				_e = { ...e, ..._e }
+				let recs = await this.getSource(_e)
+				if (recs) {
+					let { gridPart } = tanimPart
+					recs = await gridPart?.loadServerData_recsDuzenle_hizliBulIslemi({ ...e, recs })
+				}
+				return recs
+			})
+			.veriYukleninceIslemi(async _e => {
+				let { part: gridPart } = _e.builder
+				_e = { ...e, ..._e, gridPart }
+				await this.gridVeriYuklenince(_e)
+			})
+			.onAfterRun(({ builder: { part: gridPart } }) =>
+				extend(tanimPart, { gridPart }))
 	}
 	tazele(e = {}) {
 		let { tanimPart } = e
@@ -144,8 +174,19 @@ class TabRapor extends MQKAOrtak {
 
 		let { tablet: { dokumEkrana, dokumPrefix } = {} } = app.params
 		let prefix = await this.getUstBilgi(e)
-		let darDokum = true, kolonBaslik = true, tekDetaySatirSayisi = 2
+		let darDokum = true, kolonBaslik = true
 		let sayfaBoyut = { x: 55 },  otoYBasiSonu = { basi: 5 }
+		/* döküm sırasında görünme koşuluna uygun saha için 'relative y' değeri alınır, aksinde yoksayılır.
+		   en küçük 1 olmak şartıyla, doküm sahalarındaki en yüksek relative y değeri belirlenir.
+		*/
+		let tekDetaySatirSayisi = max(
+			1,
+			...colDefs.map(cd => {
+				let { dokumSaha: s = {} } = cd?.userData ?? {}
+				let { x = s?.pos?.x, y = s?.pos?.y, width = cd.width } = s
+				return ( !(x === null || x === 0) && width ? y : null ) || 0
+			})
+		)
 
 		let detay = []
 		; {
@@ -191,6 +232,7 @@ class TabRapor extends MQKAOrtak {
 			sayfaBoyut, otoYBasiSonu, detay, oto
 		}
 		mergeIntoIfTargetEmpty(defaults, form)
+		mergeInto(defaults, form, 'tekDetaySatirSayisi')    // override
 		if (isPlainObject(form))
 			form = new TabDokumForm(form)
 
@@ -206,21 +248,28 @@ class TabRapor extends MQKAOrtak {
 			prefix = empty(prefix) ? dokumPrefix : dokumPrefix.concat(prefix)
 		if (prefix)
 			dokumcu.setPrefix(prefix.concat(['', '']))
-		
-		let inst = {
-			dokumDetaylar: recs,
-			dokumGetValue: (...args) =>
-				this.dokumGetValue(...args)
-		}
+
+		let dokumGetValue = (...args) =>
+			this.dokumGetValue(...args)
+		let dokumDetaylar = recs.map(r => ({
+			...r,
+			dokumGetValue
+		}))
+		let inst = { dokumDetaylar, dokumGetValue }
 		return await dokumcu.yazdir({ inst })
 	}
 	dokumGetColText({ key }) {
 		return null
 	}
-	async dokumGetValue({ tip, key } = {}) {
+	async dokumGetValue({ tip, key, inst } = {}) {
 		let e = arguments[0]
 		if (tip == 'cols')
 			return await this.dokumGetColText(...arguments)
+		
+		let { [key]: v } = inst ?? {}
+		if (isNumber(v))
+			return bedelToString(v)
+
 		return null
 	}
 
@@ -239,6 +288,10 @@ class TabRapor extends MQKAOrtak {
 		]
 	}
 	getUstBilgi(e) { return [] }
+	gridArgsDuzenleIslemi({ args }) {
+		extend(args, { groupsExpandedByDefault: true })
+	}
 	getTabloKolonlari(e) { return [] }
 	async getSource(e) { return [] }
+	async gridVeriYuklenince({ gridPart }) { }
 }
