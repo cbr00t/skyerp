@@ -6,7 +6,8 @@ class TabFis extends MQDetayliGUIDOrtak {
 	static get sinifAdi() { return 'Tablet Fiş' }
 	static get table() { return 'tabfis' } static get tableAlias() { return 'fis' }
 	static get detaySinif() { return TabDetay } static get sayacSaha() { return 'id' }
-	static get tanimUISinif() { return TabFisGirisPart } static get secimSinif() { return null }
+	static get tanimUISinif() { return TabFisGirisPart }
+	static get secimSinif() { return null }
 	static get dipKullanilirmi() { return false }
 	static get dipSinif() { return TabIcmal }
 	static get dipGirisYapilirmi() { return true }
@@ -441,7 +442,7 @@ class TabFis extends MQDetayliGUIDOrtak {
 			await det.uiKaydetOncesiIslemler(_e)
 		})
 		
-		let {result} = _e
+		let { result } = _e
 		if (!empty(result)) {
 			let isError = true
 			let errorText = result
@@ -502,7 +503,7 @@ class TabFis extends MQDetayliGUIDOrtak {
 		await MQTabMusDurum.update({ inst, eskiInst })
 	}
 	async yukle(e = {}) {
-		let {rec} = e
+		let { rec } = e
 		if (rec)
 			await this.setValues(e)
 		else {
@@ -536,7 +537,7 @@ class TabFis extends MQDetayliGUIDOrtak {
 	}
 	static varsayilanKeyHostVarsDuzenle({ hv }) {
 		super.varsayilanKeyHostVarsDuzenle(...arguments)
-		let {fisTipi} = this
+		let { fisTipi } = this
 		if (fisTipi != null)
 			extend(hv, { fisTipi })
 	}

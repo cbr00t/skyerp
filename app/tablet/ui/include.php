@@ -4,3 +4,4 @@
 <script src="<?=$_partRoot?>/tabRotaListe.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/tabMusteriDurumu.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/tabSahaDurum.js?<?=$appVersion?>"></script>
+<script src="<?=$_partRoot?>/tabFiyatGor.js?<?=$appVersion?>"></script>

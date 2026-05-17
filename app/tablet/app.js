@@ -194,7 +194,7 @@ class TabletApp extends TicariApp {
 				block: e => this.bilgiYukleIstendi(e)
 			})
 		)
-		;[TabRapor, TabRotaListe, TabFisListe, TabMusteriDurumu, TabSahaDurum]
+		;[TabRapor, TabFiyatGor, TabRotaListe, TabFisListe, TabMusteriDurumu, TabSahaDurum]
 			.filter(_ => _.uygunmu)
 			.forEach(mfSinif => {
 				let { kodListeTipi: mne, sinifAdi: text, dogrudanTanimmi: dogrudan } = mfSinif

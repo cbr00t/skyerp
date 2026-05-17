@@ -131,7 +131,7 @@ class GridPart extends Part {
 		let grid = this.grid ?? this.layout
 		if (grid.hasClass('wnd-content')) { grid = grid.find(this.gridFormSelector) }
 		this.grid = grid
-		let {builder, tabloKolonlari, argsDuzenleBlock, gridRenderedBlock, cacheFlag, asyncFlag, notAdaptiveFlag, toplamYapi} = this
+		let { builder, tabloKolonlari, argsDuzenleBlock, gridRenderedBlock, cacheFlag, asyncFlag, notAdaptiveFlag, toplamYapi } = this
 		let mini = isMiniDevice(), micro = isMicroDevice()
 		let cache = cacheFlag, async = asyncFlag, _theme = theme;	/*let _theme = theme == 'metro' ? 'material' : theme;*/
 		let args = {

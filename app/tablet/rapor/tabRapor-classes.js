@@ -13,7 +13,7 @@ class TabRapor_IlkIrsaliye extends TabRapor {
 	getTabloKolonlari(e) {
 		return [
 			...( super.getTabloKolonlari(e) ?? [] ),
-			new GridKolon({ belirtec: 'stokText', text: 'Ürün' }).input().setUserData({ dokumSaha: { width: 35 } }),
+			new GridKolon({ belirtec: 'stokText', text: 'Ürün' }).input().setUserData({ dokumSaha: { length: 35 } }),
 			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 13 }).input().tipDecimal().sum().setUserData({ }),
 			new GridKolon({ belirtec: 'brm', text: 'Br', genislikCh: 4 }).checkedList().setUserData({ })
 		]
@@ -87,13 +87,13 @@ class TabRapor_SatislarVeTahsilatlar extends TabRapor {
 	getTabloKolonlari(e) {
 		return [
 			...( super.getTabloKolonlari(e) ?? [] ),
-			new GridKolon({ belirtec: 'mustText', text: 'Müşteri' }).input().setUserData({ dokumSaha: { width: 30 } }),
+			new GridKolon({ belirtec: 'mustText', text: 'Müşteri' }).input().setUserData({ dokumSaha: { length: 30 } }),
 			new GridKolon({ belirtec: 'sonuc', text: 'Belge Sonuç', genislikCh: 15 }).input().tipDecimal_bedel().sum().setUserData({ }),
 			new GridKolon({ belirtec: 'tah_TOPLAM', text: 'Top. Tah.', genislikCh: 15 }).input().tipDecimal_bedel().setUserData({ }),
-			new GridKolon({ belirtec: 'tah_NK', text: 'Nakit', genislikCh: 15 }).input().tipDecimal_bedel().setUserData({ dokumSaha: { width: 0 } }),
-			new GridKolon({ belirtec: 'tah_PS', text: 'POS', genislikCh: 15 }).input().tipDecimal_bedel().setUserData({ dokumSaha: { width: 0 } }),
-			new GridKolon({ belirtec: 'tah_', text: 'Vadeli', genislikCh: 15 }).input().tipDecimal_bedel().setUserData({ dokumSaha: { width: 0 } }),
-			new GridKolon({ belirtec: 'tah_DIGER', text: 'Diğer', genislikCh: 15 }).input().tipDecimal_bedel().setUserData({ dokumSaha: { width: 0 } }),
+			new GridKolon({ belirtec: 'tah_NK', text: 'Nakit', genislikCh: 15 }).input().tipDecimal_bedel().setUserData({ dokumSaha: { length: 0 } }),
+			new GridKolon({ belirtec: 'tah_PS', text: 'POS', genislikCh: 15 }).input().tipDecimal_bedel().setUserData({ dokumSaha: { length: 0 } }),
+			new GridKolon({ belirtec: 'tah_', text: 'Vadeli', genislikCh: 15 }).input().tipDecimal_bedel().setUserData({ dokumSaha: { length: 0 } }),
+			new GridKolon({ belirtec: 'tah_DIGER', text: 'Diğer', genislikCh: 15 }).input().tipDecimal_bedel().setUserData({ dokumSaha: { length: 0 } }),
 		]
 	}
 	async getSource(e) {
@@ -208,34 +208,58 @@ class TabRapor_SonStok extends TabRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kod() { return 'SONSTOK' }
 	static get aciklama() { return 'Son Stok' }
+	static get hmrlimi() { return false }
 
 	gridArgsDuzenleIslemi({ args }) {
 		super.gridArgsDuzenleIslemi(...arguments)
 		extend(args, { showGroupsHeader: true })
 	}
 	getTabloKolonlari(e) {
-		return [
+		let { hmrlimi } = this.class
+		let liste = [
 			...( super.getTabloKolonlari(e) ?? [] ),
-			new GridKolon({ belirtec: 'stokText', text: 'Ürün' }).input().setUserData({ dokumSaha: { width: 35 } }),
+			new GridKolon({ belirtec: 'stokText', text: 'Ürün' }).input().setUserData({ dokumSaha: { length: 35 } }),
 			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 10 }).input().tipDecimal().sum().setUserData({ }),
 			new GridKolon({ belirtec: 'brm', text: 'Br', genislikCh: 4 }).checkedList().setUserData({ }),
 			new GridKolon({ belirtec: 'yerText', text: 'Depo', genislikCh: 15 }).input().setUserData({ dokumSaha: { x: 0, y: 2, width: 10 } })
 		]
+		if (hmrlimi) {
+			for (let { ioAttr: belirtec, etiket: text } of HMRBilgi) {
+				let x = 12, y = 2, width = 8, pad = 2
+				liste.push(
+					new GridKolon({ belirtec, text, genislikCh: width })
+						.checkedList()
+						.setUserData({ dokumSaha: { x, y, width } })
+				)
+				x += width + pad
+			}
+		}
+		return liste
 	}
 	async getSource(e) {
 		let recs = await super.getSource(e) ?? []
 		if (!recs)
 			return recs
+		
+		let { hmrlimi } = this.class
 		;{
+			let cd = await app.sqlGetColumns('sonstok')
+			let _yer2Rec = await MQTabYer.getGloKod2Rec()
+			let _stok2Rec = await MQTabStok.getGloKod2Rec()
+			
 			let sent = new MQSent(), { where: wh, sahalar } = sent
 			sent.fromAdd('sonstok son')
 			wh.add(`son.stokKod <> ''`, `son.ozelIsaret <> 'X'`, `son.sonMiktar <> 0`)
 			sahalar.add('son.yerKod', 'son.stokKod', `SUM(son.sonMiktar) miktar`)
+			if (hmrlimi) {
+				for (let { ioAttr: rowAttr } of HMRBilgi) {
+					if (cd[rowAttr])
+						sahalar.add(`son.${rowAttr}`)
+				}
+			}
 			sent.groupByOlustur()
-			let orderBy = ['yerKod', 'miktar DESC']
-			let stm = new MQStm({ sent, orderBy })
-			let _yer2Rec = await MQTabYer.getGloKod2Rec()
-			let _stok2Rec = await MQTabStok.getGloKod2Rec()
+			
+			let stm = new MQStm({ sent, orderBy: ['yerKod', 'miktar DESC', 'stokKod'] })
 			;( await stm.execSelect() ).forEach(rec => {
 				let { yerKod, stokKod } = rec
 				let { aciklama: yerAdi } = _yer2Rec[yerKod] ?? {}
@@ -251,8 +275,13 @@ class TabRapor_SonStok extends TabRapor {
 		return recs
 	}
 	async gridVeriYuklenince({ gridPart: { grid, gridWidget: w } }) {
+		let { hmrlimi } = this.class
 		await super.gridVeriYuklenince(...arguments)
-		let groups = this._groupsInit ? grid.jqxGrid('groups') : ['yerText']
+		let defGroups = [
+			'yerText'
+			// ( hmrlimi ? 'stokText' : null )
+		].filter(Boolean)
+		let groups = this._groupsInit ? grid.jqxGrid('groups') : defGroups
 		if (!empty(groups))
 			grid.jqxGrid('groups', groups)
 		this._groupsInit = true
@@ -294,4 +323,10 @@ class TabRapor_SonStok extends TabRapor {
 		}
 		return await super.dokumGetValue(...arguments)
 	}
+}
+class TabRapor_SonStok_HMR extends TabRapor_SonStok {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kod() { return 'SONSTOK_HMR' }
+	static get aciklama() { return 'Son Stok (Detaylı)' }
+	static get hmrlimi() { return true }
 }

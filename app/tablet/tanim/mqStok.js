@@ -21,7 +21,7 @@ class MQTabStok extends MQKAOrtak {
 			kisaAdi: new PInstStr('kisaadi'), grupKod: new PInstStr('grupkod'), markaKod: new PInstStr('smarkakod'),
 			satKdvOrani: new PInstNum('satkdvorani'), almKdvOrani: new PInstNum('almkdvorani'),
 			tartilabilirmi: new PInstBool('tartilabilir'), tartiReferans: new PInstStr('tartireferans'),
-			almFiyat: new PInstNum('almfiyat')
+			almFiyat: new PInstNum('almfiyat'), almNetFiyat: new PInstNum('almnetfiyat')
 		})
 		for (let i = 1; i <= this.satFiyatSayi; i++)
 			pTanim[`satFiyat${i}`] = new PInstNum(`satfiyat${i}`)
@@ -181,7 +181,7 @@ class MQTabStok extends MQKAOrtak {
 			}
 		}
 		sent.stok2GrupBagla().stok2MarkaBagla()
-		sahalar.addWithAlias(alias, 'aciklama', 'grupkod', 'satfiyat1 fiyat', 'almfiyat')
+		sahalar.addWithAlias(alias, 'aciklama', 'brm', 'grupkod', 'satfiyat1 fiyat', 'almfiyat', 'almnetfiyat')
 		sahalar.add('grp.aciklama grupadi', 'smar.aciklama markaadi')
 		sahalar.add(getKdvKodClauseVeAlias('TAH', 'sat'), getKdvKodClauseVeAlias('IND', 'alm'))
 		if (offlineRequest && !offlineMode) {

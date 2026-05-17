@@ -199,7 +199,7 @@ class TabRapor extends MQKAOrtak {
 				key = d.key ||= key
 				if (key[0] == '_')
 					continue
-				length = d.length ??= length || 18
+				length = d.length ??= d.width ?? ( length || 18 )
 				right = d.right ??= right
 				if (!(key || text))
 					continue

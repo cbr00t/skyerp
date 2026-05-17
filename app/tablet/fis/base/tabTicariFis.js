@@ -210,18 +210,18 @@ class TabTicariFis extends TabTSFis {
 		refs.kdv = liste[liste.length - 1]
 	}*/
 	async topluHesapla(e = {}) {
-		let {kosulYapilar, detaylar} = this
-		let {tanimPart = e.sender ?? {}} = e
-		let {gridPart: { gridWidget: w } = {}} = tanimPart
+		let { kosulYapilar, detaylar } = this
+		let { tanimPart = e.sender ?? {} } = e
+		let { gridPart: { gridWidget: w } = {} } = tanimPart
 		if (kosulYapilar && !empty(detaylar)) {
 			let kod2Detaylar = {}
-			detaylar.forEach(det => {
-				let {stokKod: kod} = det
-				; (kod2Detaylar[kod] ??= []).push(det)
+			;detaylar.forEach(det => {
+				let { stokKod: kod } = det
+				;(kod2Detaylar[kod] ??= []).push(det)
 			})
 			let kodListe = keys(kod2Detaylar)
-			{
-				let {FY: kosullar} = kosulYapilar
+			;{
+				let { FY: kosullar } = kosulYapilar
 				if (!empty(kosullar))
 				for (let k of kosullar) {
 					let kod2Rec = await k.getAltKosulYapilar(kodListe)

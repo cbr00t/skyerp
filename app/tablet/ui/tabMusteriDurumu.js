@@ -84,7 +84,7 @@ class TabMusteriDurumu extends TabFisListeOrtak {
 						gridPart.ddMust = part
 						// setTimeout(() => part.focus(), 1)
 					)
-					.addStyle(`$elementCSS { margin: 10px 0 !important}`)
+					.addStyle(`$elementCSS { margin: 10px 0 !important }`)
 			}
 		}
 	}

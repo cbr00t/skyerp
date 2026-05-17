@@ -159,9 +159,9 @@ class SablonluSiparisFisTemplate extends CObject {
 			let belirtec = await app.sqlExecTekilDeger(sent);
 			if (belirtec) { numarator.belirtec = belirtec }
 		}*/
-		let kapsam = { tarih, subeKod, mustKod };
+		let kapsam = { tarih, subeKod, mustKod }
 		let anah2KosulYapi = SatisKosulYapi._anah2KosulYapi ??= {}
-		let kosulYapilar = anah2KosulYapi[toJSONStr(kapsam)] ??= await SatisKosulYapi.uygunKosullar({ kapsam });
+		let kosulYapilar = anah2KosulYapi[toJSONStr(kapsam)] ??= await SatisKosulYapi.uygunKosullar({ kapsam })
 		let ekOzellikler = Array.from(HMRBilgi.hmrIter_ekOzellik())
 		let cache_urunler = this._cache_urunler ??= {}, anah = toJSONStr({ konsinyemi, sablonSayac, onaylaVeyaSilmi, mustKod })
 		let recs = cache_urunler[anah] ?? await (async () => {
