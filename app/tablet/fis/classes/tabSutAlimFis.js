@@ -572,7 +572,7 @@ class TabSutAlimFis extends TabFis {
 		await super.rootFormBuilderDuzenle_tablet_acc_detay(...arguments)
 		let { acc } = tanimPart, { detaylar } = fis
 		let gridPart
-		{
+		;{
 			let cellClassName = (sender, rowIndex, belirtec, value, rec) => {
 				let result = [belirtec]
 				if (rec && belirtec == 'miktar') {

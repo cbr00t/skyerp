@@ -1,9 +1,7 @@
 class MQTabMusDurum extends MQKodOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kodListeTipi() { return 'MQMUSDURUM' }
-	static get sinifAdi() { return 'Müşteri Durumu' }
-	static get table() { return 'musdurum' }
-	static get tableAlias() { return 'dur' }
+	static get kodListeTipi() { return 'MUSDURUM' } static get sinifAdi() { return 'Müşteri Durumu' }
+	static get table() { return 'musdurum' } static get tableAlias() { return 'dur' }
 	static get offlineGonderYapilirmi() { return true }
 	static get ioPostfixes() {
 		let { _ioPostfixes: result } = this
@@ -43,10 +41,11 @@ class MQTabMusDurum extends MQKodOrtak {
 		}
 		liste.push(new GridKolon({ belirtec: 'vade', text: 'Vade', genislikCh: 13 }).tipTarih())
 	}
-	static async offlineSaveToLocalTableOncesi({ temps } = {}) {
+	/*static async offlineSaveToLocalTableOncesi({ temps } = {}) {
 		let result = await super.offlineSaveToLocalTableOncesi(...arguments)
 		if (result === false)
 			return false
+		
 		let { table, kodSaha, ioPostfixes } = this
 		;{
 			let sent = new MQSent(), { where: wh, sahalar } = sent
@@ -71,33 +70,41 @@ class MQTabMusDurum extends MQKodOrtak {
 			catch (ex) { cerr(ex) }
 		}
 		return true
+	}*/
+	static async offlineSaveToLocalTable(e = {}) {
+		let res = await super.offlineSaveToLocalTable(e)
+		if (res === false)
+			return res
+
+		let { withClear } = e
+		if (withClear)
+			return true
+		
+		await this.topluDuzenle(e)
+		return true
+	}
+	static async topluDuzenle(e = {}) {
 	}
 	static async loadServerDataDogrudan(e = {}) {
-		let { offlineBuildQuery, offlineRequest, offlineMode, temps: { saved_kod2Rec = {} } = {} } = e
+		let { offlineBuildQuery, offlineRequest, offlineMode, temps = {} } = e
 		if (offlineRequest && !offlineMode) {
 			// Bilgi Yükle
-			// let { plasiyerKod } = app
-			let params = [
-				//( plasiyerKod ? { name: '@argPlasiyerKod', type: 'char', value: plasiyerKod } : null )
-			].filter(Boolean)
+			// let { saved_kod2Rec = {} } = temps
+			let { ioPostfixes } = this
 			let recs = []
-			let _recs = await 'tic_topluDurum'.execSP({ params, offlineRequest, offlineMode })
-			for (let r of _recs) {
+			for (let r of await 'tic_topluDurum'.execSP({ offlineRequest, offlineMode })) {
 				let { must: kod, ortalamavade: vade } = r
 				if (!kod)
 					continue
 				vade = asDateAndToString(vade)
-				let _r = saved_kod2Rec[kod] ?? {}
-				let rec = {
-					kod, vade,
-					orjBakiye: r.bakiye ?? 0,
-					tabBakiye: _r.tabBakiye ?? 0,
-					orjKalanRisk: r.kalanrisk ?? 0,
-					tabKalanRisk: _r.tabKalanRisk ?? 0,
-					orjTakipBorcu: r.takipborcu ?? 0,
-					tabTakipBorcu: _r.tabTakipBorcu ?? 0
-				}
-				//if (rec.vade || rec.tabBakiye || rec.tabKalanRisk || rec.tabTakipBorcu)
+				// let _r = saved_kod2Rec[kod] ?? {}
+				let rec = { kod, vade }
+				;ioPostfixes.forEach(pf => {
+					let k_remote = pf == 'TakipBorc' ? 'takipborcu' : pf.toLowerCase()
+					let k_orj = `orj${pf}`, k_tab = `tab${pf}`
+					rec[k_orj] = r[k_remote] ?? 0
+					rec[k_tab] = 0
+				})
 				recs.push(rec)
 			}
 			return recs
@@ -106,13 +113,20 @@ class MQTabMusDurum extends MQKodOrtak {
 		let recs = await super.loadServerDataDogrudan(e)
 		if (!(offlineRequest || offlineBuildQuery)) {
 			let { ioPostfixes } = this
+			let pf2AggKey = fromEntries(    // optimization
+				ioPostfixes.map(pf => [
+					pf,
+					pf[0].toLowerCase() + pf.slice(1)
+				])
+			)
 			for (let r of recs ?? [])
-			for (let pr of ioPostfixes) {
-				let k_agg = pr[0].toLowerCase() + pr.slice(1)
+			for (let pf of ioPostfixes) {
+				// let k_agg = pf[0].toLowerCase() + pf.slice(1)
+				let k_agg = pf2AggKey[pf]
 				let v = r[k_agg]
 				if (v != null)
 					continue
-				let k_orj = `orj${pr}`, k_tab = `tab${pr}`
+				let k_orj = `orj${pf}`, k_tab = `tab${pf}`
 				// r.bakiye = r.orjBakiye + r.tabBakiye
 				r[k_agg] = r[k_orj] + r[k_tab]
 			}
@@ -247,34 +261,3 @@ class MQTabMusDurum extends MQKodOrtak {
 		return { same, yeni, eski, delta, empty }
 	}
 }
-
-/*bakiye
-: 
-180398.69
-kalanrisk
-: 
-0
-must
-: 
-"120 004"
-ortalamavade
-: 
-"07.01.2026 00:00:00"
-risklimiti
-: 
-0
-takipborcu
-: 
-180398.69
-vadelikalanrisk
-: 
-0
-vadelikisim
-: 
-0
-vadeliortalamavade
-: 
-null
-vaderisklimiti
-: 
-0*/

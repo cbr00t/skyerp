@@ -6,6 +6,10 @@ class TabFiyatGor extends MQMasterOrtak {
 	static get seviyeAcKapatKullanilirmi() { return false } static get kolonDuzenlemeYapilirmi() { return false }
 	static get offlineGonderYapilirmi() { return false } static get notCacheable() { return true }
 
+	static async listeEkrani_init({ sender: gridPart } = {}) {
+		await super.listeEkrani_init(...arguments)
+		gridPart?.noAnimate()
+	}
 	static rootFormBuilderDuzenle_listeEkrani({ sender: gridPart, rootBuilder: rfb }) {
 		let e = arguments[0]
 		super.rootFormBuilderDuzenle_listeEkrani(e)
@@ -54,7 +58,8 @@ class TabFiyatGor extends MQMasterOrtak {
 	static orjBaslikListesi_argsDuzenle({ sender: gridPart, args }) {
 		extend(args, {
 			selectionmode: 'none', enableTooltips: false,
-			showGroupsHeader: false, rowsHeight: 55
+			showGroupsHeader: false, rowsHeight: 55,
+			autoShowLoadElement: false
 		})
 	}
 	static ekCSSDuzenle({ dataField: belirtec, rowIndex, value, rec, result }) {
@@ -171,9 +176,11 @@ class TabFiyatGor extends MQMasterOrtak {
 		
 		return recs
 	}
-	static async gridVeriYuklendi(e = {}) {
+	static async gridVeriYuklendi({ sender: gridPart } = {}) {
 		await super.gridVeriYuklendi(e)
-		// let { sender: gridPart } = e
+		let { ddStok } = gridPart ?? {}
+		setTimeout(() => ddStok?.focus(), 50)
+		
 		// let { boundRecs: recs, selectedRec: rec, selectedUid, gridWidget: w } = gridPart
 	}
 }

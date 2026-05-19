@@ -86,24 +86,38 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 		}
 	}
 	static rootFormBuilderDuzenle_grid(e) {
-		super.rootFormBuilderDuzenle_grid(e); let {fbd_grid} = e
+		super.rootFormBuilderDuzenle_grid(e)
+		let { fbd_grid } = e
 		fbd_grid.readOnly()
 	}
+	async yukle() {
+		let { table } = this
+		;{
+			let { formul: def } = await app.sqlGetColumns(table) ?? {}
+			if (def) {
+				let { pTanim: p } = this.class
+				p.formul.rowAttr = 'formul'
+			}
+		}
+		return await super.yukle(...arguments)
+	}
 	async yukleSonrasiIslemler() {
-		await super.yukleSonrasiIslemler(...arguments); let {detaylar} = this
+		await super.yukleSonrasiIslemler(...arguments)
+		let { detaylar } = this
 		let id2Det = fromEntries(detaylar.filter(det => det.okunanHarSayac).map(det => [det.okunanHarSayac, det]))
 		let sent = new MQSent(), {where: wh, sahalar} = sent
 		sent.fromAdd('sbtablodetayjson sec')
 		wh.inDizi(keys(id2Det), 'sec.harid'); sahalar.add('sec.harid', 'sec.seq', 'sec.xdata')
 		let orderBy = ['harid', 'seq'], stm = new MQStm({ sent, orderBy });
-		let id2Data = {}; for (let {harid: harID, xdata: data} of await app.sqlExecSelect(stm)) {
+		let id2Data = {}
+		for (let {harid: harID, xdata: data} of await stm.execSelect()) {
 			(id2Data[harID] = id2Data[harID] ?? []).push(data) }
 		for (let [harID, data] of entries(id2Data)) {
 			if (!data?.length) { continue }
 			let det = id2Det[harID]; if (!det) { continue }
 			try {
 				data = JSON.parse(Base64.decode($.isArray(data) ? data.join('') : data))
-				let {secimler} = det
+				let { secimler } = det
 				for (let [key, _secim] of entries(data)) {
 					let secim = secimler?.[key]
 					if (secim) { extend(secim, _secim) }
@@ -111,6 +125,19 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 			}
 			catch (ex) { console.error('SBTablo::yukleSonrasiIslemler', 'secimler json', 'bozuk veri', data, ex) }
 		}
+	}
+	async kaydetOncesiIslemler({ trnId }) {
+		await super.kaydetOncesiIslemler(...arguments)
+		let { detaylar } = this
+		;detaylar.forEach((d, i) =>
+			d.seq ||= i)
+		/*let { table, detaylar } = this
+		let maxLen = max(...detaylar?.map(d => ( d.hesapTipi?.formulmu && d.asFormul?.length ) || 0))
+		if (maxLen) {
+			let { formul: def } = await app.sqlGetColumns(table) ?? {}
+			if (!def)
+				await `alter table ${table} add formul varchar(5000) not null default ''`.execNone({ trnId })
+		}*/
 	}
 	async kaydetSonrasiIslemler({ trnId }) {
 		await super.kaydetSonrasiIslemler(...arguments)
@@ -122,12 +149,14 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 			yDetaylar[i].okunanHarSayac = det.okunanHarSayac)
 		let harID2SecimData = {}
 		for (let {okunanHarSayac: harid, secimler} of yDetaylar) {
-			secimler ??= {}; let {asObject: data} = secimler
+			secimler ??= {}; let { asObject: data } = secimler
 			harID2SecimData[harid] = empty(data) ? null : Base64.encode(toJSONStr(data))
 		}
-		let hvListe = []; for (let [harid, data] of entries(harID2SecimData)) {
-			if (!data) { continue }
-			arrayIterChunks(data, 50).forEach((xdata, seq) =>
+		let hvListe = []
+		for (let [harid, data] of entries(harID2SecimData)) {
+			if (!data)
+				continue
+			;arrayIterChunks(data, 50).forEach((xdata, seq) =>
 				hvListe.push({ harid, seq, xdata }))
 		}
 		let from = 'sbtablodetayjson', harIDListe = keys(harID2SecimData)
@@ -162,10 +191,12 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 		return this
 	}
 }
+
 class SBTabloDetay extends MQDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'sbtablodetay' }
-	static get fisSayacSaha() { return 'fisid' } static get sayacSaha() { return 'id' }
+	static get fisSayacSaha() { return 'fisid' }
+	static get sayacSaha() { return 'id' }
 	get id() { return this.sayac } set id(value) { this.sayac = value }
 	get asObject() {
 		let {pTanim} = this.class, {sayac: id, satirListe} = this
@@ -229,7 +260,7 @@ class SBTabloDetay extends MQDetay {
 		return result.length ? `<div class="secimBilgi flex-row">${result.join('')}</div>` : ''
 	}
 	get asFormul() {
-		let {hesapTipi} = this
+		let { hesapTipi } = this
 		/*if (hesapTipi.satirlarToplamimi) {
 			return (({ det, attr, recs, ind2Rec, parentRec }) => {
 				let {satirListe} = det, detaylar = parentRec?.detaylar ?? [];
@@ -249,8 +280,8 @@ class SBTabloDetay extends MQDetay {
 		return e.stm
 	}
 
-	constructor(e) {
-		e = e ?? {}; super(e);
+	constructor(e = {}) {
+		super(e)
 		this.secimlerOlustur(e)
 	}
 	static pTanimDuzenle({ pTanim }) {
@@ -326,7 +357,8 @@ class SBTabloDetay extends MQDetay {
 		super.hostVarsDuzenle(...arguments); let {okunanHarSayac: id} = this
 		id ||= newGUID(); extend(hv, { id })
 		let {hesapTipi: { formulmu, ekBilgi: { querymi } = {} } = {}} = this
-		if (!(querymi || formulmu)) { hv.bnegated = false }
+		if (!(querymi || formulmu))
+			hv.bnegated = false
 	}
 	setValues({ rec }) {
 		super.setValues(...arguments)
@@ -778,22 +810,27 @@ class SBTabloDetay extends MQDetay {
 		return block?.call(this, e)
 	}
 	shallowCopy(e) {
-		let inst = super.deepCopy(); if (!inst) { return inst }
-		let {tip2Secimler} = this; if (tip2Secimler) {
-			tip2Secimler = inst.tip2Secimler = {};
+		let inst = super.deepCopy()
+		if (!inst)
+			return inst
+		let {tip2Secimler} = this
+		if (tip2Secimler) {
+			tip2Secimler = inst.tip2Secimler = {}
 			for (let [tip, _secimler] of entries(tip2Secimler)) {
-				let secimler = _secimler.map(sec => sec.shallowCopy());
+				let secimler = _secimler.map(sec => sec.shallowCopy())
 				tip2Secimler[tip] = secimler
 			}
 		}
 		return inst
 	}
 	deepCopy(e) {
-		let inst = super.deepCopy(); if (!inst) { return inst }
+		let inst = super.deepCopy()
+		if (!inst)
+			return inst
 		if (this.tip2Secimler) {
-			let tip2Secimler = inst.tip2Secimler = {};
+			let tip2Secimler = inst.tip2Secimler = {}
 			for (let [tip, _secimler] of entries(this.tip2Secimler)) {
-				let secimler = _secimler.deepCopy();
+				let secimler = _secimler.deepCopy()
 				tip2Secimler[tip] = secimler
 			}
 		}
@@ -803,17 +840,25 @@ class SBTabloDetay extends MQDetay {
 class SBTabloGridci extends GridKontrolcu {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	gridArgsDuzenle({ args }) {
-		super.gridArgsDuzenle(...arguments);
+		super.gridArgsDuzenle(...arguments)
 		extend(args, { selectionMode: 'checkbox', groupable: false, sortable: false, filterable: false })
 	}
 	ekCSSDuzenle({ belirtec, rec, result }) {
-		if (rec.seviyeNo.seviye1mi) { result.push('bold fs-130') }
-		else if (rec.seviyeNo.seviye2mi) { result.push('bold fs-110 i-pl-10') }
-		else { result.push('i-pl-20') }
+		if (rec.seviyeNo.seviye1mi)
+			result.push('bold fs-130')
+		else if (rec.seviyeNo.seviye2mi)
+			result.push('bold fs-110 i-pl-10')
+		else
+			result.push('i-pl-20')
+		
 		if (rec.tersIslemmi)
 			result.push(belirtec == 'tersIslemmi' ? 'bg-lightred' : 'orangered')
+		
 		switch (belirtec) {
-			case 'secimlerStr': result.push('flex-row'); break
+			case 'secimlerStr': {
+				result.push('flex-row')
+				break
+			}
 		}
 		return result.join(' ')
 	}
@@ -824,24 +869,31 @@ class SBTabloGridci extends GridKontrolcu {
 			return this.ekCSSDuzenle(_e)
 		};
 		let cellsRenderer = (colDef, rowIndex, belirtec, value, html, jqxCol, rec, result) => {
-			html = result ?? html; rec ??= {}
-			let {shStokHizmet: { birliktemi: shBirliktemi } = {}} = rec
-			let {hesapTipi: { ekBilgi: { querymi, hareketcimi, formulmu } = {} } = {}} = rec
-			let clear = () => html = changeTagContent(html, '')
+			html = result ?? html
+			rec ??= {}
+			let { shStokHizmet: { birliktemi: shBirliktemi } = {} } = rec
+			let { hesapTipi: { ekBilgi: { querymi, hareketcimi, formulmu } = {} } = {} } = rec
+			let clear = () =>
+				html = changeTagContent(html, '')
 			switch (belirtec) {
 				case 'veriTipi':
-					if (!querymi) { clear() }
+					if (!querymi)
+						clear()
 					break
 				// case 'tersIslemmi': html = ''; break
 				case 'shStokHizmet': /*case 'shAlmSat':*/
 				case 'shIade': case 'shAyrimTipi':
-					if (!(querymi && hareketcimi)) { clear() }
+					if (!(querymi && hareketcimi))
+						clear()
 					break
 				case '_secimler':
-					if (!querymi || (!hareketcimi && shBirliktemi)) { clear() }
+					if (!querymi || (!hareketcimi && shBirliktemi))
+						clear()
 					break
 				case 'formul':
-					if (!formulmu) { clear() } break
+					if (!formulmu)
+						clear()
+					break
 			}
 			return html
 		};
@@ -970,7 +1022,7 @@ class SBTabloGridci extends GridKontrolcu {
 		fbd_tersIslemmi = form.addCheckBox('tersIslemmi', 'Ters İşlem?')
 			.addStyle(`$elementCSS { margin: -5px 0 0 30px }`)
 			.setVisibleKosulu(({ builder: fbd }) => {
-				let {hesapTipi: { altSeviyeToplamimi, satirlarToplamimi, formulmu, ekBilgi: { querymi } = {} } = {}} = fbd.altInst
+				let { hesapTipi: { altSeviyeToplamimi, satirlarToplamimi, formulmu, ekBilgi: { querymi } = {} } = {} } = fbd.altInst
 				return querymi || formulmu ? true : 'jqx-hidden'
 			});
 
@@ -1044,24 +1096,30 @@ class SBTabloGridci extends GridKontrolcu {
 				.addStyle(`$elementCSS { margin: 10px 0 20px 0 }`)
 				.onAfterRun(({ builder: fbd }) => {
 					let {layout, parent} = fbd, {secimler} = detay;
-					parent.children(`[data-builder-id = altForm_satirlarToplami]`).before(layout);
+					parent
+						.children(`[data-builder-id = altForm_satirlarToplami]`)
+						.before(layout)
 					if (secimler) {
 						let {part: parentPart} = rfb, {layout: content} = fbd;
-						let part = fbd.part = new SecimlerPart({ parentPart, content, secimler });
-						part.run(); part.seviyeleriAcKapatIstendi({ flag: false })
+						let part = fbd.part = new SecimlerPart({ parentPart, content, secimler })
+						part.run()
+						part.seviyeleriAcKapatIstendi({ flag: false })
 					}
 				})
 		};
 		let secimlerInitWithKosul = (fbd, ekKosul) => {
-			let timerKey = '_timer_secimlerInitWithKosul'; clearTimeout(this[timerKey]);
+			let timerKey = '_timer_secimlerInitWithKosul'
+			clearTimeout(this[timerKey])
 			this[timerKey] = setTimeout(() => {
 				try {
-					let {altInst} = rfb, {secimler} = altInst;
-					let {builders, id2Builder} = fbd_altForm, {secimler: fbd_secimler} = id2Builder;
+					let {altInst} = rfb, {secimler} = altInst
+					let {builders, id2Builder} = fbd_altForm, {secimler: fbd_secimler} = id2Builder
 					if (fbd_secimler) {
-						let {part, layout} = fbd_secimler;
-						part?.destroyPart(); layout?.remove();
-						let ind = builders.indexOf(fbd_secimler); if (ind > -1) { builders.splice(ind, 1) }
+						let {part, layout} = fbd_secimler
+						part?.destroyPart(); layout?.remove()
+						let ind = builders.indexOf(fbd_secimler)
+						if (ind > -1)
+							builders.splice(ind, 1)
 					}
 					delete fbd_altForm._id2Builder;
 					if (secimler) { buildSecimlerForm(fbd_altForm, 'secimler').run() }
@@ -1073,7 +1131,7 @@ class SBTabloGridci extends GridKontrolcu {
 			.setVisibleKosulu(({ builder: fbd }) =>
 				secimlerInitWithKosul(fbd, ({ hesapTipi: { ekBilgi: { querymi, hareketcimi } = {} }, shStokHizmet }) =>
 					querymi && !hareketcimi && shStokHizmet.stokmu));
-		// altForm.addForm().setLayout(() => $(`<div>Stok için seçimler</div>`)).autoAppend();
+		// altForm.addForm().setLayout(() => $(`<div>Stok için seçimler</div>`)).autoAppend()
 		// initSecimlerForm(altForm, 'ticSatis_stokSecimler', 'Stok');
 		altForm = form.addFormWithParent('ticSatisSecimler_hizmet').altAlta()
 			.setVisibleKosulu(({ builder: fbd }) =>
@@ -1081,14 +1139,14 @@ class SBTabloGridci extends GridKontrolcu {
 		// altForm.addForm().setLayout(() => $(`<div>Hizmet için seçimler</div>`)).autoAppend();
 		// initSecimlerForm(altForm, 'ticSatisSecimler_hizmet', 'Hizmet');
 
-		let harKAListe = SBTabloHesapTipi.kaListe.filter(ka => ka.ekBilgi?.hareketcimi);
+		let harKAListe = SBTabloHesapTipi.kaListe.filter(ka => ka.ekBilgi?.hareketcimi)
 		for (let {kod: key, question: selector} of harKAListe) {
 			form = fbd_altForm.addFormWithParent(`altForm_${key}`).altAlta()
 				.setVisibleKosulu(({ builder: fbd }) => secimlerInitWithKosul(fbd, ({ hesapTipi }) => hesapTipi[selector]))
 		}
 
 		form = fbd_altForm.addFormWithParent('altForm_formul').altAlta()
-			.setVisibleKosulu(({ builder: fbd }) => !!fbd.altInst.hesapTipi.formulmu);
+			.setVisibleKosulu(({ builder: fbd }) => !!fbd.altInst.hesapTipi.formulmu)
 		form.addTextArea('formul', 'Formül').setRows(4).setCols(100);
 
 		form = fbd_altForm.addFormWithParent('altForm_satirlarToplami').altAlta()

@@ -68,6 +68,7 @@ class TabSiparisFis extends TabTicariFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get araSeviyemi() { return super.araSeviyemi || this == TabSiparisFis }
 	static get siparismi() { return true }
+	static get sonStokKullanilirmi() { return false }
 	static get dokumFormTip_normal() { return 'LFC' }
 	static get dokumFormTip_eIslem() { return '3FS' }
 

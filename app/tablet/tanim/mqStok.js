@@ -133,7 +133,7 @@ class MQTabStok extends MQKAOrtak {
 		let { yerKod } = inst
 		if (!offlineRequest) {
 			let kod2Yer2Son = {}
-			for (let r of await MQTabSonStok.loadServerData(e)) {
+			for (let r of await MQTabSonStok.loadServerData()) {
 				let yer2Son = kod2Yer2Son[r.stokKod] ??= {}
 				yer2Son[r.yerKod] = r
 			}

@@ -5,6 +5,7 @@ class DRapor_Muhasebe extends DRapor_Donemsel {
 	static get kod() { return 'MUHASEBE' } static get aciklama() { return 'Muhasebe Total' }
 	static get vioAdim() { return 'MH-R' } static get oncelik() { return 97 }
 	static get altRaporClassPrefix() { return 'DRapor_Muhasebe' }
+	static get maliTabloIcinUygunmu() { return true }
 }
 class DRapor_Muhasebe_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

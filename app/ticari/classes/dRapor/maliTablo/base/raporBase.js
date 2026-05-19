@@ -146,9 +146,9 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		}
 		colDefs.push(
 			new GridKolon({ belirtec: 'aciklama', text: 'Açıklama', genislikCh: 50 }),
-			...Object.values(tabloYapi.grup).map(e => e.colDefs).flat()
+			...values(tabloYapi.grup).map(e => e.colDefs).flat()
 		);
-		for (let {colDefs: [orjColDef]} of Object.values(tabloYapi.toplam)) {
+		for (let {colDefs: [orjColDef]} of values(tabloYapi.toplam)) {
 			let colDef = orjColDef.deepCopy()
 			colDef.userData = { toplammi: true }
 			{
@@ -184,9 +184,9 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		if (!sevRecs)
 			return sevRecs
 		let {id2Detay, formulYapilari, recs, ind2Rec} = e, {tabloYapi: { toplam }} = this
-		let attrListe = Object.values(toplam).map(item => item.colDefs[0].belirtec)
+		let attrListe = values(toplam).map(item => item.colDefs[0].belirtec)
 		for (let parentRec of sevRecs) {
-			for (let formulDetaylar of Object.values(formulYapilari))
+			for (let formulDetaylar of values(formulYapilari))
 			for (let formul of formulDetaylar)
 			for (let attr of attrListe) {
 				let value = await formul.eval({ ...e, det: formul, recs, sevRecs, parentRec, attr, ind2Rec })
@@ -197,30 +197,52 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 	}
 	async loadServerDataInternal(e) {
 		await super.loadServerDataInternal(e)
-		let {detayli, konsolideCikti, ekDBListe, aktifDB, detaylar, detay: _det} = e
-		let rapor = this, {raporTanim = {}, secimler, secimler: { tarihBS: donemBS, db: { value: filtreDBListe = [] } = {} }, sahaAlias: bedelAlias} = this
+		let rapor = this
+		let { detayli, konsolideCikti, ekDBListe, aktifDB, detaylar, detay: _det } = e
+		let { raporTanim = {}, secimler, sahaAlias: bedelAlias } = this
+		let { tarihBS: donemBS, db: { value: filtreDBListe = [] } = {} } = secimler
 		let {raporTanim: { yatayAnalizVarmi, yatayAnaliz } = {}} = this
 		detaylar ??= _det ? [_det] : raporTanim.detaylar
+		
 		let yatayDBmi = yatayAnalizVarmi && yatayAnaliz.dbmi
 		let yatayDegerSet = e.yatayDegerSet = {}
-		let id2Promise = {}, id2Detay = e.id2Detay = {}, formulYapilari = e.formulYapilari = {}
+		let id2Promise = {}
+		let id2Detay = e.id2Detay = {}
+		let formulYapilari = e.formulYapilari = {}
+		
 		let filtreDBSet = null
 		if (konsolideCikti && filtreDBListe?.length) {
 			let tumDBNameSet = asSet([ aktifDB, ...(ekDBListe ?? []) ])
 			filtreDBSet = asSet(filtreDBListe.filter(_ => tumDBNameSet[_]))
 		}
 		let _e = { ...e, rapor, raporTanim, secimler, donemBS, detaylar, yatayAnalizVarmi, yatayAnaliz, filtreDBListe }
-		for (let key of ['altSeviyeToplamimi', 'satirlarToplamimi']) { formulYapilari[key] = [] }
+		for (let key of ['altSeviyeToplamimi', 'satirlarToplamimi', 'formulmu'])
+			formulYapilari[key] = []
+		
 		for (let det of detaylar) {
-			let {sayac: id, hesapTipi = {}, veriTipi: { donemTipi }} = det
-			let {question: selector, ekBilgi: { ticarimi, hareketcimi, querymi } = {}} = hesapTipi
+			let { sayac: id, hesapTipi = {}, veriTipi: { donemTipi } } = det
+			let { question: selector, ekBilgi: { ticarimi, hareketcimi, querymi, formulmu } = {} } = hesapTipi
+			formulmu ??= hesapTipi.formulmu
 			id2Detay[id] = det
-			if (!querymi) {    /* satır toplam, formul, ... vs */
-				if (selector) { formulYapilari[selector]?.push(det) }
+			if (!(querymi || formulmu)) {    /* satır toplam, formul, ... vs */
+				if (selector)
+					formulYapilari[selector]?.push(det)
 				continue
 			}
+			
 			if (donemTipi == 'B' && !donemBS?.basi)
 				continue
+
+			if (formulmu) {
+				let { asFormul: formul } = det
+				if (formul) {
+					if (isString(formul))
+						formul = getFunc(formul)
+					id2Promise[id] = promise(async () =>
+						formul?.call?.this({ ..._e, detay: det, id, hesapTipi, veriTipi, donemTipi }))
+				}
+				continue
+			}
 			
 			let sonucUni = new MQUnionAll()
 			let stm = new MQStm({ sent: sonucUni })
@@ -231,11 +253,12 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 
 			stm = _e.stm ?? {}
 			sonucUni = stm.sent
-			let {with: _with = {}, sent = {}} = stm
+			let { with: _with = {}, sent = {} } = stm
 			if (!(_with.liste?.length || sent.liste?.length)) {
 				id2Promise[id] = null
 				continue
 			}
+			
 			if (konsolideCikti) {
 				let orjUni = sonucUni, yatayAlias = yatayDBmi ? 'yatay' : null;
 				sonucUni = _e.uni = stm.sent = new MQUnionAll()
@@ -254,9 +277,9 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 					if (filtreDBSet && !filtreDBSet[db])
 						continue
 					let uni = orjUni.deepCopy()
-					for (let {from, sahalar} of uni) {
+					for (let { from, sahalar } of uni) {
 						for (let aMQAliasliYapi of from) {
-							let {deger: table} = aMQAliasliYapi;
+							let {deger: table} = aMQAliasliYapi
 							if (table && !table.includes('.'))
 								table = aMQAliasliYapi.deger = `${db}..${table}`
 						}
@@ -269,54 +292,62 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 					sonucUni.addAll(uni)
 				}
 			}
+			
 			if (!detayli)
 				stm = stm.asToplamStm()
 			_e.stm =  stm
+			
 			let promise_recs = app.sqlExecSelect(stm)
 			if (promise_recs != null)
 				id2Promise[id] = promise_recs
 		}
-		let yatayDegerler;     /* ekDBListe içinden (aktifDB) değeri ayıklanmış olarak gelir */
+		let yatayDegerler     /* ekDBListe içinden (aktifDB) değeri ayıklanmış olarak gelir */
 		if (yatayDBmi)
 			yatayDegerler = [aktifDB, ...(ekDBListe ?? [])]
+		
 		let recs
-		for (let [id, promise] of Object.entries(id2Promise)) {
+		for (let [id, promise] of entries(id2Promise)) {
 			let det = id2Detay[id]
 			if (!det)
 				continue
-			let _recs = await promise ?? []
-			let {bakiyemi, borcmu, alacakmi}  = det.veriTipi?.ekBilgi
-			if (bakiyemi) {
-				// recs: bakiye duzenle
-			}
-			// if (!(detayli || _recs?.length)) { continue }
+			
+			let _recs = makeArray(await promise ?? [])
+			let { bakiyemi, borcmu, alacakmi }  = det.veriTipi?.ekBilgi
 			let yatay2Bedel = {}
 			if (yatayAnalizVarmi) {
 				for (let rec of _recs) {
-					let {yatay, bedel} = rec
-					if (!yatayDBmi) { yatayDegerSet[yatay] = true }
-					if (!detayli) { yatay2Bedel[yatay] = (yatay2Bedel[yatay] || 0) + bedel }
+					let { yatay, bedel } = rec
+					if (!yatayDBmi)
+						yatayDegerSet[yatay] = true
+					if (!detayli)
+						yatay2Bedel[yatay] = roundToBedelFra( (yatay2Bedel[yatay] || 0) + bedel )
 				}
 			}
+			
 			if (detayli) {
-				if (recs) { recs.push(..._recs) }
-				else { recs = _recs }                          /* large data performance optimization */
+				if (recs)
+					recs.push(..._recs)
+				else
+					recs = _recs
 				continue
 			}
-			let {aciklama} = det, topBedel = topla(rec => rec[bedelAlias] || 0, _recs)
+			
+			let { aciklama } = det
+			let topBedel = topla(rec => rec[bedelAlias] || 0, _recs)
 			let rec = { id, aciklama, bedel: topBedel }
 			if (yatayAnalizVarmi) {
-				for (let [yatay, bedel] of Object.entries(yatay2Bedel))
+				for (let [yatay, bedel] of entries(yatay2Bedel))
 					rec[`bedel_${yatay}`] = bedel
 			}
 			recs ??= []
 			recs.push(rec)
 		}
 		if (yatayAnalizVarmi && !yatayDBmi && !empty(yatayDegerSet))
-			yatayDegerler = Object.keys(yatayDegerSet).sort()
+			yatayDegerler = keys(yatayDegerSet).sort()
 		yatayDegerSet = yatayDegerler ? asSet(yatayDegerler) : {}
 		extend(e, { yatayDegerler, yatayDegerSet })
 		extend(this, { yatayDegerler, yatayDegerSet })
+		
 		return recs
 		/* return [ { aciklama: 'SONUÇ', detaylar: recs } ] */
 	}
@@ -328,20 +359,20 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			return sqlRecs
 		await super.loadServerData_recsDuzenle_seviyelendir(...arguments)
 		let {tabloYapi, raporTanim = {}} = this, {yatayAnalizVarmi, yatayAnaliz} = raporTanim
-		let attrListe = Object.values(tabloYapi.toplam).map(item => item.colDefs.map(_ => _.belirtec)).flat()
+		let attrListe = values(tabloYapi.toplam).map(item => item.colDefs.map(_ => _.belirtec)).flat()
 		if (yatayAnalizVarmi && !empty(yatayDegerSet)) {
 			let topBelirtecListe = attrListe
 			attrListe = []
 			for (let belirtec of topBelirtecListe) {
 				attrListe.push(belirtec)
-				attrListe.push(...Object.keys(yatayDegerSet).map(yatay => `${belirtec}_${yatay}`))
+				attrListe.push(...keys(yatayDegerSet).map(yatay => `${belirtec}_${yatay}`))
 			}
 		}
 		let id2GridRec = {}
-		for (let [id, det] of Object.entries(id2Detay)) {
+		for (let [id, det] of entries(id2Detay)) {
 			let gridRec = id2GridRec[id] = {
 				...det.asObject, detaylar: [], hesaplandimi: false,
-				...Object.fromEntries(attrListe.map(attr => [attr, 0])),
+				...fromEntries(attrListe.map(attr => [attr, 0])),
 				toplamReset() {
 					for (let attr of attrListe)
 						this[attr] = 0
@@ -389,7 +420,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 				gridRec[attr] = rec[attr] ?? 0
 			gridRec.hesaplandimi = true
 		}
-		let maxSevNo = 1, sev2Ust = {}, gridRecs = Object.values(id2GridRec)
+		let maxSevNo = 1, sev2Ust = {}, gridRecs = values(id2GridRec)
 		for (let gridRec of gridRecs) {
 			let {seviyeNo: sevNo, detaylar} = gridRec
 			sevNo = asInteger(sevNo?.char ?? sevNo) || 1

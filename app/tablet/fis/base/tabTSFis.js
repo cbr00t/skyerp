@@ -4,6 +4,7 @@ class TabTSFis extends TabFis {
 	static get araSeviyemi() { return super.araSeviyemi || this == TabTSFis }
 	static get kodListeTipi() { return 'TABTS' } static get sinifAdi() { return 'Ticari/Stok Fiş' }
 	static get detaySinif() { return TabTSDetay } static get almSat() { return 'T' }
+	static get sonStokKullanilirmi() { return true }
 	static get barkodGirisYapi() {
 		return {
 			etiket: 'Barkod',

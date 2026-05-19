@@ -25,8 +25,8 @@ class TabRapor_IlkIrsaliye extends TabRapor {
 		;{
 			let sent = new MQSent(), { where: wh, sahalar } = sent
 			sent.fromAdd('sonstok son')
-			wh.add(`son.stokKod <> ''`, `son.ozelIsaret <> 'X'`, `son.sonMiktar <> 0`)
-			sahalar.add('son.stokKod', `SUM(son.sonMiktar) miktar`)
+			wh.add(`son.stokKod <> ''`, `son.ozelIsaret <> 'X'`, `son.orjsonMiktar <> 0`)
+			sahalar.add('son.stokKod', `SUM(son.orjsonMiktar) miktar`)
 			sent.groupByOlustur()
 			let orderBy = ['miktar DESC']
 			let stm = new MQStm({ sent, orderBy })
@@ -216,11 +216,24 @@ class TabRapor_SonStok extends TabRapor {
 	}
 	getTabloKolonlari(e) {
 		let { hmrlimi } = this.class
+		let cellClassName = (sender, rowIndex, belirtec, value, rec = {}) => {
+			let result = [belirtec]
+			switch (belirtec) {
+				case 'miktar':
+				case 'brm': {
+					let { orjMiktar, miktar } = rec
+					if (!(orjMiktar == null || miktar == orjMiktar))
+						result.push('bold', miktar > orjMiktar ? 'bg-orangered' : 'firebrick')
+				}
+			}
+			return result.join(' ')
+		}
 		let liste = [
 			...( super.getTabloKolonlari(e) ?? [] ),
 			new GridKolon({ belirtec: 'stokText', text: 'Ürün' }).input().setUserData({ dokumSaha: { length: 35 } }),
-			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 10 }).input().tipDecimal().sum().setUserData({ }),
-			new GridKolon({ belirtec: 'brm', text: 'Br', genislikCh: 4 }).checkedList().setUserData({ }),
+			new GridKolon({ belirtec: 'orjMiktar', text: 'Orj. Miktar', genislikCh: 10, cellClassName }).input().tipDecimal().sum().setUserData({ }),
+			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 10, cellClassName }).input().tipDecimal().sum().setUserData({ }),
+			new GridKolon({ belirtec: 'brm', text: 'Br', genislikCh: 4, cellClassName }).checkedList().setUserData({ }),
 			new GridKolon({ belirtec: 'yerText', text: 'Depo', genislikCh: 15 }).input().setUserData({ dokumSaha: { x: 0, y: 2, width: 10 } })
 		]
 		if (hmrlimi) {
@@ -247,10 +260,11 @@ class TabRapor_SonStok extends TabRapor {
 			let _yer2Rec = await MQTabYer.getGloKod2Rec()
 			let _stok2Rec = await MQTabStok.getGloKod2Rec()
 			
-			let sent = new MQSent(), { where: wh, sahalar } = sent
+			let sent = new MQSent(), { where: wh, sahalar, having } = sent
 			sent.fromAdd('sonstok son')
-			wh.add(`son.stokKod <> ''`, `son.ozelIsaret <> 'X'`, `son.sonMiktar <> 0`)
-			sahalar.add('son.yerKod', 'son.stokKod', `SUM(son.sonMiktar) miktar`)
+			wh.add(`son.stokKod <> ''`, `son.ozelIsaret <> 'X'`)
+			sahalar.add('son.yerKod', 'son.stokKod', 'SUM(son.orjsonMiktar) orjMiktar', `SUM(son.orjsonMiktar + son.sonMiktar) miktar`)
+			having.add(`SUM(son.orjsonMiktar + son.sonMiktar) <> 0`)
 			if (hmrlimi) {
 				for (let { ioAttr: rowAttr } of HMRBilgi) {
 					if (cd[rowAttr])

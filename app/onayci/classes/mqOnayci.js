@@ -97,7 +97,7 @@ class MQOnayci extends MQCogul {
 		let { dev } = config
 		extend(gridPart, {
 			// otoTazeleSecs: qs.otoTazeleYok ? null : qs.otoTazeleSecs || (dev ? 20: 60),
-			otoTazeleSecs: qs.otoTazeleYok ? null : ( Number(qs.otoTazeleSecs) || null ),
+			otoTazeleSecs: qs.otoTazeleYok ? null : ( Number(qs.otoTazele ?? qs.otoTazeleSecs) || null ),
 			otoTazeleDisabled: qs.otoTazeleYok ?? false,
 			serviceProc_delaySecs: max(Number(qs.serviceProc_delaySecs) || 10, 2)
 		})
@@ -796,8 +796,16 @@ class MQOnayci extends MQCogul {
 					}
 					;{
 						let { _: encVal } = tempQS
-						if (encVal)
-							extend(tempQS, JSON.parse(Base64.decode(encVal)))
+						let v = encVal ? Base64.decode(encVal) : null
+						if (v) {
+							try { v = JSON.parse(v) }
+							catch (ex) {
+								// cerr(ex)
+								v = readQSDict(v)
+							}
+							if (v)
+								extend(tempQS, v)
+						}
 						deleteKeys(tempQS, '#', '_',  'session', 'sessionID', 'user', 'pass', 'sql')
 						
 						tempQS.loginTipi = Session.DefaultLoginTipi
@@ -814,7 +822,7 @@ class MQOnayci extends MQCogul {
 					}
 					
 					let _qs = {}
-					;['port', 'dev', 'newWindow', 'inNewWindow'].forEach(k => {
+					;['dev', 'newWindow', 'inNewWindow'].forEach(k => {
 						if (k in tempQS) {
 							_qs[k] = tempQS[k]
 							delete tempQS[k]

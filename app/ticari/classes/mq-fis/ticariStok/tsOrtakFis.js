@@ -9,6 +9,7 @@ class TSOrtakFis extends MQTicariGenelFis {
 	static get oncelik() { return 0 } static get cikisGibimi() { return false } static get girisGibimi() { return false }
 	static get iademi() { return this.iade == 'I' } static get numYapi() { return new MQTicNumarator({ tip: this.numTipKod }) }
 	static get mustSaha() { return null } get eIslemSinif() { return EIslemOrtak.getClass({ tip: this.efAyrimTipi })}
+	static get sonStokKullanilirmi() { return true }
 	get kosulYapilar() { return this._kosulYapilar } set kosulYapilar(value) { this._kosulYapilar = value }
 
 	static pTanimDuzenle(e) {

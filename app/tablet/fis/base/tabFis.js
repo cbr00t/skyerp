@@ -478,8 +478,8 @@ class TabFis extends MQDetayliGUIDOrtak {
 			this.uuid ||= newGUID()
 
 		this.fisSonuc = fisTopNet
-
-		await MQTabMusDurum.check({ inst, eskiInst })
+		for (let cls of [MQTabMusDurum, MQTabSonStok])
+			await cls.check({ inst, eskiInst })
 
 		if (yeniVeyaKopyami) {
 			this.sayac = null
@@ -500,7 +500,8 @@ class TabFis extends MQDetayliGUIDOrtak {
 		let inst = this
 		let { islem, eskiInst = e.eskiFis ?? e.eskiObj ?? {} } = e
 		await super.kaydetSonrasiIslemler(...arguments)
-		await MQTabMusDurum.update({ inst, eskiInst })
+		for (let cls of [MQTabMusDurum, MQTabSonStok])
+			await cls.update({ inst, eskiInst })
 	}
 	async yukle(e = {}) {
 		let { rec } = e
@@ -532,7 +533,8 @@ class TabFis extends MQDetayliGUIDOrtak {
 		}
 
 		let eskiInst = this
-		await MQTabMusDurum.update({ eskiInst })
+		for (let cls of [MQTabMusDurum, MQTabSonStok])
+			await cls.update({ eskiInst })
 		return true
 	}
 	static varsayilanKeyHostVarsDuzenle({ hv }) {
@@ -724,7 +726,7 @@ class TabFis extends MQDetayliGUIDOrtak {
 			let { tip2Sinif } = this
 			let cls = tip2Sinif[fisTipi]
 			if (cls?.tahsilatmi) {
-				let {dev, session: { isAdmin } = {}} = config
+				let { dev, session: { isAdmin } = {} } = config
 				if (!(dev && isAdmin))
 					throw { isError: true, errorText: 'Tahsilat Fişi silme yetkiniz yok' }
 			}

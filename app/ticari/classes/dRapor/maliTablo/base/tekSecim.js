@@ -200,8 +200,10 @@ class SBTabloHesapTipi extends TekSecim {
 			ekListe.push(new CKodAdiVeEkBilgi(['FX', 'Formül', 'formulmu'], { formulmu: true }))
 		
 		for (let {ekBilgi} of ekListe) {
-			if (!ekBilgi) { continue }
-			if (ekBilgi.formulmu) { ekBilgi.ozelmi = true }
+			if (!ekBilgi)
+				continue
+			if (ekBilgi.formulmu)
+				ekBilgi.ozelmi = true
 			else if (ekBilgi.harSinif) { ekBilgi.hareketcimi = ekBilgi.querymi = true }
 			else if (ekBilgi.hareketcimi) { ekBilgi.querymi = true }
 		}

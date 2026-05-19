@@ -61,6 +61,9 @@ class TabTahsilatFis extends TabFis {
 	async yukleSonrasiIslemler({ islem }) {
 		let e = arguments[0]
 		await super.yukleSonrasiIslemler(e)
+		let { dev, session: { isAdmin } = {} } = config
+		if (!(dev && isAdmin))
+			throw { isError: true, errorText: 'Tahsilat Fişi değiştirme yetkiniz yok' }
 		let { _noCheck, tahFisId: asilFisId } = this
 		if (!_noCheck && asilFisId && islem == 'degistir') {    // Ticari belgeye bağlı Tahsilat değiştirilemez
 			islem = e.islem = 'izle'
