@@ -5,7 +5,8 @@ class MQHatirlatici extends MQCogul {
 	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false }
 	static get secimSinif() { return null } static get kolonFiltreKullanilirmi() { return false }
 	static get gridIslemTuslariKullanilirmi() { return false }
-	static get seviyeAcKapatKullanilirmi() { return !isMiniDevice() }
+	static get seviyeAcKapatKullanilirmi() { return false }
+	//static get seviyeAcKapatKullanilirmi() { return !isMiniDevice() }
 	static get noAutoFocus() { return true }
 
 	static listeEkrani_init(e) {
@@ -17,6 +18,7 @@ class MQHatirlatici extends MQCogul {
 			otoTazeleDisabled: qs.otoTazeleYok ?? false,
 			serviceProc_delaySecs: max(Number(qs.serviceProc_delaySecs) || 10, 2)
 		})
+		gridPart.noAnimate()
 	}
 	static listeEkrani_afterRun(e = {}) {
 		super.listeEkrani_afterRun(e)
@@ -53,27 +55,61 @@ class MQHatirlatici extends MQCogul {
 		super.islemTuslariDuzenle_listeEkrani(e)
 		let {liste, part: { ekSagButonIdSet: sagSet }} = e
 		let items = [
-			{ id: 'gorevAl', text: 'Görev Al', handler: _e => this.gorevAlIstendi({ ..._e, ...e }) },
-			{ id: 'gorevBirak', text: 'Görev Bırak', handler: _e => this.gorevBirakIstendi({ ..._e, ...e }) },
-			{ id: 'tamam', handler: _e => this.tamamIstendi({ ..._e, ...e }) }
+			{ id: 'assign', text: 'Görev Al', handler: _e => this.setTaskState({ ..._e, ...e, state: 'assign' }) },
+			{ id: 'release', text: 'Görev Bırak', handler: _e => this.setTaskState({ ..._e, ...e, state: 'release' }) },
+			{ id: 'tamam', handler: _e => this.setTaskState({ ..._e, ...e, state: 'done' }) }
 		]
 		liste.push(...items)
 		extend(sagSet, asSet(items.map(_ => _.id)))
 	}
 	static rootFormBuilderDuzenle_listeEkrani({ sender: gridPart, rootBuilder: rfb }) {
 		super.rootFormBuilderDuzenle_listeEkrani(...arguments)
+		this.fbd_listeEkrani_addCheckBox(rfb, {
+			id: 'hepsiniGoster', text: '+ Kapananlar',
+			value: gridPart.hepsiniGoster,
+			handler: ({ builder: { layout } }) => {
+				let input = layout.children('input')
+				gridPart.hepsiniGoster = input.is(':checked')
+				gridPart.tazele()
+			}
+		 })
+
+		rfb.addStyle(
+			`/*$elementCSS > .header { height: 50px !important }*/
+			 $elementCSS > .header > .islemTuslari > div > #tamam { margin-right: 20px !important }`
+		)
 	}
 	static orjBaslikListesi_argsDuzenle({ args }) {
 		super.orjBaslikListesi_argsDuzenle(...arguments)
 		let mini = isMiniDevice()
 		extend(args, {
-			columnsMenu: !mini, groupsExpandedByDefault: true,
+			columnsMenu: !mini, columnsHeight: 25,
+			groupsExpandedByDefault: true, showGroupsHeader: true,
 			rowsHeight: mini ? 75 : 65
 		})
 	}
 	static orjBaslikListesi_groupsDuzenle({ sender: gridPart, liste }) {
 		super.orjBaslikListesi_groupsDuzenle(...arguments)
-		liste.push('tipAdi')
+		let { hepsiniGoster } = gridPart
+		if (hepsiniGoster)
+			liste.push('_durumText')
+	}
+	static ekCSSDuzenle({ rowIndex, dataField: belirtec, value, rec, result: res }) {
+		super.ekCSSDuzenle(...arguments)
+		let { kalanGun: v } = rec
+		if (belirtec == 'sonTarih' || belirtec == 'kalanGun') {
+			res.push(
+				'bold',
+				(
+					v < 0 ? 'bg-lightred lightgray' :
+					v == 0 ? 'bg-orangered whitesmoke' :
+					v <= 1 ? 'firebrick' :
+					v <= 2 ? 'orangered' :
+					v <= 4 ? 'darkgoldenrod' :
+					'forestgreen'
+				)
+			)
+		}
 	}
 	static orjBaslikListesiDuzenle({ sender: gridPart, liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
@@ -81,7 +117,9 @@ class MQHatirlatici extends MQCogul {
 		let { tableAlias: alias } = this
 		liste.push(...[
 			new GridKolon({ belirtec: '_text', text: ' ', minWidth: 25 * katSayi_ch2Px }).noSql(),
-			new GridKolon({ belirtec: 'tipAdi', text: 'Tip', genislikCh: 20, filterType: 'checkedlist', hidden: mini }).noSql()
+			new GridKolon({ belirtec: 'kalanGun', text: 'Kalan', genislikCh: 9 }).noSql().tipNumerik().checkedList(),
+			new GridKolon({ belirtec: 'sonTarih', text: 'Bitiş', genislikCh: 11 }).noSql().tipTarih().checkedList(),
+			new GridKolon({ belirtec: '_durumText', text: 'Durum', genislikCh: 13, filterType: 'checkedlist', hidden: mini }).noSql()
 		].filter(Boolean))
 	}
 	static async loadServerDataDogrudan({ sender: gridPart }) {
@@ -96,7 +134,7 @@ class MQHatirlatici extends MQCogul {
 		let user2Adi = app.user2Adi ??= {}
 		let recs = [], eksikUserSet = new Set()
 		for (let r of await super.loadServerDataDogrudan(...arguments)) {
-			let { usersStr, eMailsStr } = r
+			let { usersStr, eMailsStr, kapandi, sonTarih } = r
 			let users = r.users ??= (
 				usersStr
 					?.split(Delim)
@@ -112,13 +150,23 @@ class MQHatirlatici extends MQCogul {
 					?.filter(v => v && v.length >= 4 && v.includes('@'))
 					?? []
 			)
+			r._durumText = kapandi
+				? `<span class="orangered">Kapananlar</span>`
+				: `<span class="forestgreen">Bekleyenler</span>`
 			
+			sonTarih = asDate(sonTarih)
+			r.kalanGun ??= (
+				sonTarih
+					? ( sonTarih - today() ) / Date_OneDayNum
+					: null
+			)
 			;users
 				.filter(u => !user2Adi[u])
 				.forEach(u => eksikUserSet.add(u))
 
 			recs.push(r)
 		}
+
 		if (!empty(eksikUserSet)) {
 			await promiseAll(
 				arrayFrom(eksikUserSet).map(user =>
@@ -127,64 +175,37 @@ class MQHatirlatici extends MQCogul {
 				)
 			)
 		}
-		
+
 		for (let rec of recs)
 			rec._text = await this.getHTML({ rec })
 		
 		return recs
 	}
-	static loadServerData_queryDuzenle({ sender: gridPart, stm, sent } = {}) {
+	static loadServerData_queryDuzenle({ sender: gridPart = {}, stm, sent } = {}) {
 		super.loadServerData_queryDuzenle(...arguments)
 		sent.sahalarVeGroupByVeHavingReset()
-		
+
+		let { hepsiniGoster } = gridPart
 		let { tableAlias: alias } = this
 		let { where: wh, sahalar } = sent, { orderBy } = stm
-		sent.innerJoin(alias, 'htipbilgi hbil', ['htr.xtipkod = hbil.xtipkod', 'htr.kayittipi = hbil.kayittipi'])
-		wh.add(`${alias}.bkapandi = 0`)
+		sent
+			.leftJoin(alias, 'htipbilgi tbil', ['htr.kayittipi = tbil.kayittipi', 'htr.xtipkod = tbil.xtipkod'])
+			.leftJoin('tbil', 'htipbilgi tanabil', ['htr.kayittipi = tanabil.kayittipi', `htr.xtipkod = ''`])
+		if (hepsiniGoster)
+			sahalar.add(`${alias}.bkapandi kapandi`)
+		else
+			wh.add(`${alias}.bkapandi = 0`)
+		wh.add(`DATEDIFF(DAY, getdate(), CAST(htr.sontarih as DATE)) <= htr.hatirlatmagunu`)
 		sahalar
-			.addWithAlias(alias, 'id',
-				'kayittipi kayitTipi', 'xtipkod tipKod', 'xtipadi tipAdi',
-				'kesinkullanicikod kesinUser', 'hatirlatmagunu hatirlatmaGunu',
-				'sontarih sonTarih', 'kapanmatarihi kapanmaTarihi', 'kapanisnotu kapanisNotu')
-			.addWithAlias('hbil',
-				'kullanicilistestr usersStr', 'emaillistestr eMailsStr')
-		orderBy.liste = ['sontarih', 'kayitTipi', 'tipAdi']
-		
-		/*
-		    // DATEDIFF( DAY, htr.sontarih, hatirlatmagunu ) 
-			SELECT
-					htr : id, kayittipi, sontarih, xtipkod, xtipadi, hatirlatmagunu, kesinkullanicikod,
-						sontarih, referans, kapanmatarihi, kapanisnotu
-					hbil: kullanicilistestr (;), emaillistestr (;)
-				FROM hbelgehatirlatici htr
-				INNER JOIN htipbilgi hbil ON htr.xtipkod = hbil.xtipkod AND htr.kayittipi = hbil.kayittipi
-				WHERE htr.bkapandi = 0
-
-				if (kullanicilistestr)
-					if (!split(';') => any({user}))
-						continue
-
-
-			[ görev al ]  ( kesinkullanicikod ? UYAR : devam )
-			içerik: {sonTarih} bitişli '{xtipadi}, {referans}' görevi {userDesc} tarafından alınmıştır
-				- UPDATE hbelgehatirlatici SET kesinkullanicikod = {user} WHERE id = {r.id}
-				  ntfy: (kullanicilistestr [hariç: {user}])
-				  email: emaillistestr
-			
-			[ görev bırak ]  ( kesinkullanicikod = {user} ? devam : UYAR )
-			içerik: {sonTarih} bitişli '{xtipadi}, {referans}' görevini {userDesc} BIRAKMIŞTIR
-				- UPDATE hbelgehatirlatici SET kesinkullanicikod = '' WHERE id = {r.id}
-				  ntfy: (kullanicilistestr [hariç: {user}])
-				  email: emaillistestr
-
-			[ tamamlandı ]  ( kesinkullanicikod = {user} ? devam : UYAR )
-				notText = jqxPrompt({ etiket: 'Kapanma Nedeni giriniz (opsiyonel)', title: 'Görev Tamamlanıyor' })
-				içerik: {sonTarih} bitişli '{xtipadi}, {referans}' görevi {userDesc} tarafından {dateKisaString(today()))} tamamlanmıştır.
-							{notText || ''}
-					- UPDATE hbelgehatirlatici SET bkapandi = 1, kapanisnotu = notText, kapanmatarihi = getdate() WHERE id = {r.id}
-					  email: emaillistestr
-
-		*/
+			.addWithAlias(alias,
+				'id', 'kayittipi kayitTipi', 'sontarih sonTarih', 'hatirlatmagunu hatirlatmaGunu',
+				'kesinkullanicikod kesinUser', 'kapanisnotu kapanisNotu', 'referans', 'xtipadi tipAdi',
+				'kapanmatarihi kapanmaTarihi')
+			.add(
+				'COALESCE(tbil.kullanicilistestr, tanabil.kullanicilistestr) usersStr',
+				'COALESCE(tbil.emaillistestr, tanabil.emaillistestr) eMailsStr'
+			)
+		orderBy.liste = ['sonTarih', 'kayitTipi', 'tipAdi']
 	}
 	static gridVeriYuklendi(e = {}) {
 		let mini = isMiniDevice()
@@ -193,6 +214,8 @@ class MQHatirlatici extends MQCogul {
 		let { hepsiniGoster, prevRecs, boundRecs } = gridPart
 		groups.forEach(g =>
 			w.hidecolumn(g))
+		;['_durumText'].forEach(k =>
+			w[hepsiniGoster ? 'showcolumn' : 'hidecolumn'](k))
 		gridPart.prevRecs = boundRecs
 	}
 
@@ -228,7 +251,7 @@ class MQHatirlatici extends MQCogul {
 		let degistimi = prevRecs && recs.length > prevRecs.length
 		if (degistimi) {
 			let { ntfyTopic: topic } = app
-			let priority = 1, tags = ['_new']
+			let priority = 1, tags = ['_']
 			await ntfy({ topic, priority, tags })
 		}
 		return true
@@ -264,7 +287,7 @@ class MQHatirlatici extends MQCogul {
 			//if (isString(msg))
 			//	msg = JSON.parse(msg)
 			;{
-				let ind = tags?.indexOf('_new') ?? -1
+				let ind = tags?.indexOf('_') ?? -1
 				if (ind > -1) {
 					let count = asInteger(tags[ind + 1])
 					gridPart?.tazele()
@@ -302,9 +325,10 @@ class MQHatirlatici extends MQCogul {
 	static otoTazele_startTimer({ sender: gridPart }) {
 		let e = arguments[0], { otoTazeleSecs } = gridPart
 		this.otoTazele_stopTimer(e)
-		gridPart._timer_otoTazele = setTimeout(e =>
-			this.otoTazele_timerProc(e),
-			otoTazeleSecs * 1_000, e)
+		gridPart._timer_otoTazele = setTimeout(async e => {
+			try { await this.otoTazele_timerProc(e) }
+			finally { this.otoTazele_startTimer(...arguments) }
+		}, otoTazeleSecs * 1_000, e)
 	}
 	static otoTazele_stopTimer({ sender: gridPart }) {
 		clearTimeout(gridPart._timer_otoTazele)
@@ -317,27 +341,56 @@ class MQHatirlatici extends MQCogul {
 			gridPart.tazele()
 	}
 
-	static async gorevAlIstendi({ sender: gridPart = {} }) {
+	static async setTaskState({ sender: gridPart = {}, state }) {
 		let e = { ...arguments[0] }
-		let islemAdi = 'Görev Al'
+		let assign = state == 'assign'
+		let release = state == 'release'
+		let done = state == 'done'
+
+		let islemAdi = (
+			assign ? 'Görev Ata' :
+			release ? 'Görev Bırak' :
+			done ? 'Görev Tamamlandı' :
+			state
+		)
 		let { dev } = config
 		let { selectedRecs: recs } = gridPart
-		if (!dev)
-			recs = recs?.filter(r => !r?.kesinkullanicikod)
+		let { user2Adi = {}, ntfyTopic: topic } = app
+		let { class: { DefaultWSHostName_SkyServer: cloudHost }, session: { user: buUser } } = config
+		let buUserText = user2Adi[buUser] || buUser
+		// let { location: loc } = window
+		if (!dev) {
+			let kosul = (
+				assign ? ( r => ( !r?.kapandi && r?.kesinUser != buUser ) ) :
+				release ? ( r => ( !r?.kapandi && r?.kesinUser == buUser ) ) :
+				done ? ( r => ( !r?.kapandi ) ) :
+				null
+			)
+			recs = recs?.filter(kosul)
+		}
 	
 		if (empty(recs)) {
-			hConfirm('Görev Atanacak uygun kayıt bulunamadı', islemAdi)
-			return
+			hConfirm(`${islemAdi} için uygun kayıt bulunamadı`, islemAdi)
+			return false
 		}
 
-		let { user2Adi = {}, ntfyTopic: topic } = app
-		let { user: buUser } = config.session
-		let buUserText = user2Adi[buUser] || buUser
+		let kapanisNotu = ''
+		if (done) {
+			kapanisNotu = await jqxPrompt({
+				title: islemAdi,
+				etiket: 'Kapanış notu <span class="lightgray" style="margin-left: 5px">(opsiyonel)</span>',
+				maxLength: 250
+			})
+			if (kapanisNotu == null)    // VAZGEÇ butonu
+				return false
+		}
+		
 		let idListe = []
 		try {
 			for (let r of recs) {
 				let { id, users, eMails, tipAdi, sonTarih, referans } = r
 				idListe.push(id)
+				
 				let sonTarihText = asDateAndToKisaString(sonTarih)
 				let message = [
 					( sonTarihText ? `- **${sonTarihText}** bitişli` : null ),
@@ -346,13 +399,42 @@ class MQHatirlatici extends MQCogul {
 					`- **${buUserText}** tarafından alınmıştır`,
 					'\n\n_'
 				].filter(Boolean).join(' ')
-	
-				let title = '✅ Görev Alındı'
+
+				let indicator = (
+					assign ? '⌛' :
+					release ? '❌' :
+					done ? '✅' : null
+				)
+				let statusText = (
+					assign ? 'Alındı' :
+					release ? 'Bırakıldı' :
+						done ? 'TAMAMLANDI' : null
+				)
+				let priority = (
+					assign ? 4 :
+					3
+				)
+				let shortStatus = (
+					assign ? 'alindi' :
+					release ? 'birakildi':
+					done ? 'tamamlandi' : null
+				)
+				if (shortStatus)
+					shortStatus = `gorev-${shortStatus}`
+				
+				let title = [indicator, 'Görev', statusText].filter(Boolean).join(' ')
 				for (let u of users) {
-					let priority = 4
-					let tags = ['✅', 'gorev-alindi', '_new']
+					let tags = [indicator, shortStatus, '_']
 					let markdown = true
-					ntfy({ topic, priority, tags, markdown, title, message })
+					let click = new URL(topic.join('-'), app.ntfyWSUrl).toString()
+					let actions = [
+						{
+							action: 'view',
+							label: 'BİLDİRİMLERİ GÖSTER',
+							url: location.href
+						}
+					]
+					ntfy({ topic, priority, tags, markdown, title, message, click, actions })
 				}
 				if (!empty(eMails)) {
 					let to = eMails[0]
@@ -362,47 +444,58 @@ class MQHatirlatici extends MQCogul {
 					app.wsEMailQueue_add({ to, cc, subject, body })
 				}
 			}
-			
 			if (!empty(idListe)) {
 				let upd = new MQIliskiliUpdate(), { where: wh, set } = upd
 				upd.fromAdd(this.table)
 				wh.inDizi(idListe, 'id')
-				set.degerAta(buUser, 'kesinkullanicikod')
+				if (done) {
+					set.add('bkapandi = 1')
+					if (kapanisNotu)
+						set.degerAta(kapanisNotu, 'kapanisnotu')
+				}
+				else if (assign || release)
+					set.degerAta(assign ? buUser : '', 'kesinkullanicikod')
+				
 				let res = await upd.execute()
 				if (res === false)
-					return
-			}
-		
-			/*içerik: {sonTarih} bitişli '{xtipadi}, {referans}' görevi {userDesc} tarafından alınmıştır
-					- UPDATE hbelgehatirlatici SET kesinkullanicikod = {user} WHERE id = {r.id}
-					  ntfy: (kullanicilistestr [hariç: {user}])
-					  email: emaillistestr*/
+					return false
 
+				gridPart?.tazele()
+			}
 		}
 		catch (ex) {
 			hideProgress()
 			// hConfirm(getErrorText(ex), islemAdi)
 			throw ex
 		}
+		
+		return true
 	}
 
 	static getHTML({ rec }) {
 		let { user2Adi } = app
-		let { kayitTipi, tipAdi, sonTarih, referans, kapanmaTarihi, kapanisNotu, users } = rec
-		let sonTarihNum = asDate(sonTarih)?.getTime() || 0
-		let sonTarihStr = asDateAndToKisaString(sonTarih)
-		let kapanmaTarihiStr = asDateAndToKisaString(kapanmaTarihi)
-		let usersText = users
-			?.map(u => user2Adi[u] || u)
-			?.join(', ')
+		let { session: { user: buUser } } = config
+		let { kayitTipi, tipAdi, referans, kapanmaTarihi, kapanisNotu, users, kesinUser } = rec
+
+		let tipAdiText = tipAdi ? `<span class="violet">${tipAdi}</span>` : null
+		let tipRefStr = [tipAdiText, referans].filter(Boolean).join(' - ')
+		let kapanmaTarihiStr = kapanmaTarihi
+			? [asDateAndToKisaString(kapanmaTarihi), kapanisNotu].filter(Boolean).join(' - ')
+			: ''
+		let usersText = kesinUser
+			? ''
+			: users
+				?.filter(u => u != buUser)
+				?.map(u => `+${user2Adi[u] || u}`)
+				?.join(', ')
 		
 		return [
 			`<div class="flex-row" style="gap: 0 10px">`,
-				`<template class="sort-data">${[sonTarihNum, kayitTipi, tipAdi].filter(Boolean).join(delimWS)}</template>`,
-				( sonTarihStr ? `<div class="lightgray">Son:</div> <div class="bold orangered">${sonTarihStr}</div>` : '' ),
-				( referans ? `<div class="lightgray">Ref:</div> <div>${referans}</div>` : '' ),
+				`<template class="sort-data">${[kayitTipi, tipAdi].filter(Boolean).join(delimWS)}</template>`,
+				( tipRefStr ? `<div class="lightgray">Ref:</div> <div>${tipRefStr}</div>` : '' ),
 				( kapanmaTarihiStr ? `<div class="lightgray">K:</div> <div class="firebrick">${kapanmaTarihiStr}</div>` : '' ),
 				( usersText ? `<div class="lightgray"> - </div> <div class="royalblue">${usersText}</div>` : '' ),
+				( kesinUser ? `<div>📌</div>` : '' ),
 			`</div>`
 		].filter(Boolean).join('\n')
 	}

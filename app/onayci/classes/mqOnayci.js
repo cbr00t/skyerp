@@ -101,6 +101,7 @@ class MQOnayci extends MQCogul {
 			otoTazeleDisabled: qs.otoTazeleYok ?? false,
 			serviceProc_delaySecs: max(Number(qs.serviceProc_delaySecs) || 10, 2)
 		})
+		gridPart.noAnimate()
 	}
 	static listeEkrani_afterRun(e = {}) {
 		super.listeEkrani_afterRun(e)
@@ -171,7 +172,6 @@ class MQOnayci extends MQCogul {
 		let { hepsiniGoster } = gridPart
 		if (hepsiniGoster)
 			liste.push('onayDurumText')
-		
 		let dbListe = keys(app.dbSet)
 		if (dbListe?.length != 1)
 			liste.push('_db')
@@ -642,9 +642,10 @@ class MQOnayci extends MQCogul {
 	static otoTazele_startTimer({ sender: gridPart }) {
 		let e = arguments[0], { otoTazeleSecs } = gridPart
 		this.otoTazele_stopTimer(e)
-		gridPart._timer_otoTazele = setTimeout(e =>
-			this.otoTazele_timerProc(e),
-			otoTazeleSecs * 1_000, e)
+		gridPart._timer_otoTazele = setTimeout(async e => {
+			try { await this.otoTazele_timerProc(e) }
+			finally { this.otoTazele_startTimer(...arguments) }
+		}, otoTazeleSecs * 1_000, e)
 	}
 	static otoTazele_stopTimer({ sender: gridPart }) {
 		clearTimeout(gridPart._timer_otoTazele)
