@@ -1,19 +1,15 @@
-class OnayciApp extends TicariApp {
+class HatirlaticiApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	get onayMax() { return 2 }
 	get ntfyTopic() {
 		let { session: { user } = {} } = config
 		let { portalMustKod: must, ntfyEkId: id } = this
-		return [must, 'onayci', user, id].filter(Boolean)
+		return [must, 'hatirlatici', user, id].filter(Boolean)
 	}
-	get autoExecMenuId() { return 'ONAYCI' }
+	get autoExecMenuId() { return 'HATIRLATICI' }
 
 	async afterRun(e) {
 		await super.afterRun(e)
 		this.onayNo = Number( qs.onayNo || this.onayNo ) || null
-		/*let onayNo = ( qs.onayNo || this.onayNo ) ?? 1
-		if (onayNo)
-			this.onayNo = ( onayNo == '*' || onayNo == 'all' ) ? null : Number(onayNo)*/
 		this._promise_ilkBilgiler = this.ilkBilgileriBelirle(e)
 	}
 	paramsDuzenle({ params }) {
@@ -32,25 +28,7 @@ class OnayciApp extends TicariApp {
 			return false
 
 		let { session } = config
-		if (!session)
-			return false
-		
-		/* let { modulBilgi } = session
-		let perKod = session.perKod = modulBilgi?.Tic?.[0]    // ??
-		if (perKod) {
-			let sent = new MQSent(), { where: wh, sahalar } = sent
-			sent.fromAdd('personel p')
-			wh.degerAta(perKod, 'p.kod')
-			sahalar.add('p.*')
-			let rec = this.perRec = await sent.execTekil()
-			if (rec) {
-				this.ntfyEkId = arrayFrom(rec.ceptel?.trim())
-					.filter(isDigit)
-					.join('')
-			}
-		} */
-		
-		return true
+		return !!session
 	}
 	async anaMenuOlustur(e) {
 		try {
@@ -116,9 +94,8 @@ class OnayciApp extends TicariApp {
 		let { dev } = config, { isAdmin } = config.session ?? {}
 		let { inNewWindow } = qs
 		let items = []
-		
-		for (let cls of [MQOnayci]) {
-			let {vioAdim, kodListeTipi: mne, sinifAdi: text} = cls
+		for (let cls of [MQHatirlatici]) {
+			let { vioAdim, kodListeTipi: mne, sinifAdi: text } = cls
 			items.push(new FRMenuChoice({
 				mne, vioAdim, text,
 				block: e => {
@@ -133,10 +110,6 @@ class OnayciApp extends TicariApp {
 				new FRMenuCascade({
 					mne: 'PARAM', text: 'Parametreler',
 					items: [
-						new FRMenuChoice({
-							mne: 'EISLPARAM', text: 'e-İşlem Parametreleri',
-							block: e => this.params.eIslem.tanimla(e)
-						}),
 						new FRMenuChoice({
 							mne: 'WEBPARAM', text: 'Web Parametreleri',
 							block: e => this.params.web.tanimla(e)

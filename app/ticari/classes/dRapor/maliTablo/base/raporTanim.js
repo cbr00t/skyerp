@@ -285,17 +285,24 @@ class SBTabloDetay extends MQDetay {
 		this.secimlerOlustur(e)
 	}
 	static pTanimDuzenle({ pTanim }) {
+		let { kolonVarmi_formul } = app
 		extend(pTanim, {
-			aciklama: new PInstStr('aciklama'), tersIslemmi: new PInstBitBool('bnegated'),
-			seviyeNo: new PInstTekSecim('seviyeno', SBTabloSeviye), hesapTipi: new PInstTekSecim('hesaptipi', SBTabloHesapTipi),
-			veriTipi: new PInstTekSecim('shveritipi', SBTabloVeriTipi), shStokHizmet: new PInstTekSecim('shstokhizmet', SBTabloStokHizmet),
-			/* shAlmSat: new PInstTekSecim('shalmsat', AlimSatis),*/ shIade: new PInstTekSecim('shiade', NormalIadeVeBirlikte),
+			aciklama: new PInstStr('aciklama'),
+			tersIslemmi: new PInstBitBool('bnegated'),
+			seviyeNo: new PInstTekSecim('seviyeno', SBTabloSeviye),
+			hesapTipi: new PInstTekSecim('hesaptipi', SBTabloHesapTipi),
+			veriTipi: new PInstTekSecim('shveritipi', SBTabloVeriTipi),
+			shStokHizmet: new PInstTekSecim('shstokhizmet', SBTabloStokHizmet),
+			// shAlmSat: new PInstTekSecim('shalmsat', AlimSatis),
+			shIade: new PInstTekSecim('shiade', NormalIadeVeBirlikte),
 			shAyrimTipi: new PInstTekSecim('shayrimtipi', SBTabloAyrimTipi),
-			formul: new PInstStr(''), satirListeStr: new PInstStr('satirlistestr'),
+			formul: new PInstStr(kolonVarmi_formul ? 'formul' : undefined),
+			satirListeStr: new PInstStr('satirlistestr'),
 			cssClassesStr: new PInstStr('cssclasses'), cssStyle: new PInstStr('cssstyle')
 		})
 	}
 	secimlerOlustur(e) {
+		e ??= {}
 		let tip2Secimler = this.tip2Secimler = e.tip2Secimler ?? {}
 		let tip2SecimMFYapi = {
 			/*S: { mst: DMQStok, grup: DMQStokGrup, anaGrup: DMQStokAnaGrup, istGrup: DMQStokIstGrup, tip: DMQStokTip },
@@ -356,7 +363,7 @@ class SBTabloDetay extends MQDetay {
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments); let {okunanHarSayac: id} = this
 		id ||= newGUID(); extend(hv, { id })
-		let {hesapTipi: { formulmu, ekBilgi: { querymi } = {} } = {}} = this
+		let { hesapTipi: { formulmu, ekBilgi: { querymi } = {} } = {} } = this
 		if (!(querymi || formulmu))
 			hv.bnegated = false
 	}
@@ -434,7 +441,7 @@ class SBTabloDetay extends MQDetay {
 				colDefs.map(_ => _.belirtec)).flat()
 			for (let i = 0; i < uni.liste.length; i++) {
 				let sent = uni.liste[i], hv = { ...defHV, ...harHVListe?.[i] }, basitHV
-				{
+				;{
 					let {alias2Deger} = sent, {shTipi: shTipiClause} = alias2Deger
 					if (shTipiClause) {
 						let shTipiStr = shTipiClause.replaceAll(`'`, '')
@@ -443,7 +450,7 @@ class SBTabloDetay extends MQDetay {
 					basitHV = alias2Deger
 					extend(hv, { ...basitHV })
 				}
-				let {where: wh, sahalar} = sent
+				let { where: wh, sahalar } = sent
 				let donemBSVarmi = e.donemBSVarmi = donemBS?.bosDegilmi ?? false
 				if (donemBSVarmi) {
 					let tarihBS = e.tarihBS = donemBS.deepCopy()
@@ -460,7 +467,7 @@ class SBTabloDetay extends MQDetay {
 				sent.sahalarReset()
 				extend(e, { sent, where: wh, sahalar, hv })
 				if (detayli) {
-					let {sahalar} = sent
+					let { sahalar } = sent
 					for (let [alias, deger] of entries(basitHV)) {
 						if (!sumSahalar[alias])
 							sahalar.add(`${deger} ${alias}`)
@@ -468,7 +475,7 @@ class SBTabloDetay extends MQDetay {
 				}
 				icerikSentDuzenle?.call(this, e)
 				sent = e.sent; wh = sent.where
-				{
+				;{
 					let alias2Deger = e.alias2Deger = sent.alias2Deger
 					extend(hv, { ...alias2Deger })
 					for (let sahaAlias of sahaAliases)
@@ -800,20 +807,28 @@ class SBTabloDetay extends MQDetay {
 		return { harSinif, rapor, detay: this, ...result }
 	}
 	eval(e) {
-		e = e ?? {}; let {recs} = e, {asFormul: code} = this;
-		let s = [undefined, ...recs], satirlar = s;
-		if (code && typeof code == 'string') {
-			if (!code.includes('return ')) { code = `return ${code}` }
-			if (!(code[0] == '(' || code.startsWith('(function('))) { code = `(e => { ${code} })` }
+		e ??= {}
+		let { asFormul: code } = this
+		let { recs, parentRec, det, seq } = e
+		recs ??= []
+		let satirlar = [undefined, ...recs]
+		
+		let t = this, pr = parentRec, d = det, s = satirlar
+		if (isString(code) && code) {
+			if (!(code[0] == '(' || code.startsWith('(function(')))
+				code = `(e => ${code})`
 		}
-		let block = code; if (typeof block == 'string') { block = eval(code) }
-		return block?.call(this, e)
+		let block = code
+		if (isString(block))
+			block = eval(code)
+		return isFunction(block) ? block?.call(this, e) : block
 	}
 	shallowCopy(e) {
 		let inst = super.deepCopy()
 		if (!inst)
 			return inst
-		let {tip2Secimler} = this
+		
+		let { tip2Secimler } = this
 		if (tip2Secimler) {
 			tip2Secimler = inst.tip2Secimler = {}
 			for (let [tip, _secimler] of entries(tip2Secimler)) {
@@ -827,9 +842,11 @@ class SBTabloDetay extends MQDetay {
 		let inst = super.deepCopy()
 		if (!inst)
 			return inst
-		if (this.tip2Secimler) {
+
+		let { tip2Secimler } = this
+		if (tip2Secimler) {
 			let tip2Secimler = inst.tip2Secimler = {}
-			for (let [tip, _secimler] of entries(this.tip2Secimler)) {
+			for (let [tip, _secimler] of entries(tip2Secimler)) {
 				let secimler = _secimler.deepCopy()
 				tip2Secimler[tip] = secimler
 			}

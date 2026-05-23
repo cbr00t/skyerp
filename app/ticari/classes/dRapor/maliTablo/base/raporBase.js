@@ -183,15 +183,19 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		let sevRecs = await super.loadServerData(e)
 		if (!sevRecs)
 			return sevRecs
-		let {id2Detay, formulYapilari, recs, ind2Rec} = e, {tabloYapi: { toplam }} = this
+		let { id2Detay, formulYapilari, recs, ind2Rec } = e
+		let { tabloYapi: { toplam } } = this
 		let attrListe = values(toplam).map(item => item.colDefs[0].belirtec)
+		let seq = 1
 		for (let parentRec of sevRecs) {
 			for (let formulDetaylar of values(formulYapilari))
 			for (let formul of formulDetaylar)
 			for (let attr of attrListe) {
-				let value = await formul.eval({ ...e, det: formul, recs, sevRecs, parentRec, attr, ind2Rec })
-				if (value != null) { parentRec[attr] = value }
+				let value = await formul.eval({ ...e, det: formul, recs, sevRecs, parentRec, attr, seq, ind2Rec })
+				if (value != null)
+					parentRec[attr] = value
 			}
+			seq++
 		}
 		return sevRecs
 	}
@@ -216,15 +220,14 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			filtreDBSet = asSet(filtreDBListe.filter(_ => tumDBNameSet[_]))
 		}
 		let _e = { ...e, rapor, raporTanim, secimler, donemBS, detaylar, yatayAnalizVarmi, yatayAnaliz, filtreDBListe }
-		for (let key of ['altSeviyeToplamimi', 'satirlarToplamimi', 'formulmu'])
+		for (let key of ['altSeviyeToplamimi', 'satirlarToplamimi'])
 			formulYapilari[key] = []
 		
 		for (let det of detaylar) {
-			let { sayac: id, hesapTipi = {}, veriTipi: { donemTipi } } = det
-			let { question: selector, ekBilgi: { ticarimi, hareketcimi, querymi, formulmu } = {} } = hesapTipi
-			formulmu ??= hesapTipi.formulmu
+			let { sayac: id, hesapTipi = {}, veriTipi, veriTipi: { donemTipi } } = det
+			let { question: selector, formulmu, ekBilgi: { ticarimi, hareketcimi, querymi } = {} } = hesapTipi
 			id2Detay[id] = det
-			if (!(querymi || formulmu)) {    /* satır toplam, formul, ... vs */
+			if (!(querymi || formulmu)) {    // satır toplam, formul, ... vs
 				if (selector)
 					formulYapilari[selector]?.push(det)
 				continue
@@ -233,16 +236,8 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			if (donemTipi == 'B' && !donemBS?.basi)
 				continue
 
-			if (formulmu) {
-				let { asFormul: formul } = det
-				if (formul) {
-					if (isString(formul))
-						formul = getFunc(formul)
-					id2Promise[id] = promise(async () =>
-						formul?.call?.this({ ..._e, detay: det, id, hesapTipi, veriTipi, donemTipi }))
-				}
+			if (formulmu)
 				continue
-			}
 			
 			let sonucUni = new MQUnionAll()
 			let stm = new MQStm({ sent: sonucUni })
@@ -297,7 +292,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 				stm = stm.asToplamStm()
 			_e.stm =  stm
 			
-			let promise_recs = app.sqlExecSelect(stm)
+			let promise_recs = stm.execSelect()
 			if (promise_recs != null)
 				id2Promise[id] = promise_recs
 		}
@@ -305,14 +300,19 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		if (yatayDBmi)
 			yatayDegerler = [aktifDB, ...(ekDBListe ?? [])]
 		
-		let recs
-		for (let [id, promise] of entries(id2Promise)) {
-			let det = id2Detay[id]
-			if (!det)
-				continue
+		let recs, seq = 0
+		for (let [id, det] of entries(id2Detay)) {
+			seq++
+			let { hesapTipi, veriTipi } = det
+			let { formulmu } = hesapTipi ?? {}
+			let { donemTipi } = veriTipi ?? {}
+			let _recs = makeArray(
+				formulmu
+					? await det.eval({ ..._e, recs: recs ?? [], detay: det, seq, id, hesapTipi, veriTipi, donemTipi })
+					: await id2Promise[id]
+			)?.map(r => isObject(r) ? r : ({ bedel: r })) ?? []
 			
-			let _recs = makeArray(await promise ?? [])
-			let { bakiyemi, borcmu, alacakmi }  = det.veriTipi?.ekBilgi
+			let { bakiyemi, borcmu, alacakmi }  = det.veriTipi?.ekBilgi ?? {}
 			let yatay2Bedel = {}
 			if (yatayAnalizVarmi) {
 				for (let rec of _recs) {
@@ -333,14 +333,14 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			}
 			
 			let { aciklama } = det
-			let topBedel = topla(rec => rec[bedelAlias] || 0, _recs)
+			let topBedel = topla(r => r[bedelAlias] || 0, _recs)
 			let rec = { id, aciklama, bedel: topBedel }
 			if (yatayAnalizVarmi) {
 				for (let [yatay, bedel] of entries(yatay2Bedel))
 					rec[`bedel_${yatay}`] = bedel
 			}
-			recs ??= []
-			recs.push(rec)
+			;( recs ??= [] )
+				.push(rec)
 		}
 		if (yatayAnalizVarmi && !yatayDBmi && !empty(yatayDegerSet))
 			yatayDegerler = keys(yatayDegerSet).sort()
@@ -357,21 +357,28 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 	async loadServerData_recsDuzenle_seviyelendir({ detayli, recs: sqlRecs, id2Detay, yatayDegerSet }) {
 		if (detayli)
 			return sqlRecs
+		
 		await super.loadServerData_recsDuzenle_seviyelendir(...arguments)
-		let {tabloYapi, raporTanim = {}} = this, {yatayAnalizVarmi, yatayAnaliz} = raporTanim
-		let attrListe = values(tabloYapi.toplam).map(item => item.colDefs.map(_ => _.belirtec)).flat()
+		let { tabloYapi, raporTanim = {} } = this
+		let { yatayAnalizVarmi, yatayAnaliz } = raporTanim
+		let attrListe = values(tabloYapi.toplam)
+			.map(_ => _.colDefs.map(_ => _.belirtec))
+			.flat()
 		if (yatayAnalizVarmi && !empty(yatayDegerSet)) {
 			let topBelirtecListe = attrListe
 			attrListe = []
 			for (let belirtec of topBelirtecListe) {
-				attrListe.push(belirtec)
-				attrListe.push(...keys(yatayDegerSet).map(yatay => `${belirtec}_${yatay}`))
+				attrListe.push(
+					belirtec,
+					...keys(yatayDegerSet).map(yatay => `${belirtec}_${yatay}`)
+				)
 			}
 		}
 		let id2GridRec = {}
 		for (let [id, det] of entries(id2Detay)) {
 			let gridRec = id2GridRec[id] = {
-				...det.asObject, detaylar: [], hesaplandimi: false,
+				...det.asObject, detaylar: [],
+				hesaplandimi: false,
 				...fromEntries(attrListe.map(attr => [attr, 0])),
 				toplamReset() {
 					for (let attr of attrListe)
@@ -395,7 +402,8 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 					if (detaylar.length) {
 						this.toplamReset()
 						for (let det of detaylar) {
-							det.toplamOlustur(); this.toplamaEkle(det)
+							det.toplamOlustur()
+							this.toplamaEkle(det)
 							if (det.tersIslemmi && (det.satirlarToplamimi || det.altSeviyeToplamimi))
 								det.negated()
 						}
@@ -408,34 +416,38 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 					return this
 				}
 			}
-			let {hesapTipi: { ekBilgi: { hareketcimi, harSinif } = {} } = {}} = det
+			let { hesapTipi: { ekBilgi: { hareketcimi, harSinif } = {} } = {} } = det
 			if (hareketcimi && harSinif) {
 				let handlerCode = 'app.activeWndPart.inst.main.hareketKartiGoster()';
 				gridRec.aciklama += `<button id="izle" class="float-right" style="width: 30px; height: 22px; margin-right: 5px" onclick="${handlerCode}"></button>`
 			}
 		}
 		for (let rec of sqlRecs) {
-			let {id} = rec, gridRec = id2GridRec[id]
+			let { id } = rec, gridRec = id2GridRec[id]
 			for (let attr of attrListe)
 				gridRec[attr] = rec[attr] ?? 0
-			gridRec.hesaplandimi = true
+			// gridRec.hesaplandimi = true
 		}
-		let maxSevNo = 1, sev2Ust = {}, gridRecs = values(id2GridRec)
+		let maxSevNo = 1, sev2Ust = {}
+		let gridRecs = values(id2GridRec)
 		for (let gridRec of gridRecs) {
-			let {seviyeNo: sevNo, detaylar} = gridRec
+			let { seviyeNo: sevNo, detaylar } = gridRec
 			sevNo = asInteger(sevNo?.char ?? sevNo) || 1
 			maxSevNo = Math.max(sevNo, maxSevNo)
-			let ustSevNo = sevNo - 1; sev2Ust[sevNo] = gridRec
+			let ustSevNo = sevNo - 1
+			sev2Ust[sevNo] = gridRec
 			if (ustSevNo > 0) {
 				let ustGridRec = sev2Ust[ustSevNo] ?? {}
-				let {detaylar: ustDetaylar} = ustGridRec
+				let { detaylar: ustDetaylar } = ustGridRec
 				// for (let attr of attrListe) { ustGridRec[attr] += gridRec[attr] }
 				ustDetaylar?.push(gridRec)
 			}
 		}
-		let sevRecs = gridRecs.filter(rec => asInteger(rec?.seviyeNo?.char ?? rec?.seviyeNo) <= 1);
+		let sevRecs = gridRecs.filter(r => asInteger(r?.seviyeNo?.char ?? r?.seviyeNo) <= 1)
 		for (let sev of sevRecs) {
-			let {hesapTipi, satirListe, hesaplandimi} = sev; if (hesaplandimi) { continue }
+			let { hesapTipi, satirListe, hesaplandimi } = sev
+			if (hesaplandimi)
+				continue
 			if (hesapTipi?.altSeviyeToplamimi)
 				sev.toplamOlustur()
 			else if (hesapTipi?.satirlarToplamimi && satirListe?.length) {
@@ -448,7 +460,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		return sevRecs
 	}
 	loadServerData_recsDuzenleSon(e) {
-		let {recs} = e, {gridPart: { filtreTokens }} = this
+		let { recs } = e, { gridPart: { filtreTokens } } = this
 		if (filtreTokens?.length) {
 			let _recs = this.loadServerData_recsDuzenle_hizliBulIslemi(e)
 			recs = _recs == null ? e.recs : _recs

@@ -68,7 +68,7 @@ class SkyRaporApp extends TicariApp {
 				try { await app.sqlExecNone(`alter table wgruprapor add bfavori bit not null default 0`) }
 				catch (ex) { console.error(getErrorText(ex)) }
 			}
-			{
+			;{
 				let maxLen = 25, table = 'wgruprapor', field = 'raportip';
 				let len = values(await app.sqlGetColumns(table, field))[0]?.length
 				if (len != null && len < maxLen) {
@@ -78,6 +78,16 @@ class SkyRaporApp extends TicariApp {
 						try { await app.sqlExecNone(`alter table ${table} alter column ${field} char(${maxLen}) not null`) }
 						catch (ex3) { console.error(getErrorText(ex3)) }
 					}
+				}
+			}
+			;{
+				let varmi = this.kolonVarmi_formul = await app.sqlHasTable('sbtablodetay') && !empty(await app.sqlGetColumns('sbtablodetay', 'formul'))
+				if (!varmi && await app.sqlHasTable('sbtablodetay')) {
+					try {
+						await app.sqlExecNone(`alter table sbtablodetay add formul varchar(1000) not null default ''`)
+						varmi = this.kolonVarmi_formul = !empty(await app.sqlGetColumns('sbtablodetay', 'formul'))
+					}
+					catch (ex) { console.error(getErrorText(ex)) }
 				}
 			}
 		}
@@ -169,8 +179,9 @@ class SkyRaporApp extends TicariApp {
 			let subItems = (kategoriKod2MenuItems[kategoriKod] ??= [])
 			subItems.push(new FRMenuChoice({
 				mne, vioAdim, text: sinif.aciklama, block: async e => {
-					let {menuItemElement: item, event: evt} = e ?? {}, {ctrlKey: ctrl, shiftKey: shift} = evt ?? {}
-					let newWindow = (ctrl || shift) || !($('body').hasClass('no-wnd') || asBool(qs.sameWindow))
+					let { menuItemElement: item, event: evt } = e ?? {}
+					let { ctrlKey: ctrl, shiftKey: shift, altKey: alt } = evt ?? {}
+					let newWindow = !alt && ( ( ctrl || shift ) || !( asBoolQ(qs.sameWindow) ?? false ))
 					let menuId = newWindow ? item?.mneText : null
 					if (menuId) {
 						this.openNewWindow({ menuId, qs: { sameWindow: true } })
@@ -195,7 +206,7 @@ class SkyRaporApp extends TicariApp {
 			target.push(..._items)
 		}
 		items.push(...items_raporlar.filter(x => !!x))
-		{
+		;{
 			let { session: { encUser } } = config
 			let sent = new MQSent(), {where: wh, sahalar} = sent
 			sent.fromAdd('wgruprapor')
@@ -217,8 +228,9 @@ class SkyRaporApp extends TicariApp {
 				favItems.push(new FRMenuChoice({
 					mne, vioAdim, text,
 					block: async e => {
-						let { menuItemElement: item, event: evt} = e ?? {}, {ctrlKey: ctrl, shiftKey: shift } = evt ?? {}
-						let newWindow = (ctrl || shift) || !($('body').hasClass('no-wnd') || asBool(qs.sameWindow))
+						let { menuItemElement: item, event: evt } = e ?? {}
+						let { ctrlKey: ctrl, shiftKey: shift, altKey: alt } = evt ?? {}
+						let newWindow = !alt && ( ( ctrl || shift ) || !( asBoolQ(qs.sameWindow) ?? false ))
 						let menuId = newWindow ? item?.mneText : null
 						if (menuId) {
 							this.openNewWindow({ menuId, qs: { sameWindow: true } })

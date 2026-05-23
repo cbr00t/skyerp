@@ -759,9 +759,10 @@ class MQOnayci extends MQCogul {
 			}
 			if (toplu?.bosDegilmi) {
 				let topicSet = new Set()
-				let { onayMax, onayNo: aktifOnayNo } = app
-				if (!aktifOnayNo)
-					aktifOnayNo = max(1, ...boundRecs.map(r => r.onayNo || 0))
+				let { onayMax } = app
+				let aktifOnayNo = Number(qs.onayNo) || 1
+				//if (!aktifOnayNo)
+				//	aktifOnayNo = max(1, ...recs.map(r => r.onayNo || 0))
 				
 				let onayBilgiSet = new Set()
 				if (onaymi && aktifOnayNo < onayMax) {
@@ -774,13 +775,18 @@ class MQOnayci extends MQCogul {
 							)
 						)
 				}
+
+				let { session: { user: buUser } = {} } = config
 				for (let _ of onayBilgiSet) {
 					let [ user, onayNo ] = _.split(delimWS)
 					onayNo = ( Number(onayNo) || aktifOnayNo ) + 1
 					let onayNoStr = String(onayNo)
 
 					let inNewWindow = true
-					let tempQS = { ...qs, onayNo, inNewWindow }
+					let tempQS = {
+						...qs, inNewWindow
+						// onayNo
+					}
 					//if (!asBool(qs.light))
 					//	tempQS.dark = true
 					;{
@@ -832,17 +838,24 @@ class MQOnayci extends MQCogul {
 						_qs._ = Base64.encode($.param(tempQS))
 					deleteKeys(_qs, '#', 'session', 'sessionID', 'user', 'pass', 'host', 'port', 'url', 'wsURL', 'sql')
 
-					let { DefaultWSHostName_SkyServer: cloudHost } = config.class
+					let { session, class: { DefaultWSHostName_SkyServer: cloudHost } } = config
 					let { ntfyTopic: topic } = app
-					let seqId
-					;{
+					let seqId, priority = 5
+					let icon = `https://${cloudHost}:90/skyerp/images/sky_logo.png`
+					/*;{
 						let topicOnayNo = Number(topic.at(-1))
 						if (topicOnayNo == aktifOnayNo)
 							topic = topic.slice(0, -1)
 						topic = topic.concat(onayNoStr)
 						topicSet.add(topic.join('-'))
+					}*/
+					;{
+						if (user != buUser) {
+							let i = topic.indexOf(buUser)
+							if (i > -1)
+								topic[i] = user
+						}
 						
-						let priority = 5
 						let tags = ['hourglass', '_new', user, onayNoStr]
 						let title = 'VIO Onay İşlemleri'
 						let message = 'Onay bekleyen yeni belgeler var'
@@ -859,9 +872,9 @@ class MQOnayci extends MQCogul {
 								url
 							})
 						}
-
+						
 						seqId = newGUID()
-						await ntfy({ topic, seqId, priority, tags, title, message, actions })
+						await ntfy({ topic, seqId, priority, tags, title, message, icon, actions })
 					}
 				}
 				
@@ -1350,7 +1363,7 @@ class MQOnayci extends MQCogul {
 									new GridKolon({ belirtec: 'brm', text: 'Brm', genislikCh: 4 }).checkedList()
 								)
 							),
-							new GridKolon({ belirtec: 'iskOranText', text: 'İsk.', genislikCh: 5 }).checkedList().alignRight(),
+							new GridKolon({ belirtec: 'iskOranText', text: 'İsk.', genislikCh: 7 }).checkedList().alignRight(),
 							new GridKolon({ belirtec: 'bedelStr', text: 'Bedel', genislikCh: 15 }).input()
 						]
 						;_colDefs.forEach(cd => {

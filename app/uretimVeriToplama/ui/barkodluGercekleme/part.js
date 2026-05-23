@@ -537,7 +537,7 @@ class BarkodluGerceklemePart extends Part {
 		let miktar = e.miktar || barkodRec.miktar; if (e.miktar ==  null && miktar == 1) { miktar = null }
 		btnEkle.parent().removeClass('jqx-hidden basic-hidden');
 		/*for (const elm of [btnIskarta, btnKalite, btnTopluDegistir, btnTopluSil]) { elm?.parent()?.addClass('jqx-hidden') }*/
-		if (miktar) { barkodRec.carpan = null; txtMiktar.val(miktar); setTimeout(() => btnEkle.focus(), 50) }
+		if (miktar) { barkodRec.carpan = null; txtMiktar.val(miktar); setTimeout(() => btnEkle.click(), 1) }
 		else { txtMiktar.val(miktar); txtMiktar.parent().removeClass('jqx-hidden basic-hidden'); setTimeout(() => txtMiktar.focus(), 50) }
 		app.veriAktarici_startTimer()
 	}
@@ -589,12 +589,28 @@ class BarkodluGerceklemePart extends Part {
 		yerelParam.kaydetDefer(); gridWidget.deleterow(rec.uid);
 		const {txtBarkod} = this; if (txtBarkod && txtBarkod.length) setTimeout(() => this.txtBarkod.focus(), 200)
 	}
-	secilenleriGonderIstendi(e) {
-		const {gridPart} = this, {gridWidget} = gridPart;
-		let recs = (gridPart.selectedRecs || []).filter(rec => !(rec._durum == 'done' || rec._durum == 'changing' || rec._durum == 'removed'));
+	async secilenleriGonderIstendi(e) {
+		let {gridPart} = this, {gridWidget} = gridPart
+		let recs = (gridPart.selectedRecs || []).filter(rec => !(rec._durum == 'done' || rec._durum == 'changing' || rec._durum == 'removed'))
 		if ($.isEmptyObject(recs)) { hConfirm('Gönderilecek bilgi yok', ' '); return }
-		this.retryIstendi($.extend({}, e, { force: true, recs }));
-		setTimeout(() => gridWidget.clearselection(), 10); setTimeout(() => this.txtBarkod.focus(), 100)
+		let { _inGonderFlag: fl, btnGonder } = this
+		if (fl)
+			return
+		
+		if (btnGonder?.length)
+			setButonEnabled(btnGonder, false)
+		fl = this._inGonderFlag = true
+		try {
+			await this.retryIstendi({ ...e, force: true, recs })
+		}
+		finally {
+			setTimeout(() => {
+				this._inGonderFlag = false
+				setButonEnabled(btnGonder, true)
+			}, 1_000)
+		}
+		setTimeout(() => gridWidget.clearselection(), 10)
+		setTimeout(() => this.txtBarkod.focus(), 100)
 	}
 	iskartaIstendi(e) {
 		const {gridWidget} = this.gridPart; let rec = gridWidget.getrowdata(gridWidget.getselectedrowindex());

@@ -219,9 +219,9 @@ class SBTabloVeriTipi extends TekSecim {
 		let topSahaEkle = e.topSahaEkle = ({ detayli, sent, sent: { sahalar }, clause, bedelAlias, det: { tersIslemmi, shIade = {} }, hv }) => {
 			if (isFunction(clause)) { clause = clause(hv) }
 			let tersmi = tersIslemmi != shIade.iademi
-			clause = clause.sumOlmaksizin()
-			if (!detayli)
-				clause = clause.asSumDeger()
+			clause = clause.sumOlmaksizin().asSumDeger()
+			//if (!detayli)
+			//	clause = clause.asSumDeger()
 			if (tersmi)
 				clause = clause += ' * -1'
 			sahalar.add(`(${clause}) ${bedelAlias}`)
