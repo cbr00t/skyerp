@@ -190,7 +190,7 @@ class MQHatirlatici extends MQCogul {
 		let { where: wh, sahalar } = sent, { orderBy } = stm
 		sent
 			.leftJoin(alias, 'htipbilgi tbil', ['htr.kayittipi = tbil.kayittipi', 'htr.xtipkod = tbil.xtipkod'])
-			.leftJoin('tbil', 'htipbilgi tanabil', ['htr.kayittipi = tanabil.kayittipi', `htr.xtipkod = ''`])
+			.leftJoin('tbil', 'htipbilgi tanabil', ['htr.kayittipi = tanabil.kayittipi', `tanabil.xtipkod = ''`])
 		if (hepsiniGoster)
 			sahalar.add(`${alias}.bkapandi kapandi`)
 		else
@@ -202,8 +202,8 @@ class MQHatirlatici extends MQCogul {
 				'kesinkullanicikod kesinUser', 'kapanisnotu kapanisNotu', 'referans', 'xtipadi tipAdi',
 				'kapanmatarihi kapanmaTarihi')
 			.add(
-				'COALESCE(tbil.kullanicilistestr, tanabil.kullanicilistestr) usersStr',
-				'COALESCE(tbil.emaillistestr, tanabil.emaillistestr) eMailsStr'
+				'dbo.emptycoalesce(tbil.kullanicilistestr, tanabil.kullanicilistestr) usersStr',
+				'dbo.emptycoalesce(tbil.emaillistestr, tanabil.emaillistestr) eMailsStr'
 			)
 		orderBy.liste = ['sonTarih', 'kayitTipi', 'tipAdi']
 	}
@@ -490,7 +490,7 @@ class MQHatirlatici extends MQCogul {
 				?.join(', ')
 		
 		return [
-			`<div class="flex-row" style="gap: 0 10px">`,
+			`<div class="flex-row full-width" style="gap: 0 10px">`,
 				`<template class="sort-data">${[kayitTipi, tipAdi].filter(Boolean).join(delimWS)}</template>`,
 				( tipRefStr ? `<div class="lightgray">Ref:</div> <div>${tipRefStr}</div>` : '' ),
 				( kapanmaTarihiStr ? `<div class="lightgray">K:</div> <div class="firebrick">${kapanmaTarihiStr}</div>` : '' ),
