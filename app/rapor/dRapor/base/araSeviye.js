@@ -684,7 +684,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	
 	donemBagla({ donemBS, tarihSaha, sent }) {
 		if (donemBS) {
-			let {where: wh} = sent, {basi, sonu} = donemBS;
+			let  {where: wh } = sent, { basi, sonu } = donemBS
 			wh.basiSonu(donemBS, tarihSaha)
 		}
 		return this
@@ -1292,7 +1292,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	loadServerData_queryDuzenle_baBedel({ stm, sent, attrSet, baClause, bedelClause }) {
 		if (!(baClause || bedelClause))
 			return this
-		sent ??= sent ?? stm.sent
+		sent ??= stm.sent
 		let {where: wh, sahalar} = sent
 		for (let key in attrSet) {
 			switch (key) {

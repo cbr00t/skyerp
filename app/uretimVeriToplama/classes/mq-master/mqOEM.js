@@ -342,7 +342,10 @@ class MQOEM extends MQSayacliOrtak {
 		let {builder} = e, {part} = builder, {mfSinif, secimler} = part;
 		let barkod = e.value, carpan = null; if (barkod) {
 			let barkodLower = barkod.toLowerCase();
-			for (let separator of ['x', '*']) { let parts = barkod.split(separator, 2); if (parts.length > 1) { carpan = asFloat(parts[0]) || null; barkod = parts[1].trim(); break } }
+			for (let separator of ['x', '*']) {
+				let parts = barkod.split(separator, 2)
+				if (parts.length > 1) { carpan = asFloat(parts[0]) || null; barkod = parts[1].trim(); break }
+			}
 		}
 		let parser = barkod ? await app.barkodBilgiBelirleFromEOU({ barkod, carpan }) : null;
 		delete secimler._ekWhere; if (parser) {

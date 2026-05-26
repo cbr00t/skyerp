@@ -763,9 +763,11 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 					yatayAnaliz = kullanim.yatayAnaliz = null
 				else {
 					window.progressManager?.setProgressMax((window.progressManager?.progressMax || 0) + 5)
-					let {belirtec} = DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz] ?? {}
+					let { belirtec } = DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz] ?? {}
 					let tumYatayAttrSet = e.tumYatayAttrSet = {}
-					let recs = await this.loadServerDataInternal({ yatayAnaliz: true, internal: true, attrSet: _attrSet })
+					let { secimler: sec = this.secimler, donemBS } = e
+					donemBS ||= sec?.tarihBS
+					let recs = await this.loadServerDataInternal({ yatayAnaliz: true, internal: true, attrSet: _attrSet, donemBS })
 					window.progressManager?.progressStep(3)
 					let liste = {}
 					for (let rec of recs) {

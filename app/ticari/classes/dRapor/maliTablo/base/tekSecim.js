@@ -281,11 +281,15 @@ class SBTabloVeriTipi extends TekSecim {
 		return this
 	}
 	kaListeDuzenle_hareketci({ kaListe, topSahaEkle }) {
-		let {sqlZero} = Hareketci_UniBilgi.ortakArgs;
+		let { sqlZero } = Hareketci_UniBilgi.ortakArgs
 		let sentUygunluk = e => {
-			let { hesapTipi: { ekBilgi: { querymi, hareketcimi, harSinif } = {} } = {} } = e;
-			if (!hareketcimi) { return false }
-			if (harSinif.ticarimi || harSinif.stokCikisBasitmi) { return false }
+			e ??= {}
+			let { hesapTipi: { ekBilgi = {} } } = e
+			let { hareketcimi, harSinif } = ekBilgi
+			if (!hareketcimi)
+				return false
+			if (harSinif.ticarimi || harSinif.stokCikisBasitmi)
+				return false
 			return harSinif.maliTablo_sentUygunluk?.call(this, e) ?? true
 		}
 		let gosterimUygunluk = sentUygunluk;

@@ -350,6 +350,21 @@ class DMQMuhHesap_Kebir extends DMQMuhHesap {
 	static get kodListeTipi() { return 'MUHHESAPKEB' } static get sinifAdi() { return 'Kebir Hesap' }
 	static get tableAlias() { return 'khes' }
 }
+class DMQMuhHesap_Sinif extends DMQMuhHesap {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'MUHHESAPSIN' } static get sinifAdi() { return 'Sınıf Hesap' }
+	static get tableAlias() { return 'shes' }
+}
+class DMQMuhHesap_Cerceve extends DMQMuhHesap {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'MUHHESAPCER' } static get sinifAdi() { return 'Çerçeve Hesap' }
+	static get tableAlias() { return 'ches' }
+}
+class DMQMuhHesap_Ust extends DMQMuhHesap {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'MUHHESAPUST' } static get sinifAdi() { return 'Üst Hesap' }
+	static get tableAlias() { return 'uhes' }
+}
 class DMQMuhUstHesap extends DMQMuhHesap {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'MUHUSTHESAP' } static get sinifAdi() { return 'Üst Hesap' }

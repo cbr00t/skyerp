@@ -1,15 +1,17 @@
 
 class DRapor_Muhasebe extends DRapor_Donemsel {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get altRaporClassPrefix() { return 'DRapor_Muhasebe' }
 	static get kategoriKod() { return 'MUH' } static get kategoriAdi() { return 'Muhasebe' }
 	static get kod() { return 'MUHASEBE' } static get aciklama() { return 'Muhasebe Total' }
 	static get vioAdim() { return 'MH-R' } static get oncelik() { return 97 }
-	static get altRaporClassPrefix() { return 'DRapor_Muhasebe' }
+	static get uygunmu() { return false }
 	static get maliTabloIcinUygunmu() { return true }
 }
 class DRapor_Muhasebe_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Muhasebe }
+	
 	secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments)
 		let {muhasebe: muhParam = {}} = app.params
@@ -26,10 +28,10 @@ class DRapor_Muhasebe_Main extends DRapor_Donemsel_Main {
 		}
 	}
 	tabloYapiDuzenle({ result }) {
-		let e = arguments[0]; super.tabloYapiDuzenle(e)
-		let {toplamPrefix} = this.class
-		let brmDict = app.params?.stokBirim?.brmDict ?? {}
-		let {isAdmin, rol} = config.session ?? {}
+		let e = arguments[0]
+		super.tabloYapiDuzenle(e)
+		let { toplamPrefix } = this.class
+		let { isAdmin, rol } = config.session ?? {}
 		result
 			.addKAPrefix('sinifhesap', 'kebirhesap', 'cercevehesap', 'usthesap', 'muhhesap', 'muhgrup')
 			.addGrupBasit('CERCEVEHESAP', 'Çerçeve Hesap', 'cercevehesap', DMQMuhHesap, null, ({ item }) => item.secimKullanilmaz())
@@ -47,7 +49,7 @@ class DRapor_Muhasebe_Main extends DRapor_Donemsel_Main {
 		super.loadServerData_queryDuzenle(e)
 		let {attrSet, stm: { sent, sent: { where: wh, sahalar } }} = e
 		let alias = 'fis'
-		$.extend(e, { sent, alias })
+		extend(e, { sent, alias })
 		sent.fisHareket('muhfis', 'muhhar')
 		sent.har2MuhHesapBagla()
 		wh.fisSilindiEkle({ alias })

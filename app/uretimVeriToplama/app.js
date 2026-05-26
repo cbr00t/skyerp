@@ -77,57 +77,146 @@ class UretimVeriToplamaApp extends App {
 		if (degistimi) { yerelParam.kaydet(); let {activePart} = this; if (activePart?.tazele) activePart.tazele() }
 	}
 	async barkodBilgiBelirleFromEOU(e) {
-		let result = await this.barkodBilgiBelirleBasit(e); if (result != null) { return result }
-		e = e || {}; if (typeof e != 'object') e = { barkod: e }
-		let barkod = e.barkod?.trim(); if (!barkod) { return null }
-		let MinParcaSayi = 3; let basitmi = e.basitmi ?? e.basit ?? e.basitFlag, {carpan} = e; let result_parts;
-		let separator = ';', parts = barkod.split(separator);
-		if (parts?.length < MinParcaSayi) { separator = '-'; parts = barkod.split(separator) }
-		if (parts?.length < MinParcaSayi) { separator = '/'; parts = barkod.split(separator) }
-		if (parts?.length < MinParcaSayi) { separator = '|'; parts = barkod.split(separator) }
-		if (parts?.length >= MinParcaSayi) { result_parts = parts }
-		if (result_parts) {
-			/*if (!(result_parts[0] || asInteger(result_parts[1]))) { return {} }*/
-			result_parts = [...result_parts.slice(0, 2), result_parts.slice(2).join(separator || '')];
-			return {
-				okunanBarkod: barkod, barkod,
-				carpan: carpan || null, miktar: carpan || null,
-				emirNox: result_parts[0], opNo: result_parts[1],
-				revNo: (result_parts.length == 4 ? result_parts[2] : null),
-				shKod: (result_parts.length == 4 ? result_parts[3] : result_parts[2])
+		let result = await this.barkodBilgiBelirleBasit(e)
+		if (result != null)
+			return result
+		
+		e = isObject(e) ? e ?? {} : { barkod: e }
+		let barkod = e.barkod?.trim()
+		if (!barkod)
+			return null
+		
+		let { carpan, basitmi = e.basit ?? e.basitFlag } = e
+		carpan ||= null
+
+		let { eosStili: format } = app.params.operGenel ?? {}
+		format = ( format?.char ?? format )?.toUpperCase()
+		if (format) {    // format varsa varsayılan'a bakmaz
+			let separator = format[1]
+			let barkodTokens = separator ? barkod.split(separator) : null
+			if (!empty(barkodTokens)) {
+				let formatTokens = format.split(separator)
+				//if (barkodTokens.length > formatTokens.length)
+				//	return null
+
+				let k2s = {
+					...BarkodKurali_AyrisimAyiracli.hmrBelirtec2Bilgi,
+					E: 'emirNox', O: 'opNo', S: 'shKod',
+					R: 'perKod', T: 'tezgahKod', W: 'oemID',
+					R: 'revNo', V: 'miktar'
+				}
+				let matchSet = new Set()
+				let res = { okunanBarkod: barkod, barkod }
+				;formatTokens.forEach((k, i) => {
+					if (matchSet.has(k))
+						return true    // continue
+					
+					if (k == 'Z') {
+						res.zVarmi = true
+						matchSet.add(k)
+						return true    // continue
+					}
+					
+					let selector = k2s[k]
+					if (!selector)
+						return true    // continue
+					
+					let v = barkodTokens[i]
+					if (v) {
+						res[selector] = v
+						matchSet.add(k)
+					}
+				})
+				
+				let uygunmu = ['E', 'O', 'S'].every(k => matchSet.has(k))
+				if (uygunmu) {
+					let miktar = res.miktar || carpan
+					res.miktar = res.carpan = miktar
+					return res
+				}
+				
+				return null
 			}
 		}
-		return barkod ? {} : null
+		
+		;{
+			const MinParcaSayi = 3
+			let result_tokens
+			let separator = ';'
+			let tokens = barkod.split(separator)
+			if (tokens?.length < MinParcaSayi) {
+				separator = '-'
+				tokens = barkod.split(separator)
+			}
+			if (tokens?.length < MinParcaSayi) {
+				separator = '/'
+				tokens = barkod.split(separator)
+			}
+			if (tokens?.length < MinParcaSayi) {
+				separator = '|'
+				tokens = barkod.split(separator)
+			}
+			if (tokens?.length >= MinParcaSayi)
+				result_tokens = tokens
+			
+			if (result_tokens) {
+				let t = result_tokens = [
+					...result_tokens.slice(0, 2),
+					result_tokens.slice(2).join(separator || '')
+				]
+				return {
+					okunanBarkod: barkod,
+					barkod, carpan, miktar: carpan,
+					emirNox: t[0],
+					opNo: t[1],
+					revNo: ( t.length == 4 ? t[2] : null ),
+					shKod: ( t.length == 4 ? t[3] : t[2] )
+				}
+			}
+		}
+		
+		return null
+		// return barkod ? {} : null
 	}
 	async verileriSilIstendi(e) {
-		e = e || {}; let {params} = this, selectors = ['yerel', 'localData'];
-		let size = 0;
+		let { params } = this
+		let size = 0
+		let selectors = ['yerel', 'localData']
 		for (let selector of selectors) {
-			let param = params[selector];
-			if (param) { let data = localStorage.getItem(param.class?.fullTableName); size += data?.length }
+			let param = params[selector]
+			if (param) {
+				let data = localStorage.getItem(param.class?.fullTableName)
+				size += data?.length
+			}
 		}
-		let sizeMB = roundToFra(size / 1024 / 1024, 2);
-		let promise = new $.Deferred();
-			let {wnd} = displayMessage(
-				(
-					`<p class="bold">Yerel Veriler <u class="darkred">SİLİNECEK</u>.` +
-						(sizeMB
-							? (
-								`<span class="ek-bilgi gray" style="font-size: 85%; margin-left: 10px">` +
-									 `(<b class="bold blue">${sizeMB.toLocaleString()} MB</b> veri)` +
-								`</span>`
-							) : '') +
-					`</p><p>Devam edilsin mi?</p>`
-				),
-				'',
-				{ 'SİL': e => { promise.resolve(true); e.close() }, 'Vazgeç': e => { promise.resolve(false); e.close() } }
-			);
-			wnd.on('close', evt => promise.resolve(false));
-			wnd.jqxWindow({ width: 500, height: 180, position: 'center' }); setTimeout(() => wnd.jqxWindow('resize'), 1);
-			let buttons = wnd.find('.jqx-window-content > .buttons > button');
-			buttons.eq(0).addClass('jqx-danger'); buttons.eq(1).addClass('jqx-inverse');
-			let result = await promise;
-			if (result) { await this.verileriSil(e); eConfirm('Yerel veriler silindi', ''); }
+		let sizeMB = roundToFra(size / 1024 / 1024, 2)
+		let promise = defer()
+		let { wnd } = displayMessage(
+			(
+				`<p class="bold">Yerel Veriler <u class="darkred">SİLİNECEK</u>.` +
+					(sizeMB
+						? (
+							`<span class="ek-bilgi gray" style="font-size: 85%; margin-left: 10px">` +
+								 `(<b class="bold blue">${sizeMB.toLocaleString()} MB</b> veri)` +
+							`</span>`
+						) : '') +
+				`</p><p>Devam edilsin mi?</p>`
+			),
+			'',
+			{
+				'SİL': e => { promise.resolve(true); e.close() },
+				'Vazgeç': e => { promise.resolve(false); e.close() }
+			}
+		)
+		wnd.on('close', evt => promise.resolve(false))
+		wnd.jqxWindow({ width: 500, height: 180, position: 'center' }); setTimeout(() => wnd.jqxWindow('resize'), 1)
+		let buttons = wnd.find('.jqx-window-content > .buttons > button')
+		buttons.eq(0).addClass('jqx-danger'); buttons.eq(1).addClass('jqx-inverse')
+		let result = await promise
+		if (result) {
+			await this.verileriSil(e)
+			eConfirm('Yerel veriler silindi', '')
+		}
 	}
 	async verileriSil(e) {
 		e = e || {}; let {params} = this, selectors = ['yerel', 'localData'];

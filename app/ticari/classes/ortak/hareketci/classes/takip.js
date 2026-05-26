@@ -41,6 +41,7 @@ class TakipHareketci extends Hareketci {
 				let res = hv.belgetarih
 				if (!res?.sqlDoluDegermi())
 					res = 'fis.tarih'
+				return res
 			},
 			fistarih: ({ hv }) => hv.tarih,
 			fisnox: ({ hv }) => hv.belgenox

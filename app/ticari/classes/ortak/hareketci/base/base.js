@@ -351,7 +351,7 @@ class Hareketci extends CObject {
 		return uni
 	}
 	uniDuzenle(e = {}) {
-		$.extend(e, Hareketci_UniBilgi.ortakArgs)
+		extend(e, Hareketci_UniBilgi.ortakArgs)
 		this.uniDuzenleOncesi(e)
 		let {uygunluk2UnionBilgiListe, attrSet} = this, {varsayilanHV: defHV, zorunluAttrSet} = this.class
 		let rapor = e.rapor ?? e.sender, secimler = e.secimler ?? rapor?.secimler
@@ -364,7 +364,7 @@ class Hareketci extends CObject {
 				uygunluk = asSet(hareketTipSecim.kaListe.map(({ kod }) => kod))
 		}
 		let sender = this, hareketci = this, {uni, maliTablomu, sender: { finansalAnalizmi } = {}} = e
-		$.extend(e, { uygunluk, zorunluAttrSet })
+		extend(e, { uygunluk, zorunluAttrSet })
 		for (let [selectorStr, unionBilgiListe] of entries(uygunluk2UnionBilgiListe)) {
 			let uygunmu = true
 			if (uygunlukVarmi) {
@@ -374,12 +374,15 @@ class Hareketci extends CObject {
 					continue
 			}
 			unionBilgiListe = unionBilgiListe.map(item =>
-				getFuncValue.call(this, item, e)).filter(({ sent, hv }) => sent && !empty(hv))
+				getFuncValue.call(this, item, e)).filter(({ sent, hv }) => sent)
 			let tumHVKeys = { ...zorunluAttrSet, ...defHV }
-			for (let {hv} of unionBilgiListe)
-				$.extend(tumHVKeys, hv)
+			for (let { hv } of unionBilgiListe)
+				extend(tumHVKeys, hv)
 			for (let uniBilgi of unionBilgiListe) {
-				let {sent, hv} = uniBilgi, _e = { ...e, sent, hv };
+				let { sent, hv } = uniBilgi
+				let _e = { ...e, sent, hv }
+				let hvDegeri = _e.hvDegeri = k =>
+					hv?.[k] || defHV?.[k]
 				if (hv) {
 					sent = _e.sent = sent.deepCopy()
 					for (let alias in tumHVKeys) {
@@ -388,15 +391,14 @@ class Hareketci extends CObject {
 							continue
 						let deger = hv[alias] || defHV[alias]
 						if (isFunction(deger))
-							deger = deger.call(this, { ...e, sender, hareketci, uniBilgi, key: alias, sent, hv, defHV })
+							deger = deger.call(this, { ..._e, sender, hareketci, uniBilgi, key: alias, sent, hv, defHV })
 						deger = deger ?? 'NULL';
 						let saha = alias ? `${deger} ${alias}` : deger
 						sent.add(saha)
 					}
 					hv = { ...defHV, ..._e.hv }
 				}
-				let hvDegeri = key => hv?.[key] || defHV?.[key]
-				$.extend(_e, { defHV, hv, har: this, harSinif: this.class, rapor, secimler, hvDegeri })
+				extend(_e, { defHV, hv, har: this, harSinif: this.class, rapor, secimler, hvDegeri })
 				this.uniDuzenle_tumSonIslemler(_e); sent = _e.sent
 				if (!(maliTablomu || finansalAnalizmi))
 					sent.groupByOlustur().gereksizTablolariSil()

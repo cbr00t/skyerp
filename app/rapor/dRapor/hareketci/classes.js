@@ -8,9 +8,9 @@ class DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main extends DRapor_Hareketci_Mai
 		super.tabloYapiDuzenle(e)
 		let {maliyetKullanilirmi} = this.class
 		let {brmDict} = app.params.stokBirim ?? {}
-		let {isAdmin, rol} = config.session ?? {}
+		let { isAdmin, rol } = config.session ?? {}
 		let maliyetGorurmu = isAdmin || !rol?.ozelRolVarmi('XMALYT')
-		let {tip2BrmListe} = MQStokGenelParam
+		let { tip2BrmListe } = MQStokGenelParam
 		let {toplam} = result, brmListe = keys(tip2BrmListe)
 		result.addGrupBasit('SHTIP', 'S/H Tip', 'shtiptext')
 		this.tabloYapiDuzenle_cari(e)
@@ -810,8 +810,11 @@ class DRapor_Hareketci_Takip_Main extends DRapor_Hareketci_Main {
 	static get ticarimi() { return true }
 
 	tabloYapiDuzenle({ result }) {
-		super.tabloYapiDuzenle(...arguments); let {isAdmin, rol} = config.session ?? {}, maliyetGorurmu = isAdmin || !rol?.ozelRolVarmi('XMALYT');
-		this.tabloYapiDuzenle_cari(...arguments).tabloYapiDuzenle_takip(...arguments)
+		super.tabloYapiDuzenle(...arguments)
+		let { isAdmin, rol } = config.session ?? {}
+		let maliyetGorurmu = isAdmin || !rol?.ozelRolVarmi('XMALYT')
+		this.tabloYapiDuzenle_cari(...arguments)
+		this.tabloYapiDuzenle_takip(...arguments)
 		if (maliyetGorurmu) {
 			result
 				.addToplamBasit_bedel('TUMMALIYET', 'Tüm Maliyet', 'tummaliyet')
@@ -1357,6 +1360,53 @@ class DRapor_Hareketci_Duraksama_Main extends DRapor_Hareketci_OperBase_Main {
 		super.loadServerData_queryDuzenle_hrkSent(e)
 		// let {attrSet, sent, hvDegeri} = e
 		// let {where: wh, sahalar} = sent
+	}
+	loadServerData_queryDuzenle_hrkStm_sonIslemler(e) {
+		super.loadServerData_queryDuzenle_hrkStm_sonIslemler(e)
+		// let { attrSet, stm } = e
+	}
+}
+
+class DRapor_Hareketci_Muhasebe extends DRapor_Hareketci {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kategoriKod() { return 'MUH' } static get kategoriAdi() { return 'Muhasebe' }
+	static get sadeceTotalmi() { return true }
+	static get hareketciSinif() { return MuhasebeHareketci }
+}
+class DRapor_Hareketci_Muhasebe_Main extends DRapor_Hareketci_Main {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get raporClass() { return DRapor_Hareketci_Muhasebe }
+
+	tabloYapiDuzenle({ result }) {
+		let e = arguments[0]
+		super.tabloYapiDuzenle(e)
+		let { toplamPrefix } = this.class
+		let { isAdmin, rol } = config.session ?? {}
+		result
+			.addKAPrefix('muhgrup', 'muhhesap', 'usthesap', 'kebirhesap', 'sinifhesap', 'cercevehesap')
+			.addGrupBasit('MUHGRUP', 'Muh. Grup', 'muhgrup', DMQMuhGrup, null, ({ item }) =>
+				item.setSql(['mhes.grupkod', 'grp.aciklama']))
+			.addGrupBasit('MUHHESAP', 'Muh. Hesap', 'muhhesap', DMQMuhHesap, null, ({ item }) => {
+				item.setSql([
+					({ hvDegeri: val }) => val('hesapkod'),
+					'mhes.aciklama'
+				])
+			})
+			.addGrupBasit('USTHESAP', 'Üst Hesap', 'usthesap', DMQMuhUstHesap, null, ({ item }) =>
+				item.secimKullanilmaz().setSql(['uhes.kod', 'uhes.aciklama']))
+			.addGrupBasit('KEBIRHESAP', 'Kebir Hesap', 'kebirhesap', DMQMuhHesap_Kebir, null, ({ item }) =>
+				item.secimKullanilmaz().setSql(['khes.kod', 'khes.aciklama']))
+			.addGrupBasit('SINIFHESAP', 'Sınıf Hesap', 'sinifhesap', DMQMuhHesap_Sinif, null, ({ item }) =>
+				item.secimKullanilmaz().setSql(['shes.kod', 'shes.aciklama']))
+			.addGrupBasit('CERCEVEHESAP', 'Çerçeve Hesap', 'cercevehesap', DMQMuhHesap_Cerceve, null, ({ item }) =>
+				item.secimKullanilmaz().setSql(['ches.kod', 'ches.aciklama']))
+		this.tabloYapiDuzenle_baBedelBasit(e)
+	}
+	loadServerData_queryDuzenle_hrkSent(e) {
+		super.loadServerData_queryDuzenle_hrkSent(e)
+		let { hvDegeri: val } = e
+		let baClause = val('ba'), bedelClause = val('bedel')
+		this.loadServerData_queryDuzenle_baBedel({ ...e, baClause, bedelClause })
 	}
 	loadServerData_queryDuzenle_hrkStm_sonIslemler(e) {
 		super.loadServerData_queryDuzenle_hrkStm_sonIslemler(e)

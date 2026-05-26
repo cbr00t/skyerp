@@ -33,10 +33,11 @@ class DRapor_Hareketci extends DRapor_Donemsel {
 	}
 	static autoGenerateSubClasses(e) {
 		let subNames = ['Hareket', 'Envanter'];
-		let {raporBilgiler} = this, evalList = [];
-		for (let {kod, cls} of raporBilgiler) {
+		let { raporBilgiler } = this
+		let evalList = []
+		for (let { kod, cls } of raporBilgiler) {
 			let parent
-			; {
+			;{
 				let {mainClass, sadeceTotalmi, name} = cls
 				if (!mainClass || sadeceTotalmi)
 					continue
@@ -46,7 +47,7 @@ class DRapor_Hareketci extends DRapor_Donemsel {
 			for (let subPostfix of subNames) {
 				let selector = subPostfix.toLowerCase();
 				let sub = { name: `${parent.name}_${subPostfix}`, selector };
-				$.extend(sub, { mainName: `${sub.name}_Main` });
+				extend(sub, { mainName: `${sub.name}_Main` })
 				evalList.push(
 					`class ${sub.name} extends ${parent.name} {`,
 					`	static { window[this.name] = this; this._key2Class[this.name] = this }`,
@@ -59,8 +60,9 @@ class DRapor_Hareketci extends DRapor_Donemsel {
 				)
 			}
 		}
-		if (evalList.length) { eval(evalList.join(CrLf)) }
-		delete this._kod2Sinif;    /* cache reset */
+		if (evalList.length)
+			eval(evalList.join(CrLf))
+		delete this._kod2Sinif    /* cache reset */
 		return this
 	}
 }
@@ -89,8 +91,9 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	}
 	secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments)
-		let grupKod = 'donemVeTarih', { hareketci } = this, { totalmi } = this.class
-		let { hareketTipSecim: tekSecim } = hareketci?.class ?? {};
+		let grupKod = 'donemVeTarih'
+		let { hareketci } = this, { totalmi } = this.class
+		let { hareketTipSecim: tekSecim } = hareketci?.class ?? {}
 		let liste = {}
 		if (tekSecim)
 			liste.tip = new SecimBirKismi({ etiket: 'Tip', tekSecim, grupKod }).birKismi().autoBind()
@@ -99,7 +102,8 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		if (!empty(liste))
 			sec.secimTopluEkle(liste)
 		if (!totalmi) {
-			let {donem, tarihAralik} = sec; donem?.tekSecim?.tarihAralik?.()
+			let { donem, tarihAralik } = sec
+			donem?.tekSecim?.tarihAralik?.()
 			if (tarihAralik) {
 				tarihAralik.visible()
 				tarihAralik.sonu = tarihAralik.sonu || today()
