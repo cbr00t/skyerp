@@ -1053,9 +1053,13 @@ class SBTabloGridci extends GridKontrolcu {
 		fbd_veriTipi = form.addModelKullan('veriTipi', 'Veri Tipi')
 			.dropDown().noMF().autoBind().kodsuz().bosKodAlinmaz()
 			.setSource(() => (({ builder: fbd }) => {
-				let {altInst: det} = fbd, {hesapTipi, veriTipi} = det;
-				return SBTabloVeriTipi.kaListe.filter(({ ekBilgi }) =>
-					ekBilgi?.gosterimUygunluk?.call(this, { ...e, det, hesapTipi, veriTipi }))
+				let { altInst: det } = fbd, { hesapTipi } = det
+				let veriTipi = new SBTabloVeriTipi()
+				return SBTabloVeriTipi.kaListe.filter(ka => {
+					let { gosterimUygunluk } = ka.ekBilgi ?? {}
+					veriTipi.char = ka.kod
+					return gosterimUygunluk?.call(this, { ...e, det, hesapTipi, veriTipi })
+				})
 			}))
 			.setVisibleKosulu(({ builder: fbd }) => {
 				let {hesapTipi: { ekBilgi: { querymi } = {} } = {}} = fbd.altInst;

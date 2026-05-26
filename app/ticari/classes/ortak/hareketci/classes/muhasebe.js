@@ -2,7 +2,7 @@ class MuhasebeHareketci extends Hareketci {
 	static{ window[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return 97 } static get kisaKod() { return 'MG' }
 	static get kod() { return 'muhasebe' } static get aciklama() { return 'Muhasebe' }
-	static get vioAdim() { return 'MH-R' }
+	static get vioAdim() { return 'MH-R' } static get muhasebemi() { return true }
 	static get uygunmu() { return app.params?.ticariGenel?.kullanim?.muhasebe }
 	static get maliTabloIcinUygunmu() { return true }
 	static get donemselIslemlerIcinUygunmu() { return false }
@@ -100,7 +100,7 @@ class MuhasebeHareketci extends Hareketci {
 		})
 		return this
 	}
-	static maliTablo_secimlerYapiDuzenle({result}) {
+	static maliTablo_secimlerYapiDuzenle({ result }) {
 		super.maliTablo_secimlerYapiDuzenle(...arguments)
 		extend(result, {
 			sube: DMQSube,
@@ -109,7 +109,7 @@ class MuhasebeHareketci extends Hareketci {
 			grup: DMQMuhGrup
 		})
 	}
-	static maliTablo_secimlerSentDuzenle({detSecimler: sec, sent, sent: {from}, where: wh, hv, mstClause, maliTablo}) {
+	static maliTablo_secimlerSentDuzenle({ detSecimler: sec, sent, where: wh, hv, mstClause, maliTablo }) {
 		super.maliTablo_secimlerSentDuzenle(...arguments)
 		mstClause ||= hv.hesapkod || 'har.hesapkod'
 		let grpClause = hv.grupkod || 'mhes.grupkod'
@@ -119,5 +119,8 @@ class MuhasebeHareketci extends Hareketci {
 			wh.basiSonu(sec.mstKod, mstClause).ozellik(sec.mstAdi, 'mhes.aciklama')
 			wh.basiSonu(sec.grupKod, grpClause).ozellik(sec.grupAdi, 'grp.aciklama')
 		}
+	}
+	static maliTablo_sentUygunluk({ veriTipi } = {}) {
+		return veriTipi?.borcBedelmi || veriTipi?.alacakBedelmi
 	}
 }
