@@ -50,7 +50,8 @@ class GridKolonTip extends CObject {
 	/* return true: override grid default handler, return (true / false) = event handled */
 	handleKeyboardNavigation_ortak(e) {
 		let { keyState: state } = e
-		let { gridPart, gridWidget, editable, editing, sabitmi, modifiers, keyLower: key, editMode, selectionMode } = state
+		let { gridPart, gridWidget, editable, editing, sabitmi, modifiers, keyLower: key } = state
+		let { editMode, selectionMode, colDef } = state
 		let { ctrl, shift, alt } = modifiers
 		
 		let cellEditmi = editMode == 'selectedcell'
@@ -61,7 +62,7 @@ class GridKolonTip extends CObject {
 			case 'enter':
 			case 'tab': {
 				let preventGridEvents = !editing
-				if (!editing)
+				if (editing)
 					gridPart.endCellEdit(true)
 				gridPart.selectEditableCell({ ...e, prev: !!modifiers.shift })
 				return preventGridEvents
@@ -88,6 +89,11 @@ class GridKolonTip extends CObject {
 				let { rowIndex, belirtec } = state
 				if (!editing && rowIndex != null && belirtec)
 					gridWidget.begincelledit(rowIndex, belirtec)
+				return true
+			}
+			case 'f4':
+			case 'f6': {
+				colDef?.listedenSec?.(e)
 				return true
 			}
 			/*case 'arrowleft': case 'arrowright': {
@@ -133,8 +139,10 @@ class GridKolonTip extends CObject {
 					let { rowIndex, belirtec } = state
 					let triggerManuelEdit = (
 						editable && !editing &&
-						rowIndex != null && belirtec &&
-						key?.length == 1 && key.charCodeAt(0) >= 32
+						rowIndex != null && belirtec && (
+							( key?.length == 1 && key.charCodeAt(0) >= 32 ) ||
+							key == 'backspace'
+						)
 					)
 					if (triggerManuelEdit) {
 						let w = gridWidget

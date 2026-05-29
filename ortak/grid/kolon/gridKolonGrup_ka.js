@@ -64,7 +64,7 @@ class GridKolonGrup_KA extends GridKolonGrup {
 		let getCurIndex = (gp, ec, i) => {
 			if (i == null || i < 0) {
 				ec ??= gp?.editCell
-				i = ec?.rowindex ?? gp?.selectedRowIndex
+				i = ec?.rowindex ?? ec?.row ?? gp?.selectedRowIndex
 			}
 			return i == null || i < 0 ? null : i
 		}
@@ -139,6 +139,7 @@ class GridKolonGrup_KA extends GridKolonGrup {
 						}
 						_e.rec = gr
 						asilGP.addRow(_e)
+						//asilWidget.addrow(null, gr, 'last')
 					})
 
 					// toplu ekleme sonrası 'satır sayısı değişti' için son event'i tetikle (varsa)
@@ -163,7 +164,7 @@ class GridKolonGrup_KA extends GridKolonGrup {
 				let { gridPart } = this
 				let { fis = gridPart.inst } = gridPart ?? {}
 				let { mfSinif } = this    // block ise sonucu
-				let { kodSaha: kodAttr, adiSaha: adiAttr } = mfSinif
+				let { kodSaha, adiSaha } = mfSinif
 				let gridRec = getCurRec(gridPart)
 				let { zorunluKod: kod, term: value } = _e    // sadece autocomplete için filtrelenir
 				// let { kod = _e.value } = _e
@@ -172,12 +173,13 @@ class GridKolonGrup_KA extends GridKolonGrup {
 					await getFuncValue.call(this, gridSource, {
 						sender, gridPart,
 						mfSinif, fis, gridRec,
-						kodAttr, adiAttr,
+						kodAttr: kodSaha,
+						adiAttr: adiSaha,
 						kod, value
 					})
 				)
 				if (kod)
-					recs = recs.filter(r => r[kodAttr] == kod)
+					recs = recs.filter(r => r[kodSaha] == kod)
 				return recs
 			}
 			: null
@@ -380,8 +382,8 @@ class GridKolonGrup_KA extends GridKolonGrup {
 				return
 
 			let { mfSinif, kodAttr, adiAttr } = this
-			let { kodSaha, adiSaha } = mfSinif
-			rec ??= newValue ? ( await source?.call(this, { zorunluKod: newValue }) )?.[0] : null
+			let { kodSaha, adiSaha } = mfSinif ?? {}
+			rec ??= newValue == null ? null : ( await source?.call(this, { zorunluKod: newValue }) )?.[0]
 			let hasRec = !!rec
 			;{
 				let { [adiSaha]: aciklama } = rec ?? {}

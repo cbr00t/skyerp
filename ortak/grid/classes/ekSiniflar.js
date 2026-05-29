@@ -82,7 +82,7 @@ class GridKeyState extends GridState {
 		return result
 	}
 	get keyLower() { return this.key?.toLowerCase() } 
-	get hasModifiers() { return !!Object.keys(this.modifiers).length }
+	get hasModifiers() { return values(this.modifiers).some(Boolean) }
 	get modifiers() { let {event: evt} = this; return { ctrl: evt?.ctrlKey, shift: evt?.shiftKey, alt: evt?.altKey } }
 
 	runInternal(e) { super.runInternal(e) }

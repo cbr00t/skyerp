@@ -1386,22 +1386,24 @@ class GridPart extends Part {
 		let { gridWidget, builder, totalRecs } = this
 		let sender = this, owner = gridWidget
 		let { rec, rowIndex, noEvent } = e
-		let offset = ( e.after ?? e.afterIndex ?? e.offset ) || 'last'
+		let offset = ( e.after ?? e.afterIndex ?? e.offset ) ?? 'last'
 		if (rowIndex == null || rowIndex < 0) {
 			let { selectedRowIndex: cur } = this
 			rowIndex = (
-				offset == 'last' ? totalRecs + 1 :
+				offset == 'last' ? totalRecs :
 				offset == 'first' ? 0 :
 				offset == 'cur' || offset == 'current' ? cur + 1 :
-				isNumber(offset) ? offset : totalRecs + 1
+				isNumber(offset) ? offset : totalRecs
 			)
+			if (!(offset == 'first' || offset == 'last'))
+				offset = rowIndex
 		}
 		
 		let gridRec = this.newRec({ rec })
 		gridWidget.addrow(null, gridRec, offset)
 		
 		let { uid } = gridRec
-		let rowCount = { yeni: totalRecs, eski: totalRecs - 1 }
+		let rowCount = { eski: totalRecs, yeni: totalRecs + 1 }
 
 		let signalEvent = () =>
 			this.gridSatirEklendi({ sender, builder, owner, rowIndex, uid, rowCount })
