@@ -1,7 +1,13 @@
 class SimpleComboBoxPart extends Part {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get isSubPart() { return true } static get partName() { return 'simpleComboBox' }
-	get mfSinif() { return this._mfSinif }
+	get mfSinif() {
+		let { _mfSinif: res } = this
+		let { sender, builder, parentPart, colDef } = this
+		return isFunction(res) || res?.run
+			? getFuncValue.call(this, res, { sender, builder, parentPart, colDef })
+			: res
+	}
 	set mfSinif(cls) {
 		this._mfSinif = cls
 		this.kodSaha ||= cls?.kodSaha
@@ -12,18 +18,18 @@ class SimpleComboBoxPart extends Part {
 	get adiSaha() { return this._adiSaha ?? MQKA.adiSaha }
 	set adiSaha(value) { this._adiSaha = value || null }
 	get item() {
-		let {kodSaha, _item: item} = this
+		let { kodSaha, _item: item } = this
 		if (!isObject(item))
 			item = this._item = { [kodSaha]: item }
 		return item
 	}
 	set item(value) {
-		let {layout, input, kodSaha, adiSaha, autoClearFlag: autoClear} = this
+		let { layout, input, kodSaha, adiSaha, autoClearFlag: autoClear } = this
 		let item = value
 		if (!isObject(item))
 			item = { [adiSaha]: item }
 		this._item = item
-		let {[kodSaha]: kod} = item ?? {}
+		let { [kodSaha]: kod } = item ?? {}
 		layout?.[kod ? 'addClass' : 'removeClass']('has-value')
 		if (input?.length) {
 			// input.val(this.renderedInputText)
@@ -103,44 +109,55 @@ class SimpleComboBoxPart extends Part {
 	constructor(e = {}) {
 		super(e)
 		let {
-			id, name, item, value, placeholder, mfSinif,
+			item, value, mfSinif,
+			noInitCommit: noInitCommitFlag = e.noInitCommitFlag,
+			noQueue = e.noQueueFlag,
 			autoClear: autoClearFlag = e.autoClearFlag,
 			source, listSource, delay, minLength, maxRows, renderer,
 			kodsuzmu = e.kodsuz, kodSaha, adiSaha,
-			disabled, userData, events, queue
+			disabled: _disabled, events, queue, queueDelay
 		} = e
 		autoClearFlag ??= false; kodsuzmu ??= false
 		kodSaha ??= mfSinif?.kodSaha || null
 		adiSaha ??= mfSinif?.adiSaha || null
-		delay ??= 500; maxRows ??= 10; minLength ??= 1
-		disabled ??= false
-		events ??= {}; queue ??= []
+		delay ??= 500; maxRows ??= 10;
+		minLength ??= 1; queueDelay ??= 250
+		_disabled ??= false
+		events ??= {}
+		if (!noQueue)
+			queue ??= []
+		
+		mergeAllInto(e, this,
+			'id', 'name', 'placeholder', 'userData')
+		mergeInto(e, this,
+			'argsDuzenle', 'parentPart', 'sender', 'builder', 'colDef')
+		
 		extend(this, {
-			id, name, placeholder,
 			mfSinif, autoClearFlag, source, listSource,
-			delay, minLength, maxRows, renderer,
-			kodsuzmu, _disabled: disabled,
-			userData, events, queue
+			_disabled, kodsuzmu, noInitCommitFlag,
+			delay, minLength, maxRows, renderer, events,
+			queue, queueDelay
 		})
-		/* !! (kodSaha, adiSaha) ve (item, value) mutlaka (mfSinif) sonrası atanmalı.
-			(kodSaha, adiSaha) değerleri ve (value -> item set işlemi) duruma göre mfSinif'a bakarak belirleniyor */
+		// !! (kodSaha, adiSaha) ve (item, value) mutlaka (mfSinif) sonrası atanmalı.
+		//	(kodSaha, adiSaha) değerleri ve (value -> item set işlemi) duruma göre mfSinif'a bakarak belirleniyor
 		extend(this, { kodSaha, adiSaha })
 		extend(this, { item, value })
 	}
 	runDevam(e = {}) {
 		super.runDevam(e)
 		let sender = this
-		let { layout, argsDuzenleBlock, class: { partName } } = this
+		let { layout, argsDuzenle, class: { partName } } = this
 		layout.addClass(`${partName} part`)
 		let input = this.input ??= layout.children('input')
+		if (!input?.length)
+			( input = $(`<input type="text">`) ).appendTo(layout)
 		let _e = { ...e, sender, layout, input }
-		argsDuzenleBlock?.call(this, _e)
-		let { id, name = this.id, item, mfSinif, kodSaha, adiSaha, delay, minLength, maxRows, listSource, _disabled: disabled } = this
+		argsDuzenle?.call(this, _e)
+		let { id, name = this.id, mfSinif, kodSaha, adiSaha, delay } = this
+		let { minLength, maxRows, listSource, _disabled: disabled } = this
 		layout = this.layout = _e.layout
 		input = this.input = _e.input
-		// $.extend(_e, { kodsuz, mfSinif, kodSaha, adiSaha, delay, minLength })
-		let kv = { id, name }
-		for (let [k, v] of entries(kv)) {
+		for (let [k, v] of entries({ id, name })) {
 			if (v)
 				input.attr(k, v)
 		}
@@ -153,7 +170,7 @@ class SimpleComboBoxPart extends Part {
 		input.on('keydown', event => {
 			let { key, currentTarget: { value } } = event
 			key = key?.toLowerCase()
-			if (key == 'enter' || key == 'linefeed')
+			if (key == 'enter' || key == 'linefeed' || key == 'tab')
 				this._onChange({ type: 'commit', event, layout, input, value })
 		})
 		input.on('contextmenu', event => {
@@ -179,12 +196,18 @@ class SimpleComboBoxPart extends Part {
 						recs = recs.slice(0, maxRows)
 					// let result = recs.map(rec => rec[adiSaha] || rec[kodSaha]).sort()
 					let result = recs.map(rec => ({ value: rec[kodSaha], label: rec[adiSaha] }))
-					result.sort((a, b) => {
-						return a?.localeCompare?.(b) ?? (
-							a < b ? -1 :
-							a > b ? 1 : 0
-						)
-					})
+					function getSortText(item) {
+						let value = isObject(item)
+							? item.label ?? item.value
+							: item
+						return value?.toString() ?? ''
+					}
+					result.sort((a, b) =>
+						getSortText(a).localeCompare(getSortText(b), culture, {
+							numeric: true,
+							sensitivity: 'base'
+						})
+					)
 					callback(result)
 				}),
 				select: ((event, { item }) =>
@@ -202,11 +225,11 @@ class SimpleComboBoxPart extends Part {
 		this.disabled = disabled    // init event trigger
 		this._initialized = true
 		setTimeout(() => {
-			let {kodSaha} = this
+			let { kodSaha, noInitCommitFlag: noInitCommit } = this
 			this.onResize(e)
 			let value = input.val()
 			this.item = { [kodSaha]: value }
-			if (value)
+			if (value && !noInitCommit)
 				this._onChange({ type: 'commit', layout, input, value })
 		})
 	}
@@ -243,7 +266,7 @@ class SimpleComboBoxPart extends Part {
 		let isCommit = type == 'commit', isTrigger = !type                                                // muhtemelen .trigger('change') vs
 		let e = { ...arguments[0], select: isSelect, commit: isCommit, trigger: isTrigger }
 		try {
-			let {layout, input, autoClearFlag: autoClear, queue} = this
+			let { layout, input, autoClearFlag: autoClear, queue } = this
 			let hasFocus = layout?.is(':focus') || input?.is(':focus')
 			if (isSelect) {
 				if (item != null) {
@@ -255,23 +278,30 @@ class SimpleComboBoxPart extends Part {
 			}
 			else if (isCommit) {
 			    this.value = input.val()
-				if (!this.aciklama)
-					setTimeout(() => this.aciklamaBelirle(), 10)
+				if (!this.aciklama) {
+					clearTimeout(this._timer_aciklama)
+					this._timer_aciklama = setTimeout(async () => {
+						try { await this.aciklamaBelirle() }
+						finally { delete this._timer_aciklama }
+					}, 10)
+				}
 				item = this.item
 			}
 			else if (fromList)
 				this.item = item
-			{
-				let {value, aciklama: label, value: kod, aciklama} = this
-				$.extend(e, { item, value, label, kod, aciklama })
+			
+			;{
+				let { value, aciklama: label, value: kod, aciklama } = this
+				extend(e, { item, value, label, kod, aciklama })
 			}
 			// input.attr('placeholder', this.renderedInputText)
 			// no change event trigger, if possible
 			setTimeout(() => input[0].value = null, 1)
 			if (queue) {
+				let { queueDelay } = this
 				queue.push(e)
 				clearTimeout(this._timer_queue)
-				this._timer_queue = setTimeout(() => this.processQueue(), 250)
+				this._timer_queue = setTimeout(() => this.processQueue(), queueDelay || 0)
 			}
 			else
 				this.signalChange(e)
@@ -282,17 +312,16 @@ class SimpleComboBoxPart extends Part {
 		finally { setTimeout(() => this._inEvent = false, 5) }
 	}
 	processQueue(e) {
-		let {queue} = this
+		let { queue } = this
 		let events = queue.filter(_ => _ != null)
-		if (!events?.length)
+		if (empty(events))
 			return this
-				
-		;(async events =>
-			this.signalChange({ type: 'batch', events })
-		)(events)
-		for (let evt of queue) {
-			(async args => this.signalChange({ ...args }))(evt)
-		}
+
+		promise(() =>
+			this.signalChange({ type: 'batch', events }))
+		;queue.forEach(args =>
+			promise(() => this.signalChange({ ...args })))
+		
 		queue.splice(0)
 		return this
 	}
@@ -321,14 +350,17 @@ class SimpleComboBoxPart extends Part {
 		let sender = this
 		let { layout, input } = this
 		let { kodsuzmu, kodSaha, adiSaha, item, value: kod, aciklama } = this
+		let inGridEditor = layout?.hasClass('jqx-grid-cell-edit')
 		let inputVal = input.val() ?? ''
-		let orjMFSinif = mfSinif
+		let orjMFSinif = mfSinif ?? MQKA
 		let cls = (class extends orjMFSinif {
 			static orjBaslikListesi_gridInit({ sender: gridPart, sender: { bulPart } }) {
 				super.orjBaslikListesi_gridInit(...arguments)
-				let {bulFormKullanilirmi} = this
-				if (bulFormKullanilirmi)
-					gridPart.filtreTokens = inputVal ? inputVal.split(' ').map(x => x.trim()).filter(x => !!x) : null
+				if (!inGridEditor) {
+					let { bulFormKullanilirmi } = this
+					if (bulFormKullanilirmi)
+						gridPart.filtreTokens = inputVal ? inputVal.split(' ').map(x => x.trim()).filter(Boolean) : null
+				}
 			}
 			static orjBaslikListesiDuzenle({ liste }) {
 				super.orjBaslikListesiDuzenle(...arguments)
@@ -347,7 +379,7 @@ class SimpleComboBoxPart extends Part {
 					kodCol?.hidden()*/
 				// ters sırada ekle
 				if (adiCol && !key2Col[adiSaha])
-					liste.unshift(adiSaha)
+					liste.unshift(adiCol)
 				if (kodCol && !key2Col[kodSaha])
 					liste.unshift(kodCol)
 			}
@@ -369,7 +401,8 @@ class SimpleComboBoxPart extends Part {
 				recs ??= []
 				if (empty(recs))
 					return
-				let {queue, kodSaha, adiSaha} = this
+				
+				let { queue, kodSaha, adiSaha } = this
 				if (queue) {
 					for (let item of recs.slice(0, -1)) {
 						let value = item[kodSaha], aciklama = item[adiSaha]
@@ -377,10 +410,10 @@ class SimpleComboBoxPart extends Part {
 						let event = { type: 'list', layout, input, item, recs, kod, aciklama, value, label }
 						queue.push(event)
 					}
-					/*clearTimeout(this._timer_queue)
-					this._timer_queue = setTimeout(() => this.processQueue(), 250)*/
+					//clearTimeout(this._timer_queue)
+					//this._timer_queue = setTimeout(() => this.processQueue(), 250)
 				}
-				{
+				;{
 					let item = this.item = recs.at(-1)
 					let value = item[kodSaha], aciklama = item[adiSaha]
 					let kod = value, label = aciklama
@@ -424,11 +457,24 @@ class SimpleComboBoxPart extends Part {
 	}
 	onResize(e) {
 		super.onResize(e)
-		let {layout, input} = this
+		let { layout, input } = this
 		let btnListe = layout.children('button#liste')
 		if (btnListe?.length) {
-			btnListe.css('left', `${input.width() - 45}px`)
-			btnListe.css('top', `${-btnListe.height() - 20}px`)
+			let editCellmi = layout?.hasClass('jqx-grid-cell-edit')
+			if (editCellmi) {
+				btnListe.css({
+					left: 'unset',
+					right: `${ btnListe.height() + ( btnListe.width() + 25 ) }px`,
+					top: 'unset'
+				})
+			}
+			else {
+				btnListe.css({
+					left: `${input.width() - 45}px`,
+					right: 'unset',
+					top: `${-btnListe.height() - 20}px`
+				})
+			}
 		}
 	}
 	blur(e) {
@@ -492,6 +538,7 @@ class SimpleComboBoxPart extends Part {
 	kodsuz() { this.kodsuzmu = true; return this }
 	noAutoClear() { this.autoClearFlag = false; return this }
 	degisince(handler) { return this.onChange(handler) }
+	change(handler) { return this.onChange(handler) }
 	onChange(handler) { return this.on('change', handler) }
 	onFocus(handler) { return this.on('focus', handler) }
 	onBlur(handler) { return this.on('blur', handler) }
@@ -501,5 +548,97 @@ class SimpleComboBoxPart extends Part {
 	setMaxRows(value) { this.maxRows = value; return this }                  // autocomplete maxRows
 	enable() { this.disabled = false; return this }
 	disable() { this.disabled = true; return this }
+	argsDuzenleIslemi(handler) { this.argsDuzenle = handler; return this }
+	setParentPart(v) { this.parentPart = v; return this }
+	setSender(v) { this.sender = v; return this }
+	setBuilder(v) { this.builder = v; return this }
+	noInitCommit() { this.noInitCommitFlag = true; return this }
+	doInitCommit() { this.noInitCommitFlag = false; return this }
+	noQueue() { this.queue = null; return this }
+	useQueue() { this.queue = []; return this }
 	getLayout() { return $(`<div><input type="text"></div>`) }
 }
+
+
+
+/*refs:
+function empty(value) { return !value || (!value?.size && $.isEmptyObject(value)) }
+function entries(value) { return value ? Object.entries(value) : null }
+function keys(value) { return value ? Object.keys(value) : null }
+function values(value) { return value ? Object.values(value) : null }
+function fromEntries(value) { return value ? Object.fromEntries(value) : null }
+function extend() { return $.extend(...arguments) }
+function merge() { return $.merge(...arguments) }
+function len(value) {
+	if (value == null)
+		return 0
+	if (isPlainObject(value))
+		return keys(value).length
+	return value.length
+}
+function mergeAllInto(src, dest, ..._keys) {
+	if (!( (src ?? dest) == null || empty(_keys) )) {
+		;_keys.forEach(k =>
+			dest[k] = src[k])
+	}
+	return dest
+}
+function mergeInto(src, dest, ..._keys) {
+	if (!( (src ?? dest) == null || empty(_keys) )) {
+		;_keys.forEach(k => {
+			let v = src[k]
+			if (v !== undefined)
+				dest[k] = v
+		})
+	}
+	return dest
+}
+function mergeIntoIfExists(src, dest, ..._keys) {
+	if (empty(_keys))
+		_keys = keys(src)
+	if (!( (src ?? dest) == null || empty(_keys) )) {
+		for (let k of _keys) {
+			if (dest[k] === undefined)
+				continue
+			let v = src[k]
+			if (v !== undefined)
+				dest[k] = v
+		}
+	}
+	return dest
+}
+function mergeIntoIfTargetNull(src, dest, ..._keys) {
+	if (empty(_keys))
+		_keys = keys(src)
+	if (!( (src ?? dest) == null || empty(_keys) )) {
+		for (let k of _keys) {
+			if (dest[k] != null)
+				continue
+			let v = src[k]
+			if (v !== undefined)
+				dest[k] = v
+		}
+	}
+	return dest
+}
+function mergeIntoIfTargetEmpty(src, dest, ..._keys) {
+	if (empty(_keys))
+		_keys = keys(src)
+	if (!( (src ?? dest) == null || empty(_keys) )) {
+		for (let k of _keys) {
+			if (!empty(dest[k]))
+				continue
+			let v = src[k]
+			if (v !== undefined)
+				dest[k] = v
+		}
+	}
+	return dest
+}
+function deleteKeys(obj, ...keys) {
+	if (!(obj == null || empty(keys))) {
+		for (let key of keys)
+			delete obj[key]
+	}
+	return obj
+}*/

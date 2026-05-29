@@ -36,7 +36,8 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 				if (handler) { getFuncValue.call(this, handler, colDef, rowIndex, value, parent, cellText, pressedChar) }
 			},
 			getEditorValue: (colDef, rowIndex, value, parent) => {
-				let {gridWidget} = colDef.gridPart, detaySinif = gridWidget.getrowdata(rowIndex)?.class;
+				let { gridWidget } = colDef.gridPart
+				let detaySinif = gridWidget?.getrowdata(rowIndex)?.class
 				if (detaySinif?.aciklamami) { return parent.children('.editor').val() }
 				let result = value, handler = savedEditorHandlers.getEditorValue;
 				if (handler) { result = getFuncValue.call(this, handler, colDef, rowIndex, value, parent) }
@@ -80,7 +81,8 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 			let { fis, mfSinif, gridRec: det, rec, setCellValue } = e;
 			let detaySinif = det?.class; if (detaySinif.aciklamami) { return }
 			let isaretlimi = await fis.kayitIcinOzelIsaretlimi;
-			rec = await rec; let {mustKod} = fis, {shKod} = rec ?? {};
+			rec = await rec ?? {}
+			let {mustKod} = fis, {shKod} = rec ?? {};
 			let kosulResult; if (mustKod && shKod) {
 				let {kosulYapilar} = fis, {FY} = kosulYapilar ?? {};
 				kosulResult = shKod ? Object.values(await SatisKosul_Fiyat.getAltKosulYapilar([shKod], FY, mustKod))?.[0] : null;

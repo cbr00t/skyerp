@@ -29,8 +29,15 @@ class GridPart extends Part {
 	}
 	get selectedUids() { return this.selectedRecs?.map(r => r.uid) }
 	get selectedUid() { return this.selectedRec?.uid }
-	get selectedRecs() { let {gridWidget, selectedRowIndexes} = this; return selectedRowIndexes ? selectedRowIndexes.map(i => gridWidget.getrowdata(i)).filter(rec => !!rec) : [] }
-	get selectedRec() { let {selectedRecs} = this; return selectedRecs ? selectedRecs[0] : null }
+	get selectedRecs() {
+		let { gridWidget, selectedRowIndexes } = this
+		return selectedRowIndexes
+			? selectedRowIndexes
+					.map(i => gridWidget.getrowdata(i))
+					.filter(Boolean)
+			: []
+	}
+	get selectedRec() { return this.selectedRecs?.[0] ?? null }
 	get selectedBelirtec() { return this.selectedCell?.datafield || this.gridWidget._clickedcolumn }
 	get selectedBelirtecler() { let sel = this.gridWidget.getselection(); return asSet((sel?.cells || [])?.map(cell => cell.datafield) || []) }
 	get selectedCell() {
@@ -135,7 +142,8 @@ class GridPart extends Part {
 		let mini = isMiniDevice(), micro = isMicroDevice()
 		let cache = cacheFlag, async = asyncFlag, _theme = theme;	/*let _theme = theme == 'metro' ? 'material' : theme;*/
 		let args = {
-			theme: _theme, localization: localizationObj, width: '99.9%', height: '99.6%', editMode: 'selectedcell', sortMode: 'many', autoHeight: false,
+			theme: _theme, localization: localizationObj, width: '99.9%', height: '99.6%',
+			editMode: 'selectedcell', sortMode: 'many', autoHeight: false,
 			autoShowLoadElement: true, altRows: true, enableTooltips: true,
 			columnsResize: true, columnsReorder: !mini, columnsMenu: true, columnsMenuWidth: 30,
 			autoRowHeight: false, rowsHeight: mini ? 60 : 50, columnsHeight: mini ? 25 : 30,
@@ -592,9 +600,11 @@ class GridPart extends Part {
 			return result
 		}
 
-		if (true) { return null }
 		
-		let evt = event, {timeStamp} = evt, {_lastEventTimeStamp_handleKeyboardNavigation} = this;
+		if (true)
+			return null
+		
+		let evt = event, {timeStamp} = evt, {_lastEventTimeStamp_handleKeyboardNavigation} = this
 		if (_lastEventTimeStamp_handleKeyboardNavigation && _lastEventTimeStamp_handleKeyboardNavigation == timeStamp) { return }
 		if (!this.isSubPart && app.activePart && app.activePart != this) { return }
 		let activeElement = document.activeElement ? $(document.activeElement) : null;
@@ -1066,18 +1076,26 @@ class GridPart extends Part {
 			gridPart.renderDelayMS ?? mfSinif?.orjBaslik_gridRenderDelayMS ?? 300)
 	}
 	gridGroupCollapsed(e) { this.getKontrolcu(e)?.gridGroupCollapsed?.(e) }
-	gridCellBeginEdit(e) {
-		let {gridKeyState: state, gridWidget} = this, result; try {
-			result = this.getKontrolcu(e)?.gridCellBeginEdit?.(e) ?? true;
-			if (result === false) { e.event?.preventDefault(); gridWidget.endcelledit() }
+	gridCellBeginEdit(e = {}) {
+		let { gridKeyState: state, gridWidget } = this
+		let result
+		try {
+			result = this.getKontrolcu(e)?.gridCellBeginEdit?.(e) ?? true
+			if (result === false) {
+				e.event?.preventDefault()
+				gridWidget.endcelledit()
+			}
 		}
 		finally { state?.resetResult() }
 		return result
 	}
-	gridCellEndEdit(e) {
-		let {gridKeyState: state, gridWidget} = this, result; try {
-			result = this.getKontrolcu(e)?.gridCellEndEdit?.(e) ?? true;
-			if (result === false) { e.event?.preventDefault() }
+	gridCellEndEdit(e = {}) {
+		let { gridKeyState: state, gridWidget } = this
+		let result
+		try {
+			result = this.getKontrolcu(e)?.gridCellEndEdit?.(e) ?? true
+			if (result === false)
+				e.event?.preventDefault()
 		}
 		finally { state?.resetResult() }
 		return result
@@ -1238,31 +1256,42 @@ class GridPart extends Part {
 		filtreBilgi.degistimi = false*/
 	}
 	endCellEdit(e) {
-		let commit = typeof e == 'object' ? e.commit : e, rollback = commit == null ? null : !commit;
-		let {editing, editCell, grid, gridWidget} = this, {datafield: belirtec, row: rowIndex} = editCell ?? {};
-		if (editing) {
+		let commit = isObject(e) ? e.commit : e
+		let rollback = !(commit ?? true)
+		let { editing, editCell, grid, gridWidget } = this
+		let { datafield: belirtec, row: rowIndex } = editCell ?? {}
+		if (editing)
 			gridWidget.endcelledit(rowIndex, belirtec, rollback ?? false)
-		}
 		else {
-			let {_last_beginEditHandler: beginEditHandler} = this; if (!beginEditHandler) {
+			let { _last_beginEditHandler: beginEditHandler } = this
+			if (!beginEditHandler) {
 				beginEditHandler = this._last_beginEditHandler = evt => {
-					grid.off('cellbeginedit', beginEditHandler); delete this._last_beginEditHandler;
-					let {editCell} = this, {datafield: belirtec, row: rowIndex} = editCell ?? {};
-					setTimeout(() => gridWidget.endcelledit(rowIndex, belirtec, rollback ?? false), 0)
-					
-				};
-				grid.on('cellbeginedit', beginEditHandler);
-				setTimeout(() => { delete this._last_beginEditHandler; grid.off('cellbeginedit', beginEditHandler) }, 2)    /* önlem - event eklenmiş kalmasın */
+					grid.off('cellbeginedit', beginEditHandler)
+					delete this._last_beginEditHandler
+					let { editCell } = this
+					let { datafield: belirtec, row: rowIndex } = editCell ?? {}
+					setTimeout(() => gridWidget.endcelledit(rowIndex, belirtec, rollback ?? false))
+				}
+				grid.on('cellbeginedit', beginEditHandler)
+				setTimeout(() => {
+					delete this._last_beginEditHandler
+					grid.off('cellbeginedit', beginEditHandler)
+				}, 2)    // önlem - event eklenmiş kalmasın
 			}
 		}
 		return this
 	}
 	selectEditableCell(e) {
-		e = e ?? {}; let {prev, before} = e;
-		if (!this.isSelectionMode_cells) { return this }
-		let {gridWidget, selectedBelirtec: belirtec, selectedRowIndex: rowIndex, duzKolonTanimlari: colDefs} = this;
+		e ??= {}
+		let { prev, before } = e
+		if (!this.isSelectionMode_cells)
+			return this
+		
+		let { gridWidget, selectedBelirtec: belirtec, selectedRowIndex: rowIndex, duzKolonTanimlari: colDefs } = this
 		colDefs = colDefs.filter(colDef => colDef.isEditable && gridWidget.iscolumnvisible(colDef.belirtec));
-		if (!colDefs?.length) { return this }
+		if (!colDefs?.length)
+			return this
+		
 		let colInd = colDefs.findIndex(colDef => colDef.belirtec == belirtec) ?? -1; if (colInd < 0) { return this }
 		let {event: evt, modifiers} = e, ctrl = modifiers?.ctrl ?? evt?.isControlKeyDown;
 		let selectCell = (rowIndex, belirtec) => {
@@ -1353,45 +1382,93 @@ class GridPart extends Part {
 		return this
 	}
 	addRow(e) {
-		e = e ?? {}; let {gridWidget, builder, totalRecs} = this, sender = this, owner = gridWidget, {rec} = e;
-		let rowIndex = (e.rowIndex ?? this.selectedRowIndex) + 1, offset = e.after ?? e.afterIndex ?? e.offset;
-		let gridRec = this.newRec({ rec: e.rec }); gridWidget.addrow(null, gridRec, offset ?? 'last');
-		let {uid} = gridRec, rowCount = { yeni: totalRecs, eski: totalRecs - 1 };
-		setTimeout(() => this.gridSatirEklendi({ sender, builder, owner, rowIndex, uid, rowCount }), 5)
-		return rec
+		e ??= {}
+		let { gridWidget, builder, totalRecs } = this
+		let sender = this, owner = gridWidget
+		let { rec, rowIndex, noEvent } = e
+		let offset = ( e.after ?? e.afterIndex ?? e.offset ) || 'last'
+		if (rowIndex == null || rowIndex < 0) {
+			let { selectedRowIndex: cur } = this
+			rowIndex = (
+				offset == 'last' ? totalRecs + 1 :
+				offset == 'first' ? 0 :
+				offset == 'cur' || offset == 'current' ? cur + 1 :
+				isNumber(offset) ? offset : totalRecs + 1
+			)
+		}
+		
+		let gridRec = this.newRec({ rec })
+		gridWidget.addrow(null, gridRec, offset)
+		
+		let { uid } = gridRec
+		let rowCount = { yeni: totalRecs, eski: totalRecs - 1 }
+
+		let signalEvent = () =>
+			this.gridSatirEklendi({ sender, builder, owner, rowIndex, uid, rowCount })
+		if (noEvent)
+			extend(e, { signalEvent })
+		else
+			setTimeout(signalEvent, 1)
+		
+		return gridRec
 	}
 	deleteRow(e) {
-		e = e ?? {}; let {gridWidget, builder, totalRecs, selectedRowIndexes, selectedBelirtec: belirtec} = this;
-		let gridPart = this, sender = gridPart, owner = gridWidget, {uids, recs, rowIndexes} = e;
-		rowIndexes = (rowIndexes ?? selectedRowIndexes)?.filter(x => x >= 0);
-		recs = (recs ?? rowIndexes?.map(i => gridWidget.getrowdata(i))).filter(x => x != null);
-		uids = (uids ?? recs?.map(rec => rec?.uid)).filter(x => x != null);
-		if (!uids?.length) { return [] }
-		let rowIndex = selectedRowIndexes[0] ?? 0, {length: deleteCount} = uids;
-		let targetRowIndex = Math.max(rowIndex + 1 >= totalRecs ? rowIndex - 1 : rowIndex, 0);
+		e ??= {}
+		let { gridWidget, builder, totalRecs, selectedRowIndexes, selectedBelirtec: belirtec } = this
+		let gridPart = this, sender = gridPart, owner = gridWidget
+		let { uids, recs, rowIndexes } = e
+		rowIndexes = ( rowIndexes ?? selectedRowIndexes )?.filter(x => x >= 0)
+		recs = (recs ?? rowIndexes?.map(i => gridWidget.getrowdata(i))).filter(x => x != null)
+		uids = (uids ?? recs?.map(rec => rec?.uid)).filter(x => x != null)
+		if (empty(uids))
+			return []
+		
+		let rowIndex = selectedRowIndexes[0] ?? 0, { length: deleteCount } = uids
+		let targetRowIndex = max(rowIndex + 1 >= totalRecs ? rowIndex - 1 : rowIndex, 0)
+		
 		let _e = {
 			...e, sender, owner, builder, gridPart, gridWidget, totalRecs, selectedRowIndexes, belirtec,
 			deleteCount, targetRowIndex, uids, recs, rowIndexes, rowCount: { yeni: totalRecs - deleteCount, eski: totalRecs }
-		};
-		if (this.gridSatirSilinecek(_e) === false) { return [] }
-		gridWidget.deleterow(uids); gridWidget.clearselection();
-		if (this.isSelectionMode_cells) { gridWidget.selectcell(targetRowIndex, belirtec) }
-		else { gridWidget.selectrow(targetRowIndex) }
-		setTimeout(() => { this.gridSatirSilindi(_e) }, 10)
+		}
+		if (this.gridSatirSilinecek(_e) === false)
+			return []
+		
+		gridWidget.deleterow(uids)
+		gridWidget.clearselection()
+		if (this.isSelectionMode_cells)
+			gridWidget.selectcell(targetRowIndex, belirtec)
+		else
+			gridWidget.selectrow(targetRowIndex)
+		
+		setTimeout(() => { this.gridSatirSilindi(_e) }, 1)
 		return recs
 	}
 	newRec(e) {
-		e = e || {}; let {gridWidget, grid} = this; if (!gridWidget && grid?.length) { gridWidget = this.gridWidget = grid.jqxGrid('getInstance') }
-		let cls = e.sinif ?? this.detaySinif; if (!cls) { let recCount = gridWidget.getrecordscount(); cls = recCount ? gridWidget.getrowdata(recCount - 1)?.class : null }
+		e ??= {}
+		let { gridWidget, grid } = this
+		if (!gridWidget && grid?.length)
+			gridWidget = this.gridWidget = grid.jqxGrid('getInstance')
+		
+		let cls = e.sinif ?? this.detaySinif
 		if (!cls) {
-			let {rowIndex, uid, rec} = e;
-			if (!rec) {
-				if (rowIndex != null && rowIndex > -1) { rec = gridWidget.getrowdata(rowIndex) }
-				else if (uid != null) { rec = gridWidget.getrowdatabyid(uid) }
-			}
-			if (rec) { cls = rec.class }
+			let c = gridWidget.getrecordscount()
+			cls = c ? gridWidget.getrowdata(c - 1)?.class : null
 		}
-		let {args} = e, result = cls ? new cls(args) : (args || {}); return result
+		
+		if (!cls) {
+			let { rowIndex, uid, rec } = e
+			if (!rec) {
+				if (rowIndex != null && rowIndex > -1)
+					rec = gridWidget.getrowdata(rowIndex)
+				else if (uid != null)
+					rec = gridWidget.getrowdatabyid(uid)
+			}
+			cls = rec?.class ?? cls
+		}
+		
+		let { args = e.rec } = e
+		let result = cls ? new cls(args) : ( args ?? {} )
+		return result
 	}
 	signalColumnEvents(eventName, colNames, ...args) {
 		let {gridWidget, belirtec2Kolon} = this;

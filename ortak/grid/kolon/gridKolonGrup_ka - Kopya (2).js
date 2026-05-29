@@ -7,7 +7,7 @@ class GridKolonGrup_KA extends GridKolonGrup {
 			let { selectedRec: rec } = this.gridPart ?? {}
 			return getFuncValue.call(this, res, { sender, colDef, rec })
 		}
-		return res
+		return value
 	}
 	set mfSinif(value) { this._mfSinif = value }
 	get kodBelirtec() { return this.kodAttr }
@@ -130,16 +130,9 @@ class GridKolonGrup_KA extends GridKolonGrup {
 				
 				if (recs.length > 1) {
 					// diğer satırları toplu ekle
-					let _e = { after: 'cur', noEvent: true }
-					;[...recs.slice(1)].reverse().forEach(rec => {
-						let gr = asilGP.newRec({ rec })
-						if (gr) {
-							gr[kodAttr] = rec[kodSaha]
-							gr[adiAttr] = rec[adiSaha]
-						}
-						_e.rec = gr
-						asilGP.addRow(_e)
-					})
+					let _e = { rec, after: 'cur', noEvent: true }
+					;[...recs.slice(1)].reverse().forEach(rec =>
+						asilGP.addRow(_e))
 
 					// toplu ekleme sonrası 'satır sayısı değişti' için son event'i tetikle (varsa)
 					let { signalEvent } = _e
@@ -156,32 +149,6 @@ class GridKolonGrup_KA extends GridKolonGrup {
 		if (!kaKolonu.columnType)
 			kaKolonu.columnType = 'custom'
 
-		let { dataBlock: gridSource } = this
-		let source = gridSource
-			? async _e => {
-				let sender = this
-				let { gridPart } = this
-				let { fis = gridPart.inst } = gridPart ?? {}
-				let { mfSinif } = this    // block ise sonucu
-				let { kodSaha: kodAttr, adiSaha: adiAttr } = mfSinif
-				let gridRec = getCurRec(gridPart)
-				let { zorunluKod: kod, term: value } = _e    // sadece autocomplete için filtrelenir
-				// let { kod = _e.value } = _e
-				// let { value = _e.term ?? _e.text } = _e
-				let recs = makeArray(
-					await getFuncValue.call(this, gridSource, {
-						sender, gridPart,
-						mfSinif, fis, gridRec,
-						kodAttr, adiAttr,
-						kod, value
-					})
-				)
-				if (kod)
-					recs = recs.filter(r => r[kodAttr] == kod)
-				return recs
-			}
-			: null
-
 		kaKolonu.createEditor ??= (cd, i, v, editor, text, w, h) => {
 			let { gridPart: gp, belirtec: k, tip: { kodGosterilmesinmi: kodsuzmu } = {} } = cd
 			i = getCurIndex(gp, null, i)
@@ -193,6 +160,26 @@ class GridKolonGrup_KA extends GridKolonGrup {
 
 			;{
 				let parentPart = this, layout = editor, colDef = cd
+				let { dataBlock: gridSource } = this
+				let source = gridSource
+					? async _e => {
+						let sender = this
+						let gridPart = gp
+						let { fis = gp.inst } = gridPart
+						let { mfSinif } = this    // block ise sonucu
+						let { kodSaha: kodAttr, adiSaha: adiAttr } = mfSinif
+						let gridRec = getCurRec(gp, null, i)
+						let { zorunluKod: kod, term: value } = _e    // sadece autocomplete için filtrelenir
+						// let { kod = _e.value } = _e
+						// let { value = _e.term ?? _e.text } = _e
+						return await getFuncValue.call(this, gridSource, {
+							sender, gridPart,
+							mfSinif, fis, gridRec,
+							kodAttr, adiAttr,
+							kod, value
+						})
+					}
+					: null
 				let args = {
 					parentPart, colDef, layout,
 					mfSinif: e =>
@@ -238,30 +225,33 @@ class GridKolonGrup_KA extends GridKolonGrup {
 						return
 					}
 
-					if (ep && (type == 'select' || type == 'commit')) {
-						value ??= ep.val()
-						/*if (value != null) {
-							let { mfSinif } = this
-							let { kodSaha, adiSaha } = mfSinif ?? {}
-							let recs = await source?.({ zorunluKod: value })
-							let aciklama = recs?.find(r => r[kodSaha] == value)?.[adiSaha]
-							//if (aciklama === undefined) {
-							//	ep.val(null)
-							//	value = ep.value; item = ep.item
-							//}
-							ep.aciklama = aciklama
-							
-							let { kodAttr, adiAttr } = this
-							let gr = getCurRec(gp), { gridWidget: w } = gp
-							gr[kodAttr] = null
-							gr[adiAttr] = aciklama
-							w.setcellvalue(i, kodAttr, value)
-						}*/
-						extend(ep, {
-							_gridPendingValue: value,
-							_gridPendingItem: item,
-							_dirtyInput: false
-						})
+					if (type == 'select' || type == 'commit') {
+						if (ep) {
+							value ??= ep.val()
+							if (value != null) {
+								let { mfSinif } = this
+								let { kodSaha, adiSaha } = mfSinif ?? {}
+								let recs = await source?.({ zorunluKod: value })
+								let aciklama = recs?.find(r => r[kodSaha] == value)?.[adiSaha]
+								if (aciklama === undefined) {
+									ep.val(null)
+									value = null
+									item = ep.item
+								}
+								ep.aciklama = aciklama
+								
+								let { kodAttr, adiAttr } = this
+								let gr = getCurRec(gp), { gridWidget: w } = gp
+								gr[kodAttr] = null
+								gr[adiAttr] = aciklama
+								w.setcellvalue(i, kodAttr, value)
+							}
+							extend(ep, {
+								_gridPendingValue: value,
+								_gridPendingItem: item,
+								_dirtyInput: false
+							})
+						}
 					}
 				})
 
@@ -278,8 +268,11 @@ class GridKolonGrup_KA extends GridKolonGrup {
 						})
 						return
 					}
-					if (key == 'enter' || key == 'linefeed' || key == 'tab')
-						setTimeout(() => gp.endCellEdit(true), 1)    // commit & end edit
+					if (key == 'enter' || key == 'linefeed' || key == 'tab') {
+						setTimeout(() => gp.endCellEdit(true), 10)    // commit & end edit
+						// let { gridWidget: w } = gp
+						// w.setcellvalue(i, k, ep?._gridPendingValue)
+					}
 				})
 			}
 		}
@@ -290,7 +283,7 @@ class GridKolonGrup_KA extends GridKolonGrup {
 			if (!ep)
 				return
 
-			let { grid, gridWidget: w } = gp
+			let { gridWidget: w } = gp
 			i = getCurIndex(gp, null, i)
 			let gr = getCurRec(gp, null, i)
 			
@@ -298,7 +291,7 @@ class GridKolonGrup_KA extends GridKolonGrup {
 			let { kodSaha, adiSaha } = mfSinif ?? ep                // mfSinif'a ait
 			let { kodAttr, adiAttr } = this                         // grid colDef'e ait
 			extend(ep, { _dirtyInput: !!pressedChar, _gridListApplied: false })
-			deleteKeys(ep, '_gridPendingValue', '_gridPendingItem')
+			deleteKeys(gp, '_gridPendingValue', '_gridPendingItem')
 			ep.setItem({
 				[ kodSaha ]: v ?? '',
 				[ adiSaha ]: gr?.[adiAttr] ?? ''
@@ -307,7 +300,6 @@ class GridKolonGrup_KA extends GridKolonGrup {
 			let { input } = ep
 			text ??= (pressedChar ?? '').toString() ?? ''
 			input.val(text)
-			//ep.placeholder = null
 			setTimeout(() => {
 				ep.focus()
 				if (pressedChar) {
@@ -318,18 +310,6 @@ class GridKolonGrup_KA extends GridKolonGrup {
 					input.select()
 
 				ep.onResize()
-
-				;{
-					let popup = grid
-						.find(`.validation-popup[data-row = ${i}][data-belirtec = ${k}]`)
-						.parent()
-					if (popup?.length) {
-						popup
-							.prev('.jqx-grid-validation-arrow-up')
-							.remove()
-						popup.remove()
-					}
-				}
 			}, 1)
 		}
 
@@ -344,7 +324,7 @@ class GridKolonGrup_KA extends GridKolonGrup {
 			i = getCurIndex(gp, null, i)
 			
 			if (ep._gridListApplied)
-				return w.getcellvalue(i, kodAttr) ?? null
+				return gridWidget.getcellvalue(rowIndex, kodAttr) ?? null
 
 			let { input, _gridPendingValue: penVal, _gridPendingItem: item, _dirtyInput: dirty } = ep
 			if (penVal !== undefined && item) {
@@ -363,14 +343,12 @@ class GridKolonGrup_KA extends GridKolonGrup {
 			return ep.val() ?? inputVal ?? null
 		}
 
-		kaKolonu.cellValueChanged ??= async ({ args, rec }) => {
+		kaKolonu.cellValueChanged ??= ({ args, rec }) => {
 			rec ??= this._temp_nextRec
 			delete this._temp_nextRec
-			
 			args ??= {}
 			let { colDef: cd, owner: w, rowindex: i, datafield: k, oldvalue: oldValue, newvalue: newValue } = args
 			let gp = cd?.gridPart ?? w?.gridPart
-			let { grid } = gp
 			cd ??= gp?.belirtec2Kolon?.[k]
 			if (cd == null)
 				return
@@ -379,45 +357,14 @@ class GridKolonGrup_KA extends GridKolonGrup {
 			if (!gr || gr.gridKADesteklenmezmi)
 				return
 
-			let { mfSinif, kodAttr, adiAttr } = this
-			let { kodSaha, adiSaha } = mfSinif
-			rec ??= newValue ? ( await source?.call(this, { zorunluKod: newValue }) )?.[0] : null
-			let hasRec = !!rec
-			;{
-				let { [adiSaha]: aciklama } = rec ?? {}
-				gr[adiAttr] = aciklama
-			}
-			
-			;{
-				let popup = grid
-					.find(`.validation-popup[data-row = ${i}][data-belirtec = ${k}]`)
-					.parent()
-				if (popup?.length) {
-					popup
-						.prev('.jqx-grid-validation-arrow-up')
-						.remove()
-					popup.remove()
-				}
-				if (newValue && !hasRec) {
-					setTimeout((i, k, v) => {
-						w.showvalidationpopup(
-							i, k, [
-								`<div class="validation-popup" data-row="${i}" data-belirtec="${k}">`,
-									`<u class="bold">${v}</u> değeri hatalıdır`,
-								`</div>`
-							].join('\n')
-						)
-					}, 20, i, k, newValue)
-				}
-			}
-
 			let { ekDegisinceHandlers: handlers } = this
 			if (!empty(handlers)) {
 				let sender = this, owner = w, colDef = this
+				let { mfSinif, kodAttr, adiAttr } = this
+				let { kodSaha, adiSaha } = mfSinif
 				let { fis = gp.inst } = gp
 				let e = {
-					sender, mfSinif,
-					kodAttr, adiAttr, kodSaha, adiSaha,
+					sender, mfSinif, kodAttr, adiAttr, kodSaha, adiSaha,
 					colDef, rowIndex: i, dataField: k,
 					oldValue, newValue, gridPart: gp,
 					grid: gp.grid, gridWidget: w,
@@ -477,9 +424,9 @@ class GridKolonGrup_KA extends GridKolonGrup {
 			if (w == null)
 				return
 
-			let { part: ep } = getEditorPart(gp)
+			/*let { part: ep } = getEditorPart(gp)
 			if (ep)
-				return ep.listeIstendi(e)
+				return ep.listeIstendi(e)*/
 			
 			let { mfSinif, kodAttr } = this
 			if (!mfSinif)

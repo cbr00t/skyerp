@@ -255,8 +255,8 @@ class MQKA extends MQKod {
 			kaKolonu: new GridKolon({ belirtec: kodAttr, text: adiEtiket || kodEtiket || `${sinifAdi}`, genislikCh: e.adiGenislikCh || 50 }),
 			dataBlock: async e => {
 				let {kod} = e; if (kod != null && !kod) { return [] }
-				let {sender, gridPart, value, maxRow} = e, colDef = sender ?? {}, mfSinif = colDef.mfSinif ?? this;
-				let belirtec = colDef.belirtec, kodAttr = colDef.kodAttr || e.kodAttr || `${belirtec}Kod`, adiAttr = colDef.adiAttr || e.adiAttr || `${belirtec}Adi`;
+				let {sender, gridPart, value, maxRow} = e, colDef = sender ?? {}, mfSinif = colDef.mfSinif ?? this
+				let belirtec = colDef.belirtec, kodAttr = e.kodAttr || colDef.kodAttr || `${belirtec}Kod`, adiAttr = e.adiAttr || colDef.adiAttr ||`${belirtec}Adi`
 				let {tableAndAlias, aliasVeNokta, kodSaha, adiSaha, emptyKodValue = ''} = mfSinif
 				let sent = new MQSent({
 					from: tableAndAlias, where: [`${aliasVeNokta}${kodSaha} <> ${MQSQLOrtak.sqlDegeri(emptyKodValue)}`],

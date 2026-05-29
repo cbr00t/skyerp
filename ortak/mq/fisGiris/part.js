@@ -104,7 +104,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 			let sender = this, {fis, islem, layout, header, tsnForm, subeForm, islemTuslari, baslikFormlar, gridIslemTuslari, splitGridVeIslemTuslari} = this;
 			let _e = { ...e, sender, fis, islem, layout, islemTuslari, subeForm, baslikFormlar, gridIslemTuslari };
 			setTimeout(async () => {
-				if (config.dev) { header.removeClass('jqx-hidden basic-hidden') }
+				if (config.dev) { header?.removeClass('jqx-hidden basic-hidden') }
 				if (fis.uiDuzenle_fisGiris) { setTimeout(() => { fis.uiDuzenle_fisGiris(_e) }, 10) }
 				await this.initFormBuilder(_e);
 				let selectors = ['input[type=textarea].jqx-input-content', 'input[type=textbox]', 'input[type=text]', 'input[type=number]'];
@@ -113,7 +113,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 				setTimeout(() => header.removeClass('jqx-hidden basic-hidden'), 500)
 			}, 10);
 			setTimeout(() => makeScrollable(header), 100);
-			setTimeout(() => { this.onResize(e); if (!gridIslemTuslari.find(':not(div)').length) { splitGridVeIslemTuslari.jqxSplitter('collapse') } }, 300)
+			setTimeout(() => { this.onResize(e); if (!gridIslemTuslari?.find(':not(div)').length) { splitGridVeIslemTuslari.jqxSplitter('collapse') } }, 300)
 		}
 		catch (ex) { hConfirm(getErrorText(ex), 'Fiş Giriş Ekranı'); throw ex }
 	}
@@ -201,7 +201,11 @@ class FisGirisPart extends GridliGirisWindowPart {
 		//}
 		return _e.recs
 	}
-	newRec(e) { e = e || {}; e.sinif = e.sinif || this.fis.class.gridDetaySinif; return super.newRec(e) }
+	newRec(e) {
+		e ??= {}
+		e.sinif = e.sinif || this.fis.class.gridDetaySinif
+		return super.newRec(e)
+	}
 	gridVeriDegisti(e) { super.gridVeriDegisti(e); this.gridYapiDegisti(e) }
 	gridSatirGuncellendi(e) { super.gridSatirGuncellendi(e) }
 	gridSatirSilindi(e) { super.gridSatirSilindi(e) }

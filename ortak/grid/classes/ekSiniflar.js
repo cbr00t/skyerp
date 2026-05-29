@@ -20,8 +20,10 @@ class GridState extends CObject {
 	get jqxCol() { let {belirtec, gridWidget} = this; return belirtec ? gridWidget?.getcolumn(belirtec) : null }
 	get gridEditable() { return this.gridWidget?.editable } get colEditable() { return this.jqxCol?.editable }
 	get editable() { return this.gridEditable && this.colEditable } get sabitmi() { return this.gridPart.sabitFlag }
+	get selectionMode() { return this.gridWidget?.selectionmode?.toLowerCase() }
+	get editMode() { return this.gridWidget?.editmode?.toLowerCase() }
 	get canHandleEvents() {
-		let {gridWidget, activePart, isSubPart, activeElement, eventTS, lastEventTS} = this;
+		let {gridWidget, activePart, isSubPart, activeElement, eventTS, lastEventTS} = this
 		if (!gridWidget) { return false }
 		if (!/*!this.isSubPart &&*/ app.activePart && app.activePart != this) { return false }
 		if (lastEventTS && eventTS == lastEventTS) { return false }
@@ -29,7 +31,8 @@ class GridState extends CObject {
 		return true
 	}
 	get newEventArgs() {
-		let keyState = this, {
+		let keyState = this
+		let {
 			sender, builder, event, eventType, key, modifiers, hasModifiers, eventTS: timeStamp, targetIsGrid,
 			gridPart, grid, gridWidget, rowIndex, belirtec, colDef, jqxCol, selectedCell, editCell,
 			gridEditable, colEditable, editable, result

@@ -50,8 +50,13 @@ class GridKolonTip extends CObject {
 	/* return true: override grid default handler, return (true / false) = event handled */
 	handleKeyboardNavigation_ortak(e) {
 		let { keyState: state } = e
-		let { gridPart, gridWidget, editable, editing, sabitmi, modifiers, keyLower: key } = state
+		let { gridPart, gridWidget, editable, editing, sabitmi, modifiers, keyLower: key, editMode, selectionMode } = state
 		let { ctrl, shift, alt } = modifiers
+		
+		let cellEditmi = editMode == 'selectedcell'
+		let rowEditmi = editMode == 'selectedrow'
+		let manuelEditUygunmu = cellEditmi || rowEditmi
+		
 		switch (key) {
 			case 'enter':
 			case 'tab': {
@@ -80,18 +85,10 @@ class GridKolonTip extends CObject {
 				break
 			}
 			case 'f2': {
-				let { rowIndex, belirtec } = state;
+				let { rowIndex, belirtec } = state
 				if (!editing && rowIndex != null && belirtec)
 					gridWidget.begincelledit(rowIndex, belirtec)
 				return true
-			}
-			case 'f': {
-				if (ctrl) {
-					let { parentPart } = gridPart
-					let bulPart = gridPart.bulPart ?? parentPart.bulPart
-					bulPart?.focus()
-					return true
-				}
 			}
 			/*case 'arrowleft': case 'arrowright': {
 				let back = key == 'arrowleft', {rowIndex, colIndex, totalCols} = state;
@@ -118,6 +115,74 @@ class GridKolonTip extends CObject {
 				gridWidget.clearselection(); gridWidget.selectcell(rowIndex, belirtec);
 				return true
 			}*/ 
+			default: {
+				if (ctrl) {
+					switch (key) {
+						case 'f': {
+							let { parentPart } = gridPart
+							let { bulPart = parentPart.bulPart } = gridPart
+							bulPart?.focus()
+							return true
+						}
+					}
+				}
+				if (ctrl || alt) {
+					// ...
+				}
+				else {
+					let { rowIndex, belirtec } = state
+					let triggerManuelEdit = (
+						editable && !editing &&
+						rowIndex != null && belirtec &&
+						key?.length == 1 && key.charCodeAt(0) >= 32
+					)
+					if (triggerManuelEdit) {
+						let w = gridWidget
+						if (rowEditmi)
+							w.beginrowedit(rowIndex)
+						else
+							w.begincelledit(rowIndex, belirtec)
+
+						setTimeout(() => {
+							let { editor } = state.editCell ?? {}
+							if (editor) {
+								if (!(editor.hasClass('editor') || editor.hasClass('part'))) {
+									editor = editor.find('.editor')
+									if (!editor?.length)
+										editor = editor.find('.part')
+									if (!editor?.length)
+										editor = null
+								}
+							}
+							if (editor) {
+								let part = editor.data('part')
+								let ch = key.toString()
+								if (shift)
+									ch = ch.toUpperCase()
+								if (part) {
+									let { input, widget, veriYukleninceBlock: handler } = part
+									input = widget?.input ?? input ?? editor
+									let setVal = () => {
+										let _ = input[0]
+										input.val(ch)
+										;[100, 150, 200].forEach(ms =>
+											setTimeout(() => _.selectionStart = _.selectionEnd = -1, ms))
+									}
+									part?.veriYuklenince?.(async (...rest) => {
+										part.veriYukleninceBlock = handler
+										await handler?.call(part, ...rest)
+										setTimeout(() => setVal(), 20)
+									})
+									setTimeout(() => setVal(), 20)
+								}
+								else
+									editor.val?.(ch)
+							}
+						})
+						return true
+					}
+				}
+			}
 		}
 	}
 	static getHTML_groupsTotalRow(value) {
@@ -233,17 +298,30 @@ class GridKolonTip_Number extends GridKolonTip {
 	}
 	get initEditor() {
 		return ((colDef, rowIndex, value, editor, cellText, pressedChar) => {
-			let {maxLength} = this, isCustomEditor = (colDef.columnType == 'custom' || colDef.columnType == 'template');
-			let rec = colDef.gridPart.gridWidget.getboundrows()[rowIndex], fra = this.getFra({ rec });
+			let { maxLength } = this, { columnType, gridPart } = colDef
+			let isCustomEditor = (columnType == 'custom' || columnType == 'template')
+			let rec = gridPart.gridWidget.getboundrows()[rowIndex]
+			let fra = this.getFra({ rec })
 			if (true || isCustomEditor) {
-				let _editor = editor.children('.editor'); if (_editor.length) { editor = _editor }
-				editor.prop('type', 'number'); editor.prop('value', value || null);
-				if (maxLength != null) { editor.prop('maxlength', maxLength) }
+				let _editor = editor.children('.editor')
+				if (_editor.length)
+					editor = _editor
+				editor.prop('type', 'number')
+				editor.prop('value', value || null)
+				if (maxLength != null)
+					editor.prop('maxlength', maxLength)
 				/*editor.css('text-align', 'right'); editor.css('margin-left', '10px');
 				editor.attr('style', editor.attr('style') + `; width: calc(var(--full) - 10px) !important`); editor.addClass('full-height')*/
 			}
-			else { editor.jqxNumberInput({ digits: 17, decimalDigits: fra || 0 }) }
-			setTimeout(() => { let input = editor.find('input'); if (!input?.length) { input = editor }; input.focus(); input.select() }, 0)
+			else
+				editor.jqxNumberInput({ digits: 17, decimalDigits: fra || 0 })
+			setTimeout(() => {
+				let input = editor.find('input')
+				if (!input?.length)
+					input = editor
+				input.focus()
+				input.select()
+			}, 0)
 		})
 	}
 	get getEditorValue() {
@@ -449,9 +527,10 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 		return ((colDef, rowIndex, value, editor, cellText, cellWidth, cellHeight) => {
 			let {comboBoxmi, kodAttr, adiAttr} = this;
 			let part = new ModelKullanPart({
-				parentPart: app.activePart, layout: editor, sender: colDef, coklumu: this.class.birKismimi, autoBind: true, value,
+				parentPart: app.activePart, layout: editor, sender: colDef,
+				coklumu: this.class.birKismimi, autoBind: true, value,
 				/*selectionRendererBlock: e => { if (!e.coklumu) { return e.wItem.label || '' } },*/ argsDuzenle: e => {
-					$.extend(e.args, {
+					extend(e.args, {
 						autoOpen: false, itemHeight: 28, width: cellWidth, height: cellHeight, dropDownWidth: cellWidth * 2,
 						dropDownHeight: 400, autoDropDownHeight: false
 						/*renderSelectedItem: (index, rec) => { rec = rec.originalItem || rec || {}; return rec.kod || '' }*/
@@ -465,7 +544,8 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 			if (this.kodGosterilmesinmi) { part.kodGosterilmesin() }
 			if (this.listedenSecilemezFlag) { part.listedenSecilemez() }
 			editor.data('part', part); part.run();
-			let {comboBox, widget} = part; setTimeout(() => {
+			let {comboBox, widget} = part
+			setTimeout(() => {
 				let {input} = widget || {};
 				if (input?.length) {
 					input.on('keyup', evt => {
@@ -490,10 +570,12 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 			if (part) { part.source = source; part.dataBind() }
 			let _value = value || ''; part.val(_value); part.input.val(_value);
 			setTimeout(() => {
-				editor[jqxSelector]('focus'); editor.select();
-				let {gridPart} = colDef, gridWidget = gridPart?.gridWidget ?? gridPart?.gridPart?.gridWidget;
-				if (!gridWidget || gridWidget.editmode != 'selectedrow') { part.focus() }
-			}, 100)
+				editor[jqxSelector]('focus')
+				editor.select()
+				let {gridPart} = colDef, gridWidget = gridPart?.gridWidget ?? gridPart?.gridPart?.gridWidget
+				if (!gridWidget || gridWidget.editmode != 'selectedrow')
+					part.focus()
+			}, 5)
 		})
 	}
 	get getEditorValue() {

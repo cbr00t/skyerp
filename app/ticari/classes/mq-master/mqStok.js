@@ -34,13 +34,17 @@ class MQStok extends MQKA {
 		sent.leftJoin({ alias, from: `yukgrup ygrp`, on: `${aliasVeNokta}yukgrupkod = ygrp.kod` });
 		wh.icerikKisitDuzenle_stok({ saha: `${aliasVeNokta}${kodSaha}` });
 		sahalar.add(`${aliasVeNokta}calismadurumu`, `${aliasVeNokta}satilamazfl`);
-		if (sender?.modelKullanmi) { wh.add(`${aliasVeNokta}silindi = ''`, `${aliasVeNokta}satilamazfl = ''`) }
+		if (sender?.modelKullanmi || sender?.secince)
+			wh.add(`${aliasVeNokta}silindi = ''`, `${aliasVeNokta}satilamazfl = ''`)
 	}
 	static getGridKolonGrup_brmli(e) {
 		const kolonGrup = this.getGridKolonGrup(e); if (!kolonGrup) { return kolonGrup }
 		const {tabloKolonlari} = kolonGrup; tabloKolonlari.push(new GridKolon({ belirtec: 'brm', text: 'Brm', genislikCh: 4 }).readOnly());
 		kolonGrup.stmDuzenleyiciEkle(({ aliasVeNokta, stm }) => { for (const sent of stm.getSentListe()) { sent.sahalar.add(`${aliasVeNokta}brm`) } });
-		kolonGrup.degisince(e => { e.rec.then(rec => e.setCellValue({ belirtec: 'brm', value: rec.brm || '' })) });
+		kolonGrup.degisince(async ({ rec, setCellValue }) => {
+			rec = await rec
+			setCellValue({ belirtec: 'brm', value: rec?.brm || '' })
+		})
 		return kolonGrup
 	}
 }
@@ -65,11 +69,13 @@ class MQStokGenel extends MQStokAlt {
 		for (let i = 1; i <= fiyatSayi; i++) { pTanim[`satFiyat${i}`] = new PInstNum(`satfiyat${i}`); pTanim[`dvFiyat${i}`] = new PInstNum(`dvfiyat${i}`) }
 	}
 	static ekCSSDuzenle({ rec, result }) {
-		if (!asBool(rec.calismadurumu)) { result.push('bg-lightgray', 'iptal') }
-		else if (asBool(rec.satilamazfl)) { result.push('bg-lightred') }
+		if (rec.calismadurumu === false) { result.push('bg-lightgray', 'iptal') }
+		else if (rec.satilamazfl) { result.push('bg-lightred') }
 	}
 	static rootFormBuilderDuzenle(e) {
-		e = e || {}; let {mfSinif} = this; mfSinif.formBuilder_addTabPanelWithGenelTab(e);
+		e ??= {}
+		let {mfSinif} = this
+		mfSinif.formBuilder_addTabPanelWithGenelTab(e)
 		let {tabPage_genel} = e; tabPage_genel.setAltInst(e => e.builder.inst.genel);
 		let form = tabPage_genel.addFormWithParent().yanYana(4);
 		// form.addTextInput({ id: 'aciklama', etiket: 'Adı', maxLength: 100}).addStyle(e => `$elementCSS { max-width: 550px }`);
