@@ -21,7 +21,8 @@ class MQCari extends MQKA {
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); let {aliasVeNokta, kodSaha} = this, {sender, sent} = e, {where: wh} = sent;
 		wh.icerikKisitDuzenle_cari({ saha: `${aliasVeNokta}${kodSaha}`});
-		if (sender?.modelKullanmi) { wh.add(`${aliasVeNokta}silindi = ''`, `${aliasVeNokta}calismadurumu <> ''`) }
+		if (sender?.modelKullanmi || sender?.secince)
+			wh.add(`${aliasVeNokta}silindi = ''`, `${aliasVeNokta}calismadurumu <> ''`)
 		else {
 			sent.fromIliski('efozelyontem efoy', `${aliasVeNokta}efozelyontemkod = efoy.kod`);
 			sent.fromIliski('eislemozeldip eiod', `${aliasVeNokta}eislozeldipkod = eiod.kod`)
@@ -81,7 +82,8 @@ class MQCari_Genel extends MQCariAlt {
 		})
 	}
 	static ekCSSDuzenle({ rec, result }) {
-		if (!asBool(rec.calismadurumu)) { result.push('bg-lightgray', 'iptal') }
+		if (rec.calismadurumu == false)
+			result.push('bg-lightgray', 'iptal')
 	}
 	static rootFormBuilderDuzenle(e) {
 		e = e || {}; let {mfSinif} = this; mfSinif.formBuilder_addTabPanelWithGenelTab(e); let tabPage_genel = e.tabPage_genel;

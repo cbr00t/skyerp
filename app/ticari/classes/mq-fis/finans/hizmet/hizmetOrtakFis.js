@@ -1,32 +1,31 @@
 class HizmetOrtakFis extends FinansFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get detaySinif() { return HizmetOrtakDetay }
 	static get gridKontrolcuSinif() { return HizmetOrtakGridci } static get fisTipi() { return null }
-	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e); const {pTanim} = e;
-		$.extend(pTanim, { ba: new PInstTekSecim('ba', GelirGider) })
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
+		extend(pTanim, { ba: new PInstTekSecim('ba', GelirGider) })
 	}
 	static rootFormBuilderDuzenle_ilk(e) {
-		super.rootFormBuilderDuzenle_ilk(e); const baslikFormlar = e.builders.baslikForm.builders;
+		super.rootFormBuilderDuzenle_ilk(e)
+		let baslikFormlar = e.builders.baslikForm.builders
 		let form = baslikFormlar[0];
 		form.addModelKullan({ id: 'ba', etiket: 'Gelir/Gider', source: e => GelirGider.instance.kaListe })
 			.dropDown().noMF().kodsuz().bosKodAlinmaz().bosKodEklenmez()
 			.onAfterRun(_e => {
-				let {builder: fbd} = _e;
-				if (!fbd.rootPart.yeniVeyaKopyami) { let {part} = builder; part.disable() }
-				if (builder) { builder.altInst.baDegisti({ ...e, ..._e }) }
+				let { builder: fbd } = _e
+				if (!fbd.rootPart.yeniVeyaKopyami)
+					fbd?.part?.disable()
+				fbd?.altInst?.baDegisti({ ...e, ..._e })
 			})
 			.degisince(e => e.builder.altInst.baDegisti(e))
 			.addStyle_wh({ width: '130px !important' })
 	}
 	static super_rootFormBuilderDuzenle_ilk(e) { super.rootFormBuilderDuzenle_ilk(e) }
 	static standartGorunumListesiDuzenle_son({ liste }) {
-		liste.push('toplambedel');
 		super.standartGorunumListesiDuzenle_son(...arguments)
 	}
 	static super_standartGorunumListesiDuzenle_son(e) { super.standartGorunumListesiDuzenle_son(e) }
 	static orjBaslikListesiDuzenle_son({ liste }) {
-		let {aliasVeNokta} = this;
-		liste.push(new GridKolon({ belirtec: 'toplambedel', text: 'Toplam Bedel', genislikCh: 15 }).tipDecimal_bedel());
 		super.orjBaslikListesiDuzenle_son(...arguments)
 	}
 	static super_orjBaslikListesiDuzenle_son(e) { return super.orjBaslikListesiDuzenle_son(e) }
@@ -485,12 +484,18 @@ class KasaHizmetFis extends HizmetOrtakFis {
 	static get detaySinif() { return KasaHizmetDetay } static get gridKontrolcuSinif() { return KasaHizmetGridci } static get sinifAdi() { return 'Kasa Hizmet Fişi' }
 	static get kodListeTipi() { return 'KSHIZ' } static get numTipKod() { return 'KDTAH' } static get fisTipi() { return 'KH' }
 	get bakiyeciler() { return [...super.bakiyeciler, new KasaBakiyeci({ borcmu: e => this.ba.gelirmi })] }
-	static extYapilarDuzenle(e) { e.liste.push(ExtFis_Kasa); super.extYapilarDuzenle(e) }
-	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { dvKod: new PInstStr(), dvKur: new PInstNum() }) }
-	static rootFormBuilderDuzenle_son(e) {
-		e = e || {};
-		super.rootFormBuilderDuzenle_son(e);
-		const baslikFormlar = e.builders.baslikForm.builders;
+	
+	static extYapilarDuzenle({ liste }) {
+		liste.push(ExtFis_Kasa)
+		super.extYapilarDuzenle(...arguments)
+	}
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
+		extend(pTanim, { dvKod: new PInstStr(), dvKur: new PInstNum() })
+	}
+	static rootFormBuilderDuzenle_son(e = {}) {
+		super.rootFormBuilderDuzenle_son(e)
+		const baslikFormlar = e.builders.baslikForm.builders
 		let form = baslikFormlar[0];
 		form.addNumberInput({ id: 'dvKur', etiket: 'Dv.Kur' })
 			.onBuildEk(e => { const {builder} = e, {input} = builder; input.attr('readonly', ''); input.addClass('readOnly'); e.builder.rootPart.fbd_dvKur = builder })
@@ -500,8 +505,10 @@ class KasaHizmetFis extends HizmetOrtakFis {
 		super.loadServerData_queryDuzenle(e); const {aliasVeNokta} = this, {sent} = e;
 		sent.sahalar.add('kas.dvtipi dvkod')
 	}
-	setValues(e) { super.setValues(e); const {rec} = e; $.extend(this, { dvKod: rec.dvkod }) }
-	kasaBakiyeSqlEkDuzenle(e) { const {sent, borcmu} = e, {sahalar} = sent; sahalar.addWithAlias('fis', 'ozelisaret', 'kasakod', 'toplambedel bakiye', 'toplamdvbedel dvbakiye') }
+	setValues({ rec }) {
+		super.setValues(...arguments)
+		extend(this, { dvKod: rec.dvkod })
+	}
 	async kasaDegisti(e) {
 		const {kasaKod} = this, rec = await MQKasa.kasaKod2DvKur(kasaKod), dvKur = this.dvKur = rec?.satis || 0, {builder} = e;
 		const {rootPart} = builder; rootPart.fbd_dvKur.input.val(dvKur || 0);
@@ -513,6 +520,22 @@ class KasaHizmetFis extends HizmetOrtakFis {
 		}
 		gridWidget.endupdate(false)
 	}
+
+	bakiyeKullanimDuzenle({ result: r }) {
+		super.bakiyeKullanimDuzenle(...arguments)
+		r.kasa = true
+	}
+	bakiyeSqlEkDuzenle_kasa({ sent, sent: { where: wh, sahalar } }) {
+		// MQOrtakFis::bakiyeSqlOrtakDuzenle  sırasında from ve sayac ataması yapıldı
+		let { class: { detayTable } } = this
+		super.bakiyeSqlEkDuzenle_kasa(...arguments)
+		sahalar
+			.addWithAlias('fis', 'ozelisaret', 'kasakod')
+			.add(
+				`SUM(${ MQCase.baBakiye('fis.ba', 'fis.toplambedel') }) bakiye`,
+				`SUM(${ MQCase.baBakiye('fis.ba', 'fis.toplamdvbedel') }) dvbakiye`
+			)
+	}
 }
 class KasaHizmetDetay extends HizmetOrtakDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -523,26 +546,39 @@ class KasaHizmetGridci extends HizmetOrtakGridci {
 
 class CariHizmetFis extends HizmetOrtakFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get detaySinif() { return CariHizmetDetay } static get gridKontrolcuSinif() { return CariHizmetGridci } static get sinifAdi() { return 'Cari Hizmet Fişi' }
-	static get kodListeTipi() { return 'CRHIZ' } static get numTipKod() { return 'CHIZ' } static get fisTipi() { return 'CH' }
-	get bakiyeciler() { return [...super.bakiyeciler, new CariBakiyeci({ borcmu: e => this.ba.gelirmi })] }
-	cariBakiyeSqlEkDuzenle(e) {
-		const {sent, borcmu} = e, {sahalar} = sent; sent.fis2HarBagla('finanshar');
-		sahalar.addWithAlias('fis', 'ozelisaret'); sahalar.addWithAlias('har', 'ticmustkod must', 'cariitn althesapkod');
-		sahalar.add('SUM(har.bedel) bakiye', 'SUM(har.dvbedel) dvbakiye')
+	static get detaySinif() { return CariHizmetDetay } static get gridKontrolcuSinif() { return CariHizmetGridci }
+	static get fisTipi() { return 'CH' } static get sinifAdi() { return 'Cari Hizmet Fişi' }
+	static get kodListeTipi() { return 'CRHIZ' } static get numTipKod() { return 'CHIZ' }
+
+	bakiyeKullanimDuzenle({ result: r }) {
+		super.bakiyeKullanimDuzenle(...arguments)
+		r.cari = true
+	}
+	bakiyeSqlEkDuzenle_cari({ sent, sent: { where: wh, sahalar } }) {
+		// MQOrtakFis::bakiyeSqlOrtakDuzenle  sırasında from ve sayac ataması yapıldı
+		let { class: { detayTable } } = this
+		super.bakiyeSqlEkDuzenle_cari(...arguments)
+		sent.fis2HarBagla(detayTable)
+		sahalar
+			.addWithAlias('fis', 'ozelisaret')
+			.addWithAlias('har', 'ticmustkod must', 'cariitn althesapkod')
+			.add(
+				`SUM(${ MQCase.baBakiye('fis.ba', 'har.bedel') }) bakiye`,
+				`SUM(${ MQCase.baBakiye('fis.ba', 'har.dvbedel') }) dvbakiye`
+			)
 	}
 }
 class CariHizmetDetay extends HizmetOrtakDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static extYapilarDuzenle(e) {
-		super.extYapilarDuzenle(e);
+		super.extYapilarDuzenle(e)
 		e.liste.unshift(Ext_CariVeAltHesap)
 	}
 }
 class CariHizmetGridci extends HizmetOrtakGridci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	tabloKolonlariDuzenle_ilk(e) {
-		const kolonGruplar = MQCari.getGridKolonlar({ belirtec: 'cari', gridKolonGrupcu: 'getGridKolonGrup_yoreli', sabitle: true });
+		const kolonGruplar = MQCari.getGridKolonlar({ belirtec: 'must', gridKolonGrupcu: 'getGridKolonGrup_yoreli', sabitle: true });
 		const {tabloKolonlari} = e; tabloKolonlari.push(...kolonGruplar);
 		super.tabloKolonlariDuzenle_ilk(e)
 	}
@@ -550,19 +586,32 @@ class CariHizmetGridci extends HizmetOrtakGridci {
 
 class BankaHizmetFis extends HizmetOrtakFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get detaySinif() { return BankaHizmetDetay } static get gridKontrolcuSinif() { return BankaHizmetGridci } static get sinifAdi() { return 'Banka Hizmet Fişi' }
-	static get kodListeTipi() { return 'BNHIZ' } static get numTipKod() { return 'HSHIZ' } static get fisTipi() { return 'HH' }
-	get bakiyeciler() { return [...super.bakiyeciler, new MevduatBakiyeci({ borcmu: e => this.ba.gelirmi })] }
-	mevduatBakiyeSqlEkDuzenle(e) {
-		const {sent, borcmu} = e, {sahalar} = sent; sent.fis2HarBagla('finanshar');
-		sahalar.addWithAlias('fis', 'ozelisaret'); sahalar.addWithAlias('har', 'banhesapkod');
-		sahalar.add('SUM(har.bedel) bakiye', 'SUM(har.dvbedel) dvbakiye')
+	static get kodListeTipi() { return 'BNHIZ' } static get sinifAdi() { return 'Banka Hizmet Fişi' }
+	static get detaySinif() { return BankaHizmetDetay } static get gridKontrolcuSinif() { return BankaHizmetGridci }
+	static get numTipKod() { return 'HSHIZ' } static get fisTipi() { return 'HH' }
+
+	bakiyeKullanimDuzenle({ result: r }) {
+		super.bakiyeKullanimDuzenle(...arguments)
+		r.mevduat = true
+	}
+	bakiyeSqlEkDuzenle_mevduat({ sent, sent: { where: wh, sahalar } }) {
+		// MQOrtakFis::bakiyeSqlOrtakDuzenle  sırasında from ve sayac ataması yapıldı
+		let { class: { detayTable } } = this
+		super.bakiyeSqlEkDuzenle_mevduat(...arguments)
+		sent.fis2HarBagla(detayTable)
+		sahalar
+			.addWithAlias('fis', 'ozelisaret')
+			.addWithAlias('har', 'banhesapkod')
+			.add(
+				`SUM(${ MQCase.baBakiye('fis.ba', 'har.bedel') }) bakiye`,
+				`SUM(${ MQCase.baBakiye('fis.ba', 'har.dvbedel') }) dvbakiye`
+			)
 	}
 }
 class BankaHizmetDetay extends HizmetOrtakDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static extYapilarDuzenle(e) {
-		super.extYapilarDuzenle(e);
+		super.extYapilarDuzenle(e)
 		e.liste.unshift(Ext_BankaHesap)
 	}
 }

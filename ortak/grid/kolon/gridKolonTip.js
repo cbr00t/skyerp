@@ -93,7 +93,8 @@ class GridKolonTip extends CObject {
 			}
 			case 'f4':
 			case 'f6': {
-				colDef?.listedenSec?.(e)
+				if (!editing)
+					colDef?.listedenSec?.(e)
 				return true
 			}
 			/*case 'arrowleft': case 'arrowright': {

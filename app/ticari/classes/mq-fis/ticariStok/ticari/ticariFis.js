@@ -76,11 +76,14 @@ class TicariFis extends TSOrtakFis {
 	}
 	static rootFormBuilderDuzenle({ builders: allBuilders }) {
 		super.rootFormBuilderDuzenle(...arguments)
-		let {builders} = allBuilders.baslikForm
-		builders[0].addModelKullan('mustKod').autoBind().setMFSinif(MQCari).etiketGosterim_normal()
-			.ozelQueryDuzenleBlock(({ alias, stm }) => { for (let {sahalar} of stm) { sahalar.add(`${alias}.efaturakullanirmi`) } })
-			.degisince(e => e.builder.altInst.cariDegisti(e))
-			.addStyle(e => `$elementCSS { min-width: 70% !important }`)
+		let { builders } = allBuilders.baslikForm
+		builders[0].addSimpleComboBox('mustKod')
+			.etiketGosterim_yok()
+			.setMFSinif(MQCari)
+			.ozelQueryDuzenleBlock(({ alias, sent: { sahalar } }) =>
+				sahalar.add(`${alias}.efaturakullanirmi`))
+			.degisince(e => e.builder?.altInst?.cariDegisti(e))
+			.addStyle(`$elementCSS { min-width: 70% !important }`)
 	}
 	static orjBaslikListesiDuzenle_ara({ liste }) {
 		super.orjBaslikListesiDuzenle_ara(...arguments)
@@ -475,8 +478,12 @@ class SevkiyatFis extends TicariFis {
 	static get table() { return 'piffis' } static get baslikOzelAciklamaTablo() { return 'pifbasekaciklama' } static get dipSerbestAciklamaTablo() { return 'pifdipaciklama' }
 	static get dipEkBilgiTablo() { return 'pifdipekbilgi' } static get pifTipi() { return null } static get iade() { return '' } static get fisEkAyrim() { return '' }
 	get bakiyeciler() {
-		let {alimmi, iademi, fasonmu} = this.class, stok_sqlDuzenleyici = fasonmu ? 'stokBakiyeSqlEkDuzenle_pifFSStok' : 'stokBakiyeSqlEkDuzenle_pifStok';
-		return [...super.bakiyeciler, new StokBakiyeci({ borcmu: e => alimmi != iademi, sqlDuzenleyici: stok_sqlDuzenleyici }) /* sipariş için gelecek/gidecek ayarı yapılacak */]
+		let { alimmi, iademi, fasonmu } = this.class
+		let stok_sqlDuzenleyici = fasonmu ? 'stokBakiyeSqlEkDuzenle_pifFSStok' : 'stokBakiyeSqlEkDuzenle_pifStok'
+		return [
+			...super.bakiyeciler,
+			new StokBakiyeci({ borcmu: e => alimmi != iademi, sqlDuzenleyici: stok_sqlDuzenleyici })
+		]
 	}
 	constructor(e) {
 		e = e || {}; super(e);
@@ -600,8 +607,16 @@ class SevkiyatFis extends TicariFis {
 
 class FaturaFis extends SevkiyatFis {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get sinifAdi() { return `${super.sinifAdi}Fatura` } static get pifTipi() { return 'F' } static get faturami() { return true }
-	get bakiyeciler() { let {alimmi, iademi} = this.class; return [...super.bakiyeciler, new CariBakiyeci({ borcmu: e => alimmi == iademi }) ] }
+	static get sinifAdi() { return `${super.sinifAdi}Fatura` }
+	static get pifTipi() { return 'F' } static get faturami() { return true }
+	get bakiyeciler() {
+		let { alimmi, iademi } = this.class
+		return [
+			...super.bakiyeciler,
+			new CariBakiyeci({ borcmu: () => alimmi == iademi })
+		]
+	}
+	
 	static async raporKategorileriDuzenle_baslik(e) {
 		await super.raporKategorileriDuzenle_baslik(e); let sections = ['FRFatura-IrsBilgi'];
 		await e.kat.ekSahaYukle({ section: sections })

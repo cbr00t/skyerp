@@ -958,7 +958,8 @@ class FBuilder_ModelKullan extends FBuilder_DivOrtak {
 	bosKodEklenir() { this.bosKodEklenirmi = true; return this } bosKodEklenmez() { this.bosKodEklenirmi = false; return this }
 	tekil() { this.coklumu = false; return this } coklu() { this.coklumu = true; return this }
 	loadServerDataHandler(handler) { this.loadServerDataBlock = handler; return this }
-	ozelQueryDuzenleHandler(handler) { this.ozelQueryDuzenle = handler; return this } ozelQueryDuzenleBlock(handler) { return this.ozelQueryDuzenleHandler(handler) }
+	ozelQueryDuzenleHandler(handler) { this.ozelQueryDuzenle = handler; return this }
+	ozelQueryDuzenleBlock(handler) { return this.ozelQueryDuzenleHandler(handler) }
 	ozelQueryDuzenleIslemi(handler) { return this.ozelQueryDuzenleHandler(handler) }
 	initArgsDuzenleHandler(handler) { this.initArgsDuzenle = handler; return this } initArgsDuzenleBlock(handler) { return this.initArgsDuzenleHandler(handler) }
 	listeArgsDuzenleHandler(handler) { this.listeArgsDuzenle = handler; return this } listeArgsDuzenleBlock(handler) { return this.listeArgsDuzenleHandler(handler) }
@@ -1241,15 +1242,17 @@ class FBuilder_SimpleComboBox extends FBuilder_TextInput {
 			mfSinif, kodSaha, adiSaha,
 			kodsuzmu = e.kodsuz, autoClearFlag = e.autoClear,
 			delay, minLength, maxRows,
-	        disabled, userData, events
+	        disabled, userData, events,
+			ozelQueryDuzenle = e.ozelQueryDuzenleBlock
 		} = e
-		$.extend(this, {
+		extend(this, {
             name, etiket, placeholder,
 			value, _source, listSource,
 			mfSinif, kodSaha, adiSaha,
 			kodsuzmu, autoClearFlag,
 			delay, minLength, maxRows,
-			disabled, events, userData
+			disabled, events, userData,
+			ozelQueryDuzenle
         })
         // this.etiketGosterim_normal()
     }
@@ -1265,7 +1268,7 @@ class FBuilder_SimpleComboBox extends FBuilder_TextInput {
 			let keys = [
 				'id', 'name', 'etiket', 'value', 'listSource', 'autoClearFlag', 'kodsuzmu',
 				'mfSinif', 'kodSaha', 'adiSaha', 'delay', 'minLength', 'maxRows',
-				'disabled', 'userData', 'events'
+				'disabled', 'userData', 'events', 'ozelQueryDuzenle'
 			]
 			for (let k of keys) {
 				let v = this[k]
@@ -1273,7 +1276,7 @@ class FBuilder_SimpleComboBox extends FBuilder_TextInput {
 					args[k] = v
 			}
 			if (args.value == null) {
-				let {id, altInst: inst} = this
+				let { id, altInst: inst } = this
 				if (inst)
 					args.value = inst[id]
 			}
@@ -1291,7 +1294,7 @@ class FBuilder_SimpleComboBox extends FBuilder_TextInput {
         }
     }
 	postBuild(e) {
-		let {input, part, class: { noAutoChangeEvent }} = this
+		let { input, part, class: { noAutoChangeEvent } } = this
 		this.input = null
 		super.postBuild(e)
 		this.input = input
@@ -1353,6 +1356,9 @@ class FBuilder_SimpleComboBox extends FBuilder_TextInput {
     setUserData(v) { this.userData = v; this.part?.setUserData(v); return this }
 	enable() { this.disabled = false; this.part?.enable(); return this }
 	disable() { this.disabled = true; this.part?.disable(); return this }
+	ozelQueryDuzenleHandler(handler) { this.ozelQueryDuzenle = handler; return this }
+	ozelQueryDuzenleBlock(handler) { return this.ozelQueryDuzenleHandler(handler) }
+	ozelQueryDuzenleIslemi(handler) { return this.ozelQueryDuzenleHandler(handler) }
 	on(name, handler) { (this.getEvents()[name] ??= []).push(handler); this.part?.on(name, handler); return this }
 	off(name) { delete this.getEvents()[name]; this.part?.off(name, handler); return this }
 	signal(name) { this.part?.signal(name); return this }

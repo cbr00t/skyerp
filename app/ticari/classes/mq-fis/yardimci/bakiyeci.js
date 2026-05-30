@@ -6,14 +6,17 @@ class Bakiyeci extends CObject {
 	static get tip2Class() {
 		let result = this._tip2Class;
 		if (result == null) {
-			result = {}; for (const cls of this.subClasses) { const {tipKod} = cls; if (tipKod) { result[tipKod] = cls } }
+			result = {}; for (let cls of this.subClasses) { let {tipKod} = cls; if (tipKod) { result[tipKod] = cls } }
 			this._tip2Class = result
 		}
 		return result
 	}
-	constructor(e) {
-		e = e || {}; super(e);
-		$.extend(this, { borcmu: e.borcmu ?? e.borc, bakiyeSqlci: e.bakiyeSqlci, sqlDuzenleyici: e.sqlDuzenleyici ?? e.sqlDuzenleSelector ?? this.class.defaultBakiyeSqlDuzenleSelector })
+	constructor(e = {}) {
+		super(e)
+		extend(this, {
+			borcmu: e.borcmu ?? e.borc, bakiyeSqlci: e.bakiyeSqlci,
+			sqlDuzenleyici: e.sqlDuzenleyici ?? e.sqlDuzenleSelector ?? this.class.defaultBakiyeSqlDuzenleSelector
+		})
 	}
 	async getBakiyeDict(e) {
 		let _result = {}, {anahtarSahalar, sumSahalar, anahNumSet, delim} = this.class, {trnId} = e, borcmu = e.borcmu = getFuncValue.call(this, this.borcmu, e);
@@ -32,13 +35,34 @@ class Bakiyeci extends CObject {
 		return results
 	}
 	getBakiyeSql(e) {
-		const {bakiyeSqlci} = this; if (bakiyeSqlci) { return getFuncValue.call(this, bakiyeSqlci, e) }
-		const {fis} = e, {borcmu} = this; let {sqlDuzenleyici} = this;
+		let { bakiyeSqlci } = this
+		if (bakiyeSqlci)
+			return getFuncValue.call(this, bakiyeSqlci, e)
+		
+		let { fis } = e, { borcmu, sqlDuzenleyici } = this
 		if (fis || sqlDuzenleyici) {
-			if (e.fisSayac == null) { e.fisSayac = fis.sayac } e.borcmu = getFuncValue.call(this, borcmu, e);
-			let receiver = this; if (typeof sqlDuzenleyici == 'string') { receiver = fis; sqlDuzenleyici = fis[sqlDuzenleyici] }; const sent = e.sent = new MQSent(), stm = e.stm = new MQStm({ sent });
-			fis.bakiyeSqlOrtakDuzenle(e); if (sqlDuzenleyici) { getFuncValue.call(receiver, sqlDuzenleyici, e) }
-			let sahaVarmi = false; for (const _sent of stm.getSentListe()) { if (_sent?.sahalar?.liste?.length) { sahaVarmi = true; sent.groupByOlustur(); break } }
+			if (e.fisSayac == null)
+				e.fisSayac = fis.sayac
+			e.borcmu = getFuncValue.call(this, borcmu, e)
+			let receiver = this
+			if (isString(sqlDuzenleyici)) {
+				receiver = fis
+				sqlDuzenleyici = fis[sqlDuzenleyici]
+			}
+			let sent = e.sent = new MQSent()
+			let stm = e.stm = new MQStm({ sent })
+			fis.bakiyeSqlOrtakDuzenle(e)
+			if (sqlDuzenleyici)
+				getFuncValue.call(receiver, sqlDuzenleyici, e)
+			
+			let sahaVarmi = false
+			for (let _sent of stm) {
+				if (_sent?.sahalar?.liste?.length) {
+					sahaVarmi = true
+					sent.groupByOlustur()
+					break
+				}
+			}
 			return sahaVarmi ? stm : null
 		}
 		return null

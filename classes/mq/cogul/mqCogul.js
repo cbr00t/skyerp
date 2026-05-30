@@ -753,8 +753,9 @@ class MQCogul extends MQYapi {
 	static get listeBasliklari_detaylar() { let e = { liste: [] }; this.listeBasliklariDuzenle_detaylar(e); return e.liste }
 	static listeBasliklariDuzenle_detaylar(e) { this.orjBaslikListesiDuzenle_detaylar(e) }
 	static loadServerData_detaylar(e) {
-		e = e || {}; /* e.tabloKolonlari = e.tabloKolonlari || this.listeBasliklari_detaylar; */
-		e.query = this.loadServerData_detaylar_queryOlustur(e); return this.loadServerData_detaylar_querySonucu(e)
+		e ??= {}
+		e.query = this.loadServerData_detaylar_queryOlustur(e)
+		return this.loadServerData_detaylar_querySonucu(e)
 	}
 	static loadServerData_detaylar_queryOlustur(e) { return null }
 	static loadServerData_detaylar_queryDuzenle(e) { this.forAltYapiClassesDo('loadServerData_detaylar_queryDuzenle', e) }
@@ -1137,33 +1138,55 @@ class MQCogul extends MQYapi {
 		return results
 	}
 	static async forAltYapiClassesDoAsync(e, ..._args) {
-		e = e || {};
-		let blockOrSelector = typeof e == 'object' ? (e.selector ?? e.block ?? e.action) : e, results = [];
-		let selector = typeof blockOrSelector == 'string' ? blockOrSelector : null;
-		let block = typeof blockOrSelector == 'string' ? null : blockOrSelector;
+		e ??= {}
+		let blockOrSelector = isObject(e) ? ( e.selector ?? e.block ?? e.action ) : e
+		let selector = isString(blockOrSelector) ? blockOrSelector : null
+		let res = isString(blockOrSelector) ? null : blockOrSelector
+		
+		let results = []
 		if (blockOrSelector) {
-			let args = (typeof e == 'object' ? e.args : _args) || [], {altYapiDict} = this; if (altYapiDict == null) { return }
-			for (let cls of Object.values(altYapiDict)) {
+			let { altYapiDict } = this
+			if (altYapiDict == null)
+				return
+			
+			let args = ( isObject(e) ? e.args : _args ) ?? []
+			for (let cls of values(altYapiDict)) {
 				if (cls) {
-					cls.__proto__.mfSinif = this;
-					if (selector) { block = cls[selector] }
-					if (block) { results.push(await getFuncValue.call(cls, block, ...args)) }
+					cls.__proto__.mfSinif = this
+					if (selector)
+						res = await cls[selector]
+					if (res?.call)
+						res = await res.call(cls, ...args)
+					if (res !== undefined)
+						results.push(res)
 				}
 			}
 		}
 		return results
 	}
 	async forAltYapiKeysDoAsync(e, ..._args) {
-		e = e || {}; let blockOrSelector = typeof e == 'object' ? (e.selector ?? e.block ?? e.action) : e, results = [];
-		let selector = typeof blockOrSelector == 'string' ? blockOrSelector : null;
-		let block = typeof blockOrSelector == 'string' ? null : blockOrSelector;
+		e ??= {}
+		let blockOrSelector = isObject(e) ? ( e.selector ?? e.block ?? e.action ) : e
+		let selector = isString(blockOrSelector) ? blockOrSelector : null
+		let res = isString(blockOrSelector) ? null : blockOrSelector
+		
+		let results = []
 		if (blockOrSelector) {
-			let args = (typeof e == 'object' ? e.args : _args) || [], {altYapiDict} = this.class; if (altYapiDict == null) { return }
-			for (let key in altYapiDict) {
-				let altInst = this[key];
+			let { altYapiDict } = this.class
+			if (altYapiDict == null)
+				return
+			
+			let args = ( isObject(e) ? e.args : _args ) ?? []
+			for (let altInst of values(altYapiDict)) {
 				if (altInst) {
-					if (selector) { block = altInst[selector] }
-					if (block) { results.push(await getFuncValue.call(altInst, block, ...args)) }
+					if (altInst.inst !== this)
+						altInst.inst = this
+					if (selector)
+						res = await altInst[selector]
+					if (res?.call)
+						res = await res.call(altInst, ...args)
+					if (res !== undefined)
+						results.push(res)
 				}
 			}
 		}

@@ -294,7 +294,7 @@ class TabletApp extends TicariApp {
             TabTahsilatFis
         ].map(_ => _.fisTipi))
 	}
-	async bilgiYukleIstendi(e) {
+	async bilgiYukleIstendi(e = {}) {
 		let { offlineBilgiYukleSiniflar: classes, offlineClearTableSiniflar: clearClasses } = this
 		let { params, dbMgr, defaultOfflineRequestChunkSize: chunkSize } = this
 		let { main: db, main: { name } } = dbMgr
@@ -397,7 +397,7 @@ class TabletApp extends TicariApp {
 		eConfirm('Veri Yükleme tamamlandı')
 		setTimeout(() => hideProgress(), 150)
 	}
-	async bilgiGonderIstendi(e) {
+	async bilgiGonderIstendi(e = {}) {
 		let { offlineBilgiGonderSiniflar: classes, defaultOfflineRequestChunkSize: chunkSize } = this
 		if (!classes?.length)
 			return

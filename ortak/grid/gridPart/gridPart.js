@@ -1469,7 +1469,7 @@ class GridPart extends Part {
 		}
 		
 		let { args = e.rec } = e
-		let result = cls ? new cls(args) : ( args ?? {} )
+		let result = cls && !isInstance(args) ? new cls(args) : ( args ?? {} )
 		return result
 	}
 	signalColumnEvents(eventName, colNames, ...args) {

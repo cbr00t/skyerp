@@ -8,7 +8,7 @@ class MQOrtakFis extends MQDetayli {
 	static get offlineFis() { return true }
 	get numYapi() { return this.class.numYapi } get fisNox() { return this.tsn?.asText() }
 	get dipIslemci() {
-		let {_dipIslemci: result} = this
+		let { _dipIslemci: result } = this
 		if (result === undefined) {
 			this.dipOlustur()
 			result = this._dipIslemci
@@ -19,15 +19,15 @@ class MQOrtakFis extends MQDetayli {
 	get dipGridSatirlari() { return null }
 	get bakiyeciler() { return [] }
 	get fisTopBrut() {
-		let {detaylar} = this
+		let { detaylar } = this
 		return detaylar ? roundToBedelFra(topla(_ => _.brutBedel || 0, detaylar)) : 0
 	}
 	get fisTopNet() {
-		let {detaylar} = this
+		let { detaylar } = this
 		return detaylar ? roundToBedelFra(topla(_ => _.netBedel || _.bedel || 0, detaylar)) : 0
 	}
 	get fisTopDvNet() {
-		let {detaylar} = this
+		let { detaylar } = this
 		return detaylar ? roundToBedelFra(topla(_ => _.dvNetBedel || _.dvBedel || 0, detaylar)) : 0
 	}
 	get fisBaslikOlusturucular() {
@@ -43,7 +43,7 @@ class MQOrtakFis extends MQDetayli {
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e, {noSaha} = this;
 		if (noSaha) {
-			$.extend(pTanim, {
+			extend(pTanim, {
 				fisNo: new PInst(),
 				tabletID: new PInstGuid()
 			})
@@ -226,9 +226,11 @@ class MQOrtakFis extends MQDetayli {
 		if (tabletID !== undefined)
 			$.extend(this, { tabletID })
 	}
-	bakiyeSqlOrtakDuzenle({ sent, paramName_fisSayac }) {
-		let {table, sayacSaha} = this.class, {sayac} = this;
-		sent.fromAdd(`${table} fis`); sent.where.add(`fis.${sayacSaha} = ${sayac ? sayac.sqlServerDegeri() : paramName_fisSayac}`)
+	bakiyeSqlOrtakDuzenle({ paramName_fisSayac, sent, sent: { where: wh } }) {
+		let { table, idSaha } = this.class
+		let { sayac } = this
+		sent.fromAdd(`${table} fis`)
+		wh.add(`fis.${idSaha} = ${sayac ? sayac.sqlServerDegeri() : paramName_fisSayac}`)
 	}
 	uiDuzenle_fisGiris(e) {
 		let {fisBaslikOlusturucular} = this; if (fisBaslikOlusturucular) {

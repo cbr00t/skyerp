@@ -35,12 +35,27 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		for (let colDef of _result) { let {belirtec} = colDef; if (!colAttrSet[belirtec]) { result.push(colDef) } }
 		return this._listeBasliklari = result || []
 	}
-	getMFSinif(e) { e ??= {}; let result = this.mfSinif; if (result && isClass(result)) { result = getFuncValue.call(this, result, e) } return this._mfSinif = result }
-	getSecimler(e) { e ??= {}; let result = this.secimler; if (result && isInstance(result)) { result = getFuncValue.call(this, result, e) } return this._secimler = result }
+	getMFSinif(e) {
+		e ??= {}
+		let { mfSinif: res } = this
+		if (res && ( isFunction(res) || res.run ))
+			res = getFuncValue.call(this, res, e)
+		return this._mfSinif = res
+	}
+	getSecimler(e) {
+		e ??= {}
+		let { secimler: res } = this
+		if (res && isInstance(res))
+			res = getFuncValue.call(this, res, e)
+		return this._secimler = res
+	}
 	getTanimUISinif(e) {
-		e ??= {}; let result = this.tanimUISinif;
-		if (result && !result.prototype && $.isFunction(result)) { result = getFuncValue.call(this, result, e) }
-		if (result == null) { result = this._tanimUISinif = e.mfSinif?.tanimUISinif }
+		e ??= {}
+		let { tanimUISinif: result } = this
+		if (isFunction(result))
+			result = getFuncValue.call(this, result, e)
+		if (result == null)
+			result = this._tanimUISinif = e.mfSinif?.tanimUISinif
 		return result
 	}
 	getTanimlanabilirmi(e) {

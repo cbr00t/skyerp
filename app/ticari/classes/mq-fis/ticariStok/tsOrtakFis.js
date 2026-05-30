@@ -73,18 +73,22 @@ class TSOrtakFis extends MQTicariGenelFis {
 				});
 		if (app.params.ticariGenel.kullanim.takipNo) {
 			baslikForm.builders[1].addCheckBox('takipOrtakmi', 'Takip Ortakdır').degisince(({ builder: fbd }) => {
-				let {altInst, rootPart, parentBuilder} = fbd, {kontrolcu} = rootPart;
-				parentBuilder.id2Builder.takipNo.updateVisible();
-				e.sender = e.gridPart = rootPart; $.extend(e, { builder });
+				let {altInst, rootPart, parentBuilder} = fbd, {kontrolcu} = rootPart
+				parentBuilder.id2Builder.takipNo.updateVisible()
+				e.sender = e.gridPart = rootPart
+				extend(e, { builder })
 				if (altInst.takipOrtakmiDegisti) { altInst.takipOrtakmiDegisti(e) }
 				if (kontrolcu.takipOrtakmiDegisti) { kontrolcu.takipOrtakmiDegisti(e) }
 			});
-			baslikForm.builders[1].addModelKullan('takipNo').setMFSinif(MQTakipNo).comboBox()
-				.etiketGosterim_normal().addStyle_wh(400)
-				.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.takipOrtakmi ? true : 'basic-hidden')
+			baslikForm.builders[1].addSimpleComboBox('takipNo')
+				.etiketGosterim_yok()
+				.setMFSinif(MQTakipNo)
+				.addStyle_wh(400)
+				.setVisibleKosulu(({ builder: fbd }) =>
+					( fbd.altInst.takipOrtakmi ?? true ) ? true : 'basic-hidden')
 		}
 		baslikForm.builders[2].addTextInput('baslikAciklama', 'Fiş Açıklama')
-			.setPlaceHolder('Fiş Açıklama').etiketGosterim_normal()
+			.setPlaceHolder('Fiş Açıklama').etiketGosterim_yok()
 			.addStyle(e => `$elementCSS  { min-width: 150px !important; max-width: 400px !important }`)
 	}
 	static ekCSSDuzenle(e) { super.ekCSSDuzenle(e) }

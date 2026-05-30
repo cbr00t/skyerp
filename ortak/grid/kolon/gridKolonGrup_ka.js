@@ -366,6 +366,11 @@ class GridKolonGrup_KA extends GridKolonGrup {
 		}
 
 		kaKolonu.cellValueChanged ??= async ({ args, rec }) => {
+			if (this._disableEvents_cellValueChanged) {
+				delete this._disableEvents_cellValueChanged
+				return
+			}
+			
 			rec ??= this._temp_nextRec
 			delete this._temp_nextRec
 			
@@ -387,7 +392,10 @@ class GridKolonGrup_KA extends GridKolonGrup {
 			let hasRec = !!rec
 			;{
 				let { [adiSaha]: aciklama } = rec ?? {}
+				gr[kodAttr] = null
 				gr[adiAttr] = aciklama
+				this._disableEvents_cellValueChanged = true
+				w.setcellvalue(i, k, newValue)
 			}
 			
 			;{

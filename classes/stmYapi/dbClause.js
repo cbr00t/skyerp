@@ -933,4 +933,11 @@ class MQCase extends MQClause {
 		return this
 	}
 	setClause(v) { this.clause = v; return this }
+
+	static baBakiye(baClause, bedelClause) {
+		return new this()
+			.setClause(baClause)
+			.when(`'A'`, `0 - ${bedelClause}`)
+			.else(bedelClause)
+	}
 }

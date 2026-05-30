@@ -41,11 +41,19 @@ class MQGenelFis extends MQOrtakFis {
 	}
 	static secimlerDuzenleSon(e) { super.secimlerDuzenleSon(e) }
 	static rootFormBuilderDuzenle(e) {
-		e = e || {}; super.rootFormBuilderDuzenle(e); this.rootFormBuilderDuzenle_numarator(e);
-		let {tsnKullanilirmi} = this, {tsnForm, baslikForm} = e.builders;
-		let tarihFormParent = tsnKullanilirmi ? tsnForm : baslikForm.builders[0];
-		tarihFormParent.addDateInput({ id: 'tarih', etiket: 'Tarih', placeHolder: 'Fiş Tarih' }).etiketGosterim_normal().addStyle_wh({ width: '130px !important' });
-		tarihFormParent.addModelKullan({ id: 'subeKod', mfSinif: MQSube }).dropDown().etiketGosterim_normal().addStyle_wh({ width: '450px !important'})
+		super.rootFormBuilderDuzenle(e)
+		let { sube } = app.params.zorunlu
+		this.rootFormBuilderDuzenle_numarator(e)
+		let {tsnKullanilirmi} = this, {tsnForm, baslikForm} = e.builders
+		let tarihFormParent = tsnKullanilirmi ? tsnForm : baslikForm.builders[0]
+		tarihFormParent.addDateInput({ id: 'tarih', etiket: 'Tarih', placeHolder: 'Fiş Tarih' })
+			.etiketGosterim_normal().addStyle_wh({ width: '130px !important' })
+		if (sube) {
+			tarihFormParent.addSimpleComboBox('subeKod')
+				.etiketGosterim_normal()
+				.addStyle_wh(300)
+				.setMFSinif(MQSube)
+		}
 	}
 	static rootFormBuilderDuzenle_numarator(e) {
 		e = e || {}; let {tsnKullanilirmi} = this, {tsnForm} = e.builders; tsnForm.yanYana(); if (!tsnKullanilirmi) { return }

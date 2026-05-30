@@ -10,8 +10,9 @@ class SimpleComboBoxPart extends Part {
 	}
 	set mfSinif(cls) {
 		this._mfSinif = cls
-		this.kodSaha ||= cls?.kodSaha
-		this.adiSaha ||= cls?.adiSaha
+		let { mfSinif } = this
+		this.kodSaha = mfSinif?.kodSaha
+		this.adiSaha = mfSinif?.adiSaha
 	}
 	get kodSaha() { return this._kodSaha ?? MQKA.kodSaha }
 	set kodSaha(value) { this._kodSaha = value || null }
@@ -118,8 +119,6 @@ class SimpleComboBoxPart extends Part {
 			disabled: _disabled, events, queue, queueDelay
 		} = e
 		autoClearFlag ??= false; kodsuzmu ??= false
-		kodSaha ??= mfSinif?.kodSaha || null
-		adiSaha ??= mfSinif?.adiSaha || null
 		delay ??= 500; maxRows ??= 10;
 		minLength ??= 1; queueDelay ??= 250
 		_disabled ??= false
@@ -140,7 +139,10 @@ class SimpleComboBoxPart extends Part {
 		})
 		// !! (kodSaha, adiSaha) ve (item, value) mutlaka (mfSinif) sonrası atanmalı.
 		//	(kodSaha, adiSaha) değerleri ve (value -> item set işlemi) duruma göre mfSinif'a bakarak belirleniyor
-		extend(this, { kodSaha, adiSaha })
+		if (kodSaha)
+			this.kodSaha = kodSaha
+		if (adiSaha)
+			this.adiSaha = adiSaha
 		extend(this, { item, value })
 	}
 	runDevam(e = {}) {
@@ -353,34 +355,59 @@ class SimpleComboBoxPart extends Part {
 		let inGridEditor = layout?.hasClass('jqx-grid-cell-edit')
 		let inputVal = input.val() ?? ''
 		let orjMFSinif = mfSinif ?? MQKA
+		let { kodSaha: mfKodSaha, adiSaha: mfAdiSaha } = orjMFSinif
 		let cls = (class extends orjMFSinif {
+			static get classKey() { return orjMFSinif.classKey }
+			
 			static orjBaslikListesi_gridInit({ sender: gridPart, sender: { bulPart } }) {
 				super.orjBaslikListesi_gridInit(...arguments)
 				if (!inGridEditor) {
 					let { bulFormKullanilirmi } = this
-					if (bulFormKullanilirmi)
-						gridPart.filtreTokens = inputVal ? inputVal.split(' ').map(x => x.trim()).filter(Boolean) : null
+					if (bulFormKullanilirmi) {
+						gridPart.filtreTokens = inputVal
+							? inputVal
+								.split(' ')
+								.map(x => x.trim())
+								.filter(Boolean)
+							: null
+					}
 				}
+			}
+			static standartGorunumListesiDuzenle({ liste }) {
+				super.standartGorunumListesiDuzenle(...arguments)
+				let { kodKullanilirmi, adiKullanilirmi } = this
+				if (empty(liste))
+					orjMFSinif.standartGorunumListesiDuzenle({ liste })
+				if (kodKullanilirmi && !liste.includes(mfKodSaha))
+					liste.push(mfKodSaha)
+				if (adiKullanilirmi && !liste.includes(mfAdiSaha))
+					liste.push(mfAdiSaha)
 			}
 			static orjBaslikListesiDuzenle({ liste }) {
 				super.orjBaslikListesiDuzenle(...arguments)
-				let {kodKullanilirmi, adiKullanilirmi} = this
+				let { kodKullanilirmi, adiKullanilirmi } = this
 				// query builder için kolon eksiklerini tamamla
 				let key2Col = fromEntries(liste.map(_ => [_.belirtec, _]))
-				let kodCol = key2Col[kodSaha], adiCol = key2Col[adiSaha]
+				let kodCol = key2Col[mfKodSaha], adiCol = key2Col[mfAdiSaha]
 				if (!(kodCol && adiCol)) {
 					let _e = { ...arguments[0], liste: [] }
-					MQKA.orjBaslikListesiDuzenle(_e)
-					let {liste: _liste} = _e
-					if (kodKullanilirmi) { kodCol ??= _liste[0]; kodCol.belirtec = kodSaha }
-					if (adiKullanilirmi) { adiCol ??= _liste[1]; adiCol.belirtec = adiSaha }
+					orjMFSinif.orjBaslikListesiDuzenle(_e)
+					let { liste: _liste } = _e
+					if (kodKullanilirmi) {
+						kodCol ??= _liste[0]
+						kodCol.belirtec = mfKodSaha
+					}
+					if (adiKullanilirmi) {
+						adiCol ??= _liste[1]
+						adiCol.belirtec = mfAdiSaha
+					}
 				}
 				/*if (kodsuzmu)
 					kodCol?.hidden()*/
 				// ters sırada ekle
-				if (adiCol && !key2Col[adiSaha])
+				if (adiCol && !key2Col[mfAdiSaha])
 					liste.unshift(adiCol)
-				if (kodCol && !key2Col[kodSaha])
+				if (kodCol && !key2Col[mfKodSaha])
 					liste.unshift(kodCol)
 			}
 			static loadServerData(e) {
@@ -429,17 +456,22 @@ class SimpleComboBoxPart extends Part {
 	_onSourceReq(e) {
 		if (this.disabled)
 			return null
-		let sender = this, {kodsuzmu: kodsuz, mfSinif, kodSaha, adiSaha, maxRows: maxRow} = this
-		let {source, item, value: kod, aciklama, renderedInputText: text} = this
+		
+		let sender = this
+		let { kodsuzmu: kodsuz, mfSinif, kodSaha, adiSaha, maxRows: maxRow } = this
+		let { source, item, value: kod, aciklama, renderedInputText: text } = this
+		let { ozelQueryDuzenle } = this
+		
 		if (!source && mfSinif) {
 			source = ({ term: value, ...e }) =>
-				mfSinif.loadServerDataDogrudan({ maxRow, value: value?.trimEnd?.() || undefined })
+				mfSinif.loadServerDataDogrudan({ maxRow, ozelQueryDuzenle, value: value?.trimEnd?.() || undefined })
 		}
 		if (!source)
 			return null
 		if (!isFunction(source))
 			return source
-		$.extend(e, { sender, item, kod, aciklama, text, kodsuz, mfSinif, kodSaha, adiSaha })
+		
+		extend(e, { sender, item, kod, aciklama, text, kodsuz, mfSinif, kodSaha, adiSaha })
 		return source.call(this, e)
 	}
 	_onFocus(e) {
@@ -554,6 +586,8 @@ class SimpleComboBoxPart extends Part {
 	setBuilder(v) { this.builder = v; return this }
 	noInitCommit() { this.noInitCommitFlag = true; return this }
 	doInitCommit() { this.noInitCommitFlag = false; return this }
+	ozelQueryDuzenleIslemi(h) { this.ozelQueryDuzenle = h; return this }
+	ozelQueryDuzenleBlock(h) { return this.ozelQueryDuzenleIslemi(h) }
 	noQueue() { this.queue = null; return this }
 	useQueue() { this.queue = []; return this }
 	getLayout() { return $(`<div><input type="text"></div>`) }

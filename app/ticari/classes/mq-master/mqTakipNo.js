@@ -5,15 +5,15 @@ class MQTakipNo extends MQKA {
 	static get tableAlias() { return 'tak' }
 	static get kodListeTipi() { return 'TAKIPNO' }
 
-	static getGridKolonGrup(e) {
-		e = e || {};
-		if (!e.kodAttr) { e.kodAttr = 'takipNo' }
-		if (!e.adiAttr) { e.adiAttr = 'takipAdi' }
+	static getGridKolonGrup(e = {}) {
+		e.kodAttr ||= 'takipNo'
+		e.adiAttr ||= 'takipAdi'
 		return super.getGridKolonGrup(e)
 	}
 	static getGridKolonlar(e) {
-		const liste = [];
-		if (app.params.ticariGenel.kullanim.takipNo) { liste.push(...super.getGridKolonlar(e)) }
+		let liste = []
+		if (app.params.ticariGenel.kullanim.takipNo)
+			liste.push(...super.getGridKolonlar(e))
 		return liste
 	}
 }
