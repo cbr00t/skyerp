@@ -81,31 +81,37 @@ class MQCogul extends MQYapi {
 		if (altYapiDict) { for (let key in altYapiDict) { let cls = altYapiDict[key]; if (cls.altYapiInit) cls.altYapiInit(e) } }
 	}
 	pTanim2InstSonrasi(e) {
-		e = e || {}; super.pTanim2InstSonrasi(e); let {altYapiDict} = this.class;
+		e ??= {}
+		super.pTanim2InstSonrasi(e)
+		let { altYapiDict } = this.class
 		if (altYapiDict) {
+			let { _p } = this
 			for (let key in altYapiDict) {
-				let altInst = this._p[key]?.value;
+				let altInst = _p[key]?.value
 				if (altInst) {
-					if (!('inst' in altInst)) altInst.inst = this /* Object.defineProperty((altInst.class.extmi ? altInst.__proto__ : altInst), 'inst', { get: () => this }) */
-					if (altInst.altYapiInit) altInst.altYapiInit(e)
+					if (!('inst' in altInst))
+						altInst.inst = this
+					altInst.altYapiInit?.(e)
 				}
 			}
 		}
 	}
 	static extYapilarDuzenle(e) { }
 	static extYapilarDuzenleSonrasi(e) { }
-	static altYapiDictDuzenle(e) {
-		let {extYapilar} = this;
+	static altYapiDictDuzenle({ liste }) {
+		let { extYapilar } = this
 		if (extYapilar) {
-			let {liste} = e; for (let cls of extYapilar) liste[`_${cls.classKey}`] = cls
+			;extYapilar.forEach(cls =>
+				liste[`_${cls.classKey}`] = cls)
 		}
 	}
 	static altYapiDictDuzenleSonrasi(e) {
-		let altYapiDict = e.liste;
+		let { liste: altYapiDict } = e
 		if (altYapiDict) {
 			for (let key in altYapiDict) {
-				let cls = altYapiDict[key];
-				if (cls) { cls.__proto__.mfSinif = this /*if (!('mfSinif' in cls)) cls.__proto__.mfSinif = this; // Object.defineProperty(cls.__proto__, 'mfSinif', { get: () => this }) */ }
+				let cls = altYapiDict[key]
+				if (cls)
+					cls.__proto__.mfSinif = this
 			}
 		}
 	}
@@ -1106,33 +1112,60 @@ class MQCogul extends MQYapi {
 		return result
 	}
 	static forAltYapiClassesDo(e, ..._args) {
-		e = e || {}; let blockOrSelector = typeof e == 'object' ? (e.selector ?? e.block ?? e.action) : e, results = [];
-		let selector = typeof blockOrSelector == 'string' ? blockOrSelector : null;
-		let block = typeof blockOrSelector == 'string' ? null : blockOrSelector;
+		e ??= {}
+		let blockOrSelector = isObject(e) ? ( e.selector ?? e.block ?? e.action ) : e
+		let selector = isString(blockOrSelector) ? blockOrSelector : null
+		let res = isString(blockOrSelector) ? null : blockOrSelector
+		
+		let results = []
 		if (blockOrSelector) {
-			let args = (typeof e == 'object' ? e.args : _args) || [], {altYapiDict} = this; if (altYapiDict == null) { return }
-			for (let cls of Object.values(altYapiDict)) {
-				if (cls) {
-					cls.__proto__.mfSinif = this;
-					if (selector) { block = cls[selector] }
-					if (block) { results.push(getFuncValue.call(cls, block, ...args)) }
-				}
+			let { altYapiDict } = this
+			if (altYapiDict == null)
+				return
+			
+			let args = ( isObject(e) ? e.args : _args ) ?? []
+			for (let cls of values(altYapiDict).filter(Boolean)) {
+				cls.__proto__.mfSinif = this
+				
+				if (selector)
+					res = cls[selector]
+				if (res?.call)
+					res = res.call(cls, ...args)
+				
+				if (res !== undefined)
+					results.push(res)
 			}
 		}
 		return results
 	}
 	forAltYapiKeysDo(e, ..._args) {
-		e = e || {}; let blockOrSelector = typeof e == 'object' ? (e.selector ?? e.block ?? e.action) : e, results = [];
-		let selector = typeof blockOrSelector == 'string' ? blockOrSelector : null;
-		let block = typeof blockOrSelector == 'string' ? null : blockOrSelector;
+		e ??= {}
+		let blockOrSelector = isObject(e) ? ( e.selector ?? e.block ?? e.action ) : e
+		let selector = isString(blockOrSelector) ? blockOrSelector : null
+		let res = isString(blockOrSelector) ? null : blockOrSelector
+		
+		let results = []
 		if (blockOrSelector) {
-			let args = (typeof e == 'object' ? e.args : _args) || [], {altYapiDict} = this.class; if (altYapiDict == null) { return }
-			for (let key in altYapiDict) {
-				let altInst = this[key];
-				if (altInst) {
-					if (selector) { block = altInst[selector] }
-					if (block) { results.push(getFuncValue.call(altInst, block, ...args)) }
-				}
+			let { altYapiDict } = this.class
+			if (altYapiDict == null)
+				return
+			
+			let args = ( isObject(e) ? e.args : _args ) ?? []
+			for (let k in altYapiDict) {
+				let altInst = this[k]
+				if (altInst == null)
+					continue
+				
+				if (altInst.inst !== this)
+					altInst.inst = this
+				
+				if (selector)
+					res = altInst[selector]
+				if (res?.call)
+					res = res.call(altInst, ...args)
+				
+				if (res !== undefined)
+					results.push(res)
 			}
 		}
 		return results
@@ -1150,16 +1183,16 @@ class MQCogul extends MQYapi {
 				return
 			
 			let args = ( isObject(e) ? e.args : _args ) ?? []
-			for (let cls of values(altYapiDict)) {
-				if (cls) {
-					cls.__proto__.mfSinif = this
-					if (selector)
-						res = await cls[selector]
-					if (res?.call)
-						res = await res.call(cls, ...args)
-					if (res !== undefined)
-						results.push(res)
-				}
+			for (let cls of values(altYapiDict).filter(Boolean)) {
+				cls.__proto__.mfSinif = this
+				
+				if (selector)
+					res = await cls[selector]
+				if (res?.call)
+					res = await res.call(cls, ...args)
+				
+				if (res !== undefined)
+					results.push(res)
 			}
 		}
 		return results
@@ -1177,17 +1210,21 @@ class MQCogul extends MQYapi {
 				return
 			
 			let args = ( isObject(e) ? e.args : _args ) ?? []
-			for (let altInst of values(altYapiDict)) {
-				if (altInst) {
-					if (altInst.inst !== this)
-						altInst.inst = this
-					if (selector)
-						res = await altInst[selector]
-					if (res?.call)
-						res = await res.call(altInst, ...args)
-					if (res !== undefined)
-						results.push(res)
-				}
+			for (let k in altYapiDict) {
+				let altInst = this[k]
+				if (altInst == null)
+					continue
+				
+				if (altInst.inst !== this)
+					altInst.inst = this
+				
+				if (selector)
+					res = await altInst[selector]
+				if (res?.call)
+					res = await res.call(altInst, ...args)
+				
+				if (res !== undefined)
+					results.push(res)
 			}
 		}
 		return results

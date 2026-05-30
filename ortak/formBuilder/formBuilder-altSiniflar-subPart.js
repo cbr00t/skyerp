@@ -679,6 +679,9 @@ class FBuilder_OptionBase extends FBuilder_DivOrtak {
 	sourceAtandiDevam(e) { }
 	editable() { this.isReadOnly = false; return this }
 	readOnly() { this.isReadOnly = true; return this }
+	// ComboBox/ModelKullan uyumluluk
+	bosKodAlinir() { return this } bosKodAlinmaz() { return this }
+	bosKodEklenir() { return this } bosKodEklenmez() { return this }
 }
 class FBuilder_SelectElement extends FBuilder_OptionBase {
     static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -1368,4 +1371,7 @@ class FBuilder_SimpleComboBox extends FBuilder_TextInput {
 	onBlur(handler) { return this.on('blur', handler) }
     setEvents(v) { this.events = v; this.part?.setEvents(v); return this }
 	getEvents() { return this.events ??= {} }
+	// ModelKullanPart uyumluluk
+	bosKodAlinir() { return this } bosKodAlinmaz() { return this }
+	bosKodEklenir() { return this } bosKodEklenmez() { return this }
 }

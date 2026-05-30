@@ -98,11 +98,16 @@ class CariTopluIslemGridci extends FinansGridci {
 class CariTahsilatOdemeOrtakFis extends FinansFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'carifis' } static get noSaha() { return 'fisno' }
-	static get mustSaha() { return 'mustkod' } static get altHesapSaha() { return 'althesapkod' }
-	static get detaySinif() { return CariTahsilatOdemeDetay } static get gridKontrolcuSinif() { return CariTahsilatOdemeGridci }
+	static get mustSaha() { return 'mustkod' }
+	static get altHesapSaha() { return 'althesapkod' }
+	static get detaySinif() { return CariTahsilatOdemeDetay }
+	static get gridKontrolcuSinif() { return CariTahsilatOdemeGridci }
 	static get ba() { return null }
 	static get tsnKullanilirmi() { return true }
-	static get numYapi() { let {numTipKod: kod} = this; return kod ? new MQNumarator({ kod }) : null }
+	static get numYapi() {
+		let { numTipKod: kod } = this
+		return kod ? new MQNumarator({ kod }) : null
+	}
 	
 	static extYapilarDuzenle({ liste }) {
 		super.extYapilarDuzenle(...arguments);
@@ -117,31 +122,80 @@ class CariTahsilatOdemeOrtakFis extends FinansFis {
 		})*/
 	}
 	static varsayilanKeyHostVarsDuzenle({ hv }) {
-		super.varsayilanKeyHostVarsDuzenle(...arguments);
-		let {ba} = this; $.extend(hv, { ba })
+		super.varsayilanKeyHostVarsDuzenle(...arguments)
+		let { ba } = this
+		extend(hv, { ba })
 	}
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments)
 		/* hv.ticmustkod = hv.ticmustkod || hv.must */
 	}
+
+	bakiyeKullanimDuzenle({ result: r }) {
+		super.bakiyeKullanimDuzenle(...arguments)
+		r.cari = r.kasa = r.mevduat = true
+	}
+	bakiyeSqlEkDuzenle_cari({ sent, sent: { where: wh, sahalar } }) {
+		// MQOrtakFis::bakiyeSqlOrtakDuzenle  sırasında from ve sayac ataması yapıldı
+		let { class: { ba, detayTable } } = this
+		super.bakiyeSqlEkDuzenle_cari(...arguments)
+		sent.fis2HarBagla(detayTable)
+		sahalar
+			.addWithAlias('fis', 'ozelisaret', 'ticmustkod must')
+			.addWithAlias('har', 'detalthesapkod althesapkod')
+			.add(
+				`SUM(${ ba == 'A' ? '0 - ' : '' }har.bedel) bakiye`,
+				`SUM(${ ba == 'A' ? '0 - ' : '' }har.dvbedel) dvbakiye`
+			)
+	}
+	bakiyeSqlEkDuzenle_kasa({ sent, sent: { where: wh, sahalar } }) {
+		// MQOrtakFis::bakiyeSqlOrtakDuzenle  sırasında from ve sayac ataması yapıldı
+		let { class: { ba, detayTable } } = this
+		super.bakiyeSqlEkDuzenle_kasa(...arguments)
+		sent.fis2HarBagla(detayTable)
+		wh.add(`har.tahkasakod <> ''`)
+		sahalar
+			.addWithAlias('fis', 'ozelisaret')
+			.addWithAlias('har', 'tahkasakod kasakod')
+			.add(    // ters çalışır
+				`SUM(${ ba == 'B' ? '0 - ' : '' }har.bedel) bakiye`,
+				`SUM(${ ba == 'B' ? '0 - ' : '' }har.dvbedel) dvbakiye`
+			)
+	}
+	bakiyeSqlEkDuzenle_mevduat({ sent, sent: { where: wh, sahalar } }) {
+		// MQOrtakFis::bakiyeSqlOrtakDuzenle  sırasında from ve sayac ataması yapıldı
+		let { class: { ba, detayTable } } = this
+		super.bakiyeSqlEkDuzenle_mevduat(...arguments)
+		sent.fis2HarBagla(detayTable)
+		wh.add(`har.tahposhesapkod <> ''`)
+		sahalar
+			.addWithAlias('fis', 'ozelisaret')
+			.addWithAlias('har', 'tahposhesapkod banhesapkod')
+			.add(    // ters çalışır
+				`SUM(${ ba == 'B' ? '0 - ' : '' }har.bedel) bakiye`,
+				`SUM(${ ba == 'B' ? '0 - ' : '' }har.dvbedel) dvbakiye`
+			)
+	}
 }
 class CariTahsilatFis extends CariTahsilatOdemeOrtakFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get ba() { return 'A' }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'CARITAH' } static get sinifAdi() { return 'Cari Tahsilat' }
-	static get numTipKod() { return 'CRTAH' }
+	static get numTipKod() { return 'CRTAH' } static get ba() { return 'A' }
 }
 class CariOdemeFis extends CariTahsilatOdemeOrtakFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get ba() { return 'B' }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'CARIODE' } static get sinifAdi() { return 'Cari Ödeme' }
 	static get numTipKod() { return 'CRODE' }
+	static get ba() { return 'B' }
 }
 
 class CariTahsilatOdemeDetay extends FinansDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get table() { return 'carihar' } static get altHesapSaha() { return 'detalthesapkod' }
+	static get table() { return 'carihar' }
+	static get altHesapSaha() { return 'detalthesapkod' }
 	static pTanimDuzenle({ pTanim }) {
-		super.pTanimDuzenle(...arguments);
-		$.extend(pTanim, {
+		super.pTanimDuzenle(...arguments)
+		extend(pTanim, {
 			tip: new PInstTekSecim({ sinif: TahsilSekliTip }), altTip: new PInstTekSecim({ sinif: TahsilSekliAltTip }),
 			refSayac: new PInst(), belgeNo: new PInstNum('belgeno'), dvKur: new PInstNum('dvkur'),
 			sanalmi: new PInstBool('sanalmi'), acikKisim: new PInstNum('acikkisim'),
@@ -280,8 +334,8 @@ class KasaCariFis extends FinansFis {
 			.addWithAlias('fis', 'ozelisaret')
 			.addWithAlias('har', 'ticmustkod must', 'cariitn althesapkod')
 			.add(
-				`SUM(${ MQCase.baBakiye('fis.ba', 'har.bedel') }) bakiye`,
-				`SUM(${ MQCase.baBakiye('fis.ba', 'har.dvbedel') }) dvbakiye`
+				`SUM(${ MQCase.baBakiye('dbo.tersba(fis.ba)', 'har.bedel') }) bakiye`,
+				`SUM(${ MQCase.baBakiye('dbo.tersba(fis.ba)', 'har.dvbedel') }) dvbakiye`
 			)
 	}
 	bakiyeSqlEkDuzenle_kasa({ sent, sent: { where: wh, sahalar } }) {
@@ -291,8 +345,8 @@ class KasaCariFis extends FinansFis {
 		sahalar
 			.addWithAlias('fis', 'ozelisaret', 'kasakod')
 			.add(
-				`SUM(${ MQCase.baBakiye('dbo.tersba(fis.ba)', 'fis.toplambedel') }) bakiye`,
-				`SUM(${ MQCase.baBakiye('dbo.tersba(fis.ba)', 'fis.toplamdvbedel') }) dvbakiye`
+				`SUM(${ MQCase.baBakiye('fis.ba', 'fis.toplambedel') }) bakiye`,
+				`SUM(${ MQCase.baBakiye('fis.ba', 'fis.toplamdvbedel') }) dvbakiye`
 			)
 	}
 }

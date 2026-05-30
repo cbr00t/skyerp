@@ -14,6 +14,7 @@ class ExtFis_Cari extends ExtFis {
 		let { builders: baslikFormlar } = builders.baslikForm
 		let form = baslikFormlar[0]
 		form.addSimpleComboBox('mustKod', 'Müşteri')
+			.etiketGosterim_yok()
 			.setMFSinif(MQCari)
 			
 	}
@@ -56,6 +57,7 @@ class ExtFis_Cari extends ExtFis {
 class ExtFis_AltHesap extends ExtFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodSaha() { return this.mfSinif.altHesapSaha || 'cariitn' }
+
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		extend(pTanim, { altHesapKod: new PInstStr(this.kodSaha) })
@@ -479,7 +481,8 @@ class ExtFis_StokIslem extends ExtFis {
 		extend(pTanim, { islKod: new PInstStr('islkod'), isl_tip: new PInstStr() })
 	}
 	static rootFormBuilderDuzenle_ara({ builders }) {
-		let {builders: baslikFormlar} = builders.baslikForm, form = baslikFormlar[0];
+		let { builders: baslikFormlar } = builders.baslikForm
+		let form = baslikFormlar[0]
 		form.addSimpleComboBox('islKod', 'İşlem')
 			.addStyle_wh(300)
 			.etiketGosterim_yok()
@@ -487,7 +490,7 @@ class ExtFis_StokIslem extends ExtFis {
 			.kodsuz().bosKodAlinmaz()
 	}
 	static secimlerDuzenle({ secimler: sec }) {
-		sec.secimTopluEkle({ islKod: new SecimString({ etiket: 'İşlem', mfSinif: MQStokIslem }) });
+		sec.secimTopluEkle({ islKod: new SecimString({ etiket: 'İşlem', mfSinif: MQStokIslem }) })
 		sec.whereBlockEkle(({ secimler: sec, where: wh }) => {
 			let {aliasVeNokta} = this.mfSinif;
 			wh.basiSonu(sec.islKod, `${aliasVeNokta}islkod`)
@@ -518,12 +521,14 @@ class ExtFis_CariIslem extends ExtFis {
 		extend(pTanim, { islKod: new PInstStr('carislkod'), isl_ba: new PInstStr() })
 	}
 	static rootFormBuilderDuzenle_ara({ builders }) {
-		let {builders: baslikFormlar} = builders.baslikForm, form = baslikFormlar[0];
-		form.addSelect('islKod', 'İşlem')
+		let { builders: baslikFormlar } = builders.baslikForm
+		let form = baslikFormlar[0]
+		form.addSimpleComboBox('islKod', 'İşlem')
 			.addStyle_wh(300)
 			.etiketGosterim_yok()
-			.kodsuz().bosKodAlinmaz()
-			.setSource(e => MQCariIslem.loadServerData(e))
+			.kodsuz()
+			.setMFSinif(MQCariIslem)
+			//.setSource(e => MQCariIslem.loadServerData(e))
 	}
 	static secimlerDuzenle({ secimler: sec }) {
 		sec.secimTopluEkle({ islKod: new SecimString({ etiket: 'İşlem', mfSinif: MQCariIslem }) });
@@ -551,7 +556,9 @@ class ExtFis_CariIslem extends ExtFis {
 	static tekilOku_queryDuzenle({ stm }) {
 		for (let {sahalar} of stm) { sahalar.add('isl.aciklama isladi') }
 	}
-	async dataDuzgunmu(e) { return await MQCariIslem.bosVeyaKodYoksaMesaj(this.inst.islKod) }
+	async dataDuzgunmu(e) {
+		return await MQCariIslem.bosVeyaKodYoksaMesaj(this.inst.islKod)
+	}
 	setValues({ rec }) { let {inst} = this; inst.isl_ba = rec.isl_ba }
 }
 class ExtFis_MuhIslem extends ExtFis {
@@ -561,17 +568,20 @@ class ExtFis_MuhIslem extends ExtFis {
 		extend(pTanim, { islKod: new PInstStr('muhislkod') })
 	}
 	static rootFormBuilderDuzenle_ara({ builders }) {
-		let {builders: baslikFormlar} = builders.baslikForm, form = baslikFormlar[0];
-		form.addSelect('islKod', 'İşlem')
+		let {builders: baslikFormlar} = builders.baslikForm
+		let form = baslikFormlar[0]
+		//form.addSelect('islKod', 'İşlem')
+		form.addSimpleComboBox('islKod', 'İşlem')
 			.addStyle_wh(300)
 			.etiketGosterim_yok()
-			.kodsuz().bosKodAlinmaz()
-			.setSource(e => MQMuhIslem.loadServerData(e))
+			.kodsuz()
+			.setMFSinif(MQMuhIslem)
+			//.setSource(e => MQMuhIslem.loadServerData(e))
 	}
 	static secimlerDuzenle({ secimler: sec }) {
-		sec.secimTopluEkle({ islKod: new SecimString({ etiket: 'İşlem', mfSinif: MQMuhIslem }) });
+		sec.secimTopluEkle({ islKod: new SecimString({ etiket: 'İşlem', mfSinif: MQMuhIslem }) })
 		sec.whereBlockEkle(({ secimler: sec, where: wh }) => {
-			let {aliasVeNokta} = this.mfSinif;
+			let {aliasVeNokta} = this.mfSinif
 			wh.basiSonu(sec.islKod, `${aliasVeNokta}muhislkod`)
 		})
 	}
@@ -714,7 +724,7 @@ class Ext_StokIslem extends ExtFis_StokIslem {
 class Ext_CariIslem extends ExtFis_CariIslem {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
-		super.pTanimDuzenle(...arguments);
+		super.pTanimDuzenle(...arguments)
 		extend(pTanim, { islAdi: new PInstStr() })
 	}
 	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); this.tekilOku_queryDuzenle(e) }

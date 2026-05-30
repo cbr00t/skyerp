@@ -152,38 +152,55 @@ class MQQueryInsert extends MQInsertBase {
 class MQInsertOrUpdate extends MQDbCommand {
 	static { window[this.name] = this; this._key2Class[this.name] = this } get isDBWriteClause() { return true }
 	constructor(e) {
-		e = e || {}; super(e); $.extend(this, {
-			table: e.table ?? e.from, keyHV: e.keyHV ?? e.keyHostVars, hv: e.hv ?? e.hostVars, operator: e.operator,
+		super(e)
+		extend(this, {
+			table: e.table ?? e.from, keyHV: e.keyHV ?? e.keyHostVars,
+			hv: e.hv ?? e.hostVars, operator: e.operator ?? '+',
 			ekHV: e.ekHV ?? { ins: e.ekHV_ins ?? {}, upd: e.ekHV_upd ?? {} }
 		})
 	}
 	buildString(e) {
-		let {table, keyHV, hv, operator} = this
+		let { table, keyHV, hv, operator } = this
 		if (empty(keyHV) || empty(hv))
 			return
-		let insHV = {}, updHV = { ...hv }, wh = new MQWhereClause().birlestirDict(keyHV);
-		for (let [key, value] of entries(keyHV)) {
-			if (!insHV[key])
-				insHV[key] = value
-			if (updHV[key])
-				delete updHV[key]
+		
+		let insHV = {}, updHV = { ...hv }
+		let wh = new MQWhereClause()
+			.birlestirDict(keyHV)
+		for (let [k, v] of entries(keyHV)) {
+			insHV[k] ||= v
+			if (updHV[k])
+				delete updHV[k]
 		}
-		for (let [key, value] of entries(hv)) {
-			if (!insHV[key])
-				insHV[key] = value
+		for (let [k, v] of entries(hv)) {
+			if (!insHV[k])
+				insHV[k] ||= v
 		}
-		let {ekHV} = this
-		$.extend(insHV, ekHV.ins)
-		$.extend(updHV, ekHV.upd)
+
+		let { ekHV } = this
+		extend(insHV, ekHV.ins)
+		extend(updHV, ekHV.upd)
+
+		if (operator == '-') {
+			for (let [k, v] of entries(insHV)) {
+				if (keyHV[k] || !isNumber(v))
+					continue
+				insHV[k] = -v
+			}
+			operator = '+'
+		}
+
 		let set = new MQSetClause()
 		if (operator) {
-			for (let [key, value] of entries(updHV)) {
-				set.add(`${key} = ${key} ${operator} ${MQSQLOrtak.sqlServerDegeri(value)}`) }
+			for (let [k, v] of entries(updHV)) {
+				let clause = MQSQLOrtak.sqlServerDegeri(v)
+				set.add(`${k} = ${k} ${operator} ${clause}`) }
 		}
 		else
 			set.birlestirDict(updHV)
+		
 		let delim = ', ', _keys = keys(insHV)
-		let _values = values(insHV).map(value => MQSQLOrtak.sqlServerDegeri(value))
+		let _values = values(insHV).map(v => MQSQLOrtak.sqlServerDegeri(v))
 		super.buildString(e)
 		e.result += [
 			`IF EXISTS (SELECT * FROM ${table} ${wh})`,
@@ -192,7 +209,13 @@ class MQInsertOrUpdate extends MQDbCommand {
 			`	INSERT INTO ${table} (${_keys.join(delim)}) VALUES (${_values.join(delim)})`
 		].join(CrLf)
 	}
-	setTable(value) { this.table = value; return this } setKeyHV(value) { this.keyHV = value; return this } setHV(value) { this.hv = value; return this }
-	setInsHV(value) { this.ekHV.ins = value; return this } setUpdHV(value) { this.ekHV.upd = value; return this }
-	setOperator(value) { this.operator = value; return this } asEkle() { return this.setOperator('+') } asCikar() { return this.setOperator('-') } asCikart() { return this.asCikar() }
+	setTable(value) { this.table = value; return this }
+	setKeyHV(value) { this.keyHV = value; return this }
+	setHV(value) { this.hv = value; return this }
+	setInsHV(value) { this.ekHV.ins = value; return this }
+	setUpdHV(value) { this.ekHV.upd = value; return this }
+	setOperator(value) { this.operator = value; return this }
+	asEkle() { return this.setOperator('+') }
+	asCikar() { return this.setOperator('-') }
+	asCikart() { return this.asCikar() }
 }

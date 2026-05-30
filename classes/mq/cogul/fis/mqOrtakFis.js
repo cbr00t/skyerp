@@ -140,14 +140,18 @@ class MQOrtakFis extends MQDetayli {
 	async degistirOncesiIslemler(e) { await super.degistirOncesiIslemler(e); e.eski_tip2BakiyeciYapi = await this.getTip2BakiyeciYapi(e) ?? {} }
 	async degistirSonrasiIslemler(e) {				/* degistirOncesiIslemler(e) den elde edilen değerler (-), yeni değerler (+) olarak birleştirilerek güncellenir */
 		await super.degistirSonrasiIslemler(e); let {eski_tip2BakiyeciYapi: eski_tip2Yapi} = e, tip2Yapi = await this.getTip2BakiyeciYapi(e) ?? {}, query = new MQToplu();
-		let getAnah = values => { if (!$.isArray(values)) { values = Object.values(values) } return values.map(x => x?.toString()).join(delimWS) };
-		let tip2AnahStr2Bilgi = {}; if (!$.isEmptyObject(tip2Yapi)) {
+		let getAnah = vals => {
+			if (!$.isArray(vals)) { vals = Object.values(vals) }
+			return vals.map(x => x?.toString()).join(delimWS)
+		}
+		let tip2AnahStr2Bilgi = {}
+		if (!empty(tip2Yapi)) {
 			for (let [tip, yapi] of Object.entries(tip2Yapi)) {
 				let anahStr2Bilgi = tip2AnahStr2Bilgi[tip] = tip2AnahStr2Bilgi[tip] ?? {};
 				for (let rec of yapi.bakiyeYapilar) { anahStr2Bilgi[getAnah(rec.sabit)] = rec }
 			}
 		}
-		if (!$.isEmptyObject(eski_tip2Yapi)) {
+		if (!empty(eski_tip2Yapi)) {
 			for (let [tip, eski_yapi] of Object.entries(eski_tip2Yapi)) {
 				let {bakiyeci, bakiyeYapilar: eski_bakiyeYapilar} = eski_yapi, {table} = bakiyeci;
 				let yapi = tip2Yapi[tip] = tip2Yapi[tip] ?? { bakiyeci: { table }, bakiyeYapilar: [] }, {bakiyeYapilar} = yapi;
@@ -163,23 +167,32 @@ class MQOrtakFis extends MQDetayli {
 		await this.bakiyeYapilarKaydet({ ...e, tip2Yapi }) 
 	}
 	async silmeOncesiIslemler(e) {
-		await super.silmeOncesiIslemler(e); let tip2Yapi = await this.getTip2BakiyeciYapi(e) ?? {}, query = new MQToplu();
-		for (let {bakiyeci, bakiyeYapilar} of Object.values(tip2Yapi)) {				/* kayıt öncesinde eski değerler kadar bakiye/sonstok düşülür */
-			let {table} = bakiyeci; for (let {sabit: keyHV, toplam: hv} of bakiyeYapilar) {
-				query.add(new MQInsertOrUpdate({ table, keyHV, hv }).asCikar()) }
+		await super.silmeOncesiIslemler(e)
+		let tip2Yapi = await this.getTip2BakiyeciYapi(e) ?? {}
+		let query = new MQToplu()
+		for (let { bakiyeci, bakiyeYapilar } of values(tip2Yapi)) {				/* kayıt öncesinde eski değerler kadar bakiye/sonstok düşülür */
+			let { table } = bakiyeci
+			for (let { sabit: keyHV, toplam: hv } of bakiyeYapilar) {
+				for (let [k, v] of entries(hv)) {
+					if (v && isNumber(v))
+						hv[k] = -v
+				}
+				query.add( new MQInsertOrUpdate({ table, keyHV, hv }) )
+			}
 		}
-		if (query.liste.length) {
-			let {trnId} = e, offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode;
+		if (!empty(query.liste)) {
+			let { trnId } = e, offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode
 			await app.sqlExecNone({ offlineMode, trnId, query })
 		}
 	}
 	async silmeSonrasiIslemler(e) { await super.silmeSonrasiIslemler(e) }
 	async bakiyeYapilarKaydet(e) {
-		let {tip2Yapi} = e; if ($.isEmptyObject(tip2Yapi)) { return true }
+		let {tip2Yapi} = e; if (empty(tip2Yapi)) { return true }
 		let query = new MQToplu(); for (let {bakiyeci, bakiyeYapilar} of Object.values(tip2Yapi)) {				/* kayıt sonrası yeni değerler kadar bakiye/sonstok eklenir */
 			let {table} = bakiyeci; for (let {sabit: keyHV, toplam: _hv} of bakiyeYapilar) {
 				let hv = {}; for (let [key, value] of Object.entries(_hv)) { if (value) { hv[key] = value } }
-				if (!$.isEmptyObject(hv)) { query.add(new MQInsertOrUpdate({ table, keyHV, hv }).asEkle()) }
+				if (!empty(hv))
+					query.add(new MQInsertOrUpdate({ table, keyHV, hv }))
 			}
 		}
 		if (query.liste.length) {
@@ -192,7 +205,7 @@ class MQOrtakFis extends MQDetayli {
 		let {bakiyeciler} = this; if (!bakiyeciler?.length) { return [] }
 		let fis = this, result = {}; for (const bakiyeci of bakiyeciler) {
 			const {tipKod, table, anahtarSahalar, sumSahalar, delim} = bakiyeci.class; if (!tipKod) { continue }
-			const bakiyeYapilar = await bakiyeci.getBakiyeDict({ fis }); if ($.isEmptyObject(bakiyeYapilar)) { continue }
+			const bakiyeYapilar = await bakiyeci.getBakiyeDict({ fis }); if (empty(bakiyeYapilar)) { continue }
 			result[tipKod] = { bakiyeci, bakiyeYapilar }
 		}
 		return result
@@ -203,7 +216,7 @@ class MQOrtakFis extends MQDetayli {
 	}
 	logHVDuzenle({ hv }) {
 		super.logHVDuzenle(...arguments);
-		$.extend(hv, { xno: this.fisNo || 0 })
+		extend(hv, { xno: this.fisNo || 0 })
 	}
 	alternateKeyHostVarsDuzenle({ hv }) {
 		super.alternateKeyHostVarsDuzenle(...arguments)
@@ -215,7 +228,7 @@ class MQOrtakFis extends MQDetayli {
 		super.hostVarsDuzenle(...arguments)
 		let {tabletID: tabletguid} = this
 		if (tabletguid)
-			$.extend(hv, { tabletguid })
+			extend(hv, { tabletguid })
 	}
 	setValues({ rec }) {
 		super.setValues(...arguments)
@@ -224,7 +237,7 @@ class MQOrtakFis extends MQDetayli {
 			this.fisNo = rec[noSaha] || 0
 		let {tabletguid: tabletID} = rec
 		if (tabletID !== undefined)
-			$.extend(this, { tabletID })
+			extend(this, { tabletID })
 	}
 	bakiyeSqlOrtakDuzenle({ paramName_fisSayac, sent, sent: { where: wh } }) {
 		let { table, idSaha } = this.class

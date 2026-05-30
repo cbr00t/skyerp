@@ -587,7 +587,6 @@ class SimpleComboBoxPart extends Part {
 	noInitCommit() { this.noInitCommitFlag = true; return this }
 	doInitCommit() { this.noInitCommitFlag = false; return this }
 	ozelQueryDuzenleIslemi(h) { this.ozelQueryDuzenle = h; return this }
-	ozelQueryDuzenleBlock(h) { return this.ozelQueryDuzenleIslemi(h) }
 	noQueue() { this.queue = null; return this }
 	useQueue() { this.queue = []; return this }
 	getLayout() { return $(`<div><input type="text"></div>`) }

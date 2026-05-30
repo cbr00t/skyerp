@@ -696,7 +696,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			/*if (!await inst.yukle(_e)) { let mesaj = 'Seçilen satır için bilgi yüklenemedi'; throw { isError: true, rc: 'instBelirle', errorText: mesaj } }*/
 			promises.push(new Promise(async (r, f) => {
 				try {
-					await inst.silmeOncesiIslemler(__e)
+					// await inst.silmeOncesiIslemler(__e)
 					r(await inst.sil(__e))
 				}
 				catch (ex) { f(ex) }
