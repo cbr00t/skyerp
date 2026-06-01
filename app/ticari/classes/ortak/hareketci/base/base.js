@@ -482,9 +482,15 @@ class Hareketci extends CObject {
 	}
 
 	static maliTablo_secimlerYapiOlustur(e) {
-		let {tip2SecimMFYapi} = e; if (!tip2SecimMFYapi) { return this }
-		e.result = {}; this.maliTablo_secimlerYapiDuzenle(e)
-		if (!empty(e.result)) { tip2SecimMFYapi[this.kisaKod] = e.result }
+		let { tip2SecimMFYapi } = e
+		if (!tip2SecimMFYapi)
+			return this
+		
+		e.result = {}
+		this.maliTablo_secimlerYapiDuzenle(e)
+		if (!empty(e.result))
+			tip2SecimMFYapi[this.kisaKod] = e.result
+		
 		return this
 	}
 	static maliTablo_secimlerYapiDuzenle({ result }) { }

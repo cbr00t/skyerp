@@ -1400,7 +1400,9 @@ class DRapor_Hareketci_Muhasebe_Main extends DRapor_Hareketci_Main {
 				item.secimKullanilmaz().setSql(['shes.kod', 'shes.aciklama']))
 			.addGrupBasit('CERCEVEHESAP', 'Çerçeve Hesap', 'cercevehesap', DMQMuhHesap_Cerceve, null, ({ item }) =>
 				item.secimKullanilmaz().setSql(['ches.kod', 'ches.aciklama']))
-		this.tabloYapiDuzenle_baBedelBasit(e)
+		// this.tabloYapiDuzenle_baBedelBasit(e)
+		this.tabloYapiDuzenle_baBedel(e)
+		this.tabloYapiDuzenle_baBakiye(e)
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
 		super.loadServerData_queryDuzenle_hrkSent(e)

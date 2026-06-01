@@ -723,7 +723,7 @@ class StokHareketci extends Hareketci {
 
 	static maliTablo_secimlerYapiDuzenle({ result }) {
 		super.maliTablo_secimlerYapiDuzenle(...arguments)
-		$.extend(result, {
+		extend(result, {
 			sube: DMQSube, subeGrup: DMQSubeGrup, mst: DMQStok, grup: DMQStokGrup,
 			anaGrup: DMQStokAnaGrup, istGrup: DMQStokIstGrup, tip: DMQStokTip, isl: DMQStokIslem
 		})

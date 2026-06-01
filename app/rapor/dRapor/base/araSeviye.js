@@ -220,9 +220,9 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return await super.loadServerData(e)
 	}
 	loadServerData_recsDuzenleIlk({ recs } = {}) {
-		if (!empty(recs)) {
+		const PostfixBakiye = 'yurbakiye', PostfixBedel = 'bedel'
+		if (!empty(recs) && keys(recs[0]).find(k => k.includes(PostfixBakiye))) {
 			;{
-				const PostfixBakiye = 'bakiye', PostfixBedel = 'bedel'
 				let _keys = keys(recs[0]).filter(k => k.includes(PostfixBakiye))
 				if (!empty(_keys)) {
 					;recs.forEach((r, i) => {
@@ -1303,17 +1303,50 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		}
 		return this
 	}
+	
 	tabloYapiDuzenle_baBakiyeBasit({ result }) {
 		let { sqlNull } = Hareketci_UniBilgi.ortakArgs
 		result
-			.addToplamBasit_bedel('BORCBAKIYE', 'Borç Bakiye', 'borcbakiye', null, null, ({ item }) => item.noOrderBy().setSQL([sqlNull]))
-			.addToplamBasit_bedel('ALACAKBAKIYE', 'Alacak Bakiye', 'alacakbakiye', null, null, ({ item }) => item.noOrderBy().setSQL([sqlNull]))
+			.addToplamBasit_bedel('BORCBAKIYE', 'Borç Bakiye', 'borcbakiye', null, null, ({ item }) => {
+				item.ustSeviyeUygulanir().setFormul(
+					['ISARETLIBEDEL'],
+					({ rec: { isaretlibedel: bedel } }) =>
+						bedel > 0 ? roundToBedelFra(bedel) : 0
+				)
+			})
+			.addToplamBasit_bedel('ALACAKBAKIYE', 'Alacak Bakiye', 'alacakbakiye', null, null, ({ item }) => {
+				item.ustSeviyeUygulanir().setFormul(
+					['ISARETLIBEDEL'],
+					({ rec: { isaretlibedel: bedel } }) =>
+						bedel < 0 ? -roundToBedelFra(bedel) : 0
+				)
+			})
 		return this
 	}
 	tabloYapiDuzenle_baBakiye({ result }) {
 		let { sqlNull } = Hareketci_UniBilgi.ortakArgs
 		this.tabloYapiDuzenle_baBakiyeBasit(...arguments)
-		result.addToplamBasit_bedel('ISARETLIBAKIYE', 'B-A Bakiye', 'isaretlibakiye', null, null, ({ item }) => item.noOrderBy().setSQL([sqlNull]))
+		result.addToplamBasit_bedel('ISARETLIBAKIYE', 'B-A Bakiye', 'isaretlibakiye', null, null, ({ item }) => {
+			item.ustSeviyeUygulanir().setFormul(
+				['ISARETLIBEDEL'],
+				({ rec: { isaretlibedel: bedel } }) =>
+					bedel
+			)
+		})
+		return this
+	}
+
+	tabloYapiDuzenle_yurBABakiyeBasit({ result }) {
+		let { sqlNull } = Hareketci_UniBilgi.ortakArgs
+		result
+			.addToplamBasit_bedel('BORCBAKIYE', 'Y. Borç Bakiye', 'yurborcbakiye', null, null, ({ item }) => item.noOrderBy().setSQL([sqlNull]))
+			.addToplamBasit_bedel('ALACAKBAKIYE', 'Y. Alacak Bakiye', 'yuralacakbakiye', null, null, ({ item }) => item.noOrderBy().setSQL([sqlNull]))
+		return this
+	}
+	tabloYapiDuzenle_yurBABakiye({ result }) {
+		let { sqlNull } = Hareketci_UniBilgi.ortakArgs
+		this.tabloYapiDuzenle_yurBABakiyeBasit(...arguments)
+		result.addToplamBasit_bedel('ISARETLIBAKIYE', 'Y. B-A Bakiye', 'yurisaretlibakiye', null, null, ({ item }) => item.noOrderBy().setSQL([sqlNull]))
 		return this
 	}
 
@@ -1328,7 +1361,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	tabloYapiDuzenle_dovizli_baBedel({ result }) {
 		this.tabloYapiDuzenle_dovizli_baBedelBasit(...arguments)
-		let {degerlemeDvKodListe: dvKodListe} = this
+		let { degerlemeDvKodListe: dvKodListe } = this
 		for (let dvKod of dvKodListe)
 			result.addToplamBasit_bedel(`DEG_ISARETLIBEDEL_${dvKod}`, `B-A Bedel (${dvKod})`, `deg_isaretlibedel_${dvKod}`)
 		return this
@@ -1336,10 +1369,11 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	loadServerData_queryDuzenle_dovizli_baBedel({ alias, stm, sent, attrSet, tarihClause, baClause, bedelClause: orjBedelClause }) {
 		if (!(baClause || bedelClause))
 			return this
+		
 		sent ??= sent ?? stm.sent
 		let e = arguments[0]
-		let {from, where: wh, sahalar} = sent
-		let {gecerliDegDvKodSet: dvKodSet = {}} = this
+		let { from, where: wh, sahalar } = sent
+		let { gecerliDegDvKodSet: dvKodSet = {} } = this
 		for (let dvKod in dvKodSet) {
 			let dvKurAlias = `dkur_${dvKod}`
 			if (!from.aliasIcinTable(dvKurAlias))
@@ -1365,25 +1399,21 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return this
 	}
 	tabloYapiDuzenle_dovizli_baBakiye({ result }) {
-		let {degerlemeDvKodListe: dvKodListe} = this
+		let { degerlemeDvKodListe: dvKodListe } = this
 		for (let dvKod of dvKodListe) {
 			result
 				.addToplamBasit_bedel(`DEG_BORCBAKIYE_${dvKod}`, `Borç Bakiye (${dvKod})`, `deg_borcbakiye_${dvKod}`, null, null, ({ item }) => {
 					item.setFormul(
-						[`DEG_BORCBEDEL_${dvKod}`, `DEG_ALACAKBEDEL_${dvKod}`],
-						({ rec: { [`deg_borcbedel_${dvKod}`]: borc, [`deg_alacakbedel_${dvKod}`]: alacak } }) => {
-							let fark = borc - alacak
-							return fark > 0 ? roundToBedelFra(fark) : 0
-						}
+						[`DEG_ISARETLIBEDEL_${dvKod}`],
+						({ rec: { [`deg_isaretlibedel_${dvKod}`]: bedel } }) =>
+							bedel > 0 ? roundToBedelFra(bedel) : 0
 					)
 				})
 				.addToplamBasit_bedel(`DEG_ALACAKBAKIYE_${dvKod}`, `Alacak Bakiye (${dvKod})`, `deg_alacakbakiye_${dvKod}`, null, null, ({ item }) => {
 					item.setFormul(
-						[`DEG_BORCBEDEL_${dvKod}`, `DEG_ALACAKBEDEL_${dvKod}`],
-						({ rec: { [`deg_borcbedel_${dvKod}`]: borc, [`deg_alacakbedel_${dvKod}`]: alacak } }) => {
-							let fark = borc - alacak
-							return fark < 0 ? roundToBedelFra(-fark) : 0
-						}
+						[`DEG_ISARETLIBEDEL_${dvKod}`],
+						({ rec: { [`deg_isaretlibedel_${dvKod}`]: bedel } }) =>
+							bedel < 0 ? -roundToBedelFra(bedel) : 0
 					)
 				})
 		}

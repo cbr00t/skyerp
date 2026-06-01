@@ -429,7 +429,8 @@ class TabloYapiItem extends CObject {
 			ozelWhereClauseFlag: e.ozelWhereClauseFlag, orderBySaha: e.orderBySaha,
 			hrkAttr: e.hrkAttr, colDefs: e.colDefs ?? [],
 			secimlerDuzenleyici: e.secimlerDuzenleyici, tbWhereClauseDuzenleyici: e.tbWhereClauseDuzenleyici,
-			kodsuzmu: e.kodsuzmu, isHidden: e.hidden ?? e.isHidden
+			kodsuzmu: e.kodsuzmu, isHidden: e.hidden ?? e.isHidden,
+			ustSeviyeUygulanirmi: e.ustSeviyeUygulanir ?? e.ustSeviyeUygulanirmi ?? true
 		})
 		this.setKA(e.ka)
 		this.setFormul(e.formul)
@@ -524,9 +525,18 @@ class TabloYapiItem extends CObject {
 		tbWhereClauseDuzenleyici?.call(this, { ..._e, kod })
 	}
 	formulEval(e) {
-		let {colDefs} = this; if (!colDefs?.length) { return this }
-		let item = this, {rec} = e, {kod} = this.ka; let value = this.formul?.run({ item, kod, ...e }); if (value == null) { return this }
-		for (let {belirtec} of colDefs) { rec[belirtec] = value } return this
+		let { colDefs } = this
+		if (!colDefs?.length)
+			return this
+		
+		let item = this
+		let { rec } = e,  { kod } = this.ka
+		let value = this.formul?.run({ item, kod, ...e })
+		if (value == null)
+			return this
+		for (let { belirtec } of colDefs)
+			rec[belirtec] = value
+		return this
 	}
 	addColDef(...items) {
 		let {colDefs} = this; for (let item of items) {
@@ -560,7 +570,10 @@ class TabloYapiItem extends CObject {
 	setColDefs(value) { this.colDefs = value; return this } setMFSinif(value) { this.mfSinif = value; return this }
 	secimKullanilir() { this.secimKullanilirFlag = true; return this } secimKullanilmaz() { this.secimKullanilirFlag = false; return this }
 	ozelWhereClause() { this.ozelWhereClauseFlag = true; return this } normalWhereClause() { this.ozelWhereClauseFlag = false; return this }
-	setSecimlerDuzenleyici(value) { this.secimlerDuzenleyici = value; return this } setTBWhereClauseDuzenleyici(value) { this.tbWhereClauseDuzenleyici = value; return this }
+	setSecimlerDuzenleyici(value) { this.secimlerDuzenleyici = value; return this }
+	setTBWhereClauseDuzenleyici(value) { this.tbWhereClauseDuzenleyici = value; return this }
+	ustSeviyeUygulanir() { this.ustSeviyeUygulanirmi = true; return this }
+	ustSeviyeUygulanmaz() { this.ustSeviyeUygulanirmi = false; return this }
 }
 class DRaporFormul extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -570,8 +583,13 @@ class DRaporFormul extends CObject {
 		this.setBlock(e.block)
 	}
 	run(e) {
-		let {rec} = e, {block} = this; if (!(rec && block)) { return this }
-		let formul = this, {item} = e, kod = e.kod ?? e.name ?? e.tip; return getFuncValue.call(this, block, { kod, rec, formul, item })
+		let { rec } = e, { block } = this
+		if (!(rec && block))
+			return this
+		
+		let formul = this, { item } = e
+		let kod = e.kod ?? e.name ?? e.tip
+		return block.call(this, { kod, rec, formul, item })
 	}
 	addAttr(...items) {
 		let {attrListe} = this; for (let item of items) {

@@ -23,8 +23,10 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 				yatayAnaliz: new SecimBirKismi({ etiket: 'Yatay Analiz', tekSecimSinif: SBTabloYatayAnaliz })
 			})
 		sec.whereBlockEkle(({ secimler: sec, where: wh }) => {
-			{ let {tekSecim: aktifSecim} = sec.aktifSecim;
-			  wh.birlestir(aktifSecim.getTersBoolBitClause(`${alias}.bdevredisi`)) }
+			{
+				let { tekSecim: aktifSecim } = sec.aktifSecim
+				wh.birlestir(aktifSecim.getTersBoolBitClause(`${alias}.bdevredisi`))
+			}
 			wh.birKismi(sec.yatayAnaliz, `${alias}.yatayanaliz`)
 		})
 	}
@@ -225,10 +227,11 @@ class SBTabloDetay extends MQDetay {
 			: ''
 	}
 	get secimler() {
-		let {hesapTipi, shStokHizmet, tip2Secimler} = this
+		let { hesapTipi, shStokHizmet, tip2Secimler } = this
 		if (hesapTipi?.secilen == null)
 			return null
-		let {hizmetmi, ekBilgi: { querymi, hareketcimi, harSinif } = {}} = hesapTipi
+		
+		let { hizmetmi, ekBilgi: { querymi, hareketcimi, harSinif } = {} } = hesapTipi
 		let tip = (
 			querymi
 				? hareketcimi && !harSinif?.ticarimi ? hesapTipi.kod
@@ -303,7 +306,7 @@ class SBTabloDetay extends MQDetay {
 	}
 	secimlerOlustur(e) {
 		e ??= {}
-		let tip2Secimler = this.tip2Secimler = e.tip2Secimler ?? {}
+		let tip2Secimler = e.tip2Secimler ?? {}
 		let tip2SecimMFYapi = {
 			/*S: { mst: DMQStok, grup: DMQStokGrup, anaGrup: DMQStokAnaGrup, istGrup: DMQStokIstGrup, tip: DMQStokTip },
 			H: { mst: DMQHizmet, grup: DMQHizmetGrup, anaGrup: DMQHizmetAnaGrup, istGrup: DMQHizmetIstGrup, muhHesap: DMQMuhHesap },
@@ -318,6 +321,7 @@ class SBTabloDetay extends MQDetay {
 			tip2Secimler = e.tip2Secimler
 			tip2SecimMFYapi = e.tip2SecimMFYapi
 		}
+
 		let tip2EkWhereDuzenleyici = {
 			/*[KasaHareketci.kisaKod]: ({ raporTanim, secimler: sec, where: wh }) => { debugger },
 			[BankaMevduatHareketci.kisaKod]: ({ raporTanim, secimler: sec, where: wh }) => { debugger }*/
@@ -333,14 +337,16 @@ class SBTabloDetay extends MQDetay {
 			secimler.beginUpdate()
 			SBRapor_Main.maliTablo_basSecimlerDuzenle({ ...e, secimler })
 			for (let [key, mfSinif] of entries(yapi)) {
-				let {kodListeTipi: grupKod, sinifAdi: grupAdi, adiKullanilirmi} = mfSinif
-				secimler.grupEkle(grupKod, grupAdi);
+				let { kodListeTipi: grupKod, sinifAdi: grupAdi, adiKullanilirmi } = mfSinif
+				secimler.grupEkle(grupKod, grupAdi, true)
 				secimler.secimEkle(`${key}Kod`, new SecimString({ etiket: 'Kod', mfSinif, grupKod }))
 				if (adiKullanilirmi)
 					secimler.secimEkle(`${key}Adi`, new SecimOzellik({ etiket: 'Adı', grupKod }))
 			}
 			secimler.endUpdate()
 		}
+
+		this.tip2Secimler = tip2Secimler
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
@@ -828,10 +834,10 @@ class SBTabloDetay extends MQDetay {
 		if (!inst)
 			return inst
 		
-		let { tip2Secimler } = this
-		if (tip2Secimler) {
-			tip2Secimler = inst.tip2Secimler = {}
-			for (let [tip, _secimler] of entries(tip2Secimler)) {
+		let { tip2Secimler: orj } = this
+		if (orj) {
+			let tip2Secimler = inst.tip2Secimler = {}
+			for (let [tip, _secimler] of entries(orj)) {
 				let secimler = _secimler.map(sec => sec.shallowCopy())
 				tip2Secimler[tip] = secimler
 			}
@@ -843,10 +849,10 @@ class SBTabloDetay extends MQDetay {
 		if (!inst)
 			return inst
 
-		let { tip2Secimler } = this
-		if (tip2Secimler) {
+		let { tip2Secimler: orj } = this
+		if (orj) {
 			let tip2Secimler = inst.tip2Secimler = {}
-			for (let [tip, _secimler] of entries(tip2Secimler)) {
+			for (let [tip, _secimler] of entries(orj)) {
 				let secimler = _secimler.deepCopy()
 				tip2Secimler[tip] = secimler
 			}
@@ -1133,17 +1139,20 @@ class SBTabloGridci extends GridKontrolcu {
 			clearTimeout(this[timerKey])
 			this[timerKey] = setTimeout(() => {
 				try {
-					let {altInst} = rfb, {secimler} = altInst
-					let {builders, id2Builder} = fbd_altForm, {secimler: fbd_secimler} = id2Builder
+					let { altInst } = rfb, { secimler } = altInst
+					let { builders, id2Builder } = fbd_altForm
+					let { secimler: fbd_secimler } = id2Builder
 					if (fbd_secimler) {
-						let {part, layout} = fbd_secimler
-						part?.destroyPart(); layout?.remove()
+						let { part, layout } = fbd_secimler
+						part?.destroyPart()
+						layout?.remove()
 						let ind = builders.indexOf(fbd_secimler)
 						if (ind > -1)
 							builders.splice(ind, 1)
 					}
-					delete fbd_altForm._id2Builder;
-					if (secimler) { buildSecimlerForm(fbd_altForm, 'secimler').run() }
+					delete fbd_altForm._id2Builder
+					if (secimler)
+						buildSecimlerForm(fbd_altForm, 'secimler').run()
 				}
 				finally { delete this[timerKey] }
 			}, 10);

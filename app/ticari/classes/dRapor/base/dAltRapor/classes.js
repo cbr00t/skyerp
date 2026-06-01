@@ -1,21 +1,34 @@
 class DAltRapor_PanelRec extends CObject {
 	static { window[this.name] = this; this._key2Class[this.name] = this } get panelRecmi() { return true }
-	constructor(e) { e = e || {}; super(e); $.extend(this, { ...e }) }
+	constructor(e) {
+		e ??= {}; super(e)
+		extend(this, { ...e })
+	}
 	toplamYapiOlustur(e) { }
+	formulEval(e) { }
 }
 class DAltRapor_PanelRec_Donemsel extends DAltRapor_PanelRec {
 	static { window[this.name] = this; this._key2Class[this.name] = this } get donemRecmi() { return true }
 	get yatay2Detay() {
-		let result = this._yatay2Detay; if (result === undefined) {
-			let {_yatayBelirtec: yatayBelirtec, _toplamAttrListe: toplamAttrListe, detaylar} = this, toplamRec;
-			result = {}; for (let rec of detaylar) {
+		let { _yatay2Detay: result } = this
+		if (result === undefined) {
+			let { _yatayBelirtec: yatayBelirtec, _toplamAttrListe: toplamAttrListe, detaylar } = this
+			let toplamRec
+			result = {}
+			for (let rec of detaylar) {
 				if (!toplamRec) {
-					result['TOPLAM'] = toplamRec = { ...rec };
-					for (let key of toplamAttrListe) { toplamRec[key] = 0 }
+					result['TOPLAM'] = toplamRec = { ...rec }
+					;toplamAttrListe.forEach(k =>
+						toplamRec[k] = 0)
 				}
-				result[rec[yatayBelirtec]] = rec; for (let key of toplamAttrListe) { if (key != 'TOPLAM') { toplamRec[key] += (rec[key] || 0) } }
+				result[rec[yatayBelirtec]] = rec
+				;toplamAttrListe.forEach(k => {
+					if (k != 'TOPLAM')
+						toplamRec[key] += (rec[key] || 0)
+				})
 			}
-			this._yatay2Detay = result; delete this.detaylar
+			this._yatay2Detay = result
+			delete this.detaylar
 		}
 		return result
 	}
@@ -56,16 +69,23 @@ class DAltRapor_PanelGruplama extends DAltRapor_PanelRec {
 	constructor(e = {}) {
 		super(e)
 		extend(this, {
-			_sumAttrListe: e._sumAttrListe ?? [], _avgAttrListe: e._avgAttrListe ?? [],
-			_orj: e._orj ?? {}, detaylar: e.detaylar ?? []
+			_sumAttrListe: e._sumAttrListe ?? [],
+			_avgAttrListe: e._avgAttrListe ?? [],
+			_formuller: e._formuller ?? [],
+			_orj: e._orj ?? {},
+			detaylar: e.detaylar ?? []
 		})
 	}
 	toplamYapiOlustur(e) {
 		super.toplamYapiOlustur(e)
 		let { _sumAttrListe, _avgAttrListe, detaylar, _orj: orj } = this
-		if (!detaylar?.length)
+		if (empty(detaylar))
 			return this
-		let aggrAttrListe = ['kayitsayisi', ...(_sumAttrListe ?? []), ...(_avgAttrListe ?? [])]
+		
+		let aggrAttrListe = [
+			'kayitsayisi',
+			...(_sumAttrListe ?? []), ...(_avgAttrListe ?? [])
+		]
 		for (let key of aggrAttrListe) {
 			this[key] = 0
 			for (let det of detaylar) {
@@ -73,6 +93,7 @@ class DAltRapor_PanelGruplama extends DAltRapor_PanelRec {
 				this[key] = roundToFra2((this[key] || 0) + ((orj[key] ?? det[key]) || 0))
 			}
 		}
+		
 		let { kayitsayisi: count } = this
 		if (count) {
 			for (let key of _avgAttrListe) {
@@ -80,10 +101,21 @@ class DAltRapor_PanelGruplama extends DAltRapor_PanelRec {
 				this[key] = value = roundToFra2(value / count)
 			}
 		}
+		
 		/*for (let key of aggrAttrListe)
 		  for (let det of detaylar)
 			  det.toplamYapiOlustur?.(e)*/
+		
 		return this
+	}
+
+	formulEval(e) {
+		super.formulEval(e)
+		let { detaylar, _formuller: formuller } = this
+		;formuller.forEach(item =>
+			item.formulEval({ ...e, rec: this }))
+		;detaylar.forEach(det =>
+			det.formulEval(e))
 	}
 }
 

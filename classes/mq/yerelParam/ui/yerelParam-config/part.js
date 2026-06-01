@@ -34,9 +34,12 @@ class MQYerelParamConfigTanimPart extends MQYerelParamBaseTanimPart {
 				select: (evt, { item: { value }}) =>
 					setTimeout(() => changeHandler(txtWSUrl[0], value), 10),
 				source: async ({ term } = {}, callback) => {
+					let { DefaultWSHostName_SkyServer: cloudHost } = config.class
 					let result = [
 						'http://localhost:8200',
-						'https://localhost:9200'
+						'https://localhost:9200',
+						`https://${cloudHost}:9200`,
+						`https://${cloudHost}:`
 					]
 					let tokens = term?.split(' ')
 					result = result.filter(adi => {

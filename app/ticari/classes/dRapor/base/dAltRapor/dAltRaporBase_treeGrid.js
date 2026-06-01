@@ -411,6 +411,11 @@ class DAltRapor_TreeGrid extends DAltRapor {
 class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	get noAutoColumns() { return true }
+	get ustSeviyeUygulanirmi() {
+		let { secimler: { ustSeviyeUygulanirmi: sec } = {} } = this
+		let { value } = sec ?? {}
+		return value ?? true
+	}
 	get tabloYapi() {
 		let {_tabloYapi: result} = this
 		if (result == null) {
@@ -437,7 +442,17 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		}
 		return result
 	}
-	secimlerDuzenle(e) { super.secimlerDuzenle(e) }
+	secimlerDuzenle({ secimler: sec }) {
+		let { liste } = sec
+		sec.liste = {}
+		sec.secimTopluEkle({
+			ustSeviyeUygulanirmi: new SecimBool({ etiket: 'Formüller Üst Seviyede Uygulansın' })
+				.setTrue()
+				.setOzetBilgiValueGetter(e => '')
+		})
+		extend(sec.liste, liste)
+		super.secimlerDuzenle(...arguments)
+	}
 	secimlerInitEvents(e) { super.secimlerInitEvents(e) }
 	tabloYapiDuzenle(e) { } tabloYapiDuzenle_son(e) { }
 	onBuildEk({ builder: fbd }) {
@@ -546,15 +561,19 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 					(colDef?.aggregates?.includes('avg') ? _avgAttrListe : _sumAttrListe).push(belirtec) */
 			}
 		}
-		let {grupVeToplam} = tabloYapi
-		let {records: jqxCols} = gridWidget.base.columns
-		let formuller = []
+		let { grupVeToplam } = tabloYapi
+		let { records: jqxCols } = gridWidget.base.columns
+		let { ustSeviyeUygulanirmi } = this
+		let formuller = [], ustSeviyeFormuller = []
 		for (let key in attrSet) {
 			let item = grupVeToplam[key]
-			if (item?.formulmu)
-				formuller.push(item)
+			if (!item?.formulmu)
+				continue
+			formuller.push(item)
+			if (item.ustSeviyeUygulanirmi)
+				ustSeviyeFormuller.push(item)
 		}
-		let {recs} = e
+		let { recs } = e
 		if (recs) {
 			let _recs = recs
 			recs = []
@@ -562,9 +581,9 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				if (!_rec)
 					continue
 				let rec = new DAltRapor_PanelRec({ ..._rec })
-				recs.push(rec)
 				for (let item of formuller)
 					item.formulEval({ rec })
+				recs.push(rec)
 			}
 			e.recs = recs
 		}
@@ -605,13 +624,18 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				recs = sevRecs
 			}
 		}
-		let sevListe, {datafield: grupTextColAttr} = jqxCols?.[0] ?? {}
+		let sevListe, { datafield: grupTextColAttr } = jqxCols?.[0] ?? {}
 		if (grupColAttrListe?.length) {
 			let id = 1
 			sevListe = seviyelendir({
 				source: recs, attrListe: grupColAttrListe,
 				getter: ({ item, sevAttr }) => {
-					let _rec = new DAltRapor_PanelGruplama({ id, _sumAttrListe, _avgAttrListe, ...item })
+					let _rec = new DAltRapor_PanelGruplama({
+						id,
+						_sumAttrListe, _avgAttrListe,
+						_formuller: ( ustSeviyeUygulanirmi ? ustSeviyeFormuller : null ),
+						...item
+					})
 					_rec[grupTextColAttr] = _rec[sevAttr]
 					for (let key of gtTip2AttrListe.sabit) {
 						if (key != grupTextColAttr)
@@ -621,11 +645,10 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 					return _rec
 				}
 			})
-			for (let sev of sevListe) {
+			for (let sev of sevListe)
 				sev.toplamYapiOlustur?.()
-				for (let item of formuller)
-					item.formulEval({ ...e, rec: sev })
-			}
+			for (let sev of sevListe)
+				sev.formulEval?.()
 		}
 		/*let avgBelirtec2ColDef = {}; for (let key in attrSet) {
 			if (!tabloYapi.toplam[key]) { continue }
@@ -642,7 +665,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				}
 			}
 		}*/
-		if (config.dev) { console.info({ sevListe, recs }) }
+		if (config.dev)
+			console.info({ sevListe, recs })
 		return sevListe ?? recs
 	}
 	ozetBilgiRecsOlustur(e) {
@@ -1169,7 +1193,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				if (tabloYapi.toplam[kod]) {
 					result.push('toplam'); if (typeof value == 'number') {
 						let alacakmi = value < 0
-						if (value && kod.startsWith('CIKIS_'))
+						if (value && ( kod.startsWith('CIKIS_') || kod.includes('ALACAK') ))
 							alacakmi = !alacakmi
 						result.push(!value ? 'zero' : alacakmi ? 'negative' : 'positive')
 					}

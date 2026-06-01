@@ -174,7 +174,9 @@ class Secimler extends CIO {
 	}
 	addKA(e, _mfSinif, _kodClause, _adiClause, _kapalimi) {
 		e = typeof e == 'object' ? e : { grupKod: e, mfSinif: _mfSinif, kodClause: _kodClause, adiClause: _adiClause, kapali: _kapalimi }
-		let {grupKod, mfSinif, kodClause, adiClause} = e, {sinifAdi: etiket} = mfSinif, kapalimi = e.kapali ?? e.kapalimi ?? true
+		let { grupKod, mfSinif, kodClause, adiClause } = e
+		let kapalimi = e.kapali ?? e.kapalimi ?? true
+		let { sinifAdi: etiket } = mfSinif
 		this.grupEkle(grupKod, etiket, kapalimi)
 		this.secimEkle(`${grupKod}Kod`, new SecimBasSon({ etiket, mfSinif, grupKod }))
 		this.secimEkle(`${grupKod}Adi`, new SecimOzellik({ etiket: `${etiket} Adı`, grupKod }))
