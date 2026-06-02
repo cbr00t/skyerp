@@ -53,10 +53,10 @@ class MQHatirlatici extends MQCogul {
 	static listeEkrani_deactivated({ sender: gridPart }) { super.listeEkrani_deactivated(...arguments) }
 	static islemTuslariDuzenle_listeEkrani(e) {
 		super.islemTuslariDuzenle_listeEkrani(e)
-		let {liste, part: { ekSagButonIdSet: sagSet }} = e
+		let { liste, part: { ekSagButonIdSet: sagSet }}  = e
 		let items = [
-			{ id: 'assign', text: 'Görev Al', handler: _e => this.setTaskState({ ..._e, ...e, state: 'assign' }) },
-			{ id: 'release', text: 'Görev Bırak', handler: _e => this.setTaskState({ ..._e, ...e, state: 'release' }) },
+			{ id: 'assign', text: 'Grv Al', handler: _e => this.setTaskState({ ..._e, ...e, state: 'assign' }) },
+			{ id: 'release', text: 'Grv Bırak', handler: _e => this.setTaskState({ ..._e, ...e, state: 'release' }) },
 			{ id: 'tamam', handler: _e => this.setTaskState({ ..._e, ...e, state: 'done' }) }
 		]
 		liste.push(...items)
@@ -116,9 +116,9 @@ class MQHatirlatici extends MQCogul {
 		let mini = isMiniDevice()		
 		let { tableAlias: alias } = this
 		liste.push(...[
-			new GridKolon({ belirtec: '_text', text: ' ', minWidth: 25 * katSayi_ch2Px }).noSql(),
+			new GridKolon({ belirtec: '_text', text: ' ', minWidth: 30 * katSayi_ch2Px }).noSql(),
 			new GridKolon({ belirtec: 'kalanGun', text: 'Kalan', genislikCh: 9 }).noSql().tipNumerik().checkedList(),
-			new GridKolon({ belirtec: 'sonTarih', text: 'Bitiş', genislikCh: 11 }).noSql().tipTarih().checkedList(),
+			new GridKolon({ belirtec: 'sonTarihText', text: 'Bitiş', genislikCh: 25 }).noSql().checkedList(),
 			new GridKolon({ belirtec: '_durumText', text: 'Durum', genislikCh: 13, filterType: 'checkedlist', hidden: mini }).noSql()
 		].filter(Boolean))
 	}
@@ -144,6 +144,10 @@ class MQHatirlatici extends MQCogul {
 			if (!users.find(u => u == buUser))
 				continue
 
+			;users
+				.filter(u => !user2Adi[u])
+				.forEach(u => eksikUserSet.add(u))
+
 			r.eMails ??= (
 				eMailsStr
 					?.split(Delim)
@@ -154,16 +158,15 @@ class MQHatirlatici extends MQCogul {
 				? `<span class="orangered">Kapananlar</span>`
 				: `<span class="forestgreen">Bekleyenler</span>`
 			
-			sonTarih = asDate(sonTarih)
+			sonTarih = r.sonTarih = asDate(sonTarih)
+			r.kapanmaTarihi = asDate(r.kapanmaTarihi)
 			r.kalanGun ??= (
 				sonTarih
 					? ( sonTarih - today() ) / Date_OneDayNum
 					: null
 			)
-			;users
-				.filter(u => !user2Adi[u])
-				.forEach(u => eksikUserSet.add(u))
-
+			r.sonTarihText = this.getHTML_sonTarih({ rec: r })
+				
 			recs.push(r)
 		}
 
@@ -185,27 +188,34 @@ class MQHatirlatici extends MQCogul {
 		super.loadServerData_queryDuzenle(...arguments)
 		sent.sahalarVeGroupByVeHavingReset()
 
+		let { user } = config.session ?? {}
 		let { hepsiniGoster } = gridPart
 		let { tableAlias: alias } = this
 		let { where: wh, sahalar } = sent, { orderBy } = stm
 		sent
 			.leftJoin(alias, 'htipbilgi tbil', ['htr.kayittipi = tbil.kayittipi', 'htr.xtipkod = tbil.xtipkod'])
 			.leftJoin('tbil', 'htipbilgi tanabil', ['htr.kayittipi = tanabil.kayittipi', `tanabil.xtipkod = ''`])
-		if (hepsiniGoster)
-			sahalar.add(`${alias}.bkapandi kapandi`)
-		else
+		sahalar.add(`${alias}.bkapandi kapandi`)
+		if (!hepsiniGoster)
 			wh.add(`${alias}.bkapandi = 0`)
+		if (user) {
+			wh.add(new MQOrClause()
+				.degerAta('', `${alias}.kesinkullanicikod`)
+				.degerAta(user, `${alias}.kesinkullanicikod`)
+			)
+		}
 		wh.add(`DATEDIFF(DAY, getdate(), CAST(htr.sontarih as DATE)) <= htr.hatirlatmagunu`)
 		sahalar
 			.addWithAlias(alias,
 				'id', 'kayittipi kayitTipi', 'sontarih sonTarih', 'hatirlatmagunu hatirlatmaGunu',
-				'kesinkullanicikod kesinUser', 'kapanisnotu kapanisNotu', 'referans', 'xtipadi tipAdi',
-				'kapanmatarihi kapanmaTarihi')
+				'kesinkullanicikod kesinUser', 'referans', 'xtipadi tipAdi',
+				'kapanisnotu kapanisNotu', 'kapanmatarihi kapanmaTarihi'
+			 )
 			.add(
 				'dbo.emptycoalesce(tbil.kullanicilistestr, tanabil.kullanicilistestr) usersStr',
 				'dbo.emptycoalesce(tbil.emaillistestr, tanabil.emaillistestr) eMailsStr'
 			)
-		orderBy.liste = ['sonTarih', 'kayitTipi', 'tipAdi']
+		orderBy.liste = ['kapandi', 'sonTarih DESC', 'kayitTipi', 'tipAdi']
 	}
 	static gridVeriYuklendi(e = {}) {
 		let mini = isMiniDevice()
@@ -346,7 +356,7 @@ class MQHatirlatici extends MQCogul {
 		let assign = state == 'assign'
 		let release = state == 'release'
 		let done = state == 'done'
-
+	
 		let islemAdi = (
 			assign ? 'Görev Ata' :
 			release ? 'Görev Bırak' :
@@ -355,11 +365,18 @@ class MQHatirlatici extends MQCogul {
 		)
 		let { dev } = config
 		let { selectedRecs: recs } = gridPart
+		let orjRecs = recs
 		let { user2Adi = {}, ntfyTopic: topic } = app
 		let { class: { DefaultWSHostName_SkyServer: cloudHost }, session: { user: buUser } } = config
 		let buUserText = user2Adi[buUser] || buUser
 		// let { location: loc } = window
 		if (!dev) {
+			if (!empty(recs)) {
+				let id2Rec = fromEntries(recs.map(r => [r.id, r]))
+				let newRecs = await this.loadServerData(e)
+				recs = newRecs.filter(r => id2Rec[r.id])
+			}
+			
 			let kosul = (
 				assign ? ( r => ( !r?.kapandi && r?.kesinUser != buUser ) ) :
 				release ? ( r => ( !r?.kapandi && r?.kesinUser == buUser ) ) :
@@ -367,10 +384,18 @@ class MQHatirlatici extends MQCogul {
 				null
 			)
 			recs = recs?.filter(kosul)
+			if (empty(recs))
+				orjRecs = orjRecs?.filter(kosul)
 		}
 	
 		if (empty(recs)) {
-			hConfirm(`${islemAdi} için uygun kayıt bulunamadı`, islemAdi)
+			let degistimi = recs.length != orjRecs.length
+			gridPart?.tazele(e)
+			let errorText = [
+				`${islemAdi} için uygun kayıt bulunamadı`,
+				( degistimi ? `<b class="red">**</b> <span class="orangered">Seçilen kayıtlar başka bir kullanıcı tarafından işlem görmüş gibi gözüküyor</span>` : null )
+			].filter(Boolean).map(_ => `<li>${_}</li>`).join('\n')
+			hConfirm(`<ul>${errorText}</ul>`, islemAdi)
 			return false
 		}
 
@@ -388,9 +413,10 @@ class MQHatirlatici extends MQCogul {
 		let idListe = []
 		try {
 			for (let r of recs) {
-				let { id, users, eMails, tipAdi, sonTarih, referans } = r
+				let { id, users, kesinUser, eMails, tipAdi, sonTarih, referans } = r
 				idListe.push(id)
-				
+
+				let targetUsers = kesinUser ? [kesinUser] : users
 				let sonTarihText = asDateAndToKisaString(sonTarih)
 				let message = [
 					( sonTarihText ? `- **${sonTarihText}** bitişli` : null ),
@@ -423,7 +449,7 @@ class MQHatirlatici extends MQCogul {
 					shortStatus = `gorev-${shortStatus}`
 				
 				let title = [indicator, 'Görev', statusText].filter(Boolean).join(' ')
-				for (let u of users) {
+				for (let u of targetUsers) {
 					let tags = [indicator, shortStatus, '_']
 					let markdown = true
 					let click = new URL(topic.join('-'), app.ntfyWSUrl).toString()
@@ -449,7 +475,9 @@ class MQHatirlatici extends MQCogul {
 				upd.fromAdd(this.table)
 				wh.inDizi(idListe, 'id')
 				if (done) {
-					set.add('bkapandi = 1')
+					set
+						.add('bkapandi = 1')
+						.degerAta(now(), 'kapanmatarihi')
 					if (kapanisNotu)
 						set.degerAta(kapanisNotu, 'kapanisnotu')
 				}
@@ -475,13 +503,10 @@ class MQHatirlatici extends MQCogul {
 	static getHTML({ rec }) {
 		let { user2Adi } = app
 		let { session: { user: buUser } } = config
-		let { kayitTipi, tipAdi, referans, kapanmaTarihi, kapanisNotu, users, kesinUser } = rec
+		let { kayitTipi, tipAdi, referans, kapandi, kapanisNotu, users, kesinUser } = rec
 
 		let tipAdiText = tipAdi ? `<span class="violet">${tipAdi}</span>` : null
 		let tipRefStr = [tipAdiText, referans].filter(Boolean).join(' - ')
-		let kapanmaTarihiStr = kapanmaTarihi
-			? [asDateAndToKisaString(kapanmaTarihi), kapanisNotu].filter(Boolean).join(' - ')
-			: ''
 		let usersText = kesinUser
 			? ''
 			: users
@@ -491,11 +516,38 @@ class MQHatirlatici extends MQCogul {
 		
 		return [
 			`<div class="flex-row full-width" style="gap: 0 10px">`,
-				`<template class="sort-data">${[kayitTipi, tipAdi].filter(Boolean).join(delimWS)}</template>`,
-				( tipRefStr ? `<div class="lightgray">Ref:</div> <div>${tipRefStr}</div>` : '' ),
-				( kapanmaTarihiStr ? `<div class="lightgray">K:</div> <div class="firebrick">${kapanmaTarihiStr}</div>` : '' ),
+				`<template class="sort-data">${[kayitTipi, tipRefStr].filter(Boolean).join(delimWS)}</template>`,
+				( tipRefStr ? `<div>${tipRefStr}</div>` : '' ),
 				( usersText ? `<div class="lightgray"> - </div> <div class="royalblue">${usersText}</div>` : '' ),
 				( kesinUser ? `<div>📌</div>` : '' ),
+			`</div>`
+		].filter(Boolean).join('\n')
+	}
+	static getHTML_sonTarih({ rec }) {
+		let { sonTarih, kapanmaTarihi, kapanisNotu } = rec
+		let items = sonTarih || kapanmaTarihi
+			? [
+				`<div class=flex-row full-width" style="gap: 0 10px">`,
+					( sonTarih ? `
+						<div class="orangered">
+							<span class="gray">Son:</span>
+							<b>${asDateAndToKisaString(sonTarih)}</b>
+						</div>` : null ),
+					( kapanmaTarihi ? `
+						<div class="firebrick">
+							<span class="lightgray"> | </span>
+							<span class="gray">Kap:</span>
+							<b>${asDateAndToKisaString(kapanmaTarihi)}</b>
+						</div>`
+					: null ),
+				`</div>`,
+				( kapanmaTarihi && kapanisNotu ? `<div class="royalblue"><b>${kapanisNotu}</b></div>` : null ),
+				].filter(Boolean)
+			: []
+		return [
+			`<div class="full-width" style="gap: 0 10px">`,
+				`<template class="sort-data">${items.join(delimWS)}</template>`,
+				...items,
 			`</div>`
 		].filter(Boolean).join('\n')
 	}

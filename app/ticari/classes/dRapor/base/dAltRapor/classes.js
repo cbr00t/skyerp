@@ -24,7 +24,7 @@ class DAltRapor_PanelRec_Donemsel extends DAltRapor_PanelRec {
 				result[rec[yatayBelirtec]] = rec
 				;toplamAttrListe.forEach(k => {
 					if (k != 'TOPLAM')
-						toplamRec[key] += (rec[key] || 0)
+						toplamRec[k] += (rec[k] || 0)
 				})
 			}
 			this._yatay2Detay = result
