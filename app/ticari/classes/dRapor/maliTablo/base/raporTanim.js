@@ -112,17 +112,24 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 		wh.inDizi(keys(id2Det), 'sec.harid'); sahalar.add('sec.harid', 'sec.seq', 'sec.xdata')
 		let orderBy = ['harid', 'seq'], stm = new MQStm({ sent, orderBy });
 		let id2Data = {}
-		for (let {harid: harID, xdata: data} of await stm.execSelect()) {
+		for (let { harid: harID, xdata: data } of await stm.execSelect()) {
 			(id2Data[harID] = id2Data[harID] ?? []).push(data) }
 		for (let [harID, data] of entries(id2Data)) {
-			if (!data?.length) { continue }
-			let det = id2Det[harID]; if (!det) { continue }
+			if (!data?.length)
+				continue
+			let det = id2Det[harID]
+			if (!det)
+				continue
 			try {
-				data = JSON.parse(Base64.decode($.isArray(data) ? data.join('') : data))
+				data = JSON.parse(Base64.decode(isArray(data) ? data.join('') : data))
 				let { secimler } = det
 				for (let [key, _secim] of entries(data)) {
 					let secim = secimler?.[key]
-					if (secim) { extend(secim, _secim) }
+					if (secim) {
+						_secim.birKismimi ??= _secim.birKismi ?? _secim.b
+						deleteKeys(_secim, 'birKismi', 'b', '_reduce')
+						extend(secim, _secim)
+					}
 				}
 			}
 			catch (ex) { console.error('SBTablo::yukleSonrasiIslemler', 'secimler json', 'bozuk veri', data, ex) }
@@ -145,29 +152,37 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 		await super.kaydetSonrasiIslemler(...arguments)
 		let yDetaylar = [...this.detaylar]
 		await this.detaylariYukle(...arguments)
-		let {detaylar} = this
+		
+		let { detaylar } = this
 		// detayların 'okunanHarSayac' bilgilerine ihtiyaç var, yazma sonrası detaylara atanmaz
 		;detaylar.forEach((det, i) =>
 			yDetaylar[i].okunanHarSayac = det.okunanHarSayac)
+		
 		let harID2SecimData = {}
 		for (let {okunanHarSayac: harid, secimler} of yDetaylar) {
-			secimler ??= {}; let { asObject: data } = secimler
-			harID2SecimData[harid] = empty(data) ? null : Base64.encode(toJSONStr(data))
+			secimler ??= {}
+			let { asObject: data } = secimler
+			if (!empty(data))
+				harID2SecimData[harid] = Base64.encode(toJSONStr(data))
 		}
+		
 		let hvListe = []
 		for (let [harid, data] of entries(harID2SecimData)) {
 			if (!data)
 				continue
-			;arrayIterChunks(data, 50).forEach((xdata, seq) =>
-				hvListe.push({ harid, seq, xdata }))
+			;arrayIterChunks(data, 50).forEach((xdata, i) =>
+				hvListe.push({ harid, seq: i + 1, xdata }))
 		}
-		let from = 'sbtablodetayjson', harIDListe = keys(harID2SecimData)
-		let query = new MQToplu([
-			new MQIliskiliDelete({ from, where: { inDizi: harIDListe, saha: 'harid' } }),
-			new MQInsert({ from, hvListe }).queryInsert()
-			// new MQInsert({ from, hvListe })
-		]).withTrn()
-		await app.sqlExecNone({ trnId, query })
+		
+		;{
+			let from = 'sbtablodetayjson', harIDListe = keys(harID2SecimData)
+			let query = new MQToplu([
+				new MQIliskiliDelete({ from, where: { inDizi: harIDListe, saha: 'harid' } }),
+				new MQInsert({ from, hvListe }).queryInsert()
+				// new MQInsert({ from, hvListe })
+			]).withTrn()
+			await app.sqlExecNone({ trnId, query })
+		}
 	}
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments)
@@ -263,7 +278,7 @@ class SBTabloDetay extends MQDetay {
 		return result.length ? `<div class="secimBilgi flex-row">${result.join('')}</div>` : ''
 	}
 	get asFormul() {
-		let { hesapTipi } = this
+		let { hesapTipi, veriTipi } = this
 		/*if (hesapTipi.satirlarToplamimi) {
 			return (({ det, attr, recs, ind2Rec, parentRec }) => {
 				let {satirListe} = det, detaylar = parentRec?.detaylar ?? [];
@@ -275,6 +290,12 @@ class SBTabloDetay extends MQDetay {
 		else*/
 		if (hesapTipi?.formulmu)
 			return this.formul
+
+		;{
+			let { ekBilgi } = veriTipi
+			return ekBilgi?.recsDuzenle
+		}
+		
 		return null
 	}
 	get asRaporQuery() {
@@ -814,19 +835,25 @@ class SBTabloDetay extends MQDetay {
 	}
 	eval(e) {
 		e ??= {}
+		// let { formulmu } = this.hesapTipi ?? {}
 		let { asFormul: code } = this
-		let { recs, parentRec, det, seq } = e
-		recs ??= []
+		let { recs, buRecs, parentRec, det, seq, bedelAlias = 'bedel' } = e
+		recs ??= []; buRecs ??= []
 		let satirlar = [undefined, ...recs]
+		let topBedel = e.topBedel = empty(buRecs)
+			? 0
+			: roundToBedelFra( topla(r => r[bedelAlias] || 0, buRecs) )
 		
-		let t = this, pr = parentRec, d = det, s = satirlar
+		let t = this, pr = parentRec, d = det, s = satirlar, bu = buRecs
 		if (isString(code) && code) {
 			if (!(code[0] == '(' || code.startsWith('(function(')))
 				code = `(e => ${code})`
 		}
+		
 		let block = code
 		if (isString(block))
 			block = eval(code)
+		
 		return isFunction(block) ? block?.call(this, e) : block
 	}
 	shallowCopy(e) {

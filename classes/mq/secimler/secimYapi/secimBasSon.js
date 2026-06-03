@@ -7,11 +7,11 @@ class SecimBasSon extends Secim {
 		let value = super.ozetBilgiValue
 		if (!value)
 			return value
-		if ($.isArray(value))
+		if (isArray(value))
 			return value.join(', ')
-		if ($.isPlainObject(value))
+		if (isPlainObject(value))
 			value = new CBasiSonu(value)
-		return (value?.bosmu ?? true) ? null : value.toString()
+		return ( value?.bosmu ?? true ) ? null : value.toString()
 	}
 	set basiSonu(value) {
 		this.basi = value
@@ -42,31 +42,37 @@ class SecimBasSon extends Secim {
 	writeTo(e) {
 		if (!super.writeTo(e))
 			return false
-		let {birKismimi, disindakilermi} = this
-		if (birKismimi)
-			e.b = true
+		
+		let { birKismimi, disindakilermi } = this
+		e.b = birKismimi
 		if (disindakilermi)
 			e.disindakilermi = true
 		if (birKismimi) {
-			let {kodListe} = this
+			let { kodListe } = this
 			if (!empty(kodListe))
 				e.kodListe = kodListe
 		}
 		else {
-			let {basi, sonu} = this;
+			let { basi, sonu } = this
 			if (basi != null)
 				e.basi = this.getConvertedUIValue(basi)
 			if (sonu != null)
 				e.sonu = this.getConvertedUIValue(sonu)
 		}
+		
 		delete e.hepsimi
-		if (e._reduce && birKismimi && keys(e).length == 2)
-			deleteKeys(e, 'b', 'birKismimi')
+		if (e._reduce) {
+			if (birKismimi && keys(e).length == 2)
+				deleteKeys(e, 'b', 'birKismimi')
+			else if (!birKismimi && keys(e).length < 3)
+				deleteKeys(e, 'b', 'birKismimi')
+		}
+		
 		return true
 	}
 	temizle(e) {
 		super.temizle(e)
-		$.extend(this, { birKismimi: this.defaultBirKismimi, disindakilermi: false, kodListe: [] })
+		extend(this, { birKismimi: this.defaultBirKismimi, disindakilermi: false, kodListe: [] })
 		this.basi = this.sonu = this.getConvertedValue(null)
 		this._ddListPart?.clear()
 		return this
@@ -79,8 +85,11 @@ class SecimBasSon extends Secim {
 		let {birKismimi, disindakilermi} = this
 		let bsParent = parent.find('.bs-parent')
 		let birKismiParent = parent.find('.birKismi-parent')
-		for (let key of ['basi', 'sonu'])
-			bsParent.find(`.${key}.bs`).val(this.getConvertedUIValue(this[key]) ?? '')
+		for (let key of ['basi', 'sonu']) {
+			let elm = bsParent.find(`.${key}.bs`)
+			let part = elm.data('part')
+			;( part ?? elm ).val(this.getConvertedUIValue(this[key]) ?? '')
+		}
 		let {value} = this
 		if (value?.basi != null) {
 			let bs = value
@@ -110,51 +119,60 @@ class SecimBasSon extends Secim {
 		e.target += `</div>`
 	}
 	initHTMLElements(e) {
-		super.initHTMLElements(e); let {tip} = this.class, {mfSinif} = this, {parent} = e;
-		let btnKopya = parent.find('button.kopya'); btnKopya.jqxButton({ theme });
+		super.initHTMLElements(e)
+		let { tip } = this.class
+		let { mfSinif, birKismimi } = this
+		let { parent } = e
+		let btnKopya = parent.find('button.kopya')
+		btnKopya.jqxButton({ theme })
 		btnKopya.on('click', evt => {
-			let basi = parent.find('.basi.bs').val()
-			let txtSonu = parent.find('.sonu.bs')
-			// let sonu = basi
-			let sonu = this.sonu = this.getConvertedValue(basi)
-			txtSonu.val(sonu)
-			txtSonu.select()
-			for (let delayMS of [50, 150])
-				setTimeout(() => txtSonu.val(sonu), delayMS)
-			let input = txtSonu.find('input')
-			if (!input?.length)
-				input = txtSonu
+			let elm_basi = parent.find('.basi.bs')
+			elm_basi = elm_basi?.data('part') ?? elm_basi
+			let elm_sonu = parent.find('.sonu.bs')
+			elm_sonu = elm_sonu?.data('part') ?? elm_sonu
+			let basi = this.getConvertedUIValue(elm_basi?.val())
+			let sonu = this.sonu = this.getConvertedUIValue(basi)
+			elm_sonu?.val(sonu)
+			;( elm_sonu?.input ?? elm_sonu ).select?.()
+			//for (let delayMS of [50])
+			//	setTimeout(() => txtSonu.val(sonu), delayMS)
 		})
 		if (mfSinif) {
-			let focusWidget, {kodSaha} = mfSinif
+			let focusWidget, { kodSaha } = mfSinif
 			let dropDown = false, autoBind = false, noAutoWidth = true
 			let maxRow = (app.params?.ortak?.autoComplete_maxRow || 50) * 4
 			let modelKullanOlustur = e => {
-				let {parentPart, builder} = this
-				let {editor, editor: layout, selector, etiket, etiket: placeHolder} = e
+				let { parentPart, builder } = this
+				let { editor, editor: layout, selector, etiket, etiket: placeHolder } = e
 				let value = this.getConvertedUIValue(this[selector])
-				let part = new ModelKullanPart({
+				let part = new SimpleComboBoxPart({
+					parentPart, builder, layout, mfSinif, placeHolder,
+					dropDown, noAutoWidth, autoBind, value, maxRow
+				})
+				/*let part = new ModelKullanPart({
 					parentPart, builder, layout, mfSinif, placeHolder,
 					dropDown, noAutoWidth, autoBind, value, maxRow,
 					argsDuzenle: ({ args }) => {
-						$.extend(args, {
+						extend(args, {
 							itemHeight: 30, dropDownHeight: 410,
 							renderSelectedItem: (index, rec) =>
 								(rec.originalItem ?? rec)?.[kodSaha] ?? ''
 						})
 					}
-				})
+				})*/
 				if (part.autoBind)
 					part.dataBindYapildiFlag = true
 				editor.data('part', part)
 				part.run()
-				let {widget} = part
-				part.change(({ value, item }) => {
-					if (value != null)
-						this[selector] = value
+				let { widget } = part
+				part.degisince(({ type, events }) => {
+					if (type != 'batch')
+						return
+					let { value } = events?.at(-1) ?? {}
+					this[selector] = value
 				})
-				widget.input.on('focus', evt => {
-					let {source} = widget
+				/*widget.input.on('focus', evt => {
+					let { source } = widget
 					if (!part.dataBindYapildiFlag && source?.dataBind && part && !part.isDestroyed) {
 						source.dataBind()
 						part.dataBindYapildiFlag = true
@@ -170,12 +188,12 @@ class SecimBasSon extends Secim {
 						if (widget.isOpened())
 							widget.close()
 					}
-				})
+				})*/
 			}
 			modelKullanOlustur({ selector: 'basi', etiket: 'Başı', editor: parent.find('.basi.bs') })
 			modelKullanOlustur({ selector: 'sonu', etiket: 'Sonu', editor: parent.find('.sonu.bs') })
 			let coklumu = true
-			$.extend(e, {
+			extend(e, {
 				secim: this, tip, mfSinif, coklumu, autoBind, maxRow,
 				getValue: this.value,
 				setValue: e => this.value = this.getConvertedValue(e.value ?? e.kod)
@@ -199,7 +217,8 @@ class SecimBasSon extends Secim {
 						part.listedenSecIstendi({ ...e, sender: this, event })
 				})
 			}
-			if (this.birKismimi)
+
+			if (birKismimi)
 				setTimeout(() => this.birKismiToggleDegisti(e), 10)
 		}
 		else {

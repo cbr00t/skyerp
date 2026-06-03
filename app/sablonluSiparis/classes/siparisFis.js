@@ -1,8 +1,10 @@
 class SablonluSatisSiparisFis extends SatisSiparisFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get konsinyemi() { return false }
-	static get sablonSinif() { return MQSablonOrtak } static get templateSinif() { return SablonluSiparisFisTemplate } get templateSinif() { return this.class.templateSinif }
+	static get sablonSinif() { return MQSablonOrtak } static get templateSinif() { return SablonluSiparisFisTemplate }
+	get templateSinif() { return this.class.templateSinif }
 	static get detaySinif() { return SablonluSatisSiparisDetay } static get gridKontrolcuSinif() { return SablonluSatisSiparisGridci }
-	static get numaratorGosterilirmi() { return this.templateSinif.numaratorGosterilirmi } static get dipGirisYapilirmi() { return this.templateSinif.dipGirisYapilirmi }
+	static get numaratorGosterilirmi() { return this.templateSinif.numaratorGosterilirmi }
+	static get dipGirisYapilirmi() { return this.templateSinif.dipGirisYapilirmi }
 	/*static get numYapi() { let result = super.numYapi; if (result) { result.seri = 'ABC' } return result }*/
 	static get aciklamaKullanilirmi() { return this.templateSinif.aciklamaKullanilirmi }
 	static get teslimCariSaha() { return this.templateSinif.teslimCariSaha }
@@ -118,7 +120,8 @@ class SablonluKonsinyeAlimSiparisFis extends AlimSiparisFis {
 }
 class SablonluKonsinyeTransferFis extends TransferSiparisFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get konsinyemi() { return true }
-	static get sablonSinif() { return MQKonsinyeSablon } static get templateSinif() { return SablonluSiparisFisTemplate } get templateSinif() { return this.class.templateSinif }
+	static get sablonSinif() { return MQKonsinyeSablon } static get templateSinif() { return SablonluSiparisFisTemplate }
+	get templateSinif() { return this.class.templateSinif }
 	static get detaySinif() { return SablonluKonsinyeTransferDetay } static get gridKontrolcuSinif() { return SablonluKonsinyeTransferGridci }
 	static get numaratorGosterilirmi() { return this.templateSinif.numaratorGosterilirmi } static get dipGirisYapilirmi() { return this.templateSinif.dipGirisYapilirmi }
 	/*static get numYapi() { let result = super.numYapi; if (result) { result.seri = 'ABC' } return result }*/

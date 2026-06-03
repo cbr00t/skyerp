@@ -45,14 +45,22 @@ class MQTicNumarator extends MQNumarator {
 		)
 	}
 	static standartGorunumListesiDuzenle({ liste }) {
+		liste.push('tip')
 		super.standartGorunumListesiDuzenle(...arguments)
 		liste.push('noyil')
 	}
-	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); let {liste} = e, {kodSaha} = this;
-		let colDef = liste.find(x => x.belirtec == kodSaha);
-		if (colDef) { colDef.text = 'Belirteç'; colDef.genislikCh = 13 }
-		liste.push(new GridKolon({ belirtec: 'noyil', text: 'No Yıl', genislikCh: 8 }).tipNumerik())
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		let { kodSaha } = this
+		liste.push(new GridKolon({ belirtec: 'tip', text: 'Tip', genislikCh: 10 }).checkedList())
+		;{
+			let cd = liste.find(x => x.belirtec == kodSaha)
+			if (cd) {
+				extend(cd, { text: 'Belirteç', genislikCh: 13 })
+				cd.checkedList()
+			}
+		}
+		liste.push(new GridKolon({ belirtec: 'noyil', text: 'No Yıl', genislikCh: 8 }).tipNumerik().checkedList())
 	}
 	static loadServerData_queryDuzenle({ sent, sent: { where: wh, sahalar }, offlineRequest, offlineMode }) {
 		super.loadServerData_queryDuzenle(...arguments)

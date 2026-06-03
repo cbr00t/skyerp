@@ -121,6 +121,7 @@ class MuhasebeHareketci extends Hareketci {
 		}
 	}
 	static maliTablo_sentUygunluk({ veriTipi } = {}) {
-		return veriTipi?.borcBedelmi || veriTipi?.alacakBedelmi
+		return true
+		// return veriTipi?.borcBedelmi || veriTipi?.alacakBedelmi
 	}
 }

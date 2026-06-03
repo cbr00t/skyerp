@@ -130,26 +130,29 @@ class SablonluSiparisFisTemplate extends CObject {
 		await this.yeniTanimOncesiIslemler_ozel?.(e)
 	}
 	static async yukleSonrasiIslemler(e) {
-		let {sender: detGridPart, fis} = e, {parentPart: gridPart} = detGridPart ?? {};
-		// fis.mustKod = gridPart.mustKod || fis.mustKod;
-		fis.mustKod = fis.teslimCariKod || fis.mustKod;
-		let result = await this.sablonYukleVeBirlestir({ ...e });
-		await this.yukleSonrasiIslemler_ozel?.(e);
+		let {sender: detGridPart, fis} = e, {parentPart: gridPart} = detGridPart ?? {}
+		// fis.mustKod = gridPart.mustKod || fis.mustKod
+		fis.mustKod = fis.teslimCariKod || fis.mustKod
+		let result = await this.sablonYukleVeBirlestir({ ...e })
+		await this.yukleSonrasiIslemler_ozel?.(e)
 		return result
 	}
 	static async sablonYukleVeBirlestir(e) {
-		let {fis, islem, belirtec} = e, {sablonSayac, tarih, subeKod, mustKod, numarator, class: fisSinif} = fis;
+		let {fis, islem, belirtec} = e, {sablonSayac, tarih, subeKod, mustKod, numarator, class: fisSinif} = fis
 		if (!mustKod) { throw { isError:  true, errorText: `<b>Müşteri</b> seçilmelidir` } }
 		let {offlineMode: offline} = app
-		let _fis = fis.deepCopy(); await this.dagitimIcinEkBilgileriBelirle({ ...e, fis: _fis });
-		let {onayliTipler} = SiparisFis, {mustKod: teslimCariVeyaMustKod, onayTipi} = _fis;
-		let onaylimi = onayliTipler.includes(onayTipi?.char ?? onayTipi);
-		let {detaySinif, konsinyemi, numTipKod} = fisSinif; islem = islem || belirtec;
-		let yenimi = islem == 'yeni', izlemi = islem == 'izle';
-		let onaylami = islem == 'onayla', silmi = islem == 'sil';
-		let onaylaVeyaSilmi = onaylami || silmi || izlemi;
-		tarih = fis.tarih = tarih || today();
-		if (numarator) { numarator.belirtec = 'W' }
+		let _fis = fis.deepCopy(); await this.dagitimIcinEkBilgileriBelirle({ ...e, fis: _fis })
+		let {onayliTipler} = SiparisFis, {mustKod: teslimCariVeyaMustKod, onayTipi} = _fis
+		let onaylimi = onayliTipler.includes(onayTipi?.char ?? onayTipi)
+		let {detaySinif, konsinyemi, numTipKod} = fisSinif; islem = islem || belirtec
+		let yenimi = islem == 'yeni', izlemi = islem == 'izle'
+		let onaylami = islem == 'onayla', silmi = islem == 'sil'
+		let onaylaVeyaSilmi = onaylami || silmi || izlemi
+		tarih = fis.tarih = tarih || today()
+		if (numarator && numarator.belirtec != 'W') {
+			numarator.belirtec = 'W'
+			//await numarator.yukle()
+		}
 		/*numSayac = app.param.web.x;
 		if (numSayac) {
 			let sent = new MQSent({

@@ -167,12 +167,14 @@ class SimpleComboBoxPart extends Part {
 		input.attr('placeholder', this.renderedText)
 		input.on('change', event => {
 			let { currentTarget: { value } } = event
+			this._dirty = true
 			this._onChange({ type: 'change', event, layout, input, value })
 		})
 		input.on('keydown', event => {
 			let { key, currentTarget: { value } } = event
 			key = key?.toLowerCase()
-			if (key == 'enter' || key == 'linefeed' || key == 'tab')
+			let editCellmi = layout?.hasClass('jqx-grid-cell-edit')
+			if (key == 'enter' || key == 'linefeed' || (editCellmi && key == 'tab'))
 				this._onChange({ type: 'commit', event, layout, input, value })
 		})
 		input.on('contextmenu', event => {
@@ -262,10 +264,12 @@ class SimpleComboBoxPart extends Part {
 		let { _inEvent, disabled } = this
 		if (_inEvent || disabled || type == 'keypress' || type == 'change')
 			return
-		 
+
+		this._dirty = false
 		this._inEvent = true
 		let isSelect = type == 'select', fromList = type == 'list'
-		let isCommit = type == 'commit', isTrigger = !type                                                // muhtemelen .trigger('change') vs
+		let isCommit = type == 'commit'
+		let isTrigger = !type || type == 'trigger'
 		let e = { ...arguments[0], select: isSelect, commit: isCommit, trigger: isTrigger }
 		try {
 			let { layout, input, autoClearFlag: autoClear, queue } = this
@@ -307,9 +311,12 @@ class SimpleComboBoxPart extends Part {
 			}
 			else
 				this.signalChange(e)
-			input.blur()
+
 			clearTimeout(this._timerFocus)
-			this._timerFocus = setTimeout(() => input.focus(), 5)
+			if (!isTrigger) {
+				input.blur()
+				this._timerFocus = setTimeout(() => input.focus(), 5)
+			}
 		}
 		finally { setTimeout(() => this._inEvent = false, 5) }
 	}
@@ -330,8 +337,11 @@ class SimpleComboBoxPart extends Part {
 	async aciklamaBelirle() {
 		let sender = this
 		let { value, mfSinif, kodSaha, adiSaha, source, listSource } = this
-		if (!value)
+		if (!value) {
+			if (this.aciklama)
+				this.aciklama = ''
 			return this
+		}
 		if (!(mfSinif || source || listSource))
 			return this
 		let aciklama = await mfSinif?.getGloKod2Adi?.(value?.toString())
@@ -475,7 +485,7 @@ class SimpleComboBoxPart extends Part {
 		return source.call(this, e)
 	}
 	_onFocus(e) {
-		let {input} = this
+		let  { input } = this
 		if (input.val())
 			input.select()
 		// input.attr('placeholder', '')
@@ -483,6 +493,14 @@ class SimpleComboBoxPart extends Part {
 		this.signal('focus', e)
 	}
 	_onBlur(e) {
+		let { _dirty, input } = this
+		if (_dirty) {
+			let { layout } = this
+			this._dirty = false
+			let value = input.val()
+			this.val(value)
+			this._onChange({ type: 'trigger', layout, input, value })
+		}
 		/*let {input} = this
 		input.attr('placeholder', this.currentPlaceholder)*/
 		this.signal('blur', e)
@@ -493,11 +511,19 @@ class SimpleComboBoxPart extends Part {
 		let btnListe = layout.children('button#liste')
 		if (btnListe?.length) {
 			let editCellmi = layout?.hasClass('jqx-grid-cell-edit')
+			let secimmi = !!layout?.parents('.secim')?.length
 			if (editCellmi) {
 				btnListe.css({
 					left: 'unset',
 					right: `${ btnListe.height() + ( btnListe.width() + 25 ) }px`,
 					top: 'unset'
+				})
+			}
+			else if (secimmi) {
+				btnListe.css({
+					left: `${input.width() - 70}px`,
+					right: 'unset',
+					top: `${-btnListe.height() - 22}px`
 				})
 			}
 			else {

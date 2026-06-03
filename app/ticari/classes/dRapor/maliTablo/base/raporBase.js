@@ -255,12 +255,13 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			}
 			
 			if (konsolideCikti) {
-				let orjUni = sonucUni, yatayAlias = yatayDBmi ? 'yatay' : null;
+				let orjUni = sonucUni, yatayAlias = yatayDBmi ? 'yatay' : null
 				sonucUni = _e.uni = stm.sent = new MQUnionAll()
 				if (!filtreDBSet || filtreDBSet[aktifDB]) {
 					let uni = orjUni.deepCopy()
 					for (let {sahalar} of uni) {
-						sahalar.add(`'${aktifDB}' _db`)
+						if (detayli)
+							sahalar.add(`'${aktifDB}' _db`)
 						if (yatayAlias)
 							sahalar.add(`'${aktifDB}' ${yatayAlias}`)
 						if (detayli && yatayAlias != 'db')
@@ -274,11 +275,12 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 					let uni = orjUni.deepCopy()
 					for (let { from, sahalar } of uni) {
 						for (let aMQAliasliYapi of from) {
-							let {deger: table} = aMQAliasliYapi
+							let { deger: table } = aMQAliasliYapi
 							if (table && !table.includes('.'))
 								table = aMQAliasliYapi.deger = `${db}..${table}`
 						}
-						sahalar.add(`'${db}' _db`)
+						if (detayli)
+							sahalar.add(`'${db}' _db`)
 						if (yatayAlias)
 							sahalar.add(`'${db}' ${yatayAlias}`)
 						if (detayli && yatayAlias != 'db')
@@ -305,14 +307,22 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			seq++
 			let { hesapTipi, veriTipi } = det
 			let { formulmu } = hesapTipi ?? {}
-			let { donemTipi } = veriTipi ?? {}
+			let { donemTipi, ekBilgi: vEkBilgi } = veriTipi ?? {}
+			let args = { ..._e, recs: recs ?? [], detay: det, seq, id, hesapTipi, veriTipi, donemTipi }
 			let _recs = makeArray(
 				formulmu
-					? await det.eval({ ..._e, recs: recs ?? [], detay: det, seq, id, hesapTipi, veriTipi, donemTipi })
+					? await det.eval(args)
 					: await id2Promise[id]
 			)?.map(r => isObject(r) ? r : ({ bedel: r })) ?? []
 			
-			let { bakiyemi, borcmu, alacakmi }  = det.veriTipi?.ekBilgi ?? {}
+			args.buRecs = _recs
+			// recDuzenle?.call(this, args)
+			if (!formulmu) {
+				let res = await det.eval(args)
+				if (isArray(res) || isObject(res))
+					_recs = makeArray(res)
+			}
+			
 			let yatay2Bedel = {}
 			if (yatayAnalizVarmi) {
 				for (let rec of _recs) {

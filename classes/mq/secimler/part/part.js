@@ -207,28 +207,47 @@ class SecimlerPart extends Part {
 		eConfirm(`Seçim içerikleri <b class="royalblue">${aciklama}</b> ismi ile web tarayıcınızda kaydedildi`, [mfSinif?.sinifAdi, 'Seçimler'].filter(x => x).join(' '))
 	}
 	secimYukleIstendi(e) {
-		let {tipBelirtec} = this
+		let { tipBelirtec } = this
 		MQSecim.listeEkraniAc({
 			args: { tipBelirtec },
 			secince: e => {
-				let {aciklama, icerik} = e.rec ?? {}
-				if (!icerik) { return }
-				let {secimler, secim2Info} = this
-				for (let [key, _secim] of Object.entries(icerik)) {
+				let { aciklama, icerik } = e.rec ?? {}
+				if (!icerik)
+					return
+				
+				let { secimler, secim2Info } = this
+				for (let [key, _secim] of entries(icerik)) {
 					let secim = secimler[key]
 					if (!secim)
 						continue
+
+					_secim.birKismimi ??= _secim.birKismi ?? _secim.b
+					deleteKeys(_secim, 'birKismi', 'b', '_reduce')
+					
 					secim.temizle()
-					if (_secim.birKismimi !== undefined) {
+					/*if (_secim.birKismimi !== undefined) {
 						_secim.hepsimi = !_secim.birKismimi
 						delete _secim.birKismimi
+					}**/
+
+					for (let [k, v] of entries(_secim)) {
+						if (v === undefined)
+							continue
+						if (k == 'birKismimi') {
+							try { secim[k] = v }
+							catch (ex) {
+								// SecimTekSecim veya getter
+								secim.hepsimi = !v
+							}
+							continue
+						}
+						secim[k] = v
 					}
-					$.extend(secim, _secim)
-					let {element: parent} = secim2Info[key]
+					let { element: parent } = secim2Info[key]
 					if (parent)
 						secim.uiSetValues({ parent })
 				}
-				this.seviyeleriAcKapatIstendi({ flag: true }) /* eConfirm(`<b>${aciklama}</b> seçim içerikleri yüklendi`, [this.mfSinif?.sinifAdi, 'Seçimler'].filter(x => x).join(' ')) */
+				//this.seviyeleriAcKapatIstendi({ flag: true })
 			}
 		})
 	}

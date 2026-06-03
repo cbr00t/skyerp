@@ -25,7 +25,7 @@ class MQSentVeIliskiliYapiOrtak extends MQDbCommand {
 	}
 	asTmpTable(e) { return this.class.asTmpTable(e, this) }
 	asToplamStm(e) {
-		e = e || {}; let sumListe = e.sumListe ?? [], orderFlag = e.order ?? e.orderBy;
+		let sumListe = e.sumListe ?? [], orderFlag = e.order ?? e.orderBy;
 		let tmpTabloVeAlias = e.tmpTabloVeAlias ?? e.tmpTableVeAlias, {toplamInd} = e, {liste} = this;
 		let ilkSent; for (let sent of this) { ilkSent = sent; break } if (!ilkSent) { return new MQStm() } 
 		let tmpTabloAdi = tmpTabloVeAlias?.deger ?? `${MQStm.toplamTable}${toplamInd ?? ''}`;
@@ -35,16 +35,22 @@ class MQSentVeIliskiliYapiOrtak extends MQDbCommand {
 		let topSahalarAdiSet = asSet(sumListe ?? []), matchList = ['SUM(', 'COUNT(', 'AVG(', 'STRING_AGG('];
 		for (let {sahalar} of this)
 		for (let {alias, deger} of sahalar.liste) {
-			deger = deger?.toUpperCase(); if (!deger) { continue }
-			let uygunmu = !!matchList.find(match => deger.startsWith(match) && deger.includes(')'));
-			if (uygunmu) { topSahalarAdiSet[alias] = true }
+			deger = deger?.toString()?.toUpperCase()
+			if (!deger)
+				continue
+			let uygunmu = !!matchList.find(m =>
+				deger.includes(m)
+				// deger.parantezsiz().startsWith(match) && deger.includes(')')
+			)
+			if (uygunmu)
+				topSahalarAdiSet[alias] = true
 		}
-		let tumSahaAdlari = keys(sahaAdi2Deger), topSahaAdlari = keys(topSahalarAdiSet);
-		let digerSahaAdlari = tumSahaAdlari.filter(saha => !topSahalarAdiSet[saha]);
-		_with.add(new MQTmpTable({ table: tmpTabloAdi, sahalar: tumSahaAdlari, sent: this }));
-		let asilSent = stm.sent; asilSent.fromAdd(`${tmpTabloAdi} ${tmpAlias}`); asilSent.sahalar.liste = [];
+		let tumSahaAdlari = keys(sahaAdi2Deger), topSahaAdlari = keys(topSahalarAdiSet)
+		let digerSahaAdlari = tumSahaAdlari.filter(saha => !topSahalarAdiSet[saha])
+		_with.add(new MQTmpTable({ table: tmpTabloAdi, sahalar: tumSahaAdlari, sent: this }))
+		let asilSent = stm.sent; asilSent.fromAdd(`${tmpTabloAdi} ${tmpAlias}`); asilSent.sahalar.liste = []
 		{
-			let {sahalar} = asilSent;
+			let {sahalar} = asilSent
 			for (let sahaAdi of digerSahaAdlari) { sahalar.add(`${tmpAlias}.${sahaAdi}`) }
 			for (let sahaAdi of topSahaAdlari) { sahalar.add(`SUM(${tmpAlias}.${sahaAdi}) ${sahaAdi}`) }
 		}

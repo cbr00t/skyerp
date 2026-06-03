@@ -40,7 +40,7 @@ class Secimler extends CIO {
 				continue
 			}
 			let item = _e[key]
-			if (empty(item))
+			if (item !== false && empty(item))
 				delete _e[key]
 		}
 		return _e
