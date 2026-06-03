@@ -9,7 +9,10 @@ class SBRapor extends DGrupluPanelRapor {
 	islemTuslariArgsDuzenle({ liste }) {
 		super.islemTuslariArgsDuzenle(...arguments)
 		liste.push(...[
-			{ id: 'izle', text: '', handler: _e => this.main.hareketKartiGoster({ ...e, ..._e, id: undefined }) }
+			{
+				id: 'izle', text: '', handler: _e =>
+					setTimeout(() => this.main.hareketKartiGoster({ ...e, ..._e, id: undefined }), 50)
+			}
 		].filter(x => !!x))
 	}
 }
@@ -30,7 +33,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 	onGridInit(e) {
 		let result = super.onGridInit(e); let {grid} = this.gridPart
 		grid.on('rowDoubleClick', _e => {
-			let {args: { row: { id } = {} } = {}} = _e
+			let { args: { row: { id } = {} } = {} } = _e
 			this.hareketKartiGoster({ ..._e, ...e, id })
 		})
 		return result
@@ -192,7 +195,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			for (let formul of formulDetaylar)
 			for (let attr of attrListe) {
 				let value = await formul.eval({ ...e, det: formul, recs, sevRecs, parentRec, attr, seq, ind2Rec })
-				if (value != null)
+				if (!empty(value))
 					parentRec[attr] = value
 			}
 			seq++
@@ -305,23 +308,25 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		let recs, seq = 0
 		for (let [id, det] of entries(id2Detay)) {
 			seq++
-			let { hesapTipi, veriTipi } = det
-			let { formulmu } = hesapTipi ?? {}
+			let { hesapTipi, veriTipi, satirListe } = det
+			let { satirlarToplamimi, altSeviyeToplamimi, formulmu } = hesapTipi ?? {}
 			let { donemTipi, ekBilgi: vEkBilgi } = veriTipi ?? {}
 			let args = { ..._e, recs: recs ?? [], detay: det, seq, id, hesapTipi, veriTipi, donemTipi }
-			let _recs = makeArray(
+			let _recs = args.buRecs = makeArray(
 				formulmu
 					? await det.eval(args)
 					: await id2Promise[id]
-			)?.map(r => isObject(r) ? r : ({ bedel: r })) ?? []
-			
-			args.buRecs = _recs
+			)?.map(r =>
+				isObject(r) ? r : ({ bedel: r }))
 			// recDuzenle?.call(this, args)
-			if (!formulmu) {
-				let res = await det.eval(args)
-				if (isArray(res) || isObject(res))
-					_recs = makeArray(res)
-			}
+			if (!(satirlarToplamimi || altSeviyeToplamimi || formulmu))
+				_recs = args.buRecs = await det.eval(args) ?? _recs
+			/*else if (satirlarToplamimi && !empty(satirListe)) {
+				let digerRecs = makeArray( satirListe.map(i => recs[i]) ).filter(Boolean)
+				_recs = args.buRecs = [
+					{ [bedelAlias] : topla(r => r[bedelAlias], digerRecs) }
+				]
+			}*/
 			
 			let yatay2Bedel = {}
 			if (yatayAnalizVarmi) {
@@ -347,7 +352,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			let rec = { id, aciklama, bedel: topBedel }
 			if (yatayAnalizVarmi) {
 				for (let [yatay, bedel] of entries(yatay2Bedel))
-					rec[`bedel_${yatay}`] = bedel
+					rec[`${bedelAlias}_${yatay}`] = bedel
 			}
 			;( recs ??= [] )
 				.push(rec)
@@ -364,7 +369,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 	loadServerData_recsDuzenleIlk(e) {
 		/* do nothing */
 	}
-	async loadServerData_recsDuzenle_seviyelendir({ detayli, recs: sqlRecs, id2Detay, yatayDegerSet }) {
+	async loadServerData_recsDuzenle_seviyelendir({ detayli, recs: sqlRecs, id2Detay, yatayDegerSet, bedelAlias = 'bedel' }) {
 		if (detayli)
 			return sqlRecs
 		
@@ -397,7 +402,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 				},
 				toplamaEkle(digerGridRec) {
 					digerGridRec ??= {}
-					let {tersIslemmi} = digerGridRec
+					// let { tersIslemmi } = digerGridRec
 					for (let attr of attrListe) {
 						let value = digerGridRec[attr]
 						this[attr] += value
@@ -408,13 +413,13 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 					return this
 				},
 				toplamOlustur() {
-					let {detaylar} = this
-					if (detaylar.length) {
+					let { detaylar } = this
+					if (!empty(detaylar)) {
 						this.toplamReset()
 						for (let det of detaylar) {
 							det.toplamOlustur()
 							this.toplamaEkle(det)
-							if (det.tersIslemmi && (det.satirlarToplamimi || det.altSeviyeToplamimi))
+							if (det.tersIslemmi && ( det.satirlarToplamimi || det.altSeviyeToplamimi ))
 								det.negated()
 						}
 					}
@@ -433,7 +438,8 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			}
 		}
 		for (let rec of sqlRecs) {
-			let { id } = rec, gridRec = id2GridRec[id]
+			let { id } = rec
+			let gridRec = id2GridRec[id]
 			for (let attr of attrListe)
 				gridRec[attr] = rec[attr] ?? 0
 			// gridRec.hesaplandimi = true
@@ -443,7 +449,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		for (let gridRec of gridRecs) {
 			let { seviyeNo: sevNo, detaylar } = gridRec
 			sevNo = asInteger(sevNo?.char ?? sevNo) || 1
-			maxSevNo = Math.max(sevNo, maxSevNo)
+			maxSevNo = max(sevNo, maxSevNo)
 			let ustSevNo = sevNo - 1
 			sev2Ust[sevNo] = gridRec
 			if (ustSevNo > 0) {
@@ -454,19 +460,81 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			}
 		}
 		let sevRecs = gridRecs.filter(r => asInteger(r?.seviyeNo?.char ?? r?.seviyeNo) <= 1)
+		if (empty(sevRecs) && !empty(gridRecs))
+			throw { isError: true, errorText: '1. Seviye olan kayıt bulunamadı, Rapor Tanımını kontrol ediniz' }
+		
 		for (let sev of sevRecs) {
-			let { hesapTipi, satirListe, hesaplandimi } = sev
+			let { hesapTipi, hesaplandimi } = sev
 			if (hesaplandimi)
 				continue
-			if (hesapTipi?.altSeviyeToplamimi)
-				sev.toplamOlustur()
-			else if (hesapTipi?.satirlarToplamimi && satirListe?.length) {
-				sev.toplamReset()
-				for (let i of satirListe)
-					sev.toplamaEkle(gridRecs[i])
+
+			let { altSeviyeToplamimi } = hesapTipi ?? {}
+			if (altSeviyeToplamimi) {
+				/*let _recs = (
+					(satirlarToplamimi && !empty(satirListe)) ? satirListe.map(i => gridRecs[i]) :
+					altSeviyeToplamimi ? sev.detaylar :
+					[]
+				)*/
+				let { detaylar: _recs } = sev
+				if (!empty(_recs)) {
+					//;_recs.forEach(r =>
+					//		r.toplamOlustur(e))
+					sev.toplamOlustur(e)
+				}
 			}
 			hesaplandimi = sev.hesaplandimi = true
 		}
+
+		;{
+			let _gridRecs = gridRecs.filter(d =>
+				!d.hesaplandimi &&
+				d.hesapTipi?.satirlarToplamimi &&
+				!empty(d.satirListe)
+			)
+			for (let r of _gridRecs) {
+				let { satirListe } = r    // satirListe kaydedilirken 0-based yapılmıştı
+				let digerRecs = makeArray(
+					satirListe.map(i => gridRecs[i])
+				).filter(Boolean)
+				r[bedelAlias] = topla(r => r[bedelAlias], digerRecs)
+			}
+		}
+
+		;{
+			let _gridRecs = gridRecs.filter(d =>
+				d.hesapTipi?.formulmu
+			)
+			let args = { ...arguments[0], recs: gridRecs }
+			for (let r of _gridRecs) {
+				let { id, seq, hesapTipi, veriTipi, satirListe } = r
+				let { satirlarToplamimi, altSeviyeToplamimi, formulmu } = hesapTipi ?? {}
+				let { donemTipi, ekBilgi: vEkBilgi } = veriTipi ?? {}
+				let d = isPlainObject(r) ? id2Detay[id] : r
+				extend(args, {
+					id, seq, detay: d, hesapTipi, veriTipi, donemTipi,
+					buRecs: [r]
+				})
+				
+				let _recs = makeArray(await d.eval(args))
+					.map(r => isObject(r) ? r : ({ [bedelAlias]: r }))
+				if (!empty(_recs))
+					r[bedelAlias] = topla(r => r[bedelAlias], _recs)
+			}
+		}
+
+		;{
+			for (let r of gridRecs) {
+				let v = r[bedelAlias]
+				if (!v)
+					continue
+				
+				let { tersIslemmi, shIade = {} } = r
+				let tersmi = tersIslemmi != shIade.iademi
+				if (tersmi)
+					v = r[bedelAlias] = -v
+			}
+		}
+		
 		return sevRecs
 	}
 	loadServerData_recsDuzenleSon(e) {
@@ -475,6 +543,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			let _recs = this.loadServerData_recsDuzenle_hizliBulIslemi(e)
 			recs = _recs == null ? e.recs : _recs
 		}
+		
 		return recs
 	}
 	raporTanimIstendi(e) {

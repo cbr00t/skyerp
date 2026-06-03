@@ -548,6 +548,11 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		let alias = e?.alias ?? 'stk',  aliasVeNokta = alias + '.';
 		this.fromIliski('stokmarka smar', `${aliasVeNokta}smarkakod = smar.kod`); return this
 	}
+	stok2MasrafBagla(e) {
+		let alias = e?.alias ?? 'stk', aliasVeNokta = alias + '.'
+		this.fromIliski('stkmasraf mas', `${aliasVeNokta}masrafkod = mas.kod`)
+		return this
+	}
 	stok2BarkodBagla(e) {
 		let alias = e?.alias ?? 'stk',  aliasVeNokta = alias + '.';
 		let iliskiler = [`${alias}.kod = sbar.stokkod`, 'sbar.paketsayac IS NULL', `sbar.varsayilan <> ''`];
@@ -588,6 +593,11 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	hizmet2IstGrupBagla(e) {
 		let alias = e?.alias ?? 'hiz', aliasVeNokta = alias + '.';
 		this.fromIliski('hizistgrup higrp', `${aliasVeNokta}histgrupkod = higrp.kod`); return this
+	}
+	hizmet2MasrafBagla(e) {
+		let alias = e?.alias ?? 'hiz', aliasVeNokta = alias + '.'
+		this.fromIliski('stkmasraf mas', `${aliasVeNokta}masrafkod = mas.kod`)
+		return this
 	}
 	dem2GrupBagla(e) {
 		let alias = e?.alias ?? 'dem', aliasVeNokta = alias + '.'

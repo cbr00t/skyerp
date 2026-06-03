@@ -551,7 +551,7 @@ class SBTabloDetay extends MQDetay {
 				'bizsubekod', 'ozelisaret', 'shTipi', 'takipno',
 				'fmalhammadde', 'fmalmuh', 'malhammadde', 'malmuh'
 			)*/
-			aliasListe.push('ba', bedelAlias, ...ekAttrListe)
+			aliasListe.push('ba', 'gc', bedelAlias, ...ekAttrListe)
 		}
 		/*if (hvAlias)
 			sabitAttrListe.push(hvAlias)
@@ -837,14 +837,22 @@ class SBTabloDetay extends MQDetay {
 		e ??= {}
 		// let { formulmu } = this.hesapTipi ?? {}
 		let { asFormul: code } = this
+		if (!code)
+			return null
+		
 		let { recs, buRecs, parentRec, det, seq, bedelAlias = 'bedel' } = e
 		recs ??= []; buRecs ??= []
 		let satirlar = [undefined, ...recs]
+		let bedeller = satirlar.map(r => r?.[bedelAlias] || 0)
+		bedeller[0] = undefined
+		
 		let topBedel = e.topBedel = empty(buRecs)
 			? 0
 			: roundToBedelFra( topla(r => r[bedelAlias] || 0, buRecs) )
 		
-		let t = this, pr = parentRec, d = det, s = satirlar, bu = buRecs
+		let t = this, pr = parentRec, d = det
+		let s = satirlar, b = bedeller, bu = buRecs
+		let i = seq
 		if (isString(code) && code) {
 			if (!(code[0] == '(' || code.startsWith('(function(')))
 				code = `(e => ${code})`
@@ -854,7 +862,14 @@ class SBTabloDetay extends MQDetay {
 		if (isString(block))
 			block = eval(code)
 		
-		return isFunction(block) ? block?.call(this, e) : block
+		let res = isFunction(block) ? block.call(this, e) : block
+		res = makeArray( res )
+			.map(v => isObject(v) ? v : ({ [bedelAlias]: v }))
+			.filter(r => r[bedelAlias] != null)
+		if (empty(res))
+			return null
+		
+		return res
 	}
 	shallowCopy(e) {
 		let inst = super.deepCopy()
@@ -1204,7 +1219,7 @@ class SBTabloGridci extends GridKontrolcu {
 
 		form = fbd_altForm.addFormWithParent('altForm_formul').altAlta()
 			.setVisibleKosulu(({ builder: fbd }) => !!fbd.altInst.hesapTipi.formulmu)
-		form.addTextArea('formul', 'Formül').setRows(4).setCols(100);
+		form.addTextArea('formul', 'Formül').setRows(4).setCols(100)
 
 		form = fbd_altForm.addFormWithParent('altForm_satirlarToplami').altAlta()
 			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.hesapTipi.satirlarToplamimi ? true : 'basic-hidden');
@@ -1284,8 +1299,8 @@ class SBTabloGridci extends GridKontrolcu {
 	yeniIstendi(e) { return this.tanimla({ ...e, islem: 'yeni' }) }
 	degistirIstendi(e) { return this.tanimla({ ...e, islem: 'degistir' }) }
 	silIstendi({ sender: gridPart, recs, gridRec: rec }) {
-		let {gridWidget} = gridPart; recs ??= $.makeArray(rec);
-		let uids = recs.map(rec => rec.uid).sort(reverseSortFunc);
+		let {gridWidget} = gridPart; recs ??= makeArray(rec)
+		let uids = recs.map(rec => rec.uid).sort(reverseSortFunc)
 		for (let uid of uids) { gridWidget.deleterow(uid) }
 	}
 	kopyaIstendi(e) { return this.tanimla({ ...e, islem: 'kopya' }) }

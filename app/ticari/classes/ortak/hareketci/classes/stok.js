@@ -4,14 +4,15 @@ class StokHareketci extends Hareketci {
 	static get kod() { return `stok-${this.kodEk}` } static get aciklama() { return `Stok ${this.adiEk}` }
 	static get kodEk() { return '' } static get adiEk() { return '' } static get sablonsalVarmi() { return this._sablonsalVarmi }
 	static get uygunmu() { return true } static get maliTabloIcinUygunmu() { return true }
-	static get araSeviyemi() { return this == StokHareketci } static get maliTabloIcinUygunmu() { return true }
+	static get araSeviyemi() { return this == StokHareketci }
+	static get maliTabloIcinUygunmu() { return true }
 	static get gercekmi() { return false } static get maliyetlimi() { return false }
 	static get donemselIslemlerIcinUygunmu() { return false }
 	static get eldekiVarliklarIcinUygunmu() { return this.gercekmi && app.params?.finans?.eldekiVarlikStokDegerlemesiYapilir }
 	static get finAnaliz_baIcinTersIslemYapilirmi() { return false }
 
 	static get clausecu() {
-		let {_clausecu: result} = this;
+		let { _clausecu: result } = this
 		if (result == null) {
 			result = this._clausecu = {
 				ticNetBedel: () =>
@@ -174,6 +175,10 @@ class StokHareketci extends Hareketci {
 		if (!from.aliasIcinTable('agrp')) { sent.stokGrup2AnaGrupBagla() }
 		if (!from.aliasIcinTable('sigrp')) { sent.stok2IstGrupBagla() }
 		if (!from.aliasIcinTable('smar')) { sent.stok2MarkaBagla() }
+		if (!from.aliasIcinTable('mas')) {
+			let masClause = hvDegeri('masrafkod')
+			sent.fromIliski('stkmasraf mas', `${masClause} = mas.kod`)
+		}
 		if (!from.aliasIcinTable('yer') && yerKodClause) { sent.x2YerBagla({ kodClause: yerKodClause }) }
 		if (!from.aliasIcinTable('car') && mustClause) { sent.x2CariBagla({ kodClause: mustClause }) }
 		{
@@ -209,25 +214,29 @@ class StokHareketci extends Hareketci {
 		Hareketci.varsayilanHVDuzenle değerleri aynen alınır, sadece eksikler eklenir */
     static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
         super.varsayilanHVDuzenle(...arguments)
-		for (let key of ['belgetarih', 'obirguid']) { hv[key] = sqlNull }
-		for (let key of ['dosyatipi', 'iadetip', 'must', 'refyerkod', 'masrafkod', 'takipno', 'birozellikadi']) { hv[key] = sqlEmpty }
+		for (let key of ['belgetarih', 'obirguid'])
+			hv[key] = sqlNull
+		for (let key of ['dosyatipi', 'iadetip', 'must', 'refyerkod', 'masrafkod', 'takipno', 'birozellikadi'])
+			hv[key] = sqlEmpty
 		for (let key of [
 			'malfazmkt', 'firemiktar', 'hurdamiktar', 'dipiskonto', 'fiyat', 'dvfiyat',
 			'belgebedel', 'belgedipisk', 'belgedipnak', 'belgedipotvvegekap', 'belgeiskkamtop'
 		]) { hv[key] = sqlZero }
 		for (let key of ['mustkod', 'ticmust', 'fisaciklama', 'detaciklama']) { delete hv[key] }
-		$.extend(hv, {
+		extend(hv, {
 			seq: 'har.seq', stokkod: 'har.stokkod', koli: 'har.koli', miktar: 'har.miktar', miktar2: 'har.miktar2',
-			brm: 'stk.brm', malbrm: 'stk.brm', ba: sqlEmpty,
+			brm: 'stk.brm', malbrm: 'stk.brm',
 			grupkod: 'stk.grupkod', anagrupkod: 'grp.anagrupkod',
 			sistgrupkod: 'stk.sistgrupkod', smarkakod: 'stk.smarkakod',
+			ba: ({ hv }) =>
+				`(CASE WHEN ${hv.gc} = 'C' THEN 'A' ELSE 'B' END)`,
 			...this.getHV_hmr_bos({ hv })
 		});
 		let altDonusum = {
 			unionayrim: 'kayittipi', brutbedel: 'bedel', sevktarihi: 'tarih', asilmiktar: 'miktar', revizemiktar: 'miktar', malmiktar: 'miktar',
 			belgefiyat: 'fiyat', belgebedel: 'bedel', fbedel: 'bedel', maliyet: 'bedel', fmaliyet: 'maliyet'
 		}
-		for (let [dest, src] of Object.entries(altDonusum))
+		for (let [dest, src] of entries(altDonusum))
 			hv[dest] = hv => hv[src]
     }
     /** UNION sorgusu hazırlama – hareket tipleri için */
@@ -740,10 +749,12 @@ class StokHareketci extends Hareketci {
 	}
 }
 class StokHareketci_Gercek extends StokHareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get gercekmi() { return true }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get gercekmi() { return true }
 	static get kodEk() { return 'gercek' } static get adiEk() { return 'Gerçek' }
 }
 class StokHareketci_Maliyetli extends StokHareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get maliyetlimi() { return true }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get maliyetlimi() { return true }
 	static get kodEk() { return 'maliyetli' } static get adiEk() { return 'Maliyetli' }
 }

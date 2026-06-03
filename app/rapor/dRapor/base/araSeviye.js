@@ -694,42 +694,32 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	tabloYapiDuzenle_ba(e) { return this.tabloYapiDuzenle_gcX({ ...e, gcTip: 'BA' }) }
 	loadServerData_queryDuzenle_ba(e) { return this.loadServerData_queryDuzenle_gcX({ ...e, gcTip: 'BA' }) }
 	tabloYapiDuzenle_gcX({ result, tip, etiket, gcTip, gcEtiketPrefixes, addSelf }) {
-		addSelf = addSelf ?? false; gcTip = gcTip || 'GC';
-		let {grup, toplam} = result;
-		let belirtec = tip.toLowerCase(), gcBelirtec = gcTip.toLowerCase();
+		addSelf = addSelf ?? false; gcTip = gcTip || 'GC'
+		let {grup, toplam} = result
+		let belirtec = tip.toLowerCase(), gcBelirtec = gcTip.toLowerCase()
 		etiket = etiket ?? tip; gcEtiketPrefixes = gcEtiketPrefixes || [gcTip[0], gcTip[1]];
 		if (!grup[gcTip]) {
 			result.addGrupBasit(gcTip, `${gcTip[0]}/${gcTip[1]}`, gcBelirtec, null, 60, ({ colDef }) =>
 				colDef.alignCenter())
 		}
+
+		let addToplamSelector = tip.includes('MALIYET') ? 'addToplamBasit_bedel' : 'addToplamBasit'
 		if (!toplam[tip]) {
-			result.addToplamBasit(tip, etiket, belirtec, null, null, ({ item }) =>
-				{ if (!addSelf) { item.hidden() } })
+			result[addToplamSelector](tip, etiket, belirtec, null, null, ({ item, colDef: cd }) => {
+				if (!addSelf)
+					item.hidden()
+			})
 		}
-		if (this.class.envantermi && !toplam[`DEVIR_${tip}`]) { result.addToplamBasit(`DEVIR_${tip}`, `D.${etiket}`, `devir${belirtec}`) }
-		if (!toplam[`GIRIS_${tip}`]) { result.addToplamBasit(`GIRIS_${tip}`, `${gcEtiketPrefixes[0]}.${etiket}`, `giris${belirtec}`) }
-		if (!toplam[`CIKIS_${tip}`]) { result.addToplamBasit(`CIKIS_${tip}`, `${gcEtiketPrefixes[1]}.${etiket}`, `cikis${belirtec}`) }
-		if (!toplam[`KALAN_${tip}`]) { result.addToplamBasit(`KALAN_${tip}`, `K.${etiket}`, `kalan${belirtec}`) }
-		/*if (!toplam[`GIRIS_${tip}`]) {
-			result.addToplamBasit(`GIRIS_${tip}`, `${gcEtiketPrefixes[0]}.${etiket}`, `giris${belirtec}`, null, null, ({ item }) =>
-				item.setFormul([tip, gcTip], ({ rec }) => rec[gcBelirtec] == 'G' || rec[gcBelirtec] == 'B' ? (rec[belirtec] || 0) : 0))
-		}
-		if (!toplam[`CIKIS_${tip}`]) {
-			result.addToplamBasit(`CIKIS_${tip}`, `${gcEtiketPrefixes[1]}.${etiket}`, `cikis${belirtec}`, null, null, ({ item }) =>
-				item.setFormul([tip, gcTip], ({ rec }) => rec[gcBelirtec] == 'C' || rec[gcBelirtec] == 'A' ? 0 - (rec[belirtec] || 0) : 0))
-		}
-		if (!toplam[`KALAN_${tip}`]) {
-			result.addToplamBasit(`KALAN_${tip}`, `K.${etiket}`, `kalan${belirtec}`, null, null, ({ item }) =>
-				item.setFormul([tip, gcTip, `GIRIS_${tip}`, `CIKIS_${tip}`], ({ rec }) => {
-					let v = {
-						devir: (rec[`devir${belirtec}`] || 0),
-						giris: rec[gcBelirtec] == 'G' || rec[gcBelirtec] == 'B' ? (rec[belirtec] || 0) : 0,
-						cikis: rec[gcBelirtec] == 'C' || rec[gcBelirtec] == 'A' ? 0 - (rec[belirtec] || 0) : 0
-					};
-					return v.devir + v.giris - v.cikis
-				})
-			)
-		}*/
+		
+		if (this.class.envantermi && !toplam[`DEVIR_${tip}`])
+			result[addToplamSelector](`DEVIR_${tip}`, `D.${etiket}`, `devir${belirtec}`)
+		if (!toplam[`GIRIS_${tip}`])
+			result[addToplamSelector](`GIRIS_${tip}`, `${gcEtiketPrefixes[0]}.${etiket}`, `giris${belirtec}`)
+		if (!toplam[`CIKIS_${tip}`])
+			result[addToplamSelector](`CIKIS_${tip}`, `${gcEtiketPrefixes[1]}.${etiket}`, `cikis${belirtec}`)
+		if (!toplam[`KALAN_${tip}`])
+			result[addToplamSelector](`KALAN_${tip}`, `K.${etiket}`, `kalan${belirtec}`)
+		
 		return this
 	}
 	loadServerData_queryDuzenle_gcX({ stm, sent, attrSet, tip, asilClause, clause, kodClause, gcTip, gcClause, donemBS, tarihBS, tarihClause, sumFlag }) {
@@ -765,12 +755,18 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			kalan: sumDuzenlenmis(`(${asilClause.sumOlmaksizin()} * (case when ${tarihClauses.kalan.degerAta(gcTip[0], gcClause)} then 1 else -1 end))`)
 		}
 		for (let key in attrSet) {
-			if (key == gcTip) { sahalar.add(`${gcClause} ${gcBelirtec}`) }
-			else if (key == tip) { sahalar.add(`${asilClause} ${belirtec}`) }
-			else if (tarihClause && key == `DEVIR_${tip}`) { sahalar.add(`${gcClauses.devir} devir${belirtec}`) }
-			else if (key == `GIRIS_${tip}`) { sahalar.add(`${gcClauses.giris} giris${belirtec}`) }
-			else if (key == `CIKIS_${tip}`) { sahalar.add(`${gcClauses.cikis} cikis${belirtec}`) }
-			else if (key == `KALAN_${tip}`) { sahalar.add(`${gcClauses.kalan} kalan${belirtec}`) }
+			if (key == gcTip)
+				sahalar.add(`${gcClause} ${gcBelirtec}`)
+			else if (key == tip)
+				sahalar.add(`${asilClause} ${belirtec}`)
+			else if (tarihClause && key == `DEVIR_${tip}`)
+				sahalar.add(`${gcClauses.devir} devir${belirtec}`)
+			else if (key == `GIRIS_${tip}`)
+				sahalar.add(`${gcClauses.giris} giris${belirtec}`)
+			else if (key == `CIKIS_${tip}`)
+				sahalar.add(`${gcClauses.cikis} cikis${belirtec}`)
+			else if (key == `KALAN_${tip}`)
+				sahalar.add(`${gcClauses.kalan} kalan${belirtec}`)
 		}
 		return this
 	}
@@ -1286,7 +1282,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	tabloYapiDuzenle_baBedel({ result }) {
 		this.tabloYapiDuzenle_baBedelBasit(...arguments)
-		result.addToplamBasit_bedel('ISARETLIBEDEL', 'B-A Bedel', 'isaretlibedel')
+		result.addToplamBasit_bedel('ISARETLIBEDEL', 'B-A Bakiye', 'isaretlibedel')
 		return this
 	}
 	loadServerData_queryDuzenle_baBedel({ stm, sent, attrSet, baClause, bedelClause }) {
@@ -1324,6 +1320,9 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return this
 	}
 	tabloYapiDuzenle_baBakiye({ result }) {
+		this.tabloYapiDuzenle_baBakiyeBasit(...arguments)
+	}
+	/*tabloYapiDuzenle_baBakiye({ result }) {
 		let { sqlNull } = Hareketci_UniBilgi.ortakArgs
 		this.tabloYapiDuzenle_baBakiyeBasit(...arguments)
 		result.addToplamBasit_bedel('ISARETLIBAKIYE', 'B-A Bakiye', 'isaretlibakiye', null, null, ({ item }) => {
@@ -1334,7 +1333,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			)
 		})
 		return this
-	}
+	}*/
 
 	tabloYapiDuzenle_yurBABakiyeBasit({ result }) {
 		let { sqlNull } = Hareketci_UniBilgi.ortakArgs
