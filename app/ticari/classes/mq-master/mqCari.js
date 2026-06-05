@@ -525,11 +525,13 @@ class MQCari_Ticari extends MQCariAlt {
 		}
 	}
 	async kaydetSonrasiIslemler(e) {
-		let {tip2SatisBilgileri} = this, {kod: must} = this.inst, from = 'carisatis';
+		let {tip2SatisBilgileri} = this, {kod: must} = this.inst
+		let from = 'carisatis'
 		let toplu = new MQToplu()
 		for (let rec of values(tip2SatisBilgileri)) {
 			let satistipkod = rec.kod?.trimEnd() ?? '', keyHV = { must, satistipkod };
-			let tavsiyeplasiyerkod = rec.plasiyerKod ?? '', odemegunkodu = rec.odemeGunKod ?? '', tahseklino = rec.tahSekliKod ?? null;
+			let tavsiyeplasiyerkod = rec.plasiyerKod ?? ''
+			let odemegunkodu = rec.odemeGunKod ?? '', tahseklino = rec.tahSekliKod ?? null
 			let hv = { tavsiyeplasiyerkod, odemegunkodu, tahseklino }
 			toplu.add(new MQInsertOrUpdate({ from, keyHV, hv }))
 		}

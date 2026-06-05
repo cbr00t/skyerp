@@ -200,7 +200,11 @@ class MQInsertOrUpdate extends MQDbCommand {
 		if (operator) {
 			for (let [k, v] of entries(updHV)) {
 				let clause = MQSQLOrtak.sqlServerDegeri(v)
-				set.add(`${k} = ${k} ${operator} ${clause}`) }
+				if (isNumber(v))
+					set.add(`${k} = ${k} ${operator} ${clause}`)
+				else
+					set.degerAta(v, k)
+			}
 		}
 		else
 			set.birlestirDict(updHV)

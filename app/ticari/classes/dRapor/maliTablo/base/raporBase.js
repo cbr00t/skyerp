@@ -223,8 +223,8 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			filtreDBSet = asSet(filtreDBListe.filter(_ => tumDBNameSet[_]))
 		}
 		let _e = { ...e, rapor, raporTanim, secimler, donemBS, detaylar, yatayAnalizVarmi, yatayAnaliz, filtreDBListe }
-		for (let key of ['altSeviyeToplamimi', 'satirlarToplamimi'])
-			formulYapilari[key] = []
+		//for (let key of ['altSeviyeToplamimi', 'satirlarToplamimi'])
+		//	formulYapilari[key] = []
 		
 		for (let det of detaylar) {
 			let { sayac: id, hesapTipi = {}, veriTipi, veriTipi: { donemTipi } } = det
@@ -318,15 +318,10 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 					: await id2Promise[id]
 			)?.map(r =>
 				isObject(r) ? r : ({ bedel: r }))
-			// recDuzenle?.call(this, args)
-			if (!(satirlarToplamimi || altSeviyeToplamimi || formulmu))
+			
+			// recsDuzenle?.call(this, args)
+			if (!(satirlarToplamimi || altSeviyeToplamimi || formulmu))    // recsDuzenle  olabilen normal satır
 				_recs = args.buRecs = await det.eval(args) ?? _recs
-			/*else if (satirlarToplamimi && !empty(satirListe)) {
-				let digerRecs = makeArray( satirListe.map(i => recs[i]) ).filter(Boolean)
-				_recs = args.buRecs = [
-					{ [bedelAlias] : topla(r => r[bedelAlias], digerRecs) }
-				]
-			}*/
 			
 			let yatay2Bedel = {}
 			if (yatayAnalizVarmi) {
@@ -348,7 +343,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			}
 			
 			let { aciklama } = det
-			let topBedel = topla(r => r[bedelAlias] || 0, _recs)
+			let topBedel = topla(r => r[bedelAlias] || 0, ..._recs)
 			let rec = { id, aciklama, bedel: topBedel }
 			if (yatayAnalizVarmi) {
 				for (let [yatay, bedel] of entries(yatay2Bedel))
@@ -402,13 +397,9 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 				},
 				toplamaEkle(digerGridRec) {
 					digerGridRec ??= {}
-					// let { tersIslemmi } = digerGridRec
 					for (let attr of attrListe) {
 						let value = digerGridRec[attr]
 						this[attr] += value
-						/*  if (tersIslemmi) { this[attr] -= value }
-							else { this[attr] += value }
-						*/
 					}
 					return this
 				},
@@ -419,8 +410,8 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 						for (let det of detaylar) {
 							det.toplamOlustur()
 							this.toplamaEkle(det)
-							if (det.tersIslemmi && ( det.satirlarToplamimi || det.altSeviyeToplamimi ))
-								det.negated()
+							//if (det.tersIslemmi && ( det.satirlarToplamimi || det.altSeviyeToplamimi || det.formulmu ))
+							//	det.negated()
 						}
 					}
 					return this
@@ -463,28 +454,19 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		if (empty(sevRecs) && !empty(gridRecs))
 			throw { isError: true, errorText: '1. Seviye olan kayıt bulunamadı, Rapor Tanımını kontrol ediniz' }
 		
-		for (let sev of sevRecs) {
+		/*for (let sev of sevRecs) {
 			let { hesapTipi, hesaplandimi } = sev
 			if (hesaplandimi)
 				continue
 
-			let { altSeviyeToplamimi } = hesapTipi ?? {}
-			if (altSeviyeToplamimi) {
-				/*let _recs = (
-					(satirlarToplamimi && !empty(satirListe)) ? satirListe.map(i => gridRecs[i]) :
-					altSeviyeToplamimi ? sev.detaylar :
-					[]
-				)*/
+			let { satirlarToplamimi, altSeviyeToplamimi } = hesapTipi ?? {}
+			if (satirlarToplamimi || altSeviyeToplamimi) {
 				let { detaylar: _recs } = sev
-				if (!empty(_recs)) {
-					//;_recs.forEach(r =>
-					//		r.toplamOlustur(e))
+				if (!empty(_recs))
 					sev.toplamOlustur(e)
-				}
 			}
 			hesaplandimi = sev.hesaplandimi = true
 		}
-
 		;{
 			let _gridRecs = gridRecs.filter(d =>
 				!d.hesaplandimi &&
@@ -496,42 +478,58 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 				let digerRecs = makeArray(
 					satirListe.map(i => gridRecs[i])
 				).filter(Boolean)
-				r[bedelAlias] = topla(r => r[bedelAlias], digerRecs)
+				r[bedelAlias] = topla(r => r[bedelAlias], ...digerRecs)
+				hesaplandimi = r.hesaplandimi = true
 			}
+		}*/
+
+		for (let r of gridRecs) {
+			let v = r[bedelAlias]
+			if (!v)
+				continue
+			let { tersIslemmi, shIade = {} } = r
+			let tersmi = tersIslemmi != shIade.iademi
+			if (tersmi)
+				v = r[bedelAlias] = -v
+			r.hesaplandimi = true
 		}
 
-		;{
-			let _gridRecs = gridRecs.filter(d =>
-				d.hesapTipi?.formulmu
-			)
-			let args = { ...arguments[0], recs: gridRecs }
-			for (let r of _gridRecs) {
-				let { id, seq, hesapTipi, veriTipi, satirListe } = r
-				let { satirlarToplamimi, altSeviyeToplamimi, formulmu } = hesapTipi ?? {}
-				let { donemTipi, ekBilgi: vEkBilgi } = veriTipi ?? {}
+		//let kalanGridRecs = []
+		for (let i = 0; i < 2; i++) {    // two-pass formula evaluate
+			let secondPass = !!i
+			let args = { ...arguments[0], bedelAlias, recs: gridRecs, secondPass }
+			for (let r of gridRecs) {
+				let { hesapTipi = {} } = r
+				;{
+					let t = hesapTipi
+					if (!(t.formulmu || t.satirlarToplamimi || t.altSeviyeToplamimi)) {
+						//kalanGridRecs.push(r)
+						continue
+					}
+				}
+
+				let { id, seq, tersIslemmi, shIade, veriTipi = {}, satirListe } = r
+				let tersmi = tersIslemmi != shIade.iademi
+				let { donemTipi, ekBilgi: vEkBilgi } = veriTipi
+				
 				let d = isPlainObject(r) ? id2Detay[id] : r
 				extend(args, {
-					id, seq, detay: d, hesapTipi, veriTipi, donemTipi,
-					buRecs: [r]
+					id, seq, detay: d, det: d,
+					hesapTipi, veriTipi, donemTipi,
+					tersmi, satirListe, vEkBilgi, buRecs: [r]
 				})
-				
-				let _recs = makeArray(await d.eval(args))
-					.map(r => isObject(r) ? r : ({ [bedelAlias]: r }))
-				if (!empty(_recs))
-					r[bedelAlias] = topla(r => r[bedelAlias], _recs)
-			}
-		}
 
-		;{
-			for (let r of gridRecs) {
-				let v = r[bedelAlias]
-				if (!v)
+				//let _recs = makeArray(await d.eval(args))
+				//	.map(r => isObject(r) ? r : ({ [bedelAlias]: r }))
+				let _recs = makeArray(await d.eval(args))
+				r.hesaplandimi = true
+				if (empty(_recs))
 					continue
-				
-				let { tersIslemmi, shIade = {} } = r
-				let tersmi = tersIslemmi != shIade.iademi
-				if (tersmi)
-					v = r[bedelAlias] = -v
+
+				let v = topla(r => r[bedelAlias], ..._recs)
+				//if (tersmi)
+				//	v = -v
+				r[bedelAlias] = v
 			}
 		}
 		

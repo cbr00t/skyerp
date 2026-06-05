@@ -95,7 +95,8 @@ class Secimler extends CIO {
 		}
 		if (empty(key2Sec))
 			return this
-		let {liste} = this
+		
+		let { liste } = this
 		for (let [key, _sec] of entries(key2Sec)) {
 			if (empty(_sec))
 				continue
@@ -106,9 +107,21 @@ class Secimler extends CIO {
 			try {
 				// if (sec is SecimDate && sec is )
 				for (let [k, v] of entries(def)) {
-					if (v !== undefined)
-						sec[k] = sec.getConvertedValue(v)
+					if (v === undefined)
+						continue
+					if (k == 'b') {
+						k = 'birKismimi'
+						try { sec[k] = v }
+						catch (ex) { sec[k] = !v }
+						continue
+					}
+					
+					if (k == 'value' || k == 'deger')
+						v = sec.getConvertedValue(v)
+					
+					sec[k] = v
 				}
+				
 				if (disabled)
 					sec.hidden()
 				else

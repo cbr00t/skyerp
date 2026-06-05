@@ -308,19 +308,27 @@ class SBTabloVeriTipi extends TekSecim {
 		}
 		let getIsaretliBakiyeClause = (ba, baClause, bedelClause) => {
 			bedelClause ??= sqlZero
-			if (!(ba && baClause))
+			if (!baClause)
 				return bedelClause
 			bedelClause = bedelClause.sumOlmaksizin()
 			return `(case when ${baClause} = '${ba}' then ${bedelClause} else 0 - ${bedelClause} end)`
 		}
 		let getBABakiyeClause = (ba, baClause, bedelClause) => {
+			if (!baClause)
+				return bedelClause
+			
+			if (!ba)
+				return `( ${bedelClause} * (CASE WHEN ${baClause} = 'A' THEN -1 ELSE 1 END) )`
+			
 			let clause = getIsaretliBakiyeClause(ba, baClause, bedelClause)
 			if (!clause)
 				return clause
+			
 			clause = `( ${clause.asSumDeger()} )`
 			return (
-				ba == 'A' ? `(case when ${clause} < 0 then ( 0 - ${clause} ) else 0 end)` :
-				`(case when ${clause} > 0 then ${clause} else 0 end)`
+				ba == 'A'
+					? `(case when ${clause} < 0 then ( 0 - ${clause} ) else 0 end)`
+					: `(case when ${clause} > 0 then ${clause} else 0 end)`
 			)
 		}
 
@@ -362,7 +370,7 @@ class SBTabloVeriTipi extends TekSecim {
 				recsDuzenle: ({ topBedel }) =>
 					topBedel > 0 ? topBedel : 0
 			}]),
-			new CKodAdiVeEkBilgi(['DBAB', 'Döenm Başı Alacak Bakiye', 'donemBasiAlacakBakiyemi', {
+			new CKodAdiVeEkBilgi(['DBAB', 'Dönem Başı Alacak Bakiye', 'donemBasiAlacakBakiyemi', {
 				gosterimUygunluk, sentUygunluk,
 				bakiyemi: true, alacakmi: true, donemBasimi: true,
 				sentDuzenle: e =>
@@ -370,15 +378,15 @@ class SBTabloVeriTipi extends TekSecim {
 				recsDuzenle: ({ topBedel }) =>
 					topBedel > 0 ? topBedel : 0
 			}]),
-			new CKodAdiVeEkBilgi(['BRBD', 'Borç Bedel', 'borcBedelmi', {
+			new CKodAdiVeEkBilgi(['BRBD', 'Borç Bedel', 'borcBedelmi', {           // cari
 				gosterimUygunluk, sentUygunluk, borcmu: true,
 				sentDuzenle: e => topSahaEkle({ ...e, clause: hv => getIsaretliBedelClause('B', hv.ba, hv.bedel) })
 			}]),
-			new CKodAdiVeEkBilgi(['ALBD', 'Alacak Bedel', 'alacakBedelmi', {
+			new CKodAdiVeEkBilgi(['ALBD', 'Alacak Bedel', 'alacakBedelmi', {       // cari
 				gosterimUygunluk, sentUygunluk, alacakmi: true,
 				sentDuzenle: e => topSahaEkle({ ...e, clause: hv => getIsaretliBedelClause('A', hv.ba, hv.bedel) })
 			}]),
-			new CKodAdiVeEkBilgi(['ISBD', 'İşaretli Bedel', 'isaretliBedelmi', {
+			new CKodAdiVeEkBilgi(['ISBD', 'İşaretli Bedel', 'isaretliBedelmi', {   // cari
 				gosterimUygunluk, sentUygunluk,
 				sentDuzenle: e => topSahaEkle({ ...e, clause: hv => getIsaretliBedelClause(null, hv.ba, hv.bedel) })
 			}]),
@@ -401,6 +409,13 @@ class SBTabloVeriTipi extends TekSecim {
 				recsDuzenle: ({ topBedel }) =>
 					topBedel > 0 ? topBedel : 0
 			}]),
+			new CKodAdiVeEkBilgi(['ISBK', 'İşaretli Bakiye', 'isaretliBakiyemi', {
+				gosterimUygunluk, sentUygunluk, bakiyemi: true,
+				sentDuzenle: e =>
+					topSahaEkle({ ...e, clause: hv => getBABakiyeClause(null, hv.ba, hv.bedel) }),
+				recsDuzenle: ({ topBedel }) =>
+					topBedel
+			}]),
 			new CKodAdiVeEkBilgi(['DSBB', 'Dönem Sonu Borç Bakiye', 'donemSonuBorcBakiyemi', {
 				gosterimUygunluk, sentUygunluk,
 				bakiyemi: true, borcmu: true, donemSonumu: true,
@@ -421,14 +436,18 @@ class SBTabloVeriTipi extends TekSecim {
 				gosterimUygunluk, sentUygunluk, sentDuzenle: e => topSahaEkle({ ...e, clause: hv => getBABakiyeClause(null, hv.ba, hv.bakiye) })
 			}]),*/
 			new CKodAdiVeEkBilgi(['GRML', 'Giren Maliyet', 'girenMaliyetmi', {
-				gosterimUygunluk, sentUygunluk, borcmu: true,
+				gosterimUygunluk: maliyetGosterimUygunluk,
+				sentUygunluk: maliyetSentUygunluk,
+				borcmu: true,
 				sentDuzenle: e =>
 					topSahaEkle({ ...e, clause: hv => getIsaretliBedelClause('B', hv.ba, getMaliyetClause(hv)) }),
 				recsDuzenle: ({ topBedel }) =>
 					topBedel > 0 ? topBedel : 0
 			}]),
 			new CKodAdiVeEkBilgi(['CKML', 'Çıkan Maliyet', 'cikanMaliyetmi', {
-				gosterimUygunluk, sentUygunluk, alacakmi: true,
+				gosterimUygunluk: maliyetGosterimUygunluk,
+				sentUygunluk: maliyetSentUygunluk,
+				alacakmi: true,
 				sentDuzenle: e =>
 					topSahaEkle({ ...e, clause: hv => getIsaretliBedelClause('A', hv.ba, getMaliyetClause(hv)) }),
 				recsDuzenle: ({ topBedel }) =>

@@ -24,8 +24,7 @@ class MQOnayci extends MQCogul {
 						mustUnvan: ({ alias }) => `${alias}.efmustunvan`,
 						tarih: ({ alias }) => `${alias}.tarih`,
 						fisNox: ({ alias }) => `${alias}.effatnox`,
-						bedel: ({ alias }) => `${alias}.efsonuc`,
-						anlDurum: ({ alias }) => `${alias}.alimanlasmafisdurumu`
+						bedel: ({ alias }) => `${alias}.efsonuc`
 					}
 				},
 				sipfis: {
@@ -47,7 +46,26 @@ class MQOnayci extends MQCogul {
 						bedel: ({ alias }) => `${alias}.net`,
 						ekBilgi: ({ alias }) => `${alias}.cariaciklama`
 					}
-				}
+				}/*,
+				alimanlasma: {
+					harTable: ['anlastarife'],
+					tipler: {
+						AlimAnlasma: { tipText: 'Alım Alım Anlaşması' }
+					},
+					fisBaglantiDuzenle: ({ alias, clauses }) =>
+						clauses.push(`${alias}.silindi = ''`),
+					clauses: {
+						oncelik: '3',
+						eIslTip: ({ alias }) => `${alias}.efayrimtipi`,
+						uuid: ({ alias }) => `${alias}.efatuuid`,
+						mustKod: ({ alias }) => `${alias}.must`,
+						mustUnvan: 'fis_carmst.birunvan',
+						tarih: ({ alias }) => `${alias}.tarih`,
+						fisNox: ({ alias }) => `${alias}.fisnox`,
+						bedel: ({ alias }) => `${alias}.net`,
+						ekBilgi: ({ alias }) => `${alias}.cariaciklama`
+					}
+				}*/
 			}
 			for (let [table, item] of entries(result))
 				item.table = table
@@ -87,9 +105,6 @@ class MQOnayci extends MQCogul {
 	}
 	static listeEkrani_afterRun(e = {}) {
 		super.listeEkrani_afterRun(e)
-		let { sender: gridPart } = e, { grid } = gridPart
-		// let { onayNo: ilk_onayNo } = app
-		
 		if (config.service)
 			this.startServiceProc(e)
 		else {
@@ -101,7 +116,6 @@ class MQOnayci extends MQCogul {
 		}
 		try { Notification.requestPermission() }
 		catch (ex) { cerr(ex) }
-		
 		if (!qs.tamEkranYok) {
 			setTimeout(async () => {
 				for (let i = 0; i < 5; i++) {
@@ -112,20 +126,6 @@ class MQOnayci extends MQCogul {
 				}
 			}, 100)
 		}
-
-		/*setTimeout(() => {
-			let n = 'grid-open-slow'
-			grid.removeClass(n).addClass(n)
-			setTimeout(() => grid.removeClass(n), 5_000)
-		}, 100)
-		if (!ilk_onayNo) {
-			let { veriYukleninceBlock: handler } = gridPart
-			gridPart.veriYuklenince(() => {
-				gridPart.veriYukleninceBlock = handler
-				if (app.onayNo)
-					gridPart.tazele()
-			})
-		}*/
 	}
 	static listeEkrani_destroyPart(e = {}) {
 		super.listeEkrani_destroyPart(e)
@@ -364,12 +364,27 @@ class MQOnayci extends MQCogul {
 					for (let [table, clause] of entries(table2MustKodClause))
 						$case.when(table.sqlServerDegeri(), clause)
 					$case.else(sqlNull)
-					
 		            sent.leftJoin(
 		                'ony', `${db}..carmst fis_carmst`,
 		                `${$case} = fis_carmst.must`
 		            )
 		        }
+				;{
+					let or = new MQOrClause()
+						.add(new MQAndClause([
+							`ony._table = 'sipfis'`, `fis_sipfis.must = fis_alimanlasma.must`,
+							`fis_sipfis.almsat = 'A'`, `fis_alimanlasma.silindi = ''`,
+							'fis_alimanlasma.tarihb <= fis_sipfis.tarih', 'fis_alimanlasma.tarihs >= fis_sipfis.tarih'
+						]))
+						.add(new MQAndClause([
+							`ony._table = 'efgecicialfatfis'`, `fis_efgecicialfatfis.mustkod > ''`,
+							'fis_efgecicialfatfis.mustkod = fis_alimanlasma.must', `fis_alimanlasma.silindi = ''`,
+							`fis_alimanlasma.tarihb <= fis_efgecicialfatfis.tarih`, `fis_alimanlasma.tarihs >= fis_efgecicialfatfis.tarih`
+						]))
+					let onDizi = or.toString()
+					sent.leftJoin('fis_sipfis', `${db}..alimanlasma fis_alimanlasma`, onDizi)
+					sahalar.add('MAX(fis_alimanlasma.kaysayac) anlasmaSayac')
+				}
 				;{
 					sahalar
 						.add(`${dbClause} _db`)
@@ -379,10 +394,7 @@ class MQOnayci extends MQCogul {
 						])
 						.add(
 							`${new MQCase()
-								.when(
-									`ony.onayDurum = ${sqlEmpty}`,
-									`<span class=forestgreen>Cevap Bekleyenler</span>`.sqlServerDegeri()
-								)
+								.when(`ony.onayDurum = ${sqlEmpty}`, `<span class=forestgreen>Cevap Bekleyenler</span>`.sqlServerDegeri())
 								.else(`<span class=orangered>Cevaplananlar</span>`.sqlServerDegeri())
 							 } onayDurumText`
 						)
@@ -423,15 +435,12 @@ class MQOnayci extends MQCogul {
 		}
 		
 		let recs = await stm.execSelect()
-		let { onayNo } = app
-		if (!onayNo) {
-			onayNo = app.onayNo = max(1, ...(recs?.map(_r => Number(_r.onayNo)) ?? []))
-			return await this._loadServerDataDogrudan(...arguments)
-		}
-		
-		if (onayNo) {
-			await this.unregisterNTFY(e)
-			await this.registerNTFY(e)
+		if (!app.onayNo) {
+			let onayNo = app.onayNo = max(1, ...(recs?.map(_r => Number(_r.onayNo)) ?? []))
+			if (onayNo) {
+				await this.unregisterNTFY(e)
+				await this.registerNTFY(e)
+			}
 		}
 		
 		let db2GecAlimSayacListe = {}
@@ -927,20 +936,45 @@ class MQOnayci extends MQCogul {
 			pm.setProgressMax(orjRecs?.length * 4)
 		}
 		
-		// let db2IskSayi = app._db2IskSayi ??= {}
-		// let db2AnlSayac2Rec = {}
+		let db2IskSayi = app._db2IskSayi ??= {}
+		let db2AnlSayac2Rec = {}
 		let { tip2Yapi } = this
 		try {
+			let db2SayacListe = {}
+			for (let { _db: db, anlasmaSayac } of orjRecs) {
+				if (db && anlasmaSayac)
+					(db2SayacListe[db] ??= []).push(anlasmaSayac)
+			}
+			for (let [ db, sayacListe ] of entries(db2SayacListe)) {
+				sayacListe = keys(asSet(sayacListe))
+				let sent = new MQSent(), { where: wh, sahalar } = sent
+				sent.fromAdd(`${db}..alimanlasma anl`)
+				wh.inDizi(sayacListe, 'anl.kaysayac')
+				sahalar.addWithAlias('anl',
+					'kaysayac sayac', 'tarihb tarihBasi', 'tarihs tarihSonu')
+				db2AnlSayac2Rec[db] = fromEntries(
+					( await sent.execSelect() )
+						.map(r => [r.sayac, r])
+				)
+			}
+			
 			let mini = isMiniDevice()
-			//for (let _rec of orjRecs) {
-			for (let rec of orjRecs) {
-				/*let { tip, _db: db, sayac: fisSayac, anlasmaSayac } = _rec
+			for (let _rec of orjRecs) {
+				let { tip, _db: db, sayac: fisSayac, anlasmaSayac } = _rec
 				let efmi = tip == 'GeciciAlimEFat'
+				
+				let iskMax = db2IskSayi[db] ??= await promise(async () =>
+					keys(await app.sqlGetColumns(`${db}..anlastarife`))
+						.filter(s => s.startsWith('iskoran'))
+						.length
+				)
+				
 				let rec = {
-					..._rec, sayac: anlasmaSayac,
-					tip: '_AlimAnlasma', tipText: 'Anlaşma'
+					..._rec,
+					tip: '_AlimAnlasma',
+					tipText: 'Anlaşma',
+					sayac: anlasmaSayac,
 					fisNox: (() => {
-						debugger
 						let { tarihBasi: basi, tarihSonu: sonu } = db2AnlSayac2Rec[db]?.[anlasmaSayac] ?? {}
 						basi = asDate(basi); sonu = asDate(sonu)
 						return new CBasiSonu({ basi, sonu }).toString()
@@ -955,16 +989,146 @@ class MQOnayci extends MQCogul {
 							`</div>`
 						].filter(Boolean).join('\n')
 					})
-				}*/
-				
+				}
+				let temps = {}
 				let _e = {
-					...e, rec, temps: {},
-					anlasmami: true
+					...e, rec, temps,
+					anlasmami: true,
+					async source(_e) {
+						let { belgeAnlasma } = temps
+						let anlasmami = belgeAnlasma == 'A'
+						let promise_stok2AnlRec = promise(async () => {
+							let sent = new MQSent(), { where: wh, sahalar } = sent
+							sent
+								.fromAdd(`${db}..alimanlasma anl`)
+								.innerJoin('anl', `${db}..anlastarife det`, 'anl.kaysayac = det.anlassayac')
+								.innerJoin('det', `${db}..stkmst stk`, 'det.stokkod = stk.kod')
+							wh.degerAta(anlasmaSayac, 'anl.kaysayac')
+							sahalar
+								.addWithAlias('anl', 'tarihb tarihBasi', 'tarihs tarihSonu')
+								.addWithAlias('det', 'stokkod stokKod', 'ozelfiyat ozelFiyat')
+								.addWithAlias('stk', 'aciklama stokAdi', 'almfiyat alimFiyat')
+							for (let i = 1; i <= iskMax; i++)
+								sahalar.add(`det.iskoran${i} iskOran${i}`)
+							
+							let orderBy = ['stokKod']
+							let stm = new MQStm({ sent, orderBy })
+							let _ = await stm.execSelect()
+							return fromEntries(_.map(r => [r.stokKod, r]))
+						})
+						
+						let stok2AnlRec = await promise_stok2AnlRec
+						let recs = anlasmami
+							? values(stok2AnlRec)
+							: await promise(async () => {
+								let { table, harTable } = tip2Yapi[tip] ?? {}
+								if (isString(harTable))
+									harTable = harTable ? harTable.split(delimWS)[0] : null
+								if (isArray(harTable))
+									harTable = harTable[0]
+								
+								if (!(table && fisSayac && harTable))
+									return null
+								
+								let sent = new MQSent(), { where: wh, sahalar } = sent
+								sent
+									.fisHareket(table, harTable)
+									.har2StokBagla()
+								wh.degerAta(fisSayac, 'fis.kaysayac')
+								sahalar.add(
+									'har.kaysayac sayac', 'har.seq', 'har.stokkod stokKod',
+									'har.miktar miktar', 'stk.brm', 'har.fiyat', 'har.bedel'
+								)
+								if (efmi)
+									sahalar.add('dbo.emptycoalesce(stk.aciklama, har.efstokadi) stokAdi', 'har.iskoranstr iskOranText')
+								else {
+									sent.fisSilindiEkle()
+									sahalar.add('stk.aciklama stokAdi', 'har.iskorantext iskOranText', 'fis.dvkod dvKod')
+								}
+								let stm = new MQStm({ sent, orderBy: ['seq'] })
+								return await stm.execSelect()
+							})
+
+						;recs?.forEach(r => {
+							let { stokKod, miktar, fiyat, iskOranText, dvKod, bedel } = r
+							let belgeFiyat = fiyat, belgeIskOranText = iskOranText
+							let { [stokKod]: ar } = stok2AnlRec ?? {}
+							let { ozelFiyat, alimFiyat, iskOranText: anlIskOranText } = ar ?? {}
+							let anlFiyat = ozelFiyat || alimFiyat
+							//fiyat = ozelFiyat || alimFiyat || fiyat
+							//if (fiyat != r.fiyat) {
+							//	r.fiyat = fiyat
+							//	// bedel = r.bedel = roundToBedelFra(miktar * fiyat)
+							//}
+							dvKod ||= 'TL'
+							if (!anlIskOranText && ar) {
+								let oranlar = []
+								for (let i = 1; i <= iskMax; i++) {
+									let v = ar[`iskOran${i}`] || 0
+									oranlar.push(v)
+								}
+								while (oranlar.length && !oranlar.at(-1))    // son eleman =0 olmayana kadar sondan silerek gridIslemTuslariKullanilirmi
+									oranlar.pop()
+								anlIskOranText = r.anlIskOranText = oranlar.map(numberToString).join('+')
+							}
+							
+							if (anlasmami) {
+								fiyat = r.fiyat = anlFiyat
+								iskOranText = r.iskOranText = anlIskOranText
+							}
+							else {
+								if (ar) {
+									let { stokAdi } = r
+									r.stokAdi = (
+										`<div class="float-left" style="margin-left: 10px">
+											<div>${stokAdi}</div>
+											<div>
+												<span class="fs-110 bold forestgreen" style="margin-left: 10px">Anl:</span>
+												<span class="fs-90 royalblue">${numberToString(anlFiyat)} ${dvKod}</span>
+												${ anlIskOranText ? `<span class="fs-90 gray"> | </span>` : '' }
+												${ anlIskOranText ? `<span class="fs-90 purple">%${anlIskOranText}</span>` : '' }
+											</div>
+										</div>`
+									)
+									let uygunmu = belgeFiyat == anlFiyat && belgeIskOranText == anlIskOranText
+									r._css = [uygunmu ? 'bg-verylightgreen' : 'bg-lightred-transparent']
+								}
+							}
+							r.bedelStr ||= (anlasmami
+								? [
+									fiyat ? (
+										`<div>
+											<div class="float-right mt-1 fs-110 bold royalblue">
+												<span class="lightgray">FY: </span> <span>${fiyatToString(fiyat)}</span>
+											</div>
+										 </div>`
+									) : null
+								]
+								: [
+									`<div>`,
+										( fiyat
+											 ? `<div class="float-left fs-90 royalblue">
+													<span class="lightgray">FY: </span>
+													<span>${fiyatToString(fiyat)}</span>
+												</div>`
+											 : null
+										),
+										( bedel
+											 ? `<div class="float-right mt-1 fs-110 bold forestgreen">
+													 <span>${bedelToString(bedel)} ${dvKod}</span>
+												</div>`
+											 : null
+										),
+									`</div>`
+								]
+							).filter(Boolean).join(' ')
+						})
+						return recs
+					}
 				}
 				await this.izleIstendi(_e)
 				pm?.progressStep()
 			}
-			
 			if (!hasPM) {
 				pm?.progressEnd()
 				setTimeout(() => hideProgress(), 500)
@@ -999,12 +1163,7 @@ class MQOnayci extends MQCogul {
 			let eConf, { tip2Yapi } = this
 			for (let rec of recs) {
 				let { tip } = rec
-				if (tip == '_AlimAnlasma')    // ** eskiden ayrı source kullanıyordu, şimdi Geçici Alım e-Fat. gibi davranacak
-					tip = rec.tip = 'GeciciAlimEFat'
-				
-				let geciciEFatmi = tip == 'GeciciAlimEFat'
-				if (!anlasmami && geciciEFatmi) {
-					
+				if (!anlasmami && tip == 'GeciciAlimEFat') {
 					let { uuid, eIslTip } = rec
 					if (!uuid)
 						continue
@@ -1012,13 +1171,10 @@ class MQOnayci extends MQCogul {
 						eConf = await MQEConf.getInstance() ?? null
 					eIslTip ||= 'E'
 					let gelenmi = tip == 'GeciciAlimEFat'
-					let eIslAltBolum = eConf.getAnaBolumFor({ eIslTip })
-						?.trimEnd()
-						?.replaceAll('\\', '/')
-					let subDirName = gelenmi ? 'ALINAN' : 'IMZALI'
-					let relPath = [eIslAltBolum, subDirName].filter(_ => _).join('/')
 					let xmlDosyaAdi = `${uuid}.xml`
-					let remoteFile = [relPath, xmlDosyaAdi].filter(_ => _).join('/')
+					let eIslAltBolum = eConf.getAnaBolumFor({ eIslTip })?.trimEnd()
+					let subDirName = gelenmi ? 'ALINAN' : 'IMZALI'
+					let remoteFile = [eIslAltBolum, subDirName, xmlDosyaAdi].filter(_ => _).join('/')
 					if (orj_e.aborted)
 						break
 
@@ -1044,16 +1200,8 @@ class MQOnayci extends MQCogul {
 						try { xmlData = await app.wsDownloadAsStream({ remoteFile, localFile: xmlDosyaAdi }) }
 						catch (ex) { cerr(ex) }
 						pm?.progressStep()
-						if (!xmlData) {
-							throw {
-								isError: true, rc: 'noXML',
-								errorText: [
-									`<div style=""><b class=orangered>${relPath}</b> <span class=lightgray>içinde:</span></div>`,
-									`<div style="padding-left: 30px"><b class=royalblue>${uuid}</b> UUID için e-İşlem Belge İçeriği (XML) bilgisi belirlenemedi</div>`,
-									`</ul>`
-								].filter(Boolean).join('\n')
-							}
-						}
+						if (!xmlData)
+							throw { isError: true, rc: 'noXML', errorText: 'XML (e-İşlem Belge İçeriği) bilgisi belirlenemedi' }
 						let xml = $.parseXML(xmlData)
 						let docRefs = Array.from(xml.documentElement.querySelectorAll(`AdditionalDocumentReference`))
 						let xsltData
@@ -1133,10 +1281,8 @@ class MQOnayci extends MQCogul {
 						errors.push(errorText)
 					}
 				}
-				
 				else {
-					
-					let { tip, tipText, _db: db, sayac, fisNox, _text: headerHTML, colDefs, source } = rec
+					let { tip, tipText, sayac, fisNox, _text: headerHTML, colDefs, source } = rec
 					colDefs ??= e.colDefs
 					source ??= e.source
 					
@@ -1144,10 +1290,7 @@ class MQOnayci extends MQCogul {
 					deleteKeys(_e, 'colDefs', 'source')
 
 					let getSource = async () => {
-						let _recs = isFunction(source)
-							? await source?.call(this, _e)
-							: source
-						
+						let _recs = isFunction(source) ? await source?.call(this, _e) : source
 						if (_recs === undefined) {
 							let { table, harTable } = tip2Yapi[tip] ?? {}
 							if (isString(harTable))
@@ -1155,108 +1298,49 @@ class MQOnayci extends MQCogul {
 							if (isArray(harTable))
 								harTable = harTable[0]
 							
-							if (!(table && harTable && sayac))
+							if (!(table && fisSayac && harTable))
 								return null
-
-							table = `${db}..${table}`
-							harTable = `${db}..${harTable}`
 							
-							let sent = new MQSent(), { where: wh, sahalar } = sent
 							;{
+								let sent = new MQSent(), { where: wh, sahalar } = sent
 								sent
-									.fisHareket(table, harTable, true)
-									.innerJoin('har', `${db}..stkmst stk`, 'har.stokkod = stk.kod')
-									.innerJoin('har', `${db}..hizmst hiz`, 'har.hizmetkod = hiz.kod')
-								if (geciciEFatmi) {
-									sent
-										.leftJoin(
-											'har', `${db}..alimanlasma anl`, [
-												`fis.mustkod <> ''`, `fis.mustkod = anl.must`,                                                // must alim anlasmasi olan
-												`anl.almsat = 'A'`, `anl.devredisi = ''`,                                                     // anlasma devrede olan ve tarih aralik uygun olan
-												`fis.tarih >= anl.tarihb`, `fis.tarih <= anl.tarihs`,
-												`( (har.shtip = '' AND anl.ayrimkod = '') OR  (har.shtip = 'H' AND anl.ayrimkod = 'HZ'))`,    // stok veya hizmet uygumlu olan
-											]
-										)
-										.leftJoin(
-											'anl', `${db}..anlastarife adet`, [
-												`anl.kaysayac = adet.anlassayac`,
-												`(
-													(anl.ayrimkod = '' AND har.stokkod = adet.stokkod) OR
-													(anl.ayrimkod = 'HZ' and har.hizmetkod = adet.fasonhizmetkod)
-												)`
-											]
-										)
-								}
-								if (!geciciEFatmi)
-									wh.fisSilindiEkle()
-								wh.degerAta(sayac, 'fis.kaysayac')
+									.fisHareket(table, harTable)
+									.har2StokBagla()
+								wh
+									.fisSilindiEkle()
+									.degerAta(sayac, 'fis.kaysayac')
 								sahalar.add(
-									'har.kaysayac sayac', 'har.seq', 'har.stokkod stokKod', 'har.hizmetkod hizmetKod',
-									`${ geciciEFatmi ? `dbo.emptycoalesce(stk.aciklama, har.efstokadi)` : 'stk.aciklama' } stokAdi`,
-									`${ geciciEFatmi ? 'dbo.emptycoalesce(stk.aciklama, har.efstokadi)' : 'hiz.aciklama' } hizmetAdi`,
-									'har.miktar', 'stk.brm', 'har.bedel', 'fis.dvkod dvKod',
-									`har.${geciciEFatmi ? 'fiyat' : 'belgefiyat'} fiyat`, 'har.iskorantext iskOranText'
+									'har.kaysayac sayac', 'har.seq',
+									'har.stokkod stokKod', 'stk.aciklama stokAdi',
+									'har.miktar', 'stk.brm',
+									'har.belgefiyat fiyat', 'har.bedel',
+									'fis.dvkod dvKod'
 								)
-								if (geciciEFatmi) {
-									sahalar.add(
-										//'fis.alimanlasmafisdurumu fisAnlDurum',
-										'har.alimanlasmadurumu anlDurum',
-										'adet.ozelfiyat ozelFiyat', 'adet.iskorantext anlOranText'
-									)
-								}
+								uni.add(sent)
 							}
-							
-							_recs = await new MQStm({ sent, orderBy: ['seq'] }).execSelect()
+							let stm = new MQStm({ sent: uni, orderBy: ['seq'] })
+							_recs = await stm.execSelect()
 							_recs?.forEach(r => {
-								let { fiyat, bedel, dvKod, anlDurum, ozelFiyat, anlOranText } = r
-								;['Kod', 'Adi'].forEach(pf => {
-									let kt = `sh${pf}`
-									if (!r[kt])
-										r[kt] = r[`stok${pf}`] || r[`hizmet${pf}`]
-								})
+								let { bedel, dvKod } = r
 								dvKod ||= 'TL'
 								r.bedelStr ||= [
 									`<div>`,
-										`<div class="float-left fs-90 royalblue">
-											<span class="lightgray">FY: </span>
-											<span>${fiyatToString(fiyat)}</span>
-										</div>`,
-										`<div class="float-right mt-1 fs-110 bold forestgreen">
-											<span class="lightgray"> </span>
-											<span>${bedelToString(bedel)} ${dvKod}</span>
-										</div>`,
+										`<div class="float-left fs-90 royalblue"><span class="lightgray">FY: </span> <span>${fiyatToString(fiyat)}</span></div>`,
+										`<div class="float-right mt-1 fs-110 bold forestgreen">${bedelToString(bedel)} ${dvKod}</div>`,
 									`</div>`
 								].filter(Boolean).join(' ')
-								r.anlKosulStr = (
-									anlDurum ?
-										`<div class="fs-120 mt-1 bold center forestgreen" style="padding: 5px; box-shadow: 0 0 2px 1px forestgreen">Uygun</div>` :
-									ozelFiyat ? [
-										`<div>`,
-											`<div class="float-left fs-90 bold royalblue">
-												<span class="lightgray"> </span>
-												<span>${fiyatToString(ozelFiyat)} ${dvKod}</span>
-											</div>`,
-											( anlOranText ?
-												 `<div class="float-right mt-1 fs-85 orangered">
-													 <span class="lightgray">İS: </span>
-													 <span>%${anlOranText}</span>
-												</div>` : null ),
-										`</div>`
-									].filter(Boolean).join(' ') : ''
-								)
-								r.anlUygun = anlDurum
 							})
 						}
 						return _recs
 					}
-					
+					//if (empty(_recs))
+					//	continue
+
 					pm?.progressStep()
 					if (orj_e.aborted)
 						break
 					
-					let _colDefs = isFunction(colDefs)
-						? await colDefs.call?.(this, _e)
-						: colDefs
+					let _colDefs = isFunction(colDefs) ? await colDefs.call?.(this, _e) : colDefs
 					if (!_colDefs) {
 						let cellClassName = (colDef, rowIndex, belirtec, value, r) => {
 							let result = [belirtec]
@@ -1267,10 +1351,9 @@ class MQOnayci extends MQCogul {
 						}
 						_colDefs = [
 							...this.getKAKolonlar(
-								new GridKolon({ belirtec: 'shKod', text: 'Ürün/Hiz.', genislikCh: 16 }).checkedList(),
-								new GridKolon({ belirtec: 'shAdi', text: 'Ürün/Hiz. Adı', genislikCh: mini ? 25 : 50 }).checkedList(),
+								new GridKolon({ belirtec: 'stokKod', text: 'Ürün', genislikCh: 16 }).checkedList(),
+								new GridKolon({ belirtec: 'stokAdi', text: 'Ürün Adı', genislikCh: mini ? 25 : 50 }).checkedList(),
 							),
-							new GridKolon({ belirtec: 'anlUygun', text: 'Anl?', genislikCh: 5 }).tipBool().checkedList(),
 							...(mini
 								?  this.getKAKolonlar(
 									new GridKolon({ belirtec: 'brm', text: 'Brm', genislikCh: 4 }).checkedList(),
@@ -1282,15 +1365,16 @@ class MQOnayci extends MQCogul {
 								)
 							),
 							new GridKolon({ belirtec: 'iskOranText', text: 'İsk.', genislikCh: 7 }).checkedList().alignRight(),
-							new GridKolon({ belirtec: 'bedelStr', text: 'Bedel', genislikCh: 15 }).input(),
-							new GridKolon({ belirtec: 'anlKosulStr', text: 'Anl. Koşul', genislikCh: 15 }).input()
+							new GridKolon({ belirtec: 'bedelStr', text: 'Bedel', genislikCh: 15 }).input()
 						]
 						;_colDefs.forEach(cd => {
-							let { cellClassName: handler } = cd
-							cd.cellClassName = (...rest) => {
-								let result = cellClassName(...rest)
-								result.push(...makeArray( handler?.call(this, ...rest) ))
-								return result.join(' ')
+							;{
+								let { cellClassName: handler } = cd
+								cd.cellClassName = (...rest) => {
+									let result = cellClassName(...rest)
+									result.push(...makeArray( handler?.call(this, ...rest) ))
+									return result.join(' ')
+								}
 							}
 						})
 					}
@@ -1298,7 +1382,7 @@ class MQOnayci extends MQCogul {
 					tipText ||= 'Belge'
 					if (orj_e.aborted)
 						break
-					
+
 					let gridPart
 					let rfb = new RootFormBuilder()
 						.addStyle_fullWH()
@@ -1315,8 +1399,8 @@ class MQOnayci extends MQCogul {
 						form.addRadioButton('belgeAnlasmaToggle')
 							.etiketGosterim_yok()
 							.setSource([
-								{ kod: 'B', aciklama: 'Belge' }
-								// { kod: 'A', aciklama: 'Anlaşma' }
+								{ kod: 'B', aciklama: 'Belge' },
+								{ kod: 'A', aciklama: 'Anlaşma' }
 							])
 							.setValue('B')
 							.addStyle(`$elementCSS { margin-right: 30px !important }`)
@@ -1349,8 +1433,7 @@ class MQOnayci extends MQCogul {
 								extend(args, { rowsHeight: 50, selectionMode: 'multipleRowsExtended' })
 							)
 							.setTabloKolonlari(_colDefs)
-							.setSource(_e =>
-								getSource({ ...e, ..._e }))
+							.setSource(_e => getSource({ ...e, ..._e }))
 							.onAfterRun(({ builder: { part, rootPart } }) =>
 								gridPart = rootPart.gridPart = part)
 							.veriYukleninceIslemi(({ recs }) => {
@@ -1367,7 +1450,6 @@ class MQOnayci extends MQCogul {
 					rfb.run()
 					pm?.progressStep()
 				}
-				
 			}
 			
 			if (!orj_e.aborted && eDocCount) {
@@ -1404,7 +1486,7 @@ class MQOnayci extends MQCogul {
 		let { dev } = config
 		let { user2Adi } = app
 		let { tarih, mustUnvan, fisNox, uuid, irsNox, irsVarmi, ekBilgi } = rec
-		let { onayDurum, onceUser, onceText, sonraUser, onayNo, anlDurum } = rec
+		let { onayDurum, onceUser, onceText, sonraUser, onayNo, anlasmaSayac } = rec
 		uuid = uuid?.toLowerCase() ?? ''
 		irsNox ??= ''; ekBilgi ??= ''
 		let onayText = (
@@ -1423,8 +1505,8 @@ class MQOnayci extends MQCogul {
 					 `<span class="etiket bold">İrs: </span>`+
 					 `<span class="veri bold ${irsVarmi ? 'bg-lightgreen' : 'ghostwhite bg-lightred'}"}>&nbsp;${irsNox}&nbsp;</span>` +
 				 `</div>` : ''),
-				(anlDurum ? `<div class="ek-bilgi">` +
-					 `<span class="veri bold forestgreen">&nbsp;(Anl.)&nbsp;</span>` +
+				(anlasmaSayac ? `<div class="ek-bilgi">` +
+					 `<span class="veri bold forestgreen">&nbsp;(Anl. Var)&nbsp;</span>` +
 				 `</div>` : ''),
 				(onayText ? `<div class="ek-bilgi">` +
 					onayText +

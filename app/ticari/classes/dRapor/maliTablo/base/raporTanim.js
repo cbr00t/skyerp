@@ -279,21 +279,22 @@ class SBTabloDetay extends MQDetay {
 	}
 	get asFormul() {
 		let { hesapTipi, veriTipi } = this
-		/*if (hesapTipi.satirlarToplamimi) {
-			return (({ det, attr, recs, ind2Rec, parentRec }) => {
-				let {satirListe} = det, detaylar = parentRec?.detaylar ?? [];
-				let topRecs = satirListe.map(i => ind2Rec[i]).filter(x => x != null);
-				if (!topRecs.length) { return null }
-				return roundToBedelFra(topla(rec => rec?.[attr] ?? 0, topRecs))
-			})
+		hesapTipi ??= {}; veriTipi ??= {}
+		
+		if (hesapTipi.satirlarToplamimi) {
+			return ({ TOPLA, satirListe }) =>
+				TOPLA(...satirListe.map(i => i + 1))    // index değil seq alır
 		}
-		else*/
-		if (hesapTipi?.formulmu)
+		if (hesapTipi.altSeviyeToplamimi) {
+			return ({ ALT_TOPLAM }) =>
+				ALT_TOPLAM()
+		}
+		if (hesapTipi.formulmu)
 			return this.formul
 
 		;{
-			let { ekBilgi } = veriTipi
-			return ekBilgi?.recsDuzenle
+			let { ekBilgi: { recsDuzenle } = {} } = veriTipi
+			return recsDuzenle
 		}
 		
 		return null
@@ -840,19 +841,84 @@ class SBTabloDetay extends MQDetay {
 		if (!code)
 			return null
 		
-		let { recs, buRecs, parentRec, det, seq, bedelAlias = 'bedel' } = e
+		let { recs, buRecs, parentRec, det = this, seq: flatSeq, seviyeNo: buSev, bedelAlias = 'bedel' } = e
 		recs ??= []; buRecs ??= []
+		let seq = Number(det.seq)
+		buSev = Number(buSev ?? det.seviyeNo?.char)
+
+		let topBedel = e.topBedel = empty(buRecs)
+				? 0
+			: roundToBedelFra( topla(r => r[bedelAlias] || 0, ...buRecs) )
+		
 		let satirlar = [undefined, ...recs]
 		let bedeller = satirlar.map(r => r?.[bedelAlias] || 0)
-		bedeller[0] = undefined
+		bedeller[0] = 0
 		
-		let topBedel = e.topBedel = empty(buRecs)
-			? 0
-			: roundToBedelFra( topla(r => r[bedelAlias] || 0, buRecs) )
+		let get = s =>
+			bedeller[s] || 0
+		let getArr = (...seqs) =>
+			seqs?.map(get)?.filter(Boolean) ?? []
+
+		let s = get, b = get, bedel = b
+		let bu = (offset = 0) =>
+			get(seq + offset)
 		
-		let t = this, pr = parentRec, d = det
-		let s = satirlar, b = bedeller, bu = buRecs
-		let i = seq
+		let ust = parentRec?.[bedelAlias]
+		let alt = _seq => {
+			_seq ??= seq
+			let _buSev = Number(recs[_seq - 1]?.seviyeNo?.char)
+			let res = []
+			for (let i = _seq; i < recs.length; i++) {  // seq = i + 1 (sonrakinden başla)
+				let r = recs[i]
+				let _sev = Number(r.seviyeNo?.char)
+				if (_sev <= _buSev)
+					break
+				else if (_sev > _buSev + 1)
+					continue
+				let v = r[bedelAlias]
+				if (v)
+					res.push(v)
+			}
+			return res
+		}
+		let altToplam = _seq =>
+			topla(null, ...alt(_seq))
+		
+		let toplam = (...seqs) =>
+			topla(null, getArr(...seqs))
+		let fark = (...seqs) => {
+			let l = getArr(...seqs)
+			let v = l[0] || 0
+			return l.length > 1 ? v - topla(null, l.slice(1)) : v
+		}
+		let _carp = (...seqs) =>
+			carp(null, getArr(...seqs))
+		let _bol = (...seqs) => {
+			let l = getArr(...seqs)
+			let v1 = l[0] || 0
+			let v2 = carp(null, l.slice(1))
+			return v2 && l.length > 1 ? v1 / v2 : v1
+		}
+		
+		let ort = (...seqs) =>
+			( toplam(...seqs) / seqs.length )
+		let yuzde = v =>
+			( v || 0 ) * 100
+		let kucuk = (...seqs) =>
+			min(...getArr(seqs))
+		let buyuk = (...seqs) =>
+			max(...getArr(seqs))
+
+		let GET = get, DIZI = getArr
+		let B = b, BEDEL = b, BU = bu
+		let UST = ust, ALT = alt, ALTTOPLAM = altToplam, ALT_TOPLAM = altToplam
+		let _topla = topla, TOPLA = toplam, TOPLAM = toplam
+		let _cikar = fark, _cikart = fark, FARK = fark, CIKAR = fark, CIKART = fark
+		let BOL = _bol, CARP = _carp
+		let ORT = ort, avg = ort, AVG = ort, YUZDE = yuzde
+		let enkucuk = kucuk, ENKUCUK = kucuk, enbuyuk = buyuk, ENBUYUK = buyuk
+		let KUCUK = kucuk, BUYUK = buyuk
+		
 		if (isString(code) && code) {
 			if (!(code[0] == '(' || code.startsWith('(function(')))
 				code = `(e => ${code})`
@@ -861,10 +927,21 @@ class SBTabloDetay extends MQDetay {
 		let block = code
 		if (isString(block))
 			block = eval(code)
-		
-		let res = isFunction(block) ? block.call(this, e) : block
+
+		let args = {
+			...e,
+			GET, DIZI, BU, UST,
+			b, B, BEDEL,
+			ALT, ALTTOPLAM, ALT_TOPLAM,
+			TOPLA, FARK, CARP, BOL,
+			ORT, AVG, YUZDE,
+			KUCUK, ENKUCUK, BUYUK, ENBUYUK
+		}
+		let res = isFunction(block)
+			? block.call(this, args)
+			: block
 		res = makeArray( res )
-			.map(v => isObject(v) ? v : ({ [bedelAlias]: v }))
+			.map(v => isObject(v) ? roundToBedelFra(v) : ({ [bedelAlias]: roundToBedelFra(v) }))
 			.filter(r => r[bedelAlias] != null)
 		if (empty(res))
 			return null
@@ -909,20 +986,29 @@ class SBTabloGridci extends GridKontrolcu {
 		extend(args, { selectionMode: 'checkbox', groupable: false, sortable: false, filterable: false })
 	}
 	ekCSSDuzenle({ belirtec, rec, result }) {
-		if (rec.seviyeNo.seviye1mi)
-			result.push('bold fs-130')
-		else if (rec.seviyeNo.seviye2mi)
-			result.push('bold fs-110 i-pl-10')
-		else
-			result.push('i-pl-20')
-		
 		if (rec.tersIslemmi)
 			result.push(belirtec == 'tersIslemmi' ? 'bg-lightred' : 'orangered')
 		
 		switch (belirtec) {
-			case 'secimlerStr': {
-				result.push('flex-row')
+			case 'satirListeStr': {
+				result.push('bold', 'fs-90', 'forestgreen')
 				break
+			}
+			case 'secimlerStr': {
+				result.push('fs-85', 'flex-row')
+				break
+			}
+			case 'formul': {
+				result.push('bold', 'fs-85', 'royalblue')
+				break
+			}
+			default: {
+				if (rec.seviyeNo.seviye1mi)
+					result.push('bold fs-130')
+				else if (rec.seviyeNo.seviye2mi)
+					result.push('bold fs-110 i-pl-10')
+				else
+					result.push('i-pl-20')
 			}
 		}
 		return result.join(' ')
@@ -937,7 +1023,7 @@ class SBTabloGridci extends GridKontrolcu {
 			html = result ?? html
 			rec ??= {}
 			let { shStokHizmet: { birliktemi: shBirliktemi } = {} } = rec
-			let { hesapTipi: { ekBilgi: { querymi, hareketcimi, formulmu } = {} } = {} } = rec
+			let { hesapTipi: { formulmu, ekBilgi: { querymi, hareketcimi } = {} } = {} } = rec
 			let clear = () =>
 				html = changeTagContent(html, '')
 			switch (belirtec) {
@@ -965,20 +1051,20 @@ class SBTabloGridci extends GridKontrolcu {
 		liste.push(...[
 			/*new GridKolon({ belirtec: 'degistir', text: ' ', genislikCh: 8 }).tipButton('D').onClick(_e => this.degistirIstendi({ ...e, ..._e })),
 			new GridKolon({ belirtec: 'sil', text: ' ', genislikCh: 8 }).tipButton('X').onClick(_e => this.silIstendi({ ...e, ..._e })),*/
-			new GridKolon({ belirtec: 'aciklama', text: 'Açıklama', genislikCh: 50, cellClassName, cellsRenderer }),
+			new GridKolon({ belirtec: 'aciklama', text: 'Açıklama', genislikCh: 40, cellClassName, cellsRenderer }),
 			new GridKolon({ belirtec: 'seviyeNo', text: 'Seviye', genislikCh: 10, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: SBTabloSeviye }).kodsuz().listedenSecilemez(),
 			new GridKolon({ belirtec: 'tersIslemmi', text: 'Ters?', genislikCh: 10, cellClassName, cellsRenderer }).tipBool(),
-			new GridKolon({ belirtec: 'hesapTipi', text: 'Hesap Tipi', genislikCh: 30, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: SBTabloHesapTipi }).kodsuz().listedenSecilemez(),
-			new GridKolon({ belirtec: 'veriTipi', text: 'Veri Tipi', genislikCh: 30, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: SBTabloVeriTipi }).kodsuz().listedenSecilemez(),
-			new GridKolon({ belirtec: 'shStokHizmet', text: 'Stok/Hizmet', genislikCh: 20, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: SBTabloStokHizmet }).kodsuz().listedenSecilemez(),
+			new GridKolon({ belirtec: 'hesapTipi', text: 'Hesap Tipi', genislikCh: 25, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: SBTabloHesapTipi }).kodsuz().listedenSecilemez(),
+			new GridKolon({ belirtec: 'veriTipi', text: 'Veri Tipi', genislikCh: 25, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: SBTabloVeriTipi }).kodsuz().listedenSecilemez(),
+			new GridKolon({ belirtec: 'shStokHizmet', text: 'Stok/Hizmet', genislikCh: 13, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: SBTabloStokHizmet }).kodsuz().listedenSecilemez(),
 			/*new GridKolon({ belirtec: 'shAlmSat', text: 'S/H Alım-Satış', genislikCh: 15, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: AlimSatis }).kodsuz().listedenSecilemez(),*/
-			new GridKolon({ belirtec: 'shIade', text: 'S/H İADE', genislikCh: 15, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: NormalIadeVeBirlikte }).kodsuz().listedenSecilemez(),
-			new GridKolon({ belirtec: 'shAyrimTipi', text: 'S/H Ayrım', genislikCh: 15, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: SBTabloAyrimTipi }).kodsuz().listedenSecilemez(),
-			new GridKolon({ belirtec: 'satirListeStr', text: 'Satır Liste', genislikCh: 20, cellClassName, cellsRenderer }),
-			new GridKolon({ belirtec: 'secimlerStr', text: 'Seçimler', genislikCh: 250, cellClassName, cellsRenderer }),
-			(config.dev ? new GridKolon({ belirtec: 'formul', text: 'Özel Formül', genislikCh: 150, cellClassName, cellsRenderer }) : null),
+			new GridKolon({ belirtec: 'shIade', text: 'S/H İADE', genislikCh: 10, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: NormalIadeVeBirlikte }).kodsuz().listedenSecilemez(),
+			new GridKolon({ belirtec: 'shAyrimTipi', text: 'S/H Ayrım', genislikCh: 13, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: SBTabloAyrimTipi }).kodsuz().listedenSecilemez(),
+			new GridKolon({ belirtec: 'satirListeStr', text: 'Satır Liste', genislikCh: 13, cellClassName, cellsRenderer }),
+			new GridKolon({ belirtec: 'secimlerStr', text: 'Seçimler', genislikCh: 30, cellClassName, cellsRenderer }),
+			new GridKolon({ belirtec: 'formul', text: 'Özel Formül', genislikCh: 50, cellClassName, cellsRenderer }),
 			new GridKolon({ belirtec: 'cssClassesStr', text: 'CSS Sınıfları', genislikCh: 50, cellClassName, cellsRenderer }),
-			new GridKolon({ belirtec: 'cssStyle', text: 'CSS Verisi', genislikCh: 150, cellClassName, cellsRenderer })
+			new GridKolon({ belirtec: 'cssStyle', text: 'CSS Verisi', genislikCh: 20, cellClassName, cellsRenderer })
 			/*new GridKolon({ belirtec: '_secimler', text: ' ', genislikCh: 20, cellClassName, cellsRenderer }).tipButton('Seçimler')
 				.onClick(({ gridRec }) => {
 					let {secimler} = gridRec, {activeWndPart: parentPart} = app;

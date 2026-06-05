@@ -29,20 +29,31 @@ class DAltRapor extends DRapor {
 		fbd.onAfterRun(e => this.onAfterRun(e));
 	}
 	newSecimler(e) {
-		let {secimSinif} = this.class; if (secimSinif == null) { return null }
-		let _e = { ...e, secimler: new secimSinif() }; _e.secimler.beginUpdate();
-		this.secimlerDuzenle(_e); this.secimlerDuzenleSon(_e); this.secimlerDuzenle_ozel?.(e);
+		let { secimSinif } = this.class
+		if (secimSinif == null)
+			return null
+		let _e = { ...e, secimler: new secimSinif() }
+		_e.secimler.beginUpdate()
+		this.secimlerDuzenle(_e)
+		this.secimlerDuzenleSon(_e)
+		this.secimlerDuzenle_ozel?.(e)
 		if (_e.secimler) { _e.secimler.endUpdate() }
 		return _e.secimler
 	}
-	secimlerDuzenle(e) { } secimlerDuzenleSon(e) { } secimlerInitEvents(e) { }
-	loadServerData_wsArgsDuzenle(e) { let {secimler} = this; $.extend(e, { secimler }) }
+	secimlerDuzenle(e) { }
+	secimlerDuzenleSon() { }
+	secimlerInitEvents(e) { }
+	loadServerData_wsArgsDuzenle(e) {
+		let { secimler } = this
+		extend(e, { secimler })
+	}
 	onInit(e) { this.onInit_ozel?.(e) }
 	onBuildEk(e) { this.onBuildEk_ozel?.(e) }
 	onAfterRun(e) {
 		/*let {fullScreen: builder} = this.parentBuilder.id2Builder, {id2AltRapor} = this.rapor;
 		 if (Object.keys(id2AltRapor).length < 2) { setTimeout(() => this.toggleFullScreen({ builder }), 1) } */
-		this.onAfterRun_ozel?.(e); this.acilinca?.call(this, e)
+		this.onAfterRun_ozel?.(e)
+		this.acilinca?.call(this, e)
 	}
 	onResize(e) { }
 	tazeleDiger(e) {

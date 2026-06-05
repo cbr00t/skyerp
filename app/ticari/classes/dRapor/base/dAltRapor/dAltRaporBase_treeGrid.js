@@ -453,6 +453,13 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		extend(sec.liste, liste)
 		super.secimlerDuzenle(...arguments)
 	}
+	secimlerDuzenleSon({ secimler: sec }) {
+		;{
+			let { secimler: v } = qs
+			if (sec && v)
+				sec.readFromObject(v)
+		}
+	}
 	secimlerInitEvents(e) { super.secimlerInitEvents(e) }
 	tabloYapiDuzenle(e) { } tabloYapiDuzenle_son(e) { }
 	onBuildEk({ builder: fbd }) {
