@@ -181,11 +181,6 @@ class SBTabloSeviye extends TekSecim {
 class SBTabloHesapTipi extends TekSecim {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
-	get formulGibimi() {
-		let { satirlarToplamimi, altSeviyeToplamimi, formulmu } = this
-		return satirlarToplamimi || altSeviyeToplamimi || formulmu
-	}
-	
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)
 		let ekListe = [

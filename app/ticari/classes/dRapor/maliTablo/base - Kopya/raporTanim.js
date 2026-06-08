@@ -414,13 +414,10 @@ class SBTabloDetay extends MQDetay {
 		if (secimler) { secimler.readFrom({ liste: secimlerData }) }
 	}
 	raporQueryDuzenle(e) {
-		let det = e.det = this
-		let { aciklama, hesapTipi = {}, veriTipi = {}, shStokHizmet, secimler: detSecimler } = this
-		let { ekBilgi: { formulGibimi, querymi, hareketcimi, harSinif } = {} } = hesapTipi
-		let { ticarimi } = harSinif ?? {}
+		let det = e.det = this, {aciklama, hesapTipi = {}, veriTipi = {}, shStokHizmet, secimler: detSecimler} = this
+		let {ekBilgi: { querymi, hareketcimi, harSinif, harSinif: { ticarimi } } = {}} = hesapTipi
 		if (!querymi)
 			return
-		
 		let {detayli, raporTanim, subeKodlari, sentDuzenle: genelSentDuzenle, yatayAnalizVarmi, yatayAnaliz} = e
 		let {rapor, rapor: { tabloYapi, sahaAlias: bedelAlias } = {}, secimler = rapor?.secimler, donemBS = rapor.tarihBS} = e
 		if (isPlainObject(donemBS))
@@ -830,7 +827,7 @@ class SBTabloDetay extends MQDetay {
 					if (yatayDBmi && filtreYatayDegerSet && !filtreYatayDegerSet[yatay])
 						continue
 					//if (!(borcmu || alacakmi)) {
-					if (alacakmi && ba == 'A')
+					if (ba == 'A')
 						bedel = rec.bedel = -bedel
 					//}
 					newRecs.push(rec)
@@ -870,13 +867,12 @@ class SBTabloDetay extends MQDetay {
 				? 0
 			: roundToBedelFra( topla(r => r[bedelAlias] || 0, ...buRecs) )
 		
-		let get = s => {
-			let r = recs[s - 1]
-			let v = r?.[bedelAlias] || 0
-			if (r?.hesaplandimi === false)
-				e.calcFailed = true
-			return v
-		}
+		let satirlar = [undefined, ...recs]
+		let bedeller = satirlar.map(r => r?.[bedelAlias] || 0)
+		bedeller[0] = 0
+		
+		let get = s =>
+			bedeller[s] || 0
 		let getArr = (...seqs) =>
 			seqs?.map(get)?.filter(Boolean) ?? []
 
@@ -887,41 +883,23 @@ class SBTabloDetay extends MQDetay {
 		let ust = parentRec?.[bedelAlias]
 		let alt = _seq => {
 			_seq ??= seq
-			let { detaylar } = recs[_seq - 1]
-			if (detaylar) {
-				let res = []
-				for (let d of detaylar) {
-					let v = get(d.seq)
-					let { calcFailed } = e
-					if (calcFailed)
-						return null
-					if (v)
-						res.push(v)
-				}
-				return res
-			}
-			
 			let _buSev = Number(recs[_seq - 1]?.seviyeNo?.char)
 			let res = []
 			for (let i = _seq; i < recs.length; i++) {  // seq = i + 1 (sonrakinden başla)
-				let r = recs[i]     // 0-based => kendinden sonraki ilk rec
+				let r = recs[i]
 				let _sev = Number(r.seviyeNo?.char)
 				if (_sev <= _buSev)
 					break
 				else if (_sev > _buSev + 1)
 					continue
-
-				let v = get(i + 1)  // 0-based -> 1-based
-				let { calcFailed } = e
-				if (calcFailed)
-					return null
+				let v = r[bedelAlias]
 				if (v)
 					res.push(v)
 			}
 			return res
 		}
 		let altToplam = _seq =>
-			topla(null, ...( alt(_seq) ?? [] ))
+			topla(null, ...alt(_seq))
 		
 		let toplam = (...seqs) =>
 			topla(null, getArr(...seqs))
@@ -938,7 +916,7 @@ class SBTabloDetay extends MQDetay {
 			let v2 = carp(null, l.slice(1))
 			return v2 && l.length > 1 ? v1 / v2 : v1
 		}
-	
+		
 		let ort = (...seqs) =>
 			( toplam(...seqs) / seqs.length )
 		let yuzde = v =>
@@ -981,7 +959,7 @@ class SBTabloDetay extends MQDetay {
 			? block.call(this, args)
 			: block
 		res = makeArray( res )
-			.map(v => isObject(v) ? v : ({ [bedelAlias]: roundToBedelFra(v) }))
+			.map(v => isObject(v) ? roundToBedelFra(v) : ({ [bedelAlias]: roundToBedelFra(v) }))
 			.filter(r => r[bedelAlias] != null)
 		if (empty(res))
 			return null
@@ -1064,9 +1042,7 @@ class SBTabloGridci extends GridKontrolcu {
 			html = result ?? html
 			rec ??= {}
 			let { shStokHizmet: { birliktemi: shBirliktemi } = {} } = rec
-			let { hesapTipi = {} } = rec
-			let { formulGibimi, formulmu, ekBilgi: { querymi, ticarimi, hareketcimi, harSinif } = {} } = hesapTipi
-			ticarimi ??= harSinif?.ticarimi
+			let { hesapTipi: { formulmu, ekBilgi: { querymi, hareketcimi } = {} } = {} } = rec
 			let clear = () =>
 				html = changeTagContent(html, '')
 			switch (belirtec) {
@@ -1077,7 +1053,7 @@ class SBTabloGridci extends GridKontrolcu {
 				// case 'tersIslemmi': html = ''; break
 				case 'shStokHizmet': /*case 'shAlmSat':*/
 				case 'shIade': case 'shAyrimTipi':
-					if (formulGibimi || (hareketcimi && !ticarimi))
+					if (!(querymi && hareketcimi))
 						clear()
 					break
 				case '_secimler':

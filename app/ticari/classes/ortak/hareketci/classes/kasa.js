@@ -1,17 +1,17 @@
 class KasaHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get oncelik() { return 5 }
-	static get kisaKod() { return 'KS' } static get kod() { return 'kasa' } static get aciklama() { return 'Kasa' }
+	static get oncelik() { return 5 } static get kisaKod() { return 'KS' }
+	static get kod() { return 'kasa' } static get aciklama() { return 'Kasa' }
 	static get maliTabloIcinUygunmu() { return true }
 
-	static altTipYapilarDuzenle(e) {
-		super.altTipYapilarDuzenle(e)
-		e.def.sol()
+	static altTipYapilarDuzenle({ def }) {
+		super.altTipYapilarDuzenle(...arguments)
+		def.sol()
 	}
 	static mstYapiDuzenle({ result }) {
 		super.mstYapiDuzenle(...arguments);
-		result.set('kasakod', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>
-			sent.sahalar.add(`kas.aciklama ${mstAdiAlias}`))
+		result.set('kasakod', ({ sent: { sahalar }, kodClause, mstAlias, mstAdiAlias }) =>
+			sahalar.add(`kas.aciklama ${mstAdiAlias}`))
 	}
 	static hareketTipSecim_kaListeDuzenle({ kaListe }) {
 		super.hareketTipSecim_kaListeDuzenle(...arguments); kaListe.push(
@@ -25,7 +25,7 @@ class KasaHareketci extends Hareketci {
 	}
 	uniOrtakSonIslem({ sender, hv, sent }) {
 		super.uniOrtakSonIslem(...arguments)
-		let {from, where: wh} = sent
+		let { from, where: wh } = sent
 		if (!from.aliasIcinTable('kas'))
 			sent.x2KasaBagla({ kodClause: hv.kasakod })
 		if (!this.sonIslem_whereBaglanmazFlag)
@@ -39,7 +39,11 @@ class KasaHareketci extends Hareketci {
 		super.varsayilanHVDuzenle(...arguments)
 		for (let key of ['makbuzno'])
 			hv[key] = sqlZero
-		extend(hv, { bastarih: 'fis.tarih', basseri: 'fis.seri', basno: hv => hv.fisno, dvkod: 'kas.dvtipi' })
+		extend(hv, {
+			kasakod: hv => hv.refkod,
+			bastarih: 'fis.tarih', basseri: 'fis.seri',
+			basno: hv => hv.fisno, dvkod: 'kas.dvtipi'
+		})
 	}
 	uygunluk2UnionBilgiListeDuzenleDevam(e) {
 		super.uygunluk2UnionBilgiListeDuzenleDevam(e);
@@ -199,7 +203,8 @@ class KasaHareketci extends Hareketci {
 			}).hvDuzenleIslemi(({ hv }) => {
 				extend(hv, {
 					kasakod: 'har.refkasakod', ba: `'A'`, kayittipi: `'KKART'`, oncelik: '80',
-					refkod: 'har.poskosulkod', refadi: 'pkos.aciklama', islemadi: `'Kredi Kart Ödeme'`, detaciklama: 'har.aciklama'
+					refkod: 'har.poskosulkod', refadi: 'pkos.aciklama',
+					islemadi: `'Kredi Kart Ödeme'`, detaciklama: 'har.aciklama'
 				})
 			})]
 		});
@@ -216,15 +221,19 @@ class KasaHareketci extends Hareketci {
 					// .degerAta('A', 'fis.almsat')
 			}).hvDuzenleIslemi(({ hv }) => {
 				extend(hv, {
-					kasakod: 'tsek.kasakod', kayittipi: `'PIFA'`, plasiyerkod: 'fis.plasiyerkod', plasiyeradi: 'pls.birunvan',
-					takipno: 'fis.orttakipno', althesapkod: 'fis.cariitn', oncelik: `(case when fis.almsat = 'T' then 20 else 55 end)`, 
+					kasakod: 'tsek.kasakod', kayittipi: `'PIFA'`,
+					plasiyerkod: 'fis.plasiyerkod', plasiyeradi: 'pls.birunvan',
+					takipno: 'fis.orttakipno', althesapkod: 'fis.cariitn',
+					oncelik: `(case when fis.almsat = 'T' then 20 else 55 end)`, 
 					ba: `(case when har.btersmi = 0 then dbo.ticaricarba(fis.almsat, fis.iade) else dbo.tersba(dbo.ticaricarba(fis.almsat, fis.iade)) end)`,
 					islemadi: `(case when fis.piftipi = 'P' then
 									(case fis.ayrimtipi when 'PR' then 'Mağaza Satış' when 'GP' then 'Gider Pusula'
 										else dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Perakende Alım', 'Perakende Satış')) end)
 										else dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Alım Ödeme', 'Satış Tahsilat')) end)`,
-					refkod: `(case when fis.must = '' then fis.yerkod else fis.must end)`, refadi: `(case when fis.must = '' then yer.aciklama else car.birunvan end)`,
-					dvkur: `(case when har.karsidvvar = '' then fis.dvkur else har.karsidvkur end)`, dvbedel: `(case when har.karsidvvar = '' then har.dvbedel else har.karsidvbedel end)`,
+					refkod: `(case when fis.must = '' then fis.yerkod else fis.must end)`,
+					refadi: `(case when fis.must = '' then yer.aciklama else car.birunvan end)`,
+					dvkur: `(case when har.karsidvvar = '' then fis.dvkur else har.karsidvkur end)`,
+					dvbedel: `(case when har.karsidvvar = '' then har.dvbedel else har.karsidvbedel end)`,
 					bedel: 'har.bedel', detaciklama: 'yer.aciklama'
 				})
 			})
