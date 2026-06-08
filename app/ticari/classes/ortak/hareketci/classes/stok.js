@@ -739,12 +739,12 @@ class StokHareketci extends Hareketci {
 	}
 	static maliTablo_secimlerSentDuzenle({ detSecimler: sec, sent, sent: { from, where: wh }, hv, mstClause }) {
 		super.maliTablo_secimlerSentDuzenle(...arguments)
-		sent.stok2GrupBagla().hizmetGrup2AnaGrupBagla().stok2IstGrupBagla()
+		sent.stok2GrupBagla().stokGrup2AnaGrupBagla().stok2IstGrupBagla()
 		if (mstClause) {
 			wh.basiSonu(sec.mstKod, mstClause).ozellik(sec.mstAdi, 'stk.aciklama')
 			wh.basiSonu(sec.grupKod, 'stk.grupkod').ozellik(sec.grupAdi, 'grp.aciklama')
 			wh.basiSonu(sec.anaGrupKod, 'grp.anagrupkod').ozellik(sec.anaGrupAdi, 'agrp.aciklama')
-			wh.basiSonu(sec.istGrupKod, 'stk.histgrupkod').ozellik(sec.istGrupAdi, 'higrp.aciklama')
+			wh.basiSonu(sec.istGrupKod, 'stk.sistgrupkod').ozellik(sec.istGrupAdi, 'sigrp.aciklama')
 		}
 	}
 }

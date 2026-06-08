@@ -78,23 +78,16 @@ class MQEkNotlar extends MQSayacliOrtak {
 		
 	}
 	static standartGorunumListesiDuzenle(e) { super.standartGorunumListesiDuzenle(e); let {liste} = e, _liste = e.liste = liste.filter(colDef => !colDef?.startsWith('url')) }
-	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); let {liste} = e, alias = e.alias ?? this.tableAlias, {urlCount} = this;
+	static orjBaslikListesiDuzenle({ liste, alias = this.tableAlias }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		let { urlCount } = this
+		let mini = isMiniDevice()
 		liste.push(...[
-			new GridKolon({ belirtec: 'kayittarih', text: 'Tarih', genislikCh: 10 }).tipDate(),
-			new GridKolon({ belirtec: 'kayitzaman', text: 'Saat', genislikCh: 8 }).tipTime_noSecs(),
+			new GridKolon({ belirtec: 'kayittarih', text: 'Tarih', genislikCh: 7 }).tipDate(),
+			new GridKolon({ belirtec: 'kayitzaman', text: 'Saat', genislikCh: 7 }).tipTime_noSecs(),
 			new GridKolon({ belirtec: 'tipText', text: 'Tip', genislikCh: 8, sql: HatTezgah.getClause(`${alias}.tip`) }),
-			new GridKolon({ belirtec: 'hatkod', text: 'Hat', genislikCh: 8 }),
-			new GridKolon({ belirtec: 'hatadi', text: 'Hat Adı', genislikCh: 15, sql: 'hat.aciklama' }),
-			new GridKolon({ belirtec: 'tezgahkod', text: 'Tezgah', genislikCh: 16 }),
-			new GridKolon({ belirtec: 'tezgahadi', text: 'Tezgah Adı', genislikCh: 30, sql: 'tez.aciklama' }),
-			new GridKolon({ belirtec: 'perkod', text: 'Personel', genislikCh: 16 }),
-			new GridKolon({ belirtec: 'perisim', text: 'Personel İsim', genislikCh: 30, sql: 'per.aciklama' }),
-			new GridKolon({ belirtec: 'grupkod', text: 'Grup', genislikCh: 16 }),
-			new GridKolon({ belirtec: 'anagrupkod', text: 'Ana Grup', genislikCh: 8, sql: 'grp.anagrupkod' }),
-		]);
-		for (let i = 1; i <= urlCount; i++) {
-			liste.push(new GridKolon({ belirtec: `url${i}`, text: `Dokuman URL ${i}` })) }
+			new GridKolon({ belirtec: 'notlar', text: 'Ek Notlar', genislikCh: mini ? 30 : 60 })
+		])
 		for (let i = 1; i <= urlCount; i++) {
 			liste.push(new GridKolon({
 				filterable: false, sortable: false, groupable: false,
@@ -113,11 +106,30 @@ class MQEkNotlar extends MQSayacliOrtak {
 				}
 			}).noSql())
 		}
-		liste.push(
-			new GridKolon({ belirtec: 'notlar', text: 'Ek Notlar', genislikCh: 80 }),
-			new GridKolon({ belirtec: 'grupadi', text: 'Grup Adı', genislikCh: 40, sql: 'grp.aciklama' }),
-			new GridKolon({ belirtec: 'anagrupadi', text: 'Ana Grup Adı', genislikCh: 40, sql: 'agrp.aciklama' })
-		)
+		liste.push(...[
+			...this.getKAKolonlar(
+				new GridKolon({ belirtec: 'hatkod', text: 'Hat', genislikCh: 8 }),
+				new GridKolon({ belirtec: 'hatadi', text: 'Hat Adı', genislikCh: 15, sql: 'hat.aciklama' })
+			),
+			...this.getKAKolonlar(
+				new GridKolon({ belirtec: 'tezgahkod', text: 'Tezgah', genislikCh: 10 }),
+				new GridKolon({ belirtec: 'tezgahadi', text: 'Tezgah Adı', genislikCh: 30, sql: 'tez.aciklama' })
+			),
+			...this.getKAKolonlar(
+				new GridKolon({ belirtec: 'perkod', text: 'Personel', genislikCh: 16 }),
+				new GridKolon({ belirtec: 'perisim', text: 'Personel İsim', genislikCh: 30, sql: 'per.aciklama' })
+			),
+			...this.getKAKolonlar(
+				new GridKolon({ belirtec: 'grupkod', text: 'Grup', genislikCh: 10 }),
+				new GridKolon({ belirtec: 'grupadi', text: 'Grup Adı', genislikCh: 20, sql: 'grp.aciklama' }),
+			),
+			...this.getKAKolonlar(
+				new GridKolon({ belirtec: 'anagrupkod', text: 'Ana Grup', genislikCh: 8, sql: 'grp.anagrupkod' }),
+				new GridKolon({ belirtec: 'anagrupadi', text: 'Ana Grup Adı', genislikCh: 13, sql: 'agrp.aciklama' })
+			)
+		])
+		for (let i = 1; i <= urlCount; i++) {
+			liste.push(new GridKolon({ belirtec: `url${i}`, text: `Dokuman URL ${i}` })) }
 	}
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); let alias = e.alias ?? this.tableAlias, {stm, sent} = e, {orderBy} = stm, {sahalar} = sent;
@@ -126,6 +138,46 @@ class MQEkNotlar extends MQSayacliOrtak {
 		sent.fromIliski('personel per', `${alias}.perkod = per.kod`);
 		sahalar.add(`${alias}.tip`); for (let i = 1; i <= this.urlCount; i++) { sahalar.add(`${alias}.url${i}`) };
 		orderBy.add(`${alias}.kayittarih DESC`, `${alias}.kayitzaman DESC`)
+	}
+	async kaydetSonrasiIslemler(e = {}) {
+		super.kaydetSonrasiIslemler(e)
+		let { islem = 'yeni' } = e
+		if (!config.service && (islem == 'yeni' || islem == 'kopya')) {
+			try {
+				let { hatKod, tezgahKod, perKod, notlar } = this
+				if (notlar)
+					notlar = $(notlar)?.[0]?.innerText || notlar
+				
+				let mustKod = app._mustKod || await app.wsGetMustKod()
+				let topic = [mustKod, 'mes']
+				let title = '⌛ Sky MES | Yeni Not oluşturuldu'
+				let message = [
+					'**Yeni Not oluşturuldu**',
+					( hatKod    ? `- Hat      : **${await MQHat.getGloKod2Adi(hatKod) || hatKod}**` : null ),
+					( tezgahKod ? `- Tezgah   : **${await MQTezgah.getGloKod2Adi(tezgahKod) || tezgahKod}**` : null ),
+					( perKod    ? `- Personel : **${await MQPersonel.getGloKod2Adi(perKod) || perKod}**` : null ),
+					'',
+					notlar,
+					'',
+					'_',
+				].filter(_ => _ != null).join('\n')
+				ntfy({
+					topic, title, message,
+					tags: [
+						'⌛', 'mes', 'yeni-not-kayit',
+						...[hatKod, tezgahKod, perKod].filter(Boolean)
+					],
+					actions: [
+						{
+							action: 'view',
+							label: 'MES Portalını Aç',
+							url: location.href.replace('&service', '')
+						}
+					]
+				})
+			}
+			catch (ex) { cerr(ex) }
+		}
 	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); let {rootBuilder: rfb, kaForm, tanimFormBuilder: tanimForm} = e;

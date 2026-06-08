@@ -271,12 +271,12 @@ class DMQRapor extends DMQSayacliKA {
 		let {rapor} = args, raporKod = this.getRaporKod(rapor)
 		if (raporKod)
 			wh.degerAta(raporKod, `${aliasVeNokta}raportip`)
-		if (!(noUserCheck || isAdmin) && encUser) {
+		/*if (!(noUserCheck || isAdmin) && encUser) {    // İPTAL edildi - tüm kullanıcılar gelsin
 			wh.add(new MQOrClause([
 				`${aliasVeNokta}xuserkod = ''`,
 				{ degerAta: encUser, saha: `${aliasVeNokta}xuserkod` }]
 			))
-		}
+		}*/
 		sahalar.add(`${aliasVeNokta}raportip`, `${aliasVeNokta}xuserkod`)
 	}
 	static yeniInstOlustur(e) {

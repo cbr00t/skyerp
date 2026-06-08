@@ -92,6 +92,7 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 		let { fbd_grid } = e
 		fbd_grid.readOnly()
 	}
+
 	async yukle() {
 		let { table } = this
 		;{
@@ -137,7 +138,11 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 	}
 	async kaydetOncesiIslemler({ trnId }) {
 		await super.kaydetOncesiIslemler(...arguments)
-		let { detaylar } = this
+		let { aciklama, detaylar } = this
+		if (!aciklama)
+			throw `<b class=firebrick>Rapor Adı</b> belirtilmelidir`
+		if (empty(detaylar))
+			throw `Detay girişi yapılmalıdır`
 		;detaylar.forEach((d, i) =>
 			d.seq ||= i)
 		/*let { table, detaylar } = this
@@ -979,6 +984,7 @@ class SBTabloDetay extends MQDetay {
 		return inst
 	}
 }
+
 class SBTabloGridci extends GridKontrolcu {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	gridArgsDuzenle({ args }) {

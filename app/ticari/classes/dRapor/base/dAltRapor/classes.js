@@ -1,5 +1,6 @@
 class DAltRapor_PanelRec extends CObject {
-	static { window[this.name] = this; this._key2Class[this.name] = this } get panelRecmi() { return true }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	get panelRecmi() { return true }
 	constructor(e) {
 		e ??= {}; super(e)
 		extend(this, { ...e })
@@ -8,7 +9,8 @@ class DAltRapor_PanelRec extends CObject {
 	formulEval(e) { }
 }
 class DAltRapor_PanelRec_Donemsel extends DAltRapor_PanelRec {
-	static { window[this.name] = this; this._key2Class[this.name] = this } get donemRecmi() { return true }
+	static { window[this.name] = this; this._key2Class[this.name] = this } 
+get donemRecmi() { return true }
 	get yatay2Detay() {
 		let { _yatay2Detay: result } = this
 		if (result === undefined) {

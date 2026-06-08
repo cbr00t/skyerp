@@ -13,4 +13,3 @@
 <!--<script src="<?=$_partRoot?>/sonStok.js?<?=$appVersion?>"></script>-->
 <script src="<?=$_partRoot?>/oper.js?<?=$appVersion?>"></script> <script src="<?=$_partRoot?>/muhasebe.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/pratikSatis.js?<?=$appVersion?>"></script>
-muhasebe.js

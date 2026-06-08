@@ -112,7 +112,7 @@ class Secimler extends CIO {
 					if (k == 'b') {
 						k = 'birKismimi'
 						try { sec[k] = v }
-						catch (ex) { sec[k] = !v }
+						catch (ex) { sec.hepsimi = !v }
 						continue
 					}
 					

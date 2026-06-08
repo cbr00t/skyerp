@@ -100,8 +100,10 @@ class MQSayacli extends MQCogul {
 		return sayac
 	}
 	kopyaIcinDuzenle(e) {
-		super.kopyaIcinDuzenle(e);
-		let {sayacSaha} = this.class; if (sayacSaha) { this.sayac = null }
+		super.kopyaIcinDuzenle(e)
+		let { sayacSaha } = this.class
+		if (sayacSaha)
+			this.sayac = null
 	}
 	static logRecDonusturucuDuzenle({ result }) {
 		super.logRecDonusturucuDuzenle(...arguments);

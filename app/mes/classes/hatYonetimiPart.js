@@ -270,29 +270,72 @@ class HatYonetimiPart extends Part {
 					let btnTumEkNotlar = islemTuslari?.find('button#tumEkNotlar')
 					if (btnTumEkNotlar?.length)
 						btnTumEkNotlar.removeClass('yeni-not')
-					let maxId = 0
-					for (let {kaysayac: sayac} of recs)
-						maxId = Math.max(maxId, sayac)
+					
+					let maxId = max(...recs.map(r => r.kaysayac))
 					if (!maxId)
 						return
-					let {localData} = app.params, ekNotLastReadId = asInteger(localData.get('ekNotLastReadId'))
+
+					let app_ekNotLastReadId = asInteger(app._ekNotLastReadId)
+					let { localData } = app.params
+					let ekNotLastReadId = Number(localData.get('ekNotLastReadId'))
 					if (!btnTumEkNotlar?.length)
 						return
+					
 					if (ekNotLastReadId && maxId && ekNotLastReadId > maxId) {
 						ekNotLastReadId = maxId
 						localData.set('ekNotLastReadId', ekNotLastReadId)
 						localData.kaydetDefer()
 					}
+					
 					if (ekNotLastReadId >= maxId) {
-						ekNotLastReadId = maxId
+						ekNotLastReadId = app._ekNotLastReadId = maxId
 						return
 					}
+
+					app._ekNotLastReadId = maxId
+					
+					let { service } = config
 					btnTumEkNotlar.addClass('yeni-not')
-					if (appActivatedFlag)
-						notify('Yeni Not var', 'SkyMES', undefined, 15_000)
-					else {
-						try { new Notification('Sky MES', { body: 'Yeni Not var' }) }
-						catch (ex) { cerr(ex) }
+
+					if (app_ekNotLastReadId < maxId) {
+						if (appActivatedFlag)
+							notify('Yeni Not var', 'SkyMES', undefined, 15_000)
+						
+						setTimeout(async () => {
+							let title = 'Sky MES'
+							let message = '🔔 Yeni Notlar var'
+
+							if (!service) {
+								try {
+									if (!appActivatedFlag) {
+										try { new Notification(title, { body: message }) }
+										catch (ex) { cerr(ex) }
+									}
+								}
+								catch (ex) { cerr(ex) }
+		
+								try { new Audio(`${config.getWSUrlBase()}/mes/ses03.mp3`).play() }
+								catch (ex) { cerr(ex) }
+							}
+							else {
+								try {
+									let mustKod = app._mustKod || await app.wsGetMustKod()
+									let topic = [mustKod, 'mes']
+									ntfy({
+										topic, title, message,
+										tags: ['🔔', 'mes', 'yeni-not'],
+										actions: [
+											{
+												action: 'view',
+												label: 'MES Portalını Aç',
+												url: location.href.replace('&service', '')
+											}
+										]
+									})
+								}
+								catch (ex) { cerr(ex) }
+							}
+						})
 					}
 				})
 			}, 500)

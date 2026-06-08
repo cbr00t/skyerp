@@ -601,9 +601,22 @@ class MQDetayliGUID extends MQDetayliMaster {
 	}
 	yazSonrasi_sayacGeriYukle(e) { }
 	kopyaIcinDuzenle(e) {
-		super.kopyaIcinDuzenle(e); let {detaylar} = this;
-		this.id = null; for (let det of detaylar) {
-			det.okunanHarSayac = null }
+		super.kopyaIcinDuzenle(e)
+		let { detaylar } = this
+		;['id', 'sayac'].forEach(k => {
+			if (this[k])
+				this[k] = null
+		})
+		;['aciklama'].forEach(k => {
+			if (this[k])
+				this[k] = ''
+		}) 
+		detaylar.forEach(d => {
+			;['okunanHarSayac', 'sayac'].forEach(k => {
+				if (d[k])
+					d[k] = null
+			})
+		})
 	}
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments);

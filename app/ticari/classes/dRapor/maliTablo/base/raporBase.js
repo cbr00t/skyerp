@@ -211,8 +211,6 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		let {raporTanim: { yatayAnalizVarmi, yatayAnaliz } = {}} = this
 		detaylar ??= _det ? [_det] : raporTanim.detaylar
 		
-		let yatayDBmi = yatayAnalizVarmi && yatayAnaliz.dbmi
-		let yatayDegerSet = e.yatayDegerSet = {}
 		let id2Promise = {}
 		let id2Detay = e.id2Detay = {}
 		let formulYapilari = e.formulYapilari = {}
@@ -258,7 +256,8 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			}
 			
 			if (konsolideCikti) {
-				let orjUni = sonucUni, yatayAlias = yatayDBmi ? 'yatay' : null
+				let orjUni = sonucUni
+				let yatayAlias = null    // yatayDBmi ? 'yatay' : null
 				sonucUni = _e.uni = stm.sent = new MQUnionAll()
 				if (!filtreDBSet || filtreDBSet[aktifDB]) {
 					let uni = orjUni.deepCopy()
@@ -301,9 +300,6 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			if (promise_recs != null)
 				id2Promise[id] = promise_recs
 		}
-		let yatayDegerler     /* ekDBListe içinden (aktifDB) değeri ayıklanmış olarak gelir */
-		if (yatayDBmi)
-			yatayDegerler = [aktifDB, ...(ekDBListe ?? [])]
 		
 		let recs, seq = 0
 		for (let [id, det] of entries(id2Detay)) {
@@ -323,17 +319,6 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			if (!(satirlarToplamimi || altSeviyeToplamimi || formulmu))    // recsDuzenle  olabilen normal satır
 				_recs = args.buRecs = await det.eval(args) ?? _recs
 			
-			let yatay2Bedel = {}
-			if (yatayAnalizVarmi) {
-				for (let rec of _recs) {
-					let { yatay, bedel } = rec
-					if (!yatayDBmi)
-						yatayDegerSet[yatay] = true
-					if (!detayli)
-						yatay2Bedel[yatay] = roundToBedelFra( (yatay2Bedel[yatay] || 0) + bedel )
-				}
-			}
-			
 			if (detayli) {
 				if (recs)
 					recs.push(..._recs)
@@ -345,18 +330,13 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			let { aciklama } = det
 			let topBedel = topla(r => r[bedelAlias] || 0, ..._recs)
 			let rec = { id, aciklama, bedel: topBedel }
-			if (yatayAnalizVarmi) {
+			/*if (yatayAnalizVarmi) {
 				for (let [yatay, bedel] of entries(yatay2Bedel))
 					rec[`${bedelAlias}_${yatay}`] = bedel
-			}
+			}*/
 			;( recs ??= [] )
 				.push(rec)
 		}
-		if (yatayAnalizVarmi && !yatayDBmi && !empty(yatayDegerSet))
-			yatayDegerler = keys(yatayDegerSet).sort()
-		yatayDegerSet = yatayDegerler ? asSet(yatayDegerler) : {}
-		extend(e, { yatayDegerler, yatayDegerSet })
-		extend(this, { yatayDegerler, yatayDegerSet })
 		
 		return recs
 		/* return [ { aciklama: 'SONUÇ', detaylar: recs } ] */
@@ -370,20 +350,10 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 		
 		await super.loadServerData_recsDuzenle_seviyelendir(...arguments)
 		let { tabloYapi, raporTanim = {} } = this
-		let { yatayAnalizVarmi, yatayAnaliz } = raporTanim
 		let attrListe = values(tabloYapi.toplam)
 			.map(_ => _.colDefs.map(_ => _.belirtec))
 			.flat()
-		if (yatayAnalizVarmi && !empty(yatayDegerSet)) {
-			let topBelirtecListe = attrListe
-			attrListe = []
-			for (let belirtec of topBelirtecListe) {
-				attrListe.push(
-					belirtec,
-					...keys(yatayDegerSet).map(yatay => `${belirtec}_${yatay}`)
-				)
-			}
-		}
+		
 		let id2GridRec = {}
 		for (let [id, det] of entries(id2Detay)) {
 			let gridRec = id2GridRec[id] = {
@@ -531,6 +501,50 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 				//	v = -v
 				r[bedelAlias] = v
 			}
+		}
+
+		// TODO: Yatay analiz ??
+		;{
+			let { yatayAnalizVarmi, yatayAnaliz } = raporTanim
+			let yatayDBmi = yatayAnalizVarmi && yatayAnaliz.dbmi
+			let yatayDegerSet = e.yatayDegerSet = {}
+			let yatayDegerler     /* ekDBListe içinden (aktifDB) değeri ayıklanmış olarak gelir */
+			if (yatayDBmi)
+				yatayDegerler = [aktifDB, ...(ekDBListe ?? [])]
+			
+			if (yatayAnalizVarmi && !empty(yatayDegerSet)) {
+				let topBelirtecListe = attrListe
+				attrListe = []
+				for (let belirtec of topBelirtecListe) {
+					attrListe.push(
+						belirtec,
+						...keys(yatayDegerSet).map(yatay => `${belirtec}_${yatay}`)
+					)
+				}
+			}
+			
+			/*
+			let yatay2Bedel = e.yatay2Bedel ??= {}
+			if (yatayAnalizVarmi) {
+				for (let sev of sevRecs) {    ??
+					let { detaylar } = sev
+					let { yatay, bedel } = sev
+					if (yatay == null)
+						continue
+					
+					if (!yatayDBmi)
+						yatayDegerSet[yatay] = true
+					if (!detayli)
+						yatay2Bedel[yatay] = roundToBedelFra( (yatay2Bedel[yatay] || 0) + bedel )
+				}
+			}
+			*/
+			
+			if (yatayAnalizVarmi && !yatayDBmi && !empty(yatayDegerSet))
+				yatayDegerler = keys(yatayDegerSet).sort()
+			yatayDegerSet = yatayDegerler ? asSet(yatayDegerler) : {}
+			extend(e, { yatayDegerler, yatayDegerSet })
+			extend(this, { yatayDegerler, yatayDegerSet })
 		}
 		
 		return sevRecs

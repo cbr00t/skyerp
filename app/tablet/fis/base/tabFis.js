@@ -40,6 +40,8 @@ class TabFis extends MQDetayliGUIDOrtak {
 	static get dokumFormTip_eIslem() { return this.dokumFormTip_normal }
 	get dokumFormTip_normal() { return this.class.dokumFormTip_normal }
 	get dokumFormTip_eIslem() { return this.class.dokumFormTip_eIslem }
+	static get bakiyeKontrolEdilir() { return true }
+	static get sonStokKontrolEdilir() { return true }
 	static get bedelKullanilirmi() {
 		let {_bedelKullanilirmi: result} = this
 		if (result) {
@@ -474,11 +476,16 @@ class TabFis extends MQDetayliGUIDOrtak {
 		let { islem, eskiInst = e.eskiFis ?? e.eskiObj ?? {} } = e
 		let yeniVeyaKopyami = islem == 'yeni' || islem == 'kopya'
 		let { eIslemmi, fisNo, numarator: num, fisTopNet } = this
+		let { bakiyeKontrolEdilir, sonStokKontrolEdilir } = this.class
 		if (eIslemmi)
 			this.uuid ||= newGUID()
 
 		this.fisSonuc = fisTopNet
-		for (let cls of [MQTabMusDurum, MQTabSonStok])
+		let classes = [
+			( bakiyeKontrolEdilir ? MQTabMusDurum : null ),
+			( sonStokKontrolEdilir ? MQTabSonStok : null )
+		].filter(Boolean)
+		for (let cls of classes)
 			await cls.check({ inst, eskiInst })
 
 		if (yeniVeyaKopyami) {

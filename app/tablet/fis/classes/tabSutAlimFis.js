@@ -6,6 +6,8 @@ class TabSutAlimFis extends TabFis {
 	static get detaySinif() { return TabSutAlimDetay }
 	// static get onlineFisSinif() { return SutAlimOnlineFis }
 	static get cariSinif() { return MQTabMustahsil }
+	static get bakiyeKontrolEdilir() { return false }
+	static get sonStokKontrolEdilir() { return false }
 	// get sonucBedel() { return this.topMiktar }
 	get topMiktar() { return topla(_ => _.miktar || 0, ...this.detaylar) }
 

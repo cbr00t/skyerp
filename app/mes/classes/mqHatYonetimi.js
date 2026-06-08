@@ -270,19 +270,31 @@ class MQHatYonetimi extends MQMasterOrtak {
 		}
 		e.recs = gridPart._lastRecs = recs;
 		MQEkNotlar.loadServerData().then(recs => {
-			let gridPart = e.gridPart ?? e.sender, btnTumEkNotlar = gridPart.islemTuslari.find('button#tumEkNotlar'); if (btnTumEkNotlar?.length) { btnTumEkNotlar.removeClass('yeni-not') }
-			let maxId = 0; for (let {kaysayac: sayac} of recs) { maxId = Math.max(maxId, sayac) } if (!maxId) { return }
-			let {localData} = app.params; let ekNotLastReadId = asInteger(localData.getData('ekNotLastReadId'));
-			if (ekNotLastReadId < maxId && btnTumEkNotlar?.length) { btnTumEkNotlar.addClass('yeni-not') }
+			let gridPart = e.gridPart ?? e.sender
+			let btnTumEkNotlar = gridPart.islemTuslari.find('button#tumEkNotlar')
+			if (btnTumEkNotlar?.length)
+				btnTumEkNotlar.removeClass('yeni-not')
+			let maxId = max(...recs.map(r => r.kaysayac))
+			if (!maxId)
+				return
+			let { localData } = app.params
+			let ekNotLastReadId = Number(localData.getData('ekNotLastReadId'))
+			if (ekNotLastReadId < maxId && btnTumEkNotlar?.length) {
+				btnTumEkNotlar.addClass('yeni-not')
+			}
 		});
 		/*let {_lastRecs} = gridPart;
 		if (_lastRecs && recs && _lastRecs?.length == recs?.length) { for (let i = 0; i < recs.length; i++) { let rec = _lastRecs[i], _rec = recs[i]; $.extend(rec, _rec) } } else { _lastRecs = gridPart._lastRecs = recs }
 		return _lastRecs */
 		return recs
 	}
-	static orjBaslikListesi_recsDuzenle(e) { super.orjBaslikListesi_recsDuzenle(e) }
+	static orjBaslikListesi_recsDuzenle(e) {
+		super.orjBaslikListesi_recsDuzenle(e)
+	}
 	static gridVeriYuklendi(e) {
-		super.gridVeriYuklendi(e); let gridPart = e.gridPart ?? e.sender; app.sonSyncTS = now(); this.updateOzetBilgi(e)
+		super.gridVeriYuklendi(e)
+		let gridPart = e.gridPart ?? e.sender; app.sonSyncTS = now()
+		this.updateOzetBilgi(e)
 		/*if (fbd_ozetBilgi) { let html = this.ozetBilgi_getLayout(e); fbd_ozetBilgi.layout.html(html) }*/
 	}
 	static orjBaslikListesi_gridRendered(e) {
