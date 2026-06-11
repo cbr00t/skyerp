@@ -823,15 +823,20 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			item
 				.setOrderBy('ozelisaret').ozelWhereClause()
 				.setSecimlerDuzenleyici(({ secimler, kod, item }) => {
-					let {grupListe, liste} = secimler
-					let grupKod = kod; grupListe[grupKod].kapalimi = false
+					let { grupListe, liste } = secimler
+					let grupKod = kod
+					grupListe[grupKod].kapalimi = false
 					let sec = liste[kod] = new SecimTekSecim({ etiket: 'İşaret', tekSecimSinif, grupKod }).autoBind()
 				}).setTBWhereClauseDuzenleyici(({ kod, secimler, where: wh, kodClause }) => {
-					let {tekSecim: tSec} = secimler.liste[kod]
+					let { tekSecim: tSec } = secimler.liste[kod]
 					if (!tSec)
 						return
+					
 					if (!kodClause)
 						kodClause = item.colDefs[0].belirtec
+					if (!kodClause.sqlDoluDegermi)
+						return
+					
 					let notValue = tSec.normalmi ? '*' : 'X'    // seçilmemiş olabilir ama iki seçenek var
 					if (notValue)
 						wh.notDegerAta(notValue, kodClause)

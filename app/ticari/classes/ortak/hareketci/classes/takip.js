@@ -320,9 +320,10 @@ class TakipHareketci extends Hareketci {
                 }).hvDuzenleIslemi(({ hv, sqlEmpty }) => {
                     extend(hv, {
 						kayittipi: `'GON'`, anaislemadi: `'GO Maliyet'`, islemadi: `'GO-Gider: Firma Maliyet'`,
-						takipno: 'ghak.takipno', refkod: 'fhdon.hizmetkod', refadi: 'hiz.aciklama', refgruptip: `'H'`, refgrupkod: 'hiz.grupkod',
+						takipno: 'ghak.takipno', refkod: 'fhdon.hizmetkod', refadi: 'hiz.aciklama',
+						refgruptip: `'H'`, refgrupkod: 'hiz.grupkod',
 						ba: `'B'`, bedel: 'ekhiz.ekhizmetbedeli', tarih: 'ghak.tarih', belgenox: 'ghak.fisnox',
-						takipno: sqlEmpty
+						takipno: sqlEmpty, ozelisaret: sqlEmpty
                     })
                 }),
 				 /* tahakkuk tipindekiler icin ters islem */
