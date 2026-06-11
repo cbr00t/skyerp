@@ -482,17 +482,14 @@ class TabloYapiItem extends CObject {
 		let hvDegeri = e.hvDegeri ?? (hv || defHV ? (key => hv?.[key] ?? defHV?.[key]) : null)
 		if (hvDegeri) {
 			let _kodClause = hvDegeri(belirtec) ?? kodClause
-			if (_kodClause?.sqlDoluDegermi())
-				kodClause = _kodClause
-			else if (belirtec.endsWith('kod')) {
+			if (!_kodClause?.sqlDoluDegermi() && belirtec.endsWith('kod'))
 				_kodClause = hvDegeri(belirtec.slice(0, -3)) ?? kodClause
-				if (_kodClause?.sqlDoluDegermi())
-					kodClause = _kodClause
-			}
+			kodClause = _kodClause?.sqlDoluDegermi() ? _kodClause : null
 		}
-		if (sql && (kodClause == belirtec || !kodClause?.sqlDoluDegermi()) && !isFunction(sql)) {
+
+		if (sql && (kodClause == belirtec || !kodClause && !isFunction(sql))) {
 			// let kami = kaPrefixes?.[aliases[0]]
-			let {kaYapimi: kami, colDefs, mfSinif} = this
+			let { kaYapimi: kami, colDefs, mfSinif } = this
 			let aliases = colDefs.map(_ => _.belirtec)
 			if (kami && aliases.length == 1) {
 				let alias1 = aliases[0]
@@ -504,6 +501,8 @@ class TabloYapiItem extends CObject {
 			sql = makeArray(sql)
 			let clause = sql[0]
 			kodClause = clause ? clause.call?.(this, e) ?? clause : null
+			if (!kodClause?.sqlDoluDegermi())
+				kodClause = null
 			/*if (!empty(sql)) {
 				;sql.forEach((clause, i) => {
 					if (!clause)
@@ -513,6 +512,9 @@ class TabloYapiItem extends CObject {
 				})
 			}*/
 		}
+		if (!kodClause)
+			return
+		
 		let _e = { ...e, hv, kodClause, hv, defHV, hvDegeri }
 		if (secimKullanilirFlag && !ozelWhereClauseFlag) {
 			if (kodClause && kod != null && secimSinif) {

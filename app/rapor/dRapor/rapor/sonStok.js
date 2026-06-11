@@ -50,11 +50,11 @@ class DRapor_SonStok_Main extends DRapor_AraSeviye_Main {
 				.addToplamBasit('STK_RAYICALIM', 'Rayiç Alım', 'stk_rayicalim', null, null, ({ colDef }) => colDef.tipDecimal(2))
 		}
 		this.tabloYapiDuzenle_yer(e)
-		result.addToplamBasit('MIKTAR', 'Miktar', 'miktar', null, 160, null)
-		result.addToplamBasit('MIKTAR2', '2. Miktar', 'miktar2', null, 160, null)
+		result.addToplamBasit('MIKTAR', 'Miktar', 'miktar', null, 10, null)
+		result.addToplamBasit('MIKTAR2', '2. Miktar', 'miktar2', null, 8, null)
 		for (let tip of brmListe) {
 			let fra = brmDict[tip]
-			result.addToplamBasit(`MIKTAR${tip}`, `Miktar (${tip})`, `miktar${tip}`, null, 160, ({ colDef }) => colDef.tipDecimal(fra))
+			result.addToplamBasit(`MIKTAR${tip}`, `Miktar (${tip})`, `miktar${tip}`, null, 10, ({ colDef }) => colDef.tipDecimal(fra))
 		}
 		if (isAdmin || !rol?.ozelRolVarmi('XMALYT')) {
 			result
