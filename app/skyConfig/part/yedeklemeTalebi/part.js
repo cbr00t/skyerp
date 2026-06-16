@@ -1,44 +1,50 @@
 class YedeklemeTalebiPart extends Part {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get partName() { return 'yedeklemeTalebi' } static get isWindowPart() { return true } static get recClass() { return YedeklemeTalebiRec }
+	static get partName() { return 'yedeklemeTalebi' }
+	static get isWindowPart() { return true } static get recClass() { return YedeklemeTalebiRec }
 
 	constructor(e = {}) {
 		super(e)
-		$.extend(this, { islem: e.islem, tanitim: e.tanitim, tamamIslemi: e.tamamIslemi, title: e.title == null ? 'Yedekleme Talebi' : e.title || '' });
-		this.orjTanitim = this.tanitim;
-		let {islem} = this; if (islem) { let islemText = islem[0].toUpperCase() + islem.slice(1); this.title += ` &nbsp;[<span class="window-title-ek">${islemText}</span>]` }
+		extend(this, {
+			islem: e.islem, mustKod: e.mustKod,
+			tamamIslemi: e.tamamIslemi,
+			title: e.title ?? 'Yedekleme Talebi' ?? ''
+		})
+		this.orjMustKod = this.mustKod
+		let {islem} = this
+		if (islem) {
+			let islemText = islem[0].toUpperCase() + islem.slice(1)
+			this.title += ` &nbsp;[<span class="window-title-ek">${islemText}</span>]`
+		}
 	}
 	runDevam(e = {}) {
 		super.runDevam(e)
-		let {layout, islem} = this
+		let { layout, islem } = this
 		let btnTamam = this.btnTamam = layout.children('#tamam')
 		btnTamam.jqxButton({ theme: theme, width: false, height: false })
 		btnTamam.on('click', evt =>
 			this.tamamIstendi({ ...e, event: evt }))
 		let header = this.header = layout.children('#header')
-		let txtTanitim = this.txtTanitim = header.find('.tanitim-parent > #tanitim')
-		txtTanitim.on('focus', evt =>
+		let txtMusteri = this.txtMusteri = header.find('.tanitim-parent > #tanitim')
+		txtMusteri.on('focus', evt =>
 			setTimeout(() => evt.currentTarget.select(), 50))
 		; (async () => {
-			let tanitim = await this.tanitim
-			if (!tanitim) {
-				let result = await app.promise_vioConfig
-				tanitim = result?.tanitim
+			let mustKod = this.mustKod || app.mustKod || (app.mustKod = await app.getMustKod())
+			if (mustKod) {
+				this.orjMustKod = mustKod
+				txtMusteri.val(mustKod)
 			}
-			if (tanitim) {
-				this.orjTanitim = tanitim
-				txtTanitim.val(tanitim)
-			}
-		})();
+		})()
+		
 		this.initGrid(e)
-		let {yetki} = config.session
+		let { yetki } = config.session
 		if (!(islem == 'degistir' || islem == 'sil') && (yetki == 'developer' || yetki == 'admin')) {
-			txtTanitim.removeAttr('readonly disabled');
-			txtTanitim.on('change', ({ currentTarget: target }) => {
+			txtMusteri.removeAttr('readonly disabled');
+			txtMusteri.on('change', ({ currentTarget: target }) => {
 				delete this.recs
-				let tanitim = this.tanitim = target.value?.trim() || this.orjTanitim
-				if (target.value != tanitim)
-					target.value = tanitim
+				let v = this.mustKod = target.value?.trim() || this.orjMustKod
+				if (target.value != v)
+					target.value = v
 				this.gridPart.tazele()
 			})
 		}
@@ -79,14 +85,16 @@ class YedeklemeTalebiPart extends Part {
 	}
 	async tamamIstendi(e = {}) {
 		try {
-			let {boundRecs} = this.gridPart
+			let { boundRecs } = this.gridPart
 			let recs = boundRecs.filter(_ => _.db && _.zaman1?.toString())
 			let _e = { ...e, recs }
-			let args = { tanitim: this.tanitim || '' }, data = { recs: _e.recs.map(rec => rec.asObject(e)) }
-			let {result} = await app.wsYedeklemeTalebiOlustur({ args, data }) ?? {}
+			let args = { mustKod: this.mustKod || '' }
+			let data = { recs: _e.recs.map(rec => rec.asObject(e)) }
+			let { result } = await app.wsCreateRule({ ...args, data }) ?? {}
 			if (!result)
 				return false
-			let {tamamIslemi} = this
+			
+			let { tamamIslemi } = this
 			if (tamamIslemi) {
 				result = await tamamIslemi.call(this, _e)
 				if (result === false)
@@ -162,20 +170,28 @@ class YedeklemeTalebiPart extends Part {
 		return liste
 	}
 	async gridLoadServerData(e) {
-		let {gridPart, recs} = this
+		let { gridPart, recs } = this
 		if (!recs) {
-			let {tanitim, class: { recClass }} = this
-			tanitim ??= ''
+			let { mustKod, class: { recClass } } = this
+			mustKod ??= app.mustKod
 			recs = this.recs = []
 			try {
-				let {promise_vioConfig} = app
+				let { promise_vioConfig } = app
 				if (promise_vioConfig)
 					await promise_vioConfig
-				tanitim ||= this.tanitim = app.tanitim ||= (await app.wsReadVioConfigBasitWithTanitim())?.tanitim
-				let result = await app.wsYedeklemeTalebiListesi({ args: { tanitim } }) || {}
-				let _recs = result.rows ?? result.recs ?? result
-				if (!empty(_recs))
-					recs.push(..._recs.map(rec => new recClass(rec)))
+
+				let groupBy = 'none'
+				let [meta] = await app.wsRules({ mustKod, groupBy }) ?? []
+				if (meta) {
+					let { mustUnvan, recs: _recs } = meta
+					;{
+						let { txtMusteri } = this
+						extend(this, { mustKod, mustUnvan })
+						txtMusteri.val(`${mustKod} | ${mustUnvan}`)
+					}
+					if (!empty(_recs))
+						recs.push(..._recs.map(r => new recClass(r)))
+				}
 			}
 			catch (ex) {
 				if (ex.statusText?.toLowerCase() != 'parsererror') {

@@ -168,43 +168,35 @@ class SkyConfigApp extends SkyApp {
 		}
 	}
 
-	wsYedeklemeTalebiListesi(e) {
-		e = e || {};
-		const {args} = e;
-		const data = e.data || {};
-		delete e.data;
-		const url = this.vioMerkez_getWSUrl({ wsPath: this.wsPath_skyYedekleme, api: 'yedeklemeTalebiListesi', args: args });
-		return ajaxPost({ timeout: 20000, url: url })
-	}
-	wsYedeklemeTalebiOlustur(e) {
-		e = e || {};
-		const {args} = e;
-		const data = e.data || {};
-		delete e.data;
-		const url = this.vioMerkez_getWSUrl({ wsPath: this.wsPath_skyYedekleme, api: 'yedeklemeTalebiOlustur', args: args });
+	wsCreateRule(e) {
+		let { args = e } = e
+		let data = e.data ?? {}
+		delete e.data
+		let url = this.vioMerkez_getWSUrl({
+			wsPath: this.wsPath_skyYedekleme,
+			api: 'createRule', args
+		})
 		return ajaxPost({
 			timeout: 20000, processData: false, ajaxContentType: wsContentType,
-			url: url, data: toJSONStr(data)
+			url, data: toJSONStr(data)
 		})
 	}
-	wsTumYedeklemeTalebiListesi(e) {
-		e = e || {};
-		const data = e.args || {};
-		delete e.args;
-		const url = this.getWSUrl({ wsPath: this.wsPath_skyYedekleme, api: 'tumYedeklemeTalebiListesi', args: e });
+	wsRules(e = {}) {
+		let data = e.args ?? {}
+		delete e.args
+		let url = this.getWSUrl({ wsPath: this.wsPath_skyYedekleme, api: 'rules', args: e })
 		return ajaxPost({
 			timeout: 60000, processData: false, ajaxContentType: wsContentType,
-			url: url, data: toJSONStr(data)
+			url, data: toJSONStr(data)
 		})
 	}
-	wsTumDosyaListesi(e) {
-		e = e || {};
-		const data = e.args || {};
-		delete e.args;
-		const url = this.getWSUrl({ wsPath: this.wsPath_skyYedekleme, api: 'tumDosyaListesi', args: e });
+	wsRulesWithFiles(e = {}) {
+		let data = e.args ?? {}
+		delete e.args
+		let url = this.getWSUrl({ wsPath: this.wsPath_skyYedekleme, api: 'rulesWithFiles', args: e })
 		return ajaxPost({
 			timeout: 60000, processData: false, ajaxContentType: wsContentType,
-			url: url, data: toJSONStr(data)
+			url, data: toJSONStr(data)
 		})
 	}
 }

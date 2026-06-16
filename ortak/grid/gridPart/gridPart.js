@@ -428,9 +428,20 @@ class GridPart extends Part {
 	}
 	defaultLoadServerData(e) { return null }
 	loadServerData_recsDuzenle_ilk(e) {
-		let {filtreTokens} = this; let {recs} = e;
-		if (filtreTokens?.length) { let _recs = this.loadServerData_recsDuzenle_hizliBulIslemi(e); recs = e.recs; if (_recs) { recs = e.recs = _recs } }
-		{ let _recs = this.loadServerData_recsDuzenle_kolonFiltre(e); recs = e.recs; if (_recs) { recs = e.recs = _recs } }
+		let { filtreTokens } = this
+		let { recs } = e
+		if (filtreTokens?.length) {
+			let _recs = this.loadServerData_recsDuzenle_hizliBulIslemi(e)
+			recs = e.recs
+			if (_recs)
+				recs = e.recs = _recs
+		}
+		{
+			let _recs = this.loadServerData_recsDuzenle_kolonFiltre(e)
+			recs = e.recs
+			if (_recs)
+				recs = e.recs = _recs
+		}
 		return recs
 	}
 	loadServerData_recsDuzenle(e) { }
