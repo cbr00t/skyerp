@@ -57,8 +57,8 @@ class YedeklemeTalebiPart extends Part {
 		let {layout} = this
 		let gridPart = this.gridPart = new GridliGirisPart({
 			parentPart: this, gridIDBelirtec: 'id', layout: layout.find('.grid-parent > .grid'),
-			argsDuzenle: e => {
-				$.extend(e.args, {
+			argsDuzenle: ({ args }) => {
+				extend(args, {
 					autoRowHeight: false, rowsHeight: 45, columnsHeight: 20, showGroupsHeader: false,
 					sortable: true, groupable: true, filterable: true, showFilterRow: true, filterMode: 'excel'
 					/* selectionMode: 'multiplerowsextended' */
