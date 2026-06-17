@@ -756,7 +756,9 @@ class MQSablonOrtakDetay extends MQDetay {
 		}
 		return recs
 	}
-	static loadServerData_queryDuzenle(e) { this.sablonIcinSiparislerStmDuzenle({ ...e, detaylimi: true }) }
+	static loadServerData_queryDuzenle(e) {
+		this.sablonIcinSiparislerStmDuzenle({ ...e, detaylimi: true })
+	}
 	static sablonIcinSiparislerStmDuzenle(e) {
 		/* gridPart:
 				- (detaylimi == true): SablonOrtakFis'in liste ekranı ; parentRec: nil
@@ -772,7 +774,8 @@ class MQSablonOrtakDetay extends MQDetay {
 			let {table, mustSaha, teslimCariSaha} = fisSinif, keyHV = fisSinif.varsayilanKeyHostVars();
 			let mustVeyaTeslimCariSaha = konsinyemi ? teslimCariSaha : mustSaha;
 			let sent = new MQSent(), {sahalar, where: wh} = sent;
-			sent.fromAdd(`${table} fis`); wh.fisSilindiEkle();
+			sent.fromAdd(`${table} fis`)
+			wh.fisSilindiEkle()
 			wh.birlestirDict(keyHV).add(`fis.kapandi = ''`, `fis.tarih >= CAST('${cariYil}-01-01T00:00:00' AS DATETIME)`);
 			if (sablonSayacListe) { wh.inDizi(sablonSayacListe, 'fis.sablonsayac') }
 			if (subeKod) { wh.degerAta(subeKod, 'fis.bizsubekod') }
@@ -798,9 +801,11 @@ class MQSablonOrtakDetay extends MQDetay {
 			else { sahalar.add('COUNT(*) topSayi'); sent.groupByOlustur() }
 			uni.add(sent); return sent
 		}
-		sentEkle('', SablonluKonsinyeAlimSiparisFis);
-		sentEkle('ST', SablonluKonsinyeTransferFis);
-		if (detaylimi) { orderBy.add('tarih DESC', 'no DESC') }
+		sentEkle('', konsinyemi ? SablonluKonsinyeAlimSiparisFis : SablonluSatisSiparisFis)
+		if (konsinyemi)
+			sentEkle('ST', SablonluKonsinyeTransferFis)
+		if (detaylimi)
+			orderBy.add('tarih DESC', 'no DESC')
 	}
 }
 /** Şablon'a ait Önceki Siparişler */

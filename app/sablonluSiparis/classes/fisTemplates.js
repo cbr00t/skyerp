@@ -138,6 +138,7 @@ class SablonluSiparisFisTemplate extends CObject {
 		return result
 	}
 	static async sablonYukleVeBirlestir(e) {
+		let { dev, session: { isAdmin: admin } = {} } = config
 		let {fis, islem, belirtec} = e, {sablonSayac, tarih, subeKod, mustKod, numarator, class: fisSinif} = fis
 		if (!mustKod) { throw { isError:  true, errorText: `<b>Müşteri</b> seçilmelidir` } }
 		let {offlineMode: offline} = app
@@ -235,10 +236,12 @@ class SablonluSiparisFisTemplate extends CObject {
 						let selector = kayitTipi == 'M' ? 'musteri' : !kayitTipi ? 'sube' : null; if (!selector) { continue }
 						tip2StokKodSet[selector][stokKod] = true
 					}
-					if (
-						(defKisit_sube && $.isEmptyObject(tip2StokKodSet.sube)) &&
-						(defKisit_musteri && $.isEmptyObject(tip2StokKodSet.musteri))
-					) { return ({ reset: true }) }
+					if (!(dev || admin)) {
+						if (
+							(defKisit_sube && $.isEmptyObject(tip2StokKodSet.sube)) ||
+							(defKisit_musteri && $.isEmptyObject(tip2StokKodSet.musteri))
+						) { return ({ reset: true }) }
+					}
 					let result = {}; for (let xSet of Object.values(tip2StokKodSet)) {
 						if ($.isEmptyObject(xSet)) { continue }
 						$.extend(result, xSet)
@@ -251,12 +254,14 @@ class SablonluSiparisFisTemplate extends CObject {
 						if (!_izinliStokKodSet?.[key]) { delete izinliStokKodSet[key] } }
 				}
 				else { izinliStokKodSet = _izinliStokKodSet }
-				if (!(defKisit_sube || defKisit_musteri) && $.isEmptyObject(izinliStokKodSet)) { izinliStokKodSet = null }
+				
+				if (!(defKisit_sube || defKisit_musteri) && empty(izinliStokKodSet))
+					izinliStokKodSet = null
 			}
 		}
 		if (izinliStokKodSet && recs?.length) {    /* izinliStokKodSet içindeki kayıtlar filtrelenir */
 			recs = recs.filter(({ shkod: stokKod }) => !!izinliStokKodSet[stokKod]) }
-		if (recs && !recs?.length) {
+		if (recs && empty(recs)) {
 			let mustUnvan = mustKod ? await MQSCari.getGloKod2Adi(mustKod) : null;
 			let sablonAdi = sablonSayac ? await MQSablonOrtak.getGloKod2Adi(sablonSayac) : null;
 			throw {
@@ -270,8 +275,9 @@ class SablonluSiparisFisTemplate extends CObject {
 		let getAnahStr = rec => [
 			(rec.shkod ?? rec.shKod ?? rec.stokkod ?? rec.stokKod),
 			 ...ekOzellikler.map(({ rowAttr, ioAttr }) => rec[rowAttr] ?? rec[ioAttr] ?? '')
-		].join(delimWS);
-		let anah2Det = {}; for (let rec of recs) {
+		].join(delimWS)
+		let anah2Det = {}
+		for (let rec of recs ?? []) {
 			let {shkod: shKod} = rec; if (izinliStokKodSet && !izinliStokKodSet[shKod]) { continue }
 			let {bdevredisi: devreDisimi, grupsayac: grupSayac, grupseq: grupSeq, grupadi: grupAdi, shadi: shAdi, paketicadet: paketIcAdet} = rec;
 			let _e = { devreDisimi, grupSayac, grupSeq, grupAdi, shKod, shAdi, paketIcAdet };
@@ -282,14 +288,15 @@ class SablonluSiparisFisTemplate extends CObject {
 			}
 			anah2Det[getAnahStr(rec)] ??= det
 		}
-		let {detaylar} = fis; for (let det of detaylar) {
+		let {detaylar} = fis
+		for (let det of detaylar) {
 			let anahStr = getAnahStr(det), sabDet = anah2Det[anahStr]
 			if (!sabDet) { continue }
 			/* det.devreDisimi = sabDet.devreDisimi; */
 			if (!sabDet._initFlag) {
 				let ignoreKeySet = asSet(['paketIcAdet']), saklaKeys = ['paketIcAdet']
 				let saved = Object.fromEntries(saklaKeys.map(k => [k, sabDet[k]]))
-				$.extend(sabDet, det.deepCopy(), saved)
+				extend(sabDet, det.deepCopy(), saved)
 			}
 			else { sabDet.miktar += det.miktar }
 			sabDet._initFlag = true
