@@ -69,14 +69,26 @@ class MQSentVeIliskiliYapiOrtak extends MQDbCommand {
 class MQSelect2Insert extends MQDbCommand {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get onEk() { return `INSERT INTO ` } get isDBWriteClause() { return true }
-	constructor(e) {
-		e = e || {}; super(e); let {sent} = e;
-		$.extend(this, { table: e.table ?? e.from, sent })
+	constructor(e = {}) {
+		super(e)
+		let { table = e.from, sahalar, sent } = e
+		if (!isInstance(sahalar))
+			sahalar = new MQSahalar(sahalar)
+		extend(this, { table, sahalar, sent })
 	}
 	buildString(e) {
-		super.buildString(e); let {table, sent} = this, {onEk} = this.class;
-		if (!(table && sent) || sent?.sahalar?.liste?.length === 0) { return }
-		e.result += `${onEk}${table} ${sent.toString()}`
+		super.buildString(e)
+		let { table, sahalar, sent, class: { onEk } } = this
+		if (!(table && sent) || empty(sent?.sahalar?.liste))
+			return
+
+		e.result += [
+			`${onEk}${table}`,
+			( empty(sahalar?.liste) ? null : `(${sahalar})\n  `),
+			sent
+		].map(v => v?.toString())
+		 .filter(Boolean)
+		 .join(' ')
 	}
 }
 class MQInsertBase extends MQDbCommand {

@@ -18,10 +18,11 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 
 	constructor(e = {}) {
 		super(e)
-		$.extend(this, {
+		let { from = e.table } = e
+		extend(this, {
 			distinct: asBool(e.distinct),
 			sahalar: ((isArray(e.sahalar) || isPlainObject(e.sahalar) || typeof e.sahalar == 'string' ? new MQSahalar(e.sahalar) : e.sahalar)) || new MQSahalar(),
-			from: (isArray(e.from) || isPlainObject(e.from) || typeof e.from == 'string' ? new MQFromClause(e.from) : e.from) || new MQFromClause(),
+			from: (isArray(from) || isPlainObject(from) || isString(from) ? new MQFromClause(from) : from) || new MQFromClause(),
 			where: (isArray(e.where) || isPlainObject(e.where) || typeof e.where == 'string' ? new MQWhereClause(e.where) : e.where) || new MQWhereClause(),
 			groupBy: (isArray(e.groupBy) || isPlainObject(e.groupBy) || typeof e.groupBy == 'string' ? new MQGroupByClause(e.groupBy) : e.groupBy) || new MQGroupByClause(),
 			having: (isArray(e.having) || isPlainObject(e.having) || typeof e.having == 'string' ? new MQHavingClause(e.having) : e.having) || new MQHavingClause(),

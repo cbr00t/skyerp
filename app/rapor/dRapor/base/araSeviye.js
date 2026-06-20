@@ -112,7 +112,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				TR: { kod: 'TARIH', belirtec: 'tarih', text: 'Tarih' },
 				VD: { kod: 'VADE', belirtec: 'vade', text: 'Vade' },
 				AI: { kod: 'ANAISLEM', belirtec: 'anaislemadi', text: 'Ana İşlem' },
-				IS: { kod: 'ISLEM', belirtec: 'isladi', text: 'İşlem' },
+				IS: { kod: 'ISL', belirtec: 'isl', text: 'İşlem' },
 				DV: { kod: 'DVKOD', belirtec: 'dvkod', text: 'Dv.Kod' },
 				SM: { kod: 'STOKMARKA', belirtec: 'stokmarka', text: 'Stok Marka' },
 				AG: { kod: 'STANAGRP', belirtec: 'anagrup', text: 'Stok Ana Grup' },

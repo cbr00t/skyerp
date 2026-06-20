@@ -460,15 +460,15 @@ class DMQOzelIsaret extends MQOzelIsaret {
 	static get kodListeTipi() { return 'OZELISARET' } static get defaultChar() { return ['', '*'] }
 }
 class DMQStokIslem extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok İşlem' }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'İşlem' }
 	static get kodListeTipi() { return 'STKISL' } static get table() { return 'stkisl' } static get tableAlias() { return 'isl' }
 }
 class DMQMuhIslem extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Muhasebe İşlem' }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'İşlem' }
 	static get kodListeTipi() { return 'MUHISL' } static get table() { return 'muhisl' } static get tableAlias() { return 'isl' }
 }
 class DMQStokVeMuhIslem extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok/Muh. İşlem' }
+    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'İşlem' }
 	static get kodListeTipi() { return 'STMHISL' } static get tableAlias() { return 'isl' }
 	static async loadServerDataDogrudan(e = {}) {
 		delete e.mfSinif

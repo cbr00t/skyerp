@@ -57,7 +57,7 @@ class MQHatirlatici extends MQCogul {
 		let items = [
 			{ id: 'assign', text: 'Grv Al', handler: _e => this.setTaskState({ ..._e, ...e, state: 'assign' }) },
 			{ id: 'release', text: 'Grv Bırak', handler: _e => this.setTaskState({ ..._e, ...e, state: 'release' }) },
-			{ id: 'tamam', handler: _e => this.setTaskState({ ..._e, ...e, state: 'done' }) }
+			{ id: 'finish', text: '🏁', handler: _e => this.setTaskState({ ..._e, ...e, state: 'done' }) }
 		]
 		liste.push(...items)
 		extend(sagSet, asSet(items.map(_ => _.id)))
@@ -76,7 +76,7 @@ class MQHatirlatici extends MQCogul {
 
 		rfb.addStyle(
 			`/*$elementCSS > .header { height: 50px !important }*/
-			 $elementCSS > .header > .islemTuslari > div > #tamam { margin-right: 20px !important }`
+			 $elementCSS > .header > .islemTuslari > div > #finish { margin-right: 20px !important }`
 		)
 	}
 	static orjBaslikListesi_argsDuzenle({ args }) {
@@ -186,11 +186,11 @@ class MQHatirlatici extends MQCogul {
 	}
 	static loadServerData_queryDuzenle({ sender: gridPart = {}, stm, sent } = {}) {
 		super.loadServerData_queryDuzenle(...arguments)
-		sent.sahalarVeGroupByVeHavingReset()
-
 		let { user } = config.session ?? {}
 		let { hepsiniGoster } = gridPart
 		let { tableAlias: alias } = this
+
+		sent.sahalarVeGroupByVeHavingReset()
 		let { where: wh, sahalar } = sent, { orderBy } = stm
 		sent
 			.leftJoin(alias, 'htipbilgi tbil', ['htr.kayittipi = tbil.kayittipi', 'htr.xtipkod = tbil.xtipkod'])
@@ -204,12 +204,13 @@ class MQHatirlatici extends MQCogul {
 				.degerAta(user, `${alias}.kesinkullanicikod`)
 			)
 		}
-		wh.add(`DATEDIFF(DAY, getdate(), CAST(htr.sontarih as DATE)) <= htr.hatirlatmagunu`)
+		wh.add(`DATEDIFF(DAY, CAST(GETDATE() AS DATE), CAST(htr.sontarih as DATE)) <= htr.hatirlatmagunu`)
 		sahalar
 			.addWithAlias(alias,
-				'id', 'kayittipi kayitTipi', 'sontarih sonTarih', 'hatirlatmagunu hatirlatmaGunu',
+				'id', 'xid orjBelgeId', 'kayittipi kayitTipi', 'sontarih sonTarih', 'hatirlatmagunu hatirlatmaGunu',
 				'kesinkullanicikod kesinUser', 'referans', 'xtipadi tipAdi',
-				'kapanisnotu kapanisNotu', 'kapanmatarihi kapanmaTarihi'
+				'kapanisnotu kapanisNotu', 'kapanmatarihi kapanmaTarihi',
+				'yenilenmesuresi yenilenmeSuresi', 'suretipi sureTipi'
 			 )
 			.add(
 				'dbo.emptycoalesce(tbil.kullanicilistestr, tanabil.kullanicilistestr) usersStr',
@@ -357,12 +358,12 @@ class MQHatirlatici extends MQCogul {
 		let release = state == 'release'
 		let done = state == 'done'
 	
-		let islemAdi = (
+		let islemAdi = `${
 			assign ? 'Görev Ata' :
 			release ? 'Görev Bırak' :
 			done ? 'Görev Tamamlandı' :
 			state
-		)
+		} işlemi`
 		let { dev } = config
 		let { selectedRecs: recs } = gridPart
 		let orjRecs = recs
@@ -370,6 +371,13 @@ class MQHatirlatici extends MQCogul {
 		let { class: { DefaultWSHostName_SkyServer: cloudHost }, session: { user: buUser } } = config
 		let buUserText = user2Adi[buUser] || buUser
 		// let { location: loc } = window
+
+		let kayitTipSet = asSet(recs.map(r => r.kayitTipi))
+		if (len(kayitTipSet) > 1) {
+			hConfirm(`<b class="red">Farklı Tipler</b> için <b class="royalblue">${islemAdi}</b> işlemi yapılamaz`, islemAdi)
+			return false
+		}
+		
 		if (!dev) {
 			if (!empty(recs)) {
 				let id2Rec = fromEntries(recs.map(r => [r.id, r]))
@@ -399,97 +407,241 @@ class MQHatirlatici extends MQCogul {
 			return false
 		}
 
+		let { kayitTipi, sureTipi, yenilenmeSuresi } = recs[0]
+		let inst = {}
+		let yenilenirmi = false
 		let kapanisNotu = ''
 		if (done) {
-			kapanisNotu = await jqxPrompt({
-				title: islemAdi,
-				etiket: 'Kapanış notu <span class="lightgray" style="margin-left: 5px">(opsiyonel)</span>',
-				maxLength: 250
-			})
-			if (kapanisNotu == null)    // VAZGEÇ butonu
-				return false
-		}
-		
-		let idListe = []
-		try {
-			for (let r of recs) {
-				let { id, users, kesinUser, eMails, tipAdi, sonTarih, referans } = r
-				idListe.push(id)
-
-				let targetUsers = kesinUser ? [kesinUser] : users
-				let sonTarihText = asDateAndToKisaString(sonTarih)
-				let message = [
-					( sonTarihText ? `- **${sonTarihText}** bitişli` : null ),
-					( tipAdi || referans ? `**${[tipAdi, referans].filter(Boolean).join(', ')}**` : null ),
-					'görevi\n',
-					`- **${buUserText}** tarafından alınmıştır`,
-					'\n\n_'
-				].filter(Boolean).join(' ')
-
-				let indicator = (
-					assign ? '⌛' :
-					release ? '❌' :
-					done ? '✅' : null
-				)
-				let statusText = (
-					assign ? 'Alındı' :
-					release ? 'Bırakıldı' :
-						done ? 'TAMAMLANDI' : null
-				)
-				let priority = (
-					assign ? 4 :
-					3
-				)
-				let shortStatus = (
-					assign ? 'alindi' :
-					release ? 'birakildi':
-					done ? 'tamamlandi' : null
-				)
-				if (shortStatus)
-					shortStatus = `gorev-${shortStatus}`
+			try {
+				let min_v = today().yarin()
+				yenilenirmi = !kayitTipi || kayitTipi == 'ARC'
+				if (yenilenirmi) {
+					if (recs.length > 1) {
+						hConfirm(`Seçilen tipler için <b class="red">Birden fazla satıra</b> ait <b class="royalblue">${islemAdi}</b> işlemi yapılamaz`, islemAdi)
+						return false
+					}
+					
+					let sel = (
+						sureTipi == 'G' ? 'addDays' :
+						sureTipi == 'A' ? 'addMonths' :
+						'addYears'
+					)
+					let dt = today()[sel](yenilenmeSuresi)
+					if (dt < min_v)
+						dt = min_v
+					inst.yeniTarih = dt
+				}
 				
-				let title = [indicator, 'Görev', statusText].filter(Boolean).join(' ')
-				for (let u of targetUsers) {
-					let tags = [indicator, shortStatus, '_']
-					let markdown = true
-					let click = new URL(topic.join('-'), app.ntfyWSUrl).toString()
-					let actions = [
-						{
-							action: 'view',
-							label: 'BİLDİRİMLERİ GÖSTER',
-							url: location.href
-						}
-					]
-					ntfy({ topic, priority, tags, markdown, title, message, click, actions })
+				let title = islemAdi
+				let etiket = [
+					( 
+						yenilenirmi
+							? `<p class="fs-90 orangered left pl-20">Asıl belgenin <b class="forestgreen">Yeni Bitişi</b> ayarlanacaktır:</p>`
+							: `<p>Kapanış yapılacak</p>`
+					)
+				].filter(Boolean)
+					.join('\n')
+
+				let fbd_yeniTarih
+				let duzenle = ({ args, wnd, rfb, fbd_value }) => {
+					if (yenilenirmi) {
+						fbd_yeniTarih = rfb.addDateInput('yeniTarih', 'Yenileme Tarihi')
+							.etiketGosterim_placeHolder()
+							.degisince(({ value: v, builder: fbd }) => {
+								let { id } = fbd
+								if (isInvalidDate(v) || v < min_v)
+									v = fbd.value = inst[id] = min_v
+							})
+							//.onAfterRun(({ builder: { input } }) =>
+							//	delay(100).then(() => input.focus()))
+							.addCSS('absolute')
+							.addStyle(
+								`$elementCSS { left: 310px; top: -35px; z-index: 1000 !important }
+								 $elementCSS > input { width: 150px !important; height: 40px !important; box-shadow: 0 0 3px 2px forestgreen }`
+							)
+					}
 				}
-				if (!empty(eMails)) {
-					let to = eMails[0]
-					let cc = eMails.slice(1).join(delimWS)
-					let subject = `Sky Hatırlatıcı: ${title}`
-					let body = message
-					app.wsEMailQueue_add({ to, cc, subject, body })
+				let validate = ({ fbd_value: { input }, inst: { yeniTarih: v }}) => {
+					if (isInvalidDate(v) || v < min_v) {
+						hConfirm(`<b class="royalblue">Bitiş Tarihi</b> dolu ve bugünden büyük bir değer olmalıdır`, islemAdi)
+						delay(200).then(() =>
+							fbd_yeniTarih?.input?.focus())
+						return false
+					}
 				}
+				
+				kapanisNotu = await jqxPrompt({
+					title, etiket, inst,
+					duzenle, validate,
+					placeHolder: 'Kapanış notu (opsiyonel)',
+					maxLength: 250
+				})
+				if (kapanisNotu == null)    // VAZGEÇ butonu
+					return false
 			}
-			if (!empty(idListe)) {
-				let upd = new MQIliskiliUpdate(), { where: wh, set } = upd
-				upd.fromAdd(this.table)
-				wh.inDizi(idListe, 'id')
-				if (done) {
-					set
-						.add('bkapandi = 1')
-						.degerAta(now(), 'kapanmatarihi')
-					if (kapanisNotu)
-						set.degerAta(kapanisNotu, 'kapanisnotu')
+			catch (ex) { return false }
+		}
+
+		let yeniTarih = asDate(inst.yeniTarih)
+		let idListe = recs.map(r => r.id)
+		// let _now = now()
+		let sqlNow = 'GETDATE()'
+		let sqlToday = `CAST(${sqlNow} AS DATE)`
+		try {
+			if (empty(idListe))
+				return false
+
+			// db update
+			;{
+				let { table } = this
+				let toplu = new MQToplu().withTrn()
+				;{
+					let upd = new MQIliskiliUpdate(), { where: wh, set } = upd
+					upd.fromAdd(table)
+					wh.inDizi(idListe, 'id')
+					if (done) {
+						set.add('bkapandi = 1', `kapanmatarihi = ${sqlNow}`)
+						if (kapanisNotu)
+							set.degerAta(kapanisNotu, 'kapanisnotu')
+						if (yenilenirmi)
+							set.degerAta(yeniTarih, 'sontarih')
+					}
+					else if (assign || release)
+						set.degerAta(assign ? buUser : '', 'kesinkullanicikod')
+					toplu.add(upd)
 				}
-				else if (assign || release)
-					set.degerAta(assign ? buUser : '', 'kesinkullanicikod')
 				
-				let res = await upd.execute()
-				if (res === false)
+				if (yenilenirmi) {
+					let r = recs[0]                      // bu durumda sadece tek kayıt gelecek
+					let { orjBelgeId, sonTarih } = r
+					let ortakWh = { degerAta: orjBelgeId, saha: 'id' }
+					switch (kayitTipi) {
+						case '': {      // diger belgeler
+							let table = 'hbelge'
+							toplu.add(
+								new MQIliskiliUpdate({
+									table,
+									where: ortakWh,
+									set: [
+										{ degerAta: yeniTarih, saha: 'bitistarihi' },
+										`tarih = ${sqlToday}`,
+										`sonyenilenmezamani = ${sqlNow}`
+									]
+								})
+							)
+							break
+						}
+						case 'ARC': {    // araç muayene
+							let table = 'aracmuayene'
+							toplu.add(
+								new MQSelect2Insert({
+									table,
+									sahalar: [
+										'arackod', 'evrakkod', 'sonmuayene',
+										'id', 'tarih',
+										'bittarih'
+									],
+									sent: new MQSent({
+										table: `${table} mua`,
+										where: [
+											{ degerAta: orjBelgeId, saha: 'mua.id' },
+											`kont.id IS NULL`
+										],
+										sahalar: [
+											'mua.arackod', 'mua.evrakkod', bool2FileStr(true).sqlServerDegeri(),
+											'NEWID()', sqlToday,
+											`( CAST(${sqlToday} AS DATETIME) + ${(yeniTarih - sonTarih) / Date_OneDayNum} )`
+										]
+									}).leftJoin('mua', `${table} kont`, [
+										`mua.arackod = kont.arackod`,
+										`mua.evrakkod = kont.evrakkod`,
+										`mua.tarih = kont.tarih`
+									])
+								}),
+								new MQIliskiliUpdate({
+									table,
+									where: ortakWh,
+									set: [`sonmuayene = ''`]
+								})
+							)
+							break
+						}
+					}
+				}
+
+				if (empty(toplu.liste))
 					return false
 
-				gridPart?.tazele()
+				let res = await toplu.execute()
+				if (res === false)
+					return false
 			}
+
+			for (let r of recs) {
+				let { id, users, kesinUser, eMails, tipAdi, sonTarih, referans } = r
+				;{
+					let targetUsers = kesinUser ? [kesinUser] : users
+					let sonTarihText = asDateAndToKisaString(sonTarih)
+					let indicator = (
+						assign ? '⌛' :
+						release ? '❌' :
+						done ? '✅' : null
+					)
+					let statusText = (
+						assign ? 'Alındı' :
+						release ? 'Bırakıldı' :
+							done ? 'TAMAMLANDI' : null
+					)
+					let title = [indicator, 'Görev', statusText].filter(Boolean).join(' ')
+					let message = [
+						( sonTarihText ? `- **${sonTarihText}** bitişli` : null ),
+						( tipAdi || referans ? `**${[tipAdi, referans].filter(Boolean).join(', ')}**` : null ),
+						'görevi\n',
+						`- **${buUserText}** tarafından alınmıştır`,
+						'\n\n_'
+					].filter(Boolean).join(' ')
+	
+					// ntfy
+					{
+						let priority = (
+							assign ? 4 :
+							3
+						)
+						let shortStatus = (
+							assign ? 'alindi' :
+							release ? 'birakildi':
+							done ? 'tamamlandi' : null
+						)
+						if (shortStatus)
+							shortStatus = `gorev-${shortStatus}`
+						
+						for (let u of targetUsers) {
+							let tags = [indicator, shortStatus, '_']
+							let markdown = true
+							let click = new URL(topic.join('-'), app.ntfyWSUrl).toString()
+							let actions = [
+								{
+									action: 'view',
+									label: 'BİLDİRİMLERİ GÖSTER',
+									url: location.href
+								}
+							]
+							ntfy({ topic, priority, tags, markdown, title, message, click, actions })
+						}
+					}
+					
+					// email
+					if (!empty(eMails)) {
+						let to = eMails[0]
+						let cc = eMails.slice(1).join(delimWS)
+						let subject = `Sky Hatırlatıcı: ${title}`
+						let body = message
+						app.wsEMailQueue_add({ to, cc, subject, body })
+					}
+				}
+			}
+
+			gridPart?.tazele()
 		}
 		catch (ex) {
 			hideProgress()
@@ -517,9 +669,10 @@ class MQHatirlatici extends MQCogul {
 		return [
 			`<div class="flex-row full-width" style="gap: 0 10px">`,
 				`<template class="sort-data">${[kayitTipi, tipRefStr].filter(Boolean).join(delimWS)}</template>`,
-				( tipRefStr ? `<div>${tipRefStr}</div>` : '' ),
-				( usersText ? `<div class="lightgray"> - </div> <div class="royalblue">${usersText}</div>` : '' ),
-				( kesinUser ? `<div>📌</div>` : '' ),
+				( kayitTipi ? `<div class="fs-85 bold royalblue">[${kayitTipi}]</div>` : null ),
+				( tipRefStr ? `<div>${tipRefStr}</div>` : null ),
+				( usersText ? `<div class="lightgray"> - </div> <div class="royalblue">${usersText}</div>` : null ),
+				( kesinUser ? `<div>📌</div>` : null ),
 			`</div>`
 		].filter(Boolean).join('\n')
 	}

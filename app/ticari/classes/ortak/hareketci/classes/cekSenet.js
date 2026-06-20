@@ -1,20 +1,34 @@
 class CSHareketci extends Hareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 48 }
-	/* portftipi NOT IN ('XI' 'XK' 'XT' 'X3' 'XZ') */
-	static get kod() { return 'cekSenet' } static get aciklama() { return 'Çek/Senet' }
-	constructor(e) { e = e ?? {}; super(e); $.extend(this, { trfCikismi: e.trfCikis ?? e.trfCikismi ?? true }) }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get oncelik() { return 48 }
+	static get kod() { return 'cekSenet' }
+	static get aciklama() { return 'Çek-Senet Portföy' }
+
+	constructor(e = {}) {
+		super(e)
+		let { trfCikismi = e.trfCikis ?? true } = e
+		extend(this, { trfCikismi })
+	}
 	static get ortakHVYapilar() {
-		let {_ortakHVYapilar: result} = this;
-		if (result == null) { let e = { result: {} }; this.ortakHVYapilarDuzenle(e); result = this._ortakHVYapilar = e.result }
+		let { _ortakHVYapilar: result } = this
+		if (result == null) {
+			let e = { result: {} }
+			this.ortakHVYapilarDuzenle(e)
+			result = this._ortakHVYapilar = e.result
+		}
 		return result
 	}
 	static get ortakUniDuzenleyiciler() {
-		let {_ortakUniDuzenleyiciler: result} = this;
-		if (result == null) { let e = { result: {} }; this.ortakUniDuzenleyicilerDuzenle(e); result = this._ortakUniDuzenleyiciler = e.result }
+		let { _ortakUniDuzenleyiciler: result } = this
+		if (result == null) {
+			let e = { result: {} }
+			this.ortakUniDuzenleyicilerDuzenle(e)
+			result = this._ortakUniDuzenleyiciler = e.result
+		}
 		return result
 	}
 	/*static altTipYapilarDuzenle({ result }) {
-		$.extend(result, {
+		extend(result, {
 			alcek: new DRapor_AltTipYapi(['alcek', `'Alacak Çekleri'`]).sol().setDuzenleyici(({ wh, hv }) => wh.degerAta('AC', hv.belgetipi)),
 			alsenet: new DRapor_AltTipYapi(['alsenet', `'Alacak Senetleri'`]).sol().setDuzenleyici(({ wh, hv }) => wh.degerAta('AS', hv.belgetipi)),
 			brcek: new DRapor_AltTipYapi(['brcek', `'Borç Çekleri'`]).sag().setDuzenleyici(({ wh, hv }) => wh.degerAta('BC', hv.belgetipi)),
@@ -44,7 +58,7 @@ class CSHareketci extends Hareketci {
 	}
 	static ortakHVYapilarDuzenle({ result }) {
 		let {sqlEmpty} = Hareketci_UniBilgi.ortakArgs
-		$.extend(result, {
+		extend(result, {
 			isaretlibedel: ({ hv }) => hv.bedel,
 			belgeOrtak: () => ({
 				belsayac: 'bel.kaysayac', belgeyil: 'bel.belgeyil', bankakod: 'bel.bankakod',
@@ -79,7 +93,7 @@ class CSHareketci extends Hareketci {
 		})
 	}
 	static ortakUniDuzenleyicilerDuzenle({ result }) {
-		$.extend(result, {
+		extend(result, {
 			transfer: ({ cikismi }) => {
 				return new Hareketci_UniBilgi()
 					.sentDuzenleIslemi(({ sent, sent: { where: wh } }) => {
@@ -89,7 +103,7 @@ class CSHareketci extends Hareketci {
 						wh.fisSilindiEkle()
 					}).hvDuzenleIslemi(({ hv, sqlEmpty }) => {
 						let csIslemler = this.newCSIslemler()
-						$.extend(hv, {
+						extend(hv, {
 							fissayac: 'fis.kaysayac', harsayac: 'har.kaysayac', ilk: sqlEmpty,
 							ba: (cikismi ? 'A' : 'B').sqlServerDegeri(), bedel: 'har.bedel', dvbedel: 'har.dvbedel',
 							detaciklama: 'har.aciklama', bankadekontnox: 'har.bankadekontnox',
@@ -111,7 +125,7 @@ class CSHareketci extends Hareketci {
 						wh.add(`fis.iade = ''`, 'bel.belgesonharseq = har.belgeharseq', 'bel.vade < getdate()')
 					}).hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
 						let refHV = cikismi ? portfoyAnalizDict : this.getOrtakHV('sahis3IsiBittiGirisIcinPortfoyVeAnalizTipi', { portfoyAnalizDict });
-						$.extend(hv, {
+						extend(hv, {
 							fissayac: sqlNull, harsayac: sqlNull, ilk: sqlEmpty,
 							detaciklama: 'har.aciklama', bankadekontnox: sqlEmpty, bizsubekod: 'fis.bizsubekod',
 							tarih: '(bel.vade + 1)', fisnox: sqlEmpty, belgetipi: 'fis.belgetipi',
@@ -137,7 +151,7 @@ class CSHareketci extends Hareketci {
 						{let ekRefHV = this.getOrtakHV(`sahis3Devir${cikismi ? 'Cikis' : 'Giris'}IcinPortfoyBilgileri`);
 							for (let [key, value] of Object.entries(refHV)) { refHV[key] = ekRefHV[key] || value }
 						}
-						$.extend(hv, {
+						extend(hv, {
 							fissayac: sqlNull, harsayac: sqlNull, ilk: sqlEmpty,
 							detaciklama: 'bel.aciklama', bankadekontnox: sqlEmpty, bizsubekod: 'fis.bizsubekod',
 							tarih: '(bel.vade + 1)', fisnox: sqlEmpty, belgetipi: 'fis.belgetipi',
@@ -190,11 +204,11 @@ class CSHareketci extends Hareketci {
         /* super.varsayilanHVDuzenle(...arguments); */
 		for (let key of [
 			'ozelisaret', 'ayadi', 'saat', 'bizsubekod', 'fisnox', 'bedel', 'ba', 'bankadekontnox',
-			'anaislemadi', 'islkod', 'isladi', 'refkod', 'refadi',
+			'anaislemadi', 'refkod', 'refadi',
 			'portftipi', 'portfkod', 'portfadi', 'portfkisatiptext',
 			'refportftipi', 'refportfkod', 'refportfadi', 'refportfkisatiptext'
 		]) { hv[key] = sqlEmpty }
-		$.extend(hv, {
+		extend(hv, {
 			fisno: ({ hv }) => hv.belgeno,
 			isaretlibedel: ({ hv }) => hv.bedel,
 			anaislemadi: ({ hv }) => CSBelgeTipi.getClause(hv.belgetipi),
@@ -205,12 +219,12 @@ class CSHareketci extends Hareketci {
     }
 	
     uygunluk2UnionBilgiListeDuzenleDevam(e) {
-		let {trfCikismi} = this; $.extend(e, { trfCikismi })
+		let {trfCikismi} = this; extend(e, { trfCikismi })
 		super.uygunluk2UnionBilgiListeDuzenleDevam(e)
 		this.uniDuzenle_ilkHareket(e).uniDuzenle_transfer(e).uniDuzenle_sahis3(e).uniDuzenle_genelDekont(e)
 	}
 	uniDuzenle_ilkHareket({ liste }) {
-		$.extend(liste, {
+		extend(liste, {
 			ilkHareket: [
 				new Hareketci_UniBilgi()
 					.sentDuzenleIslemi(({ sent }) => {
@@ -222,7 +236,7 @@ class CSHareketci extends Hareketci {
 						/* finanalizkullanilmaz: 'bhes.finanalizkullanilmaz'  */
 						let csIslemler = this.newCSIslemler()
 						let refDict = csIslemler.getPortfoyVeReferansTanimlari({ cikismi: false })
-						$.extend(hv, {
+						extend(hv, {
 							alttip: `(case fis.fistipi when 'TC' then 'alcek' when 'TS' then 'alsenet' when 'BC' then 'brcek' when 'PT' then prt.cstip else '??' end)`,
 							bizsubekod: 'fis.bizsubekod', fisnox: 'fis.fisnox', fissayac: 'fis.kaysayac', harsayac: 'har.kaysayac',
 							ilk: `'X'`, ba: `'B'`, bedel: 'bel.bedel', dvbedel: 'bel.dvbedel', dvkur: 'fis.dvkur',
@@ -241,7 +255,7 @@ class CSHareketci extends Hareketci {
 				.sentDuzenleIslemi(({ sent }) => this.ortakUniDuzenle_sent('transfer', { sent, cikismi }))
 				.hvDuzenleIslemi(({ hv, sqlEmpty }) => this.ortakUniDuzenle_hv('transfer', { hv, cikismi }))
 		};
-		$.extend(liste, {
+		extend(liste, {
 			transfer: [
 				(cikismi ? getUniBilgi(true) : null),
 				getUniBilgi(false)
@@ -257,7 +271,7 @@ class CSHareketci extends Hareketci {
 				.sentDuzenleIslemi(({ sent }) => this.ortakUniDuzenle_sent(selector, { sent, portfoyAnalizDict, cikismi }))
 				.hvDuzenleIslemi(({ hv }) => this.ortakUniDuzenle_hv(selector, { hv, portfoyAnalizDict, cikismi }))
 		};
-		$.extend(liste, {
+		extend(liste, {
 			sahis3: ortakSelectors.map(selector => [
 				(cikismi ? getUniBilgi(selector, true) : null),
 				getUniBilgi(selector, false)
@@ -266,7 +280,7 @@ class CSHareketci extends Hareketci {
 		return this
 	}
 	uniDuzenle_genelDekont({ liste }) {
-		$.extend(liste, {
+		extend(liste, {
 			genelDekont: [
 				new Hareketci_UniBilgi()
 					.sentDuzenleIslemi(({ sent }) => {
@@ -279,7 +293,7 @@ class CSHareketci extends Hareketci {
 						wh.add(`fis.ozeltip = ''`).inDizi(['PT', 'TC', 'TS', 'BC'], 'har.kayittipi')
 					}).hvDuzenleIslemi(({ hv, sqlEmpty }) => {
 						let csIslemler = this.newCSIslemler(), refDict = csIslemler.getPortfoyVeReferansTanimlari({ cikismi: false });
-						$.extend(hv, {
+						extend(hv, {
 							bizsubekod: 'fis.bizsubekod', fisnox: 'fis.fisnox', fissayac: 'fis.kaysayac', harsayac: 'har.kaysayac',
 							ilk: sqlEmpty, ba: 'har.ba', bedel: 'har.bedel', dvbedel: 'har.dvbedel', dvkur: 'fis.dvkur',
 							fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama', isladi: `'Genel Dekont'`,

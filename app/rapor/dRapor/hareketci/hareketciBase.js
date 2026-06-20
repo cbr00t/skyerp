@@ -109,6 +109,12 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 				tarihAralik.sonu = tarihAralik.sonu || today()
 			}
 		}
+
+		/*let { muhasebemi } = this.class
+		;{
+			let mfSinif = muhasebemi ? DMQMuhIslem : DMQStokIslem
+			sec.addKA('isl', mfSinif, ({ hv }) => hv.islkod, ({ hv }) => hv.isladi, false)
+		}*/
 	}
 	super_secimlerDuzenle(e) { super.secimlerDuzenle(e) }
 	superSuper_secimlerDuzenle(e) { super.super_secimlerDuzenle(e) }
@@ -133,7 +139,8 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	tabloYapiDuzenle({ result }) {
 		let e = arguments[0]
 		super.tabloYapiDuzenle(e)
-		let {ticarimi, totalmi} = this.class
+		let { ticarimi, muhasebemi, totalmi } = this.class
+		result.addKAPrefix('isl')
 		if (ticarimi)
 			result.addKAPrefix('althesap', 'ref')
 		this.tabloYapiDuzenle_ozelIsaret(e)
@@ -144,7 +151,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 			result.addGrupBasit('REF', 'Referans', 'ref', null, null, ({ item }) => item.setOrderBy('refadi'))
 		}
 		result.addGrupBasit('ANAISLEM', 'Ana İşlem', 'anaislemadi')
-		result.addGrupBasit('ISLEM', 'İşlem', 'isladi')
+		result.addGrupBasit('ISL', 'İşlem', 'isl', (muhasebemi ? DMQMuhIslem : DMQStokIslem))
 		if (ticarimi) {
 			this.tabloYapiDuzenle_plasiyer(e)
 			this.tabloYapiDuzenle_takip(e)
@@ -281,8 +288,10 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		this.donemBagla({ ...e, tarihClause })
 		for (let key in attrSet) {
 			switch (key) {
-				case 'FISNOX': sentHVEkle('fisnox'); break; case 'REF': sentHVEkle('refkod', 'refadi'); break
-				case 'ANAISLEM': sentHVEkle('anaislemadi'); break; case 'ISLEM': sentHVEkle('isladi'); break
+				case 'FISNOX': sentHVEkle('fisnox');
+				break; case 'REF': sentHVEkle('refkod', 'refadi'); break
+				case 'ANAISLEM': sentHVEkle('anaislemadi'); break;
+				case 'ISL': sentHVEkle('islkod', 'isladi'); break
 				case 'ALTHESAP': sentHVEkle('althesapkod', 'althesapadi'); break
 				case 'DVKOD': sentHVEkle('dvkod'); break
 			}

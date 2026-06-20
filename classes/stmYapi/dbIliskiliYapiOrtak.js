@@ -2,10 +2,11 @@ class MQIliskiliYapiOrtak extends MQSentVeIliskiliYapiOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e = {}) {
 		super(e)
-		$.extend(this, {
-			from: (isArray(e.from) || $.isPlainObject(e.from) || typeof e.from == 'string' ? new MQFromClause(e.from) : e.from) || new MQFromClause(),
-			where: (isArray(e.where) || $.isPlainObject(e.where) || typeof e.where == 'string' ? new MQWhereClause(e.where) : e.where) || new MQWhereClause(),
-			zincirler: (isArray(e.zincirler) || $.isPlainObject(e.zincirler) ? new MQZincirler(e.zincirler) : e.zincirler) || new MQZincirler()
+		let from = e.from ?? e.table
+		extend(this, {
+			from: (isArray(from) || isPlainObject(from) || isString(from) ? new MQFromClause(from) : from) ?? new MQFromClause(),
+			where: (isArray(e.where) || $.isPlainObject(e.where) || typeof e.where == 'string' ? new MQWhereClause(e.where) : e.where) ?? new MQWhereClause(),
+			zincirler: (isArray(e.zincirler) || $.isPlainObject(e.zincirler) ? new MQZincirler(e.zincirler) : e.zincirler) ?? new MQZincirler()
 		})
 		let {fromIliskiler} = e
 		if (!empty(fromIliskiler)) {

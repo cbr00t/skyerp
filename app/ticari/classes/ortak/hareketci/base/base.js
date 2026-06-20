@@ -220,6 +220,19 @@ class Hareketci extends CObject {
 		]) { hv[key] = sqlEmpty }
 		for (let key of ['bedel'])
 			hv[key] = sqlZero
+
+		extend(hv, {
+			islkod: ({ hv }) => hv.isladi || sqlEmpty,
+			isladi: ({ hv }) => hv.islemadi || hv.anaislemadi || sqlEmpty,
+			aciklama: ({ hv }) => {
+                let withCoalesce = clause =>
+					( clause?.sqlDoluDegermi() ?? false ) ? `COALESCE(${clause}, '')` : sqlEmpty
+                let { fisaciklama: fisAciklama, detaciklama: detAciklama } = hv
+                return fisAciklama && detAciklama
+                    ? `${withCoalesce(fisAciklama)} + ' ' + ${withCoalesce(detAciklama)}` 
+                    : withCoalesce(detAciklama || fisAciklama || sqlEmpty)
+            }
+		})
 	}
 	static varsayilanHVDuzenle({ hv, sqlNull, sqlEmpty, sqlZero }) {
 		/* cast(null as ??) değerlerini sadece NULL olarak tutabiliriz, CAST işlemine gerek yok */
@@ -246,18 +259,9 @@ class Hareketci extends CObject {
 			fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac', ozelisaret: 'fis.ozelisaret', bizsubekod: 'fis.bizsubekod', tarih: 'fis.tarih',
 			seri: 'fis.seri', fisno: 'fis.no', fisnox: 'fis.fisnox', disfisnox: 'fis.fisnox', ba: 'fis.ba', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
 			fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama', muhfissayac: 'fis.muhfissayac', sonzamants: 'fis.sonzamants',
-			isladi: ({ hv }) => hv.islemadi || hv.anaislemadi,
 			fistarih: ({ hv }) => hv.tarih,
 			karsiodemetarihi: ({ hv }) => hv.vade,
 			isaretlibedel: ({ hv }) => hv.bedel,
-			aciklama: ({ hv }) => {
-                let withCoalesce = clause =>
-					( clause?.sqlDoluDegermi() ?? false ) ? `COALESCE(${clause}, '')` : sqlEmpty
-                let { fisaciklama: fisAciklama, detaciklama: detAciklama } = hv
-                return fisAciklama && detAciklama
-                    ? `${withCoalesce(fisAciklama)} + ' ' + ${withCoalesce(detAciklama)}` 
-                    : withCoalesce(detAciklama || fisAciklama || sqlEmpty)
-            },
 			yilay: ({ hv }) => `CAST(DATEPART(YEAR, ${getTarihClause(hv)}) AS CHAR(4)) + ' - ' + dbo.ayadi(${getTarihClause(hv)}))`,
 			yil: ({ hv }) => `DATEPART(YEAR, ${getTarihClause(hv)})`,
 			ceyrekkod: ({ hv }) => {
@@ -493,8 +497,15 @@ class Hareketci extends CObject {
 		
 		return this
 	}
-	static maliTablo_secimlerYapiDuzenle({ result }) { }
+	static maliTablo_secimlerYapiDuzenle({ result }) {
+		let { muhasebemi } = this
+		extend(result, {
+			// isl: DMQStokVeMuhIslem
+			isl: ( muhasebemi ? DMQMuhIslem : DMQStokIslem )
+		})
+	}
 	static maliTablo_secimlerEkDuzenle({ secimler: sec }) {
+		//let { muhasebemi } = this
 		if (config.dev) {
 			let grupKod = 'ek', grup = { kod: grupKod, aciklama: 'Ek', kapali: true }
 			sec.grupEkle(grup)
@@ -503,11 +514,16 @@ class Hareketci extends CObject {
 				seri: new SecimString({ etiket: 'Seri', grupKod })
 			})
 		}
+		;{
+			//let mfSinif = muhasebemi ? DMQMuhIslem : DMQStokIslem
+			sec.addKA('isl', DMQStokVeMuhIslem, ({ hv }) => hv.islkod, ({ hv }) => hv.isladi, false)
+		}
 	}
 	// static maliTablo_secimlerSentDuzenle({ secimler: genSec, detSecimler: detSec, uni, sent, where: wh, hv, donemTipi, det, har, attrSet, mstYapi, mstYapi: { hvAlias } }) {
 	static maliTablo_secimlerSentDuzenle({ secimler: sec, detSecimler: detSec, sent, sent: { from, where: wh }, hv, mstClause }) {
-		let {sqlNull, sqlEmpty} = Hareketci_UniBilgi.ortakArgs
-		let varmi = kodClause => kodClause && ![sqlNull, sqlEmpty].includes(kodClause)
+		let { sqlNull, sqlEmpty } = Hareketci_UniBilgi.ortakArgs
+		let varmi = kodClause =>
+			!kodClause?.sqlDoluDegermi()
 		let varsaYap = (kodClause, block) => {
 			if (!varmi(kodClause))
 				return false
@@ -541,6 +557,12 @@ class Hareketci extends CObject {
 				wh.basiSonu(_sec.subeGrupKod, 'sub.isygrupkod').ozellik(_sec.subeGrupAdi, 'igrp.aciklama')
 			}
 		})
+
+		varsaYap(hv.islkod, ({ kodClause, secimler: _sec }) => {
+			if (_sec.islKod)
+				wh.basiSonu(_sec.islKod, kodClause)
+		})
+		
 		varsaYap(hv.fisno, ({ kodClause, secimler: _sec }) => {
 			/*if (from.aliasIcinTable('fis')?.deger == 'carifis' && kodClause == 'fis.no')
 				debugger*/

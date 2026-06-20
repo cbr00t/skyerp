@@ -482,8 +482,13 @@ class TabloYapiItem extends CObject {
 		let hvDegeri = e.hvDegeri ?? (hv || defHV ? (key => hv?.[key] ?? defHV?.[key]) : null)
 		if (hvDegeri) {
 			let _kodClause = hvDegeri(belirtec) ?? kodClause
-			if (!_kodClause?.sqlDoluDegermi() && belirtec.endsWith('kod'))
-				_kodClause = hvDegeri(belirtec.slice(0, -3)) ?? kodClause
+			if (!_kodClause?.sqlDoluDegermi()) {
+				_kodClause = (
+					belirtec.endsWith('kod')
+						? hvDegeri(belirtec.slice(0, -3))
+						: hvDegeri(`${belirtec}kod`)
+				) ?? kodClause
+			}
 			kodClause = _kodClause?.sqlDoluDegermi() ? _kodClause : null
 		}
 
