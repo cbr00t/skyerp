@@ -122,30 +122,40 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 	tabloKolonlariDuzenle({ liste: colDefs, recs, flatRecs, yatayDegerSet }) {
 		super.tabloKolonlariDuzenle(...arguments)
 		yatayDegerSet ??= this.yatayDegerSet ?? {}
-		let { raporTanim, raporTanim: { yatayAnalizVarmi, yatayAnaliz }, tabloYapi } = this
+		let { tabloYapi, raporTanim } = this
+		let { yatayAnalizVarmi, yatayAnaliz } = raporTanim
 		let cellClassName = (colDef, rowIndex, belirtec, value, rec) => {
-			let result = ['treeRow', belirtec];
-			if (rec) { result.push(rec.leaf ? 'leaf' : 'grup') }
-			let toplammi = (typeof value == 'number');
+			let result = ['treeRow', belirtec]
+			if (rec)
+				result.push(rec.leaf ? 'leaf' : 'grup')
+			
+			let toplammi = isNumber(value)
 			result.push(toplammi ? 'toplam' : 'icerik')
 			if (toplammi) {
-				let alacakmi = value < 0;
+				let alacakmi = value < 0
 				result.push(!value ? 'zero' : alacakmi ? 'negative' : 'positive')
 			}
-			let {level} = rec; if (level != null) { result.push('level-' + level.toString()) }
+			
+			let { level } = rec
+			if (level != null)
+				result.push('level-' + level.toString())
+			
 			if (toplammi && yatayAnalizVarmi) {
 				let {userData: { yatayToplammi } = {}} = colDef
 				if (yatayToplammi) { result.push('yatayToplam') }
 			}
+			
 			let _e = { raporTanim, colDefs, colDef, rowIndex, belirtec, value, rec, result }
-			this.ekCSSDuzenle(_e); result = _e.result;
-			return result.filter(x => !!x).join(' ')
+			this.ekCSSDuzenle(_e)
+			result = _e.result
+			return result.filter(Boolean).join(' ')
 		}
 		let cellsRenderer = (colDef, rowIndex, belirtec, value, html, jqxCol, rec) => {
-			let {tip} = colDef
+			let { tip } = colDef
 			html = tip?.cellsRenderer?.(colDef, rowIndex, belirtec, value, html, jqxCol, rec) ?? html
 			let _e = { ...arguments[0], raporTanim, colDefs, colDef, rowIndex, belirtec, value, html, jqxCol, rec }
-			let result = this.cellsRenderer(_e); result ??= _e.html
+			let result = this.cellsRenderer(_e)
+			result ??= _e.html
 			return result ?? html
 		}
 		colDefs.push(
