@@ -595,7 +595,7 @@ class HizmetHareketci extends Hareketci {
     }
 	static maliTablo_secimlerYapiDuzenle({ tip2SecimMFYapi, result }) {
 		super.maliTablo_secimlerYapiDuzenle(...arguments)
-		$.extend(result, {
+		extend(result, {
 			sube: DMQSube, subeGrup: DMQSubeGrup, mst: DMQHizmet, grup: DMQHizmetGrup, anaGrup: DMQHizmetAnaGrup,
 			istGrup: DMQHizmetIstGrup, isl: DMQStokVeMuhIslem, muhHesap: DMQMuhHesap
 		})

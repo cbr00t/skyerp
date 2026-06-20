@@ -125,7 +125,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			let toplammi = (typeof value == 'number');
 			result.push(toplammi ? 'toplam' : 'icerik')
 			if (toplammi) {
-				let alacakmi = value < 0;
+				let alacakmi = value < 0
 				result.push(!value ? 'zero' : alacakmi ? 'negative' : 'positive')
 			}
 			let {level} = rec; if (level != null) { result.push('level-' + level.toString()) }
@@ -284,12 +284,12 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			let det = id2Detay[id]
 			if (!det)
 				continue
+			
 			let _recs = await promise ?? []
-			let {bakiyemi, borcmu, alacakmi}  = det.veriTipi?.ekBilgi
-			if (bakiyemi) {
-				// recs: bakiye duzenle
-			}
-			// if (!(detayli || _recs?.length)) { continue }
+			// let { bakiyemi, borcmu, alacakmi }  = det.veriTipi?.ekBilgi ?? {}
+			// if (!(detayli || _recs?.length))
+			// 		continue
+			
 			let yatay2Bedel = {}
 			if (yatayAnalizVarmi) {
 				for (let rec of _recs) {

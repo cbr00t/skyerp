@@ -2,7 +2,8 @@ class StokHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return 34 } static get kisaKod() { return 'S' }
 	static get kod() { return `stok-${this.kodEk}` } static get aciklama() { return `Stok ${this.adiEk}` }
-	static get kodEk() { return '' } static get adiEk() { return '' } static get sablonsalVarmi() { return this._sablonsalVarmi }
+	static get kodEk() { return '' } static get adiEk() { return '' }
+	static get sablonsalVarmi() { return this._sablonsalVarmi }
 	static get uygunmu() { return true } static get maliTabloIcinUygunmu() { return true }
 	static get araSeviyemi() { return this == StokHareketci } static get maliTabloIcinUygunmu() { return true }
 	static get gercekmi() { return false } static get maliyetlimi() { return false }
@@ -530,7 +531,7 @@ class StokHareketci extends Hareketci {
 		$.extend(liste, {
 			uretim: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
-					let {where: wh} = sent;
+					let { where: wh } = sent
 					sent.fisHareket('ufis', 'ustok').fis2UretimIslemBagla()
 						.leftJoin('har', 'ustok refhar', ['har.fissayac = refhar.fissayac', `har.udurum <> 'U'`, `refhar.udurum = 'U'`, 'refhar.seq = 1'])
 						.leftJoin('refhar', 'stkmst refstk', 'refhar.stokkod = refstk.kod');
@@ -723,20 +724,20 @@ class StokHareketci extends Hareketci {
 
 	static maliTablo_secimlerYapiDuzenle({ result }) {
 		super.maliTablo_secimlerYapiDuzenle(...arguments)
-		$.extend(result, {
+		extend(result, {
 			sube: DMQSube, subeGrup: DMQSubeGrup, mst: DMQStok, grup: DMQStokGrup,
 			anaGrup: DMQStokAnaGrup, istGrup: DMQStokIstGrup, tip: DMQStokTip, isl: DMQStokIslem
 		})
 	}
 	static maliTablo_secimlerSentDuzenle({ detSecimler: sec, sent, sent: { from, where: wh }, hv, mstClause }) {
 		super.maliTablo_secimlerSentDuzenle(...arguments)
-		sent.stok2GrupBagla().hizmetGrup2AnaGrupBagla().stok2IstGrupBagla()
+		sent.stok2GrupBagla().stokGrup2AnaGrupBagla().stok2IstGrupBagla()
 		if (mstClause) {
 			wh.basiSonu(sec.mstKod, mstClause).ozellik(sec.mstAdi, 'stk.aciklama')
 			wh.basiSonu(sec.grupKod, 'stk.grupkod').ozellik(sec.grupAdi, 'grp.aciklama')
 			wh.basiSonu(sec.anaGrupKod, 'grp.anagrupkod').ozellik(sec.anaGrupAdi, 'agrp.aciklama')
-			wh.basiSonu(sec.istGrupKod, 'stk.histgrupkod').ozellik(sec.istGrupAdi, 'higrp.aciklama')
-			wh.basiSonu(sec.tipKod, tipClause).ozellik(sec.tipAdi, 'tip.aciklama')
+			wh.basiSonu(sec.istGrupKod, 'stk.sistgrupkod').ozellik(sec.istGrupAdi, 'sigrp.aciklama')
+			wh.basiSonu(sec.tipKod, 'stk.tipi').ozellik(sec.tipAdi, 'tip.aciklama')
 		}
 	}
 }

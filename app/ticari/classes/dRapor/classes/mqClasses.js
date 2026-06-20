@@ -1,22 +1,29 @@
 class DMQStokAnaGrup extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok Ana Grup' }
-	static get kodListeTipi() { return 'STKANAGRP' } static get table() { return 'stkanagrup' } static get tableAlias() { return 'agrp' }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'STKANAGRP' } static get sinifAdi() { return 'Stok Ana Grup' }
+	static get table() { return 'stkanagrup' } static get tableAlias() { return 'agrp' }
 }
 class DMQStokGrup extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok Grup' }
-	static get kodListeTipi() { return 'STKGRP' } static get table() { return 'stkgrup' } static get tableAlias() { return 'grp' }
-	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const {liste} = e;
-		liste.push(new GridKolon({ belirtec: 'anagrupkod', text: 'Ana Grup', genislikCh: 10 }), new GridKolon({ belirtec: 'anagrupadi', text: 'Ana Grup Adı', genislikCh: 20, sql: 'agrp.aciklama' }))
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'STKGRP' } static get sinifAdi() { return 'Stok Grup' }
+	static get table() { return 'stkgrup' } static get tableAlias() { return 'grp' }
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		liste.push(
+			new GridKolon({ belirtec: 'anagrupkod', text: 'Ana Grup', genislikCh: 10 }),
+			new GridKolon({ belirtec: 'anagrupadi', text: 'Ana Grup Adı', genislikCh: 20, sql: 'agrp.aciklama' })
+		)
 	}
 	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.stokGrup2AnaGrupBagla() }
 }
 class DMQStokIstGrup extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok İst. Grup' }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get sinifAdi() { return 'Stok İst. Grup' }
 	static get kodListeTipi() { return 'STKISTGRP' } static get table() { return 'stkistgrup' } static get tableAlias() { return 'sigrp' }
 }
 class DMQStokTip extends StokTip {
-    static get kodListeTipi() { return 'STKTIP' } static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'STKTIP' } 
 }
 class DMQYerGrup extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok Depo Grup' }
