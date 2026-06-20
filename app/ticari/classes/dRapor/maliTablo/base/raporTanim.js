@@ -1244,13 +1244,15 @@ class SBTabloGridci extends GridKontrolcu {
 		
 		let fbd_tersIslemmi, fbd_veriTipi
 		let fbd_altForm, updateAltForm = () => {
-			for (let fbd of [fbd_tersIslemmi, fbd_veriTipi]) { fbd.updateVisible()?.dataBind?.() }
-			for (let fbd of fbd_altForm) { fbd.updateVisible() }
+			for (let fbd of [fbd_tersIslemmi, fbd_veriTipi])
+				fbd.updateVisible()?.dataBind?.()
+			for (let fbd of fbd_altForm)
+				fbd.updateVisible()
 		};
 		
-		let showCSSFlag = false;
-		let form = fbd_content.addFormWithParent().yanYana(2);
-		form.addTextInput('aciklama', 'Açıklama').addStyle_wh(400);
+		let showCSSFlag = false
+		let form = fbd_content.addFormWithParent().yanYana(2)
+		form.addTextInput('aciklama', 'Açıklama').addStyle_wh(400)
 		fbd_tersIslemmi = form.addCheckBox('tersIslemmi', 'Ters İşlem?')
 			.addStyle(`$elementCSS { margin: -5px 0 0 30px }`)
 			.setVisibleKosulu(({ builder: fbd }) => {
@@ -1261,7 +1263,7 @@ class SBTabloGridci extends GridKontrolcu {
 		form = fbd_content.addFormWithParent().yanYana();
 		form.addModelKullan('seviyeNo', 'Seviye')
 			.dropDown().noMF().autoBind().kodsuz().bosKodAlinmaz().listedenSecilmez()
-			.setSource(SBTabloSeviye.kaListe).onAfterRun(({ builder: fbd }) => fbd.input.focus());
+			.setSource(SBTabloSeviye.kaListe).onAfterRun(({ builder: fbd }) => fbd.input.focus())
 		form.addModelKullan('hesapTipi', 'Hesap Tipi')
 			.dropDown().noMF().autoBind().kodsuz().bosKodAlinmaz()
 			.setSource(SBTabloHesapTipi.kaListe).degisince(() => updateAltForm());
@@ -1331,7 +1333,7 @@ class SBTabloGridci extends GridKontrolcu {
 				.addStyle_fullWH(null, height ?? 'auto')
 				.addStyle(`$elementCSS { margin: 10px 0 20px 0 }`)
 				.onAfterRun(({ builder: fbd }) => {
-					let {layout, parent} = fbd, {secimler} = detay;
+					let {layout, parent} = fbd, {secimler} = detay
 					parent
 						.children(`[data-builder-id = altForm_satirlarToplami]`)
 						.before(layout)
@@ -1364,7 +1366,7 @@ class SBTabloGridci extends GridKontrolcu {
 						buildSecimlerForm(fbd_altForm, 'secimler').run()
 				}
 				finally { delete this[timerKey] }
-			}, 10);
+			}, 1_000)
 		};
 		altForm = form.addFormWithParent('altForm_ticariSatis_stok').altAlta()
 			.setVisibleKosulu(({ builder: fbd }) =>
