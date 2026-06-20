@@ -475,11 +475,12 @@ class TabloYapiItem extends CObject {
 		}
 		
 		secimKullanilirFlag = secimKullanilirFlag ?? !!mfSinif
+		let { belirtec } = colDefs[0]
 		let kodSaha = mfSinif?.kodSaha
-		let aliasVeNokta = alias ? `${alias}.` : '', {belirtec} = colDefs[0]
+		let aliasVeNokta = alias ? `${alias}.` : ''
 		let kodClause = `${aliasVeNokta}${kodSaha || belirtec}`
 		let hv = e.hv ?? e.hrkHV, defHV = e.defHV ?? e.hrkDefHV
-		let hvDegeri = e.hvDegeri ?? (hv || defHV ? (key => hv?.[key] ?? defHV?.[key]) : null)
+		let hvDegeri = e.hvDegeri ?? ( hv || defHV ? (key => hv?.[key] ?? defHV?.[key]) : null )
 		if (hvDegeri) {
 			let _kodClause = hvDegeri(belirtec) ?? kodClause
 			if (!_kodClause?.sqlDoluDegermi()) {
@@ -489,7 +490,11 @@ class TabloYapiItem extends CObject {
 						: hvDegeri(`${belirtec}kod`)
 				) ?? kodClause
 			}
-			kodClause = _kodClause?.sqlDoluDegermi() ? _kodClause : null
+			kodClause = (
+				_kodClause?.sqlDoluDegermi() ? _kodClause :
+				kodClause?.sqlDoluDegermi ? kodClause :
+				null
+			)
 		}
 
 		if (sql && (kodClause == belirtec || !kodClause && !isFunction(sql))) {
@@ -523,7 +528,7 @@ class TabloYapiItem extends CObject {
 		let _e = { ...e, hv, kodClause, hv, defHV, hvDegeri }
 		if (secimKullanilirFlag && !ozelWhereClauseFlag) {
 			if (kodClause && kod != null && secimSinif) {
-				let {adiSaha} = mfSinif ?? {}, {secimler: sec, where: wh} = _e
+				let { adiSaha } = mfSinif ?? {}, { secimler: sec, where: wh } = _e
 				wh.basiSonu(sec[kod], kodClause)
 				if (kaYapimi && adiSaha)
 					wh.ozellik(sec[kod + 'Adi'], `${aliasVeNokta}${adiSaha}`)
