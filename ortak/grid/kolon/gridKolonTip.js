@@ -257,8 +257,16 @@ class GridKolonTip_Number extends GridKolonTip {
 	}
 	get cellsRenderer() {
 		return ((colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
-			if (rec?.totalsrow) { return GridKolonTip.getHTML_groupsTotalRow(value) }
-			rec = colDef.gridPart.gridWidget.getboundrows()[rowIndex] ?? rec; rec = rec?.originalRecord || rec;
+			if (rec?.totalsrow)
+				return GridKolonTip.getHTML_groupsTotalRow(value)
+			
+			let { gridWidget: w } = colDef.gridPart ?? {}
+			rec = (
+				w.getboundrows?.()?.[rowIndex] ??
+				w.getRows?.()?.[rowIndex] ??
+				rec
+			)
+			rec = rec?.originalRecord || rec;
 			if (value?.constructor?.name == 'Number') { value = asFloat(value) }
 			if (value != null) {
 				let newValue = asFloat(value); newValue = !value && this.sifirGostermeFlag ? '' : newValue.toString();

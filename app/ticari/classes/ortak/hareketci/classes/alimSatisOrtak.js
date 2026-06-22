@@ -117,8 +117,8 @@ class AlimSatisOrtakHareketci extends Hareketci {
 					sent[`har2${hizmetmi ? 'Hizmet' : 'Stok'}Bagla`]()
 					sent[`${hizmetmi ? 'hizmet' : 'stok'}2GrupBagla`]()
 					sent[`${hizmetmi ? 'hizmet' : 'stok'}2IstGrupBagla`]()
-				}).hvDuzenleIslemi(({ hv, sqlEmpty, sqlZero }) => {
-					$.extend(hv, {
+				}).hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty, sqlZero }) => {
+					extend(hv, {
 						oncelik: '1', ba: `'B'`, fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac',
 						kayittipi: `'AS'`, anaislemadi: hizmetmi ? `'Hizmet'` : `'Stok'`,
 						islemadi: `'Alım/Satış'`, bizsubekod: 'fis.bizsubekod',
@@ -131,17 +131,18 @@ class AlimSatisOrtakHareketci extends Hareketci {
 						miktar: 'har.miktar', miktar2: (hizmetmi ? sqlZero : 'har.miktar2'),
 						brutbedel: 'har.brutbedel', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
 						satiriskonto: 'har.satiriskonto', dipiskonto: 'har.dipiskonto',
-						harciro: 'har.harciro', topkdv: 'har.tumkdv',
+						harciro: 'har.harciro', topkdv: '(har.tumkdv - har.pertevkifat)',
 						fmalhammadde: hizmetmi ? sqlZero : 'har.fmalhammadde',
 						fmalmuh: hizmetmi ? sqlZero : 'har.fmalmuh',
 						shTipi: `'${hizmetmi ? 'H' : 'S'}'`,
 						shkod: `har.${hizmetmi ? 'hizmetkod' : 'stokkod'}`, shadi: `${mstAlias}.aciklama`,
+						kdvkod: ( hizmetmi ? sqlEmpty : `${mstAlias}.${almSat == 'A' ? 'alm' : 'sat'}kdvhesapkod` ),
 						grupkod: `${mstAlias}.grupkod`, istgrupkod: `${mstAlias}.${hizmetmi ? 'h' : 's'}istgrupkod`,
 						takipno: `(case when fis.takiportakdir = '' then har.dettakipno else fis.orttakipno end)`
 					})
 				})
 		}
-		$.extend(liste, {
+		extend(liste, {
 			stok$hizmet: [
 				getUniBilgi(false),         // stok
 				getUniBilgi(true)           // hizmet

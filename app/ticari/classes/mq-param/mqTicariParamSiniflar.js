@@ -554,15 +554,20 @@ class MQFinansParam extends MQTicariParamBase {
 	static paramYapiDuzenle({ paramci }) {
 		super.paramYapiDuzenle(...arguments)
 		paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 10px !important }`)
-		let form = paramci.addFormWithParent()
-			form.addBool('karZararTabloMaliyettenBulunsun', 'Kar/Zarar Tablo Maliyetten Bulunsun')
-			form.addBool('eldekiVarlikStokDegerlemesiYapilir', 'Eldeki Varlık Stok Değerlemesi Yapılır')
-			form.addBool('eldekiVarlikStokDegerlemesiKDVlidir', 'Eldeki Varlık Stok Değerlemesi KDVlidir')
+		;{
+			let form = paramci.addFormWithParent()
+				form.addBool('karZararTabloMaliyettenBulunsun', 'Kar/Zarar Tablo Maliyetten Bulunsun')
+				form.addBool('eldekiVarlikStokDegerlemesiYapilir', 'Eldeki Varlık Stok Değerlemesi Yapılır')
+				form.addBool('eldekiVarlikStokDegerlemesiKDVlidir', 'Eldeki Varlık Stok Değerlemesi KDVlidir')
+				form.addBool('finansIslemTipi', 'Finans İşlem Tipi')	
+				form.addBool('finansIslemZorunlu', 'Finans İşlem Zorunlu')
+				form.addBool('finansIslemDekontZorunlu', 'Finansal İşlem: Dekont Zorunlu')
+		}
+		;{
+			let form = paramci.addFormWithParent()
 			form.addTekSecim('eldekiVarlikStokDegerlemeTipi', 'Eldeki Varlık Stok Değ. Tipi')
 				.dropDown().noMF().kodsuz().setTekSecim(StokDegerleme).addStyle_wh(300)
-			form.addBool('finansIslemTipi', 'Finans İşlem Tipi')	
-			form.addBool('finansIslemZorunlu', 'Finans İşlem Zorunlu')
-			form.addBool('finansIslemDekontZorunlu', 'Finansal İşlem: Dekont Zorunlu')
+		}
 	}
 	paramSetValues({ rec }) { super.paramSetValues(...arguments) }
 }

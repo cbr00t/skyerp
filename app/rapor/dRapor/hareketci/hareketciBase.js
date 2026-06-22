@@ -31,6 +31,11 @@ class DRapor_Hareketci extends DRapor_Donemsel {
 		let {hareketmi, envantermi} = this
 		return hareketmi ? 'Hareket' : envantermi ? 'Envanter' : 'Total'
 	}
+
+	async ilkIslemler(e) {
+		await super.ilkIslemler(e)
+		await MQVergiKdv.getKod2VergiBilgi()
+	}
 	static autoGenerateSubClasses(e) {
 		let subNames = ['Hareket', 'Envanter'];
 		let { raporBilgiler } = this
@@ -155,8 +160,23 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		if (ticarimi) {
 			this.tabloYapiDuzenle_plasiyer(e)
 			this.tabloYapiDuzenle_takip(e)
-			result.addGrupBasit('DVKOD', 'Dv.Kod', 'dvkod')
-			result.addGrupBasit('DVKUR', 'Dv.Kur', 'dvkur', null, null, ({ item, colDef }) => { item.noOrderBy(); colDef.tipDecimal() })
+			result
+				.addGrupBasit('DVKOD', 'Dv.Kod', 'dvkod')
+				.addGrupBasit('DVKUR', 'Dv.Kur', 'dvkur', null, null, ({ item, colDef }) => { item.noOrderBy(); colDef.tipDecimal() })
+				.addGrupBasit('KDVKOD', 'Kdv Kod', 'kdvkod', null, 8, ({ item }) => item.setSql_hv())
+				.addGrupBasit_numerik('KDVORANI', 'Kdv%', 'kdvorani', null, 8, ({ item }) => {
+					item
+						.setOrderBy('kdvkod')
+						.setFormul(
+							['KDVKOD'],
+							({ rec: { kdvkod: kod } }) => {
+								let { kdv: { kod2VergiBilgi: d = {} } = {} } = MQVergi.globals?.belirtec2Globals ?? {}
+								return d[kod]?.oran || 0
+							}
+						)
+				})
+				.addToplamBasit('TOPKDV', 'KDV', 'topkdv', null, null, ({ item }) => item.setSql_hv())
+			
 			this.tabloYapiDuzenle_baBedel(e)
 			this.tabloYapiDuzenle_baBakiye(e)
 			this.tabloYapiDuzenle_dovizli_baBedel(e)

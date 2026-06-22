@@ -3,11 +3,12 @@ class DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main extends DRapor_Hareketci_Mai
 	static get ticarimi() { return true }
 	static get almSat() { return this.hareketciSinif.almSat }
 	static get maliyetKullanilirmi() { return false }
+
 	tabloYapiDuzenle({ result }) {
 		let e = arguments[0]
 		super.tabloYapiDuzenle(e)
-		let {maliyetKullanilirmi} = this.class
-		let {brmDict} = app.params.stokBirim ?? {}
+		let { maliyetKullanilirmi } = this.class
+		let { brmDict } = app.params.stokBirim ?? {}
 		let { isAdmin, rol } = config.session ?? {}
 		let maliyetGorurmu = isAdmin || !rol?.ozelRolVarmi('XMALYT')
 		let { tip2BrmListe } = MQStokGenelParam
@@ -27,7 +28,7 @@ class DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main extends DRapor_Hareketci_Mai
 			result.addToplamBasit(`MIKTAR${tip}`, `Miktar (${tip})`, `miktar${tip}`, null, 10, ({ colDef }) => colDef.tipDecimal(fra))
 		}
 		if (maliyetKullanilirmi && maliyetGorurmu) {
-			let {uretimMalMuh} = app.params.uretim?.kullanim ?? {}
+			let { uretimMalMuh } = app.params.uretim?.kullanim ?? {}
 			result
 				.addToplamBasit_bedel('STBRCIRO', 'Brüt Ciro', 'stbrciro')
 				.addToplamBasit_bedel('ISKBEDEL', 'İskonto Bedel', 'iskbedel')
@@ -56,10 +57,11 @@ class DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main extends DRapor_Hareketci_Mai
 		; {
 			for (let [belirtec, { ka, colDefs }] of entries(toplam)) {
 				if (belirtec.includes('ISARETLIBEDEL')) {
-					let {aciklama: ack} = ka
+					let { aciklama: ack } = ka
 					ka.aciklama = colDefs[0].text = ack
 						.replace('B-A ', '')
 						.replace('İşaretli ', '')
+						.replace('Bakiye', 'Net Bedel')
 				}
 			}
 		}

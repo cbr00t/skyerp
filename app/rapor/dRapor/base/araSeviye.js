@@ -31,7 +31,6 @@ class DRapor_AraSeviye extends DGrupluPanelRapor {
 		}
 		return result
 	}
-
 	
 	async ilkIslemler(e) {
 		await super.ilkIslemler(e)
@@ -141,7 +140,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	static set yatayTip2Bilgi(value) { this._yatayTip2Bilgi = value }
 
 	async ilkIslemler(e) {
-		let {class: { raporDosyaTanimlar: dosyaTanimlar }} = this
+		let { class: { raporDosyaTanimlar: dosyaTanimlar } } = this
 		dosyaTanimlar ??= []
 		{
 			let _e = { ...e, liste: dosyaTanimlar }
@@ -438,7 +437,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				let {[key]: item} = grupVeToplam
 				let sql = item?.sql
 				if (sql) {
-					let {colDefs, mfSinif} = item, aliases = colDefs.map(_ => _.belirtec)
+					let { colDefs, mfSinif } = item, aliases = colDefs.map(_ => _.belirtec)
 					let kami = kaPrefixes?.[aliases[0]]
 					if (kami && aliases.length == 1) {
 						let alias1 = aliases[0]
@@ -1287,7 +1286,15 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	tabloYapiDuzenle_baBedel({ result }) {
 		this.tabloYapiDuzenle_baBedelBasit(...arguments)
-		result.addToplamBasit_bedel('ISARETLIBEDEL', 'B-A Bakiye', 'isaretlibedel')
+		result
+			.addToplamBasit_bedel('ISARETLIBEDEL', 'B-A Bakiye', 'isaretlibedel')
+			.addToplamBasit_bedel('ISARETLIBEDEL_KDVDAHIL', 'B-A Bakiye (+KDV)', 'isaretlibedelkdvdahil', null, null, ({ item }) => {
+				item.setFormul(
+					['ISARETLIBEDEL', 'TOPKDV'],
+					({ rec: { isaretlibedel: bedel, topkdv: kdv } }) =>
+						roundToBedelFra( (bedel || 0) + (kdv || 0) )
+				)
+			})
 		return this
 	}
 	loadServerData_queryDuzenle_baBedel({ stm, sent, attrSet, baClause, bedelClause }) {
@@ -1355,7 +1362,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 
 	tabloYapiDuzenle_dovizli_baBedelBasit({ result }) {
-		let {degerlemeDvKodListe: dvKodListe} = this
+		let { degerlemeDvKodListe: dvKodListe } = this
 		for (let dvKod of dvKodListe) {
 			result
 				.addToplamBasit_bedel(`DEG_BORCBEDEL_${dvKod}`, `Borç Bedel (${dvKod})`, `deg_borcbedel_${dvKod}`)

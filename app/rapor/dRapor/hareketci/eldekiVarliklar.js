@@ -33,7 +33,7 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 
 	secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments)
-		let {eldekiVarlikStokDegerlemesiKDVlidir: degKDVlimi} = app?.params?.finans
+		let { eldekiVarlikStokDegerlemesiKDVlidir: degKDVlimi } = app?.params?.finans
 		{
 			let harClasses = values(Hareketci.kod2Sinif)
 				.filter(cls => cls.eldekiVarliklarIcinUygunmu)
