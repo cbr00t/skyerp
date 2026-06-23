@@ -62,7 +62,7 @@ class DRapor_AraSeviye extends DGrupluPanelRapor {
 				let sent = new MQSent(), { where: wh, sahalar } = sent
 				sent.fromAdd('OSahaTanim tan')
 				sahalar.addWithAlias('tan',
-					'adimTipi anaTip', 'kaysayac id', 'gorunumSirano seq',
+					'tipi anaTip', 'kaysayac id', 'gorunumSirano seq',
 					'attr kod', 'aciklama', 'tipi tip',
 					'genislik', 'fra'
 				)
