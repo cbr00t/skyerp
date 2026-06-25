@@ -252,15 +252,20 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		if (panelDuzenleyici?.gridInit) { panelDuzenleyici.gridInit(_e) } if (mfSinif?.orjBaslikListesi_gridInit) { mfSinif.orjBaslikListesi_gridInit(_e) }
 	}
 	gridArgsDuzenleDevam(e) {
-		super.gridArgsDuzenleDevam(e); let {args} = e, mfSinif = this.getMFSinif(), {panelDuzenleyici} = this;
-		$.extend(args, { autoShowLoadElement: true, showGroupsHeader: true, showFilterRow: false, filterMode: 'default' /* virtualMode: true */ });
-		if (panelDuzenleyici?.gridArgsDuzenle) { panelDuzenleyici.gridArgsDuzenle(e) }
+		super.gridArgsDuzenleDevam(e)
+		let { args } = e, mfSinif = this.getMFSinif()
+		let { panelDuzenleyici } = this
+		extend(args, { autoShowLoadElement: true, showGroupsHeader: true, showFilterRow: false, filterMode: 'default' /* virtualMode: true */ })
+		panelDuzenleyici?.gridArgsDuzenle?.(e)
 		if (mfSinif) {
 			if (mfSinif.gridDetaylimi) {
 				extend(args, {
 					selectionMode: 'checkbox', /* virtualMode: true, */ rowDetails: true,
 					rowDetailsTemplate: rowIndex => ({ rowdetails: `<div class="detay-grid-parent dock-bottom"><div class="detay-grid"/></div>`, rowdetailsheight: 350 }),
-					initRowDetails: (rowIndex, _parent, grid, parentRec) => { let parent = $(_parent).find('.detay-grid'); this.initRowDetails({ rowIndex, parent, parentRec }) }
+					initRowDetails: (rowIndex, _parent, grid, parentRec) => {
+						let parent = $(_parent).find('.detay-grid')
+						this.initRowDetails({ rowIndex, parent, parentRec })
+					}
 				})
 			}
 			if (mfSinif.orjBaslikListesi_argsDuzenle) { mfSinif.orjBaslikListesi_argsDuzenle(e) }
@@ -275,51 +280,87 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		}
 	}
 	initRowDetails(e) {
-		e = $.extend({}, e, { parentPart: this });
-		let {grid, gridWidget} = this, {parent, parentRec, rowIndex} = e, mfSinif = e.mfSinif = this.getMFSinif(e);
+		e = { ...e, parentPart: this }
+		let { grid, gridWidget } = this
+		let { parent, parentRec, rowIndex } = e
+		let mfSinif = e.mfSinif = this.getMFSinif(e)
 		if (mfSinif?.orjBaslikListesi_initRowDetails) {
-			let _e = $.extend({}, e, { sender: this, mfSinif, grid, gridWidget });
-			try { let result = mfSinif.orjBaslikListesi_initRowDetails(_e); if (result === false) { gridWidget.hiderowdetails(rowIndex); return } }
-			catch (ex) { hConfirm(getErrorText(ex), 'Detay Grid Gösterim'); throw ex }
+			let _e = { ...e, sender: this, mfSinif, grid, gridWidget }
+			try {
+				let result = mfSinif.orjBaslikListesi_initRowDetails(_e)
+				if (result === false) {
+					gridWidget.hiderowdetails(rowIndex)
+					return
+				}
+			}
+			catch (ex) {
+				hConfirm(getErrorText(ex), 'Detay Grid Gösterim')
+				throw ex
+			}
 		}
 		let detGridPart = e.detGridPart = new GridliGostericiPart({
 			parentPart: this, parentBuilder: this.builder,
-			layout: parent, argsDuzenle: e => {
-				let {args} = e; $.extend(args, {
+			layout: parent, argsDuzenle: ({ args }) => {
+				extend(args, {
 					virtualMode: false, selectionMode: 'multiplerowsextended',
 					showGroupsHeader: true, groupsExpandedByDefault: true
-				});
-				let mfSinif = this.getMFSinif(e); if (mfSinif?.orjBaslikListesi_argsDuzenle_detaylar) { mfSinif.orjBaslikListesi_argsDuzenle_detaylar(e) }
+				})
+				let mfSinif = this.getMFSinif(e)
+				mfSinif?.orjBaslikListesi_argsDuzenle_detaylar?.(e)
 			},
-			tabloKolonlari: e => this.tabloKolonlari_detaylar,
+			tabloKolonlari: e =>
+				this.tabloKolonlari_detaylar,
 			loadServerData: async _e => {
-				let {mfSinif, secimler, args} = this;
-				$.extend(_e, {
-					gridPart: this, sender: this, mfSinif, secimler, parent, parentRec,
-					gridPart: detGridPart, grid: detGridPart.grid, gridWidget: detGridPart.gridWidget, args
-				});
+				let { mfSinif, secimler, args } = this
+				extend(_e, {
+					gridPart: this, sender: this, mfSinif,
+					secimler, parent, parentRec,
+					gridPart: detGridPart, grid: detGridPart.grid,
+					gridWidget: detGridPart.gridWidget,
+					args
+				})
 				try { return await this.loadServerData_detaylar(_e) }
-				catch (ex) { console.error(ex); let errorText = getErrorText(ex); hConfirm(`<div style="color: firebrick;">${errorText}</div>`, 'Grid Verisi Alınamadı') }
+				catch (ex) {
+					console.error(ex)
+					let errorText = getErrorText(ex)
+					hConfirm(`<div style="color: firebrick;">${errorText}</div>`, 'Grid Verisi Alınamadı')
+				}
 			},
-			veriYuklenince: e => { let {mfSinif} = this; if (mfSinif.gridVeriYuklendi_detaylar) { return mfSinif.gridVeriYuklendi_detaylar(e) } }
-		}).noAnimate();
-		detGridPart.run();
+			veriYuklenince: e =>
+				this.mfSinif?.gridVeriYuklendi_detaylar?.(e)
+		}).noAnimate()
+		detGridPart.run()
+		
 		if (mfSinif?.orjBaslikListesi_initRowDetails_son) {
-			let _e = $.extend({}, e, { sender: this, mfSinif, grid, gridWidget });
+			let _e = { ...e, sender: this, mfSinif, grid, gridWidget }
 			try {
-				let result = mfSinif.orjBaslikListesi_initRowDetails_son(_e);
-				if (result === false) { gridWidget.hiderowdetails(rowIndex); return }
+				let result = mfSinif.orjBaslikListesi_initRowDetails_son(_e)
+				if (result === false) {
+					gridWidget.hiderowdetails(rowIndex)
+					return
+				}
 			}
-			catch (ex) { hConfirm(getErrorText(ex), 'Detay Grid Gösterim'); throw ex }
+			catch (ex) {
+				hConfirm(getErrorText(ex), 'Detay Grid Gösterim')
+				throw ex
+			}
 		}
 	}
 	gridContextMenuIstendi(e) {
-		let mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_gridContextMenuIstendi) { if (mfSinif.orjBaslikListesi_gridContextMenuIstendi(e) === false) { return } }
+		let mfSinif = this.getMFSinif()
+		if (mfSinif?.orjBaslikListesi_gridContextMenuIstendi?.(e) === false)
+			return
 		super.gridContextMenuIstendi(e)
 	}
-	gridRendered(e) { super.gridRendered(e); let mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_gridRendered) { mfSinif.orjBaslikListesi_gridRendered(e) } }
+	gridRendered(e) {
+		super.gridRendered(e)
+		let mfSinif = this.getMFSinif()
+		mfSinif?.orjBaslikListesi_gridRendered?.(e)
+	}
 	gridRowExpanded(e) {
-		super.gridRowExpanded(e); let mfSinif = this.getMFSinif(); if (mfSinif?.orjBaslikListesi_rowExpanding) { if (mfSinif.orjBaslikListesi_rowExpanding(e) === false) { return } }
+		super.gridRowExpanded(e)
+		let mfSinif = this.getMFSinif()
+		if (mfSinif?.orjBaslikListesi_rowExpanding) { if (mfSinif.orjBaslikListesi_rowExpanding(e) === false) { return } }
 		let {grid, gridWidget, expandedIndexes} = this, evt = e.event || {}, args = evt.args || {}, index = gridWidget.getrowboundindex(args.rowindex);
 		if (index != null && index > -1) {
 			/*let animation = 'grid-open'; grid.removeClass('grid-open grid-open-fast grid-open-slow');

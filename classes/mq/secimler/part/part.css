@@ -87,6 +87,8 @@
 .secimler.part .secimler-form .secim .hepsimi { margin-right: 3px }
 .secimler.part .secimler-form .secim .birKismi-bos-parent { }
 .secimler.part .secimler-form .secim .birKismi-bos-parent .veri-etiket { font-size: 123%; font-weight: bold; color: #999; padding-top: 6px; margin-left: 13px }
+.secimler.part .secimler-form .secim .disindakilermi.jqx-switchbutton-on .jqx-switchbutton-wrapper > *:not(.jqx-switchbutton-thumb) { background-color: darkorange !important }
+.secimler.part .secimler-form .secim .disindakilermi:not(.jqx-switchbutton-on) .jqx-switchbutton-wrapper > *:not(.jqx-switchbutton-thumb)  { background-color: #7f5a5a !important }
 .secimler.part .secimler-form .secim button.listedenSec { margin-right: 3px }
 @media (max-width: 1400px) {
 	.secimler.part .secimler-form .secim .etiket { font-size: 90%; width: 140px }

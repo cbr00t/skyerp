@@ -99,6 +99,7 @@ class MQOnayci extends MQCogul {
 			}, 5_000)
 			this.otoTazele_startTimer(e)
 		}
+		
 		try { Notification.requestPermission() }
 		catch (ex) { cerr(ex) }
 		
@@ -567,9 +568,13 @@ class MQOnayci extends MQCogul {
 	static async registerNTFY(e = {}) {
 		try { await app._promise_ilkBilgiler }
 		catch (ex) { cerr(ex) }
+
+		if (!app.portalMustKod)
+			await app.wsGetMustKod()
+		
 		if (!app.portalMustKod) {
-			this.unregisterNTFY(e)
-			cerr(ex)
+			try { this.unregisterNTFY(e) }
+			catch (ex) { cerr(ex) }
 			return
 		}
 		
@@ -582,7 +587,7 @@ class MQOnayci extends MQCogul {
 
 		let { sender: gridPart } = e
 		let { ntfyTopic: topic } = app
-		let url = [app.ntfyWSUrl, topic, 'sse'].filter(Boolean).join('/')
+		let url = [app.ntfyWSUrl, topic.join('-'), 'sse'].filter(Boolean).join('/')
 		ws = this.ws_ntfy = new EventSource(url)
 		ws.onmessage = async ({ data: _ }) => {
 			if (_ && isString(_))
