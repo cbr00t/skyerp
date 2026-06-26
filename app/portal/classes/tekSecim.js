@@ -68,3 +68,17 @@ class AktHesapSekli extends TekSecim {
 	}
 }
 
+class EDefKontor_AyrimTipi extends TekSecim {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get defaultChar() { return ' ' }
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		kaListe.push(...[
+			new CKodVeAdi([' ', '', 'yokmu']),
+			new CKodVeAdi(['O1M', 'Oluşturma: 100MB', 'olusturma100MBmi']),
+			new CKodVeAdi(['O1G', 'Oluşturma: 1GB', 'olusturma1GBmi']),
+			new CKodVeAdi(['S1M', 'Saklama: 100MB', 'saklama100MBmi']),
+			new CKodVeAdi(['S1G', 'Saklama: 1GB', 'saklama1GBmi'])
+		])
+	}
+}

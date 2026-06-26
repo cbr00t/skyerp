@@ -125,28 +125,50 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		this.initBlock?.call(this, _e)
 	}
 	runDevam(e) {
-		e ??= {}; let mfSinif = this.getMFSinif(e), {layout} = this; $.extend(e, { layout, sender: this });
+		e ??= {}
+		let { layout } = this
+		extend(e, { layout, sender: this })
+		
+		let mfSinif = this.getMFSinif(e)
 		if (mfSinif) {
-			let {parentMFSinif} = mfSinif; if (parentMFSinif) { layout.addClass(parentMFSinif.dataKey ?? parentMFSinif.classKey ?? mfSinif.name) }
-			layout.addClass(mfSinif.dataKey ?? mfSinif.classKey ?? mfSinif.name); if (mfSinif.listeEkrani_init) { mfSinif.listeEkrani_init(e) };
+			let { parentMFSinif } = mfSinif
+			if (parentMFSinif)
+				layout.addClass(parentMFSinif.dataKey ?? parentMFSinif.classKey ?? mfSinif.name)
+			layout.addClass(mfSinif.dataKey ?? mfSinif.classKey ?? mfSinif.name)
+			mfSinif?.listeEkrani_init?.(e)
 		}
 		super.runDevam(e)
 		this.initBulForm(e)
 	}
-	afterRun(e) {
-		e ??= {}; super.afterRun(e); let mfSinif = this.getMFSinif(e); let {parent, layout} = this; let {builder} = this;
-		$.extend(e, { sender: this, parent, layout });
-		if (!builder && mfSinif?.getRootFormBuilder_listeEkrani) { let _e = $.extend({}, e); builder = this.builder = mfSinif.getRootFormBuilder_listeEkrani(_e) }
+	afterRun(e = {}) {
+		super.afterRun(e)
+		let { parent, layout, builder } = this
+		extend(e, { sender: this, parent, layout })
+		
+		let mfSinif = this.getMFSinif(e)
+		if (!builder && mfSinif?.getRootFormBuilder_listeEkrani)
+			builder = this.builder = mfSinif.getRootFormBuilder_listeEkrani({ ...e })
 		if (builder && !builder._afterRun_calistimi) {
-			builder.part = this; let _parent = builder.parent, _layout = builder.layout; this.builder = builder;
-			if (!(parent?.length || layout?.length)) _layout = builder.layout = layout
-			let _id = builder.id; if (!_id) { _id = builder.id = builder.newElementId() }
-			builder.autoInitLayout(); builder.run()
+			builder.part = this
+			let { parent: _parent, layout: _layout } = builder
+			this.builder = builder
+			if (!(parent?.length || layout?.length))
+				_layout = builder.layout = layout
+			
+			let { id: _id } = builder
+			if (!_id)
+				id = builder.id = builder.newElementId()
+			
+			builder.autoInitLayout()
+			builder.run()
 		}
-		$.extend(e, { layout, sender: this, gridPart: this, builder }); if (mfSinif?.listeEkrani_afterRun) { mfSinif.listeEkrani_afterRun(e) }
+		extend(e, { layout, sender: this, gridPart: this, builder })
+		mfSinif?.listeEkrani_afterRun?.(e)
 	}
 	destroyPart(e = {}) {
-		let {layout, builder} = this, mfSinif = this.getMFSinif(); $.extend(e, { layout, sender: this, gridPart: this, builder });
+		let { layout, builder } = this
+		let mfSinif = this.getMFSinif(e)
+		extend(e, { layout, sender: this, gridPart: this, builder })
 		if (mfSinif?.listeEkrani_destroyPart) { mfSinif.listeEkrani_destroyPart(e) }
 		let {secimlerPart} = this; if (secimlerPart) { secimlerPart.close(e); secimlerPart.destroyPart() }
 		super.destroyPart(e); $('body').removeClass('bg-modal')

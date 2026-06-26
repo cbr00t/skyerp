@@ -216,7 +216,7 @@ class MQCogul extends MQYapi {
 	static getRootFormBuilder_listeEkrani(e = {}) {
 		let rootBuilder = new RootFormBuilder()
 		let _e = { ...e, mfSinif: this, rootBuilder }
-		$.extend(rootBuilder, { part: _e.sender, parent: _e.parent, layout: _e.layout, mfSinif: this })
+		extend(rootBuilder, { part: _e.sender, parent: _e.parent, layout: _e.layout, mfSinif: this })
 		this.rootFormBuilderDuzenle_listeEkrani(_e)
 		this.rootFormBuilderDuzenleSonrasi_listeEkrani(_e)
 		return rootBuilder = _e.rootBuilder
