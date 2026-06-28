@@ -81,6 +81,36 @@ class CBasiSonu extends CObject {
 		return empty(value) ? true : (!basi || basi <= value) && (!sonu || sonu >= value)
 	}
 	toString(e) { return this.kisaText }
+	*iter({ reverse } = {}) {
+		let { basi, sonu } = this
+		if (!(basi && sonu))
+			return
+
+		if (reverse) {
+			let prev = v => 
+				isDate(v) ? v.clone().addDays(-1) : v - 1
+			for (let i = sonu; i >= basi; i = prev(i))
+				yield i
+		}
+		else {
+			let next = v => 
+				isDate(v) ? v.clone().addDays(1) : v + 1
+			for (let i = basi; i <= sonu; i = next(i))
+				yield i
+		}
+	}
+	[Symbol.iterator](e) { return this.iter(e) }
+	forEach(proc, reverse) {
+		for (let i of this.iter({ reverse }))
+			proc(i)
+	}
+	toArray(reverse) {
+		let result = []
+		for (let i of this.iter({ reverse }))
+			result.push(i)
+		return result
+	}
+	
 	/*
 	#bindWithArguments: , #bindWith: , #bindWith:with: , #bindWith:with:with: , #bindWith:with:with:with: ...
 		===> js: template formatted string
@@ -161,6 +191,7 @@ class CBasiSonu extends CObject {
 
 	*/
 }
+
 class YilVeAy extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get bosmu() { return !(this.basi || !this.sonu) }

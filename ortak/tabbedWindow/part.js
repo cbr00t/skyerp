@@ -94,7 +94,7 @@ class TabbedWindowPart extends Part {
 		let {ownerWndPart} = this; if (ownerWndPart && (!ownerWndPart.asilPart || ownerWndPart.asilPart.isDestroyed)) { ownerWndPart = null }
 		let {asilPart} = ownerWndPart || {}; if (asilPart?.isSubPart /*|| (asilPart.layout?.hasClass('jqx-hidden') || asilPart.layout?.hasClass('basic-hidden')))*/) { ownerWndPart = ownerWndPart.ownerWndPart; asilPart = ownerWndPart?.asilPart }
 		let newPageId = ownerWndPart?.wndId; if (!newPageId) { newPageId = Object.keys(id2TabPage).filter(id => id != wndId).slice(-1)[0] }
-		mainWindowsPart.activePageId = newPageId; mainWindowsPart.refresh();
+		mainWindowsPart.activePageId = newPageId; mainWindowsPart.refresh()
 		const closeableTabPages = Object.values(id2TabPage).filter(tabPage => tabPage?.header?.data('part')?.asilPart?.isCloseable);
 		const noWndFlag = !closeableTabPages.length; app.content[noWndFlag ? 'removeClass' : 'addClass']('jqx-hidden');
 		$('body')[noWndFlag ? 'addClass' : 'removeClass']('no-wnd'); if (noWndFlag) { $('body').removeClass('bg-modal') }; return this

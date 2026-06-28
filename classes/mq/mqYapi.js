@@ -24,7 +24,11 @@ class MQYapi extends CIO {
 	static get logKullanilirmi() { return !(app.offlineMode || this.isOfflineMode) }
 	static get logAnaTip() { return 'K' }
 	static get logRecDonusturucu() { let e = { result: {} }; this.logRecDonusturucuDuzenle(e); return e.result }
-	get logHV() { let e = { hv: {} }; this.logHVDuzenle(e); return e.hv }
+	get logHV() {
+		let e = { hv: {} }
+		this.logHVDuzenle(e)
+		return e.hv
+	}
 
 	static getInstance() {
 		let result = this._instance
@@ -264,7 +268,8 @@ class MQYapi extends CIO {
 		let {computerName, userName, ip} = sysInfo ?? {}
 		let _e = { ...e, /*logRecDonusturucu,*/ degisenler }
 		let hv = _e.hv = {
-			islem, adimbelirtec: adimBelirtec?.slice(0, 10),
+			islem,
+			adimbelirtec: adimBelirtec?.slice(0, 10),
 			kullanici: loginUser?.slice(0, 20),
 			terminal: [ip || '', computerName || '', userName || ''].join('_'),
 			anatip: logAnaTip, tablo: table, ...logHV,

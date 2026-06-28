@@ -93,7 +93,10 @@ class TSOrtakFis extends MQTicariGenelFis {
 			.addStyle(e => `$elementCSS  { min-width: 150px !important; max-width: 400px !important }`)
 	}
 	static ekCSSDuzenle(e) { super.ekCSSDuzenle(e) }
-	static standartGorunumListesiDuzenle_son(e) { super.standartGorunumListesiDuzenle_son(e); let {liste} = e; liste.push('cariaciklama') }
+	static standartGorunumListesiDuzenle_son({ liste }) {
+		super.standartGorunumListesiDuzenle_son(...arguments)
+		liste.push('cariaciklama')
+	}
 	static orjBaslikListesiDuzenle_ara(e) {
 		super.orjBaslikListesiDuzenle_ara(e); const {liste} = e, {kullanim} = app.params.ticariGenel;
 		liste.push(...[

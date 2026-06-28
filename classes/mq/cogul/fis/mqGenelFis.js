@@ -101,7 +101,8 @@ class MQGenelFis extends MQOrtakFis {
 			new GridKolon({ belirtec: this.tarihSaha, text: 'Tarih', genislikCh: 13 }).tipDate(),
 			new GridKolon({ belirtec: this.seriSaha, text: 'Seri', genislikCh: 8 })
 		);
-		if (this.noYilKullanilirmi) liste.push(new GridKolon({ belirtec: 'noyil', text: 'Yıl', genislikCh: 8 }).tipNumerik())
+		if (this.noYilKullanilirmi)
+			liste.push(new GridKolon({ belirtec: 'noyil', text: 'Yıl', genislikCh: 8 }).tipNumerik())
 		liste.push(
 			new GridKolon({ belirtec: this.noSaha, text: 'No', genislikCh: 18 }).tipNumerik(),
 			new GridKolon({ belirtec: 'ozelisaret', text: 'İşr', genislikCh: 6 })

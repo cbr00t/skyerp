@@ -1,4 +1,4 @@
-class SatisFatura_OtoSablonFis extends SatisFaturaFis {
+class SatisFaturaFis_OtoSablon extends SatisFaturaFis {
     static { window[this.name] = this; this._key2Class[this.name] = this }
     static get kodListeTipi() { return 'TFS' }
     static get sinifAdi() { return `${super.sinifAdi} Şablonu` }
@@ -7,6 +7,7 @@ class SatisFatura_OtoSablonFis extends SatisFaturaFis {
 	static get numTipKod() { return 'OS' }
 	static get tsnKullanilirmi() { return true }
 	static get numaratorGosterilirmi() { return false }
+	static get noYilKullanilirmi() { return false }
 	static get dipKullanilirmi() { return super.dipKullanilirmi }
 	static get dipNakliyeKullanilirmi() { return super.dipNakliyeKullanilirmi }
 
@@ -16,6 +17,49 @@ class SatisFatura_OtoSablonFis extends SatisFaturaFis {
             sablonYapi: new PInstClass(FisSablonYapi)
         })
     }
+	static standartGorunumListesiDuzenle({ liste }) {
+		liste.push('sablonAdi')
+		super.standartGorunumListesiDuzenle(...arguments)
+		liste.push('ayGunu', 'aySonumu')
+			
+		;{
+			let i = liste.findIndex(k => k == 'cariaciklama') ?? -1
+			if (i > -1) {
+				let k = liste.splice(i, 1)[0]
+				liste.push(k)
+			}
+		}
+	}
+	static orjBaslikListesiDuzenle(e) {
+		super.orjBaslikListesiDuzenle(e)
+		let { liste } = e
+		let { tarihSaha, seriSaha, noSaha } = this
+		let removeKeys = asSet([ tarihSaha, seriSaha, 'noyil', noSaha ])
+		liste = liste.filter(cd => !removeKeys[cd.belirtec])
+		e.liste = liste
+	}
+	static orjBaslikListesiDuzenle_ilk({ liste }) {
+		super.orjBaslikListesiDuzenle_ilk(...arguments)
+		liste.push(
+			new GridKolon({ belirtec: 'sablonAdi', text: 'Şablon Adı', genislikCh: 40, sql: 'sab.sablonadi' })
+		)
+	}
+	static orjBaslikListesiDuzenle_ara({ liste }) {
+		super.orjBaslikListesiDuzenle_ara(...arguments)
+		liste.push(
+			new GridKolon({ belirtec: 'ayGunu', text: 'Ay Günü', genislikCh: 8, sql: 'sab.aygunu' }).tipNumerik().checkedList(),
+			new GridKolon({ belirtec: 'aySonumu', text: 'Ay Sonu?', genislikCh: 8, sql: 'sab.baysonumu' }).tipBool().checkedList()
+		)
+	}
+	static loadServerData_queryDuzenle({ sent }) {
+		super.loadServerData_queryDuzenle(...arguments)
+		let { tableAlias: alias } = this
+		sent.leftJoin(alias, 'pifsablon sab', `${alias}.kaysayac = sab.fissayac`)
+	}
+	static async loadServerData_recsDuzenle({ recs }) {
+		return await super.loadServerData_recsDuzenle(...arguments)
+	}
+	
     async yukleSonrasiIslemler({ sender, islem, trnId }) {
         await super.yukleSonrasiIslemler(...arguments)
 		let { sayac, sablonYapi: sy } = this
@@ -47,17 +91,15 @@ class SatisFatura_OtoSablonFis extends SatisFaturaFis {
     async topluDegistirmeKomutlariniOlusturSonrasi(e) {
         await super.topluDegistirmeKomutlariniOlusturSonrasi(e)
     }*/
-	hostVarsDuzenle(e) {
-		super.hostVarsDuzenle(e)
-		/*let { hv } = e
-		let { sablonYapi: sy } = this
-		extend(hv, sy.hostVars(e))*/
+	hostVarsDuzenle({ hv }) {
+		let { aySonumu } = this
+		super.hostVarsDuzenle(...arguments)
+		delete hv.otosablonsayac
+		if (aySonumu)
+			hv.aygunu = 0
 	}
-	setValues(e) {
-		super.setValues(e)
-		/*let { rec } = e
-		let { sablonYapi: sy } = this
-		sy.setValues(e)*/
+	setValues({ rec }) {
+		super.setValues(...arguments)
 	}
     async fisBakiyeDurumuGerekirseAyarla(e) {
         // bakiye düzenleme yapılmaz
@@ -127,12 +169,25 @@ class SatisFatura_OtoSablonFis extends SatisFaturaFis {
 			form.addForm().setLayout(() => $(`<b class="etiket">Fiş Tarih:</b>`))
 			form.addCheckBox('aySonumu', 'Ay Sonu')
 				.setAltInst(getAltInst)
+				.degisince(({ builder: { altInst: inst, parentBuilder: parent } }) => {
+					for (let fbd of parent)
+						fbd.updateVisible()
+				})
 				.etiketGosterim_yok()
-			form.addForm().setLayout(() => $(`<span> ayın </span>`))
+
+			let checkVisible = ({ builder: fbd }) =>
+				fbd.altInst.aySonumu ? 'basic-hidden' : true
+			form.addForm()
+				.setLayout(() => $(`<span> ayın </span>`))
+				.setVisibleKosulu(checkVisible)
 			form.addNumberInput('ayGunu', ' ')
 				.setAltInst(getAltInst)
-				.etiketGosterim_yok().addStyle_wh(50)
-			form.addForm().setLayout(() => $(`<span>. günü</span>`))
+				.setVisibleKosulu(checkVisible)
+				.etiketGosterim_yok()
+				.addStyle_wh(50)
+			form.addForm()
+				.setLayout(() => $(`<span>. günü</span>`))
+				.setVisibleKosulu(checkVisible)
 		}
 		;{
 			let form = b[1].addFormWithParent().yanYana()
@@ -144,5 +199,11 @@ class SatisFatura_OtoSablonFis extends SatisFaturaFis {
 		}
 		
 		super.rootFormBuilderDuzenle(...arguments)
+	}
+
+	static faturaOlusturIslemi(e = {}) {
+		let sec = new SabFatOlusturucu()
+		let _e = { ...e, sender: null }
+		return sec.duzenlemeEkraniAc(_e)
 	}
 }

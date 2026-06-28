@@ -49,16 +49,17 @@ class TicariFis extends TSOrtakFis {
 			_kdvKAListe: kaListe
 		})
 	}
-	constructor(e) {
-		e = e || {}; super(e);
-		$.extend(this, { musteriOncekiBakiyeDurumu: e.musteriOncekiBakiyeDurumu })
+	constructor(e = {}) {
+		super(e)
+		extend(this, { musteriOncekiBakiyeDurumu: e.musteriOncekiBakiyeDurumu })
 	}
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); let {pTanim} = e;
-		$.extend(pTanim, {
+		extend(pTanim, {
 			mustKod: new PInstStr(this.mustSaha), ticMustKod: new PInstStr('ticmust'),
 			altHesapKod: new PInstStr('cariitn'), sevkAdresKod: new PInstStr('xadreskod'),
-			nakSekliKod: new PInstStr('nakseklikod')
+			nakSekliKod: new PInstStr('nakseklikod'),
+			otoSablonSayac: new PInstNum('otosablonsayac')
 		})
 	}
 	static secimlerDuzenle(e) {
@@ -656,7 +657,10 @@ class FaturaFis extends SevkiyatFis {
 }
 class SatisFaturaFis extends FaturaFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kodListeTipi() { return 'PSATFAT' } static get numTipKod() { return 'TF' } static get almSat() { return 'T' }
+	static get kodListeTipi() { return 'PSATFAT' }
+	static get numTipKod() { return 'TF' }
+	static get almSat() { return 'T' }
+	static get otoSablonSinif() { return SatisFaturaFis_OtoSablon }
 }
 class AlimFaturaFis extends FaturaFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

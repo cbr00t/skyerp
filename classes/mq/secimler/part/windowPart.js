@@ -11,5 +11,7 @@ class SecimlerWindowPart extends SecimlerPart {
 		super.islemTuslariArgsDuzenle(e); const {args} = e;
 		$.extend(args, { tip: 'tamamVazgec', id2Handler: { tamam: e => this.tamamIstendi(e), vazgec: e => this.vazgecIstendi(e) } })
 	}
-	formFocusIslemi(e) { /*const {secimlerForm} = this; if (secimlerForm?.length) { const elm = secimlerForm.find('input:not([type=hidden]):eq(0)'); if (elm.length) { elm.focus() } }*/ }
+	formFocusIslemi(e) {
+		/*const {secimlerForm} = this; if (secimlerForm?.length) { const elm = secimlerForm.find('input:not([type=hidden]):eq(0)'); if (elm.length) { elm.focus() } }*/
+	}
 }

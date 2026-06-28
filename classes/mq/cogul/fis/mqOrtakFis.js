@@ -84,16 +84,16 @@ class MQOrtakFis extends MQDetayli {
 		this.donusumBilgileriniSil(e)
 	}
 	async disKaydetIslemi(e = {}) {
-		let {numarator: num, fisNo, class: { noSaha }} = this
+		let { numarator: num, fisNo, class: { noSaha } } = this
 		let hedefSeri = e.seri ?? this.seri
 		if (!num) {
-			let {numYapi} = this
+			let { numYapi } = this
 			if (numYapi)
 				num = this.numarator = numYapi.deepCopy()
 		}
 		if (noSaha && !fisNo && num) {
 			if (hedefSeri) {
-				let {cariYil} = app.params?.zorunlu
+				let { cariYil } = app.params?.zorunlu
 				extend(num, { kod: hedefSeri, seri: hedefSeri, noYil: cariYil })
 				if (!await num.yukle())
 					await num.kaydet(e)
@@ -101,48 +101,87 @@ class MQOrtakFis extends MQDetayli {
 			}
 			else
 				await num.yukle(e)
+			
 			let { seri, noYil } = num
 			fisNo = (await num.kesinlestir(e)).sonNo
 			extend(this, { seri, noYil, fisNo })
 		}
-		let result = await this.disKaydetOncesiIslemler(e); if (result === false) { return false }
+		
+		let result = await this.disKaydetOncesiIslemler(e)
+		if (result === false)
+			return false
+		
 		e.proc = async e => {
-			let result = await this.disKaydetOncesi_trn(e); if (result === false) { return false }
-			if (num && fisNo) { while (await this.varmi(e)) { fisNo = this.fisNo = (await num.kesinlestir(e)).sonNo } }
-			result = await this.disKaydetSonrasi_trn(e); if (result === false) { return false }
+			let result = await this.disKaydetOncesi_trn(e)
+			if (result === false)
+				return false
+			
+			if (num && fisNo) {
+				while (await this.varmi(e))
+					fisNo = this.fisNo = (await num.kesinlestir(e)).sonNo
+			}
+			result = await this.disKaydetOncesi_trnSon(e)
+			if (result === false)
+				return false
+			
 			return await this.yaz(e)
-		};
-		const trnResult = await app.sqlTrnDo(e);
-		result = await this.disKaydetSonrasiIslemler(e); if (result === false) { return false }
+		}
+		
+		let trnResult = await app.sqlTrnDo(e)
+		result = await this.disKaydetSonrasiIslemler(e)
+		if (result === false)
+			return false
 		return trnResult?.result ?? trnResult
 	}
 	async disKaydetOncesiIslemler(e) {
-		e = { ...e, temps: e?.temps ?? {}, fis: this }; let {detaylar} = this;
-		let errorText = await this.dataDuzgunmu?.(e); if (errorText) { throw { isError: true, rc: 'invalidArgument', errorText } }
+		e = { ...e, temps: e?.temps ?? {}, fis: this }
+		let { detaylar } = this
+		let errorText = await this.dataDuzgunmu?.(e)
+		if (errorText)
+			throw { isError: true, rc: 'invalidArgument', errorText }
+		
 		for (let det of detaylar) {
 			if (det == null) { continue }
-			let errorText = await det.dataDuzgunmu?.(e); if (errorText) { throw { isError: true, rc: 'invalidArgument', errorText } }
+			let errorText = await det.dataDuzgunmu?.(e)
+			if (errorText)
+				throw { isError: true, rc: 'invalidArgument', errorText }
+			
 			await det.disKaydetOncesiIslemler?.(e)
 		}
-		await this.dipOlustur(); let {dipIslemci} = this;
-		await dipIslemci?.dipSatirlariOlustur?.(e);
+		
+		await this.dipOlustur()
+		let { dipIslemci } = this
+		await dipIslemci?.dipSatirlariOlustur?.(e)
 		await dipIslemci?.topluHesapla?.(e)
 	}
 	async disKaydetSonrasiIslemler(e) {
-		e = { ...e, temps: e?.temps ?? {}, fis: this }; let {detaylar} = this;
+		e = { ...e, temps: e?.temps ?? {}, fis: this }
+		let { detaylar } = this
 		for (let det of detaylar) {
-			if (det == null) { continue }
-			await det.disKaydetSonrasiIslemler?.(e)
+			if (det != null)
+				await det.disKaydetSonrasiIslemler?.(e)
 		}
 	}
 	disKaydetOncesi_trn(e) { }
-	disKaydetSonrasi_trn(e) { }
-	async yeniSonrasiIslemler(e) { await super.yeniSonrasiIslemler(e); let tip2Yapi = await this.getTip2BakiyeciYapi(e) ?? {}; await this.bakiyeYapilarKaydet({ ...e, tip2Yapi }) }
-	async degistirOncesiIslemler(e) { await super.degistirOncesiIslemler(e); e.eski_tip2BakiyeciYapi = await this.getTip2BakiyeciYapi(e) ?? {} }
-	async degistirSonrasiIslemler(e) {				/* degistirOncesiIslemler(e) den elde edilen değerler (-), yeni değerler (+) olarak birleştirilerek güncellenir */
-		await super.degistirSonrasiIslemler(e); let {eski_tip2BakiyeciYapi: eski_tip2Yapi} = e, tip2Yapi = await this.getTip2BakiyeciYapi(e) ?? {}, query = new MQToplu();
+	disKaydetOncesi_trnSon(e) { }
+	async yeniSonrasiIslemler(e = {}) {
+		await super.yeniSonrasiIslemler(e)
+		let tip2Yapi = await this.getTip2BakiyeciYapi(e) ?? {}
+		await this.bakiyeYapilarKaydet({ ...e, tip2Yapi })
+	}
+	async degistirOncesiIslemler(e = {}) {
+		await super.degistirOncesiIslemler(e)
+		e.eski_tip2BakiyeciYapi = await this.getTip2BakiyeciYapi(e) ?? {}
+	}
+	// degistirOncesiIslemler(e) den elde edilen değerler (-), yeni değerler (+) olarak birleştirilerek güncellenir
+	async degistirSonrasiIslemler(e = {}) {
+		await super.degistirSonrasiIslemler(e)
+		let { eski_tip2BakiyeciYapi: eski_tip2Yapi } = e
+		let tip2Yapi = await this.getTip2BakiyeciYapi(e) ?? {}
+		let query = new MQToplu()
 		let getAnah = vals => {
-			if (!$.isArray(vals)) { vals = Object.values(vals) }
+			if (!isArray(vals))
+				vals = values(vals)
 			return vals.map(x => x?.toString()).join(delimWS)
 		}
 		let tip2AnahStr2Bilgi = {}

@@ -1,6 +1,9 @@
 class SecimlerPart extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this } /*static get isSubPart() { return true }*/ static get isWindowPart() { return false }
-	static get canDestroy() { return false } static get partName() { return 'secimler' }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	/*static get isSubPart() { return true }*/
+	static get isWindowPart() { return false }
+	//static get canDestroy() { return false }
+	static get partName() { return 'secimler' }
 	get tipBelirtec() { let {secimler, mfSinif} = this; return [secimler.class.classKey, mfSinif?.classKey].filter(x => x).join('|') }
 	get rootConfig() { return app?.params?.yerel }
 	get config() {
@@ -10,20 +13,30 @@ class SecimlerPart extends Part {
 		}
 		return result
 	}
-	constructor(e) {
-		e = e || {}; super(e); let secimler = this.secimler = e.secimler; $.extend(this, {
-			parentPart: e.parentPart ?? app.activeWndPart, layout: e.secimlerParent ?? this.layout, wnd: e.wnd,
+	constructor(e = {}) {
+		super(e)
+		let { parentPart = app.activeWndPart, canDestroy, secimler } = e
+		this.secimler = e.secimler
+		canDestroy = !(parentPart && !parentPart.isDestroyed)
+		extend(this, {
+			parentPart, layout: e.secimlerParent ?? this.layout, wnd: e.wnd,
 			secimlerForm: e.secimlerForm || this.secimlerForm, islemTuslariPart: e.islemTuslariPart || this.islemTuslariPart, islemTuslari: e.islemTuslari || this.islemTuslari,
 			mfSinif: e.mfSinif || secimler?.mfSinif, tamamIslemi: e.tamamIslemi,
-			kolonFiltreDuzenleyici: e.kolonFiltreDuzenleyici || {}
+			kolonFiltreDuzenleyici: e.kolonFiltreDuzenleyici || {},
+			canDestroy
 		});
-		let {mfSinif} = this, {sinifAdi} = mfSinif || {};
-		this.title = e.title == null ? (( sinifAdi ? `<u style="font-size: 110%;">${sinifAdi}</u> ` : '' ) || 'Filtre Ekranı') : e.title || '';
+		let { mfSinif } = this
+		let sinifAdi = secimler?.sinifAdi || secimler?.class?.sinifAdi || mfSinif?.sinifAdi
+		this.title = e.title == null
+			? (( sinifAdi ? `<u style="font-size: 110%;">${sinifAdi}</u> ` : '' ) || 'Filtre Ekranı')
+			: e.title || ''
 	}
 	runDevam(e = {}) {
-		super.runDevam(e); let {layout} = this
+		super.runDevam(e)
+		let { layout } = this
 		this.header = layout.find('.header')
-		this.initIslemTuslari(e); this.initFiltreForm(e)
+		this.initIslemTuslari(e)
+		this.initFiltreForm(e)
 	}
 	afterRun(e = {}) {
 		super.afterRun(e)
@@ -252,12 +265,16 @@ class SecimlerPart extends Part {
 		})
 	}
 	async tamamIstendi(e) {
-		let {mfSinif, secimler, tamamIslemi} = this, result
+		let { mfSinif, secimler, tamamIslemi } = this
+		tamamIslemi ??= e =>
+			secimler.defaultTamamIslemi?.(e)
+		let result
 		try {
 			await this.tamamOncesiIslemler(e)
 			if (tamamIslemi) {
 				let _e = { ...e, sender: this, mfSinif, secimler }
-				await tamamIslemi.call(this, _e)
+				if (await tamamIslemi.call(this, _e) === false)
+					return false
 			}
 		}
 		catch (ex) {
@@ -269,6 +286,7 @@ class SecimlerPart extends Part {
 		this[this.canDestroy ? 'close' : 'hide']()
 	}
 	tamamOncesiIslemler(e) { }
+	defaultTamamIslemi(e) { }
 	filtreDegisti(e) {
 		e = e || {}; let {secimlerForm, filtreFormPart} = this; if (this.isDestroyed || !secimlerForm?.length) { return }
 		let value = coalesce(e.value, () => filtreFormPart?.value); if (value == null) { return }
