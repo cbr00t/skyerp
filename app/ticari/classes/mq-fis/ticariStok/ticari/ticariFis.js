@@ -59,7 +59,7 @@ class TicariFis extends TSOrtakFis {
 			mustKod: new PInstStr(this.mustSaha), ticMustKod: new PInstStr('ticmust'),
 			altHesapKod: new PInstStr('cariitn'), sevkAdresKod: new PInstStr('xadreskod'),
 			nakSekliKod: new PInstStr('nakseklikod'),
-			otoSablonSayac: new PInstNum('otosablonsayac')
+			otoSablonSayac: new PInstNum()
 		})
 	}
 	static secimlerDuzenle(e) {
@@ -183,6 +183,9 @@ class TicariFis extends TSOrtakFis {
 	}
 	async kaydetOncesiIslemler(e) {
 		await super.kaydetOncesiIslemler(e)
+		let { _colDefs: cd, table } = this.class
+		if (!cd)
+			cd = this.class._colDefs ??= await app.sqlGetColumns(table)
 		await this.fisBakiyeDurumuGerekirseAyarla(e)
 	}
 	async disKaydetOncesiIslemler(e) {
@@ -308,16 +311,32 @@ class TicariFis extends TSOrtakFis {
 		if (ozelTip != null) { hv.ozeltip = ozelTip }
 	}
 	hostVarsDuzenle({ hv }) {
-		super.hostVarsDuzenle(...arguments); if (!hv.ticmust) { hv.ticmust = hv.must }
+		super.hostVarsDuzenle(...arguments)
+		if (!hv.ticmust)
+			hv.ticmust = hv.must
 		this.dipIslemci?.ticariFisHostVarsDuzenle(...arguments)
+
+		let { otoSablonSayac, class: { _colDefs: cd = {} } } = this
+		if (cd.otosablonsayac && otoSablonSayac !== undefined)
+			hv.otosablonsayac = otoSablonSayac || null
+	}
+	setValues({ rec }) {
+		super.setValues(...arguments)
+		let { otosablonsayac: otoSablonSayac } = rec
+		if (otoSablonSayac !== undefined)
+			this.otoSablonSayac = otoSablonSayac
 	}
 	detayHostVarsDuzenle(e) {
-		super.detayHostVarsDuzenle(e); let {det} = e; e.fis = this;
-		if (det?.ticariHostVarsDuzenle) { det.ticariHostVarsDuzenle(e) }
+		super.detayHostVarsDuzenle(e)
+		let { hv, det } = e
+		e.fis = this
+		det?.ticariHostVarsDuzenle?.(e)
 	}
 	detaySetValues(e) {
-		super.detaySetValues(e); let {det} = e;
-		e.fis = this; det?.ticariSetValues?.(e)
+		super.detaySetValues(e)
+		let { rec, det } = e
+		e.fis = this
+		det?.ticariSetValues?.(e)
 	}
 	getDipEBilgi_hvListe(e) {
 		let {table} = this.class, {sayac, dipIslemci} = this, {belirtec2DipSatir} = dipIslemci ?? {};
