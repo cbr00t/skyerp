@@ -1,24 +1,30 @@
 class TicariGridKontrolcu extends TSGridKontrolcu {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	tabloKolonlariDuzenle(e) {
-		let {tabloKolonlari} = e; tabloKolonlari.push(
+		let {tabloKolonlari} = e
+		tabloKolonlari.push(
 			new GridKolon({
-				belirtec: 'tip', text: ' ', genislikCh: 8, cellValueChanged: e => {
+				belirtec: 'tip', text: ' ', genislikCh: 13, cellValueChanged: e => {
 					e = e.args || e; let {owner: gridWidget, newvalue: tip} = e, rec = gridWidget.getrowdata(e.rowindex, e.datafield);
-					let {uid} = rec; switch (tip) {
+					let {uid} = rec
+					switch (tip) {
 						case 'stok': rec = new TSStokDetay(rec); break; case 'hizmet': rec = new TSHizmetDetay(rec); break
 						case 'demirbas': rec = new TSDemirbasDetay(rec); break; case 'aciklama': rec = new TSAciklamaDetay(rec); break
 					}
-					let {sh: colDef} = this.parentPart.belirtec2Kolon;
-					rec.shKod = rec.shAdi = null; gridWidget.updaterow(uid, rec)
+					let {sh: colDef} = this.parentPart.belirtec2Kolon
+					rec.shKod = rec.shAdi = null
+					gridWidget.updaterow(uid, rec)
 				}
-			}).noSql().kodsuz().alignCenter().sabitle().tipTekSecim({ tekSecimSinif: MQSHTipVeAciklama }).kodsuz()
+			}).noSql()
+				.tipTekSecim({ tekSecimSinif: MQSHTipVeAciklama })
+				.kodsuz().listedenSecilmez()
+				.alignCenter().sabitle()
 		);
 		super.tabloKolonlariDuzenle(e); let {fis} = this; tabloKolonlari = e.tabloKolonlari;
-		let shColDef = tabloKolonlari.find(colDef => colDef.belirtec == 'sh'), {kaKolonu} = shColDef;
+		let shColDef = tabloKolonlari.find(colDef => colDef.belirtec == 'sh'), {kaKolonu} = shColDef
 		let savedEditorHandlers = {}; for (let selector of ['createEditor', 'initEditor', 'getEditorValue']) {
 			savedEditorHandlers[selector] = kaKolonu[selector] }
-		$.extend(kaKolonu, {
+		extend(kaKolonu, {
 			satirEklendi: e => { }, satirSilinecek: e => { }, satirSilindi: e => { },
 			createEditor: (colDef, rowIndex, value, parent, cellText, cellWidth, cellHeight) => {
 				let {gridWidget} = colDef.gridPart, detaySinif = gridWidget.getrowdata(rowIndex)?.class;
@@ -213,6 +219,7 @@ class EIslAlimGridKontrolcu extends TicariGridKontrolcu {
 		];
 		let {tabloKolonlari} = e; for (let colDef of tabloKolonlari) { colDef.serbestBirak() }
 		let index_tipColDef = tabloKolonlari.findIndex(colDef => colDef.belirtec == 'tip');
-		if (index_tipColDef) { tabloKolonlari.splice(index_tipColDef, 0, ...ekTabloKolonlari) } else { tabloKolonlari.unshift(...ekTabloKolonlari) }
+		if (index_tipColDef) { tabloKolonlari.splice(index_tipColDef, 0, ...ekTabloKolonlari) }
+		else { tabloKolonlari.unshift(...ekTabloKolonlari) }
 	}
 }

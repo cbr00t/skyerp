@@ -60,8 +60,9 @@ class FisSablonYapi extends MQCogul {
     setValues({ rec }) {
         super.setValues(...arguments)
         ;{
-            let { numSayac: sayac } = rec
-            let { numYapi } = SatisFaturaFis, { tip } = numYapi
+            let { numsayac: sayac } = rec
+            let { numYapi } = SatisFaturaFis
+            let { tip } = numYapi
             let num = this.numarator ??= numYapi.deepCopy()
             num.tip ||= tip
             num.sayac = sayac

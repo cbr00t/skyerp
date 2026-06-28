@@ -226,7 +226,8 @@ class GridKolon extends GridKolonVeGrupOrtak {
 	sifirGosterme() { let {tip} = this; if (tip?.sifirGosterme) tip.sifirGosterme(); return this } sifirGoster() { let {tip} = this; if (tip?.sifirGoster) tip.sifirGoster(); return this }
 	kodsuz() { return this.kodGosterilmesin() } kodGosterilmesin() { let {tip} = this; if (tip?.kodGosterilmesin) { tip.kodGosterilmesin() } return this }
 	kodGosterilsin() { let {tip} = this; if (tip?.kodGosterilsin) { tip.kodGosterilsin() } return this }
-	listedenSecilmez(e) { return this.listedenSecilemez(); } listedenSecilemez(e) { this.tip?.listedenSecilemez?.(); return this }
+	listedenSecilmez(e) { return this.listedenSecilemez() }
+	listedenSecilemez(e) { this.tip?.listedenSecilemez?.(); return this }
 	listedenSecilir(e) { this.tip?.listedenSecilir?.(); return this }
 	dropDown() { let {tip} = this; if (tip?.dropDown) { tip.dropDown() } return this } comboBox() { let {tip} = this; if (tip?.comboBox) { tip.comboBox() } return this }
 	autoBind() { let {tip} = this; if (tip?.autoBind) { tip.autoBind() } return this } noAutoBind() { let {tip} = this; if (tip?.noAutoBind) { tip.noAutoBind() } return this }

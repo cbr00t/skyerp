@@ -77,15 +77,17 @@ class MQTicNumarator extends MQNumarator {
 	async yukle(e = {}) {
 		let { rec } = e
 		if (!rec) {
-			let {tip} = this
+			let { tip } = this
 			if (!tip) 
 				return false
-			let {belirtec, class: { table }} = this
+			let { sayac, belirtec, class: { table, sayacSaha } } = this
 			let sent = new MQSent({
 				from: table, sahalar: '*',
-				where: belirtec
-					? { birlestirDict: this.alternateKeyHostVars(e) }
-					: { degerAta: tip, saha: 'tip' }
+				where: sayac
+					? { degerAta: sayac, saha: sayacSaha }
+					: belirtec
+						? { birlestirDict: this.alternateKeyHostVars(e) }
+						: { degerAta: tip, saha: 'tip' }
 			})
 			rec = await this.class.sqlExecTekil(sent)
 		}
@@ -105,6 +107,12 @@ class MQTicNumarator extends MQNumarator {
 		let {tip: value} = rec
 		if (value != null)
 			this.tip = value
+	}
+	setValues({ rec }) {
+		super.setValues(...arguments)
+		let { sayac } = rec
+		if (sayac)
+			this.sayac = sayac
 	}
 
 	offlineBuildSQLiteQuery({ result: r = [] }) {

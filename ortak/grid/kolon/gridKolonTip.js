@@ -43,8 +43,8 @@ class GridKolonTip extends CObject {
 		let {colEventNames, globalEventNames} = this.class;
 		for (let key of colEventNames) { let func = getFunc(e[key]); if (func) { this[key] = func } }
 		for (let key of globalEventNames) { let func = getFunc(e[key]); if (func) { this[key] = func } }
-		this.kodGosterilmesinmi = e.kodGosterilmesin ?? e.kodGosterilmesinmi ?? e.kodsuzmu ?? e.kodsuz;
-		this.listedenSecilemezFlag = e.listedenSecilemez ?? e.listedenSecilemezmi ?? e.listedenSecilemezFlag;
+		this.kodGosterilmesinmi = e.kodGosterilmesin ?? e.kodGosterilmesinmi ?? e.kodsuzmu ?? e.kodsuz
+		this.listedenSecilemezFlag = e.listedenSecilemez ?? e.listedenSecilemezmi ?? e.listedenSecilemezFlag
 		return true
 	}
 	/* return true: override grid default handler, return (true / false) = event handled */
@@ -531,10 +531,10 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 			let {gridPart} = colDef, gridWidget = gridPart?.gridWidget ?? gridPart?.gridPart?.gridWidget;
 			rec = (gridWidget?.getboundrows ? gridWidget.getboundrows()[rowIndex] : null) ?? rec; rec = rec?.originalRecord ?? rec;
 			if (value != null) {
-				let kaDict = this.getKADict({ belirtec: columnField, rec: rec }) || {};
+				let kaDict = this.getKADict({ belirtec: columnField, rec: rec }) || {}
 				let ka = value.aciklama == null ? kaDict[value] : Object.values(kaDict).find(ka => ka.aciklama == value);
 				if (ka) { value = ka.aciklama ?? value }
-				value = value == null || value.aciklama == null ? (value || '').toString() : (this.kodGosterilmesinmi ? value.aciklama ?? value : value.toString());
+				value = value == null || value.aciklama == null ? (value || '').toString() : (this.kodGosterilmesinmi ? value.aciklama ?? value : value.toString())
 				html = changeTagContent(html, value)
 			}
 			return html

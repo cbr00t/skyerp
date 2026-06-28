@@ -199,7 +199,8 @@ class GridKolonGrup_KA extends GridKolonGrup {
 					parentPart, colDef, layout,
 					mfSinif: e =>
 						this.mfSinif,
-					value: v, kodsuzmu,
+					value: v,
+					kodGosterilsinmi: !kodsuzmu,
 					argsDuzenle: ({ input }) =>
 						input.css({ width: w, height: h })
 				}
@@ -551,7 +552,9 @@ class GridKolonGrup_KA extends GridKolonGrup {
 	alignLeft() { this.kaKolonu.alignLeft(); return this } alignCenter() { this.kaKolonu.alignCenter(); return this } alignRight() { this.kaKolonu.alignRight(); return this }
 	noSql() { this.kaKolonu.noSql(); return this } resetNoSql() { this.kaKolonu.resetNoSql(); return this }
 	sifirGosterme() { this.kaKolonu.sifirGosterme(); return this } sifirGoster() { this.kaKolonu.sifirGoster(); return this }
-	kodGosterilsin() { this.kaKolonu.kodGosterilsin(); return this } kodGosterilmesin() { this.kaKolonu.kodGosterilmesin(); return this } kodsuz() { return this.kodGosterilmesin() }
+	kodGosterilsin() { this.kaKolonu.kodGosterilsin(); return this }
+	kodGosterilmesin() { this.kaKolonu.kodGosterilmesin(); return this }
+	kodsuz() { return this.kodGosterilmesin() }
 	dropDown() { this.isDropDown = true; return this } comboBox() { this.isDropDown = false; return this }
 	autoBind() { this.autoBindFlag = true; return this } noAutoBind() { this.autoBindFlag = false; return this }
 	degisince(block) { this.ekDegisinceHandlers.push(block); return this } gelince(block) { this.ekGelinceHandlers.push(block); return this }

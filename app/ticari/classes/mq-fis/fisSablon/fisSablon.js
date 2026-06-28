@@ -79,7 +79,7 @@ class SatisFaturaFis_OtoSablon extends SatisFaturaFis {
 		extend(sy, { sayac })
 		await sy.yaz(e)
 	}
-	async degistirSonrasiIslemler(eskiFis) {
+	async degistirSonrasiIslemler({ eskiFis }) {
 		await super.degistirSonrasiIslemler(...arguments)
 		let { sablonYapi: sy } = this
 		let { sablonYapi: eskiSY } = eskiFis
