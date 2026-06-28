@@ -19,8 +19,8 @@ class MQGenelFis extends MQOrtakFis {
 			tarih: new PInstDateToday(), seri: new PInstStr(), noYil: new PInstNum()
 		})
 	}
-	static secimlerDuzenle(e) {
-		super.secimlerDuzenle(e); let {secimler} = e;
+	static secimlerDuzenle({ secimler }) {
+		super.secimlerDuzenle(...arguments)
 		secimler.secimTopluEkle({
 			ozelIsaret: new SecimBirKismi({ etiket: 'İşaret', tekSecim: MQOzelIsaret }),
 			sube: new SecimString({ etiket: 'Şube', mfSinif: MQSube }),

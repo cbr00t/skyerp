@@ -17,6 +17,11 @@ class SatisFaturaFis_OtoSablon extends SatisFaturaFis {
             sablonYapi: new PInstClass(FisSablonYapi)
         })
     }
+	static secimlerDuzenle({ secimler: sec }) {
+		super.secimlerDuzenle(...arguments)
+		let { tarih } = sec.liste
+		tarih.basi = tarih.sonu = null
+	}
 	static standartGorunumListesiDuzenle({ liste }) {
 		liste.push('sablonAdi')
 		super.standartGorunumListesiDuzenle(...arguments)

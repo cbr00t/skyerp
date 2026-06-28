@@ -202,11 +202,13 @@ class SabFatOlusturucu extends Secimler {
             return false
         }
 
+        let { seri, noYil, sonNo: fisNo } = num
         let fis = new fisSinif()
         mergeInto(sablonFis, fis)
         extend(fis, {
             otoSablonSayac, tarih,
             numarator: num,
+            seri, noYil, fisNo,
             sevkTarihi: tarih
         })
         
@@ -214,12 +216,12 @@ class SabFatOlusturucu extends Secimler {
         let { detaylar } = fis
         ;detaylar.forEach(d =>
             d.netBedelHesapla?.(_e))
-        
-        while (await fis.varmi(_e))
-    		fis.fisNo = (await num.kesinlestir(_e)).sonNo
 
-        await fis.disKaydetOncesiIslemler(e)
+        fis.seri = num.seri
+        while (await fis.varmi(_e))
+        	fis.fisNo = (await num.kesinlestir(_e)).sonNo
         
+        await fis.disKaydetOncesiIslemler(e)
          /*await fis.dipOlustur()
 		let { dipIslemci } = this
 		await dipIslemci?.dipSatirlariOlustur?.(e)
@@ -229,8 +231,8 @@ class SabFatOlusturucu extends Secimler {
             errors.push(`<b class="royalblue">${sablonAdi}</b> şablonu için <b class="firebrick">Ticari Belge</b> kaydedilemedi`)
             return false
         }
-        
         await fis.disKaydetSonrasiIslemler(e)
+        
         if (st)
             st.success = ( st.success || 0 ) + 1
         
