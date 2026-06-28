@@ -155,12 +155,20 @@ class PInstBitTrue extends PInstBitBool {
 class PInstClass extends PInst {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get pInstClassmi() { return true }
-	constructor(e, _sinif) {
-		e = e || {};
-		if (typeof e != 'object') { e = (_sinif === undefined) ? { sinif: e } : { rowAttr: e, sinif: _sinif } }
-		super(e); this.sinif = e.sinif ?? e.class
+	constructor(e = {}, _sinif) {
+		if (!isPlainObject(e))
+			e = (_sinif === undefined) ? { sinif: e } : { rowAttr: e, sinif: _sinif }
+		super(e)
+		this.sinif ??= e.sinif
 	}
-	getValueDevam(value) { return value ?? new this.sinif() }
+	getValueDevam(value) {
+		if (value == null) {
+			let { sinif: cls } = this
+			if (cls)
+				value = new cls()
+		}
+		return value
+	}
 }
 class PInstTekSecim extends PInstClass {
 	static get pInstClassmi() { return false }

@@ -120,7 +120,7 @@ class MQKod extends MQCogul {
 		super.tekilOku_queryDuzenle(...arguments)
 		if (!empty(keyHV))
 			return
-		let {kodUyarlanmis: kod, class: { aliasVeNokta, kodSaha }} = this
+		let { kodUyarlanmis: kod, class: { aliasVeNokta, kodSaha } } = this
 		if (kodSaha && kod)
 			wh.degerAta(kod, aliasVeNokta + kodSaha)
 	}

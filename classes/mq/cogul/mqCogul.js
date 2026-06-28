@@ -719,7 +719,8 @@ class MQCogul extends MQYapi {
 	tekilOku_queryOlustur(e = {}) {
 		let { keyHV } = e
 		let tabloKolonlari = e.tabloKolonlari = e.tabloKolonlari ?? this.class.listeBasliklari
-		let alias = this.class.tableAlias, {aliasVeNokta} = this.class, sent = new MQSent({ from: this.class.tableAndAlias });
+		let { tableAlias: alias, tableAndAlias, aliasVeNokta } = this.class
+		let sent = new MQSent({ from: tableAndAlias })
 		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? e.offline ?? this.class.isOfflineMode, {gonderildiDesteklenirmi, gonderimTSSaha} = this.class;
 		for (let colDef of tabloKolonlari) {
 			if (!colDef.sqlIcinUygunmu) { continue } let {belirtec, sql} = colDef;
@@ -730,14 +731,20 @@ class MQCogul extends MQYapi {
 		keyHV ??= this.keyHostVars(e)
 		if (empty(keyHV))
 			keyHV = this.alternateKeyHostVars(e)
-		if (keyHV) { sent.where.birlestirDict({ alias, dict: keyHV }) }
-		/* if ($.isEmptyObject(sent.sahalar.liste)) { sent.sahalar.add(`${aliasVeNokta}*`) } */
+		if (keyHV)
+			sent.where.birlestirDict({ alias, dict: keyHV })
+		
+		// if ($.isEmptyObject(sent.sahalar.liste)) { sent.sahalar.add(`${aliasVeNokta}*`) }
+
+		deleteKeys(e, 'query', 'stm')
 		let stm = new MQStm({ sent })
-		$.extend(e, { stm, sent })
+		extend(e, { stm, sent })
 		this.tekilOku_queryDuzenle(e)
-		stm = e.query || e.stm
+		
+		stm = e.query ?? e.stm
 		if (this.class.gereksizTablolariSilYapilirmi)
 			sent.gereksizTablolariSil({ disinda: alias })
+		
 		return stm
 	}
 	tekilOku_queryDuzenle(e) {

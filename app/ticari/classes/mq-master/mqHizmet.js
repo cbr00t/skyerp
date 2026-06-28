@@ -37,6 +37,7 @@ class MQHizmet extends MQKA {
 			bKzTabloAlinmazmi: new PInstBitBool('bkztabloalinmazmi'),
 			gelirTabloTipi: new PInstTekSecim('gelirtablotipi', HizGelirTabloTipi),
 			muhHesap: new PInstStr('muhhesap'),
+			muhHesapKKEG: new PInstStr('muhhesapkkeg'),
 			kategoriKod: new PInstStr('kategorikod')
 		})
 	}
@@ -306,7 +307,8 @@ class MQHizmet extends MQKA {
 		)
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {aliasVeNokta, kodSaha} = this, {sent} = e, {where: wh} = sent;
+		super.loadServerData_queryDuzenle(e)
+		let {aliasVeNokta, kodSaha} = this, {sent} = e, {where: wh} = sent
 		sent.fromIliski(`hizgrup hizgrp`, `${aliasVeNokta}grupkod = hizgrp.kod`);
 		sent.fromIliski(`hizistgrup hizigrp`, `${aliasVeNokta}histgrupkod = hizigrp.kod`);
 		sent.fromIliski(`kategori kat`, `${aliasVeNokta}kategorikod = kat.kod`);
@@ -314,7 +316,20 @@ class MQHizmet extends MQKA {
 		sent.sahalar.add(`${aliasVeNokta}tip`)
 	}
 	static getGridKolonGrup_kategorili(e) {
-		let kolonGrup = this.getGridKolonGrup(e); if (!kolonGrup) { return kolonGrup }
-		e.kolonGrup = kolonGrup; MQKategori.mqHizmetKolonGrupDuzenle(e); return e.kolonGrup
+		let kolonGrup = this.getGridKolonGrup(e)
+		if (!kolonGrup)
+			return kolonGrup
+		
+		e.kolonGrup = kolonGrup
+		MQKategori.mqHizmetKolonGrupDuzenle(e)
+		return e.kolonGrup
+	}
+
+	hostVarsDuzenle({ hv }) {
+		super.hostVarsDuzenle(...arguments)
+		;['muhHesap', 'muhHesapKKEG'].forEach(ia => {
+			let ra = ia.toLowerCase()
+			hv[ra] = this[ia] || null
+		})
 	}
 }

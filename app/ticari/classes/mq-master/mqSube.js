@@ -82,7 +82,8 @@ class MQSube extends MQKA {
 	}
 	setValues(e) {
 		super.setValues(e);
-		for (const key of this.class.cioClassKeys) this[key].setValues(e)
+		for (const key of this.class.cioClassKeys)
+			this[key].setValues(e)
 	}
 }
 class MQSubeGrup extends MQKA {

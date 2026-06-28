@@ -588,7 +588,7 @@ class MQKontor extends MQDetayliMaster {
 				let sent = new MQSent(), { where: wh, sahalar } = sent
 				sent.fromAdd('hizmst')
 				wh.inDizi(kodlar, 'kod')
-				sahalar.add('brm', 'birimfiyat fiyat', 'gelkdvhesapkod kdvKod')
+				sahalar.add('kod shKod', 'brm', 'birimfiyat fiyat', 'gelkdvhesapkod kdvKod')
 				hizRecs = await sent.execSelect()
 			}
 		})
@@ -637,6 +637,7 @@ class MQKontor extends MQDetayliMaster {
 					abortCheck?.()
 					let { kaysayac: sayac, fisnox: fisNox, kontorsayi: miktar, fiyat, fiyat2, ayrimTipi } = rec
 					;hizRecs.forEach(hr => {
+						let { shKod } = hr
 						fiyat ||= hr.fiyat || 0
 						fiyat2 ||= 0
 						let bedel = aciktanmi ? roundToBedelFra(miktar * fiyat) : null
@@ -1548,15 +1549,12 @@ class MQKontor_EDefter_Kontor_NES extends MQKontor_EDefter_KontorOrtak {
 	static get tip() { return 'DN' }
 	static get detaySinif() { return MQKontor_EDefter_KontorDetay_NES }
 	static get efaKontorSinif() { return MQKontor_EFA_Kontor_NES }
-	// static get vioAsilHizmetKod() { return 'H025' }
 	static get saklamaKapasiteKodlari() { return ['1M', '1G'] }
 
 	static key2HizKodOlustur({ result }) {
 		extend(result, {
-			'O1M': 'H026',
-			'O1G': 'H026',
-			'S1M': 'M027',
-			'S1G': 'M027'
+			S1M: 'H025', S1G: 'H025',
+			O1M: 'H026', O1G: 'H026'
 		})
 	}
 }
@@ -1585,7 +1583,13 @@ class MQKontor_EDefter_Kontor_Turkcell extends MQKontor_EDefter_KontorOrtak {
 	static get tip() { return 'DT' }
 	static get detaySinif() { return MQKontor_EDefter_KontorDetay_Turkcell }
 	static get efaKontorSinif() { return MQKontor_EFA_Kontor_Turkcell }
-	static get vioAsilHizmetKod() { return 'TURKCELL KONTÖR' }
+
+	static key2HizKodOlustur({ result }) {
+		extend(result, {
+			S: 'H055',
+			O: 'H056'
+		})
+	}
 }
 class MQKontor_EDefter_KontorDetay_Turkcell extends MQKontorDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

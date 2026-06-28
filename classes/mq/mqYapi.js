@@ -133,11 +133,11 @@ class MQYapi extends CIO {
 	}
 	async getInstance_yukleIslemi(e) { return await this.yukle(e) }
 	async yukle(e = {}) {
-		let {rec} = e
+		let { rec } = e
 		e.orjRec = rec
 		if (!rec) {
 			rec = await this.tekilOku(e)
-			let {params} = rec || {}
+			let { params } = rec || {}
 			if (params) {
 				let param = params.result ?? params.baslik ?? params.fis
 				if (params)
@@ -145,11 +145,14 @@ class MQYapi extends CIO {
 			}
 			e.rec = rec
 		}
+		
 		if (!rec)
 			return false
+		
 		let basitFlag = e.basit ?? e.basitmi ?? e.basitFlag
 		if (!basitFlag)
 			await this.yukleSonrasiIslemler(e)
+		
 		return true
 	}
 	kopyaIcinDuzenle(e) { }

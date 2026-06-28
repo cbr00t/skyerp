@@ -151,7 +151,7 @@ class MQSayacli extends MQCogul {
 		super.hostVarsDuzenle(...arguments)
 		let {sayac, zeminRenk, class: { sayacSaha, zeminRenkDesteklermi }} = this
 		offlineMode ??= this.class.isOfflineMode
-		$.extend(hv, this.alternateKeyHostVars(e))
+		extend(hv, this.alternateKeyHostVars(e))
 		if (sayacSaha) {
 			if (queryBuild || (sayac && offlineMode))
 				hv[sayacSaha] = sayac ?? null

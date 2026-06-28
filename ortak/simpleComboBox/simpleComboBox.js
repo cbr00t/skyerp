@@ -356,6 +356,7 @@ class SimpleComboBoxPart extends Part {
 	}
 	listeIstendi({ event: evt }) {
 		let { disabled, mfSinif, listSource: source } = this
+		source ??= this.source
 		if (disabled || !(source || mfSinif))
 			return
 

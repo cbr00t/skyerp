@@ -9,7 +9,8 @@ class TicariFis extends TSOrtakFis {
 	static get gridKontrolcuSinif() { return TicariGridKontrolcu }
 	static get taksitTable() { return this.siparismi ? 'siptaksit' : 'piftaksit' }
 	static get noYilKullanilirmi() { return true }
-	static get dipKullanilirmi() { return true } static get dipNakliyeKullanilirmi() { return false }
+	static get dipKullanilirmi() { return true }
+	static get dipNakliyeKullanilirmi() { return false }
 	static get tsStokDetayTable() { return this.siparismi ? 'sipstok' : 'pifstok' } static get tsHizmetDetayTable() { return this.siparismi ? 'siphizmet' : 'pifhizmet' }
 	static get tsFasonDetayTable() { return this.siparismi ? 'sipfsstok' : 'piffsstok' } static get tsHizmetDetayTable() { return this.siparismi ? 'siphizmet' : 'pifhizmet' }
 	static get tsDemirbasDetayTable() { return this.siparismi ? 'sipdemirbas' : 'pifdemirbas' } static get tsAciklamaDetayTable() { return this.siparismi ? 'sipaciklama' : 'pifaciklama' }
@@ -179,7 +180,10 @@ class TicariFis extends TSOrtakFis {
 		await super.uiGirisOncesiIslemler(e);
 		await MQVergiKdv.getKod2VergiBilgi()    /* cache = MQVergi.globals.belirtec2Globals.kdv.kod2VergiBilgi */
 	}
-	async kaydetOncesiIslemler(e) { await super.kaydetOncesiIslemler(e); await this.fisBakiyeDurumuGerekirseAyarla(e) }
+	async kaydetOncesiIslemler(e) {
+		await super.kaydetOncesiIslemler(e)
+		await this.fisBakiyeDurumuGerekirseAyarla(e)
+	}
 	async disKaydetOncesiIslemler(e) {
 		let {tarih, subeKod, mustKod, detaylar} = this, kapsam = { tarih, subeKod, mustKod };
 		let kosulYapilar = new SatisKosulYapi({ kapsam }); if (!await kosulYapilar.yukle()) { kosulYapilar = null }
@@ -266,15 +270,19 @@ class TicariFis extends TSOrtakFis {
 		)
 	}
 	topluYazKomutOlustur_taksit({ hv, toplu, paramName_fisSayac }) {
-		let seq = 1, {net: bedel, dvnet: dvbedel} = hv
-		let {class: { taksitTable: table }} = this
+		let { taksitTable: table } = this.class
+		let { net: bedel = this.fisTopNet || 0, dvnet: dvbedel = this.fisTopDvNet || 0 } = hv
 		let fissayac = paramName_fisSayac.sqlConst()
+		let seq = 1
+		
 		let takHV = { fissayac, seq, bedel, dvbedel }
 		toplu.add(new MQInsert({ table, hv: takHV }))
 	}
 	topluDegistirKomutOlustur_taksit({ hv, toplu }) {
-		let seq = 1, {net: bedel, dvnet: dvbedel} = hv
-		let {sayac: fissayac, class: { taksitTable: table }} = this
+		let { sayac: fissayac, class: { taksitTable: table } } = this
+		let { net: bedel = this.fisTopNet || 0, dvnet: dvbedel = this.fisTopDvNet || 0 } = hv
+		let seq = 1
+		
 		let takHV = { fissayac, seq, bedel, dvbedel }
 		toplu.add(
 			new MQIliskiliDelete({
@@ -396,7 +404,7 @@ class TicariFis extends TSOrtakFis {
 		}
 	}
 	async satisKosulYapiOlustur(e) {
-		await super.satisKosulYapiOlustur(e);
+		await super.satisKosulYapiOlustur(e)
 		let {tarih, subeKod, mustKod} = this, kapsam = { tarih, subeKod, mustKod };
 		let anah2KosulYapi = SatisKosulYapi._anah2KosulYapi ??= {};
 		let kosulYapilar = anah2KosulYapi[toJSONStr(kapsam)] ??= await (async () => {
@@ -406,8 +414,12 @@ class TicariFis extends TSOrtakFis {
 		$.extend(this, { kosulYapilar }); return this
 	}
 	async fisBakiyeDurumuGerekirseAyarla(e) {
-		if (!this.class.cikisGibimi) { return } let {trnId, eskiFis} = e, {mustKod} = this;
-		let {musteriOncekiBakiyeDurumu} = this; if (musteriOncekiBakiyeDurumu && eskiFis && mustKod != eskiFis.mustKod) { musteriOncekiBakiyeDurumu = null }
+		if (!this.class.cikisGibimi)
+			return
+		let {trnId, eskiFis} = e, {mustKod} = this;
+		let {musteriOncekiBakiyeDurumu} = this
+		if (musteriOncekiBakiyeDurumu && eskiFis && mustKod != eskiFis.mustKod)
+			musteriOncekiBakiyeDurumu = null
 		if (!musteriOncekiBakiyeDurumu) {
 			if (eskiFis && eskiFis.mustKod == mustKod) {
 				let {musteriOncekiBakiyeDurumu: _musteriOncekiBakiyeDurumu} = eskiFis;
@@ -485,25 +497,41 @@ class SevkiyatFis extends TicariFis {
 			new StokBakiyeci({ borcmu: e => alimmi != iademi, sqlDuzenleyici: stok_sqlDuzenleyici })
 		]
 	}
-	constructor(e) {
-		e = e || {}; super(e);
-		let eBilgi = this.eBilgi = e.eBilgi; if (eBilgi) { this.eBilgiIcinYukle(e) }
+
+	constructor(e = {}) {
+		super(e)
+		this.yerKod ||= 'A'
+		let eBilgi = this.eBilgi = e.eBilgi
+		if (eBilgi)
+			this.eBilgiIcinYukle(e)
 	}
-	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e); let {pTanim} = e; $.extend(pTanim, {
-			sevkTarih: new PInstDateToday('sevktarihi'), sevkSaat: new PInstDateTimeNow('sevksaati'),
-			yerKod: new PInstStr({ rowAttr: 'yerkod', init: e => 'A' }), yerOrtakmi: new PInstTrue('yerortakdir'),
-			malKabulNo: new PInstNum('malkabulno'), kunyeNox: new PInstStr('kunyenox'), borsaTescilYapildimi: new PInstBool('borsatescilvarmi')
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
+		extend(pTanim, {
+			sevkTarih: new PInstDateToday('sevktarihi'),
+			sevkSaat: new PInstDateTimeNow('sevksaati'),
+			yerKod: new PInstStr('yerkod'),
+			yerOrtakmi: new PInstTrue('yerortakdir'),
+			malKabulNo: new PInstNum('malkabulno'),
+			kunyeNox: new PInstStr('kunyenox'),
+			borsaTescilYapildimi: new PInstBool('borsatescilvarmi')
 		})
 	}
-	static rootFormBuilderDuzenle(e) {
-		e = e || {}; super.rootFormBuilderDuzenle(e); let {baslikForm} = e.builders;
-		baslikForm.builders[1].addCheckBox('yerOrtakmi', 'Yer Ortakdır').degisince(e => {
-			let {builder} = e, {altInst, rootPart, parentBuilder} = builder, {kontrolcu} = rootPart; parentBuilder.id2Builder.yerKod.updateVisible();
-			e.sender = e.gridPart = rootPart; $.extend(e, { builder });
-			if (altInst.yerOrtakmiDegisti) { altInst.yerOrtakmiDegisti(e) } if (kontrolcu.yerOrtakmiDegisti) { kontrolcu.yerOrtakmiDegisti(e) }
-		});
-		baslikForm.builders[1].addModelKullan('yerKod').setMFSinif(MQStokYer).comboBox().autoBind().etiketGosterim_normal().addStyle_wh(400)
+	static rootFormBuilderDuzenle(e = {}) {
+		super.rootFormBuilderDuzenle(e)
+		let { baslikForm } = e.builders
+		baslikForm.builders[2].addCheckBox('yerOrtakmi', 'Yer Ortakdır')
+			.degisince(e => {
+				let { builder } = e
+				let { altInst, rootPart, parentBuilder } = builder
+				let { kontrolcu } = rootPart
+				parentBuilder.id2Builder.yerKod.updateVisible()
+				e.sender = e.gridPart = rootPart
+				extend(e, { builder })
+				altInst?.yerOrtakmiDegisti?.(e)
+				kontrolcu?.yerOrtakmiDegisti?.(e)
+		})
+		baslikForm.builders[2].addModelKullan('yerKod').setMFSinif(MQStokYer).comboBox().autoBind().etiketGosterim_normal().addStyle_wh(400)
 			.setVisibleKosulu(e => e.builder.altInst.yerOrtakmi ? true : 'basic-hidden')
 	}
 	static orjBaslikListesiDuzenle_ara(e) {

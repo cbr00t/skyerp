@@ -56,7 +56,12 @@ class MQGenelFis extends MQOrtakFis {
 		}
 	}
 	static rootFormBuilderDuzenle_numarator(e) {
-		e = e || {}; let {tsnKullanilirmi} = this, {tsnForm} = e.builders; tsnForm.yanYana(); if (!tsnKullanilirmi) { return }
+		let { tsnKullanilirmi } = this
+		let { tsnForm } = e.builders
+		tsnForm.yanYana()
+		if (!tsnKullanilirmi)
+			return
+		
 		tsnForm.addForm('numarator')
 			.setLayout(({ builder: fbd }) => {
 				let {parentParent, inst: fis} = fbd, {fisGirisLayoutSelector: selector} = fis.numarator?.class ?? {};
@@ -64,13 +69,18 @@ class MQGenelFis extends MQOrtakFis {
 				return layout?.length ? layout : fbd.parent
 			})
 			.onInit(({ builder: fbd }) => {
-				let {rootPart, inst: fis, layout, parent} = fbd, {numarator} = fis; if (!numarator) { return }
-				let {islem} = rootPart, part = numarator.class.partLayoutDuzenle({ ...e, islem, fis, layout });
-				fbd.part = rootPart.numaratorPart = part;
+				let { rootPart, inst: fis, layout, parent } = fbd
+				let { numarator } = fis
+				if (!numarator)
+					return
+				let { islem } = rootPart
+				let part = numarator.class.partLayoutDuzenle({ ...e, islem, fis, layout })
+				fbd.part = rootPart.numaratorPart = part
 				if (fis.class.numaratorGosterilirmi) {
 					$(`<label class="_etiket" style="color: #ccc; min-width: 150px; width: 100%; height: 15px;">Seri-No</label>`).prependTo(layout);
 					layout.removeClass('jqx-hidden basic-hidden'); parent.removeClass('jqx-hidden basic-hidden');
-					let {txtNoYil} = part; if (txtNoYil?.length) {
+					let { txtNoYil } = part
+					if (txtNoYil?.length) {
 						if (fis.class.satismi == fis.class.iademi) { txtNoYil.removeAttr('readonly') }
 						else { txtNoYil.attr('readonly', ''); txtNoYil.addClass('readOnly') }
 					}

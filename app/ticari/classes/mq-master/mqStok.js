@@ -412,12 +412,12 @@ class MQStokBarkodMuh extends MQStokAlt {
 		await app.sqlExecNone(toplu)
 	}
 	static orjBaslikListesiDuzenle(e) { }
-	hostVarsDuzenle(e) {
-		super.hostVarsDuzenle(e); const {hv} = e;
-		for (const prefix of ['stok', 'satMal', 'uretKullan', 'hamSatisMal', 'icSatisGelir', 'icSatisIade']) {
-			const ioAttr = `${prefix}Hes`, rowAttr = `${prefix.toLowerCase()}hes`;
-			hv[rowAttr] = this[ioAttr] || null
-		}
+	hostVarsDuzenle({ hv }) {
+		super.hostVarsDuzenle(...arguments)
+		;['stok', 'satMal', 'uretKullan', 'hamSatisMal', 'icSatisGelir', 'icSatisIade'].forEach(pf => {
+			let ia = `${pf}Hes`, ra = `${pf.toLowerCase()}hes`
+			hv[ra] = this[ia] || null
+		})
 	}
 }
 class MQStokUretim extends MQStokAlt {

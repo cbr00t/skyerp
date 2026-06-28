@@ -62,13 +62,20 @@ class MQTicNumarator extends MQNumarator {
 		}
 		liste.push(new GridKolon({ belirtec: 'noyil', text: 'No Yıl', genislikCh: 8 }).tipNumerik().checkedList())
 	}
-	static loadServerData_queryDuzenle({ sent, sent: { where: wh, sahalar }, offlineRequest, offlineMode }) {
+	static loadServerData_queryDuzenle({ sent, sent: { where: wh, sahalar }, offlineRequest, offlineMode, idAlinsin }) {
 		super.loadServerData_queryDuzenle(...arguments)
-		let {tableAlias: alias} = this
+		let { tableAlias: alias } = this
 		sahalar.add(`${alias}.tip`)
+		if (idAlinsin) {
+			let { idSaha, sayacSaha } = this
+			if (idSaha)
+				sahalar.add(`${alias}.${idSaha}`)
+			if (sayacSaha && sayacSaha != idSaha)
+				sahalar.add(`${alias}.${sayacSaha}`)
+		}
 	}
 	async yukle(e = {}) {
-		let {rec} = e
+		let { rec } = e
 		if (!rec) {
 			let {tip} = this
 			if (!tip) 
@@ -82,6 +89,7 @@ class MQTicNumarator extends MQNumarator {
 			})
 			rec = await this.class.sqlExecTekil(sent)
 		}
+		
 		return await super.yukle({ ...e, rec })
 	}
 	async kayitSayisi(e) { return await super.kayitSayisi(e) }

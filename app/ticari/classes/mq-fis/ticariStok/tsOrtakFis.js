@@ -4,7 +4,8 @@ class TSOrtakFis extends MQTicariGenelFis {
 	static detaySiniflarDuzenle(e) { super.detaySiniflarDuzenle(e); e.liste.push(TSStokDetay, TSAciklamaDetay) }
 	static get aciklamaDetaySinif() { return TSAciklamaDetay } static get gridKontrolcuSinif() { return TSGridKontrolcu }
 	static get baslikOzelAciklamaTablo() { return null } static get dipSerbestAciklamaTablo() { return null } static get dipEkBilgiTablo() { return null }
-	static get stokmu() { return false } static get ticarimi() { return false } static get tsnKullanilirmi() { return true }
+	static get stokmu() { return false } static get ticarimi() { return false }
+	static get tsnKullanilirmi() { return true }
 	static get numTipKod() { return null } static get islTipKod() { return null } static get varsayilanIslKod() { return null }
 	static get oncelik() { return 0 } static get cikisGibimi() { return false } static get girisGibimi() { return false }
 	static get iademi() { return this.iade == 'I' } static get numYapi() { return new MQTicNumarator({ tip: this.numTipKod }) }

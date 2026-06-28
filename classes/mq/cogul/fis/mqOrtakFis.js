@@ -3,7 +3,8 @@ class MQOrtakFis extends MQDetayli {
 	static get tableAlias() { return 'fis' } static get ayrimTable() { return 'tfisayrim' } static get noSaha() { return 'no' }
 	static get dipSinif() { return DipIslemci } static get dipKullanilirmi() { return false } static get dipNakliyeKullanilirmi() { return false }
 	static get dipIskOranSayi() { return 0 } static get dipIskBedelSayi() { return 0 } static get dipGirisYapilirmi() { return true }
-	static get tsnKullanilirmi() { return true } static get numYapi() { return null }
+	static get numYapi() { return null }
+	static get tsnKullanilirmi() { return true }
 	static get numaratorGosterilirmi() { return true }
 	static get offlineFis() { return true }
 	get numYapi() { return this.class.numYapi } get fisNox() { return this.tsn?.asText() }

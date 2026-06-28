@@ -119,9 +119,13 @@ class FormBuilder_SubPart extends FBuilderWithInitLayout {
 	}
 	buildDevam(e) {
 		super.buildDevam(e); let {etiket, etiketGosterim, styles} = this;
-		let elmLabel = this.elmLabel = $(`<label>${etiket == null ? '' : (etiket || '&nbsp;')}</label>`); elmLabel.prependTo(this.layout);
+		let elmLabel = this.elmLabel = $(`<label>${etiket == null ? '' : (etiket || '&nbsp;')}</label>`)
+		elmLabel.prependTo(this.layout)
 		styles.push(`$elementCSS > label { color: #888; width: var(--full) }`);
-		if (etiketGosterim == 'placeholder') { elmLabel.addClass('basic-hidden') } else if (etiketGosterim == 'none') { elmLabel.addClass('jqx-hidden') }
+		if (!(this instanceof FBuilder_CheckBox)) {
+			if (etiketGosterim == 'placeholder') { elmLabel.addClass('basic-hidden') }
+			else if (etiketGosterim == 'none') { elmLabel.addClass('jqx-hidden') }
+		}
 	}
 	afterBuild(e) {
 		super.afterBuild(e); let {input} = this;
@@ -526,14 +530,15 @@ class FBuilder_ToggleButton extends FBuilder_DivOrtak {
 class FBuilder_CheckBox extends FBuilder_ToggleButton {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get inputTagName() { return 'input' }
-	constructor(e) {
-		e = e || {}; super(e);
-		this.bottomFlag = e.bottomFlag ?? e.bottom ?? true
+	constructor(e = {}) {
+		super(e)
+		this.bottomFlag = e.bottomFlag ?? e.bottom ?? false
 	}
 	buildDevam(e) {
-		let {value} = this; super.buildDevam(e);
-		let {input, isReadOnly} = this; if (input?.length) {
-			input.prop('type', 'checkbox');
+		let {value} = this; super.buildDevam(e)
+		let {input, isReadOnly} = this
+		if (input?.length) {
+			input.prop('type', 'checkbox')
 			if (isReadOnly) { input.prop('disabled', true) }
 			let setter = value => {
 				if (value == null) { input.prop('indeterminate', true) }
@@ -552,7 +557,8 @@ class FBuilder_CheckBox extends FBuilder_ToggleButton {
 				this.signalChange({ sender: this, builder: this, event: evt, value })
 			});
 			let {styles, layout, elmLabel} = this;
-			if (this.bottomFlag) { styles.push(`$elementCSS { margin-top: ${this.class.defaultHeight}px }`) }
+			if (this.bottomFlag)
+				styles.push(`$elementCSS { margin-top: ${this.class.defaultHeight}px }`)
 			styles.push(...[
 				`$elementCSS { min-width: unset !important; width: initial !important }`,
 				`$elementCSS > label { color: #888; width: calc(var(--full) - 45px) !important }`,
@@ -1263,13 +1269,14 @@ class FBuilder_SimpleComboBox extends FBuilder_TextInput {
         super.buildDevam(e)
         let {input} = this                                                    // Layout aslında input olarak hizmet edecek
         if (input?.length) {
-            let sender = this, builder = this, {parent, layout, input} = this
+            let sender = this, builder = this
+			let { parent, layout, input, _initValue: value = this.value } = this
 			if (layout?.length && parent?.length && layout.parent() != parent)
 				layout.detach().appendTo(parent)
 			let {placeholder = e.placeHolder, _source: source, widgetArgsDuzenle} = this
-            let args = { layout, input, placeholder, source }
+            let args = { value, sender, builder, layout, input, placeholder, source }
 			let keys = [
-				'id', 'name', 'etiket', 'value', 'listSource', 'autoClearFlag', 'kodsuzmu',
+				'id', 'name', 'etiket', 'listSource', 'autoClearFlag', 'kodsuzmu',
 				'mfSinif', 'kodSaha', 'adiSaha', 'delay', 'minLength', 'maxRows',
 				'disabled', 'userData', 'events', 'ozelQueryDuzenle'
 			]
@@ -1339,7 +1346,7 @@ class FBuilder_SimpleComboBox extends FBuilder_TextInput {
 	}
     setId(v) { super.setId(v); this.part?.setId(v); return this }
     setName(v) { this.name = v; this.part?.setName(v); return this }
-    setValue(v) { this.value = v; this.part?.setValue(v); return this }                                     // * widget 'item' setter => (value, item) durumların her ikisini de destekler
+    setValue(v) { this.value = this._initValue = v; this.part?.setValue(v); return this }                                     // * widget 'item' setter => (value, item) durumların her ikisini de destekler
     setPlaceHolder(v) { super.setPlaceHolder(v); this.part?.setPlaceholder(v); return this }
 	setPlaceholder(v) { return this.setPlaceHolder(v) }
     setSource(v) { this._source = v; this.part?.setSource(v); return this }
