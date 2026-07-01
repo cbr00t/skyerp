@@ -24,7 +24,7 @@ class MQGenelFis extends MQOrtakFis {
 		secimler.secimTopluEkle({
 			ozelIsaret: new SecimBirKismi({ etiket: 'İşaret', tekSecim: MQOzelIsaret }),
 			sube: new SecimString({ etiket: 'Şube', mfSinif: MQSube }),
-			tarih: new SecimDate({ etiket: 'Tarih', basi: today().addDays(-7) }),
+			tarih: new SecimDate({ etiket: 'Tarih', basi: today().addMonths(-5) }),
 			seri: new SecimString({ etiket: 'Seri' }),
 			noYil: new SecimInteger({ etiket: 'No Yıl'}),
 			fisNo: new SecimInteger({ etiket: 'Belge No' })
@@ -64,7 +64,8 @@ class MQGenelFis extends MQOrtakFis {
 		
 		tsnForm.addForm('numarator')
 			.setLayout(({ builder: fbd }) => {
-				let {parentParent, inst: fis} = fbd, {fisGirisLayoutSelector: selector} = fis.numarator?.class ?? {};
+				let { parentParent, inst: fis } = fbd
+				let { fisGirisLayoutSelector: selector } = fis.numarator?.class ?? {}
 				let layout = selector ? parentParent.find(selector) : null;
 				return layout?.length ? layout : fbd.parent
 			})
@@ -73,6 +74,7 @@ class MQGenelFis extends MQOrtakFis {
 				let { numarator } = fis
 				if (!numarator)
 					return
+				
 				let { islem } = rootPart
 				let part = numarator.class.partLayoutDuzenle({ ...e, islem, fis, layout })
 				fbd.part = rootPart.numaratorPart = part
@@ -85,6 +87,8 @@ class MQGenelFis extends MQOrtakFis {
 						else { txtNoYil.attr('readonly', ''); txtNoYil.addClass('readOnly') }
 					}
 				}
+				//let { txtFisNo } = part
+				t//xtFisNo.on('change', evt )
 			})
 			.addStyle_wh({ width: '450px !important' })
 	}
@@ -97,15 +101,15 @@ class MQGenelFis extends MQOrtakFis {
 	static orjBaslikListesiDuzenle_ilk(e) {
 		let {liste} = e;
 		liste.push(
-			new GridKolon({ belirtec: this.subeKodSaha, text: 'Şube', genislikCh: 9 }),
-			new GridKolon({ belirtec: this.tarihSaha, text: 'Tarih', genislikCh: 13 }).tipDate(),
-			new GridKolon({ belirtec: this.seriSaha, text: 'Seri', genislikCh: 8 })
+			new GridKolon({ belirtec: this.subeKodSaha, text: 'Şube', genislikCh: 9 }).checkedList(),
+			new GridKolon({ belirtec: this.tarihSaha, text: 'Tarih', genislikCh: 13 }).tipDate().checkedList(),
+			new GridKolon({ belirtec: this.seriSaha, text: 'Seri', genislikCh: 8 }).checkedList()
 		);
 		if (this.noYilKullanilirmi)
-			liste.push(new GridKolon({ belirtec: 'noyil', text: 'Yıl', genislikCh: 8 }).tipNumerik())
+			liste.push(new GridKolon({ belirtec: 'noyil', text: 'Yıl', genislikCh: 8 }).tipNumerik().checkedList())
 		liste.push(
 			new GridKolon({ belirtec: this.noSaha, text: 'No', genislikCh: 18 }).tipNumerik(),
-			new GridKolon({ belirtec: 'ozelisaret', text: 'İşr', genislikCh: 6 })
+			new GridKolon({ belirtec: 'ozelisaret', text: 'İşr', genislikCh: 6 }).checkedList()
 		)
 		super.orjBaslikListesiDuzenle_ilk(e)
 	}
@@ -145,23 +149,31 @@ class MQGenelFis extends MQOrtakFis {
 		}
 	}
 	hostVarsDuzenle({ hv }) {
-		super.hostVarsDuzenle(...arguments); let {tarih} = this, {ozelIsaretDesteklenirmi, subeKodSaha, tarihSaha} = this.class;
-		if (ozelIsaretDesteklenirmi) { hv.ozelisaret = this.ozelIsaret }
+		super.hostVarsDuzenle(...arguments)
+		let { tarih, class: { ozelIsaretDesteklenirmi, subeKodSaha, tarihSaha } } = this
+		if (ozelIsaretDesteklenirmi)
+			hv.ozelisaret = this.ozelIsaret
 		hv[subeKodSaha] = this.subeKod || '';
 		hv[tarihSaha] = (tarih ? asDate(tarih) : null)
 	}
 	setValues({ rec }) {
-		super.setValues(...arguments); let {ozelIsaretDesteklenirmi, subeKodSaha, tarihSaha, seriSaha, noYilKullanilirmi} = this.class;;
-		if (this.class.ozelIsaretDesteklenirmi) { this.ozelIsaret = rec.ozelisaret }
-		$.extend(this, { subeKod: rec[subeKodSaha] || null, tarih: asDate(rec[tarihSaha]) || null, seri: rec[seriSaha] || '' })
-		if (noYilKullanilirmi) { this.noYil = rec.noyil }
+		super.setValues(...arguments);
+		let {ozelIsaretDesteklenirmi, subeKodSaha, tarihSaha, seriSaha, noYilKullanilirmi} = this.class
+		if (ozelIsaretDesteklenirmi)
+			this.ozelIsaret = rec.ozelisaret
+		extend(this, { subeKod: rec[subeKodSaha] || null, tarih: asDate(rec[tarihSaha]) || null, seri: rec[seriSaha] || '' })
+		if (noYilKullanilirmi)
+			this.noYil = rec.noyil
 	}
 	uiDuzenle_fisGiris(e) {
 		super.uiDuzenle_fisGiris(e);
 		if (this.class.ozelIsaretDesteklenirmi) { this.ozelIsaretDegisti(e) }
 	}
+	numaratorDegisti({ sender, parentPart }) {
+	}
 	ozelIsaretDegisti({ sender, parentPart }) {
-		let {layout} = sender || parentPart, {ozelIsaret} = this;
+		let { layout } = sender ?? parentPart
+		let { ozelIsaret } = this
 		layout.attr('data-ozelisaret', ozelIsaret || '')
 	}
 }

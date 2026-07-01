@@ -35,8 +35,10 @@ class SimpleComboBoxPart extends Part {
 		if (input?.length) {
 			// input.val(this.renderedInputText)
 			let {placeholder, _initPlaceholder} = this
-			if (!autoClear)
-				placeholder = this.renderedText || _initPlaceholder
+			if (!autoClear) {
+				placeholder = this.renderedText
+				placeholder ||= _initPlaceholder || placeholder
+			}
 			input.attr('placeholder', placeholder)
 		}
 	}
@@ -166,6 +168,8 @@ class SimpleComboBoxPart extends Part {
 		input.val(this.renderedInputText || null)
 		input.attr('placeholder', this.renderedText)
 		input.on('change', event => {
+			if (this._inEvent)
+				return
 			let { currentTarget: { value } } = event
 			this._dirty = true
 			this._onChange({ type: 'change', event, layout, input, value })
@@ -214,8 +218,10 @@ class SimpleComboBoxPart extends Part {
 					)
 					callback(result)
 				}),
-				select: ((event, { item }) =>
-					this._onChange({ type: 'select', event, layout, input, item }))
+				select: ((event, { item }) => {
+					this._dirty = false
+					this._onChange({ type: 'select', event, layout, input, item })
+				})
 			})
 		}, 100)
 		if (listSource || mfSinif) {
@@ -276,8 +282,8 @@ class SimpleComboBoxPart extends Part {
 			let hasFocus = layout?.is(':focus') || input?.is(':focus')
 			if (isSelect) {
 				if (item != null) {
-					let {kodSaha, adiSaha} = this
-					let {value, label} = item
+					let { kodSaha, adiSaha } = this
+					let { value, label } = item
 					item = { [kodSaha]: value, [adiSaha]: label }
 				}
 			    this.item = item
@@ -314,8 +320,12 @@ class SimpleComboBoxPart extends Part {
 
 			clearTimeout(this._timerFocus)
 			if (!isTrigger) {
+				this._inEvent = true
 				input.blur()
-				this._timerFocus = setTimeout(() => input.focus(), 5)
+				this._timerFocus = setTimeout(() => {
+					this._inEvent = false
+					input.focus()
+				}, 5)
 			}
 		}
 		finally { setTimeout(() => this._inEvent = false, 5) }
@@ -368,10 +378,10 @@ class SimpleComboBoxPart extends Part {
 		let orjMFSinif = mfSinif ?? MQKA
 		let { kodSaha: mfKodSaha, adiSaha: mfAdiSaha } = orjMFSinif
 		let cls = (class extends orjMFSinif {
-			static get classKey() { return orjMFSinif.classKey }
-			
-			static orjBaslikListesi_gridInit({ sender: gridPart, sender: { bulPart } }) {
-				super.orjBaslikListesi_gridInit(...arguments)
+			static get classKey() { return `${orjMFSinif.classKey}_tmp` }
+			static orjBaslikListesi_gridInit(e) {
+				orjMFSinif.orjBaslikListesi_gridInit(e)
+				let { sender: gridPart, sender: { bulPart } } = e
 				if (!inGridEditor) {
 					let { bulFormKullanilirmi } = this
 					if (bulFormKullanilirmi) {
@@ -384,26 +394,26 @@ class SimpleComboBoxPart extends Part {
 					}
 				}
 			}
-			static standartGorunumListesiDuzenle({ liste }) {
-				super.standartGorunumListesiDuzenle(...arguments)
-				let { kodKullanilirmi, adiKullanilirmi } = this
-				if (empty(liste))
-					orjMFSinif.standartGorunumListesiDuzenle({ liste })
+			static standartGorunumListesiDuzenle(e) {
+				orjMFSinif.standartGorunumListesiDuzenle(e)
+				let { liste } = e
+				let { kodKullanilirmi, adiKullanilirmi } = orjMFSinif
 				if (kodKullanilirmi && !liste.includes(mfKodSaha))
 					liste.push(mfKodSaha)
 				if (adiKullanilirmi && !liste.includes(mfAdiSaha))
 					liste.push(mfAdiSaha)
 			}
-			static orjBaslikListesiDuzenle({ liste }) {
-				super.orjBaslikListesiDuzenle(...arguments)
-				let { kodKullanilirmi, adiKullanilirmi } = this
+			static orjBaslikListesiDuzenle(e) {
+				orjMFSinif.orjBaslikListesiDuzenle(e)
+				let { liste } = e
+				let { kodKullanilirmi, adiKullanilirmi } = orjMFSinif
 				// query builder için kolon eksiklerini tamamla
 				let key2Col = fromEntries(liste.map(_ => [_.belirtec, _]))
 				let kodCol = key2Col[mfKodSaha], adiCol = key2Col[mfAdiSaha]
 				if (!(kodCol && adiCol)) {
-					let _e = { ...arguments[0], liste: [] }
-					orjMFSinif.orjBaslikListesiDuzenle(_e)
-					let { liste: _liste } = _e
+					//let _e = { ...arguments[0], liste: [] }
+					//orjMFSinif.orjBaslikListesiDuzenle(_e)
+					//let { liste: _liste } = _e
 					if (kodKullanilirmi) {
 						kodCol ??= _liste[0]
 						kodCol.belirtec = mfKodSaha
@@ -422,13 +432,15 @@ class SimpleComboBoxPart extends Part {
 					liste.unshift(kodCol)
 			}
 			static loadServerData(e) {
-				let mfSinif = this, {sender: gridPart} = e
+				let mfSinif = this
+				let { sender: gridPart } = e
 				let likeValue = aciklama || kod
 				let _e = {
 					...e, sender, gridPart, layout, input,
 					mfSinif, kodSaha, adiSaha, item
 					// value: likeValue                                                         // server-side LIKE filtering, if class supports
 				}
+				deleteKeys(_e, 'tabloKolonlari')
 				if (!source)
 					return orjMFSinif.loadServerData(_e)
 				return source?.(_e)
@@ -436,6 +448,7 @@ class SimpleComboBoxPart extends Part {
 		})
 		let args = {
 			secince: async ({ recs, value }) => {
+				this._dirty = false
 				recs ??= []
 				if (empty(recs))
 					return
@@ -553,10 +566,11 @@ class SimpleComboBoxPart extends Part {
 	signalFocus(e) { return this.signal('focus', e) }
 	signalBlur(e) { return this.signal('blur', e) }
 	async signal(name, args) {
-		let sender = this, {layout, input, events} = this
+		let sender = this
+		let { parentPart, builder, layout, input, events } = this
 		let handlers = events[name] ?? []
 		for (let handler of handlers)
-			await handler?.call?.(this, { sender, layout, input, ...args })
+			await handler?.call?.(this, { sender, parentPart, builder, layout, input, ...args })
 		return this
 	}
 	on(name, handler) {

@@ -129,7 +129,7 @@ class MQMusteriYedekDosyalari extends MQDetay {
 		])
 	}
 	static orjBaslikListesi_argsDuzenle({ args }) {
-		super.orjBaslikListesi_argsDuzenle(...arguments);
+		super.orjBaslikListesi_argsDuzenle(...arguments)
 		args.showGroupsHeader = true
 	}
 	static loadServerData({ parentRec: p } = {}) {

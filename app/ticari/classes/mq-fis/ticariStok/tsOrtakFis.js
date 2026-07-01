@@ -11,6 +11,7 @@ class TSOrtakFis extends MQTicariGenelFis {
 	static get iademi() { return this.iade == 'I' } static get numYapi() { return new MQTicNumarator({ tip: this.numTipKod }) }
 	static get mustSaha() { return null } get eIslemSinif() { return EIslemOrtak.getClass({ tip: this.efAyrimTipi })}
 	static get sonStokKullanilirmi() { return true }
+	static getUISplitHeight(e) { return 230 }
 	get kosulYapilar() { return this._kosulYapilar } set kosulYapilar(value) { this._kosulYapilar = value }
 
 	static pTanimDuzenle(e) {
@@ -176,8 +177,38 @@ class TSOrtakFis extends MQTicariGenelFis {
 		await super.yeniTanimOncesiVeyaYukleSonrasiIslemler(e);
 		if (this.mustKod) { await this.satisKosulYapiOlustur(e) }
 	}
-	async kaydetOncesiIslemler(e) { await super.kaydetOncesiIslemler(e); await MQStokIslem.getKod2OzelIsaret(e) }
-	async degistirSonrasiIslemler(e) { await super.degistirSonrasiIslemler(e) }
+	async kaydetOncesiIslemler(e = {}) {
+		await super.kaydetOncesiIslemler(e)
+		await MQStokIslem.getKod2OzelIsaret(e)
+
+		;{
+			let degistimi = false
+			let detaylar = this.detaylar ??= []
+			let yDetaylar = []
+			for (let det of detaylar.filter(d => !d.ekBilgimi)) {
+				let altAciklama = det.altAciklama?.trimEnd() ?? ''
+				det.altAciklama = null
+				yDetaylar.push(det)
+				if (altAciklama) {
+					let tokens = uygunKelimeliParcala(altAciklama, 70).flat()
+					yDetaylar.push(
+						...tokens
+							.filter(Boolean)
+							.map(aciklama => new TSAciklamaDetay({ aciklama }))
+					)
+					degistimi = true
+				}
+			}
+			if (degistimi) {
+				this.detaylar = yDetaylar
+				this.detaylariNumaralandir(e)
+				// e.fis = this
+			}
+		}
+	}
+	async degistirSonrasiIslemler(e) {
+		await super.degistirSonrasiIslemler(e)
+	}
 	async detaylariYukleSonrasi(e) {
 		e = e || {}; await super.detaylariYukleSonrasi(e);
 		let {detaylar} = this, aktifUstDetay, _detaylar = [];
@@ -189,33 +220,51 @@ class TSOrtakFis extends MQTicariGenelFis {
 		detaylar = this.detaylar = _detaylar
 	}
 	uiKaydetOncesiIslemler(e) {
-		super.uiKaydetOncesiIslemler(e); let degistimi = false, {fis} = e, _detaylar = [];
-		fis.detaylar ??= []; let {detaylar} = fis;
-		for (let det of detaylar) {
-			if (det.ekBilgimi) { continue }
-			let altAciklama = (det.altAciklama || '').trimEnd(); det.altAciklama = null; _detaylar.push(det);
-			if (altAciklama) {
-				let partsArray = uygunKelimeliParcala(altAciklama, 70);
-				for (let parts of partsArray) { for (const aciklama of parts) { _detaylar.push(new TSAciklamaDetay({ aciklama })) } }
-				degistimi = true
-			}
-		}
-		if (degistimi) { fis.detaylar = _detaylar; e.fis = fis }
+		super.uiKaydetOncesiIslemler(e)
 	}
 	async satisKosulYapiOlustur(e) { return this }
 	uiSatirBedelHesaplaSonrasi(e) { }
-	async cariDegisti(e) {
-		e = e || {}; let rec = e.item ?? e.rec ?? {}, eFatmi = asBoolQ(rec.efaturakullanirmi)
-		if (eFatmi != null) {
-			let {faturami} = this.class;
-			let efAyrimTipi = (faturami ? (eFatmi ? EIslFatura.tip : null) : null);
-			this.efAyrimTipi.char = efAyrimTipi || 'A';
-			let builder = e.builder || {}, {layout, builder_efatGosterim} = builder.rootPart || {};
-			// const input = layout.find(`.formBuilder-element.parent[data-builder-id="efatGosterim"] > div`);
-			if (layout?.length) layout.attr('data-efAyrimTipi', efAyrimTipi || '');
-			if (builder_efatGosterim) { let cls = EIslemOrtak.getClass(efAyrimTipi); builder_efatGosterim.layout.html(cls ? cls.sinifAdi : '') }
-		}
+	numaratorDegisti({ parentPart, sender }) {
+		super.numaratorDegisti(...arguments)
+		let { efAyrimTipi, numarator: num } = this
+		efAyrimTipi = ( efAyrimTipi?.char ?? efAyrimTipi )?.trim() ?? ''
+		;(async () => {
+			let { tip, seri, class: { table } } = num
+			let sent = new MQSent({ table }), { where: wh, sahalar } = sent
+			wh
+				.degerAta(tip, 'tip')
+				.degerAta(seri, 'seri')
+			sahalar.add('belgetipi')
+			let numEF = ( await sent.execTekilDeger() )?.trim?.()
+			if (numEF != efAyrimTipi)
+				wConfirm(`Seçilen numaratör ile Müşterinin e-İşlem durumu uygun değildir`)
+		})()
+		//debugger
+	}
+	async cariDegisti(e = {}) {
+		await this.efatDurumBelirle(e)
 		await this.satisKosulYapiOlustur(e)
+	}
+	async efatDurumBelirle(e = {}) {
+		let rec = e.item ?? e.rec ?? {}
+		let eFatmi = asBoolQ(rec.efaturakullanirmi)
+		if (eFatmi != null) {
+			let { faturami } = this.class
+			let efAyrimTipi = ( faturami
+				? ( eFatmi ? EIslFatura.tip : null )
+				: null
+			) || 'A'
+			this.efAyrimTipi.char = efAyrimTipi
+			let { builder = {} } = e
+			let { layout, builder_efatGosterim: efGosterim } = builder.rootPart || {}
+			// const input = layout.find(`.formBuilder-element.parent[data-builder-id="efatGosterim"] > div`);
+			if (layout?.length)
+				layout.attr('data-efAyrimTipi', efAyrimTipi || '')
+			if (efGosterim) {
+				let cls = EIslemOrtak.getClass(efAyrimTipi)
+				efGosterim.layout.html(cls?.kisaAdi ?? '')
+			}
+		}
 	}
 	efAyrimTipiDegisti(e) { }
 	takipNoDegisti(e) { }

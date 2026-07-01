@@ -322,13 +322,14 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		}
 		let detGridPart = e.detGridPart = new GridliGostericiPart({
 			parentPart: this, parentBuilder: this.builder,
-			layout: parent, argsDuzenle: ({ args }) => {
+			layout: parent,
+			argsDuzenle: ({ args }) => {
 				extend(args, {
 					virtualMode: false, selectionMode: 'multiplerowsextended',
 					showGroupsHeader: true, groupsExpandedByDefault: true
 				})
 				let mfSinif = this.getMFSinif(e)
-				mfSinif?.orjBaslikListesi_argsDuzenle_detaylar?.(e)
+				mfSinif?.orjBaslikListesi_argsDuzenle_detaylar?.({ ...e, args })
 			},
 			tabloKolonlari: e =>
 				this.tabloKolonlari_detaylar,

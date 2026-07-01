@@ -51,11 +51,15 @@ class MQOrtakFis extends MQDetayli {
 		}
 	}
 	static secimlerDuzenleSon(e) {
-		super.secimlerDuzenleSon(e); const {secimler: sec} = e;
-		sec.grupTopluEkle([ { kod: 'teknik', aciklama: 'Teknik', renk: '#eee', zeminRenk: 'orangered', kapalimi: true } ]);
+		super.secimlerDuzenleSon(e)
+		let { secimler: sec } = e
+		sec.grupEkle({
+			kod: 'teknik', aciklama: 'Teknik', kapali: true,
+			renk: '#eee', zeminRenk: 'orangered'
+		})
 		sec.secimTopluEkle({ sayac: new SecimInteger({ etiket: 'Belge ID' }) });
-		sec.whereBlockEkle(e => {
-			const {aliasVeNokta, sayacSaha} = this, {where: wh, secimler: sec} = e;
+		sec.whereBlockEkle(({ where: wh, secimler: sec }) => {
+			let { aliasVeNokta, sayacSaha } = this
 			wh.basiSonu(sec.sayac, `${aliasVeNokta}${sayacSaha}`)
 		})
 	}

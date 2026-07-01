@@ -79,12 +79,13 @@ class TicariFis extends TSOrtakFis {
 	static rootFormBuilderDuzenle({ builders: allBuilders }) {
 		super.rootFormBuilderDuzenle(...arguments)
 		let { builders } = allBuilders.baslikForm
-		builders[0].addSimpleComboBox('mustKod')
+		builders[0].addSimpleComboBox('mustKod', 'Müşteri', 'Müşteri')
 			.etiketGosterim_yok()
 			.setMFSinif(MQCari)
 			.ozelQueryDuzenleBlock(({ alias, sent: { sahalar } }) =>
 				sahalar.add(`${alias}.efaturakullanirmi`))
-			.degisince(e => e.builder?.altInst?.cariDegisti(e))
+			.degisince(e =>
+				e.builder?.altInst?.cariDegisti(e))
 			.addStyle(`$elementCSS { min-width: 70% !important }`)
 	}
 	static orjBaslikListesiDuzenle_ara({ liste }) {
@@ -92,6 +93,8 @@ class TicariFis extends TSOrtakFis {
 		liste.push(
 			new GridKolon({ belirtec: 'must', text: 'Müşteri', genislikCh: 25, sql: `fis.${this.mustSaha}` }),
 			new GridKolon({ belirtec: 'mustunvan', text: 'Müşteri Ünvan', genislikCh: 50, sql: 'car.birunvan' }),
+			new GridKolon({ belirtec: 'sevktarihi', text: 'Sevk Tarihi', genislikCh: 12 }).tipDate().checkedList(),
+			new GridKolon({ belirtec: 'sevksaati', text: 'Svk.Saat', genislikCh: 8 }).tipTime().checkedList(),
 			new GridKolon({ belirtec: 'xadreskod', text: 'Sevk Adres', genislikCh: 25 }),
 			new GridKolon({ belirtec: 'xadresadi', text: 'Sevk Adres Adı', genislikCh: 35, sql: 'sadr.aciklama' })
 		)
@@ -539,7 +542,18 @@ class SevkiyatFis extends TicariFis {
 	}
 	static rootFormBuilderDuzenle(e = {}) {
 		super.rootFormBuilderDuzenle(e)
-		let { baslikForm } = e.builders
+		let { inst, builders: { baslikForm } } = e
+		;{
+			let form = baslikForm.builders[2].addFormWithParent()
+			form.addDateInput('sevkTarih', 'Sevk Tarihi', 'Sevk Tarihi')
+				.etiketGosterim_yok()
+				.setValue(inst.sevkTarih)
+			form.addTimeInput('sevkSaat', 'Sevk Saati', 'Sevk Saati')
+				.etiketGosterim_yok()
+				.setValue(inst.sevkSaat)
+				//.addStyle(`$elementCSS { margin-top: -35px !important }`)
+		}
+		
 		baslikForm.builders[2].addCheckBox('yerOrtakmi', 'Yer Ortakdır')
 			.degisince(e => {
 				let { builder } = e
@@ -551,8 +565,12 @@ class SevkiyatFis extends TicariFis {
 				altInst?.yerOrtakmiDegisti?.(e)
 				kontrolcu?.yerOrtakmiDegisti?.(e)
 		})
-		baslikForm.builders[2].addModelKullan('yerKod').setMFSinif(MQStokYer).comboBox().autoBind().etiketGosterim_normal().addStyle_wh(400)
-			.setVisibleKosulu(e => e.builder.altInst.yerOrtakmi ? true : 'basic-hidden')
+		baslikForm.builders[2].addSimpleComboBox('yerKod', 'Yer', 'Yer')
+			.etiketGosterim_yok()
+			.setMFSinif(MQStokYer)
+			.autoBind()
+			.addStyle_wh(400)
+			.setVisibleKosulu(({ builder: { altInst: inst }}) => inst.yerOrtakmi ? true : 'basic-hidden')
 	}
 	static orjBaslikListesiDuzenle_ara(e) {
 		super.orjBaslikListesiDuzenle_ara(e); let {liste} = e;
@@ -571,8 +589,17 @@ class SevkiyatFis extends TicariFis {
 		await super.raporKategorileriDuzenle_baslik(e); let section = ['PTBaslikFis2', 'PTBaslikFisIslem', 'FRFisGenel-Yer'];
 		await e.kat.ekSahaYukle({ section })
 	}
-	static varsayilanKeyHostVarsDuzenle(e) { super.varsayilanKeyHostVarsDuzenle(e); let {hv} = e; $.extend(hv, { piftipi: this.pifTipi, iade: this.iade }) }
-	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); let {hv} = e; hv.oncelik = this.class.oncelik }
+	static varsayilanKeyHostVarsDuzenle({ hv }) {
+		super.varsayilanKeyHostVarsDuzenle(...arguments)
+		extend(hv, { piftipi: this.pifTipi, iade: this.iade })
+	}
+	hostVarsDuzenle({ hv }) {
+		super.hostVarsDuzenle(...arguments)
+		let { sevkTarih, sevkSaat, class: { oncelik } } = this
+		if (sevkSaat)
+			sevkSaat = timeToString(asDate(sevkSaat))
+		extend(hv, { oncelik, sevktarihi: sevkTarih || null, sevksaati: sevkSaat })
+	}
 	eBilgiIcinYukle(e) {
 		super.eBilgiIcinYukle(e); let eBilgi = this.eBilgi || {};
 		let {rec} = eBilgi; if (!rec) { return this } let yerRec = eBilgi.yerRec || {};

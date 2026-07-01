@@ -278,10 +278,12 @@ class SecimlerPart extends Part {
 			}
 		}
 		catch (ex) {
-			let error = getErrorText(ex)
-			if (error) { hConfirm(error, mfSinif?.sinifAdi || 'Filtre') }
-			// throw ex
-			return false
+			//let title = secimler?.class?.sinifAdi || mfSinif?.sinifAdi || 'Filtre'
+			//let error = getErrorText(ex)
+			//if (error)
+				//hConfirm(error, title)
+			throw ex
+			//return false
 		}
 		this[this.canDestroy ? 'close' : 'hide']()
 	}

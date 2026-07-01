@@ -76,8 +76,9 @@ class EIslemOrtak extends CObject {
 		let cls = anaTip ? this.anaTip2Sinif[anaTip] ?? cls : EIslemOrtak
 		return cls
 	}
-	static getClass(e = {}) {
-		let tip = typeof e == 'object' ? e.tip : e
+	static getClass(e) {
+		e ??= {}
+		let tip = isObject(e) ? e.tip : e
 		let cls = this.tip2Sinif[tip]
 		return cls
 	}

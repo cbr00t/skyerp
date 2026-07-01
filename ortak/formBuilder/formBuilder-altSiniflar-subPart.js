@@ -1246,7 +1246,7 @@ class FBuilder_SimpleComboBox extends FBuilder_TextInput {
 	constructor(e) {
         super(e)
 		let {
-			name, etiket, placeholder = e.placeHolder,
+			name, etiket, placeholder = e.placeHolder ?? e.placeholder,
 			value = this.value, source: _source, listSource,
 			mfSinif, kodSaha, adiSaha,
 			kodsuzmu = e.kodsuz, autoClearFlag = e.autoClear,

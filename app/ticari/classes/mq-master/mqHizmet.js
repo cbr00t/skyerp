@@ -225,27 +225,29 @@ class MQHizmet extends MQKA {
 	/*====================Filtre Ekranı Yaptığımız Kısım======================*/
 	static secimlerDuzenle(e){
 		//Burası filtreleme ekranı yaptığımız alan.
-		super.secimlerDuzenle(e);
-		const {secimler} = e;
+		super.secimlerDuzenle(e)
+		const {secimler} = e
 		secimler.grupTopluEkle([//gruplama yaptığımız kısım.
 			{ kod: 'grupVeKategori', aciklama: 'Grup Ve Kategoriye Göre', zeminRenk: '#33ccaa', kapali: false },
 			{ kod: 'fiyat', aciklama: 'Tarihe Göre', zeminRenk: '#33ccaa', kapali: false },
-		]);
+		])
 
 		secimler.secimTopluEkle({
+			tip: new SecimTekSecim({ etiket: 'Hizmet Tipi', tekSecim: new BuDigerVeHepsi(['Normal', 'Özel']).bu() }),
 			hizGrup: new SecimString({ etiket: 'Hizmet Grup', grupKod: 'grupVeKategori' }),
 			hizKategori: new SecimString({etiket: 'Hizmet Kategori', grupKod: 'grupVeKategori'}),
 			hizFiyat: new SecimString({etiket: 'Birim Fiyat', grupKod: 'fiyat'})
-		});
+		})
 
 		secimler.whereBlockEkle(e => {
-			const {aliasVeNokta} = this;
-			const {where, secimler} = e;
-			where.basiSonu(secimler.hizGrup, `${aliasVeNokta}grupkod`);
-			where.basiSonu(secimler.hizKategori, `${aliasVeNokta}kategorikod`);
-			where.basiSonu(secimler.hizFiyat, `${aliasVeNokta}birimfiyat`);
-			//where.basiSonu(secimler.toplamBedel, `${aliasVeNokta}toplambedel`);
-			//burada secimler.kasKod kısmındaki kasKod  secimler.secimTopluEkle metodundan gelen kasKod olmasına dikkat et.
+			let { aliasVeNokta } = this
+			let { where: wh, secimler: sec } = e
+			let { tip: { tekSecim: tip } } = sec
+			if (!tip.hepsimi)
+				wh.degerAta(tip.bumu ? 'T' : 'G', `${aliasVeNokta}tip`)
+			wh.basiSonu(sec.hizGrup, `${aliasVeNokta}grupkod`)
+			wh.basiSonu(sec.hizKategori, `${aliasVeNokta}kategorikod`)
+			wh.basiSonu(sec.hizFiyat, `${aliasVeNokta}birimfiyat`)
 		})
 	}
 	/*========================================================================*/

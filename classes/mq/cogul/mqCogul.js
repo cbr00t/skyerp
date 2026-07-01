@@ -494,10 +494,15 @@ class MQCogul extends MQYapi {
 	static orjBaslikListesiDuzenle_ozelSahalar(e) { }
 	static get listeBasliklari() { let e = { liste: [] }; this.listeBasliklariDuzenle(e); return e.liste }
 	static listeBasliklariDuzenle(e) {
-		let {yerelParamBelirtec} = this, mfSinif2KolonAyarlari = app.params.yerel?.mfSinif2KolonAyarlari || {};
-		let kolonAyarlari = mfSinif2KolonAyarlari[yerelParamBelirtec] || {}, {orjBaslikListesi} = this, {liste} = e;
-		let {gorunumListesi} = kolonAyarlari; if ($.isEmptyObject(gorunumListesi)) { gorunumListesi = this.standartGorunumListesi }
-		if ($.isEmptyObject(gorunumListesi)) { liste.push(...orjBaslikListesi) }
+		let { liste } = e
+		let { yerelParamBelirtec } = this
+		let mfSinif2KolonAyarlari = app.params.yerel?.mfSinif2KolonAyarlari || {}
+		let kolonAyarlari = mfSinif2KolonAyarlari[yerelParamBelirtec] || {}
+		let orjBaslikListesi = this.orjBaslikListesi
+		let { gorunumListesi } = kolonAyarlari
+		if (empty(gorunumListesi))
+			gorunumListesi = this.standartGorunumListesi
+		if (empty(gorunumListesi)) { liste.push(...orjBaslikListesi) }
 		else {
 			let belirtec2OrjBaslik = {};
 			for (let colDef of orjBaslikListesi) belirtec2OrjBaslik[colDef.belirtec] = colDef

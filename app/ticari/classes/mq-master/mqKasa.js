@@ -9,7 +9,7 @@ class MQKasa extends MQKA {
 	}
 	static rootFormBuilderDuzenle(e) {
 		e = e || {}; super.rootFormBuilderDuzenle(e); let {tanimFormBuilder: tanimForm} = e;
-		let form = tanimForm.addFormWithParent().yanYana(4); form.addTextInput('aciklama', 'Açıklama').setMaxlength(100);
+		let form = tanimForm.addFormWithParent().yanYana(4); form.addTextInput('aciklama', 'Açıklama').setMaxLength(100)
 			form.addModelKullan('dvKod', 'Döviz').setMFSinif(MQDoviz).dropDown().kodsuz().autoBind();
 			form.addModelKullan('subeGecerlilik', 'Şube Geçerlilik').setSource(({ builder: fbd }) => fbd.inst.subeGecerlilik.kaListe).dropDown().kodsuz();
 			form.addModelKullan('muhHesap', 'Muhasebe Kodu').setMFSinif(MQMuhHesap).dropDown().kodsuz();

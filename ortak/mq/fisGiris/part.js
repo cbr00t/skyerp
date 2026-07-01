@@ -29,27 +29,32 @@ class FisGirisPart extends GridliGirisWindowPart {
 	}
 	runDevam(e) {
 		e = e ?? {}; let islem = e.islem = this.islem;
-		super.runDevam(e); let sender = this, {layout, fis, header, islemTuslari} = this;
+		super.runDevam(e); let sender = this, {layout, fis, header, islemTuslari} = this
 		let splitMain = this.splitMain = layout.find('.main-split');
 		let baslikFormlar = this.baslikFormlar = [header.find('.baslikForm1'), header.find('.baslikForm2'), header.find('.baslikForm3')];
 		splitMain.jqxSplitter({
 			theme, width: '100%', height: layout.height(), orientation: 'horizontal', splitBarSize: 20,
-			panels: [ { min: 87, size: fis.class.getUISplitHeight({ ...e, fis, islem }) ?? 165 }, { min: 200 } ]
+			panels: [ { min: 90, size: fis.class.getUISplitHeight({ ...e, fis, islem }) ?? 170 }, { min: 200 } ]
 		});
 		let subeForm = this.subeForm = header.find('.sube'), tsnForm = this.tsnForm = layout.find('.tsnForm');
-		let divHeaderDipOrtak = this.divHeaderDipOrtak = layout.find('.headerDipOrtak'), dipForm = divHeaderDipOrtak.find('.dipForm');
+		let divHeaderDipOrtak = this.divHeaderDipOrtak = layout.find('.headerDipOrtak')
+		let dipForm = divHeaderDipOrtak.find('.dipForm')
 		if (fis.class.dipKullanilirmi) {
 			setTimeout(() => {
-				dipForm.removeClass('jqx-hidden'); let fisDipPart = this.fisDipPart = new FisDipPart({ parentPart: this, layout: dipForm, islem, fis }); fisDipPart.run();
-				let dipFormWidth = 335, splitHeaderDipOrtak = this.splitHeaderDipOrtak = layout.find('.headerDipOrtak');
+				let { layout } = this
+				dipForm.removeClass('jqx-hidden')
+				let dipFormWidth = 335 - ( 5 * ( 1 - (getViewportInfo().zoom || 1) ) )
+				let fisDipPart = this.fisDipPart = new FisDipPart({ parentPart: this, layout: dipForm, islem, fis })
+				fisDipPart.run()
+				let splitHeaderDipOrtak = this.splitHeaderDipOrtak = layout.find('.headerDipOrtak')
 				splitHeaderDipOrtak.jqxSplitter({
 					theme, width: '100%', height: '100%', orientation: 'vertical', splitBarSize: 13,
 					panels: [
-						{ min: '75%', size: layout.width() - dipFormWidth, collapsible: false },
+						{ min: 800, size: layout.width() - dipFormWidth, collapsible: false },
 						{ min: 105, size: dipFormWidth }
 					]
 				})
-			}, 50)
+			}, 200)
 		}
 		else { dipForm.addClass('jqx-hidden') }
 		let splitGridVeIslemTuslari = this.splitGridVeIslemTuslari = layout.find('.gridVeIslemTuslari');

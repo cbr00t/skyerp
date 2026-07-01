@@ -40,7 +40,228 @@ class TicariApp extends App {
 			catch (ex) { cerr(ex) }
 		}
 	}
-	async getAnaMenu() { const response = await ajaxGet({ url: this.getWSUrl({ api: 'frMenu' }) }); return response ? FRMenu.from(response) : null }
+	/*async getAnaMenu() {
+		let url = this.getWSUrl({ api: 'frMenu' })
+		let res = await ajaxGet({ url })
+		return res ? FRMenu.from(res) : null
+	}*/
+	getAnaMenu(e) {
+		let { noMenuFlag, mainRaporBase } = this
+		if (noMenuFlag)
+			return new FRMenu()
+		
+		let { dev } = config, { isAdmin } = config.session ?? {}
+		let { inNewWindow } = qs
+		let items = [
+			new FRMenuCascade({
+				mne: 'G', text: 'Genel', items: [
+					new FRMenuChoice({ mne: 'I', text: 'İşyeri Tanımı', block: e => MQIsyeri.tanimla(e) }),
+					new FRMenuChoice({ mne: 'S', text: 'Şube Liste', block: e => MQSube.listeEkraniAc(e) }),
+				]
+			}),
+			new FRMenuCascade({
+				mne: 'S', text: 'Stok', items: [
+					new FRMenuChoice({ mne: 'K', text: 'Stok Kod Liste', block: e => MQStok.listeEkraniAc(e) }),
+					new FRMenuCascade({
+						mne: 'H', text: 'HMR', items: [
+							new FRMenuChoice({ mne: 'M', text: 'Model Liste', block: e => MQModel.listeEkraniAc(e) }),
+							new FRMenuChoice({ mne: 'R', text: 'Renk Liste', block: e => MQRenk.listeEkraniAc(e) }),
+							new FRMenuChoice({ mne: 'D', text: 'Desen Liste', block: e => MQDesen.listeEkraniAc(e) }),
+						]
+					}),
+					new FRMenuCascade({
+						mne: 'H', text: 'Hareket', items: [
+							new FRMenuChoice({ mne: 'G', text: 'Stok Giriş Fiş', block: e => StokGirisFis.listeEkraniAc(e) }),
+							new FRMenuChoice({ mne: 'C', text: 'Stok Çıkış Fiş', block: e => StokCikisFis.listeEkraniAc(e) })
+						]
+					}),
+					new FRMenuCascade({
+						mne: 'G', text: 'Genel', items: [
+							new FRMenuChoice({ mne: 'G', text: 'Grup Liste', block: e => MQStokGrup.listeEkraniAc(e) }),
+							new FRMenuChoice({ mne: 'C', text: 'İstatistik Grup Liste', block: e => MQStokIstGrup.listeEkraniAc(e) }),
+							new FRMenuChoice({ mne: 'A', text: 'Ana Grup Liste', block: e => MQStokAnaGrup.listeEkraniAc(e) }),
+							new FRMenuChoice({ mne: 'Y', text: 'Yer Liste', block: e => MQStokYer.listeEkraniAc(e) }),
+							new FRMenuChoice({ mne: 'I', text: 'Stok İşlem Liste', block: e => MQStokIslem.listeEkraniAc(e) }),
+							new FRMenuChoice({ mne: 'B', text: 'Barkod Referans Liste', block: e => MQBarkodReferans.listeEkraniAc(e) }),
+						]
+					}),
+					new FRMenuCascade({
+						mne: 'R', text: 'Rapor', items: [
+							new FRMenuChoice({ mne: 'S', text: 'Son Stok Raporu', block: e => SonStokRapor.raporEkraniAc(e) })
+						]
+					})
+				]
+			}),
+			new FRMenuCascade({
+				mne: 'H', text: 'Hizmet', items: [
+					new FRMenuChoice({ mne: 'K', text: 'Hizmet Kod Liste', block: e => MQHizmet.listeEkraniAc(e) })
+				]
+			}),
+			new FRMenuCascade({
+				mne: 'D', text: 'Demirbaş', items: [
+					new FRMenuChoice({ mne: 'K', text: 'Demirbaş Kod Liste', block: e => MQDemirbas.listeEkraniAc(e) })
+				]
+			}),
+			new FRMenuCascade({
+				mne: 'K', text: 'Kasa', items: [
+					new FRMenuChoice({ mne: 'K', text: 'Kasa Kod Liste', block: e => MQKasa.listeEkraniAc(e) })
+				]
+			}),
+			new FRMenuCascade({
+				mne: 'K', text: 'Kasa', items: [
+					new FRMenuChoice({ mne: 'K', text: 'Kasa Kod Liste', block: e => MQKasa.listeEkraniAc(e) }),
+					new FRMenuCascade({
+						mne: 'F', text: 'Fişler', items: [
+							new FRMenuChoice({ mne: 'KH', text: 'Kasa Hizmet Fişleri', block: e => KasaHizmetFis.listeEkraniAc(e) }),
+							new FRMenuChoice({ mne: 'KC', text: 'Kasa Tahsilat/Ödeme Fişleri', block: e => KasaCariFis.listeEkraniAc(e) })
+						]
+					})
+				]
+			}),
+			new FRMenuCascade({
+				mne: 'B', text: 'Banka', items: [
+					new FRMenuChoice({ mne: 'B', text: 'Banka Kod Liste', block: e => MQBanka.listeEkraniAc(e) }),
+					new FRMenuChoice({ mne: 'H', text: 'Banka Hesap Liste', block: e => MQBankaHesap.listeEkraniAc(e) }),
+					new FRMenuChoice({ mne: 'P', text: 'POS Hesap Liste', block: e => MQPosHesap.listeEkraniAc(e) }),
+					new FRMenuChoice({ mne: 'K', text: 'Kredi Kartı Liste', block: e => MQKrediKarti.listeEkraniAc(e) }),
+					new FRMenuCascade({
+						mne: 'F', text: 'Fişler', items: [
+							new FRMenuChoice({ mne: 'PT', text: 'POS Tahsil', block: e => PosTahsilFis.listeEkraniAc(e) }),
+							new FRMenuChoice({ mne: 'KO', text: 'Kredi Kartı ile Cari Ödeme', block: e => KrediKartiIleOdemeFis.listeEkraniAc(e) }),
+							new FRMenuChoice({ mne: 'KM', text: 'Kredi Kartı ile Masraf Ödeme', block: e => KrediKartiIleMasrafOdemeFis.listeEkraniAc(e) }),
+							new FRMenuChoice({ mne: 'HG', text: 'Gönderilen Havale/EFT', block: e => HEGonderilenFis.listeEkraniAc(e) }),
+							new FRMenuChoice({ mne: 'HL', text: 'Gelen Havale/EFT', block: e => HEGelenFis.listeEkraniAc(e) }),
+							new FRMenuChoice({ mne: 'HK', text: 'Kendimize Havale/EFT', block: e => HEKendimizeFis.listeEkraniAc(e) }),
+							new FRMenuChoice({ mne: 'BT', text: 'Banka Toplu İşlem', block: e => BankaTopluIslemFis.listeEkraniAc(e) })
+						]
+					})
+				]
+			}),
+			new FRMenuCascade({
+				mne: 'C', text: 'Cari', items: [
+					new FRMenuChoice({ mne: 'C', text: 'Cari Hesap Liste', block: e => MQCari.listeEkraniAc(e) }),
+					new FRMenuChoice({ mne: 'P', text: 'Plasiyer Liste', block: e => MQPlasiyer.listeEkraniAc(e) }),
+					new FRMenuCascade({
+						mne: 'F', text: 'Fişler', items: [
+							new FRMenuChoice({ mne: 'CH', text: 'Cari Hizmet Fişleri', block: e => CariHizmetFis.listeEkraniAc(e) }),
+							new FRMenuChoice({ mne: 'CI', text: 'Cari Toplu İşlem Fişleri', block: e => CariTopluIslemFis.listeEkraniAc(e) }),
+							new FRMenuChoice({ mne: 'CD', text: 'Cari Devir Fişleri', block: e => CariDevirFis.listeEkraniAc(e) }),
+							new FRMenuChoice({ mne: 'CT', text: 'Cari Tahsilat Fişleri', block: e => CariTahsilatFis.listeEkraniAc(e) }),
+							new FRMenuChoice({ mne: 'CO', text: 'Cari Ödeme Fişleri', block: e => CariOdemeFis.listeEkraniAc(e) })
+						]
+					}),
+					new FRMenuCascade({
+						mne: 'D', text: 'Diğer', items: [
+							new FRMenuChoice({ mne: 'A', text: 'Alt Hesap Liste', block: e => MQAltHesap.listeEkraniAc(e) }),
+							new FRMenuChoice({ mne: 'G', text: 'Alt Hesap Grup Liste', block: e => MQAltHesapGrup.listeEkraniAc(e) }),
+							new FRMenuChoice({ mne: 'O', text: 'e-İşlem Özel Yöntem', block: e => MQEIslOzelYontem.listeEkraniAc(e) })
+						]
+					})
+				]
+			}),
+			new FRMenuCascade({
+				mne: 'V', text: 'Vergi', items: [
+					new FRMenuChoice({ mne: 'K', text: 'Vergi Kod Liste', block: e => MQVergi.listeEkraniAc(e) })
+				]
+			}),
+			new FRMenuCascade({
+				mne: 'A', text: 'Alım', items: [
+					new FRMenuChoice({ mne: 'EI', text: '<span class="green bold">Gelen e-İşlem Listesi</span>', block: e => GelenEIslemListePart.listele(e) }),
+					new FRMenuChoice({ mne: 'AF', text: 'Alım Fatura Listesi', block: e => AlimFaturaFis.listeEkraniAc(e) }),
+					new FRMenuChoice({ mne: 'AI', text: 'Alım İrsaliye Listesi', block: e => AlimIrsaliyeFis.listeEkraniAc(e) }),
+					new FRMenuChoice({ mne: 'AS', text: 'Alım Sipariş Listesi', block: e => AlimSiparisFis.listeEkraniAc(e) }),
+					new FRMenuCascade({
+						mne: 'I', text: 'İADE', items: [
+							new FRMenuChoice({ mne: 'AF', text: 'Alım İADE Fatura Listesi', block: e => AlimIadeFaturaFis.listeEkraniAc(e) }),
+							new FRMenuChoice({ mne: 'AI', text: 'Alım İADE İrsaliye Listesi', block: e => AlimIadeIrsaliyeFis.listeEkraniAc(e) })
+						]
+					}),
+					new FRMenuCascade({
+						mne: 'D', text: 'Diğer', items: [
+							new FRMenuChoice({ mne: 'V', text: 'Gelen e-İşlem VKN Referans Listesi', block: e => MQEIslVKNRef.listeEkraniAc(e) }),
+							new FRMenuChoice({ mne: 'S', text: 'Gelen e-İşlem SH Referans Listesi', block: e => MQEIslSHRef.listeEkraniAc(e) })
+						]
+					}),
+					new FRMenuCascade({
+						mne: 'P', text: 'Parametreler', items: [
+							new FRMenuChoice({ mne: 'A', text: 'Alım Parametreleri', block: e => app.params.alim.tanimla(e) })
+							// new FRMenuChoice({ mne: 'E2', text: 'e-İşlem 2. Parametreleri', block: e => app.params.eIslem2.tanimla(e) })
+						]
+					})
+				]
+			}),
+			new FRMenuCascade({
+				mne: 'T', text: 'Satış', items: [
+					new FRMenuChoice({ mne: 'EI', text: '<span class="royalblue bold">Giden e-İşlem Listesi</span>', block: e => GidenEIslemListePart.listele() }),
+					new FRMenuChoice({ mne: 'TF', text: 'Satış Fatura Listesi', block: e => SatisFaturaFis.listeEkraniAc(e) }),
+					new FRMenuChoice({ mne: 'TI', text: 'Satış İrsaliye Listesi', block: e => SatisIrsaliyeFis.listeEkraniAc(e) }),
+					new FRMenuChoice({ mne: 'TS', text: 'Satış Sipariş Listesi', block: e => SatisSiparisFis.listeEkraniAc(e) }),
+					new FRMenuCascade({
+						mne: 'I', text: 'İADE', items: [
+							new FRMenuChoice({ mne: 'TF', text: 'Satış İADE Fatura Listesi', block: e => SatisIadeFaturaFis.listeEkraniAc(e) }),
+							new FRMenuChoice({ mne: 'TI', text: 'Satış İADE İrsaliye Listesi', block: e => SatisIadeIrsaliyeFis.listeEkraniAc(e) })
+						]
+					}),
+					new FRMenuCascade({
+						mne: 'S', text: 'ŞABLON', items: [
+							new FRMenuChoice({ mne: 'S', text: 'Fatura Şablon Listesi', block: e => SatisFaturaFis.otoSablonSinif?.listeEkraniAc(e) }),
+							new FRMenuChoice({ mne: 'O', text: 'Şablondan Fatura Oluştur', block: e => SatisFaturaFis.otoSablonSinif?.faturaOlusturIslemi(e) })
+						]
+					}),
+					new FRMenuCascade({
+						mne: 'G', text: 'Genel', items: [
+							new FRMenuChoice({ mne: 'RT', text: 'Satış Rotası', block: e => MQSatisRota.listeEkraniAc(e) }),
+							new FRMenuChoice({ mne: 'SC', text: 'Stok-Cari Referans', block: e => MQStokCariRef.listeEkraniAc(e) })
+						]
+					}),
+					new FRMenuCascade({
+						mne: 'P', text: 'Parametreler', items: [
+							new FRMenuChoice({ mne: 'S', text: 'Satış Parametreleri', block: e => app.params.satis.tanimla(e) }),
+							new FRMenuChoice({ mne: 'EI', text: 'e-İşlem Parametreleri', block: e => app.params.eIslem.tanimla(e) })
+							// new FRMenuChoice({ mne: 'E2', text: 'e-İşlem 2. Parametreleri', block: e => app.params.eIslem2.tanimla(e) })
+						]
+					})
+				]
+			}),
+			new FRMenuCascade({
+				mne: 'F', text: 'Finans', items: [
+					new FRMenuCascade({
+						mne: 'H', text: 'Hizmet', items: [
+							new FRMenuCascade({
+								mne: 'F', text: 'Fişler', items: [
+									new FRMenuChoice({ mne: 'KH', text: 'Kasa Hizmet Fişleri', block: e => KasaHizmetFis.listeEkraniAc(e) }),
+									new FRMenuChoice({ mne: 'CH', text: 'Cari Hizmet Fişleri', block: e => CariHizmetFis.listeEkraniAc(e) }),
+									new FRMenuChoice({ mne: 'BH', text: 'Banka Hizmet Fişleri', block: e => BankaHizmetFis.listeEkraniAc(e) })
+								]
+							})
+						]
+					})
+				]
+			}),
+
+			new FRMenuCascade({
+				mne: 'T', text: 'Ticari', items: [
+					new FRMenuChoice({ mne: 'T', text: 'Tahsil Şekli listesi', block: e => MQTahsilSekli.listeEkraniAc(e) })
+				]
+			}),
+
+			new FRMenuCascade({
+				mne: 'M', text: 'Muhasebe', items: [
+					new FRMenuChoice({ mne: 'H', text: 'Muhasebe Hesap listesi', block: e => MQMuhHesap.listeEkraniAc(e) })
+				]
+			}),
+			new FRMenuCascade({
+				mne: 'P', text: 'Parametreler', items: [
+					new FRMenuChoice({ mne: 'ZR', text: 'Zorunlu Parametreler', block: e => app.params.zorunlu.tanimla(e) }),
+					new FRMenuChoice({ mne: 'TG', text: 'Ticari Genel Parametreleri', block: e => app.params.ticariGenel.tanimla(e) }),
+					new FRMenuChoice({ mne: 'AK', text: 'Aktarım Parametreleri', block: e => app.params.aktarim.tanimla(e) }),
+					new FRMenuChoice({ mne: 'WB', text: 'Web Parametreleri', block: e => app.params.web.tanimla(e) })
+				]
+			})
+		]
+		
+		return new FRMenu({ items })
+	}
 	async getMailParam(e) {
 		let {eMailKeys} = MQEMailUst, {params} = this;
 		let setValues = (source, target) => {

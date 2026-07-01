@@ -58,7 +58,7 @@ class SabFatOlusturucu extends Secimler {
 
         let { errors } = st
         if (!empty(errors)) {
-            let errText = [
+            let errorText = [
                 `<ul>`,
                 errors
                     .filter(Boolean)
@@ -66,8 +66,9 @@ class SabFatOlusturucu extends Secimler {
                     .join('\n'),
                 `</ul>`
             ].join('\n')
-            hConfirm(errText, islemAdi)
-            return false
+            throw { isError: true, errorText }
+            //hConfirm(errorText, islemAdi)
+            //return false
         }
 
         let { success } = st
@@ -203,29 +204,48 @@ class SabFatOlusturucu extends Secimler {
         }
 
         let { seri, noYil, sonNo: fisNo } = num
+        tarih = asDate(tarih)
+        
         let fis = new fisSinif()
-        mergeInto(sablonFis, fis)
+        mergeInto(sablonFis.deepCopy(), fis)
         extend(fis, {
             otoSablonSayac, tarih,
             numarator: num,
             seri, noYil, fisNo,
-            sevkTarihi: tarih
+            sevkTarih: tarih,
+            sevkSaat: timeToString(now())
         })
         
         let _e = { ...e, fis }
         let { detaylar } = fis
-        ;detaylar.forEach(d =>
-            d.netBedelHesapla?.(_e))
+        let sr = {
+            AY: String(tarih.ay),
+            AYADI: tarih.ayAdi,
+            YIL: tarih.yil,
+            KISAYIL: tarih.kisaYil
+        }
+        ;detaylar
+            //.filter(d => !(d.ekBilgimi || d.aciklamami))
+            .forEach(d => {
+                d.netBedelHesapla?.(_e)
+                ;['detAciklama', 'altAciklama', 'aciklama']
+                    .filter(sel => d[sel])
+                    .forEach(sel => {
+                        let text = d[sel]
+                        for (let [k, v] of entries(sr)) {
+                            text = text
+                                .replaceAll(`[${k}]`, v)
+                                .replaceAll(`#${k}#`, v)
+                        }
+                        d[sel] = text
+                    })
+            })
 
         fis.seri = num.seri
         while (await fis.varmi(_e))
         	fis.fisNo = (await num.kesinlestir(_e)).sonNo
         
         await fis.disKaydetOncesiIslemler(e)
-         /*await fis.dipOlustur()
-		let { dipIslemci } = this
-		await dipIslemci?.dipSatirlariOlustur?.(e)
-		await dipIslemci?.topluHesapla?.(e)*/
         let res = await fis.yaz(e)
         if (res === false) {
             errors.push(`<b class="royalblue">${sablonAdi}</b> şablonu için <b class="firebrick">Ticari Belge</b> kaydedilemedi`)

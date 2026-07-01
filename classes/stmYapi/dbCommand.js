@@ -24,9 +24,10 @@ class MQSentVeIliskiliYapiOrtak extends MQDbCommand {
 		return result
 	}
 	asTmpTable(e) { return this.class.asTmpTable(e, this) }
-	asToplamStm(e) {
-		let sumListe = e.sumListe ?? [], orderFlag = e.order ?? e.orderBy;
-		let tmpTabloVeAlias = e.tmpTabloVeAlias ?? e.tmpTableVeAlias, {toplamInd} = e, {liste} = this;
+	asToplamStm(e = {}) {
+		let sumListe = e.sumListe ?? [], orderFlag = e.order ?? e.orderBy
+		let tmpTabloVeAlias = e.tmpTabloVeAlias ?? e.tmpTableVeAlias, {toplamInd} = e
+		let {liste} = this
 		let ilkSent; for (let sent of this) { ilkSent = sent; break } if (!ilkSent) { return new MQStm() } 
 		let tmpTabloAdi = tmpTabloVeAlias?.deger ?? `${MQStm.toplamTable}${toplamInd ?? ''}`;
 		let tmpAlias = tmpTabloVeAlias?.alias ?? `xtop${toplamInd ?? ''}`;		/* aMQAliasliYapi */

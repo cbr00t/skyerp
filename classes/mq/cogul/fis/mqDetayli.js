@@ -71,6 +71,17 @@ class MQDetayli extends MQSayacli {
 			islemTuslariPart.butonlariOlustur()
 		}
 	}
+	static loadServerData_queryDuzenle(e = {}) {
+		super.loadServerData_queryDuzenle(e)
+		let { stm, basit = e.basitmi, tekilOku = e.tekilOkumu } = e
+		let { orderBy } = stm
+		let { tarihSaha, seriSaha, noSaha } = this
+		if (len(orderBy.liste) < 2 && !(basit || tekilOku)) {
+			orderBy.liste = [ tarihSaha, seriSaha, noSaha ]
+				.filter(Boolean)
+				.map(v => `${v} DESC`)
+		}
+	}
 	static orjBaslikListesi_argsDuzenle_detaylar(e) {
 		let {detaySiniflar} = this;
 		if (!empty(detaySiniflar)) { for (let cls of detaySinif) { detaySinif?.orjBaslikListesi_argsDuzenle(e) } }
