@@ -14,6 +14,8 @@
 							<div class="baslikForm1 baslikForm sub-parent"></div>
 							<div class="baslikForm2 baslikForm sub-parent"></div>
 							<div class="baslikForm3 baslikForm sub-parent"></div>
+							<div class="baslikForm4 baslikForm sub-parent"></div>
+							<div class="baslikForm5 baslikForm sub-parent"></div>
 						</div>
 					</div>
 					<div class="dipForm jqx-hidden">

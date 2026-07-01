@@ -6,45 +6,53 @@ class PosOrtakFis extends BankaOrtakFis {
 	static get fisTipi() { return null }
 	static get almSat() { return null }
 	static get posHesapSinif() { return this.gridKontrolcuSinif.posHesapSinif }
-	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e);
-		const {pTanim} = e;
-		$.extend(pTanim, { normalIade: new PInstTekSecim('iade', NormalIade) })
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
+		extend(pTanim, { normalIade: new PInstTekSecim('iade', NormalIade) })
 	}
-	static rootFormBuilderDuzenle(e) {
-		e = e || {};
+	static rootFormBuilderDuzenle(e = {}) {
 		super.rootFormBuilderDuzenle(e)
 		this.rootFormBuilderDuzenle_taksitlendir(e)
 	}
-	static rootFormBuilderDuzenle_taksitlendir(e) {
-		e = e || {};
-		const bedelSaha = e.bedelSaha || 'bedel';
-		const {gridIslemTuslari} = e.builders;
-		gridIslemTuslari.addButton('taksitlendir', null, 'TAKSİT', e => {
-			const {rootPart} = e.builder, {gridWidget} = rootPart;
-			$.extend(e, { gridPart: rootPart, gridWidget, belirtec: bedelSaha });
+	static rootFormBuilderDuzenle_taksitlendir(e = {}) {
+		let { bedelSaha = 'bedel' } = e
+		let { gridIslemTuslari } = e.builders
+		gridIslemTuslari.addButton('taksitlendir', null, 'TAKSİT', _e => {
+			let { rootPart } = _e.builder, { gridWidget } = rootPart
+			_e = { ...e, ..._e, gridPart: rootPart, gridWidget, belirtec: bedelSaha }
 			rootPart.kontrolcu.taksitlendirIstendi(e)
 		})
 	}
-	static varsayilanKeyHostVarsDuzenle(e) {
-		super.varsayilanKeyHostVarsDuzenle(e);
-		const {hv} = e, {fisTipi, almSat} = this;
+	static orjBaslikListesiDuzenle_son({ liste }) {
+		super.orjBaslikListesiDuzenle_son(...arguments)
+		;['toplambedel', 'toplamdvbedel'].forEach(k => {
+			let i = liste.findIndex(cd => cd.belirtec == k) ?? -1
+			if (i > -1)
+				liste.splice(i, 1)
+		})
+	}
+	static varsayilanKeyHostVarsDuzenle({ hv }) {
+		super.varsayilanKeyHostVarsDuzenle(...arguments)
+		let { fisTipi, almSat } = this
 		if (fisTipi != null)
 			hv.fistipi = fisTipi
 		if (almSat != null)
 			hv.almsat = almSat
 	}
+	hostVarsDuzenle({ hv }) {
+		super.hostVarsDuzenle(...arguments)
+		deleteKeys(hv, 'toplambedel', 'toplamdvbedel')
+	}
 }
 class PosOrtakDetay extends BankaOrtakDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'posilkhar' }
-	static extYapilarDuzenle(e) {
-		const {liste} = e;
-		liste.push(Ext_CariVeAltHesap);
+	static extYapilarDuzenle({ liste }) {
+		liste.push(Ext_CariVeAltHesap)
 		if (app.params.ticariGenel.kullanim.takipNo)
 			liste.push(Ext_TakipNo)
-		liste.push(Ext_NDVade, Ext_Vade, Ext_DvKur, Ext_BedelVeDvBedel);
-		super.extYapilarDuzenle(e)
+		liste.push(Ext_NDVade, Ext_Vade, Ext_DvKur, Ext_BedelVeDvBedel)
+		super.extYapilarDuzenle(...arguments)
 	}
 }
 class PosOrtakGridci extends BankaOrtakGridci {
@@ -54,7 +62,7 @@ class PosOrtakGridci extends BankaOrtakGridci {
 		const {tabloKolonlari} = e;
 		tabloKolonlari.push(
 			...this.class.posHesapSinif.getGridKolonlar({ belirtec: 'posKosul', gridKolonGrupcu: 'getGridKolonGrup_bankaHesapli' }),
-			...MQCari.getGridKolonlar({ belirtec: 'cari' }),
+			...MQCari.getGridKolonlar({ belirtec: 'must' }),
 			...MQAltHesap.getGridKolonlar({ belirtec: 'altHesap' }),
 			...MQTakipNo.getGridKolonlar({ belirtec: 'takip' }),
 			new GridKolon({ belirtec: 'ndVade', text: 'Nakde Dönüşüm Vade', genislikCh: 13 }).tipDate(),

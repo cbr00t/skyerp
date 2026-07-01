@@ -26,6 +26,7 @@ class TicariFis extends TSOrtakFis {
 	static get islTipKod() { return (this.alimmi ? 'AF' : this.satismi ? 'TF' : this.mustahsilmi ? 'MF' : super.islTipKod) }
 	static get varsayilanIslKod() { return ( this.alimmi ? 'AF' : this.satismi ? 'TF' : this.mustahsilmi ? 'MF' : super.islTipKod ) }
 	static get mustSaha() { return 'must' }
+	static get sevkTSKullanilirmi() { return true }
 	get fisTopIslBedel() { let toplam = 0; let {detaylar} = this; for (let det of detaylar) { toplam += (det.iskBedelToplam || 0) } return toplam }
 	get ekVergiVarmi() { let {detaylar} = this; for (let det of detaylar) { if (det.ekVergiYapi && !det.bosmu) { return true } } return false }
 	static async getMustKonKendiDetayKod(e) {
@@ -171,17 +172,28 @@ class TicariFis extends TSOrtakFis {
 		sent.leftJoin({ alias: 'fis', table: 'tahsilsekli tsek', on: 'fis.martahsil = tsek.kodno' });
 		if (attrSet.degAdresIlAdi) { sent.fromIliski('caril degil', 'deg.ilkod = degil.kod') }
 	}
-	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); let {aliasVeNokta, almSat, ayrimTipi, fisEkAyrim} = this, {sent} = e;
-		sent.fromIliski('carmst car', 'fis.must = car.must').fromIliski('carsevkadres sadr', `${aliasVeNokta}xadreskod = sadr.kod`);
-		if (almSat) { sent.where.degerAta(almSat, `${aliasVeNokta}almsat`) }
-		if (ayrimTipi != null) { sent.where.degerAta(ayrimTipi, `${aliasVeNokta}ayrimtipi`) }
-		if (fisEkAyrim != null) { sent.where.degerAta(ayrimTipi, `${aliasVeNokta}ayrimtipi`) }
-		sent.sahalar.add(`${aliasVeNokta}piftipi`, `${aliasVeNokta}almsat`, `${aliasVeNokta}iade`, `${aliasVeNokta}ayrimtipi`, `${aliasVeNokta}fisekayrim`)
+	static loadServerData_queryDuzenle({ sent, sent: { where: wh, sahalar } }) {
+		super.loadServerData_queryDuzenle(...arguments)
+		let { tableAlias: alias, almSat, ayrimTipi, fisEkAyrim } = this
+		sent
+			.fromIliski('carmst car', `${alias}.must = car.must`)
+			.fromIliski('carsevkadres sadr', `${alias}xadreskod = sadr.kod`)
+		if (almSat)
+			wh.degerAta(almSat, `${alias}.almsat`)
+		if (ayrimTipi != null)
+			wh.degerAta(ayrimTipi, `${alias}.ayrimtipi`)
+		if (fisEkAyrim != null)
+			wh.degerAta(ayrimTipi, `${alias}.ayrimtipi`)
+		sahalar.addWithAlias(alias,
+							 'piftipi', 'almsat', 'iade', 'ayrimtipi', 'fisekayrim')
 	}
-	tekilOku_detaylar_queryDuzenle(e) { super.tekilOku_detaylar_queryDuzenle(e); e.detaySinif.tekilOku_detaylar_queryDuzenle_ticari(e) }
+	tekilOku_detaylar_queryDuzenle({ detaySinif } = {}) {
+		let e = arguments[0]
+		super.tekilOku_detaylar_queryDuzenle(e)
+		detaySinif?.tekilOku_detaylar_queryDuzenle_ticari?.(e)
+	}
 	async uiGirisOncesiIslemler(e) {
-		await super.uiGirisOncesiIslemler(e);
+		await super.uiGirisOncesiIslemler(e)
 		await MQVergiKdv.getKod2VergiBilgi()    /* cache = MQVergi.globals.belirtec2Globals.kdv.kod2VergiBilgi */
 	}
 	async kaydetOncesiIslemler(e) {
@@ -530,9 +542,14 @@ class SevkiyatFis extends TicariFis {
 	}
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
+		let { sevkTSKullanilirmi } = this
+		if (sevkTSKullanilirmi) {
+			extend(pTanim, {
+				sevkTarih: new PInstDateToday('sevktarihi'),
+				sevkSaat: new PInstDateTimeNow('sevksaati')
+			})
+		}
 		extend(pTanim, {
-			sevkTarih: new PInstDateToday('sevktarihi'),
-			sevkSaat: new PInstDateTimeNow('sevksaati'),
 			yerKod: new PInstStr('yerkod'),
 			yerOrtakmi: new PInstTrue('yerortakdir'),
 			malKabulNo: new PInstNum('malkabulno'),
@@ -542,8 +559,9 @@ class SevkiyatFis extends TicariFis {
 	}
 	static rootFormBuilderDuzenle(e = {}) {
 		super.rootFormBuilderDuzenle(e)
+		let { sevkTSKullanilirmi } = this
 		let { inst, builders: { baslikForm } } = e
-		;{
+		if (sevkTSKullanilirmi) {
 			let form = baslikForm.builders[2].addFormWithParent()
 			form.addDateInput('sevkTarih', 'Sevk Tarihi', 'Sevk Tarihi')
 				.etiketGosterim_yok()
@@ -595,10 +613,14 @@ class SevkiyatFis extends TicariFis {
 	}
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments)
-		let { sevkTarih, sevkSaat, class: { oncelik } } = this
-		if (sevkSaat)
-			sevkSaat = timeToString(asDate(sevkSaat))
-		extend(hv, { oncelik, sevktarihi: sevkTarih || null, sevksaati: sevkSaat })
+		let { sevkTarih, sevkSaat, class: { sevkTSKullanilirmi, oncelik } } = this
+		if (sevkTSKullanilirmi) {
+			if (sevkSaat)
+				sevkSaat = timeToString(asDate(sevkSaat))
+		}
+		else
+			sevkTarih = sevkSaat = null
+		extend(hv, { oncelik, sevktarihi: sevkTarih || null, sevksaati: sevkSaat || null })
 	}
 	eBilgiIcinYukle(e) {
 		super.eBilgiIcinYukle(e); let eBilgi = this.eBilgi || {};

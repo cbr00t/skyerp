@@ -1,6 +1,6 @@
 class CSHareketci extends Hareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get oncelik() { return 48 }
+	static get oncelik() { return 48 } static get kisaKod() { return 'CS' }
 	static get kod() { return 'cekSenet' }
 	static get aciklama() { return 'Çek-Senet Portföy' }
 

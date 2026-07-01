@@ -72,7 +72,8 @@ class SayimDetay extends MQDetay {
 class StokFis extends TSOrtakFis {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Stok' } static get table() { return 'stfis' } static get oncelik() { return 999 }
-	static get baslikOzelAciklamaTablo() { return 'stbasekaciklama' } static get dipSerbestAciklamaTablo() { return 'stdipaciklama' }
+	static get baslikOzelAciklamaTablo() { return 'stbasekaciklama' }
+	static get dipSerbestAciklamaTablo() { return 'stdipaciklama' }
 	static get dipEkBilgiTablo() { return 'stdipekbilgi' } static get detaySinif() { return super.detaySinif }
 	static get sevkFisTable() { return this.table } static get sevkDetayTable() { return this.detayTable }
 	static detaySiniflarDuzenle(e) { super.detaySiniflarDuzenle(e) }

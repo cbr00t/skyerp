@@ -3,7 +3,8 @@ class TSOrtakFis extends MQTicariGenelFis {
 	static get detaySinif() { return super.detaySinif } static get aciklamaKullanilirmi() { return true }
 	static detaySiniflarDuzenle(e) { super.detaySiniflarDuzenle(e); e.liste.push(TSStokDetay, TSAciklamaDetay) }
 	static get aciklamaDetaySinif() { return TSAciklamaDetay } static get gridKontrolcuSinif() { return TSGridKontrolcu }
-	static get baslikOzelAciklamaTablo() { return null } static get dipSerbestAciklamaTablo() { return null } static get dipEkBilgiTablo() { return null }
+	static get baslikOzelAciklamaTablo() { return null }
+	static get dipSerbestAciklamaTablo() { return null } static get dipEkBilgiTablo() { return null }
 	static get stokmu() { return false } static get ticarimi() { return false }
 	static get tsnKullanilirmi() { return true }
 	static get numTipKod() { return null } static get islTipKod() { return null } static get varsayilanIslKod() { return null }
@@ -16,11 +17,13 @@ class TSOrtakFis extends MQTicariGenelFis {
 
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e;
-		$.extend(pTanim, {
+		extend(pTanim, {
 			takipNo: new PInstStr('orttakipno'), takipOrtakmi: new PInstTrue('takiportakdir'),
 			islKod: new PInstStr({ rowAttr: 'islkod', init: e => this.varsayilanIslKod }),
 			hesapSekli: new PInstTekSecim('hesapsekli', FisHesapSekli),
-			efAyrimTipi: new PInstTekSecim('efayrimtipi', EIslemTip), baslikAciklama: new PInstStr('cariaciklama')
+			efAyrimTipi: new PInstTekSecim('efayrimtipi', EIslemTip),
+			baslikAciklama: new PInstStr('cariaciklama'),
+			fisEkBilgi: new PInstStr()
 		})
 	}
 	static secimlerDuzenle(e) {
@@ -55,24 +58,24 @@ class TSOrtakFis extends MQTicariGenelFis {
 			})
 			.addStyle(e => `$elementCSS { min-width: auto !important; max-width: 100px !important; width: max-content !important; height: max-content !important; margin-top: 28px; padding: 8px 15px !important; border-radius: 8px }`)
 		tsnForm.addModelKullan('islKod').setMFSinif(MQStokIslem).dropDown().etiketGosterim_normal().addStyle_wh(200)
-				.ozelQueryDuzenleBlock(({ builder: fbd, alias, stm }) => {
-					let {altInst} = fbd, islTipKod = altInst?.islTipKod ?? altInst?.class?.islTipKod
-					if (islTipKod) { for (let {where: wh} of stm) { wh.degerAta(islTipKod, `${alias}.isltip`) } }
-				})
-				.onBuildEk(({ builder: fbd }) => { let {altInst} = fbd; fbd.oldValue = fbd.value = altInst.islKod })
-				.degisince(async ({ builder: fbd, value }) => {
-					let {altInst, rootPart} = fbd, {kontrolcu} = rootPart;
-					let islKod2OzelIsaret = (await MQStokIslem.getKod2OzelIsaret()) || {};
-					let ozelIsaret = altInst.ozelIsaret = islKod2OzelIsaret[islKod] || '';
-					if (kontrolcu?.islKodIsaretDegisti) {
-						let {oldValue} = fbd, eskiOzelIsaret = islKod2OzelIsaret[oldValue] || '';
-						if ((eskiOzelIsaret == '*') != (ozelIsaret == '*')) {
-							e.sender = e.gridPart = rootPart; $.extend(e, { builder: fbd, oldValue, ozelIsaret, eskiOzelIsaret });
-							await inst.ozelIsaretDegisti(...arguments); await kontrolcu.islKodIsaretDegisti(...arguments)
-						}
+			.ozelQueryDuzenleBlock(({ builder: fbd, alias, stm }) => {
+				let {altInst} = fbd, islTipKod = altInst?.islTipKod ?? altInst?.class?.islTipKod
+				if (islTipKod) { for (let {where: wh} of stm) { wh.degerAta(islTipKod, `${alias}.isltip`) } }
+			})
+			.onBuildEk(({ builder: fbd }) => { let {altInst} = fbd; fbd.oldValue = fbd.value = altInst.islKod })
+			.degisince(async ({ builder: fbd, value }) => {
+				let {altInst, rootPart} = fbd, {kontrolcu} = rootPart;
+				let islKod2OzelIsaret = (await MQStokIslem.getKod2OzelIsaret()) || {};
+				let ozelIsaret = altInst.ozelIsaret = islKod2OzelIsaret[islKod] || '';
+				if (kontrolcu?.islKodIsaretDegisti) {
+					let {oldValue} = fbd, eskiOzelIsaret = islKod2OzelIsaret[oldValue] || '';
+					if ((eskiOzelIsaret == '*') != (ozelIsaret == '*')) {
+						e.sender = e.gridPart = rootPart; $.extend(e, { builder: fbd, oldValue, ozelIsaret, eskiOzelIsaret });
+						await inst.ozelIsaretDegisti(...arguments); await kontrolcu.islKodIsaretDegisti(...arguments)
 					}
-					fbd.oldValue = islKod
-				});
+				}
+				fbd.oldValue = islKod
+			})
 		if (app.params.ticariGenel.kullanim.takipNo) {
 			baslikForm.builders[1].addCheckBox('takipOrtakmi', 'Takip Ortakdır').degisince(({ builder: fbd }) => {
 				let {altInst, rootPart, parentBuilder} = fbd, {kontrolcu} = rootPart
@@ -92,6 +95,12 @@ class TSOrtakFis extends MQTicariGenelFis {
 		baslikForm.builders[2].addTextInput('baslikAciklama', 'Fiş Açıklama')
 			.setPlaceHolder('Fiş Açıklama').etiketGosterim_yok()
 			.addStyle(e => `$elementCSS  { min-width: 150px !important; max-width: 400px !important }`)
+
+		baslikForm.builders[3].addTextArea('fisEkBilgi', 'Fiş Ek Bilgi')
+			.setPlaceHolder('Fiş Ek Bilgi')
+			.etiketGosterim_yok()
+			.setRows(3).setCols(1000)
+			.addStyle_wh('var(--full)')
 	}
 	static ekCSSDuzenle(e) { super.ekCSSDuzenle(e) }
 	static standartGorunumListesiDuzenle_son({ liste }) {
@@ -99,7 +108,8 @@ class TSOrtakFis extends MQTicariGenelFis {
 		liste.push('cariaciklama')
 	}
 	static orjBaslikListesiDuzenle_ara(e) {
-		super.orjBaslikListesiDuzenle_ara(e); const {liste} = e, {kullanim} = app.params.ticariGenel;
+		super.orjBaslikListesiDuzenle_ara(e)
+		const {liste} = e, {kullanim} = app.params.ticariGenel
 		liste.push(...[
 			new GridKolon({ belirtec: 'islkod', text: 'İşlem', genislikCh: 8 }),
 			(kullanim.takipNo ? new GridKolon({ belirtec: 'orttakipno', text: 'Takip No', genislikCh: 8 }) : null),
@@ -168,19 +178,36 @@ class TSOrtakFis extends MQTicariGenelFis {
 		sent.fromIliski('takipmst otak', 'fis.orttakipno = otak.kod');
 	}
 	static raporQueryDuzenle_detaylar(e) { super.raporQueryDuzenle_detaylar(e) }
-	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {aliasVeNokta} = this, {sent} = e;
-		sent.fromIliski('takipmst tak', 'fis.orttakipno = tak.kod');
-		sent.sahalar.add(`${aliasVeNokta}efayrimtipi`)
+	static loadServerData_queryDuzenle({ sent, sent: { sahalar } }) {
+		super.loadServerData_queryDuzenle(...arguments)
+		let { tableAlias: alias } = this
+		sent.fromIliski('takipmst tak', 'fis.orttakipno = tak.kod')
+		sahalar.add(`${alias}.efayrimtipi`)
 	}
-	async yeniTanimOncesiVeyaYukleSonrasiIslemler(e) {
-		await super.yeniTanimOncesiVeyaYukleSonrasiIslemler(e);
-		if (this.mustKod) { await this.satisKosulYapiOlustur(e) }
+	async yeniTanimOncesiVeyaYukleSonrasiIslemler(e = {}) {
+		await super.yeniTanimOncesiVeyaYukleSonrasiIslemler(e)
+		if (this.mustKod)
+			await this.satisKosulYapiOlustur(e)
+	}
+	async yukleSonrasiIslemler(e = {}) {
+		await super.yukleSonrasiIslemler(e)
+		let { sayac, class: { dipSerbestAciklamaTablo: tblSAck } } = this
+		if (sayac && tblSAck) {
+			let sent = new MQSent({ table: tblSAck }), { where: wh, sahalar } = sent
+			wh.degerAta(sayac, 'fissayac')
+			sahalar.add('aciklama')
+			let recs = await sent.execSelect()
+			this.fisEkBilgi = recs
+				.map(r => r.aciklama.trimEnd())
+				.join('\n')
+		}
+	}
+	uiKaydetOncesiIslemler(e) {
+		super.uiKaydetOncesiIslemler(e)
 	}
 	async kaydetOncesiIslemler(e = {}) {
 		await super.kaydetOncesiIslemler(e)
 		await MQStokIslem.getKod2OzelIsaret(e)
-
 		;{
 			let degistimi = false
 			let detaylar = this.detaylar ??= []
@@ -206,6 +233,30 @@ class TSOrtakFis extends MQTicariGenelFis {
 			}
 		}
 	}
+	async kaydetSonrasiIslemler(e = {}) {
+		await super.kaydetSonrasiIslemler(e)
+		let { sayac: fissayac, fisEkBilgi, class: { dipSerbestAciklamaTablo: tblSAck } } = this
+		fisEkBilgi = fisEkBilgi?.trimEnd()
+		if (fissayac && tblSAck) {
+			let table = tblSAck
+			/*let lines = fisEkBilgi
+				? fisEkBilgi
+					.split('\n')
+					.map(l => l?.replace('\r', '')?.trimEnd())
+					.filter(l => l != null)
+				: []*/
+			let lines = fisEkBilgi ? [fisEkBilgi.slice(0, 8000)] : []
+			
+			let where = { degerAta: fissayac, saha: 'fissayac' }
+			let hvListe = lines.map(aciklama => ({ fissayac, aciklama }))
+			
+			let toplu = new MQToplu([
+				new MQIliskiliDelete({ table, where }),
+				( empty(hvListe) ? null : new MQInsert({ table, hvListe }) )
+			].filter(Boolean)).withTrn()
+			await toplu.execNone()
+		}
+	}
 	async degistirSonrasiIslemler(e) {
 		await super.degistirSonrasiIslemler(e)
 	}
@@ -218,9 +269,6 @@ class TSOrtakFis extends MQTicariGenelFis {
 			else { aktifUstDetay = det; _detaylar.push(det) }
 		}
 		detaylar = this.detaylar = _detaylar
-	}
-	uiKaydetOncesiIslemler(e) {
-		super.uiKaydetOncesiIslemler(e)
 	}
 	async satisKosulYapiOlustur(e) { return this }
 	uiSatirBedelHesaplaSonrasi(e) { }

@@ -127,7 +127,8 @@ class MQGenelFis extends MQOrtakFis {
 	}
 	static raporQueryDuzenle({ sent }) { super.raporQueryDuzenle(...arguments); sent.fis2SubeBagla() }
 	static loadServerData_queryDuzenle({ sent }) {
-		super.loadServerData_queryDuzenle(...arguments); let {aliasVeNokta} = this, {where: wh} = sent;
+		super.loadServerData_queryDuzenle(...arguments)
+		let { aliasVeNokta } = this, { where: wh } = sent
 		wh.add(`${aliasVeNokta}silindi = ''`)
 	}
 	static logRecDonusturucuDuzenle({ result }) {

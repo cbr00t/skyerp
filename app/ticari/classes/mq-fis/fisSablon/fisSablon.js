@@ -8,9 +8,17 @@ class SatisFaturaFis_OtoSablon extends SatisFaturaFis {
 	static get tsnKullanilirmi() { return true }
 	static get numaratorGosterilirmi() { return false }
 	static get noYilKullanilirmi() { return false }
+	static get sevkTSKullanilirmi() { return false }
 	static get dipKullanilirmi() { return super.dipKullanilirmi }
 	static get dipNakliyeKullanilirmi() { return super.dipNakliyeKullanilirmi }
 
+	/*constructor(e) {
+		super(e)
+		extend(this, {
+			sevkTarih: null,
+			sevkSaat: null
+		})
+	}*/
     static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
         extend(pTanim, {
@@ -102,6 +110,7 @@ class SatisFaturaFis_OtoSablon extends SatisFaturaFis {
 		delete hv.otosablonsayac
 		if (aySonumu)
 			hv.aygunu = 0
+		// extend(hv, { sevktarihi: null, sevksaati: null })
 	}
 	setValues({ rec }) {
 		super.setValues(...arguments)
@@ -109,6 +118,12 @@ class SatisFaturaFis_OtoSablon extends SatisFaturaFis {
     async fisBakiyeDurumuGerekirseAyarla(e) {
         // bakiye düzenleme yapılmaz
     }
+	async dataDuzgunmu(e) {
+		return (
+			await super.dataDuzgunmu(e) ||
+			await MQCari.bosVeyaKodYoksaMesaj(this.mustKod)
+		)
+	}
 
     static rootFormBuilderDuzenle({ inst, builders: all }) {
 		let { sablonYapi: sy = {} } = inst
@@ -127,17 +142,23 @@ class SatisFaturaFis_OtoSablon extends SatisFaturaFis {
 		
 		;{
 			b[0].addTextInput('sablonAdi', 'Şablon Adı')
+				.setPlaceholder('Şablon Adı')
 				.setAltInst(getAltInst)
 				.etiketGosterim_yok().addStyle_wh(400)
 			b[0].addNumberInput('sablonOncelik', 'Öncelik')
+				.setPlaceholder('Öncelik')
 				.setAltInst(getAltInst)
+				.onAfterRun(({ builder: { id, altInst: inst, input } }) => {
+					if (!inst[id])
+						setTimeout(() => input.val(null), 1)
+				})
 				.etiketGosterim_yok().addStyle_wh(100)
 		}
 
 		;{
 			let { numarator: num } = sy
 			let { tip, class: numSinif } = num
-			b[0].addSimpleComboBox('_numarator', 'Numarator')
+			b[0].addSimpleComboBox('_numarator', 'Numaratör', 'Numaratör')
 				.setAltInst(getAltInst)
 				.etiketGosterim_yok().kodsuz()
 				.setMFSinif(numSinif)
@@ -199,8 +220,8 @@ class SatisFaturaFis_OtoSablon extends SatisFaturaFis {
 				.setAltInst(getAltInst)
 				.addStyle(thinStyle)
 			form.addForm().setLayout(() => $(`<b class="etiket">Dönem:</b>`))
-			form.addDateInput('tarihBasi', 'Başı').etiketGosterim_yok()
-			form.addDateInput('tarihSonu', 'Sonu').etiketGosterim_yok()
+			form.addDateInput('tarihBasi', 'Başı').setPlaceholder('Başı').etiketGosterim_yok()
+			form.addDateInput('tarihSonu', 'Sonu').setPlaceholder('Sonu').etiketGosterim_yok()
 		}
 		
 		super.rootFormBuilderDuzenle(...arguments)

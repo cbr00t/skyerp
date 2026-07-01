@@ -523,7 +523,7 @@ class Hareketci extends CObject {
 	static maliTablo_secimlerSentDuzenle({ secimler: sec, detSecimler: detSec, sent, sent: { from, where: wh }, hv, mstClause }) {
 		let { sqlNull, sqlEmpty } = Hareketci_UniBilgi.ortakArgs
 		let varmi = kodClause =>
-			!kodClause?.sqlDoluDegermi()
+			kodClause?.sqlDoluDegermi()
 		let varsaYap = (kodClause, block) => {
 			if (!varmi(kodClause))
 				return false

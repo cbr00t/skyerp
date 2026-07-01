@@ -104,11 +104,6 @@ class TicariApp extends App {
 			}),
 			new FRMenuCascade({
 				mne: 'K', text: 'Kasa', items: [
-					new FRMenuChoice({ mne: 'K', text: 'Kasa Kod Liste', block: e => MQKasa.listeEkraniAc(e) })
-				]
-			}),
-			new FRMenuCascade({
-				mne: 'K', text: 'Kasa', items: [
 					new FRMenuChoice({ mne: 'K', text: 'Kasa Kod Liste', block: e => MQKasa.listeEkraniAc(e) }),
 					new FRMenuCascade({
 						mne: 'F', text: 'Fişler', items: [

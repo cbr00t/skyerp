@@ -13,7 +13,7 @@ class ExtFis_Cari extends ExtFis {
 	static rootFormBuilderDuzenle_ara({ builders }) {
 		let { builders: baslikFormlar } = builders.baslikForm
 		let form = baslikFormlar[0]
-		form.addSimpleComboBox('mustKod', 'Müşteri')
+		form.addSimpleComboBox('mustKod', 'Müşteri', 'Müşteri')
 			.etiketGosterim_yok()
 			.setMFSinif(MQCari)
 			
@@ -73,7 +73,7 @@ class ExtFis_AltHesap extends ExtFis {
 	static rootFormBuilderDuzenle_ara({ builders }) {
 		let {builders: baslikFormlar} = builders.baslikForm
 		let form = baslikFormlar[0]
-		form.addSimpleComboBox('altHesapKod', 'Alt Hesap')
+		form.addSimpleComboBox('altHesapKod', 'Alt Hesap', 'Alt Hesap')
 			.setMFSinif(MQAltHesap)
 			.etiketGosterim_yok()
 	}
@@ -143,7 +143,7 @@ class ExtFis_Plasiyer extends ExtFis {
 	static rootFormBuilderDuzenle_ara({ builders }) {
 		let {builders: baslikFormlar} = builders.baslikForm;
 		let form = baslikFormlar[0]
-		form.addSimpleComboBox('plasiyerKod', 'Plasiyer')
+		form.addSimpleComboBox('plasiyerKod', 'Plasiyer', 'Plasiyer')
 			.etiketGosterim_yok()
 			.setMFSinif(MQPlasiyer)
 			.addStyle_wh(500)
@@ -181,7 +181,7 @@ class ExtFis_Kasa extends ExtFis {
 	static rootFormBuilderDuzenle_ara({ builders }) {
 		let { builders: baslikFormlar } = builders.baslikForm
 		let form = baslikFormlar[0]
-		form.addSimpleComboBox('kasaKod', 'Kasa')
+		form.addSimpleComboBox('kasaKod', 'Kasa', 'Kasa')
 			.etiketGosterim_yok()
 			.addStyle_wh(300)
 			.setMFSinif(MQKasa)
@@ -223,7 +223,7 @@ class ExtFis_BankaHesap extends ExtFis {
 	static rootFormBuilderDuzenle_ara(e = {}) {
 		let baslikFormlar = e.builders.baslikForm.builders
 		let form = baslikFormlar[0];
-		form.addSimpleComboBox('banHesapKod', 'Banka Hesap')
+		form.addSimpleComboBox('banHesapKod', 'Banka Hesap', 'Banka Hesap')
 			.etiketGosterim_yok()
 			.setMFSinif(MQBankaHesap)
 	}
@@ -265,7 +265,7 @@ class ExtFis_RefBankaHesap extends ExtFis {
 		e = e || {};
 		let baslikFormlar = e.builders.baslikForm.builders;
 		let form = baslikFormlar[0];
-		form.addSimpleComboBox('bizhesapkod', 'Banka Hesap')
+		form.addSimpleComboBox('bizhesapkod', 'Banka Hesap', 'Banka Hesap')
 			.etiketGosterim_yok()
 			.setMFSinif(MQBankaHesap)
 	}
@@ -305,7 +305,7 @@ class ExtFis_Hizmet extends ExtFis {
 	static rootFormBuilderDuzenle_ara({ builders }) {
 		let { builders: baslikFormlar } = builders.baslikForm
 		let form = baslikFormlar[0]
-		form.addSimpleComboBox('hizmetKod')
+		form.addSimpleComboBox('hizmetKod', 'Hizmet', 'Hizmet')
 			.etiketGosterim_yok()
 			.setMFSinif(MQHizmet)
 	}
@@ -345,7 +345,7 @@ class ExtFis_TakipNo extends ExtFis {
 	static rootFormBuilderDuzenle_ara({ builders }) {
 		let {builders: baslikFormlar} = builders.baslikForm;
 		let form = baslikFormlar[0]
-		form.addSimpleComboBox('takipNo', 'Takip No')
+		form.addSimpleComboBox('takipNo', 'Takip No', 'Takip No')
 			.etiketGosterim_yok()
 			.setMFSinif(MQTakipNo)
 	}
@@ -374,7 +374,7 @@ class ExtFis_TahSekliNo extends ExtFis {
 	static rootFormBuilderDuzenle_ara({ builders }) {
 		let { builders: baslikFormlar } = builders.baslikForm
 		let form = baslikFormlar[0]
-		form.addSimpleComboBox('tahSekliNo', 'Tahsil Şekli')
+		form.addSimpleComboBox('tahSekliNo', 'Tahsil Şekli', 'Tahsil Şekli')
 			.etiketGosterim_yok()
 			.setMFSinif(MQTahsilSekli)
 	}
@@ -411,8 +411,9 @@ class ExtFis_Portfoy extends ExtFis {
 		e = e || {};
 		let baslikFormlar = e.builders.baslikForm.builders;
 		let form = baslikFormlar[0];
-		form.addSimpleComboBox({ id: 'portfoyKod', mfSinif: MQPortfoy })
+		form.addSimpleComboBox('portfoyKod', 'Porföy', 'Portföy')
 			.etiketGosterim_yok()
+			.setMFSinif(MQPortfoy)
 	}
 	static secimlerDuzenle(e) {
 		let sec = e.secimler;
@@ -451,7 +452,7 @@ class ExtFis_Ciranta extends ExtFis_Cari {
 		e = e || {};
 		let baslikFormlar = e.builders.baslikForm.builders;
 		let form = baslikFormlar[0];
-		form.addSimpleComboBox('cirantaKod', 'Ciranta')
+		form.addSimpleComboBox('cirantaKod', 'Ciranta', 'Ciranta')
 			.etiketGosterim_yok()
 			.setMFSinif(MQCiranta)
 	}
@@ -483,7 +484,7 @@ class ExtFis_StokIslem extends ExtFis {
 	static rootFormBuilderDuzenle_ara({ builders }) {
 		let { builders: baslikFormlar } = builders.baslikForm
 		let form = baslikFormlar[0]
-		form.addSimpleComboBox('islKod', 'İşlem')
+		form.addSimpleComboBox('islKod', 'İşlem', 'İşlem')
 			.addStyle_wh(300)
 			.etiketGosterim_yok()
 			.setMFSinif(MQStokIslem)
@@ -523,7 +524,7 @@ class ExtFis_CariIslem extends ExtFis {
 	static rootFormBuilderDuzenle_ara({ builders }) {
 		let { builders: baslikFormlar } = builders.baslikForm
 		let form = baslikFormlar[0]
-		form.addSimpleComboBox('islKod', 'İşlem')
+		form.addSimpleComboBox('islKod', 'İşlem', 'İşlem')
 			.addStyle_wh(300)
 			.etiketGosterim_yok()
 			.kodsuz()
@@ -571,7 +572,7 @@ class ExtFis_MuhIslem extends ExtFis {
 		let {builders: baslikFormlar} = builders.baslikForm
 		let form = baslikFormlar[0]
 		//form.addSelect('islKod', 'İşlem')
-		form.addSimpleComboBox('islKod', 'İşlem')
+		form.addSimpleComboBox('islKod', 'İşlem', 'İşlem')
 			.addStyle_wh(300)
 			.etiketGosterim_yok()
 			.kodsuz()
@@ -609,7 +610,7 @@ class ExtFis_MuhHesap extends ExtFis {
 	}
 	static rootFormBuilderDuzenle_ara({ builders }) {
 		let { builders: baslikFormlar } = builders.baslikForm, form = baslikFormlar[1]
-		form.addSimpleComboBox('muhHesapKod', 'Muh. Hesap')
+		form.addSimpleComboBox('muhHesapKod', 'Muh. Hesap', 'Muh. Hesap')
 			.etiketGosterim_yok()
 			.setMFSinif(MQMuhHesap)
 	}

@@ -27,16 +27,25 @@ class FisGirisPart extends GridliGirisWindowPart {
 		this.title = e.title == null ? (( sinifAdi ? `<u style="font-size: 110%;">${sinifAdi}</u> Fiş Girişi` : null ) || 'Fiş Giriş Ekranı') : e.title || '';
 		if (islem) { let islemText = islem[0].toUpperCase() + islem.slice(1); this.title += ` &nbsp;-&nbsp; <b class="window-title-ek">${islemText}</b>` }
 	}
-	runDevam(e) {
-		e = e ?? {}; let islem = e.islem = this.islem;
-		super.runDevam(e); let sender = this, {layout, fis, header, islemTuslari} = this
-		let splitMain = this.splitMain = layout.find('.main-split');
-		let baslikFormlar = this.baslikFormlar = [header.find('.baslikForm1'), header.find('.baslikForm2'), header.find('.baslikForm3')];
+	runDevam(e = {}) {
+		let { islem = this.islem } = e
+		super.runDevam(e)
+		let sender = this
+		let { layout, fis, header, islemTuslari } = this
+		let splitMain = this.splitMain = layout.find('.main-split')
+		let baslikFormlar = this.baslikFormlar = [
+			header.find('.baslikForm1'),
+			header.find('.baslikForm2'),
+			header.find('.baslikForm3'),
+			header.find('.baslikForm4'),
+			header.find('.baslikForm5')
+		]
 		splitMain.jqxSplitter({
 			theme, width: '100%', height: layout.height(), orientation: 'horizontal', splitBarSize: 20,
 			panels: [ { min: 90, size: fis.class.getUISplitHeight({ ...e, fis, islem }) ?? 170 }, { min: 200 } ]
-		});
-		let subeForm = this.subeForm = header.find('.sube'), tsnForm = this.tsnForm = layout.find('.tsnForm');
+		})
+		let subeForm = this.subeForm = header.find('.sube')
+		let tsnForm = this.tsnForm = layout.find('.tsnForm');
 		let divHeaderDipOrtak = this.divHeaderDipOrtak = layout.find('.headerDipOrtak')
 		let dipForm = divHeaderDipOrtak.find('.dipForm')
 		if (fis.class.dipKullanilirmi) {
