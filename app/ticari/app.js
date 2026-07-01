@@ -4,15 +4,20 @@ class TicariApp extends App {
 	get testBaseClass() { return Ticari_TestBase }
 	get yerelParamSinif() { return MQYerelParamTicari }
 	constructor(e) { e = e ?? {}; super(e); $.extend(this, { satisTipleri: e.satisTipleri }) }
-	paramsDuzenle(e) {
-		super.paramsDuzenle(e); const {params} = e;
-		$.extend(params, {
+	paramsDuzenle({ params }) {
+		super.paramsDuzenle(...arguments)
+		extend(params, {
 			logocu: MQLogocu.getInstance(), zorunlu: MQZorunluParam.getInstance(), isyeri: MQIsyeri.getInstance(),
-			ticariGenel: MQTicariGenelParam.getInstance(), aktarim: MQAktarimParam.getInstance(), fiyatVeIsk: MQFiyatVeIskontoParam.getInstance(), stokBirim: MQStokBirimParam.getInstance(), stokGenel: MQStokGenelParam.getInstance(),
-			cariGenel: MQCariGenelParam.getInstance(), hizmetGenel: MQHizmetGenelParam.getInstance(), demirbasGenel: MQDemirbasGenelParam.getInstance(), bankaGenel: MQBankaGenelParam.getInstance(),
-			alim: MQAlimParam.getInstance(), satis: MQSatisParam.getInstance(), eIslem: MQEIslemParam.getInstance(), uretim: MQUretimParam.getInstance(), operGenel: MQOperGenelParam.getInstance(),
-			finans: MQFinansParam.getInstance(), maliyet: MQMaliyetParam.getInstance(), kalite: MQKaliteParam.getInstance(), muhasebe: MQMuhasebeParam.getInstance(),
-			web: MQWebParam.getInstance(), eMailVT: MQVTMailParam.getInstance(), eMailOrtak: MQOrtakMailParam.getInstance()
+			ticariGenel: MQTicariGenelParam.getInstance(), aktarim: MQAktarimParam.getInstance(),
+			fiyatVeIsk: MQFiyatVeIskontoParam.getInstance(), stokBirim: MQStokBirimParam.getInstance(), stokGenel: MQStokGenelParam.getInstance(),
+			cariGenel: MQCariGenelParam.getInstance(), hizmetGenel: MQHizmetGenelParam.getInstance(),
+			demirbasGenel: MQDemirbasGenelParam.getInstance(), bankaGenel: MQBankaGenelParam.getInstance(),
+			alim: MQAlimParam.getInstance(), satis: MQSatisParam.getInstance(), eIslem: MQEIslemParam.getInstance(),
+			uretim: MQUretimParam.getInstance(), operGenel: MQOperGenelParam.getInstance(),
+			finans: MQFinansParam.getInstance(), maliyet: MQMaliyetParam.getInstance(),
+			kalite: MQKaliteParam.getInstance(), muhasebe: MQMuhasebeParam.getInstance(),
+			web: MQWebParam.getInstance(), eMailVT: MQVTMailParam.getInstance(), eMailOrtak: MQOrtakMailParam.getInstance(),
+			vergi: MQVergiParam.getInstance()
 		})
 	}
 	sabitTanimlarDuzenle(e) { super.sabitTanimlarDuzenle(e); const {sabitTanimlar} = e; $.extend(sabitTanimlar, { vergi: this.wsSabitTanimlar_xml('EBYN-KDV-Kodlar') }) }
@@ -290,13 +295,21 @@ class TicariApp extends App {
 	wsSabitTanimlar_secIni_noDict(e) { e = e || {}; if (e && typeof e != 'object') e = { belirtec: e }; return this.wsSabitTanimlar_secIni($.extend({}, e, { noDict: true })) }
 	wsSabitTanimlar_ini(e) { e = e || {}; if (e && typeof e != 'object') e = { belirtec: e }; return this.wsSabitTanimlar($.extend({}, e, { tip: 'ini' })) }
 	wsSabitTanimlar_ini_noDict(e) { e = e || {}; if (e && typeof e != 'object') e = { belirtec: e }; return this.wsSabitTanimlar_ini($.extend({}, e, { noDict: true })) }
-	async wsSabitTanimlar(e) {
-		if (e && typeof e != 'object') e = { belirtec: e };
-		if (e) {
-			const keys = ['belirtec', 'section', 'belirtecler', 'sections'];
-			for (const key of keys) { let value = e[key]; if (value && typeof value != 'string') { value = e[key] = ($.isArray(value) ? value : Object.keys(value)).join(delimWS) } }
-		}
-		const result = await ajaxGet({ url: this.getWSUrl({ api: 'sabitTanimlar' }), data: e }); return result == null ? null : result
+	async wsSabitTanimlar(e = {}) {
+		let args = isObject(e) ? { ...e } : { belirtec: e }
+		args.tip ||= 'xml'
+		;['belirtec', 'section', 'belirtecler', 'sections']
+			.filter(k => !isString(k))
+			.forEach(k => {
+				let v = args[k]
+				v = args[k] = ( isObject(v) ? keys(v) : makeArray(v) )
+					.filter(Boolean)
+					.join(delimWS)
+			})
+		
+		let url = this.getWSUrl({ api: 'sabitTanimlar', args })
+		let result = await ajaxGet({ url })
+		return result ?? null
 	}
 	wsCariEkstre_normal(e) {
 		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }

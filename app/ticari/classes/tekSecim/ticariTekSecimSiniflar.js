@@ -52,6 +52,98 @@ class NormalFiili extends TekSecim {
 		)
 	}
 }
+
+class FisTipiUst extends TekSecim {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get defaultChar() { return ' ' }
+	get kdvUygulanirmi() { return true }
+}
+class TicariFisTipi extends FisTipiUst {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	get istisnaVeyaOzelMatrahmi() {
+		let { tamIstisnami: tam, kismiIstisnami: kismi, ozelMatrahmi: ozel } = this
+		return tam || kismi || ozel
+	}
+	get kdvUygulanirmi() {
+		let { istisnaVeyaOzelMatrahmi, teknoparkmi } = this
+		return !(istisnaVeyaOzelMatrahmi || teknoparkmi)
+	}
+	
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		let { alimmi, satismi, iademi } = this
+		let { vergi: { sutIslem, stopajliIslem: stopajli } } = app.params
+		let sutVeyaStopaj = sutIslem || stopajli
+		let satisIademi = satismi && iademi
+		let alimIademi = alimmi && iademi
+		
+		let sa = (
+			satismi ? 'Satış' :
+			alimmi ? 'Alım' :
+			''
+		)
+		kaListe.push(...[
+			new CKodVeAdi([' ', `Normal ${sa}`, 'normalmi']),
+			( !iademi ? new CKodVeAdi(['TV', `Tevkifatlı ${sa}`, 'tevkifatlimi']) : null ),
+			new CKodVeAdi(['Z', `Hizmet İşlemi`, 'hizmetIslemimi']),
+			new CKodVeAdi(['TK', `Teknopark ${sa}`, 'teknoparkmi']),
+			new CKodVeAdi(['IS', `KDV Tam İstisna`, 'tamIstisnami']),
+			new CKodVeAdi(['KI', `KDV Kismi İstisna`, 'kismiIstisnami']),
+			new CKodVeAdi(['OM', `KDV Özel Matrah`, 'ozelMatrahmi']),
+			new CKodVeAdi(['L', `Leasing ${sa}`, 'leasingmi']),
+			new CKodVeAdi(['TP', `Toptan ${sa}`, 'toptanmi']),
+			new CKodVeAdi(['MK', `Miktarsız İşlem`, 'miktarsizmi']),
+			( sutIslem ? new CKodVeAdi(['ST', `Süt ${sa}`, 'sutmu']) : null ),
+			( sutIslem ? new CKodVeAdi(['SP', `Stopajlı Süt ${sa}`, 'stopajliSutmu']) : null ),
+			( sutIslem ? new CKodVeAdi(['SB', `Stopajlı ve Borsalı Süt ${sa}`, 'stopajVeBorsaliSutmu']) : null ),
+			( sutVeyaStopaj ? new CKodVeAdi(['PJ', `Stopajlı ${sa}`, 'stopajlimi']) : null ),
+			new CKodVeAdi(['BD', `Bedelsiz`, 'bedelsizmi']),
+			new CKodVeAdi(['FY', `Fiyat Anlaşmalı`, 'fiyatAnlasmalimi']),
+			new CKodVeAdi(['PR', `Proforma`, 'proformami'])
+		].filter(Boolean))
+	}
+}
+class TicariFisTipi_Satis extends TicariFisTipi {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get satismi() { return true }
+
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		let { satis: { kullanim: { kamuIhale } } } = app.params
+		kaListe.push(...[
+			( kamuIhale ? new CKodVeAdi(['IH', 'Teklif Usulü İhale', 'teklifUsuluIhalemi']) : null ),
+			new CKodVeAdi(['DK', 'Dekont', 'dekontmu'])
+		].filter(Boolean))
+	}
+}
+class TicariFisTipi_SatisIade extends TicariFisTipi_Satis {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get iademi() { return true }
+}
+class TicariFisTipi_Alim extends TicariFisTipi {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get alimmi() { return true }
+
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		kaListe.push(
+			new CKodVeAdi(['SM', 'Serbest Meslek', 'serbestMeslekmi'])
+		)
+	}
+}
+class TicariFisTipi_AlimIade extends TicariFisTipi_Alim {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get iademi() { return true }
+
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		kaListe.push(
+			new CKodVeAdi(['SR', 'Tevkifat İADE (Serbest KDV)', 'serbestKDVmi']),
+			new CKodVeAdi(['KD', 'Manuel KDV', 'manuelKDVmi'])
+		)
+	}
+}
+
 class AlimSatis extends TekSecim {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return 'T' }

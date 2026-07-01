@@ -254,28 +254,35 @@ class MQKA extends MQKod {
 			mfSinif: mfSinif || this, belirtec, adiAttr, degisince, gelince, isDropDown, ozelQueryDuzenle,
 			kaKolonu: new GridKolon({ belirtec: kodAttr, text: adiEtiket || kodEtiket || `${sinifAdi}`, genislikCh: e.adiGenislikCh || 50 }),
 			dataBlock: async e => {
-				let {kod} = e; if (kod != null && !kod) { return [] }
+				let { kod } = e
+				if (kod != null && !kod)
+					return []
+				
 				let {sender, gridPart, value, maxRow} = e, colDef = sender ?? {}, mfSinif = colDef.mfSinif ?? this
 				let belirtec = colDef.belirtec, kodAttr = e.kodAttr || colDef.kodAttr || `${belirtec}Kod`, adiAttr = e.adiAttr || colDef.adiAttr ||`${belirtec}Adi`
 				let {tableAndAlias, aliasVeNokta, kodSaha, adiSaha, emptyKodValue = ''} = mfSinif
 				let sent = new MQSent({
 					from: tableAndAlias, where: [`${aliasVeNokta}${kodSaha} <> ${MQSQLOrtak.sqlDegeri(emptyKodValue)}`],
 					sahalar: [`${aliasVeNokta}${kodSaha} ${kodAttr}`, `${aliasVeNokta}${adiSaha} ${adiAttr}` ]
-				});
-				if (kod) { sent.where.degerAta(kod, `${aliasVeNokta}${kodSaha}`) }
+				})
+				if (kod)
+					sent.where.degerAta(kod, `${aliasVeNokta}${kodSaha}`)
 				if (value) {
-					let parts = value ? value.split(' ') : null; if (!$.isEmptyObject(parts)) {
+					let parts = value ? value.split(' ') : null
+					if (!empty(parts)) {
 						for (let part of parts) {
-							part = part?.trim()?.toLocaleUpperCase(); if (part) {
+							part = part?.trim()?.toLocaleUpperCase()
+							if (part) {
 								let or = new MQOrClause([ { like: `%${part}%`, saha: `${aliasVeNokta}${kodSaha}` }, { like: `%${part}%`, saha: `UPPER(${aliasVeNokta}${adiSaha})` } ]);
 								sent.where.add(or)
 							}
 						}
 					}
 				}
-				let stm = new MQStm({ sent: sent, orderBy: [kodAttr] }); let {stmDuzenleyiciler} = kolonGrup;
+				let stm = new MQStm({ sent: sent, orderBy: [kodAttr] })
+				let { stmDuzenleyiciler } = kolonGrup
 				if (ekStmDuzenleyici || stmDuzenleyiciler) {
-					let fis = e.fis ?? gridPart.fis, {tableAlias, aliasVeNokta} = mfSinif, {sent} = stm, handlers = [];
+					let fis = e.fis ?? gridPart?.fis, {tableAlias, aliasVeNokta} = mfSinif, {sent} = stm, handlers = [];
 					if (ekStmDuzenleyici) { handlers.push(ekStmDuzenleyici) }
 					if (!$.isEmptyObject(stmDuzenleyiciler)) { handlers.push(...stmDuzenleyiciler) }
 					let _e = { ...e, sender, colDef, fis, mfSinif, alias: tableAlias, aliasVeNokta, stm, sent };

@@ -5,25 +5,21 @@ class FisEkVergiWindowPart extends Part {
 	get wndDefaultIsModal() { return false }
 
 	
-	constructor(e) {
-		e = e || {};
-		super(e);
-
-		$.extend(this, {
+	constructor(e = {}) {
+		super(e)
+		extend(this, {
 			title: coalesce(e.title, 'Ek Vergi'),
 			fis: e.fis, detay: e.detay,
 			tamamIslemi: e.tamamIslemi
-		});
-
-		this.ekVergiYapi = e.ekVergiYapi || (this.detay || {}).ekVergiYapi;
-		const {fis} = this;
-		const cikismi = this.cikismi = coalesce(e.cikis, coalesce(e.cikismi, coalesce(e.cikisGibimi, (((fis || {}).class || {}).cikisGibimi))));
-		this.ba = cikismi ? 'B' : 'A';
+		})
+		let { fis, detay } = this
+		this.ekVergiYapi ??= e.ekVergiYapi ?? detay?.ekVergiYapi
+		let cikismi = this.cikismi = e.cikis ?? e.cikismi ?? e.cikisGibimi ?? fis?.class?.cikisGibimi
+		this.ba = cikismi ? 'B' : 'A'
 	}
 
 	runDevam(e) {
-		super.runDevam(e);
-
+		super.runDevam(e)
 		const {layout} = this;
 		const islemTuslari = this.islemTuslari = layout.find(`.islemTuslari`);
 		const islemTuslariPart = this.islemTuslariPart = new ButonlarPart({
@@ -34,7 +30,6 @@ class FisEkVergiWindowPart extends Part {
 		});
 		islemTuslariPart.run();
 
-		
 		const {ekVergiYapi} = this;
 		const radioTip = this.radioTip = layout.find('.tip');
 		let docFrg = $(document.createDocumentFragment());

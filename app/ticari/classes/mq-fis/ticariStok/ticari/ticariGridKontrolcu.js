@@ -63,12 +63,18 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 			new GridKolon({
 				belirtec: 'kdvKod', text: 'Kdv', genislikCh: 8,
 				cellBeginEdit: (colDef, rowIndex, belirtec, colType, value, result) => {
-					let {gridWidget} = this, det = gridWidget.getrowdata(rowIndex);
+					let {gridWidget} = this, det = gridWidget.getrowdata(rowIndex)
 					return !!det.kdvDegiskenmi
 				},
 				cellValueChanged: e => {
-					let {fis, parentPart} = this, {yildizlimi} = fis.class, {args} = e, kdvKod = args.value || '';
-					let det = args.owner.getrowdata(args.rowindex); if (!fis.yildizlimi) { det.orjkdvKod = kdvKod }
+					let { fis, parentPart } = this
+					let { yildizlimi } = fis.class
+					let { args } = e
+					let kdvKod = args.value || ''
+					let det = args.owner.getrowdata(args.rowindex)
+					
+					if (!fis.yildizlimi)
+						det.orjkdvKod = kdvKod
 					this.gridSatirGuncellendi(e)
 				}
 			}).tipTekSecim({ kaListe: fis.class.kdvKAListe }).sifirGosterme(),
@@ -77,13 +83,23 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 			new GridKolon({ belirtec: 'kdvEkText', text: 'KDV Ek', genislikCh: 12, cellClassName: 'kdvEkText grid-readOnly' }).readOnly().hidden()
 		);
 		shColDef.stmDuzenleyiciEkle(e => {
-			let {aliasVeNokta, stm, fis, mfSinif} = e, {kdvHesapKodPrefix_stok, kdvHesapKodPrefix_hizmet} = fis?.class ?? {};
-			for (let sent of stm.getSentListe()) {
-				let hesapSaha_almSatPrefix = ((mfSinif.stokmu || mfSinif.demirbasmi) ? kdvHesapKodPrefix_stok : mfSinif.hizmetmi ? kdvHesapKodPrefix_hizmet : null);
-				if (!hesapSaha_almSatPrefix) { return } let {vergiBelirtecler} = mfSinif;
+			let { aliasVeNokta, stm, fis, mfSinif } = e
+			let { kdvHesapKodPrefix_stok, kdvHesapKodPrefix_hizmet } = fis?.class ?? {}
+			for (let sent of stm) {
+				let hesapSaha_almSatPrefix = (
+					(mfSinif.stokmu || mfSinif.demirbasmi) ? kdvHesapKodPrefix_stok :
+					mfSinif.hizmetmi ? kdvHesapKodPrefix_hizmet :
+					null
+				)
+				if (!hesapSaha_almSatPrefix)
+					return
+				
+				let { vergiBelirtecler } = mfSinif
 				for (let key of vergiBelirtecler) {
 					if (key == TicariFis.vergiBelirtec_kdv) {
-						let kdvDegiskenmiClause = `${aliasVeNokta}${hesapSaha_almSatPrefix}kdvdegiskenmi`; sent.sahalar.add(`${kdvDegiskenmiClause} kdvDegiskenmi`) }
+						let kdvDegiskenmiClause = `${aliasVeNokta}${hesapSaha_almSatPrefix}kdvdegiskenmi`
+						sent.sahalar.add(`${kdvDegiskenmiClause} kdvDegiskenmi`)
+					}
 					let vergiHesapClause = `${aliasVeNokta}${hesapSaha_almSatPrefix}${key}hesapkod`;
 					sent.fromIliski(`vergihesap ${key}ver`, `${vergiHesapClause} = ${key}ver.kod`);
 					sent.sahalar.add(`${vergiHesapClause} ${key}Kod`, `${key}ver.belirtec ${key}Belirtec`)					/* ( stk.satkdvhesapkod kdvkod ... ) gibi */
@@ -92,33 +108,51 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 			mfSinif.ticariGrid_shKolon_stmDuzenleEk?.(e)
 		});
 		shColDef.degisince(async e => {
-			let { fis, mfSinif, gridRec: det, rec, setCellValue } = e;
-			let detaySinif = det?.class; if (detaySinif.aciklamami) { return }
-			let isaretlimi = await fis.kayitIcinOzelIsaretlimi;
+			let { gridPart, fis, mfSinif, gridRec: det, rec, setCellValue } = e
+			let detaySinif = det?.class
+			if (detaySinif.aciklamami)
+				return
+
+			// let { belirtec2Kolon } = gridPart
+			let isaretlimi = await fis.kayitIcinOzelIsaretlimi
 			rec = await rec ?? {}
-			let {mustKod} = fis, {shKod} = rec ?? {};
-			let kosulResult; if (mustKod && shKod) {
-				let {kosulYapilar} = fis, {FY} = kosulYapilar ?? {};
-				kosulResult = shKod ? Object.values(await SatisKosul_Fiyat.getAltKosulYapilar([shKod], FY, mustKod))?.[0] : null;
-				let {fiyat} = kosulResult ?? {}; if (fiyat) { $.extend(det, { fiyat, ozelFiyatVarmi: true }) }
+			let { mustKod } = fis
+			let { shKod } = rec ?? {}
+			let kosulResult
+			if (mustKod && shKod) {
+				let { kosulYapilar } = fis, { FY } = kosulYapilar ?? {};
+				kosulResult = shKod ? values(await SatisKosul_Fiyat.getAltKosulYapilar([shKod], FY, mustKod))?.[0] : null
+				let {fiyat} = kosulResult ?? {}
+				if (fiyat)
+					extend(det, { fiyat, ozelFiyatVarmi: true })
 			}
-			let {vergiBelirtecler, vergiBelirtec_kdv} = TicariFis;
-			for (let key of vergiBelirtecler) {
-				let kod2VergiBilgi = await MQVergi.getKod2VergiBilgi({ belirtec: key })
-				let kdvmi = key == vergiBelirtec_kdv, colAttr = `${key}Kod`, value = rec[colAttr] || '';
-				let duzValue = isaretlimi ? '' : value; det[`orj${colAttr}`] = value;
-				det[colAttr] = duzValue;
-				det[`${key}Orani`] = kod2VergiBilgi[det[`${key}Kod`]]?.oran;
-				if (kdvmi) { det._kdvDegiskenmi = asBool(rec.kdvDegiskenmi) }
-				else {
-					colAttr = `${key}Belirtec`; value = rec[colAttr] || '';
-					det[`orj${colAttr}`] = value
-				}
-				setCellValue({ belirtec: colAttr, value: duzValue })
-				mfSinif.ticariGrid_shKolon_degisinceEk?.({ ...e, rec });
-				delete e.rec; /* e.rec => Promise (async) */
-				e.detay = det; this.satirBedelHesapla(e)
+			
+			let { vergiBelirtecler, vergiBelirtec_kdv } = TicariFis
+			for (let belirtec of vergiBelirtecler) {
+				let kod2VergiBilgi = await MQVergi.getKod2VergiBilgi({ belirtec })
+				let kdvmi = belirtec == vergiBelirtec_kdv
+				let k = `${belirtec}Kod`, value = rec[k] || ''
+				let duzValue = isaretlimi ? '' : value
+				det[`orj${k}`] = value
+				det[k] = duzValue
+				det[`${belirtec}Orani`] = kod2VergiBilgi[det[`${belirtec}Kod`]]?.oran
+				if (kdvmi) 
+					det._kdvDegiskenmi = asBool(rec.kdvDegiskenmi)
+				
+				k = `${belirtec}Belirtec`; value = rec[k] || ''
+				det[`orj${k}`] = value
+				
+				setCellValue({ belirtec: k, value: duzValue })
 			}
+
+			delay(5).then(async () => {
+				await mfSinif.ticariGrid_shKolon_degisinceEk?.({ ...e, rec })
+				await fis.shKodDegisti(e)
+			})
+			
+			delete e.rec /* e.rec => Promise (async) */
+			e.detay = det
+			this.satirBedelHesapla(e)
 		})
 	}
 	tabloKolonlariDuzenle_fiyat_netBedel_arasi(e) {
@@ -180,40 +214,108 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 		}
 	}
 	islKodIsaretDegisti(e) {
-		let {fis, gridWidget, parentPart} = this, {ozelIsaret} = e, isaretlimi = (ozelIsaret == '*'), {vergiBelirtecler, vergiBelirtec_kdv} = TicariFis;
-		gridWidget.beginupdate();
-		for (let det of gridWidget.getboundrows()) {
-			let rowIndex = det.boundindex;
-			for (let key of vergiBelirtecler) {
-				let kdvmi = key == vergiBelirtec_kdv; let duzValue;
-				let colAttr = `${key}Kod`, value = det[`orj${colAttr}`] || ''; duzValue = isaretlimi ? '' : value; if (kdvmi) { gridWidget.setcellvalue(rowIndex, colAttr, duzValue) } else { det[colAttr] = duzValue }
-				colAttr = `${key}Belirtec`; value = det[`orj${colAttr}`] || ''; duzValue = isaretlimi ? '' : value; if (kdvmi) { det[colAttr] = duzValue } else { gridWidget.setcellvalue(rowIndex, colAttr, duzValue) }
-			}
-			delete e.rec; e.detay = det; this.satirBedelHesapla({ args: { uid: e.uid, rowindex: e.rowIndex } })
-		}
-		gridWidget.endupdate(false); setTimeout(() => parentPart.dipTazele(), 10)
+		this.vergiIcinDuzenle(e)
 	}
-	efAyrimTipiDegisi(e) { /*let {fis, gridWidget, parentPart} = this; let {value} = e*/ }
-	gridSatirGuncellendi(e) {
-		let {args} = e; if (!args) { e.args = { uid: e.uid, rowindex: e.rowIndex }; }
-		this.satirBedelHesapla(e); let {parentPart} = this; setTimeout(() => parentPart.dipTazele(), 10)
+	vergiIcinDuzenle(e) {
+		let { vergiBelirtecler, vergiBelirtec_kdv } = TicariFis
+		let { fis, gridWidget, parentPart: tanimPart = {} } = this
+		let { belirtec2Kolon: b2cd = {} } = tanimPart
+		
+		let { ozelIsaret, kdvKod, kdvBelirtec } = e
+		let isaretlimi = ozelIsaret == '*'
+		let sabitKdvAtamasimi = kdvKod !== undefined
+		if (sabitKdvAtamasimi)
+			vergiBelirtecler = [vergiBelirtec_kdv]
+		
+		gridWidget.beginupdate()
+		try {
+			for (let det of gridWidget.getboundrows()) {
+				let { boundindex: ri } = det
+				for (let vb of vergiBelirtecler) {                           // vb: vergiBelirtec
+					let kdvmi = vb == vergiBelirtec_kdv
+					let setValue = (sk, tk, orjmi, belirtecmi) => {          // sk: sourceKey, tk: targetKey
+						tk ||= sk
+
+						// atanacak 'kdvKod' bildirildiyse onu kullan aksinde (detay değeri + isaretlimi) durumuna bak
+						let orjK = orjmi ? sk : `orj${sk}`
+						let orjV = det[orjK]
+						let kdvKodVeyaBelirtec = ( belirtecmi ? kdvBelirtec : kdvKod ) || kdvKod
+						let v = (
+							isaretlimi ? '' :
+							sabitKdvAtamasimi
+								? ( kdvKod == null ? orjV : kdvKodVeyaBelirtec )
+								: orjV
+						) ?? ''
+						
+						// Grid Kolon olarak varsa 'setcellvalue', aksinde det[tk]
+						if (b2cd[tk]) {
+							gridWidget.setcellvalue(ri, tk, v)                // !! 'cellValueChanged' event tetikler
+							if (sabitKdvAtamasimi)
+								det[orjK] = orjV
+						}
+						else
+							det[tk] = v
+					}
+
+					;( sabitKdvAtamasimi ? [''] : ['', 'orj'] ).forEach(pr =>
+					['Kod', 'Belirtec'].forEach(pf => {
+						setValue(
+							`${pr}${vb}${pf}`,                                // source: kdvKod, kdvBelirtec, orjkdvKod, orjkdvBelirtec, ...
+							`${vb}${pf}`,                                     // target: kdvKod, kdvBelirtec, kdvKod, kdvBelirtec, ...
+							pr == 'orj',
+							pf == 'Belirtec'
+						)
+					}))
+				}
+	
+				let _e = { ...e, detay: det, args: { rowindex: ri } }
+				delete _e.rec
+				this.satirBedelHesapla(_e)
+			}
+		}
+		finally { gridWidget.endupdate(false) }
+		delay(10).then(() =>
+			tanimPart.dipTazele())
+	}
+	efAyrimTipiDegisi(e) {
+		// let { fis, gridWidget, parentPart: tanimPart } = this
+		// let { value = fis?.efAyrimTipi } = e
+	}
+	gridSatirGuncellendi(e = {}) {
+		let { uid, rowIndex: rowindex } = e
+		e.args ??= { uid, rowindex }
+		this.satirBedelHesapla(e)
+		delay(10).then(() =>
+			this.parentPart.dipTazele())
 	}
 	gridSatirSilindi(e) {
-		super.gridSatirSilindi(e); let {fis, parentPart} = this;
-		let {dipIslemci} = fis; if (dipIslemci) { dipIslemci.topluHesapla(e) }
-		setTimeout(() => parentPart.dipTazele(), 10)
+		super.gridSatirSilindi(e)
+		let { fis: { dipIslemci } = {}, parentPart } = this
+		delay(10).then(() =>
+			parentPart.dipTazele())
 	}
 	miktarFiyatDegisti(e) {
-		super.miktarFiyatDegisti(e); let {parentPart} = this;
-		setTimeout(() => parentPart.dipTazele(), 10)
+		super.miktarFiyatDegisti(e)
+		delay(10).then(() =>
+			this.parentPart.dipTazele())
 	}
 	satirBedelHesapla(e) {
-		let args = e.args || {}, {uid} = args,  rowIndex = args.rowindex, {gridWidget, fis, parentPart} = this;
-		let det = e.detay || e.rec || (uid == null ? gridWidget.getrowdata(rowIndex) : gridWidget.getrowdatabyid(uid)), degerler = { eski: det.dipHesabaEsasDegerler };
-		super.satirBedelHesapla(e); degerler.yeni = det.dipHesabaEsasDegerler;
-		let {dipIslemci} = fis; if (dipIslemci) { dipIslemci.satirDegisimIcinHesapla({ detay: det, degerler }) }
+		let { args = {} } = e
+		let { uid, rowIndex = args.rowindex } = args
+		let { parentPart: tanimPart, gridWidget: w, fis = {} } = this
+		let { detay: det = e.rec } = e
+		if (!det)
+			det = uid == null ? w.getrowdata(rowIndex) : w.getrowdatabyid(uid)
+		
+		let degerler = { eski: det.dipHesabaEsasDegerler }
+		super.satirBedelHesapla(e)
+		degerler.yeni = det.dipHesabaEsasDegerler
+
+		let { dipIslemci } = fis
+		dipIslemci?.satirDegisimIcinHesapla?.({ detay: det, degerler })
 	}
 }
+
 class EIslAlimGridKontrolcu extends TicariGridKontrolcu {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	tabloKolonlariDuzenle(e) {

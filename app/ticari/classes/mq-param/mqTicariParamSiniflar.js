@@ -535,6 +535,7 @@ class MQMaliyetParam extends MQTicariParamBase {
 	}
 	paramSetValues({ rec }) { super.paramSetValues(...arguments) }
 }
+
 class MQMuhasebeParam extends MQTicariParamBase {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Muhasebe Parametreleri' } static get paramKod() { return 'MHGN' }
 	constructor(e = {}) {super(e); $.extend(this, { maliYil: e.maliYil ?? new Date().yil }) }
@@ -548,9 +549,12 @@ class MQMuhasebeParam extends MQTicariParamBase {
 	}
 	paramSetValues(e = {}) { super.paramSetValues(e) /*; let {rec} = e*/ }
 }
+
 class MQFinansParam extends MQTicariParamBase {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get sinifAdi() { return 'Finans Parametreleri' } static get paramKod() { return 'PFINPAR' }
+	static get sinifAdi() { return 'Finans Parametreleri' }
+	static get paramKod() { return 'PFINPAR' }
+
 	static paramYapiDuzenle({ paramci }) {
 		super.paramYapiDuzenle(...arguments)
 		paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 10px !important }`)
@@ -569,8 +573,11 @@ class MQFinansParam extends MQTicariParamBase {
 				.dropDown().noMF().kodsuz().setTekSecim(StokDegerleme).addStyle_wh(300)
 		}
 	}
-	paramSetValues({ rec }) { super.paramSetValues(...arguments) }
+	paramSetValues({ rec }) {
+		super.paramSetValues(...arguments)
+	}
 }
+
 class MQWebParam extends MQTicariParamBase {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Web Parametreleri' } static get paramKod() { return 'TICWEB' }
@@ -735,5 +742,40 @@ class MQTabletParam extends MQTicariParamBase {
 				rec[t] = v
 			delete rec[s]
 		})
+	}
+}
+
+class MQVergiParam extends MQTicariParamBase {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get paramKod() { return 'FNVRG' }
+	static get sinifAdi() { return 'Vergi Parametreleri' }
+	static get genelKdvOrani() { return 20 }
+
+	constructor(e = {}) {
+		super(e)
+		this.genelKdvOrani ??= this.class.genelKdvOrani
+	}
+	static paramYapiDuzenle({ paramci }) {
+		super.paramYapiDuzenle(...arguments)
+		paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 10px !important }`)
+		;{
+			let form = paramci.addFormWithParent()
+			form.addBool('stopajliIslem', 'Stopajlı İşlem')
+			form.addBool('sutIslem', 'Süt İşlem')
+			form.addBool('miktarsalOtvKdvMatrahina', 'Miktarsal ÖTV: KDV Matrahına eklenir')
+			form.addBool('gkkpKdvMatrahina', 'GKKP: KDV Matrahına eklenir')
+			form.addNumber('genelKdvOrani', 'Genel KDV %')
+		}
+		;{
+			//let form = paramci.addFormWithParent()
+			//form.addTekSecim('', '')
+			//	.dropDown().noMF().kodsuz()
+			//	.setTekSecim(mfSinif)
+			//	.addStyle_wh(300)
+		}
+	}
+	paramSetValues({ rec }) {
+		super.paramSetValues(...arguments)
+		this.genelKdvOrani ??= this.class.genelKdvOrani
 	}
 }

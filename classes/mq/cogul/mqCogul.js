@@ -688,7 +688,7 @@ class MQCogul extends MQYapi {
 		this.forAltYapiClassesDo('loadServerData_queryDuzenle', e)
 		;{
 			let colDef = e.colDef ?? sender?.colDef ?? parentPart?.belirtec ? parentPart : null
-			let {stmDuzenleyiciler} = parentPart ?? {}
+			let { stmDuzenleyiciler } = parentPart ?? {}
 			let _e = { ...e, sender, colDef, mfSinif, alias, aliasVeNokta, stm, sent }
 			if (!kodKullanilirmi && adiKullanilirmi && adiSaha && !(tekilOku || basit || modelKullanmi))
 				orderBy.add(adiSaha)

@@ -121,11 +121,14 @@ class GridKolonGrup_KA extends GridKolonGrup {
 						oldvalue: oldValue, newvalue: kod
 					}
 					this._temp_nextRec = r
-					asilWidget?.setcellvalue(rowIndex, kodAttr, kod)
-					if (this._temp_nextRec !== undefined) {
-						kaKolonu.cellValueChanged?.({ args, rec: r })
-						delete this._temp_nextRec
+					try {
+						asilWidget?.setcellvalue(rowIndex, kodAttr, kod)
+						if (this._temp_nextRec !== undefined) {
+							kaKolonu.cellValueChanged?.({ args, rec: r })
+							delete this._temp_nextRec
+						}
 					}
+					catch (ex) { cerr(ex) }
 				}
 				
 				if (recs.length > 1) {
@@ -425,7 +428,7 @@ class GridKolonGrup_KA extends GridKolonGrup {
 			let { ekDegisinceHandlers: handlers } = this
 			if (!empty(handlers)) {
 				let sender = this, owner = w, colDef = this
-				let { fis = gp.inst } = gp
+				let { fis = gp.inst, belirtec2Kolon } = gp
 				let e = {
 					sender, mfSinif,
 					kodAttr, adiAttr, kodSaha, adiSaha,
@@ -444,8 +447,10 @@ class GridKolonGrup_KA extends GridKolonGrup {
 					},
 					setCellValue(e = {}) {
 						let { rowIndex = i, belirtec = e.dataField ?? e.datafield ?? k, value } = e
-						if (belirtec != adiAttr)
-							w.setcellvalue(rowIndex, belirtec, value)
+						if (belirtec == adiAttr || !belirtec2Kolon[belirtec])
+							return null
+						
+						w.setcellvalue(rowIndex, belirtec, value)
 					}
 				}
 
@@ -481,30 +486,43 @@ class GridKolonGrup_KA extends GridKolonGrup {
 				return kaKolonu.listedenSec(e)
 		}
 
-		kaKolonu.listedenSec = e => {
+		kaKolonu.listedenSec = async e => {
 			let { sender: gp, args = {} } = e
 			gp ??= kaKolonu?.gridPart
 			let { gridWidget: w } = gp
 			if (w == null)
 				return
 
+			let { rowIndex: i = args.rowindex, belirtec: k = args.datafield, gridRec: gr, value: v, setCellValue: callback } = e
 			let { part: ep } = getEditorPart(gp)
+			if (!ep) {
+				w.begincelledit(i, k)
+				await delay(10)
+				ep = getEditorPart(gp)?.part
+			}
 			if (ep)
 				return ep.listeIstendi(e)
 			
-			let { mfSinif, kodAttr } = this
+			/*let { mfSinif, kodAttr, dataBlock } = this
 			if (!mfSinif)
 				return
 			
-			let { rowIndex: i = args.rowindex, belirtec: k = args.datafield, gridRec: gr, value: v, setCellValue: callback } = e
 			if (v == null) {
 				gr ??= getCurRec(gp, null, i)
 				v = gr?.[kodAttr] ?? null
 			}
+
+			let { inst = gp.inst } = e
+			let _e = { ...e, gridPart: gp, inst, fis: inst }
+			let source = await dataBlock
+				? await dataBlock.call(this, _e)
+				: undefined
+			
 			mfSinif.listeEkraniAc({
 				// value: v,
+				source,
 				secince
-			})
+			})*/
 		}
 
 		tabloKolonlari.push(kaKolonu)

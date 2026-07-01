@@ -10,11 +10,13 @@ class TSOrtakFis extends MQTicariGenelFis {
 	static get numTipKod() { return null } static get islTipKod() { return null } static get varsayilanIslKod() { return null }
 	static get oncelik() { return 0 } static get cikisGibimi() { return false } static get girisGibimi() { return false }
 	static get iademi() { return this.iade == 'I' } static get numYapi() { return new MQTicNumarator({ tip: this.numTipKod }) }
-	static get mustSaha() { return null } get eIslemSinif() { return EIslemOrtak.getClass({ tip: this.efAyrimTipi })}
+	static get mustSaha() { return null }
+	get eIslemSinif() { return EIslemOrtak.getClass({ tip: this.efAyrimTipi })}
 	static get sonStokKullanilirmi() { return true }
-	static getUISplitHeight(e) { return 230 }
+	static get yerKullanilirmi() { return true }
 	get kosulYapilar() { return this._kosulYapilar } set kosulYapilar(value) { this._kosulYapilar = value }
 
+	static getUISplitHeight(e) { return 300 }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e;
 		extend(pTanim, {
@@ -49,33 +51,81 @@ class TSOrtakFis extends MQTicariGenelFis {
 		})
 	}
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); let {tsnForm, baslikForm} = e.builders;
+		super.rootFormBuilderDuzenle(e)
+		let { builders } = e
+		let { tsnForm, baslikForm } = builders
+		let { yerKullanilirmi } = this
+		
 		tsnForm.addFormWithParent('efatGosterim')
 			.onBuildEk(({ builder: fbd }) => {
-				let {layout, altInst, rootPart} = fbd, efAyrimTipi = altInst.efAyrimTipi?.char ?? altInst.efAyrimTipi;
-				let cls = EIslemOrtak.getClass(efAyrimTipi); layout.html(cls ? (cls.sinifAdi || '') : '')
-				rootPart.layout.attr('data-efAyrimTipi', efAyrimTipi || ''); rootPart.builder_efatGosterim = fbd
+				let { layout, altInst: inst, rootPart } = fbd
+				let { efAyrimTipi } = inst
+				efAyrimTipi = efAyrimTipi?.char ?? inst
+				
+				;{
+					let { sinifAdi } = EIslemOrtak.getClass(efAyrimTipi) ?? {}
+					layout.html(sinifAdi ?? '')
+				}
+				
+				;{
+					let { layout: rootLayout } = rootPart
+					rootLayout.attr('data-efAyrimTipi', efAyrimTipi || '')
+					rootPart.builder_efatGosterim = fbd
+				}
 			})
-			.addStyle(e => `$elementCSS { min-width: auto !important; max-width: 100px !important; width: max-content !important; height: max-content !important; margin-top: 28px; padding: 8px 15px !important; border-radius: 8px }`)
-		tsnForm.addModelKullan('islKod').setMFSinif(MQStokIslem).dropDown().etiketGosterim_normal().addStyle_wh(200)
+			.addStyle(
+				`$elementCSS {
+					min-width: auto !important; max-width: 100px !important;
+					width: max-content !important; height: max-content !important;
+					margin-top: 28px; padding: 8px 15px !important; border-radius: 8px
+				}`
+			)
+		
+		tsnForm.addModelKullan('islKod')
+			.dropDown().kodsuz().listedenSecilmez()
+			.bosKodAlinmaz().bosKodEklenmez()
+			.etiketGosterim_normal().addStyle_wh(200)
+			.setMFSinif(MQStokIslem)
 			.ozelQueryDuzenleBlock(({ builder: fbd, alias, stm }) => {
 				let {altInst} = fbd, islTipKod = altInst?.islTipKod ?? altInst?.class?.islTipKod
 				if (islTipKod) { for (let {where: wh} of stm) { wh.degerAta(islTipKod, `${alias}.isltip`) } }
 			})
-			.onBuildEk(({ builder: fbd }) => { let {altInst} = fbd; fbd.oldValue = fbd.value = altInst.islKod })
+			.onBuildEk(({ builder: fbd, builder: { altInst: inst } }) =>
+				fbd.oldValue = fbd.value = inst.islKod)
 			.degisince(async ({ builder: fbd, value }) => {
-				let {altInst, rootPart} = fbd, {kontrolcu} = rootPart;
-				let islKod2OzelIsaret = (await MQStokIslem.getKod2OzelIsaret()) || {};
-				let ozelIsaret = altInst.ozelIsaret = islKod2OzelIsaret[islKod] || '';
-				if (kontrolcu?.islKodIsaretDegisti) {
-					let {oldValue} = fbd, eskiOzelIsaret = islKod2OzelIsaret[oldValue] || '';
-					if ((eskiOzelIsaret == '*') != (ozelIsaret == '*')) {
-						e.sender = e.gridPart = rootPart; $.extend(e, { builder: fbd, oldValue, ozelIsaret, eskiOzelIsaret });
-						await inst.ozelIsaretDegisti(...arguments); await kontrolcu.islKodIsaretDegisti(...arguments)
-					}
-				}
-				fbd.oldValue = islKod
+				let e = { ...arguments[0], fbd, value }
+				let { altInst: inst, rootPart, oldValue } = fbd
+				let { kontrolcu } = rootPart
+				let islKod2OzelIsaret = (await MQStokIslem.getKod2OzelIsaret()) ?? {}
+				let ozelIsaret = inst.ozelIsaret = islKod2OzelIsaret[value] || ''
+				let eskiOzelIsaret = islKod2OzelIsaret[oldValue] || ''
+				extend(e, { ozelIsaret, eskiOzelIsaret, builder: fbd, kontrolcu, value, oldValue, ozelIsaret, eskiOzelIsaret })
+				e.sender = e.gridPart = rootPart
+				await inst?.islKodDegisti?.(e)
+				fbd.oldValue = value
 			})
+
+		if (yerKullanilirmi) {
+			baslikForm.builders[2].addCheckBox('yerOrtakmi', 'Yer Ortakdır')
+				.degisince(e => {
+					let { builder } = e
+					let { altInst, rootPart, parentBuilder } = builder
+					let { kontrolcu } = rootPart
+					parentBuilder.id2Builder.yerKod.updateVisible()
+					e.sender = e.gridPart = rootPart
+					extend(e, { builder })
+					altInst?.yerOrtakmiDegisti?.(e)
+					kontrolcu?.yerOrtakmiDegisti?.(e)
+				})
+			baslikForm.builders[2].addSimpleComboBox('yerKod', 'Yer', 'Yer')
+				.etiketGosterim_yok()
+				.setMFSinif(MQStokYer)
+				.autoBind()
+				.addStyle_wh(400)
+				.setVisibleKosulu(({ builder: { altInst: inst }}) =>
+					inst.yerOrtakmi ? true : 'basic-hidden')
+		}
+		
 		if (app.params.ticariGenel.kullanim.takipNo) {
 			baslikForm.builders[1].addCheckBox('takipOrtakmi', 'Takip Ortakdır').degisince(({ builder: fbd }) => {
 				let {altInst, rootPart, parentBuilder} = fbd, {kontrolcu} = rootPart
@@ -92,6 +142,7 @@ class TSOrtakFis extends MQTicariGenelFis {
 				.setVisibleKosulu(({ builder: fbd }) =>
 					( fbd.altInst.takipOrtakmi ?? true ) ? true : 'basic-hidden')
 		}
+		
 		baslikForm.builders[2].addTextInput('baslikAciklama', 'Fiş Açıklama')
 			.setPlaceHolder('Fiş Açıklama').etiketGosterim_yok()
 			.addStyle(e => `$elementCSS  { min-width: 150px !important; max-width: 400px !important }`)
@@ -293,6 +344,16 @@ class TSOrtakFis extends MQTicariGenelFis {
 		await this.efatDurumBelirle(e)
 		await this.satisKosulYapiOlustur(e)
 	}
+	async islKodDegisti(e = {}) {
+		let { sender: tanimPart, ozelIsaret = this.ozelIsaret, eskiOzelIsaret } = e
+		if ((eskiOzelIsaret == '*') != (ozelIsaret == '*'))
+			await this?.islKodIsaretDegisti?.(e)
+	}
+	async islKodIsaretDegisti(e = {}) {
+		let { sender: tanimPart, ozelIsaret = this.ozelIsaret, eskiOzelIsaret } = e
+		let { kontrolcu = tanimPart?.kontrolcu } = e
+		await kontrolcu?.islKodIsaretDegisti?.(e)
+	}
 	async efatDurumBelirle(e = {}) {
 		let rec = e.item ?? e.rec ?? {}
 		let eFatmi = asBoolQ(rec.efaturakullanirmi)
@@ -316,6 +377,7 @@ class TSOrtakFis extends MQTicariGenelFis {
 	}
 	efAyrimTipiDegisti(e) { }
 	takipNoDegisti(e) { }
+	yerOrtakmiDegisti(e) { }
 	static getDonusumYapi(e) {
 		e = e ?? {}; let {detaySinif, detay} = e;
 		detaySinif = e.detaySinif = detaySinif ?? detay?.class ?? this.detaySinif;

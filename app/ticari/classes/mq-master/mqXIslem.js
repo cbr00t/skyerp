@@ -92,11 +92,15 @@ class MQStokIslem extends MQIslem {
 	}
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
-		$.extend(pTanim, { tip: new PInstTekSecim('isltip', MQStokIslemTipi) })
+		extend(pTanim, { tip: new PInstTekSecim('isltip', MQStokIslemTipi) })
 	}
-	static rootFormBuilderDuzenle(e) {
-		e = e || {}; super.rootFormBuilderDuzenle(e); let {tabPage_genel: tabPage} = e;
-		tabPage.addModelKullan('tip', 'Tip').dropDown().kodsuz().noMF().autoBind().setSource(MQStokIslemTipi.kaListe)
+	static rootFormBuilderDuzenle(e = {}) {
+		super.rootFormBuilderDuzenle(e)
+		let { tabPage_genel: tabPage } = e
+		tabPage.addModelKullan('tip', 'Tip')
+			.dropDown().kodsuz().listedenSecilmez()
+			.noMF().autoBind()
+			.setSource(MQStokIslemTipi.kaListe)
 	}
 	static secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments);
