@@ -240,7 +240,7 @@ class SimpleComboBoxPart extends Part {
 			let value = input.val()
 			this.item = { [kodSaha]: value }
 			if (value && !noInitCommit)
-				this._onChange({ type: 'commit', layout, input, value })
+				this._onChange({ type: 'init', layout, input, value })
 		})
 	}
 	destroyPart(e) {

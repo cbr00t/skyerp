@@ -24,7 +24,7 @@ class CIO extends CObject {
 				_value = pInst.initValue
 			pInst.value = pInst.getValue(_value)
 			Object.defineProperty(inst, ioAttr, {
-				get: () => inst._p[ioAttr].value,
+				get: () => inst._p[ioAttr]?.value,
 				set: value => {
 					let pInst = inst._p[ioAttr], oldValue = inst[ioAttr]
 					value = pInst.getValue(value)

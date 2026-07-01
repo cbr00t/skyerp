@@ -176,11 +176,14 @@ class SatisFaturaFis_OtoSablon extends SatisFaturaFis {
 					if (type != 'batch')
 						return
 					
+					let { type: rType, item: rec } = evt
+					if (rType == 'init' || !rec)
+						return
+					
 					let { altInst: sy } = fbd
 					if (!sy)
 						return
 
-					let { item: rec } = evt
 					let num = new numSinif({ tip })
 					await num.yukle({ rec })
 					sy.numarator = num
