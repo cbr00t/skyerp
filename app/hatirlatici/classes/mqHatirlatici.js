@@ -284,7 +284,7 @@ class MQHatirlatici extends MQCogul {
 			return ws
 
 		let { sender: gridPart } = e
-		let { ntfyTopic: topic } = app
+		let topic = makeArray(app.ntfyTopic).filter(Boolean).join('-')
 		let url = [app.ntfyWSUrl, topic, 'sse'].filter(Boolean).join('/')
 		ws = this.ws_ntfy = new EventSource(url)
 		ws.onmessage = async ({ data: _ }) => {
@@ -328,6 +328,7 @@ class MQHatirlatici extends MQCogul {
 	}
 	static unregisterNTFY(e = {}) {
 		let { ws_ntfy: ws } = this
+		ws.onclose = ws.onerror = null
 		if (ws?.state == EventSource.OPEN)
 			ws.close()
 		this.ws_ntfy = null
@@ -366,7 +367,8 @@ class MQHatirlatici extends MQCogul {
 		} işlemi`
 		let { selectedRecs: recs } = gridPart
 		let orjRecs = recs
-		let { user2Adi = {}, ntfyTopic: topic, frpPort } = app
+		let { user2Adi = {}, frpPort } = app
+		let topic = makeArray(app.ntfyTopic)
 		let { dev, ws, session } = config
 		let { DefaultWSHostName_SkyServer: cloudHost, DefaultSSLWSPort: defPort } = config.class
 		let { url: wsURL, ssl, hostname: host, port } = ws
@@ -484,6 +486,7 @@ class MQHatirlatici extends MQCogul {
 			catch (ex) { return false }
 		}
 
+		const User_ALL = 'all'
 		let yeniTarih = asDate(inst.yeniTarih)
 		let idListe = recs.map(r => r.id)
 		// let _now = now()
@@ -616,14 +619,14 @@ class MQHatirlatici extends MQCogul {
 						)
 						if (shortStatus)
 							shortStatus = `gorev-${shortStatus}`
-
-						let topicPFList = [...targetUsers, 'all']
+						
+						let topicPFList = [...targetUsers, User_ALL]
 						for (let u of topicPFList) {
 							let url = `${location.origin}${location.pathname}?`
 							;{
 								let pass = u == buUser ? buPass : null
 								if (pass == null) {
-									let { pass: _ } = await Session.getSessionBasit({ user: u })
+									let { pass: _ } = await Session.getSessionBasit({ user: u }) ?? {}
 									pass = _
 								}
 								
@@ -638,10 +641,12 @@ class MQHatirlatici extends MQCogul {
 										q.port = port || frpPort
 									}
 								}
-								q.loginTipi = loginTipi || 'login'
-								q.user = u
-								if (pass)
-									q.pass = pass
+								if (u != User_ALL) {
+									q.loginTipi = loginTipi || 'login'
+									q.user = u
+									if (pass)
+										q.pass = pass
+								}
 
 								if (!empty(q))
 									url += `_=${Base64.encode($.param(q), true)}`

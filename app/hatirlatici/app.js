@@ -1,11 +1,11 @@
 class HatirlaticiApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this }
+	get autoExecMenuId() { return 'HATIRLATICI' }
 	get ntfyTopic() {
 		let { session: { user } = {} } = config
 		let { portalMustKod: must, ntfyEkId: id } = this
 		return [must, 'hatirlatici', user, id].filter(Boolean)
 	}
-	get autoExecMenuId() { return 'HATIRLATICI' }
 
 	async afterRun(e) {
 		await super.afterRun(e)
