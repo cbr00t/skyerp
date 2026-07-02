@@ -28,7 +28,19 @@ class HatirlaticiApp extends TicariApp {
 			return false
 
 		let { session } = config
-		return !!session
+		if (!session)
+			return false
+
+		let sent = new MQSent({ table: 'personel' }), { where: wh, sahalar } = sent
+		wh.add(`kod <> ''`, `onayciportno <> ''`)
+		sahalar.add('onayciportno port')
+		;{
+			let recs = ( await sent.execSelect() )
+				.map(r => r.port )
+			this.frpPort = Number(recs.at(-1)) || null
+		}
+
+		return true
 	}
 	async anaMenuOlustur(e) {
 		try {

@@ -364,11 +364,13 @@ class MQHatirlatici extends MQCogul {
 			done ? 'Görev Tamamlandı' :
 			state
 		} işlemi`
-		let { dev } = config
 		let { selectedRecs: recs } = gridPart
 		let orjRecs = recs
-		let { user2Adi = {}, ntfyTopic: topic } = app
-		let { class: { DefaultWSHostName_SkyServer: cloudHost }, session: { user: buUser } } = config
+		let { user2Adi = {}, ntfyTopic: topic, frpPort } = app
+		let { dev, ws, session } = config
+		let { DefaultWSHostName_SkyServer: cloudHost, DefaultSSLWSPort: defPort } = config.class
+		let { url: wsURL, ssl, hostname: host, port } = ws
+		let { loginTipi, user: buUser, pass: buPass } = session
 		let buUserText = user2Adi[buUser] || buUser
 		// let { location: loc } = window
 
@@ -614,19 +616,58 @@ class MQHatirlatici extends MQCogul {
 						)
 						if (shortStatus)
 							shortStatus = `gorev-${shortStatus}`
-						
-						for (let u of targetUsers) {
-							let tags = [indicator, shortStatus, '_']
-							let markdown = true
-							let click = new URL(topic.join('-'), app.ntfyWSUrl).toString()
-							let actions = [
-								{
-									action: 'view',
-									label: 'BİLDİRİMLERİ GÖSTER',
-									url: location.href
+
+						let topicPFList = [...targetUsers, 'all']
+						for (let u of topicPFList) {
+							let url = `${location.origin}${location.pathname}?`
+							;{
+								let pass = u == buUser ? buPass : null
+								if (pass == null) {
+									let { pass: _ } = await Session.getSessionBasit({ user: u })
+									pass = _
 								}
-							]
-							ntfy({ topic, priority, tags, markdown, title, message, click, actions })
+								
+								let q = { ...qs }
+								deleteKeys(q, 'url', 'wsURL', 'ssl', 'hostname', 'port', 'loginTipi', 'user', 'pass')
+								if (wsURL || port || frpPort) {
+									if (wsURL)
+										q.url = wsURL
+									else {
+										q.ssl = ssl ?? true
+										q.hostname = host ?? defHost
+										q.port = port || frpPort
+									}
+								}
+								q.loginTipi = loginTipi || 'login'
+								q.user = u
+								if (pass)
+									q.pass = pass
+
+								if (!empty(q))
+									url += `_=${Base64.encode($.param(q), true)}`
+							}
+							
+							let t = topic
+							;{
+								if (isString(t))
+									t = t.split('-')
+								t = t.map(v => v == buUser ? u : v)
+							}
+							
+							;{
+								let tags = [indicator, shortStatus, '_']
+								let markdown = true
+								let click = new URL(t.join('-'), app.ntfyWSUrl).toString()
+								let actions = [
+									{
+										action: 'view', url,
+										label: 'HATIRLATICILARI GÖSTER'
+									}
+								]
+								ntfy({ topic: t, priority, tags, markdown, title, message, click, actions })
+							}
+							
+							await delay(50)
 						}
 					}
 					

@@ -157,6 +157,14 @@ class TabletApp extends TicariApp {
 		await this.afterRunVeBilgiYukleGonderSonrasiOrtak(e)
 		;['queryCache', 'reqCache'].forEach(k =>
 			this[k]?.stop?.())
+		
+		for (let t of [500, 1000, 2000, 5000]) {
+			if (document.fullscreen)
+				break
+			await delay(t)
+			try { await requestFullScreen() }
+			catch (ex) { }
+		}
 	}
 	async tabIlkIslemler(e) {
 		await promiseAllSet(
