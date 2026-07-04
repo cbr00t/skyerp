@@ -108,8 +108,10 @@ class MQKontorHareket extends MQSayacli {
 		super.rootFormBuilderDuzenle(...arguments)
 		let { eDeftermi, kontorSayiKullanilirmi } = this
 		let form = tanimForm.addFormWithParent().altAlta()
-			form.addModelKullan('mustKod', 'Müşteri').comboBox().autoBind().setMFSinif(MQLogin_Musteri)
-				.ozelQueryDuzenleHandler(({ stm, aliasVeNokta, mfSinif }) => {
+			form.addSimpleComboBox('mustKod', 'Müşteri', 'Müşteri')
+				.autoBind().setMFSinif(MQLogin_Musteri)
+				.etiketGosterim_placeholder()
+				.ozelQueryDuzenleIslemi(({ stm, aliasVeNokta, mfSinif }) => {
 					let { current: l } = MQLogin
 					let { kodSaha } = mfSinif
 					let clauses = {

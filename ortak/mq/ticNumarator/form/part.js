@@ -3,19 +3,38 @@ class TicNumaratorPart extends NumaratorPart {
 	static get partName() { return 'ticNumarator' }
 
 	runDevam(e) {
-		super.runDevam(e); const {layout, fis, numarator} = this;
-		const seriNoForm = layout.find('.seriVeNo'), txtNoYil = this.txtNoYil = seriNoForm.find('#noYil');
+		super.runDevam(e)
+		let { layout, fis, numarator } = this
+		let seriNoForm = layout.find('.seriVeNo')
+		let txtNoYil = this.txtNoYil = seriNoForm.find('#noYil')
 		if (fis.class.noYilKullanilirmi) {
-			txtNoYil.on('keyup', evt => { evt.target.value = asInteger(evt.target.value) || null });
-			txtNoYil.on('contextmenu', evt => { const value = fis.noYil = app.params.zorunlu.cariYil || today().getYear(); evt.target.value = value });
-			txtNoYil.on('change', evt => { fis.noYil = asInteger(evt.target.value) || null });
+			txtNoYil.on('keyup', ({ currentTarget: target }) =>
+				target.value = asInteger(target.value) || null)
+			txtNoYil.on('contextmenu', ({ currentTarget: target }) => {
+				let value = fis.noYil = app.params.zorunlu.cariYil || today().getYear()
+				target.value = value
+			})
+			txtNoYil.on('change', ({ currentTarget: target }) =>
+				fis.noYil = asInteger(target.value) || null)
 			txtNoYil.removeClass('jqx-hidden basic-hidden')
+
+			/*;{
+				new RootFormBuilder().addSelect('belgeTipi', 'Belge Tipi')
+					.setParent(layout)
+					.setInst(this)
+					.setSource(EIslemOrtak.kaListe)
+					.setValue(belgeTipi?.char)
+					.degisince(({ value }) =>
+						this.belgeTipi.char = value)
+					.run()
+			}*/
 		}
-		else { txtNoYil.addClass('jqx-hidden') }
+		else
+			txtNoYil.addClass('jqx-hidden')
 	}
 	numaratorListe_ozelKolonDuzenle(e) { }
 	numaratorListe_queryDuzenle(e) {		
-		const {numarator} = this, {tip} = numarator;
-		if (tip != null) { const {alias, sent} = e; sent.where.degerAta(tip, `${alias}.tip`) }
+		let {numarator} = this, {tip} = numarator;
+		if (tip != null) { let {alias, sent} = e; sent.where.degerAta(tip, `${alias}.tip`) }
 	}
 }

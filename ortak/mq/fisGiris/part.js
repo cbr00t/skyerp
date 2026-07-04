@@ -75,7 +75,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 			_e.parent.appendTo(gridIslemTuslari); gridIslemTuslari.removeClass('jqx-hidden basic-hidden');
 			let buttons = gridIslemTuslari?.length ? gridIslemTuslari.find('button') : null; _e.buttons = buttons;
 			if (buttons?.length) { buttons.jqxButton({ theme }) } else { layout.css('--grid-islemTuslari-width', '0px') }
-			let {afterInit} = _e; if ($.isEmptyObject(afterInit)) { for (let i in afterInit) { let handler = afterInit[i]; getFuncValue.call(this, handler, _e) } }
+			let {afterInit} = _e; if (empty(afterInit)) { for (let i in afterInit) { let handler = afterInit[i]; getFuncValue.call(this, handler, _e) } }
 			let {gridIslemTusYapilari} = this; for (let i = 0; i < buttons.length; i++) {
 				let elm = buttons.eq(i), id = elm.prop('id');
 				let clsElmInfo = class ElmInfo extends CObject {
@@ -133,7 +133,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 	}
 	async initFormBuilder(e) {
 		let {builder} = this; let {fis} = this;
-		if (!builder && fis) { let _e = { ...e, sender: this }; builder = (await fis.getRootFormBuilder(_e)) || (await fis.getFormBuilders(_e)) } if ($.isEmptyObject(builder)) { return }
+		if (!builder && fis) { let _e = { ...e, sender: this }; builder = (await fis.getRootFormBuilder(_e)) || (await fis.getFormBuilders(_e)) } if (empty(builder)) { return }
 		let {layout} = this, subBuilders = builder.isFormBuilder ? [builder] : builder, id2Builder = this.id2Builder = {};
 		for (let builder of subBuilders) {
 			if (!builder) { continue } builder.part = this; let _parent = builder.parent;
@@ -303,57 +303,96 @@ class FisGirisPart extends GridliGirisWindowPart {
 			if (value !== undefined) { this[key] = e[key] = value }
 		}
 		if (yeniVeyaKopyami) {
-			let {numaratorPart} = this, {otoNummu, numarator} = numaratorPart || {};
-			extend(_e, { otoNummu, numaratorPart, numarator });
+			let { numaratorPart } = this
+			let {otoNummu, numarator} = numaratorPart ?? {}
+			extend(_e, { otoNummu, numaratorPart, numarator })
 			if (numaratorPart?.otoNummu) {
-				let MaxTry = 5, {text: progressText} = window.progressManager ?? {};
-				window.progressManager?.setText(`<div>${progressText}</div><div style="margin: 5px 0 0 50px" class="royalblue">Numaratör belirleniyor...</div>`);
+				const MaxTry = 5
+				let { text: progressText } = globalThis.progressManager ?? {};
+				globalThis.progressManager
+					?.setText(`<div>${progressText}</div><div style="margin: 5px 0 0 50px" class="royalblue">Numaratör belirleniyor...</div>`)
 				try {
-					_e.tryCount = 0;
+					_e.tryCount = 0
 					while (true) {
-						_e.tryCount++;
+						_e.tryCount++
 						if (MaxTry > 0 && _e.tryCount > MaxTry) {
-							let keyHV = fis.alternateKeyHostVars(), {seri, fisNo: prevFisNo, class: fisSinif} = fis;
-							let {table, sayacSaha, seriSaha, noYilSaha, noSaha} = fisSinif;
-							if ($.isEmptyObject(keyHV)) { keyHV = fis.keyHostVars() }
-							if (!$.isEmptyObject(keyHV)) {
-								for (let key of [sayacSaha, seriSaha, 'noyil', noSaha]) { delete keyHV[key] } }
-							if (!$.isEmptyObject(keyHV)) {
-								let sent = new MQSent(), {where: wh, sahalar} = sent;
-								sent.fromAdd(table); wh.birlestirDict(keyHV);
-								if (seriSaha && seri != null) { wh.degerAta(seri, seriSaha) }
-								sahalar.add(`(MAX(${noSaha}) + 1) yeniNo`);
-								fis.fisNo = numarator.sonNo = asInteger(await fisSinif.sqlExecTekilDeger(sent));
-								if (numarator.sonNo != prevFisNo) { numarator.kaydet() }
-								let result = await fis.varmi(); if (!result) { break }
+							let keyHV = fis.alternateKeyHostVars()
+							let { seri, fisNo: prevFisNo, class: fisSinif } = fis
+							let { table, sayacSaha, seriSaha, noYilSaha, noSaha } = fisSinif
+							
+							if (empty(keyHV))
+								keyHV = fis.keyHostVars()
+							
+							if (!empty(keyHV))
+								deleteKeys(keyHV, sayacSaha, seriSaha, 'noyil', noSaha)
+							
+							if (!empty(keyHV)) {
+								;{
+									let sent = new MQSent(), { where: wh, sahalar } = sent
+									sent.fromAdd(table)
+									wh.birlestirDict(keyHV)
+									if (seriSaha && seri != null)
+										wh.degerAta(seri, seriSaha)
+									sahalar.add(`(MAX(${noSaha}) + 1) yeniNo`)
+									fis.fisNo = numarator.sonNo = asInteger(await fisSinif.sqlExecTekilDeger(sent))
+								}
+								
+								if (numarator.sonNo != prevFisNo)
+									await numarator.kaydet()
+								
+								let result = await fis.varmi()
+								if (!result)
+									break
 							}
 						}
-						{ fis.fisNo = (await numarator.kesinlestir(_e)).sonNo;
-						  let result = await fis.varmi(); if (!result) { break }
+						if (!numarator.serbestmi) {
+							fis.fisNo = (await numarator.kesinlestir(_e)).sonNo
+							let result = await fis.varmi()
+							if (!result)
+								break
 						}
 					}
 				}
-				finally { window.progressManager?.setText(progressText ?? '') }
+				finally {
+					globalThis.progressManager
+						?.setText(progressText ?? '')
+				}
 			}
 		}
-		let {kaydetIslemi} = this; if (kaydetIslemi) {
-			_e.result = result; result = await getFuncValue.call(this, kaydetIslemi, _e) ?? true;
-			for (let key of ['islem', 'fis', 'eskiFis']) { let value = _e[key]; if (value !== undefined) { this[key] = e[key] = value } }
+		let { kaydetIslemi } = this
+		if (kaydetIslemi) {
+			_e.result = result
+			result = await kaydetIslemi.call(this, _e) ?? true
+			for (let key of ['islem', 'fis', 'eskiFis']) {
+				let value = _e[key]
+				if (value !== undefined)
+					this[key] = e[key] = value
+			}
 		}
-		fis = this.fis; return result
+		
+		// fis = this.fis
+		return result
 	}
-	kaydetSonrasi(e) {
-		e = e || {}; let {fis} = this, {numarator} = fis;
+	kaydetSonrasi(e = {}) {
+		let { fis } = this
+		let { numarator } = fis
 		if (numarator) {
-			let locals = app.getLocals('sonDegerler'), numKod2Seri = locals.numKod2Seri = locals.numKod2Seri || {};
+			let locals = app.getLocals('sonDegerler')
+			let numKod2Seri = locals.numKod2Seri = locals.numKod2Seri || {}
 			if (numKod2Seri[numarator.kod] != fis.seri) {
-				numKod2Seri[numarator.kod] = fis.seri; app.setLocals('sonDegerler', locals);
+				numKod2Seri[numarator.kod] = fis.seri
+				app.setLocals('sonDegerler', locals)
 				numarator.kaydet()
 			}
 		}
+		
 		return true
 	}
-	dipEventsDisableDo(aBlock, ...args) { this.dipEventsDisabledFlag = true; try { return aBlock.call(this, ...args) } finally { this.dipEventsDisabledFlag = false } }
+	dipEventsDisableDo(aBlock, ...args) {
+		this.dipEventsDisabledFlag = true
+		try { return aBlock.call(this, ...args) }
+		finally { this.dipEventsDisabledFlag = false }
+	}
 	islemYeni() { this.islem = 'yeni'; return this }
 	islemDegistir() { this.islem = 'degistir'; return this }
 	islemKopya() { this.islem = 'kopya'; return this }

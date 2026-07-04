@@ -35,7 +35,7 @@ class EIslBaslik extends EIslBaslikVeDetayOrtak {
 	get aliciBilgi() {
 		let {_aliciBilgi: result} = this
 		if (result === undefined)
-			result = this._aliciBilgi = $.extend(new EIslBaslik_AliciBilgi(), this)
+			result = this._aliciBilgi = extend(new EIslBaslik_AliciBilgi(), this)
 		return result
 	}
 	get genelYontemKod() { return this.rec.genelyontem } get ozelYontemKod() { return this.rec.ozelyontem }
@@ -356,7 +356,8 @@ class EIcmalHizmet extends EIcmalSatirOrtak {
 }
 class EIcmalVergi extends EIcmalSatirOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get tip() { return 'V' } get dusulecekmi() { return this.tevkifatmi || this.mustahsilmi }
+	static get tip() { return 'V' }
+	get dusulecekmi() { return this.tevkifatmi || this.mustahsilmi }
 	/*get etiket() {
 		let result = this._etiket;
 		if (result === undefined) {
@@ -390,8 +391,10 @@ class EIcmalVergi extends EIcmalSatirOrtak {
 	get kdvmi() { return this.anaTip == 'KD' && !this.altTip }
 	get tevkifatmi() { return this.anaTip == 'KD' && this.altTip == 'TV' } get mustahsilmi() { return this.anaTip == 'MS' }
 	get matrah() { return this.rec.matrah } get dvMatrah() { return this.rec.dvmatrah }
-	getMatrahYapi(e) {
-		e = e || {}; let {dvKur} = e, tl = this.matrah, dv = dvKur ? roundToFra(tl / dvKur, app.params.zorunlu.dvBedelFra) : 0;
+	getMatrahYapi({ dvKur } = {}) {
+		dvKur ||= 1
+		let { matrah: tl } = this
+		let dv = dvKur ? roundToDvBedelFra(tl / dvKur) : 0
 		return new TLVeDVBedel({ tl, dv })
 	}
 }

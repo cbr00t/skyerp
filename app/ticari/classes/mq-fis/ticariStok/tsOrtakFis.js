@@ -145,6 +145,16 @@ class TSOrtakFis extends MQTicariGenelFis {
 		
 		baslikForm.builders[2].addTextInput('baslikAciklama', 'Fiş Açıklama')
 			.setPlaceHolder('Fiş Açıklama').etiketGosterim_yok()
+			.onAfterRun(({ builder: { input, rootPart: tanimPart = {} }}) => {
+				input.on('keydown', ({ key }) => {
+					key = key?.toLowerCase()
+					if (key == 'enter' || key == 'linefeed' || key == 'f2') {
+						let { selectedBelirtec: b, selectedRowIndex: r, gridWidget: w } = tanimPart
+						w?.focus()
+						//w?.begincelledit(r, b)
+					}
+				})
+			})
 			.addStyle(e => `$elementCSS  { min-width: 150px !important; max-width: 400px !important }`)
 
 		baslikForm.builders[3].addTextArea('fisEkBilgi', 'Fiş Ek Bilgi')
@@ -240,6 +250,9 @@ class TSOrtakFis extends MQTicariGenelFis {
 		if (this.mustKod)
 			await this.satisKosulYapiOlustur(e)
 	}
+	async yeniTanimOncesiIslemler(e = {}) {
+		await super.yeniTanimOncesiIslemler(e)
+	}
 	async yukleSonrasiIslemler(e = {}) {
 		await super.yukleSonrasiIslemler(e)
 		let { sayac, class: { dipSerbestAciklamaTablo: tblSAck } } = this
@@ -323,43 +336,28 @@ class TSOrtakFis extends MQTicariGenelFis {
 	}
 	async satisKosulYapiOlustur(e) { return this }
 	uiSatirBedelHesaplaSonrasi(e) { }
-	numaratorDegisti({ parentPart, sender }) {
-		super.numaratorDegisti(...arguments)
-		let { efAyrimTipi, numarator: num } = this
-		efAyrimTipi = ( efAyrimTipi?.char ?? efAyrimTipi )?.trim() ?? ''
-		;(async () => {
-			let { tip, seri, class: { table } } = num
-			let sent = new MQSent({ table }), { where: wh, sahalar } = sent
-			wh
-				.degerAta(tip, 'tip')
-				.degerAta(seri, 'seri')
-			sahalar.add('belgetipi')
-			let numEF = ( await sent.execTekilDeger() )?.trim?.()
-			if (numEF != efAyrimTipi)
-				wConfirm(`Seçilen numaratör ile Müşterinin e-İşlem durumu uygun değildir`)
-		})()
-		//debugger
-	}
 	async cariDegisti(e = {}) {
 		await this.efatDurumBelirle(e)
+		await this.cariIcinNumaratorBelirle(e)
 		await this.satisKosulYapiOlustur(e)
 	}
-	async islKodDegisti(e = {}) {
-		let { sender: tanimPart, ozelIsaret = this.ozelIsaret, eskiOzelIsaret } = e
-		if ((eskiOzelIsaret == '*') != (ozelIsaret == '*'))
-			await this?.islKodIsaretDegisti?.(e)
-	}
-	async islKodIsaretDegisti(e = {}) {
-		let { sender: tanimPart, ozelIsaret = this.ozelIsaret, eskiOzelIsaret } = e
-		let { kontrolcu = tanimPart?.kontrolcu } = e
-		await kontrolcu?.islKodIsaretDegisti?.(e)
-	}
 	async efatDurumBelirle(e = {}) {
-		let rec = e.item ?? e.rec ?? {}
-		let eFatmi = asBoolQ(rec.efaturakullanirmi)
+		let rec = e.item ?? e.rec
+		if (rec == null) {
+			let { mustKod } = this
+			if (!mustKod)
+				return null
+			
+			let sent = new MQSent({ from: 'carmst' }), { where: wh, sahalar } = sent
+			wh.degerAta(mustKod, 'must')
+			sahalar.add('efaturakullanirmi')
+			rec = await sent.execTekil()
+		}
+		
+		let { efAyrimTipi, class: { faturami } } = this
+		let eFatmi = asBoolQ(rec?.efaturakullanirmi)
 		if (eFatmi != null) {
-			let { faturami } = this.class
-			let efAyrimTipi = ( faturami
+			efAyrimTipi = ( faturami
 				? ( eFatmi ? EIslFatura.tip : null )
 				: null
 			) || 'A'
@@ -374,6 +372,85 @@ class TSOrtakFis extends MQTicariGenelFis {
 				efGosterim.layout.html(cls?.kisaAdi ?? '')
 			}
 		}
+
+		return efAyrimTipi
+	}
+	async numaratorDegisti(e) {
+		await super.numaratorDegisti(e)
+		if (!await this.numaratorUygunmu(e))
+			wConfirm(`Seçilen numaratör ile Müşterinin e-İşlem durumu uygun değildir`)
+	}
+	async cariIcinNumaratorBelirle(e = {}) {
+		let { builder: fbd } = e
+		let { tanimPart = fbd?.rootPart ?? e.parentPart ?? e.sender } = e
+		e.tanimPart ??= tanimPart
+		
+		if (await this.numaratorUygunmu(e))
+			return true
+		
+		let { efAyrimTipi, numarator: num } = this
+		let { tip, seri, class: { table, sayacSaha } } = num
+		efAyrimTipi = ( efAyrimTipi?.char ?? efAyrimTipi )?.trim() || 'A'
+		let sayac
+		;{
+			let sent = new MQSent({ table }), { where: wh, sahalar } = sent
+			wh
+				.degerAta(tip, 'tip')
+				.notDegerAta(seri, 'seri')
+				.degerAta(efAyrimTipi, 'belgetipi')
+			sahalar.add('sayac')
+			sayac = await sent.execTekilDeger()
+		}
+		if (!sayac)
+			return false
+
+		extend(num, {
+			sayac,
+			belirtec: null, seri: null,
+			noYil: 0, sonNo: 0
+		})
+		if (!await num.yukle({ ...e, rec: undefined }))
+			return false
+
+		let { numaratorPart: numPart } = tanimPart ?? {}
+		numPart?.otoNumGoster?.(num)
+
+		return true
+	}
+	async numaratorUygunmu({ efAyrimTipi, numarator: num }) {
+		efAyrimTipi ??= this.efAyrimTipi
+		num ??= this.numarator
+		if (efAyrimTipi == null || num == null)
+			return null
+		
+		let { sayac, tip, seri, class: { table, sayacSaha } } = num
+		efAyrimTipi = ( efAyrimTipi?.char ?? efAyrimTipi )?.trim() ?? ''
+
+		let numEF
+		;{
+			let sent = new MQSent({ table }), { where: wh, sahalar } = sent
+			if (sayac)
+				wh.degerAta(sayac, sayacSaha)
+			else {
+				wh
+					.degerAta(tip, 'tip')
+					.degerAta(seri, 'seri')
+			}
+			sahalar.add('belgetipi')
+			numEF = ( await sent.execTekilDeger() )?.trim?.()
+		}
+		
+		return numEF == efAyrimTipi
+	}
+	async islKodDegisti(e = {}) {
+		let { sender: tanimPart, ozelIsaret = this.ozelIsaret, eskiOzelIsaret } = e
+		if ((eskiOzelIsaret == '*') != (ozelIsaret == '*'))
+			await this?.islKodIsaretDegisti?.(e)
+	}
+	async islKodIsaretDegisti(e = {}) {
+		let { sender: tanimPart, ozelIsaret = this.ozelIsaret, eskiOzelIsaret } = e
+		let { kontrolcu = tanimPart?.kontrolcu } = e
+		await kontrolcu?.islKodIsaretDegisti?.(e)
 	}
 	efAyrimTipiDegisti(e) { }
 	takipNoDegisti(e) { }

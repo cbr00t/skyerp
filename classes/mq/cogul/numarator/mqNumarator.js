@@ -8,33 +8,44 @@ class MQNumarator extends MQKA {
 
 	constructor(e = {}) {
 		super(e)
-		$.extend(this, { sonNo: asInteger(e.no || e.fisNo) || this.sonNo })
+		extend(this, { sonNo: asInteger(e.no || e.fisNo) || this.sonNo })
 	}
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
-		$.extend(pTanim, { seri: new PInstStr('seri'), sonNo: new PInstNum('sonno') })
+		extend(pTanim, { seri: new PInstStr('seri'), sonNo: new PInstNum('sonno') })
+	}
+	async uiGirisSonrasiIslemler({ sender: tanimPart }) {
+		await super.uiGirisSonrasiIslemler(...arguments)
+		/*let { form } = tanimPart
+		;{
+			let _ = form.find('[data-builder-id = kod] > input')
+			_.removeAttr('readonly')
+			_.removeClass('readOnly')
+		}*/
 	}
 	static rootFormBuilderDuzenle(e) {
-		e = e || {}; super.rootFormBuilderDuzenle(e);
-		const {rootBuilder, kaForm, tanimFormBuilder} = e;
+		super.rootFormBuilderDuzenle(e)
+		let { rootBuilder, kaForm, tanimFormBuilder } = e
 		rootBuilder.onPartInit(e => {
-			const {wndArgs} = e.part;
-			$.extend(wndArgs, { width: 900, height: 490, position: 'center' })
+			let {wndArgs} = e.part
+			extend(wndArgs, { width: 900, height: 490, position: 'center' })
 		});
-		kaForm.id2Builder.kod.addStyle(e => `${e.builder.getCSSElementSelector(e.builder.layout)} { min-width: auto !important; width: 100px !important; }`);
-		kaForm.id2Builder.aciklama.addStyle(e => `${e.builder.getCSSElementSelector(e.builder.layout)} { width: 400px !important; }`);
+		kaForm.id2Builder.kod
+			.editable()
+			.addStyle(`$elementCSS { min-width: auto !important; width: 100px !important; }`);
+		kaForm.id2Builder.aciklama.addStyle(e => `$elementCSS { width: 400px !important; }`);
 		tanimFormBuilder.add(new FBuilder_TanimFormTabs({ id: 'tabPanel' }).add(
 			new FBuilder_TabPage({ id: 'genel', etiket: 'Genel' }).add(
 				new FBuilderWithInitLayout().yanYana(2).add(
 					new FBuilder_TextInput({ id: 'seri', etiket: 'Seri', maxLength: 3 })
-						.addStyle(e => `${e.builder.getCSSElementSelector(e.builder.layout)} { min-width: auto !important; width: 70px !important; }`)
+						.addStyle(e => `$elementCSS { min-width: auto !important; width: 70px !important; }`)
 						.addStyle(e => `${e.builder.getCSSElementSelector(e.builder.input)} { text-align: center !important; }`)
 						.onChange(e => {
 							let {target} = e.event;
 							target.value = (target.value || '').toUpperCase()
 						}),
 					new FBuilder_NumberInput({ id: 'sonNo', etiket: 'Son No', fra: 0, maxLength: 15 })
-						.addStyle(e => `${e.builder.getCSSElementSelector(e.builder.layout)} { max-width: 160px !important; }`)
+						.addStyle(e => `$elementCSS { max-width: 160px !important; }`)
 				)
 			)
 		))

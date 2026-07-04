@@ -821,3 +821,5 @@ class OperDurum extends BuDigerVeHepsi {
 		l[1] = '<span class=orangered>KAPANMIŞ</span>'
 	}
 }
+
+

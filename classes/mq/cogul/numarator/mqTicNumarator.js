@@ -16,42 +16,71 @@ class MQTicNumarator extends MQNumarator {
 		extend(pTanim, {
 			sayac: new PInstNum(this.sayacSaha),
 			tip: new PInstStr('tip'),
-			noYil: new PInstNum({ rowAttr: 'noyil' /*, init: e => app.params.zorunlu.cariYil || today().getYear() */ })
+			noYil: new PInstNum({ rowAttr: 'noyil' /*, init: e => app.params.zorunlu.cariYil || today().getYear() */ }),
+			belgeTipi: new PInstTekSecim('belgetipi', EIslemTipi)
 		})
 	}
 	static rootFormBuilderDuzenle(e = {}) {
 		super.rootFormBuilderDuzenle(e)
-		let {tanimFormBuilder: tanimForm} = e
-		let {id2Builder: { genel: tabPageBuilder_genel }} = tanimForm.id2Builder.tabPanel
-		tabPageBuilder_genel.builders[0]
+		let { inst, tanimFormBuilder: tanimForm } = e
+		let { tabPanel } = tanimForm.id2Builder
+		let { genel } = tabPanel.id2Builder
+		genel.builders[0]
 			.addStyle(e => `${e.builder.getCSSElementSelector(e.builder.layout)} .formBuilder-separator { width: 3px !important }`)
-		let {builders} = tabPageBuilder_genel.builders[0]
-		builders.unshift(
-			new FBuilder_TextInput({ id: 'belirtec', etiket: 'Belirteç', maxLength: 3 })
-				.addStyle(e => `${e.builder.getCSSElementSelector(e.builder.layout)} { min-width: auto !important; width: 70px !important; margin-right: 20px }`)
-				.addStyle(e => `${e.builder.getCSSElementSelector(e.builder.input)} { text-align: center !important }`)
-		)
-		builders.splice(
-			builders.length - 1, 0,
-			new FBuilder_NumberInput({ id: 'noYil', etiket: 'No Yıl', maxLength: 4 })
-				.onBuildEk(e => {
-					let {builder} = e;
-					builder.input.on('contextmenu', evt =>
-						builder.inst.noYil = app.params.zorunlu.cariYil || today().getYear()
-					)
-				})
-				.addStyle(e => `${e.builder.getCSSElementSelector(e.builder.layout)} { min-width: auto !important; width: 80px !important }`)
-				.addStyle(e => `${e.builder.getCSSElementSelector(e.builder.input)} { text-align: center !important }`)
-		)
+
+		;{
+			let { builders } = genel.builders[0]
+			/*builders.unshift(
+				new FBuilder_TextInput({ id: 'belirtec', etiket: 'Belirteç', maxLength: 3 })
+					.addStyle(e => `${e.builder.getCSSElementSelector(e.builder.layout)} { min-width: auto !important; width: 70px !important; margin-right: 20px }`)
+					.addStyle(e => `${e.builder.getCSSElementSelector(e.builder.input)} { text-align: center !important }`)
+			)*/
+			builders.splice(
+				builders.length - 1, 0,
+				new FBuilder_NumberInput({ id: 'noYil', etiket: 'No Yıl', maxLength: 4 })
+					.onBuildEk(e => {
+						let {builder} = e;
+						builder.input.on('contextmenu', evt =>
+							builder.inst.noYil = app.params.zorunlu.cariYil || today().getYear()
+						)
+					})
+					.addStyle(e => `${e.builder.getCSSElementSelector(e.builder.layout)} { min-width: auto !important; width: 80px !important }`)
+					.addStyle(e => `${e.builder.getCSSElementSelector(e.builder.input)} { text-align: center !important }`)
+			)
+		}
+
+		;{
+			genel.addSelect('belgeTipi', 'Belge Tipi')
+				.setPlaceholder('Belge Tipi')
+				.etiketGosterim_normal()
+				.setSource(EIslemOrtak.kaListe)
+				//.setValue(belgeTipi?.char)
+				.degisince(({ value, builder: { altInst: inst } }) =>
+					inst.belgeTipi = value)
+				.addStyle_wh(200)
+		}
+	}
+	static ekCSSDuzenle({ dataField: k, rec: r, result: res }) {
+		super.ekCSSDuzenle(...arguments)
+		if (k == 'belgeTipiText') {
+			let { belgetipi: v } = r
+			let css = (
+				v == 'A' ? 'bg-lightgreen' :
+				v == 'E' || v == 'IR' ? 'bg-lightorangered' :
+				null
+			)
+			if (css)
+				res.push(css)
+		}
 	}
 	static standartGorunumListesiDuzenle({ liste }) {
 		liste.push('tip')
 		super.standartGorunumListesiDuzenle(...arguments)
-		liste.push('noyil')
+		liste.push('noyil', 'belgeTipiText')
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
-		let { kodSaha } = this
+		let { tableAlias: alias, kodSaha } = this
 		liste.push(new GridKolon({ belirtec: 'tip', text: 'Tip', genislikCh: 10 }).checkedList())
 		;{
 			let cd = liste.find(x => x.belirtec == kodSaha)
@@ -60,9 +89,15 @@ class MQTicNumarator extends MQNumarator {
 				cd.checkedList()
 			}
 		}
-		liste.push(new GridKolon({ belirtec: 'noyil', text: 'No Yıl', genislikCh: 8 }).tipNumerik().checkedList())
+		liste.push(
+			new GridKolon({ belirtec: 'noyil', text: 'No Yıl', genislikCh: 8 }).tipNumerik().checkedList(),
+			new GridKolon({
+				belirtec: 'belgeTipiText', text: 'Belge Tipi', genislikCh: 10,
+				sql: EIslemTipi.getClause(`${alias}.belgetipi`)
+			}).checkedList()
+		)
 	}
-	static loadServerData_queryDuzenle({ sent, sent: { where: wh, sahalar }, offlineRequest, offlineMode, idAlinsin }) {
+	static loadServerData_queryDuzenle({ sent, sent: { where: wh, sahalar }, offlineRequest, offlineMode, idAlinsin = true }) {
 		super.loadServerData_queryDuzenle(...arguments)
 		let { tableAlias: alias } = this
 		sahalar.add(`${alias}.tip`)
@@ -73,6 +108,7 @@ class MQTicNumarator extends MQNumarator {
 			if (sayacSaha && sayacSaha != idSaha)
 				sahalar.add(`${alias}.${sayacSaha}`)
 		}
+		sahalar.add(`${alias}.belgetipi`)
 	}
 	async yukle(e = {}) {
 		let { rec } = e

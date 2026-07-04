@@ -483,20 +483,22 @@ class EYonetici extends CObject {
 			let recs = await app.sqlExecSelect(stm)
 			let sevRecs = seviyelendirAttrGruplari({ source: recs, attrGruplari: [['pstip', 'fissayac']] })
 			let ps2Sayac2EFis = _e.ps2Sayac2EFis = {}
-			let {temps, shared} = _e
+			let { temps, shared } = _e
+			let _today = today(), _now = now()
 			for (let sev of sevRecs) {
-				let {orjBilgi: rec} = sev
+				let { orjBilgi: rec } = sev
 				if (rec.sevktarih === undefined) {
 					rec.sevktarih = rec.sevktarihi
 					delete rec.sevktarihi
 				}
-				let {pstip: psTip, fissayac: fisSayac, sevktarih} = rec
+				let { pstip: psTip, fissayac: fisSayac, sevktarih } = rec
 				let efAyrimTipi = rec.efayrimtipi ||= 'A'
-				$.extend(rec, {
+				extend(rec, {
 					tarihStr: asReverseDateString(rec.tarih),
-					sevkTarihStr: timeToString(sevktarih || now())
+					sevkTarihStr: asReverseDateString(sevktarih || _today),
+					sevkSaatStr: timeToString(sevktarih || _now)
 				})
-				$.extend(sev, {
+				extend(sev, {
 					orjBilgi: new EIslBaslik(sev.orjBilgi),
 					detaylar: sev.detaylar.map(det => new EIslDetay(det))
 				})

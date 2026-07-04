@@ -1,7 +1,8 @@
 class MQEIslemParam extends MQTicariParamBase {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get paramKod() { return 'PTEFATP' } static get sinifAdi() { return 'e-İşlem Parametreleri' }
-	get tekSecimDonusum_receiver() { return this.kural } static get defaultGoruntuOzelPunto() { return 9 }
+	get tekSecimDonusum_receiver() { return this.kural }
+	static get defaultGoruntuOzelPunto() { return null }
 	get oeParam() { let {char} = this.ozelEntegrator || {}, selector = char; return (this.oe || {})[selector] }
 	get gonderimdeKisitKullanilirmi() { return this.kisit?.kullanilirmi }
 	get goruntuOzelPunto() { return this._goruntuOzelPunto || this.class.defaultGoruntuOzelPunto }

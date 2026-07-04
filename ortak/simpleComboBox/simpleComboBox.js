@@ -116,6 +116,7 @@ class SimpleComboBoxPart extends Part {
 			noInitCommit: noInitCommitFlag = e.noInitCommitFlag,
 			noQueue = e.noQueueFlag,
 			autoClear: autoClearFlag = e.autoClearFlag,
+			ozelQueryDuzenle = e.ozelQueryDuzenleBlock,
 			source, listSource, delay, minLength, maxRows, renderer,
 			kodsuzmu = e.kodsuz, kodSaha, adiSaha,
 			disabled: _disabled, events, queue, queueDelay
@@ -135,7 +136,7 @@ class SimpleComboBoxPart extends Part {
 		
 		extend(this, {
 			mfSinif, autoClearFlag, source, listSource,
-			_disabled, kodsuzmu, noInitCommitFlag,
+			ozelQueryDuzenle, _disabled, kodsuzmu, noInitCommitFlag,
 			delay, minLength, maxRows, renderer, events,
 			queue, queueDelay
 		})
@@ -273,10 +274,12 @@ class SimpleComboBoxPart extends Part {
 
 		this._dirty = false
 		this._inEvent = true
-		let isSelect = type == 'select', fromList = type == 'list'
+		let isInit = type == 'init'
+		let isSelect = type == 'select'
+		let fromList = type == 'list'
 		let isCommit = type == 'commit'
 		let isTrigger = !type || type == 'trigger'
-		let e = { ...arguments[0], select: isSelect, commit: isCommit, trigger: isTrigger }
+		let e = { ...arguments[0], select: isSelect, commit: isCommit, trigger: isTrigger, init: isInit }
 		try {
 			let { layout, input, autoClearFlag: autoClear, queue } = this
 			let hasFocus = layout?.is(':focus') || input?.is(':focus')
@@ -309,18 +312,19 @@ class SimpleComboBoxPart extends Part {
 			// input.attr('placeholder', this.renderedInputText)
 			// no change event trigger, if possible
 			setTimeout(() => input[0].value = null, 1)
-			if (queue) {
+			if (queue && !isInit) {
 				let { queueDelay } = this
 				queue.push(e)
 				clearTimeout(this._timer_queue)
-				this._timer_queue = setTimeout(() => this.processQueue(), queueDelay || 0)
+				this._timer_queue = setTimeout(() =>
+					this.processQueue(), queueDelay || 0)
 			}
 			else
 				this.signalChange(e)
 
-			clearTimeout(this._timerFocus)
-			if (!isTrigger) {
+			if (!(isTrigger || isInit)) {
 				this._inEvent = true
+				clearTimeout(this._timerFocus)
 				input.blur()
 				this._timerFocus = setTimeout(() => {
 					this._inEvent = false
@@ -328,7 +332,7 @@ class SimpleComboBoxPart extends Part {
 				}, 5)
 			}
 		}
-		finally { setTimeout(() => this._inEvent = false, 5) }
+		finally { delay(5).then(() => this._inEvent = false) }
 	}
 	processQueue(e) {
 		let { queue } = this
@@ -346,17 +350,26 @@ class SimpleComboBoxPart extends Part {
 	}
 	async aciklamaBelirle() {
 		let sender = this
-		let { value, mfSinif, kodSaha, adiSaha, source, listSource } = this
+		let { value, mfSinif, kodSaha, adiSaha, source, listSource, ozelQueryDuzenle } = this
 		if (!value) {
 			if (this.aciklama)
 				this.aciklama = ''
 			return this
 		}
+		
 		if (!(mfSinif || source || listSource))
 			return this
-		let aciklama = await mfSinif?.getGloKod2Adi?.(value?.toString())
+		
+		let e = { ...arguments[0], sender, kodSaha, adiSaha, value, maxRow: 1, ozelQueryDuzenle }
+		let aciklama
+		if (ozelQueryDuzenle) {
+			let recs = await mfSinif?.loadServerData({ ...e, ozelQueryDuzenle, value }) ?? []
+			aciklama = recs?.[0]?.[adiSaha]
+		}
+		else
+			aciklama = await mfSinif?.getGloKod2Adi?.(value?.toString())
+		
 		if (!aciklama && adiSaha && (listSource || source)) {
-			let e = { ...arguments[0], sender, kodSaha, adiSaha, value, maxRow: 1 }
 			let rec = (await (listSource ?? source).call?.(this, e))?.[0]
 			aciklama = rec?.[adiSaha]
 		}

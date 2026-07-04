@@ -250,6 +250,7 @@ class HMRBilgi extends CIO {
 	static hmrIter_hmr(e) { return this.hmrIter({ ...e, ekOzellik: false }) }
 	static hmrIter_ekOzellik(e) { return this.hmrIter({ ...e, ekOzellik: true }) }
 	static [Symbol.iterator](e) { return this.hmrIter(e) }
+	[Symbol.iterator](e) { return this.hmrIter(e) }
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e) }
 	setValues(e) {
 		super.setValues(e)

@@ -111,103 +111,176 @@ class TSSHDDetay extends TSDetay {
 	}
 	static orjBaslikListesiDuzenleHMR(e) { }
 	static orjBaslikListesiDuzenleDevam2(e) { }
-	static orjBaslikListesiDuzenleSon(e) {
-		super.orjBaslikListesiDuzenleSon(e); let {liste} = e;
+	static orjBaslikListesiDuzenleSon({ liste }) {
+		super.orjBaslikListesiDuzenleSon(...arguments)
 		liste.push(new GridKolon({ belirtec: 'ekaciklama', text: 'Açıklama', minWidth: 100, maxWidth: 300 }).noSql())
 	}
 	static raporQueryDuzenle(e) {
 		super.raporQueryDuzenle(e); let {sent, fisSinif, attrSet} = e;
 		if (fisSinif.ticarimi) {
-			if (attrSet.detayKdvOrani) { sent.har2KDVBagla() }
-			if (attrSet.detayTevkifatOranx) { sent.fromIliski('vergihesap tevver', 'har.dettevhesapkod = tevver.kod') }
+			if (attrSet.detayKdvOrani)
+				sent.har2KDVBagla()
+			if (attrSet.detayTevkifatOranx)
+				sent.fromIliski('vergihesap tevver', 'har.dettevhesapkod = tevver.kod')
 		}
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); let {aliasVeNokta, shTable, shAlias, shKodSaha} = this, {sent} = e;
-		sent.fromIliski(`${shTable} ${shAlias}`, `${aliasVeNokta}${shKodSaha} = ${shAlias}.kod`);
-		sent.sahalar.add(
+		super.loadServerData_queryDuzenle(e)
+		let { aliasVeNokta, shTable, shAlias, shKodSaha } = this
+		let { sent } = e, { sahalar } = sent
+		sent.fromIliski(`${shTable} ${shAlias}`, `${aliasVeNokta}${shKodSaha} = ${shAlias}.kod`)
+		sahalar.add(
 			`${aliasVeNokta}${shKodSaha} shKod`, `${shAlias}.aciklama shAdi`, `${shAlias}.brm`,
 			`${aliasVeNokta}miktar`, `${aliasVeNokta}fiyat`, `${aliasVeNokta}bedel`, `${aliasVeNokta}ekaciklama`
-		);
-		let {stokGibimi} = this; for (let item of HMRBilgi.hmrIter()) {
-			let {kami, mfSinif, rowAttr, ioAttr, adiAttr} = item;
-			let {table, tableAlias, kodSaha, adiSaha} = mfSinif || {}; if (!(kami && mfSinif)) { continue }
+		)
+		let { stokGibimi } = this
+		for (let item of HMRBilgi) {
+			let { kami, mfSinif, rowAttr, ioAttr, adiAttr } = item
+			if (!(kami && mfSinif))
+				continue
+			
+			let { table, tableAlias, kodSaha, adiSaha } = mfSinif
 			if (stokGibimi) {
-				sent.fromIliski(`${table} ${tableAlias}`, `${aliasVeNokta}${rowAttr} = ${tableAlias}.${kodSaha}`);
-				sent.sahalar.add(`${aliasVeNokta}${rowAttr}`);
-				if (adiAttr) { sent.sahalar.add(`${tableAlias}.${adiSaha} ${adiAttr}`); }
+				sent.fromIliski(
+					`${table} ${tableAlias}`,
+					`${aliasVeNokta}${rowAttr} = ${tableAlias}.${kodSaha}`
+				)
+				sahalar.add(`${aliasVeNokta}${rowAttr}`);
+				if (adiAttr)
+					sahalar.add(`${tableAlias}.${adiSaha} ${adiAttr}`)
 				mfSinif?.hmr_queryEkDuzenle?.({ ...e, alias: tableAlias })
 			}
 			else {
-				sent.sahalar.add(`'' ${rowAttr}`); if (adiAttr) { sent.sahalar.add(`'' ${adiAttr}`); }
+				sahalar.add(`'' ${rowAttr}`)
+				if (adiAttr)
+					sent.sahalar.add(`'' ${adiAttr}`)
 				mfSinif?.hmr_queryEkDuzenle?.({ ...e, alias: tableAlias, bosClausemi: true })
 			}
 		}
 	}
 	static tekilOku_detaylar_queryDuzenle_ticari(e) {
-		super.tekilOku_detaylar_queryDuzenle_ticari(e); let {aliasVeNokta} = this, {sent} = e, {fis} = e, {yildizlimi} = fis;
-		sent.fromIliski(`vergihesap kver`, `${aliasVeNokta}kdvhesapkod = kver.kod`);
-		sent.sahalar.add(
+		super.tekilOku_detaylar_queryDuzenle_ticari(e)
+		let { aliasVeNokta } = this
+		let { fis, sent } = e
+		let { sahalar } = sent
+		let {yildizlimi} = fis
+		sent.fromIliski(`vergihesap kver`, `${aliasVeNokta}kdvhesapkod = kver.kod`)
+		sahalar.add(
 			`kver.belirtec kdvbelirtec`,
 			`${this.getAdiDegisirmiClause(e) || 'NULL'} adiDegisirmi`,
 			`${this.getKdvDegiskenmiClause(e) || 'NULL'} kdvDegiskenmi`
-		);
+		)
 		if (yildizlimi) {
-			let orjKdvKodClause = yildizlimi ? this.getOrjKdvKodClause(e) : `${aliasVeNokta}kdvhesapkod`;
-			sent.sahalar.add(`${orjKdvKodClause} orjkdvkod`)
+			let orjKdvKodClause = yildizlimi ? this.getOrjKdvKodClause(e) : `${aliasVeNokta}kdvhesapkod`
+			sahalar.add(`${orjKdvKodClause} orjkdvkod`)
 		}
-		else { sent.sahalar.add(`${aliasVeNokta}kdvhesapkod orjkdvkod`) }
+		else
+			sahalar.add(`${aliasVeNokta}kdvhesapkod orjkdvkod`)
 	}
-	async disKaydetOncesiIslemler(e) {
-		e = e ?? {}; await super.disKaydetOncesiIslemler(e);
-		let {fis} = e, {miktar, fiyat, brutBedel, netBedel, kdvKod, kdvOrani} = this;
-		let {ticarimi} = fis?.class ?? {}, _e = { ...e, ticarimi };
-		if (miktar && fiyat && !(brutBedel && netBedel)) { await this[brutBedel ? 'netBedelHesapla' : 'bedelHesapla'](_e) }
-		if (!(kdvKod && kdvOrani)) { await this.vergileriHesapla(_e) }
+	async disKaydetOncesiIslemler(e = {}) {
+		await super.disKaydetOncesiIslemler(e)
+		let { fis } = e
+		let { miktar, fiyat, brutBedel, netBedel, kdvKod, kdvOrani } = this
+		let { ticarimi } = fis?.class ?? {}
+		let _e = { ...e, ticarimi }
+		if (miktar && fiyat && !(brutBedel && netBedel))
+			await this[brutBedel ? 'netBedelHesapla' : 'bedelHesapla'](_e)
+		if (!(kdvKod && kdvOrani))
+			await this.vergileriHesapla(_e)
 	}
 	hostVars(e) {
-		for (let key of ['fiyat', 'brutBedel', 'netBedel']) { this[key] = (this[key] || 0) }
+		;['fiyat', 'brutBedel', 'netBedel'].forEach(k =>
+			this[k] = (this[k] || 0))
 		return super.hostVars(e)
 	}
-	hostVarsDuzenle(e) {
-		e = e || {}; super.hostVarsDuzenle(e); let {fis, hv} = e, {shKodSaha, shAdiSaha, hizmetmi} = this.class;
-		let {stokmu, siparismi} = fis?.class ?? {};
-		hv[shKodSaha] = this.shKod; if (siparismi || hizmetmi) { delete hv.detyerkod } else { hv.detyerkod = this.getYerKod({ fis }) }
-		let {fiyat, brutBedel, netBedel} = this;
-		$.extend(hv, { ekranverifiyat: fiyat, belgefiyat: fiyat, belgebrutbedel: brutBedel, belgebedel: netBedel });
-		if (stokmu) { for (let key of ['brutbedel', 'kkegyuzde']) { delete hv[key] } }
-		let {hmr} = this; if (hmr) { hmr.hostVarsDuzenle(e); for (let {rowAttr, ioAttr} of hmr.hmrIter()) { hv[rowAttr] = this[ioAttr] } }
+	hostVarsDuzenle(e = {}) {
+		super.hostVarsDuzenle(e)
+		let { fis, hv } = e
+		let { shKodSaha, shAdiSaha, hizmetmi } = this.class
+		let { stokmu, siparismi } = fis?.class ?? {}
+		hv[shKodSaha] = this.shKod
+		
+		if (siparismi || hizmetmi)
+			delete hv.detyerkod
+		else
+			hv.detyerkod = this.getYerKod({ fis })
+		
+		let { fiyat, brutBedel, netBedel, hmr } = this
+		extend(hv, {
+			ekranverifiyat: fiyat,
+			belgefiyat: fiyat,
+			belgebrutbedel: brutBedel,
+			belgebedel: netBedel
+		})
+		if (stokmu)
+			deleteKeys(hv, 'brutbedel', 'kkegyuzde')
+		
+		if (hmr) {
+			hmr.hostVarsDuzenle(e)
+			for (let {rowAttr, ioAttr} of hmr)
+				hv[rowAttr] = this[ioAttr]
+		}
 	}
-	setValues(e) {
-		e = e || {}; super.setValues(e);
-		let {rec, fis} = e, {shKodSaha, shAdiSaha, hizmetmi} = this.class;
-		let {stokmu, siparismi} = fis?.class ?? {}, {paketicadet: paketIcAdet} = rec;
-		$.extend(this, {
-			shKod: rec.shKod || rec.shkod || rec[shKodSaha], shAdi: rec.shAdi || rec.shadi || rec[shAdiSaha], brm: rec.brm, paketIcAdet,
-			kdvDegiskenmi: asBool(rec.kdvDegiskenmi), adiDegisirmi: asBool(rec.adiDegisirmi), takipNo: rec.dettakipno || '', takipAdi: rec.takipadi
-		});
-		if (stokmu) { this.brutBedel = rec.belgebrutbedel }
-		if (!(siparismi || hizmetmi)) { $.extend(this, { yerKod: rec.detyerkod ?? '', yerAdi: rec.yeradi }) }
-		let {hmr} = this; if (hmr) { hmr.setValues(e); for (let {rowAttr, ioAttr} of hmr.hmrIter()) { this[ioAttr] = rec[rowAttr] } }
+	setValues(e = {}) {
+		super.setValues(e)
+		let { rec, fis } = e
+		let { hmr, class: { shKodSaha, shAdiSaha, hizmetmi } } = this
+		let { stokmu, siparismi } = fis?.class ?? {}
+		let { paketicadet: paketIcAdet } = rec
+		
+		extend(this, {
+			shKod: rec.shKod || rec.shkod || rec[shKodSaha],
+			shAdi: rec.shAdi || rec.shadi || rec[shAdiSaha],
+			brm: rec.brm, paketIcAdet,
+			kdvDegiskenmi: asBool(rec.kdvDegiskenmi),
+			adiDegisirmi: asBool(rec.adiDegisirmi),
+			takipNo: rec.dettakipno || '',
+			takipAdi: rec.takipadi
+		})
+		
+		if (stokmu)
+			this.brutBedel = rec.belgebrutbedel
+		
+		if (!(siparismi || hizmetmi))
+			extend(this, { yerKod: rec.detyerkod ?? '', yerAdi: rec.yeradi })
+		
+		if (hmr) {
+			hmr.setValues(e)
+			for (let {ra, ia} of hmr)
+				this[ia] = rec[ra]
+		}
 	}
 	ticariHostVarsDuzenle(e) {
-		let {fis, hv} = e;
-		$.extend(hv, {
-			kdvhesapkod: this.kdvKod || '', perkdv: this.kdv || 0, perstopaj: this.stopaj || 0,
-			dipiskonto: this.dagitDipIskBedel || 0, dipnakliye: this.dagitDipNakBedel || 0
-		});
-		this.ekVergiYapi.ticariHostVarsDuzenle(e);
-		let {iskYapi} = this, iskHVEkle = e => {
-			let {belirtec, rowAttrPrefix, oranMax} = e, oranlar = iskYapi[belirtec];
-			for (let i = 0; i < oranMax; i++) { let oran = oranlar[i] || 0, rowAttr = `${rowAttrPrefix}oran${i + 1}`; hv[rowAttr] = oran }
-		};
+		let { fis, hv } = e
+		let { iskYapi, kdvKod, kdv, stopaj } = this
+		let { dagitDipIskBedel, dagitDipNakBedel } = this
+		if (!kdvKod)
+			kdv = this.kdv = this.kdvOrani = 0
+		
+		extend(hv, {
+			kdvhesapkod: kdvKod || '',
+			perkdv: kdv || 0,
+			perstopaj: stopaj || 0,
+			dipiskonto: dagitDipIskBedel || 0, dipnakliye: dagitDipNakBedel || 0
+		})
+		
+		this.ekVergiYapi.ticariHostVarsDuzenle(e)
+		let iskHVEkle = ({ belirtec, rowAttrPrefix, oranMax }) => {
+			let oranlar = iskYapi[belirtec]
+			for (let i = 0; i < oranMax; i++) {
+				let oran = oranlar[i] || 0
+				let rowAttr = `${rowAttrPrefix}oran${i + 1}`
+				hv[rowAttr] = oran
+			}
+		}
 		for (let item of TicIskYapi.getIskYapiIter())
 			iskHVEkle({ belirtec: item.key, rowAttrPrefix: item.belirtec, oranMax: item.maxSayi })
 	}
 	ticariSetValues(e) {
-		let {fis, rec} = e;
-		$.extend(this, {
-			kdvKod: rec.kdvhesapkod, orjkdvKod: rec.orjkdvkod, kdvOrani: rec.kdvorani, kdv: rec.perkdv, otv: rec.perotv, stopaj: rec.perstopaj,
+		let { fis, rec } = e
+		extend(this, {
+			kdvKod: rec.kdvhesapkod, orjkdvKod: rec.orjkdvkod,
+			kdvOrani: rec.kdvorani, kdv: rec.perkdv, otv: rec.perotv, stopaj: rec.perstopaj,
 			dagitDipIskBedel: rec.dipiskonto || 0, dagitDipNakBedel: rec.dipnakliye || 0
 		});
 		this.ekVergiYapi.ticariSetValues(e);

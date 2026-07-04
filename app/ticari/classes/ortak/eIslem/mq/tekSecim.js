@@ -1,3 +1,11 @@
+class EIslemTipi extends TekSecim {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	kaListeDuzenle({ kaListe: l }) {
+		super.kaListeDuzenle(...arguments)
+		l.push(...EIslemOrtak.kaListe)
+	}
+}
+
 class EIslMusRefDetayTip extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return 'A' }

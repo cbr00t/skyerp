@@ -237,78 +237,70 @@ class MQVergi extends MQKA {
 		e = e || {};
 		return this.getIstisnaDict($.extend({}, e, { kismi: false }))
 	}
-	static getTumIstisnaDict(e) {
-		e = e || {}; let {globals} = this, key  = `tumIstisnaDict-${toJSONStr(e)}`, result = globals[key];
+	static getTumIstisnaDict(e = {}) {
+		let { globals } = this
+		let key  = `tumIstisnaDict-${toJSONStr(e)}`
+		let result = globals[key]
 		if (result == null) { result = { ...this.getKismiIstisnaDict(e), ...this.getTamIstisnaDict(e) }; globals[key] = result }
-		let tamIstisnalar = (app.sabitTanimlar.vergi || {}).tamistisnalar || [];
-		if (!$.isEmptyObject(tamIstisnalar)) {
+		let tamIstisnalar = app.sabitTanimlar?.vergi?.tamistisnalar ?? []
+		if (!empty(tamIstisnalar)) {
 			let uygunOlmayanKodSet = asSet(['301', '302', '303']);
-			for (let {kod} of tamIstisnalar) {
-				if (!uygunOlmayanKodSet[kod]) { continue }
-				result[kod] = new CKodAdiVeMadde({ kod, aciklama: rec.ad || rec.adi || rec.aciklama || '', madde: rec.madde })
+			for (let r of tamIstisnalar) {
+				let { kod } = r
+				if (!uygunOlmayanKodSet[kod])
+					continue
+
+				let { madde, ad: aciklama = r.adi ?? r.aciklama ?? '' } = r
+				result[kod] = new CKodAdiVeMadde({ kod, aciklama, madde })
 			}
 		}
 		return result
 	}
 	static getIstisnaDict(e) {
-		let {globals} = this;
-		let key = `istisnaDict-${toJSONStr(e)}`;
-		let result = globals[key];
+		let { globals } = this
+		let key = `istisnaDict-${toJSONStr(e)}`
+		let result = globals[key]
 		if (result == null) {
-			result = {};
+			result = {}
 			for (let ka of this.getIstisnalar(e))
-				result[ka.kod] = ka;
+				result[ka.kod] = ka
 			globals[key] = result
 		}
 		return result
 	}
-	static getKod2Oran(e) {
-		e = e || {};
-		let {belirtec} = e;
-		let altSinif = this.belirtec2AltSinif[belirtec];
-		return altSinif ? altSinif.getKod2Oran(e) : null;
+	static getKod2Oran(e = {}) {
+		let { belirtec } = e
+		let altSinif = this.belirtec2AltSinif[belirtec]
+		return altSinif ? altSinif.getKod2Oran(e) : null
 	}
-	static oran2KodSet(e) {
-		e = e || {};
-		let {belirtec} = e;
-		let altSinif = this.belirtec2AltSinif[belirtec];
-		return altSinif ? altSinif.oran2KodSet(e) : null;
+	static oran2KodSet(e = {}) {
+		let { belirtec } = e
+		let altSinif = this.belirtec2AltSinif[belirtec]
+		return altSinif ? altSinif.oran2KodSet(e) : null
 	}
-	static getKdvKod2Oran(e) {
-		e = e || {};
-		if (typeof e != 'object')
-			e = { kod: e };
-		return this.getKod2Oran($.extend({}, e, { belirtec: 'kdv' }))
+	static getKdvKod2Oran(e = {}) {
+		e = isObject(e) ? e : { kod: e }
+		return this.getKod2Oran({ ...e, belirtec: 'kdv' })
 	}
-	static getOtvKod2Oran(e) {
-		e = e || {};
-		if (typeof e != 'object')
-			e = { kod: e };
-		return this.getKod2Oran($.extend({}, e, { belirtec: 'otv' }))
+	static getOtvKod2Oran(e = {}) {
+		e = isObject(e) ? e : { kod: e }
+		return this.getKod2Oran({ ...e, belirtec: 'otv' })
 	}
-	static getStopajKod2Oran(e) {
-		e = e || {};
-		if (typeof e != 'object')
-			e = { kod: e };
-		return this.getKod2Oran($.extend({}, e, { belirtec: 'stopaj' }))
+	static getStopajKod2Oran(e = {}) {
+		e = isObject(e) ? e : { kod: e }
+		return this.getKod2Oran({ ...e, belirtec: 'stopaj' })
 	}
-	static getGKKPKod2Oran(e) {
-		e = e || {};
-		if (typeof e != 'object')
-			e = { kod: e };
-		return this.getKod2Oran($.extend({}, e, { belirtec: 'gkkp' }))
+	static getGKKPKod2Oran(e = {}) {
+		e = isObject(e) ? e : { kod: e }
+		return this.getKod2Oran({ ...e, belirtec: 'gkkp' })
 	}
-	static getKonaklamaKod2Oran(e) {
-		e = e || {};
-		if (typeof e != 'object')
-			e = { kod: e };
-		return this.getKod2Oran($.extend({}, e, { belirtec: 'konaklama' }))
+	static getKonaklamaKod2Oran(e = {}) {
+		e = isObject(e) ? e : { kod: e }
+		return this.getKod2Oran({ ...e, belirtec: 'konaklama' })
 	}
-	static getDigerKod2Oran(e) {
-		e = e || {};
-		if (typeof e != 'object')
-			e = { kod: e };
-		return this.getKod2Oran($.extend({}, e, { belirtec: 'diger' }))
+	static getDigerKod2Oran(e = {}) {
+		e = isObject(e) ? e : { kod: e }
+		return this.getKod2Oran({ ...e, belirtec: 'diger' })
 	}
 	static async getKdvBilgileri(e) {
 		return await MQVergiKdv.getKdvBilgileri(e)
@@ -322,36 +314,35 @@ class MQVergi extends MQKA {
 	static get eTip2BelirtecDict() {
 		let result = this._eTip2BelirtecDict;
 		if (result === undefined) {
-			result = {};
-			for (let cls of [MQVergiKdv, MQVergiOtv, MQVergiStopaj])
-				result[cls.eIslTypeCode] = cls.belirtec
+			result = fromEntries(
+				[MQVergiKdv, MQVergiOtv, MQVergiStopaj].map(cls =>
+					[cls.eIslTypeCode, cls.belirtec])
+			)
 			for (let i = 72; i <= 77; i++)
 				result[`00${i}`] = MQVergiOtv.belirtec
-			$.extend(result, {
+			
+			extend(result, {
 				'0059': 'konaklama',
 				'4080': 'ozelIletisim',
 				'8001': 'mustahsil_borsa',
 				'9040': 'mustahsil_mera',
 				'SGK_PRIM': 'mustahsil_bagkur',
 				'BIR_KES': 'mustahsil_birlik'
-			});
+			})
 			this._eTip2BelirtecDict = result
 		}
 		return result
 	}
-	static getETip2Belirtec(e) {
-		e = e || {}
-		let eTip = typeof e == 'object' ? e.eTip : e;
-		let {eTip2BelirtecDict}  = this;
-		return eTip2BelirtecDict[eTip] || null
+	static getETip2Belirtec(e = {}) {
+		let eTip = isObject(e) ? e.eTip : e
+		return this.eTip2BelirtecDict[eTip] || null
 	}
 	static get belirtec2AltSinif() {
-		let result = this._belirtec2AltSinif;
+		let { _belirtec2AltSinif: result } = this
 		if (result === undefined) {
-			result = {};
-			let subClasses = MQVergiAlt.subClasses;
-			for (let cls of subClasses) {
-				let {belirtec} = cls;
+			result = {}
+			for (let cls of MQVergiAlt.subClasses) {
+				let { belirtec } = cls
 				if (belirtec)
 					result[belirtec] = cls
 			}
@@ -359,17 +350,16 @@ class MQVergi extends MQKA {
 		}
 		return result
 	}
-	static altYapiDictDuzenle(e) {
-		super.altYapiDictDuzenle(e);
-		let {liste} = e;
-		let {belirtec2AltSinif} = this;
+
+	static altYapiDictDuzenle({ liste }) {
+		super.altYapiDictDuzenle(...arguments)
+		let { belirtec2AltSinif } = this
 		for (let belirtec in belirtec2AltSinif)
 			liste[belirtec] = belirtec2AltSinif[belirtec]
 	}
-	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e);
-		let {pTanim} = e;
-		$.extend(pTanim, {
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
+		extend(pTanim, {
 			ba: new PInstTekSecim('ba', BorcAlacak),
 			tip: new PInstTekSecim('vergitipi', VergiTip),
 			altTip: new PInstStr('alttip'),
@@ -381,22 +371,25 @@ class MQVergi extends MQKA {
 			/* kdvTevkifMuhHesapKod: new PInstStr('muhhesap3kod') */
 		})
 	}
-	static rootFormBuilderDuzenle(e) {
-		e = e || {}; super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e); let {tabPage_genel} = e;
-		let form = tabPage_genel.addFormWithParent().yanYana();
-		form.addRadioButton({ id: 'ba', etiket: 'B/A', source: e => e.builder.inst.ba.kaListe }).addStyle_wh('300px !important');
-		form.addLabel({ etiket: 'Tip' }).addStyle(e => `$elementCSS { --width: 50px; min-width: var(--width) !important; width: var(--width) !important; margin-bottom: 50px !important }`);
+	static rootFormBuilderDuzenle(e = {}) {
+		super.rootFormBuilderDuzenle(e)
+		this.formBuilder_addTabPanelWithGenelTab(e)
+		let { tabPage_genel } = e
+		let form = tabPage_genel.addFormWithParent().yanYana()
+		form.addRadioButton({ id: 'ba', etiket: 'B/A', source: e => e.builder.inst.ba.kaListe }).addStyle_wh('300px !important')
+		form.addLabel({ etiket: 'Tip' }).addStyle(e => `$elementCSS { --width: 50px; min-width: var(--width) !important; width: var(--width) !important; margin-bottom: 50px !important }`)
 		form.addModelKullan({ id: 'tip', etiket: '', source: e => e.builder.inst.tip.kaListe }).etiketGosterim_yok()
 			.dropDown().noMF().kodsuz()
 			.degisince(e => {
 				let {builder} = e, {fbd_vergiAltForm} = builder.rootPart;
 				for (let builder of fbd_vergiAltForm.getBuilders()) { builder.updateVisible() }
 			})
-			.addStyle_wh({ width: '300px !important' });
-		form = tabPage_genel.addFormWithParent().altAlta();
-		let fbd_vergiAltForm = e.fbd_vergiAltForm = tabPage_genel.addFormWithParent({ id: 'vergiAltForm' });
-		this.rootFormBuilderDuzenle_vergiAltForm(e);
-		fbd_vergiAltForm._afterRun = fbd_vergiAltForm.afterRun;
+			.addStyle_wh({ width: '300px !important' })
+		
+		form = tabPage_genel.addFormWithParent().altAlta()
+		let fbd_vergiAltForm = e.fbd_vergiAltForm = tabPage_genel.addFormWithParent({ id: 'vergiAltForm' })
+		this.rootFormBuilderDuzenle_vergiAltForm(e)
+		fbd_vergiAltForm._afterRun = fbd_vergiAltForm.afterRun
 		fbd_vergiAltForm.onAfterRun(e => {
 			let {builder} = e;
 			let {rootPart, _afterRun} = builder;
@@ -406,13 +399,13 @@ class MQVergi extends MQKA {
 		})
 	}
 	static getFormBuilders_vergiAltForm(e) {
-		let fbd_vergiAltForm = e.fbd_vergiAltForm = new FormBuilder({ id: 'vergiAltForm' });
+		let form = e.fbd_vergiAltForm = new FormBuilder({ id: 'vergiAltForm' })
 		this.rootFormBuilderDuzenle_vergiAltForm(e)
-		return fbd_vergiAltForm
+		return form
 	}
 	static rootFormBuilderDuzenle_vergiAltForm(e) {
-		let {fbd_vergiAltForm} = e;
-		fbd_vergiAltForm.altAlta();
+		let { fbd_vergiAltForm } = e
+		fbd_vergiAltForm.altAlta()
 		for (let altYapiKey in MQVergi.altYapiDict) {
 			let form = fbd_vergiAltForm.addFormWithParent({ id: altYapiKey }).yanYana(2)
 				.setAltInst(e => { let {builder} = e; return builder.inst[builder.id] })
@@ -491,12 +484,13 @@ class MQVergi extends MQKA {
 		}
 	}
 	static getFormBuilder_shdKDV(e) {
-		let {ioAttrPrefix, etiketPrefix, ba} = e;
-		return this.getFormBuilder_shdDigerVergi($.extend({}, e, {
+		let { ioAttrPrefix, etiketPrefix, ba } = e
+		return this.getFormBuilder_shdDigerVergi({
+			...e,
 			ioAttr: `${ioAttrPrefix}KdvHesapKod`, etiket: 'KDV Hesabı',
 			belirtec: 'KDV', ba: ba,
-			builderDuzenle: e => {
-				let {formBuilder, vergiHesapBuilder, ioAttrPrefix, etiketPrefix} = e;
+			builderDuzenle: _e => {
+				let { formBuilder, vergiHesapBuilder, ioAttrPrefix, etiketPrefix } = _e
 				formBuilder.add(
 					vergiHesapBuilder,
 					new FBuilder_CheckBox({ id: `${ioAttrPrefix}KdvDegiskenmi`, etiket: `${etiketPrefix || ''} KDV Değişkendir` })
@@ -506,66 +500,65 @@ class MQVergi extends MQKA {
 				vergiHesapBuilder.setVisibleKosulu(e =>
 					!!e.builder.altInst[`${ioAttrPrefix}KdvDegiskenmi`] ? 'basic-hidden' : true);
 					// return value ? 'basic-hidden' : true
-				e.attachedToParent()
+				_e.attachedToParent()
 			}
-		}))
+		})
 	}
 	static getFormBuilder_shdDigerVergi(e) {
-		let {belirtec, ioAttr, etiket, ba} = e;
+		let { belirtec, ioAttr, etiket, ba } = e
 		let vergiHesapBuilder = new FBuilder_ModelKullan({ id: ioAttr, etiket: etiket, mfSinif: MQVergi })
 			.dropDown()
-			.ozelQueryDuzenleBlock(e => {
-				let {stm, alias} = e;
-				stm.sentDo(sent => {
-					sent.where.degerAta(belirtec.toUpperCase(), `${alias}.vergitipi`);
-					sent.where.degerAta(ba, `${alias}.ba`)
-				})
-			});
+			.ozelQueryDuzenleIslemi(e => {
+				let { stm, alias } = e
+				for (let { where: wh } of stm) {
+					wh
+						.degerAta(belirtec.toUpperCase(), `${alias}.vergitipi`)
+						.degerAta(ba, `${alias}.ba`)
+				}
+			})
 		let formBuilder = new FBuilderWithInitLayout({ id: `${belirtec}Form` });
 		let attachedToParentFlag = false;
-		let {builderDuzenle} = e;
+		let { builderDuzenle } = e
 		if (builderDuzenle) {
-			let _e = $.extend({}, e, {
+			let _e = {
+				...e,
 				formBuilder: formBuilder, vergiHesapBuilder: vergiHesapBuilder,
 				attachedToParentFlag: coalesce(e.attachedToParent, false),
 				attachedToParent() { this.attachedToParentFlag = true; return this },
 				notAttachedToParent() { this.attachedToParentFlag = false; return this }
-			});
-			getFuncValue.call(this, builderDuzenle, _e);
-			vergiHesapBuilder = _e.vergiHesapBuilder;
-			formBuilder = _e.formBuilder;
+			}
+			builderDuzenle.call(this, _e)
+			vergiHesapBuilder = _e.vergiHesapBuilder
+			formBuilder = _e.formBuilder
 			attachedToParentFlag = _e.attachedToParentFlag
 		}
 		if (!attachedToParentFlag)
 			formBuilder.add(vergiHesapBuilder)
 		return formBuilder
 	}
-	static secimlerDuzenle(e) {
-		super.secimlerDuzenle(e);
-		let {secimler} = e;
-		secimler.secimTopluEkle({
+	static secimlerDuzenle({ secimler: sec }) {
+		super.secimlerDuzenle(...arguments)
+		sec.secimTopluEkle({
 			tip: new SecimBirKismi({ etiket: 'Tip', tekSecimSinif: VergiTip }),
 			grupKod: new SecimString({ mfSinif: MQVergiGrup }),
 			grupAdi: new SecimOzellik({ etiket: 'Grup Adı' }),
 			belirtec: new SecimString({ etiket: 'Belirteç' }),
 			ba: new SecimBirKismi({ etiket: 'B/A', tekSecimSinif: BorcAlacak })
-		});
-		secimler.whereBlockEkle(e => {
-			let {aliasVeNokta} = this;
-			let {where, secimler} = e;
-			if (secimler.tip.value != null)
-				where.birKismi(secimler.tip.value, `${aliasVeNokta}vergitipi`);
-			where.basiSonu(secimler.grupKod, `${aliasVeNokta}vergrupkod`);
-			where.ozellik(secimler.grupAdi, `vgrp.aciklama`);
-			where.basiSonu(secimler.belirtec, `${aliasVeNokta}belirtec`);
-			if (secimler.ba.value != null)
-				where.birKismi(secimler.ba.value, `${aliasVeNokta}ba`);
+		})
+		sec.whereBlockEkle(({ where: wh , secimler: sec }) => {
+			let { aliasVeNokta } = this
+			if (sec.tip.value != null)
+				wh.birKismi(sec.tip.value, `${aliasVeNokta}vergitipi`)
+			wh.basiSonu(sec.grupKod, `${aliasVeNokta}vergrupkod`)
+			wh.ozellik(sec.grupAdi, `vgrp.aciklama`)
+			wh.basiSonu(sec.belirtec, `${aliasVeNokta}belirtec`)
+			if (sec.ba.value != null)
+				wh.birKismi(sec.ba.value, `${aliasVeNokta}ba`)
 		})
 	}
-	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e);
-		let {aliasVeNokta} = this;
-		let {liste} = e;
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		let { aliasVeNokta } = this
 		liste.push(
 			new GridKolon({ belirtec: 'vergrupkod', text: 'Grup', genislikCh: 10 }),
 			new GridKolon({ belirtec: 'vergrupadi', text: 'Grup Adı', genislikCh: 20, sql: 'vgrp.aciklama' }),
@@ -577,10 +570,9 @@ class MQVergi extends MQKA {
 			new GridKolon({ belirtec: 'konaklamaorani', text: 'Konak. %', genislikCh: 8 }).tipNumerik()
 		)
 	}
-	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e);
-		let {aliasVeNokta} = this;
-		let {sent} = e;
+	static loadServerData_queryDuzenle({ sent }) {
+		super.loadServerData_queryDuzenle(...arguments)
+		let { aliasVeNokta } = this
 		sent.fromIliski('vergigrup vgrp', 'ver.vergrupkod = vgrp.kod')
 	}
 }

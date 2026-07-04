@@ -120,7 +120,7 @@ class MQOrtakFis extends MQDetayli {
 			if (result === false)
 				return false
 			
-			if (num && fisNo) {
+			if (num && !num.serbestmi && fisNo) {
 				while (await this.varmi(e))
 					fisNo = this.fisNo = (await num.kesinlestir(e)).sonNo
 			}

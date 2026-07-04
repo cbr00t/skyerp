@@ -97,8 +97,8 @@ class TicariFis extends TSOrtakFis {
 				inst.fisTipi?.class?.kaListe
 					.filter(ka => !isPlainObject(ka))
 			)
-			.degisince(e =>
-				e.builder?.altInst?.fisTipiDegisti(e))
+			.degisince(_e =>
+				_e.builder?.altInst?.fisTipiDegisti({ ..._e, ...e }))
 			.addStyle_wh(300)
 		
 		builders[0].addSimpleComboBox('mustKod', 'Müşteri', 'Müşteri')
@@ -106,8 +106,11 @@ class TicariFis extends TSOrtakFis {
 			.setMFSinif(MQCari)
 			.ozelQueryDuzenleBlock(({ alias, sent: { sahalar } }) =>
 				sahalar.add(`${alias}.efaturakullanirmi`))
-			.degisince(e =>
-				e.builder?.altInst?.cariDegisti(e))
+			.degisince(_e => {
+				let { type, builder: { altInst: inst } = {} } = _e
+				if (type == 'batch')
+					delay(5).then(() => inst?.cariDegisti({ ..._e, ...e }))
+			})
 			.addStyle(`$elementCSS { min-width: 70% !important }`)
 	}
 	static orjBaslikListesiDuzenle_ara({ liste }) {

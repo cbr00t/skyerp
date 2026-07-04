@@ -159,7 +159,11 @@ class MQKontor extends MQDetayliMaster {
 				.addStyle_wh(80)
 				.onClick(async _e => {
 					try { await this.kontor_yeniIstendi(({ ..._e, ...e })) }
-					catch (ex) { hConfirm(getErrorText(ex), 'Kontör Satışı'); throw ex }
+					catch (ex) {
+						if (ex.rc != 'userAbort')
+							hConfirm(getErrorText(ex), 'Kontör Satışı')
+						throw ex
+					}
 			})
 		}
 		
@@ -167,7 +171,11 @@ class MQKontor extends MQDetayliMaster {
 			form_ek.addButton('faturalastir', 'FAT')
 				.onClick(async _e => {
 					try { await this.kontor_topluFaturalastirIstendi({ ..._e, ...e }) }
-					catch (ex) { hConfirm(getErrorText(ex), 'Kontör Faturalaştır'); throw ex }
+					catch (ex) {
+						if (ex.rc != 'userAbort')
+							hConfirm(getErrorText(ex), 'Kontör Faturalaştır')
+						throw ex
+					}
 				})
 				.addStyle_wh(90)
 				.addStyle(`$elementCSS { left: 50px !important }`)
@@ -181,12 +189,14 @@ class MQKontor extends MQDetayliMaster {
 				.addStyle(`$elementCSS { font-size: 130%; color: royalblue; margin: 15px 0 5px 0 !important; padding: 8px 10px !important }`)
 		}
 		else {
-			rfb.addModelKullan('mustKod', 'Müşteri')
-				.etiketGosterim_placeHolder()
-				.comboBox().setMFSinif(MQLogin_Musteri)
+			rfb.addSimpleComboBox('mustKod', 'Müşteri', 'Müşteri')
+				.etiketGosterim_yok()
+				.setMFSinif(MQLogin_Musteri)
 				.autoBind().setParent(header)
-				.degisince(({ builder: { rootPart: p } }) =>
-					p.tazeleDefer(e))
+				.degisince(({ type, builder: { rootPart: p } }) => {
+					if (type == 'batch')
+						p.tazeleDefer(e)
+				})
 				.ozelQueryDuzenleIslemi(({ stm, aliasVeNokta, mfSinif }) => {
 					let { kodSaha } = mfSinif
 					let { current: l } = MQLogin
@@ -201,16 +211,17 @@ class MQKontor extends MQDetayliMaster {
 						l.yetkiClauseDuzenle({ sent, clauses })
 					}
 				})
+				.addStyle(`$elementCSS { margin-top: 35px !important }`)
 		}
 	}
 	static rootFormBuilderDuzenle({ sender, inst, rootBuilder: rfb, tanimFormBuilder: tanimForm }) {
 		super.rootFormBuilderDuzenle(...arguments)
 		let form = tanimForm.addFormWithParent()
-			form.addModelKullan('mustKod', 'Müşteri')
-				.etiketGosterim_placeHolder()
-				.comboBox().setMFSinif(MQLogin_Musteri)
+			form.addSimpleComboBox('mustKod', 'Müşteri', 'Müşteri')
+				.etiketGosterim_yok()
+				.setMFSinif(MQLogin_Musteri)
 				.autoBind().setParent(header)
-				.ozelQueryDuzenleHandler(({ stm, aliasVeNokta, mfSinif }) => {
+				.ozelQueryDuzenleIslemi(({ stm, aliasVeNokta, mfSinif }) => {
 					let { kodSaha } = mfSinif
 					let { current: l } = MQLogin
 					let clauses = {
@@ -418,37 +429,55 @@ class MQKontor extends MQDetayliMaster {
 		
 		let { recs = part.selectedRecs } = e
 		e.recs = recs
-		let sayacListe = recs?.map(r => r.kaysayac)
 		if (empty(recs)) {
 			hConfirm('Faturalaşacak kayıtlar seçilmelidir', islemAdi)
 			return false
 		}
-		if (!await ehConfirm('Seçilen kayıtlara ait <b>Alınan Faturalaşmamış</b> olan Kontörler için Faturalar kesilecektir, devam edilsin mi?', islemAdi))
-			return false
 		
-		let fisSayacListe = recs.map(r => r.fissayac ?? r.kaysayac)
+		let fisSayacListe = recs?.map(r => r.fissayac ?? r.kaysayac)
 		let { table, detayTable, tipAdi } = this
-		let defKeyHV = this.varsayilanKeyHostVars(e)
-		let sent = new MQSent(), { where: wh, sahalar } = sent
-		sent.fisHareket(table, detayTable)
-			.fromIliski('musteri mus', 'fis.mustkod = mus.kod')
-			.fromIliski('bayi bay', 'mus.bayikod = bay.kod')
-			.fromIliski('anabayi abay', 'bay.anabayikod = abay.kod')
-		wh.birlestirDict(defKeyHV, 'fis');
-		if (sayacListe?.length)
-			wh.inDizi(sayacListe, 'har.kaysayac')
-		else
-			wh.inDizi(fisSayacListe, 'fis.kaysayac')
-		wh.add(`har.ahtipi = 'A'`, 'har.kontorsayi > 0', `har.fatdurum <> 'X'`, 'har.btamamlandi = 0')
-		// wh.inDizi(['', 'M', 'A', 'B'], 'har.fatdurum')
-		sahalar.add(
-			'fis.mustkod', 'mus.vkn', 'mus.aciklama mustunvan', 'mus.bayikod',
-			'bay.anabayikod', 'abay.onmuhmustkod', 'har.*'
-		)
-		/*.addWithAlias('har', 'tarih', 'fisnox', 'kontorsayi', 'vkn', 'tcsorguterminal', 'tcsorguanahtar')*/
 		
-		let stm = new MQStm({ sent, orderBy: ['tarih', 'fisnox'] })
-		let kRecs = e.kRecs = await stm.execSelect()
+		let kRecs
+		if (!empty(fisSayacListe)) {
+			let defKeyHV = this.varsayilanKeyHostVars(e)
+			let sent = new MQSent(), { where: wh, sahalar } = sent
+			sent.fisHareket(table, detayTable)
+				.fromIliski('musteri mus', 'fis.mustkod = mus.kod')
+				.fromIliski('bayi bay', 'mus.bayikod = bay.kod')
+				.fromIliski('anabayi abay', 'bay.anabayikod = abay.kod')
+			wh
+				.birlestirDict(defKeyHV, 'fis')
+				.inDizi(fisSayacListe, 'fis.kaysayac')
+			wh.add(`har.ahtipi = 'A'`, 'har.kontorsayi > 0', `har.fatdurum <> 'X'`, 'har.btamamlandi = 0')
+			// wh.inDizi(['', 'M', 'A', 'B'], 'har.fatdurum')
+			sahalar.add(
+				'fis.mustkod', 'mus.vkn', 'mus.aciklama mustunvan', 'mus.bayikod',
+				'bay.anabayikod', 'abay.onmuhmustkod', 'har.*'
+			)
+			/*.addWithAlias('har', 'tarih', 'fisnox', 'kontorsayi', 'vkn', 'tcsorguterminal', 'tcsorguanahtar')*/
+			
+			let stm = new MQStm({ sent, orderBy: ['tarih', 'fisnox'] })
+			kRecs = await stm.execSelect()
+			e.kRecs = kRecs
+		}
+
+		if (empty(kRecs)) {
+			wConfirm(`<br/><b class=red>ERP'ye işlenecek bilgi yok</b>`, islemAdi)
+			hideProgress()
+			return false
+		}
+		
+		;{
+			let msg = [
+				`Seçilen kayıtlara ait`,
+				`<b>Faturalaşmamış</b> olan`,
+				`<b class="forestgreen">${kRecs.length} adet</b> kontör satırı için`,
+				`Fatura oluşturulacaktır.<p/>`,
+				`Devam edilsin mi?`
+			].join(' ')
+			if (!await ehConfirm(msg, islemAdi))
+				return false
+		}
 		
 		e.abortFlag = false
 		let abortCheck = e.abortCheck = () => {
@@ -466,7 +495,8 @@ class MQKontor extends MQDetayliMaster {
 		pm?.setProgressValue(0); pm?.progressStep(3); abortCheck?.()
 		if (!kRecs.length) {
 			hConfirm(`ERP'ye işlenecek kontör kaydı bulanamadı`, islemAdi)
-			hideProgress(); delete this._hTimer_faturalastir
+			hideProgress()
+			delete this._hTimer_faturalastir
 			return false
 		}
 		
@@ -523,7 +553,8 @@ class MQKontor extends MQDetayliMaster {
 			}
 			if (!tumFisler?.length) {
 				hConfirm(`<br/><b class=red>ERP'ye işlenecek bilgi yok</b>${ekMesaj}`, islemAdi)
-				hideProgress(); delete this._hTimer_faturalastir
+				hideProgress()
+				delete this._hTimer_faturalastir
 				return false
 			}
 		}
@@ -646,7 +677,7 @@ class MQKontor extends MQDetayliMaster {
 							: `Ref.No: ${fisNox}`
 						let det = aciktanmi
 							? new detaySinif({ bedel, detAciklama })
-							: new detaySinif({ shKod, miktar, ...hizRec, detAciklama })
+							: new detaySinif({ shKod, miktar, ...hr, detAciklama })
 						det._kontorBilgi = { ...fis._kontorBilgi, sayac, fisNox }
 						if (!aciktanmi) {
 							if (fis.ozelIsaret == '*')
@@ -967,10 +998,10 @@ class MQKontorDetay extends MQDetay {
 		let { mustKod, fatDurum, tamamlandimi, ayrimTipi } = inst
 		let degistirmi = islem == 'degistir'
 		let form = parentForm.addFormWithParent().altAlta();
-		let fbd_must = form.addModelKullan('mustKod', 'Müşteri')
-			.comboBox().autoBind()
-			.setMFSinif(MQLogin_Musteri)
-			.ozelQueryDuzenleHandler(({ stm, aliasVeNokta, mfSinif }) => {
+		let fbd_must = form.addSimpleComboBox('mustKod', 'Müşteri', 'Müşteri')
+			.setMFSinif(MQLogin_Musteri).autoBind()
+			.etiketGosterim_yok()
+			.ozelQueryDuzenleIslemi(({ stm, aliasVeNokta, mfSinif }) => {
 				let { current: l } = MQLogin
 				let { kodSaha } = mfSinif
 				let clauses = {
@@ -1007,8 +1038,9 @@ class MQKontorDetay extends MQDetay {
 		}
 		let fbd_fatDurum = form.addModelKullan('fatDurum', 'Fatura Durum')
 			.listedenSecilmez().addStyle_wh(250)
-			.dropDown().noMF().kodsuz()
-			.bosKodAlinmaz().autoBind().setSource(fatDurum.kaListe)
+			.dropDown().noMF().autoBind()
+			.kodsuz().bosKodAlinmaz()
+			.setSource(fatDurum.kaListe)
 			.setVisibleKosulu(({ builder: fbd }) => fbd.altInst.ahTipi.alinanmi)
 		let fbd_chkTamamlandi = form.addCheckBox('tamamlandimi', 'Tamamlandı')
 			.addStyle(`$elementCSS { margin: 37px 0 0 30px !important } $elementCSS > input:checked + label { font-weight: bold !important; color: firebrick !important }`)
@@ -1021,12 +1053,14 @@ class MQKontorDetay extends MQDetay {
 		form = parentForm.addFormWithParent().yanYana()
 		if (eDeftermi) {
 			form.addModelKullan('ayrimTipi', 'Ayrım')
-				.dropDown().noMF()
-				.autoBind().listedenSecilmez()
+				.dropDown().noMF().autoBind()
+				.listedenSecilmez()
 				.kodsuz().bosKodAlinmaz()
 				.setSource(EDefKontor_AyrimTipi.kaListe.filter(ka => ka.kod?.trim()))
-				.degisince(({ builder }) =>
-					builder.inst.fiyatBelirle({ ...arguments[0], builder, force: true }))
+				.degisince(({ type, builder, builder: { inst } }) => {
+					if (type == 'batch')
+						inst.fiyatBelirle({ ...arguments[0], builder, force: true })
+				})
 				.addStyle_wh(300)
 			form.addNumberInput('fiyat', 'Oluşturma Fiyatı')
 				.addStyle_wh(130)

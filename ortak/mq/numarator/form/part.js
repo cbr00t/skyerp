@@ -30,8 +30,13 @@ class NumaratorPart extends Part {
 		
 		let txtFisNo = this.txtFisNo = seriNoForm.find('#fisNo')
 		this.fisNo_orjPlaceHolder = txtFisNo.attr('placeholder')
-		txtFisNo.on('keyup', ({ currentTarget: t }) => t.value = Number(t.value) || null)
-		txtFisNo.on('change', ({ currentTarget: t }) => fis.fisNo = Number(t.value) || null)
+		txtFisNo.on('keyup', ({ currentTarget: t }) =>
+			t.value = Number(t.value) || null)
+		txtFisNo.on('change', ({ currentTarget: t }) => {
+			let v = Number(t.value) || null
+			fis.fisNo = v
+			numarator.serbestmi = !!v
+		})
 		
 		let { otoNummu, yeniVeyaKopyami } = this
 		if (numarator) {
@@ -48,7 +53,7 @@ class NumaratorPart extends Part {
 					if (txtNoYil?.length)
 						txtNoYil.val(noYil)
 					txtSeri.val(fis.seri || '')
-					txtFisNo.val(fisNo)
+					txtFisNo.val(sonNo)
 				};
 				if (yeniVeyaKopyami) {
 					/*let inputs = layout.find('input'); if (inputs.length) { inputs.attr('readonly', ''); inputs.addClass('readOnly') }
@@ -79,26 +84,30 @@ class NumaratorPart extends Part {
 			this.otoNumGoster({ ...e, seri, noYil, sonNo })
 		}
 	}
-	numaratorSecildi(e = {}) {
+	async numaratorSecildi(e = {}) {
 		let rec = e.rec ?? e.recs?.[0]
 		if (!rec)
 			return
 
 		let sender = this
-		let { parentPart, fis, numarator, yeniVeyaKopyami, txtFisNo, secince } = this
+		let { parentPart, fis, numarator: num, yeniVeyaKopyami, txtFisNo, secince } = this
+		let { sayac, belirtec, belgetipi: belgeTipi } = rec
 		let seri = rec.seri || ''
 		let noYil = rec.noyil || 0
 		let sonNo = rec.sonno || 0
 		let fisNo = yeniVeyaKopyami ? null : (sonNo + 1)
 		extend(fis, { seri, noYil, fisNo })
-		extend(numarator, { seri, noYil, sonNo })
+		extend(num, { sayac, belirtec, seri, noYil, sonNo })
+		num.belgeTipi.char = belgeTipi
 		/*this.txtSeri.val(fis.seri);*/
 		let _e = { ...e, parentPart, sender, seri, noYil, sonNo: yeniVeyaKopyami ? sonNo : null }
-		this.otoNumGoster(_e)
+		await this.otoNumGoster(_e)
 		txtFisNo.focus()
 
-		secince?.call(this, _e)
-		fis.numaratorDegisti?.(_e)
+		delay(5).then(async () => {
+			await secince?.call(this, _e)
+			await fis.numaratorDegisti?.(_e)
+		})
 	}
 	otoNumGoster(e = {}) {
 		let { seri, noYil, sonNo } = e
