@@ -5,6 +5,9 @@ class EkVergiYapi extends CIO {
 	get istisnami() { return this.kismiIstisnami || this.tamIstisnami }
 	get tamIstisnami() { return this.tip.char == 'IS' }
 	get kismiIstisnami() { return this.tip.char == 'KI' }
+	get kod() { return this.islemTuru }
+	set kod(v) { this.islemTuru = v }
+	get aciklama() { return this.kdvEkText }
 	
 
 	get kodAttr() {
@@ -37,7 +40,7 @@ class EkVergiYapi extends CIO {
 	}
 	set istisnaKod(value) {
 		if (this.istisnami)
-			this.kod = value;
+			this.kod = value
 	}
 
 	get oranStr() {
@@ -51,26 +54,23 @@ class EkVergiYapi extends CIO {
 	
 	get kdvEkText() {
 		if (this.bosmu)
-			return '';
+			return ''
 
-		const {belirtec, islemTuru, oranStr} = this;
-		let result = '';
-		if (belirtec)
-			result += `<b>${belirtec}</b>`;
-		if (oranStr)
-			result += `-<span class="bold green">${oranStr}</span>`;
-		if (islemTuru)
-			result += ` (<i class="bold royalblue">${islemTuru}</i>)`;
-		return result;
+		let { belirtec, islemTuru, oranStr } = this
+		return [
+			[
+				( belirtec ? `<b>${belirtec}</b>` : null ),
+				( oranStr ? `<span class="bold forestgreen">${oranStr}</span>` : null )
+			].filter(Boolean).join('-'),
+			( islemTuru ? `&nbsp;<b class="bold royalblue">[ ${islemTuru} ]</b>` : null )
+		].filter(Boolean).join(' ')
 	}
 	
 
-	constructor(e) {
-		e = e || {};
-		super(e);
-
-		this.islemTuru = e.islemTuru;
-		this.oran = e.oran;
+	constructor(e = {}) {
+		super(e)
+		this.islemTuru = e.islemTuru
+		this.oran = e.oran
 	}
 	
 	static pTanimDuzenle(e) {
@@ -116,4 +116,6 @@ class EkVergiYapi extends CIO {
 			}
 		}
 	}
+	toString() { return this.kdvEkText }
+	[Symbol.toString]() { return this.toString() }
 }

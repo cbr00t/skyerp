@@ -49,42 +49,67 @@ class PortalApp extends TicariApp {
 		await super.anaMenuOlustur(e)
 	}
 	getAnaMenu(e) {
-		let{noMenuFlag} = this
-		if (noMenuFlag)
+		if (this.noMenuFlag)
 			return new FRMenu()
-		let {current: login} = MQLogin, {adminmi, bayimi} = login
+		
+		let { current: login } = MQLogin
+		let { adminmi, bayimi } = login
 		let items = [
 			(adminmi || bayimi ? new FRMenuCascade({
 				mne: 'TAN', text: 'Tanımlar', items: (
-					[MQLogin_Admin, MQLogin_Bayi, MQVPAnaBayi].filter(cls => cls.uygunmu).map(cls => {
-						let {kodListeTipi: mne, sinifAdi: text} = cls, block = e => cls.listeEkraniAc(e)
-						return new FRMenuChoice({ mne, text, block })
+					[MQLogin_Admin, MQLogin_Bayi, MQVPAnaBayi, MQVPAltMusteri].filter(cls => cls.uygunmu).map(cls => {
+						let { kodListeTipi: mne, sinifAdi: text } = cls
+						return new FRMenuChoice({
+							mne, text,
+							block: e =>
+								cls.listeEkraniAc(e)
+						})
 					})
 				)
 			}) : null),
 			...[MQLogin_Musteri, MQAktivasyon]
 				.filter(cls => cls.uygunmu != false).map(cls => {
-					let {kodListeTipi: mne, sinifAdi: text} = cls, block = e => cls.listeEkraniAc(e);
-					return new FRMenuChoice({ mne, text, block })
+					let { kodListeTipi: mne, sinifAdi: text } = cls
+					return new FRMenuChoice({
+						mne, text,
+						block: e =>
+							cls.listeEkraniAc(e)
+					})
 				}),
 			new FRMenuCascade({
 				mne: 'KHA', text: 'Kontör<br/><b class=royalblue>Hareketler</b>', items: (
-					MQKontorHareket.subClasses.filter(cls => cls.uygunmu != false).map(cls => {
-						let {kodListeTipi: mne, sinifAdi: text} = cls, block = e => cls.listeEkraniAc(e);
-						return new FRMenuChoice({ mne, text, block })
-					})
+					[MQKontorHareket, ...MQKontorHareket.subClasses]
+						.filter(cls => cls.uygunmu != false).map(cls => {
+							let { kodListeTipi: mne, sinifAdi: text } = cls
+							return new FRMenuChoice({
+								mne, text,
+								block: e =>
+									cls.listeEkraniAc(e)
+							})
+						})
 				)
 			}),
 			new FRMenuCascade({
 				mne: 'KMD', text: 'Kontör<br/><b class=forestgreen>Müşteri Durumu</b>', items: (
-					MQKontor.subClasses.filter(cls => cls.uygunmu != false).map(cls => {
-						let {kodListeTipi: mne, sinifAdi: text} = cls, block = e => cls.listeEkraniAc(e);
-						return new FRMenuChoice({ mne, text, block })
+					[MQKontor, ...MQKontor.kaListe.map(ka => ka.ekBilgi)].map(cls => {
+						let { kodListeTipi: mne, sinifAdi: text } = cls
+						return new FRMenuChoice({
+							mne, text,
+							block: e =>
+								cls.listeEkraniAc(e)
+						})
 					})
 				)
 			}),
-			(config.dev && adminmi ? new FRMenuChoice({ mne: 'TURMOB_IMPORT', text: 'Turmob Kayıtlarını İçeri Al', block: e => MQKontor_Turmob.importRecordsIstendi(e) }) : null)
-		].filter(x => !!x)
+			(
+				config.dev && adminmi
+				? new FRMenuChoice({
+					 mne: 'TURMOB_IMPORT', text: 'Turmob Kayıtlarını İçeri Al',
+					 block: e => MQKontor_Turmob.importRecordsIstendi(e)
+				})
+				: null
+			)
+		].filter(Boolean)
 		return new FRMenu({ items })
 	}
 	onMuhDBDo_skylog(block) { return this.onMuhDBDo(this.dbNames.skylog, block) }

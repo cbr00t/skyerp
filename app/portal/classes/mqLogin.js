@@ -7,6 +7,7 @@ class MQLogin extends MQKA {
 	static get silinebilirmi() { return super.silinebilirmi && MQLogin.current?.yetkiVarmi('sil') }
 	static get adminmi() { return false } static get bayimi() { return false } static get musterimi() { return false }
 	get adminmi() { return this.class.adminmi } get bayimi() { return this.class.bayimi } get musterimi() { return this.class.musterimi }
+	static get idSaha() { return 'id' }
 	static get sifreGirilirmi() { return true }
 	static get tip2Sinif() {
 		let {_tip2Sinif: result} = this;
@@ -20,7 +21,7 @@ class MQLogin extends MQKA {
 	}
 	get mevcutYetkiler() { return Object.entries(this.yetki).filter(x => x[1]).map(x => x[0]) }
 	static getClass(e) {
-		let loginTipi = typeof e == 'object' ? e.loginTipi ?? e.rec?.loginTipi : e;
+		let loginTipi = isObject(e) ? e.loginTipi ?? e.rec?.loginTipi : e;
 		let Prefix = 'Login' ;if (loginTipi?.endsWith(Prefix)) { loginTipi = loginTipi.slice(0, -Prefix.length) }
 		return this.tip2Sinif[loginTipi] ?? null
 	}
@@ -35,7 +36,7 @@ class MQLogin extends MQKA {
 	}
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
-		$.extend(pTanim, { sifre: new PInstStr(), aktifmi: new PInstTrue('aktifmi') })
+		extend(pTanim, { sifre: new PInstStr(), aktifmi: new PInstTrue('aktifmi') })
 	}
 	static secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments); let {tableAlias: alias} = this;
@@ -90,7 +91,7 @@ class MQLogin extends MQKA {
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments); let {yetkiSelectors, yetkiRowAttrPrefix} = this.class;
 		let {sifre, yetki} = this, md5sifre = sifre ? md5(sifre) : this._md5Sifre;
-		if (md5sifre) { $.extend(hv, { md5sifre }) };
+		if (md5sifre) { extend(hv, { md5sifre }) };
 		for (let ioAttr of yetkiSelectors) {
 			let rowAttr = `${yetkiRowAttrPrefix}${ioAttr.toLowerCase()}`
 			hv[rowAttr] = yetki[ioAttr] ?? false
@@ -99,32 +100,39 @@ class MQLogin extends MQKA {
 	setValues({ rec }) {
 		super.setValues(...arguments); let {yetkiSelectors, yetkiRowAttrPrefix} = this.class;
 		let {md5sifre: _md5Sifre} = rec, {yetki} = this;
-		$.extend(this, { _md5Sifre });
+		extend(this, { _md5Sifre });
 		for (let ioAttr of yetkiSelectors) {
 			let rowAttr = `${yetkiRowAttrPrefix}${ioAttr.toLowerCase()}`
 			let value = rec[rowAttr]; if (value != null) { yetki[ioAttr] = value }
 		}
 	}
 	yetkiVarmi(e) {
-		e = typeof e == 'object' && !$.isArray(e) ? e : { islem: e }; let {islem} = e;
-		if (typeof islem == 'object' && !$.isArray(islem)) { islem = Object.keys(islem) }
-		if ($.isArray(islem)) {
-			for (let _islem of islem) {
-				let result = this._yetkiVarmi({ ...e, islem: _islem });
-				if (!result) { return false }
-			}
-			return true
-		}
+		e = isObject(e) && !isArray(e) ? e : { islem: e }
+		let { islem: islemler } = e
+		if (isObject(islemler) && !isArray(islemler))
+			islemler = keys(islemler)
+
+		if (islemler)
+			islemler = makeArray(islemler)
+		if (isArray(islemler))
+			return islemler.every(islem => this._yetkiVarmi({ ...e, islem }))
+		
 		return this._yetkiVarmi(e)
 	}
-	_yetkiVarmi({ islem }) { return islem && this.yetki[islem] != false }
+	_yetkiVarmi({ islem }) {
+		return islem && this.yetki[islem] !== false
+	}
 	yetkiClauseDuzenle(e) {
-		let wh = e.where ?? e.wh ?? e.sent?.where; if (!wh) { return this }
-		let clauses = e.clauses ?? {}; this._yetkiClauseDuzenle({ ...e, wh, clauses });
+		let { where: wh = e.wh ?? e.sent?.where } = e
+		if (!wh)
+			return this
+		let { clauses = {} } = e
+		this._yetkiClauseDuzenle({ ...e, wh, clauses })
 		return this
 	}
 	_yetkiClauseDuzenle({ wh, clauses }) { }
 }
+
 class MQLogin_Admin extends MQLogin {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return MQLogin.current.adminmi }
 	static get kodListeTipi() { return 'USRADMIN' } static get sinifAdi() { return 'Ana Kullanıcı' }
@@ -134,6 +142,7 @@ class MQLogin_Admin extends MQLogin {
 		if (!(basit || MQLogin.current.adminmi)) { wh.add('1 = 2') }
 	}
 }
+
 class MQLogin_Bayi extends MQLogin {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return !MQLogin.current.musterimi }
 	static get kodListeTipi() { return 'USRBAYI' } static get sinifAdi() { return 'Bayi' } static get bayimi() { return true }
@@ -141,7 +150,7 @@ class MQLogin_Bayi extends MQLogin {
 	static get yetkiSelectors() { return [...super.yetkiSelectors, 'aktivasyonYap', 'aktivasyonSil', 'anahtarVer', 'demoSureSifirla'] }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
-		$.extend(pTanim, {
+		extend(pTanim, {
 			kisaKod: new PInstStr('kisakod'), tip: new PInstStr('tip'), sefmi: new PInstBitBool('bsefmi'),
 			anaBayiKod: new PInstStr('anabayikod'), ilKod: new PInstStr('ilkod'),
 			yore: new PInstStr('yore'), eMail: new PInstStr('email')
@@ -206,14 +215,16 @@ class MQLogin_Bayi extends MQLogin {
 		}
 	}
 }
+
 class MQLogin_Musteri extends MQLogin {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'USRMUST' } static get sinifAdi() { return 'Müşteri' }
 	static get table() { return 'musteri' } static get musterimi() { return true }
 	static get sifreGirilirmi() { return false }
+	
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
-		$.extend(pTanim, {
+		extend(pTanim, {
 			tanitim: new PInstStr('tanitim'),
 			bayiKod: new PInstStr('bayikod'),
 			tip: new PInstStr('tip'),
@@ -296,14 +307,17 @@ class MQLogin_Musteri extends MQLogin {
 			new GridKolon({ belirtec: 'ekbilgi', text: 'Ek Bilgi', genislikCh: 150 })
 		)
 	}
-	static loadServerData_queryDuzenle({ gridPart, sender, stm, sent, basit }) {
+	static loadServerData_queryDuzenle({ gridPart, sender, stm, sent, basit, tekilOku }) {
 		super.loadServerData_queryDuzenle(...arguments)
-		let {tableAlias: alias} = this
-		sent.fromIliski(`${MQLogin_Bayi.table} bay`, `${alias}.bayikod = bay.kod`)
-		/*sent.fromIliski(`${MQVPAnaBayi.table} abay`, 'bay.anabayikod = abay.kod')*/
-		sent.fromIliski(`${MQVPIl.table} il`, `${alias}.ilkod = il.kod`)
+		let { tableAlias: alias } = this
+		//basit ||= tekilOku
+		
+		sent
+			.innerJoin(alias, `${MQLogin_Bayi.table} bay`, `${alias}.bayikod = bay.kod`)
+			.innerJoin('bay', `${MQVPAnaBayi.table} abay`, 'bay.anabayikod = abay.kod')
+			.innerJoin(alias, `${MQVPIl.table} il`, `${alias}.ilkod = il.kod`)
 		if (!basit) {
-			sent.leftJoin('bay', `${MQVPAnaBayi.table} abay`, 'bay.anabayikod = abay.kod')
+			// sent.leftJoin('bay', `${MQVPAnaBayi.table} abay`, 'bay.anabayikod = abay.kod')
 			let clauses = { bayi: `${alias}.bayikod`, musteri: `${alias}.kod` }
 			MQLogin.current.yetkiClauseDuzenle({ sent, clauses })
 		}
@@ -337,7 +351,7 @@ class MQLogin_Musteri extends MQLogin {
 	static kontorMenuIstendi(e) {
 		this.openContextMenu({
 			...e, title: 'Kontör İşlemleri',
-			wndArgsDuzenle: ({ wndArgs: args }) => $.extend(args, { height: 150 }),
+			wndArgsDuzenle: ({ wndArgs: args }) => extend(args, { height: 150 }),
 			formDuzenleyici: ({ form: parentForm, close, rec }) => {
 				let listele = cls => {
 					let {kod: mustKod} = rec
@@ -350,4 +364,82 @@ class MQLogin_Musteri extends MQLogin {
 			}
 		})
 	}
+
+	static async gloId2Kod(e = {}) {
+		let key = ( isObject(e) ? e.mustid ?? e.mustId ?? e.id : e ) ?? ''
+		let { globals: g = {} } = this
+		let cache = g.key2Id2Kod ??= {}
+		return cache[key] ??= this.id2Kod(e)
+	}
+	static async gloKod2Id(e = {}) {
+		let key = isObject(e) ? e.mustkod ?? e.mustKod ?? e.kod : e
+		let { globals: g = {} } = this
+		let cache = g.key2Kod2Id ??= {}
+		return cache[key] ??= this.kod2Id(e)
+	}
+	static async gloId2Rec(e = {}) {
+		let key = ( isObject(e) ? e.mustid ?? e.mustId ?? e.id : e ) ?? ''
+		let { globals: g = {} } = this
+		let cache = g.key2Id2Rec ??= {}
+		return cache[key] ??= this.id2Rec(e)
+	}
+	static async id2Kod(e = {}) {
+		let id = isObject(e) ? e.mustid ?? e.mustId ?? e.id : e
+		let { table, kodSaha, idSaha } = this
+		
+		let sent = new MQSent({ table }), { where: wh, sahalar } = sent
+		if (id)
+			wh.degerAta(id, idSaha)
+		else
+			sahalar.add(`${idSaha} id`)
+		sahalar.add(`${kodSaha} kod`)
+		
+		if (id)
+			return ( await sent.execTekilDeger() )?.trimEnd()
+
+		return fromEntries(
+			( await sent.execSelect() ?? [] ).map(r =>
+				[r[idSaha], r[kodSaha]]
+			)
+		)
+	}
+	static async kod2Id(e = {}) {
+		let kod = isObject(e) ? e.mustkod ?? e.mustKod ?? e.kod : e
+		let { table, idSaha, kodSaha } = this
+		
+		let sent = new MQSent({ table }), { where: wh, sahalar } = sent
+		if (kod)
+			wh.degerAta(kod, kodSaha)
+		else
+			sahalar.add(`${kodSaha} kod`)
+		sahalar.add(`${idSaha} id`)
+
+		if (kod)
+			return ( await sent.execTekilDeger() )?.trimEnd()
+
+		return fromEntries(
+			( await sent.execSelect() ?? [] ).map(r =>
+				[r[kodSaha], r[idSaha]]
+			)
+		)
+	}
+	static async id2Rec(e = {}) {
+		let id = isObject(e) ? e.mustid ?? e.mustId ?? e.id : e
+		let { table, kodSaha, idSaha } = this
+		
+		let sent = new MQSent({ table }), { where: wh, sahalar } = sent
+		if (id)
+			wh.degerAta(id, idSaha)
+		sahalar.add(`${kodSaha} kod`, '*')
+		
+		if (id)
+			return await sent.execTekil()
+
+		return fromEntries(
+			( await sent.execSelect() ?? [] ).map(r =>
+				[r[idSaha], r]
+			)
+		)
+	}
 }
+

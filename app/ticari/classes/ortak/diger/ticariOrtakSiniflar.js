@@ -80,7 +80,7 @@ class Taksitci extends CIO {
 		let result = await this.dataDuzgunmu(e);
 		if (!(result == null || result == true)) {
 			if (typeof result != 'object')
-				result = { isError: false, rc: 'hataliBilgiGirisi', errorText: (typeof result == 'boolean' ? null : result?.toString()) }
+				result = { isError: false, errorText: (typeof result == 'boolean' ? null : result?.toString()) }
 			throw result
 		}
 	}

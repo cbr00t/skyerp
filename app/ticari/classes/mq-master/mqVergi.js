@@ -138,7 +138,7 @@ class MQVergi extends MQKA {
 		let result = globals.tevkifatKodlari;
 		if (result == null)
 			globals.tevkifatKodlari = result = {}
-		let subKey = [ alimmi ? 'A' : 'T', kismimi ? 'K' : 'T' ];
+		let subKey = [ alimmi ? 'A' : 'T', kismimi ? 'K' : 'T' ].join(delimWS)
 		let subResult = result[subKey];
 		if (subResult === undefined) {
 			let vergi = app.sabitTanimlar.vergi || {};
@@ -180,71 +180,67 @@ class MQVergi extends MQKA {
 		}
 		return result
 	}
-	static getKismiIstisnalar(e) {
-		e = e || {};
-		return this.getIstisnalar($.extend({}, e, { kismi: true }));
-	}
-	static getTamIstisnalar(e) {
-		e = e || {};
-		return this.getIstisnalar($.extend({}, e, { kismi: false }));
-	}
-	static getTumIstisnalar(e) {
-		e = e || {};
-		return [this.getKismiIstisnalar(e), this.getTamIstisnalar(e)]
-	}
-	static getIstisnalar(e) {
-		e = e || {};
-		let fisSinif = e.fis || (e.fis || {}).class;
-		let alimmi = coalesce(e.alim, e.alimmi);
-		if (alimmi == null)
-			alimmi = !coalesce(e.satis, e.satismi);
-		if (alimmi == null && fisSinif)
-			alimmi = fisSinif.alimmi
-		let kismimi = coalesce(e.kismi, e.kismimi);
-		if (kismimi == null)
-			kismimi = !coalesce(e.tam, e.tammi)
 
-		let {globals} = this;
-		let result = globals.istisnalar;
-		if (result == null)
-			globals.istisnalar = result = {}
-		let subKey = [ alimmi ? 'A' : 'T', kismimi ? 'K' : 'T' ];
-		let subResult = result[subKey];
-		if (subResult === undefined) {
-			let vergi = app.sabitTanimlar.vergi || {};
-			let selector = kismimi ? 'kismiistisnalar' : 'tamistisnalar';
-			subResult = vergi[selector] || null;
-			if (subResult) {
-				let uygunOlmayanKodSet = kismimi ? {} : asSet(['301', '302', '303']);
-				let _subResult = subResult;
-				subResult = [];
-				let kaSinif = CKodAdiVeMadde;
-				for (let item of _subResult) {
-					let {kod} = item;
-					if (!uygunOlmayanKodSet[kod])
-						subResult.push(new kaSinif({ kod: kod, aciklama: item.ad || item.adi || item.aciklama || '', madde: item.madde }))
-				}
+	static getIstisnalar(e = {}) {
+		let { fis = {} } = e
+		let { class: fisSinif } = fis
+		let { alimmi = e.alim, kismimi = e.kismi, selector } = e
+		if (alimmi == null)
+			alimmi = !(e.satis ?? e.satismi ?? false)
+		selector ??= ( kismimi ? 'kismiistisnalar' : 'tamistisnalar' )
+		
+		let { globals } = this
+		let { istisnalar: res } = globals
+		res ??= ( globals.istisnalar = {} )
+		
+		let k = [ alimmi ? 'A' : 'T', selector ].join(delimWS)
+		let subRes = res[k]
+		if (subRes === undefined) {
+			let { vergi = {} } = app.sabitTanimlar ?? {}
+			subRes = vergi[selector] ?? null
+			if (subRes) {
+				let excludeSet = selector == 'tamIstisnalar' ? asSet(['301', '302', '303']) : {}
+				subRes = subRes
+					.filter(ka => !excludeSet[ka.kod])
+					.map(ka => new CKodAdiVeMadde({
+						kod: ka.kod,
+						aciklama: ka.ad || ka.adi || ka.aciklama,
+						madde: ka.madde
+					}))
 			}
-			result[subKey] = subResult
+			res[k] = subRes
 		}
-		return subResult
+		return subRes
 	}
-	static getKismiIstisnaDict(e) {
-		e = e || {};
-		return this.getIstisnaDict($.extend({}, e, { kismi: true }))
+	static getKismiIstisnalar(e) { return this.getIstisnalar({ ...e, selector: 'kismiistisnalar' }) }
+	static getTamIstisnalar(e) { return this.getIstisnalar({ ...e, selector: 'tamistisnalar' }) }
+	static getOzelMatrahlar(e) { return this.getIstisnalar({ ...e, selector: 'ozelmatrahlar' }) }
+	static getTumIstisnalar(e) {
+		return [
+			this.getKismiIstisnalar(e),
+			this.getTamIstisnalar(e),
+			this.getOzelMatrahlar(e)
+		]
 	}
-	static getTamIstisnaDict(e) {
-		e = e || {};
-		return this.getIstisnaDict($.extend({}, e, { kismi: false }))
-	}
+	static getKismiIstisnaDict(e) { return this.getIstisnaDict({ ...e, selector: 'kismiistisnalar' }) }
+	static getTamIstisnaDict(e) { return this.getIstisnaDict({ ...e,selector: 'tamistisnalar' }) }
+	static getOzelMatrahDict(e) { return this.getIstisnaDict({ ...e, selector: 'ozelmatrahlar' }) }
 	static getTumIstisnaDict(e = {}) {
 		let { globals } = this
 		let key  = `tumIstisnaDict-${toJSONStr(e)}`
 		let result = globals[key]
-		if (result == null) { result = { ...this.getKismiIstisnaDict(e), ...this.getTamIstisnaDict(e) }; globals[key] = result }
+		if (result == null) {
+			result = {
+				...this.getKismiIstisnaDict(e),
+				...this.getTamIstisnaDict(e),
+				...this.getOzelMatrahDict(e),
+			}
+			globals[key] = result 
+		}
+			
 		let tamIstisnalar = app.sabitTanimlar?.vergi?.tamistisnalar ?? []
 		if (!empty(tamIstisnalar)) {
-			let uygunOlmayanKodSet = asSet(['301', '302', '303']);
+			let uygunOlmayanKodSet = asSet(['301', '302', '303'])
 			for (let r of tamIstisnalar) {
 				let { kod } = r
 				if (!uygunOlmayanKodSet[kod])
@@ -254,6 +250,7 @@ class MQVergi extends MQKA {
 				result[kod] = new CKodAdiVeMadde({ kod, aciklama, madde })
 			}
 		}
+		
 		return result
 	}
 	static getIstisnaDict(e) {

@@ -170,11 +170,16 @@ class EIslemOrtak extends CObject {
 		let err = errorTextsAsObject({ errors: await this.onKontrolMesajlar(e) })
 		if (err)
 			throw err
-		let {baslik, detaylar} = this
+		
+		let { baslik, detaylar, class: { efami } } = this
+		if (efami)
+			await this.onKontrol_efa(e)
+		
 		for (let item of [baslik, detaylar]) {
 			if (item?.onKontrol)
 				await item?.onKontrol(e)
 		}
+		
 		return this
 	}
 	async onKontrolMesajlar() {
@@ -371,8 +376,10 @@ class EIslemOrtak extends CObject {
 			xw, name: 'DIPTE_VERGILER_DAHIL_TOPLAM_TUTAR',
 			value: _belgeTipKod != 'ISTISNA'
 		})
+		
+		await this.xmlDuzenle_docRefs_qrCode(e)    // !! mutlaka  xmlDuzenle_docRefs_xslt()  den önce çağırılmalıdır
 		await this.xmlDuzenle_docRefs_xslt(e)
-		await this.xmlDuzenle_docRefs_qrCode(e)                                                                 // !! mutlaka  xmlDuzenle_docRefs_xslt()  den önce çağırılmalıdır
+		
 		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'FIYAT_GOSTERIM_KURALI', value: kural.fiyat.char ?? '' })
 		// await this.xmlDuzenleInternal_docRefParam({ xw, name: 'KOLI_GOSTERIM_KURALI', value: kural.koli.char ?? '' })
 		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'DOVIZ_GOSTERIM_KURALI', value: kural.doviz.char ?? '' })
@@ -419,7 +426,7 @@ class EIslemOrtak extends CObject {
 		let kdvOran2MatrahVeBedel = {}
 		for (let oran2VergiRecs of values(icmal.vergiTip2Oran2EVergiRecs_tevkifatsiz))
 		for (let oran in oran2VergiRecs)
-		for (let eRec of oran2VergiRecs[oran].filter(r => !kdvmi.kdvmi)) {
+		for (let eRec of oran2VergiRecs[oran].filter(r => !r.kdvmi)) {
 			kdvOran2MatrahVeBedel[oran] = {
 				matrah: eRec.getMatrahYapi({ dvKur })[bedelSelector],
 				bedel: eRec.bedelYapi[bedelSelector]
@@ -469,8 +476,8 @@ class EIslemOrtak extends CObject {
 		if (imgData) {
 			await this.xsltDuzenleyiciEkle({
 				args: { type, imgData },
-				handler: ({ result, args }) => 
-					result.replaceAll(`[${args.type}]`, args.imgData)
+				handler: ({ result, args: { type, imgData } }) => 
+					result.replaceAll(`[${type}]`, imgData)
 			})
 			await this.xmlDuzenleInternal_docRef({ xw, id: '1', type: 'KAREKOD_IMG', typeCode: 'dynamic' })
 			/*-- iptal --  this.xmlDuzenleInternal_docRef({ xw, id: '0', type, attachment: { mimeType, value: imgData, fileName: `${type}.png` } })*/
@@ -808,8 +815,10 @@ class EIslemOrtak extends CObject {
 	xmlGetProfileID(e) { return null }
 	xmlGetBelgeTipKodu(e) { return null }
 	async getXsltBase64(e) {
-		e ??= {}; let result = await this.getXslt(e)
-		if (result) { result = Base64.encode(result) }
+		e ??= {}
+		let result = await this.getXslt(e)
+		if (result)
+			result = Base64.encode(result)
 		return result
 	}
 	async getXslt(e = {}) {
@@ -830,15 +839,18 @@ class EIslemOrtak extends CObject {
 		return result
 	}
 	async xsltDuzenle(e) {
-		let {islem, result} = e, {xsltDuzenleyiciler} = this
+		let { islem, result } = e
+		let { xsltDuzenleyiciler } = this
 		result = e.result = result.replaceAll(`POLEN YAZILIM - VİO TİCARİ`, `SKYLOG YAZILIM - SkyERP`)
 		if (xsltDuzenleyiciler) {
 			for (let item of xsltDuzenleyiciler) {
-				let {handler, args} = item ?? {}
+				let { handler, args } = item ?? {}
 				if (!handler)
 					continue
+				
 				if (args != null)
 					e.args = args
+				
 				let _result = await handler.call(this, e)
 				if (result != null) {
 					if (_result === true)

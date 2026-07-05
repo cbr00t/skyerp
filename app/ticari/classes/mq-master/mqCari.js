@@ -19,14 +19,17 @@ class MQCari extends MQKA {
 		if (builder_aciklama) { builder_aciklama.setVisibleKosulu(false) }
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); let {aliasVeNokta, kodSaha} = this, {sender, sent} = e, {where: wh} = sent;
-		wh.icerikKisitDuzenle_cari({ saha: `${aliasVeNokta}${kodSaha}`});
+		super.loadServerData_queryDuzenle(e)
+		let { aliasVeNokta, kodSaha } = this
+		let { sender, sent } = e, { where: wh, sahalar } = sent
+		wh.icerikKisitDuzenle_cari({ saha: `${aliasVeNokta}${kodSaha}`})
 		if (sender?.modelKullanmi || sender?.secince)
 			wh.add(`${aliasVeNokta}silindi = ''`, `${aliasVeNokta}calismadurumu <> ''`)
 		else {
 			sent.fromIliski('efozelyontem efoy', `${aliasVeNokta}efozelyontemkod = efoy.kod`);
 			sent.fromIliski('eislemozeldip eiod', `${aliasVeNokta}eislozeldipkod = eiod.kod`)
 		}
+		sahalar.add(`${aliasVeNokta}vkno`)
 	}
 	static varsayilanKeyHostVarsDuzenle(e) {
 		super.varsayilanKeyHostVarsDuzenle(e); let {hv} = e, {kayitTipi} = this;

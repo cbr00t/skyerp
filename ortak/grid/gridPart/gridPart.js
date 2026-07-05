@@ -150,6 +150,7 @@ class GridPart extends Part {
 			autoShowColumnsMenuButton: true, sortable: true, /* compact: false, */ filterable: true,
 			filterRowHeight: 40, filterMode: 'default', showFilterRow: false, groupable: true, columnsResize: true,
 			showGroupsHeader: false, groupIndentWidth: 25, groupsHeaderHeight: 33, groupsExpandedByDefault: false,
+			// showStatusBar: false, showAggregates: false, showGroupAggregates: false,
 			enableBrowserSelection: false, selectionMode: 'multiplecellsextended',
 			pageable: false, pagermode: 'advanced', adaptive: undefined, virtualMode: false, updatedelay: 0,
 			// enableToolTips: true,

@@ -49,10 +49,17 @@ class ModelKullanPart extends Part {
 			height: this.height || '100%', searchMode: 'containsignorecase', autoDropDownHeight: false, dropDownHeight: 215, itemHeight: 35,
 			valueMember: kodSaha, displayMember: adiSaha, disabled: this.disabled, placeHolder: placeHolder || '',
 			renderer: (index, aciklama, kod) => {
-				let {layout, widget, kodGosterilsinmi} = this, layoutName = layout.prop('id'), parentPart = this.parentPart || this.sender;
-				let parentPartName = ((parentPart || {}).class || {}).partName;
-				if (!parentPartName) { let parentLayout = layout.parents('.part'); if (parentLayout?.length) { parentPartName = parentLayout.prop('class') } }
-				let {partName} = this.class, _e = { parentPart, sender: this, builder: this.builder, widget, index, kod, aciklama };
+				let { layout, widget, kodGosterilsinmi } = this
+				let layoutName = layout.prop('id'), parentPart = this.parentPart || this.sender
+				let parentPartName = parentPart?.class?.partName
+				if (!parentPartName) {
+					let parentLayout = layout.parents('.part')
+					if (parentLayout?.length)
+						parentPartName = parentLayout.prop('class')
+				}
+				
+				let { partName } = this.class
+				let _e = { parentPart, sender: this, builder: this.builder, widget, index, kod, aciklama }
 				_e.result = (
 					`<div class="${parentPartName ? parentPartName + ' ' : ''}${layoutName} ${partName} list-item flex-row">
 						${kodGosterilsinmi ? `<div class="kod">${kod || ''}</div>` : ''}
@@ -64,7 +71,7 @@ class ModelKullanPart extends Part {
 			}
 		};
 		if (isDropDown) {
-			$.extend(args, {
+			extend(args, {
 				filterable: true, filterHeight: 28, filterPlaceHolder: 'Seçiniz:', checkboxes: !!coklumu,
 				selectionRenderer: (html, index, label, value) => {
 					let {widget} = this; if (!widget) { return html }
@@ -74,16 +81,27 @@ class ModelKullanPart extends Part {
 						let isLong = _e.isLong = wItems.length > 3; _e.result = wItems.map(wItem => (isLong ? wItem.value : wItem.label) ?? '').join(', ')
 					}
 					else {
-						let wItem = _e.wItem = widget.getSelectedItem() || {}; if (selectionRendererBlock) { _e.rec = wItem.originalItem }
-						let kod = wItem.value ?? '', aciklama = wItem.label ?? ''; _e.result = kodGosterilsinmi ? (kod == null ? '' : `<b>${kod}</b>-${aciklama}`) : aciklama
+						let wItem = _e.wItem = widget.getSelectedItem() || {}
+						if (selectionRendererBlock) { _e.rec = wItem.originalItem }
+						let kod = wItem.value ?? ''
+						let aciklama = wItem.label ?? ''
+						if (aciklama) {
+							try { aciklama = $(aciklama).text() || aciklama }
+							catch (ex) { }
+						}
+						_e.result = kodGosterilsinmi ? (kod == null ? '' : `<b>${kod}</b>-${aciklama}`) : aciklama
 					}
-					if (selectionRendererBlock) { let result = getFuncValue.call(this, selectionRendererBlock, _e); if (result != null) { _e.result = result } }
+					if (selectionRendererBlock) {
+						let result = getFuncValue.call(this, selectionRendererBlock, _e)
+						if (result != null)
+							_e.result = result
+					}
 					return _e.result
 				}
 			})
 		}
 		else {
-			$.extend(args, {
+			extend(args, {
 				autoComplete: true, remoteAutoComplete: true, remoteAutoCompleteDelay: 100, minLength: 0, multiSelect: !!coklumu,
 				search: searchText => {
 					if (searchText) { searchText = searchText.replaceAll('*', '%').replaceAll('?', '_') }
@@ -91,8 +109,13 @@ class ModelKullanPart extends Part {
 				},
 				/*renderer: (index, aciklama, kod) => { let {widget} = this; let rec = (widget.getItems() || [])[index]; rec = (rec || {}).originalItem; return aciklama }*/
 				renderSelectedItem: (index, rec) => {
-					let {widget, kodGosterilsinmi} = this, kodSaha = widget.valueMember, adiSaha = widget.displayMember;
-					rec = rec.originalItem || rec || {}; let kod = rec[kodSaha] ?? '', aciklama = rec[adiSaha] ?? '';
+					let {widget, kodGosterilsinmi} = this, kodSaha = widget.valueMember, adiSaha = widget.displayMember
+					rec = rec.originalItem ?? rec ?? {}
+					let kod = rec[kodSaha] ?? '', aciklama = rec[adiSaha] ?? ''
+					if (aciklama) {
+						try { aciklama = $(aciklama).text() || aciklama }
+						catch (ex) { }
+					}
 					return kodGosterilsinmi ? `${kod}${aciklama ? `-${aciklama}` : ''}` : (aciklama || '')
 				}
 			})

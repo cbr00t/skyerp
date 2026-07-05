@@ -206,7 +206,9 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 						return true
 					},
 					cellValueChanged: ({ args }) => {
-						this.satirBedelHesapla(e); let {owner: gridWidget} = args, rec = gridWidget.getrowdata(args.rowindex);
+						this.satirBedelHesapla(e)
+						let { owner: gridWidget } = args
+						let rec = gridWidget.getrowdata(args.rowindex)
 						setTimeout(() => gridWidget.updaterow(rec.uid, rec), 10)
 					}
 				})

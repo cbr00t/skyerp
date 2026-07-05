@@ -15,7 +15,8 @@ class MQCogul extends MQYapi {
 	static get gridIslemTuslariKullanilirmi() { return !isMiniDevice() }
 	static get kolonDuzenlemeYapilirmi() { return true }
 	static get yerelParamBelirtec() { return this.classKey } static get sayacSahaGosterilirmi() { return false }
-	static get tumKolonlarGosterilirmi() { return false } static get gridDetaylimi() { return this.detaylimi }
+	static get tumKolonlarGosterilirmi() { return false }
+	static get gridDetaylimi() { return this.detaylimi }
 	static get ozelTanimIslemi() { return null }
 	static get bulFormKullanilirmi() { return true } static get gereksizTablolariSilYapilirmi() { return true }
 	static get islemTuslari_sagButonlar_ekMarginX() { return isMiniDevice() ? 0 : 15 }
@@ -825,7 +826,7 @@ class MQCogul extends MQYapi {
 		let result = await this.dataDuzgunmu(e);
 		if (!(result == null || result == true)) {
 			if (typeof result != 'object') {
-				result = { isError: false, rc: 'hataliBilgiGirisi', errorText: (typeof result == 'boolean' ? null : result?.toString()) };
+				result = { isError: false, errorText: (typeof result == 'boolean' ? null : result?.toString()) };
 				throw result
 			}
 		}

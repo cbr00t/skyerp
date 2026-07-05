@@ -418,7 +418,7 @@ class EYonetici extends CObject {
 	}
 	async eIslemXMLOlustur(e = {}) {
 		let {sender, callback, eConf = this.eConf} = e, {eIslSinif: eIslAnaSinif} = this
-		$.extend(e, { ps2SayacListe: this.ps2SayacListe ?? this.class.getPS2SayacListe(e) })
+		extend(e, { ps2SayacListe: this.ps2SayacListe ?? this.class.getPS2SayacListe(e) })
 		let stm = eIslAnaSinif.getUUIDStm(e)
 		for (let key of ['psTip2SayacListe', 'whereDuzenleyici'])
 			delete e[key]
@@ -532,7 +532,7 @@ class EYonetici extends CObject {
 						}
 					}
 					for (let fisSayac of subFisSayacListe) {
-						promises.push(new $.Deferred(async p => {
+						promises.push(defer(async p => {
 							let eFis = sayac2EFis[fisSayac], {baslik} = eFis, {efayrimtipi: efAyrimTipi} = baslik;
 							let eIslSinif = EIslemOrtak.getClass({ tip: efAyrimTipi }), anaBolum = eConf.getAnaBolumFor({ eIslSinif });
 							let uuid

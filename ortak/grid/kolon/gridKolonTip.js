@@ -199,9 +199,9 @@ class GridKolonTip extends CObject {
 			value = numberToString(value)
 		let text = numberToString(asFloat(
 			value
-				.replace(':', '').replace('Sum', '')
-				.replace('Avg', '').replace('TOPLAM', '')
-				.replace('ORT', '')
+				?.replace(':', '')?.replace('Sum', '')
+				?.replace('Avg', '')?.replace('TOPLAM', '')
+				?.replace('ORT', '')
 		))
 		return `<div class="bold royalblue right" style="border-top: 3px solid royalblue">${text ?? ''}</div>`
 	}

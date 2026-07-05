@@ -4,14 +4,17 @@ class EIslBaslikVeDetayOrtak extends RowluYapi {
 	get shared() { return this._shared }
 	onKontrol(e) { }
 }
+
 class EIslBaslik extends EIslBaslikVeDetayOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get eIslTip() { return this.rec.efayrimtipi }
 	get eFaturami() { return this.eIslTip == 'E' } get eArsivmi() { return (this.eIslTip || 'A') == 'A' }
 	get eIrsaliyemi() { return this.eIslTip == 'IR' } get eMustahsilmi() { return this.eIslTip == 'MS' }
 	get alimIademi() { return asBool(this.rec.alimiademi) } get subeKod() { return this.rec.bizsubekod }
+	get fisTipi() { return this.rec.fistipi }
+	get istisnaKod() { return this.rec.kdvistisnaturu }
 	get dvKod() {
-		let result = this._dvKod;
+		let result = this._dvKod
 		if (result === undefined) {
 			result = (this.rec.dvkod || '').trim();
 			switch (result) { case '': case 'TL': case 'TRL': result = EIslemOrtak.currCode_tl; break; }
@@ -20,7 +23,7 @@ class EIslBaslik extends EIslBaslikVeDetayOrtak {
 		return result
 	}
 	get dvKodUyarlanmis() {
-		let result = this._dvKodUyarlanmis;
+		let result = this._dvKodUyarlanmis
 		if (result === undefined) {
 			result = this.dvKod; if (!result || result == 'TRY' || result == 'TRL') { result = 'TL' }
 			this._dvKodUyarlanmis = result
@@ -28,7 +31,7 @@ class EIslBaslik extends EIslBaslikVeDetayOrtak {
 		return result
 	}
 	get dovizlimi() {
-		let result = this._dovizlimi;
+		let result = this._dovizlimi
 		if (result === undefined) { let {dvKod} = this; result = this._dovizlimi = dvKod && dvKod != EIslemOrtak.currCode_tl }
 		return result
 	}
@@ -75,8 +78,12 @@ class EIslBaslik extends EIslBaslikVeDetayOrtak {
 	get sonrakiTLBakiye() { return (this.oncekiTLBakiye || 0) + (this.tlBakiye || 0) }
 
 	async onKontrol(e) {
-		await super.onKontrol(e); let err = errorTextsAsObject({ errors: await this.onKontrolMesajlar(e) }); if (err) { throw err }
- 		let {eYontem} = this; if (eYontem?.eIslemOnKontrol) { await eYontem.eIslemOnKontrol(e) }
+		await super.onKontrol(e)
+		let err = errorTextsAsObject({ errors: await this.onKontrolMesajlar(e) })
+		if (err)
+			throw err
+ 		let { eYontem } = this
+		await eYontem?.eIslemOnKontrol?.(e)
 		return this
 	}
 	async onKontrolMesajlar(e) {
@@ -85,6 +92,7 @@ class EIslBaslik extends EIslBaslikVeDetayOrtak {
 	}
 	async onKontrolMesajlarDuzenle(e) { } async onKontrolMesajlarDuzenle_son(e) { }
 }
+
 class EIslDetay extends EIslBaslikVeDetayOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get kayitTipi() { return this.rec.kayittipi }

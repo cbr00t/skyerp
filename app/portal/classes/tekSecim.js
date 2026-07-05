@@ -3,12 +3,16 @@ class KontorTip extends TekSecim {
 	static get defaultChar() { return null }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)
-		kaListe.push(...[
-			new CKodVeAdi(['BL', 'e-Belge', 'eBelgemi']),
-			new CKodVeAdi(['TR', 'Turmob', 'turmobmu']),
-			new CKodVeAdi(['TS', 'Zaman Damgası', 'zamanDamgasimi']),
-			new CKodVeAdi(['SM', 'SMS', 'smsmi'])
-		])
+		kaListe.push(
+			new CKodVeAdi([' ', MQKontor.tipAdi, 'hepsimi']),
+			...entries(MQKontor.key2SubClasses)
+				.filter(([, c]) => c.uygunmu)
+				.map(([, c]) => {
+					let { tip: t, tipAdi: a } = c
+					let tlw = t?.toLowerCase() ?? null
+					return new CKodAdiVeEkBilgi([t || '', a, `${tlw}mi`, c])
+				})
+		)
 	}
 }
 class KontorAHTip extends TekSecim {

@@ -2,6 +2,8 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get anaTip() { return 'EA' } static get paramSelector() { return 'eFatura' }
 	static get xmlRootTag() { return 'Invoice' } static get xmlDetayTag() { return 'cac:InvoiceLine' }
+	static get efami() { return true }
+
 	static getUUIDStm(e) {
 		e = e || {}; let gelenmi = e.gelen ?? e.gelenmi, ps2SayacListe = getFuncValue.call(this, e.ps2SayacListe || e.psTip2SayacListe, e) || {};
 		let {whereDuzenleyici: genelWhereDuzenleyici, sentDuzenleyici: genelSentDuzenleyici, stmDuzenleyici: genelStmDuzenleyici} = e, stm;
@@ -87,7 +89,7 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 				`${fisTable.sqlServerDegeri()} fisTable`,
 				`${harTable.sqlServerDegeri()} harTable`,
 				`fis.bizsubekod`, 'fis.kaysayac fissayac', 'fis.iade', 'fis.ayrimtipi', 'fis.fistipi', 'fis.efayrimtipi',
-				'fis.tarih', 'fis.fisnox', 'fis.ortalamavade', 'car.earsivbelgetipi',
+				'fis.tarih', 'fis.fisnox', 'fis.ortalamavade', 'car.earsivbelgetipi', 'fis.kdvistisnaturu',
 				`(case fis.ayrimtipi when 'IH' then 'IHRACAT' when 'IK' then 'IHRACKAYITLI' when 'FS' then 'FASON' when 'EM' then 'EMANET' when 'KN' then 'KONSINYE' else '' end) faturaozeltip`,
 				`(case when fis.almsat = 'A' and fis.iade = 'I' then '*' else '' end) alimiademi`,
 																						/* M: TEMEL ; T: TİCARİ ; K: KAMU */
@@ -138,7 +140,7 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 				'fis.refstrnox refnox', /*'fis.borsatescilvarmi', 'fis.kunyenox',*/ 'basack.basaciklama', 'dipack.aciklama dipaciklama',
 				'har.seq', 'har.miktar', 'har.fiyat', 'har.dvfiyat', 'har.brutbedel', 'har.dvbrutbedel', 'har.bedel', 'har.dvbedel',
 				'har.ekaciklama', 'har.detkdvekvergitipi', 'har.detistisnakod', 'har.perkdv', 'kver.kdvorani', 'har.perstopaj', 'sver.stopajorani',
-				'tevver.kdvtevoranx', 'tevver.kdvtevoranpay', 'tevver.tevislemturu', 'har.pertevkifat', 'har.satiriskonto', 'har.sonuciskoran'
+				'har.dettevhesapkod', 'tevver.kdvtevoranx', 'tevver.kdvtevoranpay', 'tevver.tevislemturu', 'har.pertevkifat', 'har.satiriskonto', 'har.sonuciskoran'
 			])
 			if (genelWhereDuzenleyici) {
 				let __e = { ..._e, psTip, fisTable, harTable, uni, sent, where: wh }
@@ -373,7 +375,8 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 			result[rec.kod] = rec
 	}
 	static getOncekiIrsTSNStm(e) {
-		let uni = new MQUnionAll(); let stm = new MQStm({ sent: uni }), {ps2SayacListe} = e;
+		let uni = new MQUnionAll()
+		let stm = new MQStm({ sent: uni }), {ps2SayacListe} = e;
 		let fisSayaclar = ps2SayacListe.P; if (fisSayaclar) {
 			let sent = new MQSent({
 				from: 'irs2fat don', where: { inDizi: fisSayaclar, saha: 'don.fatsayac' },
@@ -387,6 +390,58 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 		return stm
 	}
 	oncekiIrsTSNYukle(e) { let {baslik} = this; baslik.oncekiIrsTSNListe = e._detaylar }
+
+	async onKontrol_efa(e) {
+		let { baslik, detaylar, temps, dipNotlar } = this
+		let { fisTipi, istisnaKod } = baslik
+		let hDetIstTip, hDetTevKod
+		// dettevhesapkod
+		switch (fisTipi) {
+			case 'TV': {
+				// ??
+				break
+			}
+			case 'TK': {
+				istisnaKod = '223'
+				hDetIstTip = 'IS'
+				break
+			}
+			case 'IS': case 'KI': case 'OM': {
+				hDetIstTip = fisTipi
+				break
+			}
+		}
+
+		let detayTipSet = asSet(['S', 'H', 'D'])
+		let istisnaTipSet = asSet(['IS', 'KI', 'OM'])
+		if (istisnaKod) {
+			;detaylar.forEach(d => {
+				let { kayittipi: tip, detkdvekvergitipi: vergiTipi } = d
+				if (detayTipSet[tip] && !vergiTipi) {
+					d.detkdvekvergitipi = hDetIstTip
+					d.detistisnakod = istisnaKod
+				}
+			})
+		}
+
+		let detIstKodSet = temps.detIstKodSet ??= {}
+		;detaylar.forEach(d => {
+			let { detkdvekvergitipi: vergiTipi, detistisnakod: istKod } = d
+			if (istisnaTipSet[vergiTipi])
+				detIstKodSet[istKod] = true
+		})
+
+		;{
+			let istDict = await MQVergi.getTumIstisnaDict()
+			for (let istKod in detIstKodSet) {
+				let { aciklama } = istDict[istKod] ?? {}
+				dipNotlar.push([ `<b>${istKod}</b>`, aciklama ].filter(Boolean).join('-'))
+			}
+		}
+		
+		return this
+	}
+	
 	xmlDuzenle_rootElement_ilk(e) {
 		super.xmlDuzenle_rootElement_ilk(e); let {xw} = e;
 		xw.writeAttributeString('xmlns', 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2')
@@ -399,9 +454,13 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 		let {params} = app, {isyeri} = params
 		let param_zorunlu = params.zorunlu, param_stok = params.stok, param_eIslem = params.eIslem, param_eIslemKullanim = param_eIslem.kullanim, param_eIslemKural = param_eIslem.kural;
 		let {xw} = e, {baslik, dvKod, dvKur} = this, {eYontem, ortalamavade, plasiyerkod, plasiyeradi, tahsekliadi, faturaOzelTipText, eArsivBelgeTipBelirtec, oncekiIrsTSNListe} = baslik;
-		let {sutOnayKodu, tapdkNox} = isyeri.diger; await this.xmlDuzenleInternal_docRefBaslikEkSaha({ xw, name: 'Fatura Ek Tipi', value: faturaOzelTipText });
-		if (eYontem) { eYontem.xmlDuzenle_docRefs(e) } await this.xmlDuzenleInternal_logoBilgileri(e)
-		await super.xmlDuzenle_docRefs(e);
+		let { sutOnayKodu, tapdkNox } = isyeri.diger
+		await this.xmlDuzenleInternal_docRefBaslikEkSaha({ xw, name: 'Fatura Ek Tipi', value: faturaOzelTipText })
+		await eYontem?.xmlDuzenle_docRefs?.(e)
+		
+		await this.xmlDuzenleInternal_logoBilgileri(e)
+		await super.xmlDuzenle_docRefs(e)    // !! xsltDuzenleyiciEkle kullanan her yer bundan önce çağırılmalı
+		
 		await this.xmlDuzenleInternal_docRefBaslikEkSaha({ xw, name: 'Süt Onay', value: sutOnayKodu }); await this.xmlDuzenleInternal_docRefBaslikEkSaha({ xw, name: 'Tapdk No', value: tapdkNox });
 		if (empty(oncekiIrsTSNListe)) { await this.xmlDuzenleInternal_docRef({ xw, type: 'IS_DESPATCH' }) }
 		if (eArsivBelgeTipBelirtec) { await this.xmlDuzenleInternal_docRef({ xw, typeCode: 'SEND_TYPE', id: eArsivBelgeTipBelirtec }) }
@@ -465,10 +524,10 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 		}
 	}
 	xmlDuzenle_notes_bakiye({ xw }) {
-		let {baslik, baslik: { oncekiXBakiye, sonrakiXBakiye, dovizlimi, dvKodUyarlanmis }} = this
-		let {dipOncekiBakiye, dipSonBakiye, bakiyeDovizliIseAyricaTLBakiye} = app.params.eIslem.kullanim
+		let { baslik, baslik: { oncekiXBakiye, sonrakiXBakiye, dovizlimi, dvKodUyarlanmis } } = this
+		let { dipOncekiBakiye, dipSonBakiye, bakiyeDovizliIseAyricaTLBakiye } = app.params.eIslem.kullanim
 		let bakiyeTextEkle = args => {
-			let {prefix, bakiye, tlBakiye} = args
+			let { prefix, bakiye, tlBakiye } = args
 			let textListe = [`${toStringWithFra(bakiye, 2)} ${dvKodUyarlanmis}`]
 			if (dovizlimi && bakiyeDovizliIseAyricaTLBakiye) {
 				if (isFunction(tlBakiye))
@@ -679,9 +738,9 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 				//	: null
 			},
 			get istisna() {
-				let { detkdvekvergitipi: ekVergiTipi } = det
-				return ekVergiTipi == 'KI' || ekVergiTipi == 'IS'
-					? { bedel: 0, oran: 0, taxTypeCode: MQVergiKdv.eIslTypeCode, taxName: 'KDV' }
+				let { detkdvekvergitipi: ekVergiTipi, detistisnakod: istisnaKod } = det
+				return ekVergiTipi == 'KI' || ekVergiTipi == 'IS' || ekVergiTipi == 'OM'
+					? { bedel: 0, oran: 0, istisnaKod, taxTypeCode: MQVergiKdv.eIslTypeCode, taxName: 'KDV' }
 					: null
 			}, 
 			get stopaj() {
@@ -695,6 +754,9 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 					: null
 			}
 		}
+
+		if (tip2VergiYapi.istisna && tip2VergiYapi.kdv)
+			delete tip2VergiYapi.kdv
 
 		let cnv = { kdv: 'perkdv', stopaj: 'perstopaj', otv: 'perotv' }
 		let toplamBedel = 0
@@ -866,7 +928,6 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 		let { eIslem } = app.params
 		let { baslik, detaylar, bedelSelector } = this
 		let { fistipi: fisTipi, ayrimtipi: ayrimTipi, alimIademi, eYontem } = baslik
-		let icmal = this.icmalYoksaOlustur()
 
 		if (alimIademi) 
 			return fisTipi == 'SR' ? 'TEVKIFATIADE' : 'IADE'
@@ -877,26 +938,25 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 		if (ayrimTipi == 'IK')
 			return 'IHRACKAYITLI'
 		
-		let istisnaTipler = ['KI', 'TK', 'TR', 'IS']
+		if (fisTipi == 'OM')
+			return 'OZELMATRAH'
+
+		let icmal = this.icmalYoksaOlustur()
+		let istisnaTipler = ['KI', 'TK', 'IS']
 		let ihrTipler = ['IH', 'MI']
-		
-		if (istisnaTipler.includes(fisTipi) || ihrTipler.includes(ayrimTipi))
+		let { vergiTip2Oran2EVergiRecs_tevkifatsiz: vergiTip2Oran2Recs } = icmal
+		if (istisnaTipler.includes(fisTipi) || ihrTipler.includes(ayrimTipi) || empty(vergiTip2Oran2Recs?.[MQVergiKdv.eIslTypeCode]))
 			return 'ISTISNA'
-		
+
 		let ekVergiTipleri = detaylar
 			.map(d => d.detkdvekvergitipi)
 			.filter(Boolean)
 		if (ekVergiTipleri.includes('TV'))
 			return 'TEVKIFAT'
 		
-		let detaylarHepsiIstisnami = ekVergiTipleri.every(v => v == 'IS' || v == 'KI')
-		if (detaylarHepsiIstisnami)
+		let detayIstisnami = ekVergiTipleri.some(v => v == 'IS' || v == 'KI')
+		if (detayIstisnami)
 			return 'ISTISNA'
-		
-		let { vergiTip2Oran2EVergiRecs_tevkifatsiz: vergiTip2Oran2Recs } = icmal
-			/* Detay KDV'ler = 0 & Detayda ISTISNA YOK & app.params.eIslem.kdvMuafiyetKod == '812' => 'OZELMATRAH' */
-		if (empty(vergiTip2Oran2Recs?.[MQVergiKdv.eIslTypeCode])) {
-			return !(ekVergiTipleri.IS || ekVergiTipleri.KI) && eIslem.kdvMuafiyetKod == '812' ? 'OZELMATRAH' : 'ISTISNA' }
 		
 		if (eYontem?.varsaGenelYontem?.sgkmi)
 			return 'SGK'

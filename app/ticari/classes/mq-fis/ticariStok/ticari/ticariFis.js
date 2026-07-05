@@ -68,7 +68,8 @@ class TicariFis extends TSOrtakFis {
 			altHesapKod: new PInstStr('cariitn'),
 			sevkAdresKod: new PInstStr('xadreskod'),
 			nakSekliKod: new PInstStr('nakseklikod'),
-			fisTipi: new PInstTekSecim('fistipi', clsFisTipi)
+			fisTipi: new PInstTekSecim('fistipi', clsFisTipi),
+			istisnaKod: new PInstStr('kdvistisnaturu')
 		})
 	}
 	static secimlerDuzenle(e) {
@@ -97,19 +98,79 @@ class TicariFis extends TSOrtakFis {
 				inst.fisTipi?.class?.kaListe
 					.filter(ka => !isPlainObject(ka))
 			)
+			.degisince(_e => {
+				let { builder: fbd, builder: { altInst: inst, parentBuilder: { id2Builder } } } = _e
+				inst?.fisTipiDegisti({ ..._e, ...e })
+				;{
+					let { istisnaKod: fbd } = id2Builder, { part } = fbd
+					fbd.updateVisible()
+					part.val('')
+					inst.istisnaKod = ''
+				}
+			})
+			.addStyle_wh(300)
+
+		tsnForm.addSimpleComboBox('istisnaKod', 'İstisna Kodu', 'İstisna Kodu')
+			.etiketGosterim_yok()
+			.noMF()
+			.setSource(async _e => {
+				let { builder: { altInst: fis } } = _e
+				let { fisTipi, class: { alimmi } } = fis
+				let ba = alimmi ? 'A' : 'B'
+				let { tevkifatlimi, tamIstisnami: tammi, kismiIstisnami: kismimi } = fisTipi
+				if (tevkifatlimi) {
+					let recs = []
+					;{
+						let sent = new MQSent(), { where: wh, sahalar } = sent
+						sent.fromAdd(MQVergi.table)
+						wh
+							.degerAta('KTEV', 'vergitipi')
+							.degerAta(ba, 'ba')
+						sahalar.add('tevislemturu islemTuru', 'kdvtevoranpay pay', 'kdvtevoranbaz baz')
+						recs = await sent.execSelect() ?? []
+					}
+					return recs.map(r => {
+						let { islemTuru, pay, baz } = r
+						return new EkVergiYapi({
+							islemTuru,
+							oran: new Oran({ pay, baz })
+						})
+					})
+				}
+				
+				let istisnami = tammi || kismimi
+				if (istisnami)
+					return await MQVergi.getIstisnalar({ kismimi, alimmi })
+				
+				return []
+			})
 			.degisince(_e =>
 				_e.builder?.altInst?.fisTipiDegisti({ ..._e, ...e }))
-			.addStyle_wh(300)
+			.setVisibleKosulu(({ builder: { altInst: { fisTipi } } }) => {
+				return ['TV', 'IS', 'KI', 'OM']
+					.includes(fisTipi?.char ?? fisTipi)
+			})
+			.addStyle_wh('var(--full)')
+			// .addStyle((`$elementCSS { margin-top: 30px !important }`))
 		
 		builders[0].addSimpleComboBox('mustKod', 'Müşteri', 'Müşteri')
 			.etiketGosterim_yok()
 			.setMFSinif(MQCari)
 			.ozelQueryDuzenleBlock(({ alias, sent: { sahalar } }) =>
 				sahalar.add(`${alias}.efaturakullanirmi`))
-			.degisince(_e => {
+			.degisince(async _e => {
 				let { type, builder: { altInst: inst } = {} } = _e
+				await MQCari.getGloKod2Rec()
 				if (type == 'batch')
 					delay(5).then(() => inst?.cariDegisti({ ..._e, ...e }))
+			})
+			.setRenderer(({ ka }) => {
+				let { kod, aciklama } = ka
+				if (!kod)
+					return
+				let { [kod]: { vkno: vkn } = {} } = MQCari.globals.kod2Rec ?? {}
+				if (vkn)
+					ka.aciklama += ` | ${vkn} |`
 			})
 			.addStyle(`$elementCSS { min-width: 70% !important }`)
 	}

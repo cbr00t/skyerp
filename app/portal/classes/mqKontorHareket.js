@@ -1,11 +1,13 @@
 class MQKontorHareket extends MQSayacli {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sayacSaha() { return 'kaysayac' }
-	static get uygunmu() { return this != MQKontorHareket } static get kontorSinif() { return MQKontor }
+	static get uygunmu() { return true }
+	static get kontorSinif() { return MQKontor }
 	static get tip() { return this.kontorSinif.tip } static get tipAdi() { return this.kontorSinif.tipAdi }
 	static get kodListeTipi() { return `KHAR-${this.tip}` }
 	static get sinifAdi() { return this.tipAdi }
 	static get table() { return this.kontorSinif.detaySinif.table }
 	static get tableAlias() { return 'har' }
+	static get hepsimi() { return this == MQKontorHareket }
 	static get vioSeri() { return this.kontorSinif.vioSeri }
 	static get oemi() { return this.kontorSinif.oemi }
 	static get eDeftermi() { return this.kontorSinif.eDeftermi }
@@ -86,8 +88,10 @@ class MQKontorHareket extends MQSayacli {
 		let { islemTuslariPart = {} } = gridPart
 		let { layout: islemTuslari, sol } = islemTuslariPart
 		let { rootBuilder: rfb } = e
-		rfb.setInst(gridPart)
-			.addStyle(`$elementCSS .islemTuslari { overflow: hidden hidden !important; margin-bottom: 0 !important }`)
+		rfb.setInst(gridPart).addStyle(
+			`$elementCSS { max-height: calc(var(--full) - 5px) }
+			 $elementCSS .grid.part { overflow: hidden hidden !important; margin-bottom: 0 !important }`
+		)
 		if ((login.adminmi || login.sefmi) && this.faturalastirmaYapilirmi) {
 			rfb.addButton('faturalastir', 'FAT')
 				.addStyle_fullWH(90)
@@ -95,7 +99,7 @@ class MQKontorHareket extends MQSayacli {
 				.addCSS('relative')
 				.addStyle(`$elementCSS { top: -48px !important; left: 580px !important }`)
 				.onClick(async _e => {
-					let {selectedRecs: recs} = gridPart;
+					let { selectedRecs: recs } = gridPart
 					try { await this.kontorSinif.kontor_topluFaturalastirIstendi({ ..._e, ...e, recs }) }
 					catch (ex) {
 						if (ex?.rc == 'userClose') { return }
@@ -194,12 +198,15 @@ class MQKontorHareket extends MQSayacli {
 	static orjBaslikListesi_argsDuzenle({ gridPart, sender, args }) {
 		super.orjBaslikListesi_argsDuzenle(...arguments)
 		gridPart ??= sender
-		extend(args, { rowsHeight: 40, groupsExpandedByDefault: true })
+		extend(args, {
+			rowsHeight: 40, groupsExpandedByDefault: false,
+			showStatusBar: true, showAggregates: true, showGroupAggregates: true
+		})
 	}
 	static standartGorunumListesiDuzenle({ liste }) {
 		super.standartGorunumListesiDuzenle(...arguments)
 		liste.push(
-			'tarih', 'mustkod', 'mustadi', 'kontorsayi',
+			'tipAdi', 'tarih', 'mustkod', 'mustadi', 'kontorsayi',
 			'ahtipitext', 'fatdurumtext', 'btamamlandi',
 			'fiyat', 'fiyat2', 'ayrimTipiText',
 			'fisnox', /*'tahseklino',*/
@@ -208,16 +215,17 @@ class MQKontorHareket extends MQSayacli {
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
-		let { tableAlias: alias, kontorSinif: mfSinif } = this
+		let { hepsimi, tableAlias: alias, kontorSinif: mfSinif } = this
 		let { eDeftermi } = mfSinif
 		liste.push(...[
+			( hepsimi ? new GridKolon({ belirtec: 'tipAdi', text: 'Tip', genislikCh: 20 }).noSql().checkedList() : null ),
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 15, filterType: 'checkedlist' }).tipDate(),
 			new GridKolon({ belirtec: 'mustkod', text: 'Müşteri', genislikCh: 15, sql: 'fis.mustkod' }),
 			new GridKolon({ belirtec: 'mustadi', text: 'Müşteri Adı', genislikCh: 50, sql: 'mus.aciklama' }),
 			new GridKolon({ belirtec: 'ahtipitext', text: 'A/H Tip', genislikCh: 13, sql: KontorAHTip.getClause(`${alias}.ahtipi`), filterType: 'checkedlist' }),
 			new GridKolon({ belirtec: 'btamamlandi', text: 'Tamam?', genislikCh: 10 }).tipBool(),
 			new GridKolon({ belirtec: 'fisnox', text: 'Fiş No', genislikCh: 23 }),
-			new GridKolon({ belirtec: 'kontorsayi', text: 'Kontör', genislikCh: 10, filterType: 'checkedlist' }).tipDecimal(0),
+			new GridKolon({ belirtec: 'kontorsayi', text: 'Kontör', genislikCh: 10, filterType: 'checkedlist' }).tipDecimal(0).sum(),
 			new GridKolon({
 				belirtec: 'fatdurumtext', text: 'Fat.Durum', genislikCh: 18,
 				sql: KontorFatDurum.getClause(`${alias}.fatdurum`), filterType: 'checkedlist',
@@ -227,7 +235,7 @@ class MQKontorHareket extends MQSayacli {
 					return html
 				}
 			}),
-			new GridKolon({ belirtec: 'fiyat', text: 'Fiyat', genislikCh: 13 }).tipDecimal_bedel().sifirGosterme(),
+			new GridKolon({ belirtec: 'fiyat', text: 'Fiyat', genislikCh: 13 }).tipDecimal_bedel().sifirGosterme().avg(),
 			( eDeftermi ? new GridKolon({
 				belirtec: 'fiyat2', text: 'Fiyat 2', genislikCh: 13
 			}).tipDecimal_bedel().sifirGosterme() : null ),
@@ -249,7 +257,7 @@ class MQKontorHareket extends MQSayacli {
 	}
 	static loadServerData_queryDuzenle({ sender, stm, sent, basit, tekilOku, modelKullanmi }) {
 		super.loadServerData_queryDuzenle(...arguments)
-		let { kontorSinif, tip, tableAlias: alias } = this
+		let { hepsimi, kontorSinif, tip, tableAlias: alias } = this
 		let { table: fisTable } = kontorSinif
 		let { where: wh, sahalar, alias2Deger } = sent, { orderBy } = stm
 		let { current: login } = MQLogin
@@ -261,9 +269,13 @@ class MQKontorHareket extends MQSayacli {
 			.fromIliski(`${MQLogin_Bayi.table} bay`, `mus.bayikod = bay.kod`)
 			.fromIliski(`${MQVPIl.table} il`, `mus.ilkod = il.kod`)
 			.har2TahSekliBagla()
-		wh.degerAta(tip, 'fis.tip').add(`mus.aktifmi <> ''`);
+		if (!hepsimi)
+			wh.degerAta(tip, 'fis.tip')
+		wh.add(`mus.aktifmi <> ''`)
 		if (!alias2Deger.fissayac) { sahalar.add(`${alias}.fissayac`) }
 		if (!alias2Deger.kaysayac) { sahalar.add(`${alias}.kaysayac`) }
+		if (!alias2Deger.tip)
+			sahalar.add('fis.tip')
 		if (!alias2Deger.ahtipi) { sahalar.add(`${alias}.ahtipi`) }
 		if (!alias2Deger.btamamlandi) { sahalar.add(`${alias}.btamamlandi`) }
 		if (!alias2Deger.fatdurum) { sahalar.add(`${alias}.fatdurum`) }
@@ -284,21 +296,39 @@ class MQKontorHareket extends MQSayacli {
 			if (!alias2Deger.onmuhmustkod)
 				sahalar.add('abay.onmuhmustkod')
 			if (!(tekilOku || modelKullanmi))
-				orderBy.liste = ['ahtipi', 'tarih DESC', 'mustkod']
+				orderBy.liste = ['tip', 'ahtipi', 'tarih DESC', 'mustkod']
 			;['fiyat', 'fiyat2', 'ayrimtipi']
 				.filter(k => !alias2Deger[k])
 				.forEach(k => sahalar.add(`${alias}.${k}`))
 		}
 	}
-	static orjBaslikListesi_recsDuzenle({ recs }) {
-		super.orjBaslikListesi_recsDuzenle(...arguments)
+	static async loadServerDataDogrudan(e) {
+		let recs = await super.loadServerDataDogrudan(e)
+		if (!recs)
+			return recs
+		
+		let { kaDict: tip2KA } = KontorTip
+		;recs.forEach(r => {
+			let { tip } = r
+			r.tipAdi ??= tip2KA[tip]?.aciklama ?? tip
+		})
+
+		return recs
 	}
 	static gridVeriYuklendi({ gridPart, grid, gridWidget }) {
 		super.gridVeriYuklendi(...arguments)
-		let grupBelirtec = 'ahtipitext'
-		if (grupBelirtec && gridPart.belirtec2Kolon[grupBelirtec]) {
-			grid.jqxGrid('groups', [grupBelirtec])
-			gridWidget.hidecolumn(grupBelirtec)
+		let { hepsimi } = this
+		let { secimler: { ahTipiSecim: { value: ahTipleri } } } = gridPart
+		let groups = [
+			( hepsimi ? 'tipAdi' : null ),
+			( empty(ahTipleri) ? 'ahtipitext' : null )
+		].filter(Boolean)
+
+		if (!empty(groups)) {
+			grid.jqxGrid('groups',
+				groups.filter(g => gridPart.belirtec2Kolon[g]))
+			;groups.forEach(g =>
+				gridWidget.hidecolumn(g))
 		}
 	}
 	static orjBaslikListesi_satirCiftTiklandi({ sender: gridPart }) {

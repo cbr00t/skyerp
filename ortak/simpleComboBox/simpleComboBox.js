@@ -34,7 +34,7 @@ class SimpleComboBoxPart extends Part {
 		layout?.[kod ? 'addClass' : 'removeClass']('has-value')
 		if (input?.length) {
 			// input.val(this.renderedInputText)
-			let {placeholder, _initPlaceholder} = this
+			let { placeholder, _initPlaceholder } = this
 			if (!autoClear) {
 				placeholder = this.renderedText
 				placeholder ||= _initPlaceholder || placeholder
@@ -97,11 +97,11 @@ class SimpleComboBoxPart extends Part {
 		return kod ?? aciklama
 	}
 	get renderedInputText() {
-		let {value: kod, aciklama} = this
+		let { value: kod, aciklama } = this
 		return aciklama || kod
 	}
 	get renderedText() {
-		let sender = this, {layout, item, kodsuzmu: kodsuz, mfSinif, kodSaha, adiSaha} = this
+		let sender = this, { layout, item, kodsuzmu: kodsuz, mfSinif, kodSaha, adiSaha } = this
 		return this.renderItem({ sender, layout, item, kodsuz, mfSinif, kodSaha, adiSaha })
 	}
 	/****** CKodVeAdi/MQKA interface ********/
@@ -159,7 +159,7 @@ class SimpleComboBoxPart extends Part {
 		let _e = { ...e, sender, layout, input }
 		argsDuzenle?.call(this, _e)
 		let { id, name = this.id, mfSinif, kodSaha, adiSaha, delay } = this
-		let { minLength, maxRows, listSource, _disabled: disabled } = this
+		let { minLength, maxRows, source, listSource, _disabled: disabled } = this
 		layout = this.layout = _e.layout
 		input = this.input = _e.input
 		for (let [k, v] of entries({ id, name })) {
@@ -225,7 +225,7 @@ class SimpleComboBoxPart extends Part {
 				})
 			})
 		}, 100)
-		if (listSource || mfSinif) {
+		if (source || listSource || mfSinif) {
 			let btnListe = layout.children('button#liste')
 			if (!btnListe?.length)
 				(btnListe = $('<button id="liste" tabindex="-1"> L </button>')).appendTo(layout)
@@ -251,7 +251,9 @@ class SimpleComboBoxPart extends Part {
 		return super.destroyPart(e)
 	}
 	renderItem({ sender, layout, input, item, kodsuz, mfSinif, kodSaha, adiSaha }) {
-		let {renderer} = this, ka = item
+		let e = { ...arguments[0] }
+		let { renderer } = this
+		let ka = item
 		ka = isObject(item)
 				? new CKodVeAdi({ kod: item[kodSaha], aciklama: item[adiSaha] })
 				: new CKodVeAdi({ kod: null, aciklama: item })
@@ -259,11 +261,21 @@ class SimpleComboBoxPart extends Part {
 			ka.kod = null
 		if (ka.kod != null && !(ka.kod || isString(ka.kod)))
 			ka.kod = null
-		let result = renderer?.call(this, ...arguments)
+
+		if (ka.aciklama) {
+			try { ka.aciklama = $(ka.aciklama).text() || ka.aciklama }
+			catch (ex) { }
+		}
+
+		e.ka = ka
+		let result = renderer?.call(this, e)
 		// result ??= kodsuz ? ka.aciklama || ka.kod : ka.parantezliOzet()                                // * kodsuz ise ve aciklama boşsa (kod => aciklama kabul edilir)
-		result ??= kodsuz || !(ka.kod && ka.aciklama)
-			? ka.aciklama || ka.kod || ''
-			: `${ka.aciklama || ''}  (${ka.kod || ''})`
+		result ??= (
+			kodsuz || !(ka.kod && ka.aciklama)
+				? ka.aciklama || ka.kod || ''
+				: `${ka.aciklama || ''}  (${ka.kod || ''})`
+		)
+		
 		return result
 	}
 	 async _onChange({ type, item }) {
@@ -350,7 +362,7 @@ class SimpleComboBoxPart extends Part {
 	}
 	async aciklamaBelirle() {
 		let sender = this
-		let { value, mfSinif, kodSaha, adiSaha, source, listSource, ozelQueryDuzenle } = this
+		let { builder, value, mfSinif, kodSaha, adiSaha, source, listSource, ozelQueryDuzenle } = this
 		if (!value) {
 			if (this.aciklama)
 				this.aciklama = ''
@@ -360,7 +372,7 @@ class SimpleComboBoxPart extends Part {
 		if (!(mfSinif || source || listSource))
 			return this
 		
-		let e = { ...arguments[0], sender, kodSaha, adiSaha, value, maxRow: 1, ozelQueryDuzenle }
+		let e = { ...arguments[0], builder, sender, kodSaha, adiSaha, value, maxRow: 1, ozelQueryDuzenle }
 		let aciklama
 		if (ozelQueryDuzenle) {
 			let recs = await mfSinif?.loadServerData({ ...e, ozelQueryDuzenle, value }) ?? []
@@ -373,8 +385,10 @@ class SimpleComboBoxPart extends Part {
 			let rec = (await (listSource ?? source).call?.(this, e))?.[0]
 			aciklama = rec?.[adiSaha]
 		}
+		
 		if (aciklama)
 			this.aciklama = aciklama
+		
 		return this
 	}
 	listeIstendi({ event: evt }) {
@@ -384,7 +398,7 @@ class SimpleComboBoxPart extends Part {
 			return
 
 		let sender = this
-		let { layout, input } = this
+		let { builder, layout, input } = this
 		let { kodsuzmu, kodSaha, adiSaha, item, value: kod, aciklama } = this
 		let inGridEditor = layout?.hasClass('jqx-grid-cell-edit')
 		let inputVal = input.val() ?? ''
@@ -392,6 +406,8 @@ class SimpleComboBoxPart extends Part {
 		let { kodSaha: mfKodSaha, adiSaha: mfAdiSaha } = orjMFSinif
 		let cls = (class extends orjMFSinif {
 			static get classKey() { return `${orjMFSinif.classKey}_tmp` }
+			static get tanimlanabilirmi() { return mfSinif ? orjMFSinif.tanimlanabilirmi : false }
+			static get silinebilirmi() { return mfSinif ? orjMFSinif.silinebilirmi : false }
 			static orjBaslikListesi_gridInit(e) {
 				orjMFSinif.orjBaslikListesi_gridInit(e)
 				let { sender: gridPart, sender: { bulPart } } = e
@@ -449,7 +465,7 @@ class SimpleComboBoxPart extends Part {
 				let { sender: gridPart } = e
 				let likeValue = aciklama || kod
 				let _e = {
-					...e, sender, gridPart, layout, input,
+					...e, builder, sender, gridPart, layout, input,
 					mfSinif, kodSaha, adiSaha, item
 					// value: likeValue                                                         // server-side LIKE filtering, if class supports
 				}
@@ -471,7 +487,7 @@ class SimpleComboBoxPart extends Part {
 					for (let item of recs.slice(0, -1)) {
 						let value = item[kodSaha], aciklama = item[adiSaha]
 						let kod = value, label = aciklama
-						let event = { type: 'list', layout, input, item, recs, kod, aciklama, value, label }
+						let event = { builder, type: 'list', layout, input, item, recs, kod, aciklama, value, label }
 						queue.push(event)
 					}
 					//clearTimeout(this._timer_queue)
@@ -481,7 +497,7 @@ class SimpleComboBoxPart extends Part {
 					let item = this.item = recs.at(-1)
 					let value = item[kodSaha], aciklama = item[adiSaha]
 					let kod = value, label = aciklama
-					await this._onChange({ type: 'list', layout, input, item, recs, kod, aciklama, value, label })
+					await this._onChange({ builder, type: 'list', layout, input, item, recs, kod, aciklama, value, label })
 				}
 				// this.focus()
 			},
@@ -495,7 +511,7 @@ class SimpleComboBoxPart extends Part {
 			return null
 		
 		let sender = this
-		let { kodsuzmu: kodsuz, mfSinif, kodSaha, adiSaha, maxRows: maxRow } = this
+		let { builder, kodsuzmu: kodsuz, mfSinif, kodSaha, adiSaha, maxRows: maxRow } = this
 		let { source, item, value: kod, aciklama, renderedInputText: text } = this
 		let { ozelQueryDuzenle } = this
 		
@@ -508,7 +524,7 @@ class SimpleComboBoxPart extends Part {
 		if (!isFunction(source))
 			return source
 		
-		extend(e, { sender, item, kod, aciklama, text, kodsuz, mfSinif, kodSaha, adiSaha })
+		extend(e, { builder, sender, item, kod, aciklama, text, kodsuz, mfSinif, kodSaha, adiSaha })
 		return source.call(this, e)
 	}
 	_onFocus(e) {
@@ -634,6 +650,7 @@ class SimpleComboBoxPart extends Part {
 	setMaxRows(value) { this.maxRows = value; return this }                  // autocomplete maxRows
 	enable() { this.disabled = false; return this }
 	disable() { this.disabled = true; return this }
+	setRenderer(handler) { this.renderer = handler; return this }
 	argsDuzenleIslemi(handler) { this.argsDuzenle = handler; return this }
 	setParentPart(v) { this.parentPart = v; return this }
 	setSender(v) { this.sender = v; return this }

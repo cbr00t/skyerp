@@ -1,7 +1,12 @@
 class MQKontor extends MQDetayliMaster {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get uygunmu() { return this != MQKontor }
-	static get tip() { return null } static get tipAdi() { return KontorTip.kaDict[this.tip]?.aciklama ?? '' }
+	static get tip() { return null }
+	static get tipAdi() {
+		let { hepsimi } = this
+		return hepsimi ? `<b class="royalblue">Tüm Kontörler</b>` : null
+	}
+	static get hepsimi() { return this == MQKontor }
 	static get kodListeTipi() { return `KNT-${this.tip}` }
 	static get sinifAdi() { return this.tipAdi }
 	static get table() { return 'muskontor' } static get tableAlias() { return 'knt' }
@@ -11,6 +16,7 @@ class MQKontor extends MQDetayliMaster {
 	static get tumKolonlarGosterilirmi() { return false }
 	static get kolonFiltreKullanilirmi() { return false }
 	static get raporKullanilirmi() { return false }
+	static get seviyeAcKapatKullanilirmi() { return this.hepsimi }
 	static get noAutoFocus() { return true }
 	static get tanimlanabilirmi() { return false }
 	static get degistirilebilirmi() { return false }
@@ -35,6 +41,16 @@ class MQKontor extends MQDetayliMaster {
 	}
 	static get vioHizmetKodlar() {
 		return [ this.vioAsilHizmetKod ].filter(Boolean)
+	}
+	static get tekSecim() { return new KontorTip() }
+	static get kaListe() {
+		return entries(this.key2SubClasses)
+			.filter(([, c]) => c.uygunmu)
+			.map(([, c]) => {
+				let { tip: t, tipAdi: a } = c
+				let tlw = t?.toLowerCase() ?? null
+				return new CKodAdiVeEkBilgi([t || '', a, `${tlw}mi`, c])
+			})
 	}
 	
 	static pTanimDuzenle({ pTanim }) {
@@ -273,19 +289,26 @@ class MQKontor extends MQDetayliMaster {
 	static orjBaslikListesi_argsDuzenle({ gridPart, sender, args }) {
 		super.orjBaslikListesi_argsDuzenle(...arguments)
 		gridPart ??= sender
-		extend(args, { rowsHeight: 40 })
+		extend(args, { rowsHeight: 40, groupsExpandedByDefault: true })
+	}
+	static orjBaslikListesi_groupsDuzenle({ sender: gridPart, liste }) {
+		super.orjBaslikListesi_groupsDuzenle(...arguments)
+		let { hepsimi } = this
+		if (hepsimi)
+			liste.push('tipAdi')
 	}
 	static standartGorunumListesiDuzenle({ liste }) {
 		super.standartGorunumListesiDuzenle(...arguments)
 		liste.push(
-			'mustkod', 'mustadi', 'bayikod', 'anabayikod',
+			'tipAdi', 'mustkod', 'mustadi', 'bayikod', 'anabayikod',
 			'topalinan', 'topharcanan', 'topkalan', 'tanitim'
 		)
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
-		let { oemi } = this
+		let { hepsimi, oemi } = this
 		super.orjBaslikListesiDuzenle(...arguments)
 		liste.push(...[
+			( hepsimi ? new GridKolon({ belirtec: 'tipAdi', text: 'Tip', genislikCh: 20 }).noSql().checkedList() : null ),
 			new GridKolon({ belirtec: 'mustkod', text: 'Müşteri', genislikCh: 15 }),
 			new GridKolon({ belirtec: 'mustadi', text: 'Müşteri Adı', genislikCh: 50, sql: 'mus.aciklama' }),
 			new GridKolon({
@@ -312,22 +335,33 @@ class MQKontor extends MQDetayliMaster {
 	}
 	static loadServerData_queryDuzenle({ sender, stm, sent, basit, tekilOku, modelKullanmi }) {
 		super.loadServerData_queryDuzenle(...arguments)
-		let {tableAlias: alias, detayTable} = this, {mustKod} = sender ?? {}
-		let {where: wh, sahalar, alias2Deger} = sent, {orderBy} = stm
+		let { tableAlias: alias, detayTable } = this
+		let { where: wh, sahalar, alias2Deger } = sent, { orderBy } = stm
+		let { mustKod } = sender ?? {}
 		sent
-			.fromIliski(`${detayTable} har`, `har.fissayac = ${alias}.kaysayac`)
-			.fromIliski('musteri mus', `${alias}.mustkod = mus.kod`)
-			.fromIliski(`${MQLogin_Bayi.table} bay`, `mus.bayikod = bay.kod`)
+			.innerJoin(alias, `${detayTable} har`, `har.fissayac = ${alias}.kaysayac`)
+			.innerJoin(alias, 'musteri mus', `${alias}.mustkod = mus.kod`)
+			.innerJoin('mus', `${MQLogin_Bayi.table} bay`, `mus.bayikod = bay.kod`)
 			.leftJoin('bay', `${MQVPAnaBayi.table} abay`, `bay.anabayikod = abay.kod`)
-			.fromIliski(`${MQVPIl.table} il`, `mus.ilkod = il.kod`);
-		if (!alias2Deger.kaysayac) { sahalar.add(`${alias}.kaysayac`) }
-		if (!alias2Deger.bayikod) { sahalar.add('mus.bayikod') }
-		if (!alias2Deger.anabayikod) { sahalar.add('bay.anabayikod') }
-		if (!alias2Deger.mustkod) { sahalar.add('fis.mustkod') }
+			.innerJoin('mus', `${MQVPIl.table} il`, `mus.ilkod = il.kod`);
+
+		if (!alias2Deger.tip)
+			sahalar.add(`${alias}.tip`)
+		if (!alias2Deger.kaysayac)
+			sahalar.add(`${alias}.kaysayac`)
+		if (!alias2Deger.bayikod)
+			sahalar.add('mus.bayikod')
+		if (!alias2Deger.anabayikod)
+			sahalar.add('bay.anabayikod')
+		if (!alias2Deger.mustkod)
+			sahalar.add('fis.mustkod')
+		
 		if (!basit) {
-			let clauses = { anaBayi: 'bay.anabayikod', bayi: 'mus.bayikod', musteri: `${alias}.mustkod` };
-			if (mustKod) { wh.degerAta(mustKod, `${alias}.mustkod`) }
-			MQLogin.current.yetkiClauseDuzenle({ sent, clauses });
+			let clauses = { anaBayi: 'bay.anabayikod', bayi: 'mus.bayikod', musteri: `${alias}.mustkod` }
+			if (mustKod)
+				wh.degerAta(mustKod, `${alias}.mustkod`)
+			
+			MQLogin.current.yetkiClauseDuzenle({ sent, clauses })
 			if (!alias2Deger.onmuhmustkod)
 				sahalar.add('abay.onmuhmustkod')
 			//if (!(tekilOku || modelKullanmi))
@@ -335,9 +369,24 @@ class MQKontor extends MQDetayliMaster {
 		}
 		sent.groupByOlustur()
 	}
+	static async loadServerDataDogrudan(e) {
+		let recs = await super.loadServerDataDogrudan(e)
+		if (!recs)
+			return recs
+		
+		let { kaDict: tip2KA } = KontorTip
+		;recs.forEach(r => {
+			let { tip } = r
+			r.tipAdi ??= tip2KA[tip]?.aciklama ?? tip
+		})
+
+		return recs
+	}
 	static varsayilanKeyHostVarsDuzenle({ hv }) {
 		super.varsayilanKeyHostVarsDuzenle(...arguments)
-		hv.tip = this.tip
+		let { tip } = this
+		if (tip)
+			hv.tip = tip
 	}
 	alternateKeyHostVarsDuzenle({ hv }) {
 		super.alternateKeyHostVarsDuzenle(...arguments)
@@ -404,7 +453,7 @@ class MQKontor extends MQDetayliMaster {
 			content: rfb.layout,
 			args: {
 				isModal: false,
-				width: 800, height: 340
+				width: 800, height: 370
 			}
 		})
 		
@@ -451,7 +500,9 @@ class MQKontor extends MQDetayliMaster {
 			wh.add(`har.ahtipi = 'A'`, 'har.kontorsayi > 0', `har.fatdurum <> 'X'`, 'har.btamamlandi = 0')
 			// wh.inDizi(['', 'M', 'A', 'B'], 'har.fatdurum')
 			sahalar.add(
-				'fis.mustkod', 'mus.vkn', 'mus.aciklama mustunvan', 'mus.bayikod',
+				'fis.mustkod',
+				`dbo.emptycoalesce(har.altmustvkn, mus.vkn) vkn`,
+				'mus.aciklama mustunvan', 'mus.bayikod',
 				'bay.anabayikod', 'abay.onmuhmustkod', 'har.*'
 			)
 			/*.addWithAlias('har', 'tarih', 'fisnox', 'kontorsayi', 'vkn', 'tcsorguterminal', 'tcsorguanahtar')*/
@@ -574,7 +625,6 @@ class MQKontor extends MQDetayliMaster {
 		/* this._hTimer_importRecords_progress = setTimeout(() => { hideProgress(); delete this._hTimer_importRecords_progress }, 5000) */
 		return true
 	}
-	
 	static async kontor_topluFaturalastir(e) {
 		let { db, tip2Must2Recs, tumFisler, kontrolVKNListe, pm, abortCheck, errors } = e
 		let { acikIslKodPrefix, detayTable } = this
@@ -794,14 +844,16 @@ class MQKontor extends MQDetayliMaster {
 		}
 		return this
 	}
+	
 	static async kontor_ekle({ islemAdi, inst, part }) {
-		let { mustKod, kontorSayi, fatDurum, tamamlandimi, fiyat, fiyat2, ayrimTipi } = inst
+		let { tip, mustKod, altMustVKN, kontorSayi, fatDurum, tamamlandimi, fiyat, fiyat2, ayrimTipi } = inst
+		let { table, detayTable, kontorSayiKullanilirmi, eDeftermi } = this
+		tip ||= this.tip
 		if (!mustKod) {
 			hConfirm('<b>Müşteri</b> belirtilmelidir', islemAdi)
 			return false
 		}
 
-		let { eDeftermi } = this
 		ayrimTipi = ( ayrimTipi?.char ?? ayrimTipi ?? '' )?.trimEnd()
 		if (eDeftermi && !ayrimTipi) {
 			hConfirm(`e-Defter için <b>Ayrım</b> belirtilmelidir`, islemAdi)
@@ -816,7 +868,6 @@ class MQKontor extends MQDetayliMaster {
 			}
 		}
 
-		let { kontorSayiKullanilirmi } = this
 		if (kontorSayiKullanilirmi) {
 			if ((kontorSayi ?? 0) <= 0) {
 				hConfirm('<b>Kontör Sayısı</b> geçersizdir', islemAdi)
@@ -826,13 +877,13 @@ class MQKontor extends MQDetayliMaster {
 		else
 			kontorSayi ||= 1
 		
-		let { tip, table, detayTable } = this
+		let { altMustId: altmustid, newFisNox: fisnox } = this
 		let ahtipi = 'A', tarih = today(), mustkod = mustKod
+		let altmustvkn = altMustVKN || ''
 		let kontorsayi = kontorSayi
 		let fatdurum = fatDurum.char ?? fatDurum
 		let btamamlandi = bool2Int(tamamlandimi)
 		let ayrimtipi = ayrimTipi
-		let { newFisNox: fisnox } = this
 		let sayacSent = new MQSent({
 			table,
 			where: [
@@ -859,7 +910,7 @@ class MQKontor extends MQDetayliMaster {
 				table: detayTable,
 				hv: {
 					fissayac: '@fisSayac'.sqlConst(),
-					ahtipi, tarih, fisnox, kontorsayi,
+					altmustvkn, ahtipi, tarih, fisnox, kontorsayi,
 					fatdurum, btamamlandi, /* tahseklino */
 					fiyat, fiyat2, ayrimtipi
 				}
@@ -892,12 +943,15 @@ class MQKontor extends MQDetayliMaster {
 }
 class MQKontorDetay extends MQDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get table() { return 'muskontordetay' } static get seqSaha() { return null }
+	static get table() { return 'muskontordetay' }
+	static get seqSaha() { return null }
 
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		extend(pTanim, {
-			fisSayac: new PInst(), mustKod: new PInstStr(),
+			fisSayac: new PInst(),
+			mustKod: new PInstStr(),
+			altMustVKN: new PInstStr('altmustvkn'),
 			ahTipi: new PInstTekSecim('ahtipi', KontorAHTip),
 			fisNox: new PInstStr('fisnox'),
 			tarih: new PInstDateToday('tarih'),
@@ -977,27 +1031,49 @@ class MQKontorDetay extends MQDetay {
 			( eDeftermi ? new GridKolon({
 				belirtec: 'ayrimTipiText', text: 'Ayrım Tipi', genislikCh: 20,
 				sql: EDefKontor_AyrimTipi.getClause(`${alias}.ayrimtipi`)
-			}) : null )
+			}) : null ),
+			new GridKolon({ belirtec: 'altmustvkn', text: 'Alt Must VKN', genislikCh: 15 }).checkedList(),
+			new GridKolon({ belirtec: 'altmustack', text: 'Alt Must Açıklama', genislikCh: 30, sql: 'amus.aciklama' })
 			/*new GridKolon({ belirtec: 'tahseklino', text: 'Tah.No', genislikCh: 8 }).tipNumerik().sifirGosterme(),
 			new GridKolon({ belirtec: 'tahsekliadi', text: 'Tah. Şekli Adı', genislikCh: 15, sql: 'tsek.aciklama' })*/
 		].filter(Boolean))
 	}
-	static loadServerData_queryDuzenle({ gridPart, sender, stm, sent }) {
+	static loadServerData_queryDuzenle({ fisSinif, gridPart, sender, stm, sent }) {
 		super.loadServerData_queryDuzenle(...arguments)
+		fisSinif ??= MQKontor
 		let { tableAlias: alias } = this
-		let {sahalar, where: wh} = sent, { orderBy } = stm
-		sent.har2TahSekliBagla()
+		let { tableAlias: fisAlias } = fisSinif
+		let { from, sahalar, where: wh } = sent, { orderBy } = stm
+		from.liste = from.liste.filter(t => t.alias != fisAlias)
+		sent
+			.innerJoin(alias, `${fisSinif.table} ${fisAlias}`, `${alias}.fissayac = ${fisAlias}.kaysayac`)
+			.innerJoin(alias, `${MQLogin_Musteri.table} mus`, `${fisAlias}.mustkod = mus.kod`)
+			.innerJoin(alias, 'tahsilsekli tsek', `${alias}.tahseklino = tsek.kodno`)
+			.leftJoin(alias, `${MQVPAltMusteri.table} amus`, [`${alias}.altmustvkn = amus.vkn`, `amus.mustid = mus.id`])
 		sahalar.add(
 			`${alias}.ahtipi`, `${alias}.fatdurum`, `${alias}.btamamlandi`,
-			`${alias}.fiyat`, `${alias}.fiyat2`, `${alias}.ayrimtipi`
+			`${alias}.fiyat`, `${alias}.fiyat2`, `${alias}.ayrimtipi`,
+			`amus.vkn altmustvkn`
 		)
 		orderBy.liste = ['ahtipi', 'tarih DESC', 'fisnox DESC']
 	}
-	static rootFormBuilderDuzenle_kontor({ mfSinif, rfb, fbd_form: parentForm, inst, islem }) {
-		let { eDeftermi, kontorSayiKullanilirmi } = mfSinif
-		let { mustKod, fatDurum, tamamlandimi, ayrimTipi } = inst
+	
+	setValues({ rec }) {
+		super.setValues(...arguments)
+	}
+	
+	static rootFormBuilderDuzenle_kontor({ rootPart, sender, mfSinif, rfb, fbd_form: parentForm, inst, islem }) {
+		rootPart ??= sender
+		let { selectedRec: rec  } = rootPart ?? {}
+		let { tip, eDeftermi, kontorSayiKullanilirmi } = mfSinif
+		let { mustKod, altMustVKN, fatDurum, tamamlandimi, ayrimTipi } = inst
 		let degistirmi = islem == 'degistir'
-		let form = parentForm.addFormWithParent().altAlta();
+
+		tip ||= inst.tip = rec?.tip
+		mustKod ||= inst.mustKod = rec?.mustkod
+		altMustVKN ||= inst.altMustVKN = rec?.altmustvkn
+		
+		let form = parentForm.addFormWithParent().altAlta()
 		let fbd_must = form.addSimpleComboBox('mustKod', 'Müşteri', 'Müşteri')
 			.setMFSinif(MQLogin_Musteri).autoBind()
 			.etiketGosterim_yok()
@@ -1021,6 +1097,28 @@ class MQKontorDetay extends MQDetay {
 		if (degistirmi)
 			fbd_must.disable()
 		
+		let fbd_altMust = form.addSimpleComboBox('altMustVKN', 'Alt Müşteri', 'Alt Müşteri')
+			.setMFSinif(MQVPAltMusteri).autoBind()
+			.etiketGosterim_yok().kodsuz()
+			.ozelQueryDuzenleIslemi(({ stm, aliasVeNokta, mfSinif }) => {
+				let { current: l } = MQLogin
+				let { kodSaha } = mfSinif
+				let clauses = {
+					musteri: 'mus.kod',
+					bayi: 'mus.bayikod'
+				}
+				for (let sent of stm) {
+					let { where: wh } = sent
+					wh.add(`mus.aktifmi <> ''`)
+					l.yetkiClauseDuzenle({ sent, clauses })
+				}
+			})
+			.setValue(altMustVKN)
+			.degisince(({ type, builder: { altInst: inst }, events }) => {
+				if (type == 'batch')
+					inst.altMustVKN = events.at(-1).item?.vkn ?? ''
+			})
+		
 		form = parentForm.addFormWithParent().yanYana()
 		if (kontorSayiKullanilirmi) {
 			form.addNumberInput('kontorSayi', 'Kontör Sayı').addStyle_wh(130)
@@ -1036,6 +1134,7 @@ class MQKontorDetay extends MQDetay {
 						input.focus()
 				})
 		}
+		
 		let fbd_fatDurum = form.addModelKullan('fatDurum', 'Fatura Durum')
 			.listedenSecilmez().addStyle_wh(250)
 			.dropDown().noMF().autoBind()
@@ -1057,10 +1156,8 @@ class MQKontorDetay extends MQDetay {
 				.listedenSecilmez()
 				.kodsuz().bosKodAlinmaz()
 				.setSource(EDefKontor_AyrimTipi.kaListe.filter(ka => ka.kod?.trim()))
-				.degisince(({ type, builder, builder: { inst } }) => {
-					if (type == 'batch')
-						inst.fiyatBelirle({ ...arguments[0], builder, force: true })
-				})
+				.degisince(({ builder, builder: { inst } }) =>
+					inst.fiyatBelirle({ ...arguments[0], builder, force: true }))
 				.addStyle_wh(300)
 			form.addNumberInput('fiyat', 'Oluşturma Fiyatı')
 				.addStyle_wh(130)
@@ -1070,6 +1167,16 @@ class MQKontorDetay extends MQDetay {
 		else {
 			form.addNumberInput('fiyat', 'Fiyat')
 				.addStyle_wh(130)
+		}
+
+		if (!tip) {
+			form.addModelKullan('tip', 'Kontör Tipi')
+				.dropDown().etiketGosterim_placeHolder()
+				.setPlaceholder('Kontör Tipi')
+				.setMFSinif(KontorTip)
+				.autoBind().listedenSecilmez()
+				.kodsuz().bosKodAlinmaz()
+				.addStyle_wh(300)
 		}
 		
 		/*let fbd_tahSekli = form.addModelKullan('tahSekliNo', 'Tahsilat Şekli').listedenSecilmez().addStyle_wh(250)
@@ -1137,7 +1244,7 @@ class MQKontorDetay extends MQDetay {
 			content: rfb.layout,
 			args: {
 				isModal: false,
-				width: 800, height: 340
+				width: 800, height: 370
 			}
 		})
 		
@@ -1146,16 +1253,18 @@ class MQKontorDetay extends MQDetay {
 	static async kontor_degistir({ islemAdi, inst, part, mfSinif }) {
 		let { fisSayac, okunanHarSayac: sayac } = inst
 		let { prevKontorSayi, kontorSayi, fatDurum, tamamlandimi } = inst
-		let { fiyat, fiyat2, ayrimTipi } = inst
+		let { altMustVKN, fiyat, fiyat2, ayrimTipi } = inst
 		let { tip, table } = MQKontor
 		let { table: detayTable } = this
 		
 		mfSinif ??= this.mfSinif
-		let { eDeftermi } = mfSinif
+		altMustVKN ??= ''
 		
 		let kontorFark = kontorSayi - ( prevKontorSayi ?? 0 )
 		fatDurum = fatDurum?.char ?? fatDurum ?? ''
 		ayrimTipi = ( ayrimTipi?.char ?? ayrimTipi ?? '' )?.trimEnd()
+		
+		let { eDeftermi } = mfSinif
 		if (eDeftermi && !ayrimTipi) {
 			hConfirm(`e-Defter için <b>Ayrım</b> belirtilmelidir`, islemAdi)
 			return false
@@ -1168,6 +1277,7 @@ class MQKontorDetay extends MQDetay {
 			}),
 			new MQIliskiliUpdate({
 				from: detayTable, set: [
+					{ degerAta: altMustVKN, saha: 'altmustvkn' },
 					{ degerAta: kontorSayi, saha: 'kontorsayi' },
 					{ degerAta: fatDurum, saha: 'fatdurum' },
 					{ degerAta: fiyat, saha: 'fiyat' },
@@ -1274,7 +1384,6 @@ class MQKontorDetay extends MQDetay {
 		return null
 	}
 }
-
 class MQKontorGridci extends GridKontrolcu {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	gridArgsDuzenle({ gridPart, sender, args }) {
@@ -1285,7 +1394,8 @@ class MQKontorGridci extends GridKontrolcu {
 		super.tabloKolonlariDuzenle_ilk(...arguments)
 		tabloKolonlari.push(...[
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 11 }).tipDate().zorunlu(),
-			new GridKolon({ belirtec: 'ahTipi', text: 'A/H Tip', genislikCh: 18, filterType: 'checkedlist' }).tipTekSecim({ tekSecimSinif: KontorAHTip }).kodsuz().autoBind().zorunlu(),
+			new GridKolon({ belirtec: 'ahTipi', text: 'A/H Tip', genislikCh: 18, filterType: 'checkedlist' })
+				.tipTekSecim({ tekSecimSinif: KontorAHTip }).kodsuz().autoBind().zorunlu(),
 			new GridKolon({ belirtec: 'fisNox', text: 'Fiş No', genislikCh: 25 }).zorunlu(),
 			new GridKolon({ belirtec: 'kontorSayi', text: 'Kontör', genislikCh: 9 }).tipDecimal(0).zorunlu(),
 			new GridKolon({ belirtec: 'fatDurum', text: 'Fat.Durum', genislikCh: 20 }).tipTekSecim({ tekSecimSinif: KontorFatDurum }).kodsuz().autoBind().zorunlu(),
@@ -1311,6 +1421,7 @@ class MQKontorGridci extends GridKontrolcu {
 class MQKontor_EBelge extends MQKontor {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'BL' }
+	static get tipAdi() { return 'e-Belge' }
 	static get detaySinif() { return MQKontorDetay_EBelge }
 	static get vioAsilHizmetKod() { return 'H034' }
 	static get faturalastirmaYapilirmi() { return true }
@@ -1321,7 +1432,9 @@ class MQKontorDetay_EBelge extends MQKontorDetay {
 
 class MQKontor_Turmob extends MQKontor {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get tip() { return 'TR' } static get detaySinif() { return MQKontorDetay_Turmob }
+	static get tip() { return 'TR' }
+	static get tipAdi() { return 'Türmob' }
+	static get detaySinif() { return MQKontorDetay_Turmob }
 	static get acikIslKodPrefix() { return 'TC' }
 	static get vioAsilHizmetKod() { return 'H035' }
 	static get faturalastirmaYapilirmi() { return true }
@@ -1486,6 +1599,7 @@ class MQKontorDetay_TokenliOrtak extends MQKontorDetay {
 class MQKontor_ZamanDamgasi extends MQKontor_TokenliOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'TS' }
+	static get tipAdi() { return 'Zaman Damgası' }
 	static get detaySinif() { return MQKontorDetay_ZamanDamgasi }
 	static get vioAsilHizmetKod() { return 'H036' }
 }
@@ -1496,6 +1610,7 @@ class MQKontorDetay_ZamanDamgasi extends MQKontorDetay_TokenliOrtak {
 class MQKontor_SMS extends MQKontor_TokenliOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'SM' }
+	static get tipAdi() { return 'SMS' }
 	static get detaySinif() { return MQKontorDetay_SMS }
 }
 class MQKontorDetay_SMS extends MQKontorDetay_TokenliOrtak {

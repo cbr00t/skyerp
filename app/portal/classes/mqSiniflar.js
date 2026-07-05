@@ -34,7 +34,7 @@ class MQVPAnaBayi extends MQKA {
 	static get silinebilirmi() { return super.silinebilirmi && MQLogin.current?.class?.adminmi }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
-		$.extend(pTanim, { onMuhMustKod: new PInstStr('onmuhmustkod') })
+		extend(pTanim, { onMuhMustKod: new PInstStr('onmuhmustkod') })
 	}
 	static secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments);
@@ -94,3 +94,165 @@ class MQVPAnaBayi extends MQKA {
 		}
 	}
 }
+
+class MQVPAltMusteri extends MQCogul {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'ALTMUST' }
+	static get sinifAdi() { return 'Alt Müşteri' }
+	static get table() { return 'altmusteri' }
+	static get tableAlias() { return 'amus' }
+	static get idSaha() { return 'mustid' }
+	static get adiSaha() { return 'vkn' }
+	static get tanimUISinif() { return MQKA.tanimUISinif }
+	static get tumKolonlarGosterilirmi() { return false }
+	static get kolonFiltreKullanilirmi() { return false }
+	static get uygunmu() { return true }
+	static get altMusterimi() { return true }
+
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
+		extend(pTanim, {
+			mustId: new PInstGuid('mustid'),
+			vkn: new PInstStr('vkn'),
+			aciklama: new PInstStr('aciklama')
+		})
+	}
+	static async rootFormBuilderDuzenle(e) {
+		await super.rootFormBuilderDuzenle(e)
+		let { inst, tanimFormBuilder: tanimForm } = e
+		let { mustId } = inst
+		let mustKod = mustId ? await MQLogin_Musteri.gloId2Kod(mustId) ?? '' : ''
+		;{
+			let form = tanimForm.addFormWithParent().altAlta()
+			form.addSimpleComboBox('mustKod', 'Müşteri', 'Müşteri')
+				.etiketGosterim_yok()
+				.setMFSinif(MQLogin_Musteri)
+				.autoBind()
+				.setValue(mustKod)
+				.degisince(async ({ type, builder: { altInst: inst }, events }) => {
+					if (type == 'batch') {
+						let { value } = events.at(-1)
+						inst.mustId = await MQLogin_Musteri.gloKod2Id(value)
+					}
+				})
+				.onAfterRun(({ builder: { part } }) =>
+					delay(5).then(() => part.focus()))
+				.addStyle(`$elementCSS { max-width: 800px !important }`)
+		}
+		;{
+			let form = tanimForm.addFormWithParent().yanYana()
+			form.addTextInput('vkn', 'VKN')
+				.etiketGosterim_yok()
+				.setPlaceholder('VKN')
+				.setMaxLength(11)
+				.addCSS('center')
+				.addStyle_wh(150)
+			form.addTextInput('aciklama', 'Açıklama')
+				.etiketGosterim_yok()
+				.setPlaceholder('Açıklama')
+				.setMaxLength(80)
+				.addStyle(`$elementCSS { max-width: calc(800px - 140px) !important }`)
+		}
+	}
+	static orjBaslikListesi_argsDuzenle({ args }) {
+		super.orjBaslikListesi_argsDuzenle(...arguments)
+		extend(args, { groupsExpandedByDefault: true })
+	}
+	static orjBaslikListesi_groupsDuzenle({ sender: gridPart, liste }) {
+		super.orjBaslikListesi_groupsDuzenle(...arguments)
+		//liste.push('mustunvan')
+	}
+	static standartGorunumListesiDuzenle({ liste }) {
+		super.standartGorunumListesiDuzenle(...arguments)
+		liste.push('mustunvan', 'vkn', 'aciklama')
+	}
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		liste.push(...[
+			...this.getKAKolonlar(
+				new GridKolon({ belirtec: 'mustid', text: 'Must ID', genislikCh: 50 }).noSql(),
+				new GridKolon({ belirtec: 'mustunvan', text: 'Müşteri', genislikCh: 40 }).noSql().checkedList()
+			),
+			new GridKolon({ belirtec: 'vkn', text: 'VKN', genislikCh: 15 }).noSql().checkedList(),
+			new GridKolon({ belirtec: 'aciklama', text: 'Açıklama', genislikCh: 50 }).checkedList()
+		])
+	}
+	static loadServerData_queryDuzenle({ gridPart, sender, stm, sent, basit, tekilOku }) {
+		super.loadServerData_queryDuzenle(...arguments)
+		let { tableAlias: alias, kodSaha } = this
+		let { where: wh, sahalar } = sent, { orderBy } = stm
+		//basit ||= tekilOku
+		
+		sent.innerJoin(alias, `${MQLogin_Musteri.table} mus`, `${alias}.mustid = mus.id`)
+		if (!basit) {
+			;{
+				let { current: login } = MQLogin
+				let clauses = { bayi: 'mus.bayikod', musteri: 'mus.kod' }
+				login.yetkiClauseDuzenle({ sent, clauses })
+			}
+			sahalar.addWithAlias('mus', 'aciklama mustunvan')
+			if (!empty(orderBy.liste))
+				orderBy.add('mustunvan', 'vkn')
+		}
+		sahalar.addWithAlias(alias, 'mustid', 'vkn')
+		sahalar.addWithAlias('mus', 'kod mustkod')
+	}
+	static keyHostVarsDuzenle({ hv }) {
+		super.keyHostVarsDuzenle(...arguments)
+		let { mustId: mustid, vkn } = this
+		extend(hv, { mustid, vkn })
+	}
+	static keySetValues({ rec }) {
+		super.keySetValues(...arguments)
+		let { mustid: mustId, vkn } = this
+		extend(this, { mustId, vkn })
+	}
+	async dataDuzgunmu(e) {
+		let { mustId, vkn } = this
+		if (!mustId)
+			return `<b class="royalblue">Müşteri</b> belirtilmelidir`
+		if (!await MQLogin_Musteri.gloId2Kod(mustId))
+			return `<b class="royalblue">Müşteri</b> kodu belirlenemedi`
+		
+		if (!vkn)
+			return `<b class="royalblue">VKN</b> belirtilmelidir`
+		if (!between(vkn.length, 10, 11))
+			return `<b class="royalblue">VKN</b> değeri <b class="firebrick">10-11</b> hane arası olmalıdır`
+		
+		if (!VergiVeyaTCKimlik.uygunmu(vkn))
+			return `<b class="royalblue">VKN</b> değeri hatalıdır`
+		
+		return await super.dataDuzgunmu(e)
+	}
+
+	static async must2Recs(e = {}) {
+		let isObj = isObject(e)
+		let kod = isObj ? e.mustKod ?? e.kod : e
+		let ozelQueryDuzenle = ({ alias, sent }) =>
+			this.mustSentBagla({ ...e, alias, sent, kod, sahalarAlinir: false })
+		
+		let wh = kod ? { degerAta: kod, saha: 'mus.kod' } : null
+		let res = {}
+		;( await this.loadServerData({ ...e, ozelQueryDuzenle }) ?? [] ).forEach(r => {
+			( res[r.mustkod] ??= [] )
+				.push(r)
+		})
+		
+		return res
+	}
+	static mustSentBagla({ alias, sent, mustKod, sahalarAlinir }) {
+		alias ||= this.tableAlias
+		let { from, where: wh } = sent
+		let alsMus = ['mus', 'car'].find(v =>
+			from.aliasIcinTable('mus') ? v : null)
+		if (!alsMus) {
+			alsMus = 'mus'
+			sent.innerJoin(alias, `${alias}.mustid = ${alsMus}.id`)
+		}
+		if (mustKod)
+			wh.degerAta(mustKod, `${alsMus}.kod`)
+		if (sahalarAlinir)
+			sahalar.addWithAlias(alsMus, 'kod mustkod', 'aciklama mustunvan')
+	}
+}
+
