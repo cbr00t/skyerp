@@ -3,24 +3,43 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 	tabloKolonlariDuzenle(e) {
 		let { tabloKolonlari } = e
 		tabloKolonlari.push(
-			new GridKolon({
-				belirtec: 'tip', text: ' ', genislikCh: 13, cellValueChanged: e => {
-					e = e.args ?? e
-					let { owner: gridWidget, rowindex: rowIndex, datafield: belirtec, newvalue: tip }  = e
-					let rec = gridWidget.getrowdata(rowIndex, belirtec)
-					let { uid } = rec
-					switch (tip) {
-						case 'stok': rec = new TSStokDetay(rec); break; case 'hizmet': rec = new TSHizmetDetay(rec); break
-						case 'demirbas': rec = new TSDemirbasDetay(rec); break; case 'aciklama': rec = new TSAciklamaDetay(rec); break
-					}
-					let { sh: colDef } = this.parentPart.belirtec2Kolon
-					rec.shKod = rec.shAdi = null
-					gridWidget.updaterow(uid, rec)
-				}
-			}).noSql()
-				.tipTekSecim({ tekSecimSinif: MQSHTip })
-				.kodsuz().listedenSecilmez()
+			new GridKolon({ belirtec: 'tip', text: ' ', genislikCh: 13 }).noSql()
+				.tipButton(({ rec: { _tipText: v }  }) =>
+					v || 'Stok')
 				.alignCenter().sabitle()
+				.onClick((e = {}) => {
+					e = e.args ?? e
+					let { originalEvent: { target = {} } = {} } = e
+					let { owner: w, rowindex: ri, datafield: k, value: tip }  = e
+					let r = w.getrowdata(ri, k)
+					let { uid } = r
+					switch (tip) {
+						case 'stok': {
+							r = new TSHizmetDetay(r)
+							r._tipText = 'Hizmet'
+							break
+						}
+						case 'hizmet': {
+							r = new TSDemirbasDetay(r)
+							r._tipText = 'Demirbaş'
+							break
+						}
+						default: {
+							r = new TSStokDetay(r)
+							r._tipText = null
+							break
+						}
+					}
+					let { parentPart: pp } = this
+					let { belirtec2Kolon } = pp
+					let { sh: colDef } = belirtec2Kolon
+					r.shKod = r.shAdi = null
+					delay(20).then(() => {
+						w.updaterow(uid, r)
+						w.clearselection()
+						pp.selectNextEditableCell()
+					})
+				})
 		)
 		
 		super.tabloKolonlariDuzenle(e)
@@ -30,8 +49,8 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 		let shColDef = tabloKolonlari.find(colDef => colDef.belirtec == 'sh')
 		let { kaKolonu } = shColDef
 		let savedEditorHandlers = {}
-		for (let selector of ['createEditor', 'initEditor', 'getEditorValue']) {
-			savedEditorHandlers[selector] = kaKolonu[selector] }
+		for (let selector of ['createEditor', 'initEditor', 'getEditorValue'])
+			savedEditorHandlers[selector] = kaKolonu[selector]
 		extend(kaKolonu, {
 			satirEklendi: e => { }, satirSilinecek: e => { }, satirSilindi: e => { },
 			createEditor: (colDef, rowIndex, value, parent, cellText, cellWidth, cellHeight) => {

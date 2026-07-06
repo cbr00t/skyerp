@@ -393,6 +393,7 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 
 	async onKontrol_efa(e) {
 		let { baslik, detaylar, temps, dipNotlar } = this
+		let icmal = this.icmalYoksaOlustur()
 		let { fisTipi, istisnaKod } = baslik
 		let hDetIstTip, hDetTevKod
 		// dettevhesapkod
@@ -402,7 +403,7 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 				break
 			}
 			case 'TK': {
-				istisnaKod = '223'
+				istisnaKod = baslik.istisnaKod = '223'          // TEVKIFAT
 				hDetIstTip = 'IS'
 				break
 			}
@@ -411,6 +412,9 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 				break
 			}
 		}
+
+		if (!istisnaKod && icmal.bedelsizmi)
+			istisnaKod = baslik.istisnaKod = '350'              // DIGER
 
 		let detayTipSet = asSet(['S', 'H', 'D'])
 		let istisnaTipSet = asSet(['IS', 'KI', 'OM'])
@@ -623,10 +627,11 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 	}
 	xmlDuzenle_taxTotal({ xw }) {
 		super.xmlDuzenle_taxTotal(...arguments)
+		let { baslik: { istisnaKod } } = this
 		let icmal = this.icmalYoksaOlustur()
 		let { vergiTip2Oran2EVergiRecs_tevkifatsiz } = icmal
 		let { bedelSelector, xattrYapi_bedel, dovizlimi} = this
-		
+
 		let toplamBedel = 0
 		for (let oran2Recs of values(vergiTip2Oran2EVergiRecs_tevkifatsiz))
 		for (let eSatirlar of values(oran2Recs))
@@ -656,21 +661,27 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 			for (let [oran, vergiRecs] of entries(oran2VergiRecs)) {
 				oran = Number(oran)
 				for (let eRec of vergiRecs) {
-					let { etiket } = eRec ?? {}
+					let { etiket: taxName, kod: taxTypeCode } = eRec ?? {}
 					;{
-						etiket = ( etiket?.split?.('%')?.[0] || '').trim()		// KDV % 20  ==>  KDV
-						if (etiket?.endsWith('('))
-							etiket = etiket.substring(0, etiket.length - 1).trim()
+						taxName = ( taxName?.split?.('%')?.[0] || '').trim()		// KDV % 20  ==>  KDV
+						if (taxName?.endsWith('('))
+							taxName = taxName.substring(0, taxName.length - 1).trim()
 					}
-					if (!oran)
-						continue
 					
 					xw.writeElementBlock('cac:TaxSubtotal', null, () => {
 						xw.writeElementString('cbc:TaxableAmount', toFileStringWithFra(eRec.getMatrahYapi({ dovizlimi })[bedelSelector], 2), null, xattrYapi_bedel)
 						   .writeElementString('cbc:TaxAmount', toFileStringWithFra(eRec.bedelYapi[bedelSelector], 2), null, xattrYapi_bedel)
 						   .writeElementString('cbc:CalculationSequenceNumeric', '2.0').writeElementString('cbc:Percent', oran)
-						   .writeElementBlock('cac:TaxCategory', null, () =>
-								xw.writeElementBlock('cac:TaxScheme', null, () => { xw.writeElementString('cbc:Name', etiket).writeElementString('cbc:TaxTypeCode', eRec.kod) }))
+						   .writeElementBlock('cac:TaxCategory', null, () => {
+							   if (istisnaKod) {
+									let tumIstisnaDict = MQVergi.getTumIstisnaDict()
+									xw.writeElementString('cbc:TaxExemptionReasonCode', istisnaKod)
+									  .writeElementString('cbc:TaxExemptionReason', tumIstisnaDict[istisnaKod]?.aciklama || '.')
+								}
+								xw.writeElementBlock('cac:TaxScheme', null, () =>
+									xw.writeElementString('cbc:Name', taxName || '')
+									  .writeElementString('cbc:TaxTypeCode', taxTypeCode || ''))
+						   })
 					})
 				}
 			}

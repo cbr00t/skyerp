@@ -12,7 +12,8 @@ class EIslBaslik extends EIslBaslikVeDetayOrtak {
 	get eIrsaliyemi() { return this.eIslTip == 'IR' } get eMustahsilmi() { return this.eIslTip == 'MS' }
 	get alimIademi() { return asBool(this.rec.alimiademi) } get subeKod() { return this.rec.bizsubekod }
 	get fisTipi() { return this.rec.fistipi }
-	get istisnaKod() { return this.rec.kdvistisnaturu }
+	get istisnaKod() { return this._istisnaKod ?? this.rec.kdvistisnaturu }
+	set istisnaKod(v) { return this._istisnaKod = v }
 	get dvKod() {
 		let result = this._dvKod
 		if (result === undefined) {
@@ -74,7 +75,8 @@ class EIslBaslik extends EIslBaslikVeDetayOrtak {
 	}
 	get xbakiye() { return this.rec[`${this.dovizlimi ? 'dv' : 'tl'}bakiye`] } get oncekiXBakiye() { return this.rec[`${this.dovizlimi ? 'dv' : 'tl'}oncekibakiye`] }
 	get sonrakiXBakiye() { return (this.oncekiXBakiye || 0) + (this.xbakiye || 0) }
-	get tlBakiye() { return this.rec.tlbakiye } get oncekiTLBakiye() { return this.rec.tloncekibakiye }
+	get tlBakiye() { return this.rec.tlbakiye }
+	get oncekiTLBakiye() { return this.rec.tloncekibakiye }
 	get sonrakiTLBakiye() { return (this.oncekiTLBakiye || 0) + (this.tlBakiye || 0) }
 
 	async onKontrol(e) {
@@ -202,6 +204,10 @@ class EIslDetay extends EIslBaslikVeDetayOrtak {
 
 class EIcmal extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
+	get bedelsizmi() {
+		let { sonucBedelYapi: r } = this
+		return !(r.tl || r.dv)
+	}
 	get brutBedelYapi() {
 		let result = this._brutBedelYapi;
 		if (result === undefined) {
@@ -257,7 +263,9 @@ class EIcmal extends CObject {
 	get vergiHaricToplamYapi() {
 		let {_vergiHaricToplamYapi: result, belirtec2AnaTip2AltTip2Satirlar, sonucBedelYapi} = this
 		if (result === undefined) {
-			let kdvYapilar = values(this.vergiTip2Oran2EVergiRecs_tevkifatsiz).map(_ => values(_).flat()).flat()
+			let kdvYapilar = values(this.vergiTip2Oran2EVergiRecs_tevkifatsiz)
+				.map(_ => values(_).flat())
+				.flat()
 			let topKdv = topla(_ => _.bedel, kdvYapilar)
 			result = this._vergiHaricToplamYapi = { tl: sonucBedelYapi.tl - topKdv }
 		}
@@ -276,9 +284,14 @@ class EIcmal extends CObject {
 			for (let altTip2Satirlar of values(anaTip2AltTip2Satirlar)) {
 				for (let eSatirlar of values(altTip2Satirlar)) {
 					for (let eSatir of eSatirlar) {
-						if (eSatir.anaTip == 'KD' && eSatir.altTip == 'TV') { continue }
-						let {kod, oran} = eSatir, oran2Recs = result[kod] = result[kod] || {};
-						let eSatirlar = oran2Recs[oran]; if (!eSatirlar) { oran2Recs[oran] = eSatirlar = [] } eSatirlar.push(eSatir)
+						if (eSatir.anaTip == 'KD' && eSatir.altTip == 'TV')
+							continue
+						let { kod, oran } = eSatir
+						let oran2Recs = result[kod] ??= {}
+						let eSatirlar = oran2Recs[oran]
+						if (!eSatirlar)
+							oran2Recs[oran] = eSatirlar = []
+						eSatirlar.push(eSatir)
 					}
 				}
 			}
@@ -287,50 +300,61 @@ class EIcmal extends CObject {
 		return this._vergiTip2Oran2EVergiRecs_tevkifatsiz
 	}
 	get vergiRecs_tevkifatlar() {
-		let result = this._vergiRecs_tevkifatlar;
-		if (result === undefined) { let {belirtec2AnaTip2AltTip2Satirlar} = this; this._vergiRecs_tevkifatlar = result = belirtec2AnaTip2AltTip2Satirlar.V?.KD?.TV || [] }
+		let result = this._vergiRecs_tevkifatlar
+		if (result === undefined) {
+			let { belirtec2AnaTip2AltTip2Satirlar } = this
+			this._vergiRecs_tevkifatlar = result = belirtec2AnaTip2AltTip2Satirlar.V?.KD?.TV || []
+		}
 		return this._vergiRecs_tevkifatlar
 	}
 	get sonucBedelYapi() {
 		let {_sonucBedelYapi: result} = this
 		if (result === undefined) {
-			let {belirtec2AnaTip2AltTip2Satirlar} = this
+			let { belirtec2AnaTip2AltTip2Satirlar } = this
 			this._sonucBedelYapi = result = (belirtec2AnaTip2AltTip2Satirlar['']?.DP?.OD || [])[0]?.bedelYapi || {}
 		}
 		return this._sonucBedelYapi
 	}
 
-	constructor(e) {
-		e = e || {}; super(e)
-		let getTLVeBedelObj = value => (value && $.isPlainObject(value) ? TLVeDVBedel(value) : value) || new TLVeDVBedel
-		$.extend(this, { satirlar: e.satirlar || [], belirtec2AnaTip2AltTip2Satirlar: e.belirtec2AnaTip2AltTip2Satirlar || {} })
+	constructor(e = {}) {
+		super(e)
+		let getTLVeBedelObj = value => (value && isPlainObject(value) ? TLVeDVBedel(value) : value) ?? new TLVeDVBedel
+		extend(this, { satirlar: e.satirlar ?? [], belirtec2AnaTip2AltTip2Satirlar: e.belirtec2AnaTip2AltTip2Satirlar ?? {} })
 	}
 	getIcmalXSonucu(e) {
-		let {dovizlimi} = e, {satirlar} = this, onEkci = text => `${dovizlimi ? 'Dv. ' : ''}${text}` ;
-		let xci = dovizlimi ? (bv => bv.dv) : (bv => bv.tl), result = [];
-		for (let eSatir of this.satirlar) { let etiket = onEkci(eSatir.etiket), bedel = xci(eSatir.bedelYapi); result.push({ etiket, bedel }) }
+		let { dovizlimi } = e, { satirlar } = this
+		let onEkci = text => `${dovizlimi ? 'Dv. ' : ''}${text}`
+		let xci = dovizlimi ? (bv => bv.dv) : (bv => bv.tl)
+		let result = []
+		for (let eSatir of this.satirlar) {
+			let etiket = onEkci(eSatir.etiket)
+			let bedel = xci(eSatir.bedelYapi)
+			result.push({ etiket, bedel })
+		}
 		return result
 	}
 	dipEIcmalYukle(e) {
-		let {recs} = e; this.reset()
-		let {satirlar, belirtec2AnaTip2AltTip2Satirlar} = this
+		let { recs } = e
+		this.reset()
+		let { satirlar, belirtec2AnaTip2AltTip2Satirlar } = this
 		for (let rec of recs) {
 			let eSatir = EIcmalSatirOrtak.newFor({ rec })
 			if (eSatir) {
+				let { hvTip, anaTip, altTip } = eSatir
 				satirlar.push(eSatir)
-				let {hvTip, anaTip, altTip} = eSatir
-				let anaTip2AltTip2Satirlar = belirtec2AnaTip2AltTip2Satirlar[hvTip] = belirtec2AnaTip2AltTip2Satirlar[hvTip] || {};
-				let altTip2Satirlar = anaTip2AltTip2Satirlar[anaTip] = anaTip2AltTip2Satirlar[anaTip] || {};
-				(altTip2Satirlar[altTip] = altTip2Satirlar[altTip] || []).push(eSatir)
+				let anaTip2AltTip2Satirlar = belirtec2AnaTip2AltTip2Satirlar[hvTip] ??= {};
+				let altTip2Satirlar = anaTip2AltTip2Satirlar[anaTip] ??= {}
+				;(altTip2Satirlar[altTip] ??= []).push(eSatir)
 			}
 		}
 		return this
 	}
 	reset(e) {
-		$.extend(this, { belirtec2AnaTip2AltTip2Satirlar: {}, satirlar: [] })
+		extend(this, { belirtec2AnaTip2AltTip2Satirlar: {}, satirlar: [] })
 		return this
 	}
 }
+
 class EIcmalSatirOrtak extends RowluYapi {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return null }

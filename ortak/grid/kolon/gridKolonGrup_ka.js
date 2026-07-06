@@ -271,22 +271,38 @@ class GridKolonGrup_KA extends GridKolonGrup {
 					}
 				})
 
-				input.on('keydown.gridKA', evt => {
-					let key = evt.key?.toLowerCase()
-					if (key == 'f4') {
-						evt.preventDefault()
-						kaKolonu.listedenSec?.({
-							event: evt,
-							args: {
-								owner: w, datafield: k,
-								rowindex: i, value: v
-							}
-						})
-						return
-					}
-					if (key == 'enter' || key == 'linefeed' || key == 'tab')
-						setTimeout(() => gp.endCellEdit(true), 1)    // commit & end edit
-				})
+				;{
+					let endEditKeys = asSet(['enter', 'linefeed', 'tab'])
+					let preventKeys = asSet(['arrowup', 'arrowdown'])
+					input.off('keydown').on('keydown.gridKA', evt => {
+						let key = evt.key?.toLowerCase()
+						if (key == 'f4') {
+							evt.preventDefault()
+							evt.stopPropagation()
+							kaKolonu.listedenSec?.({
+								event: evt,
+								args: {
+									owner: w, datafield: k,
+									rowindex: i, value: v
+								}
+							})
+							return
+						}
+						
+						if (endEditKeys[key]) {
+							gp.endCellEdit(true)
+							/*evt.preventDefault()
+							promise(async () => {
+								await ep._onChange({ type: 'commit', event: evt, input, value })
+								delay(1).then(() => gp.endCellEdit(true), 1)    // commit & end edit
+							})*/
+						}
+						else if (preventKeys[key]) {
+							evt.preventDefault()
+							evt.stopPropagation()
+						}
+					})
+				}
 			}
 		}
 

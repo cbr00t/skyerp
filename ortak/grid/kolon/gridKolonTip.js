@@ -709,60 +709,109 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 }
 class GridKolonTip_BirKismi extends GridKolonTip_TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get anaTip() { return 'tekSecim' } static get tip() { return 'birKismi' } static get birKismimi() { return true }
+	static get anaTip() { return 'tekSecim' }
+	static get tip() { return 'birKismi' }
+	static get birKismimi() { return true }
 }
 class GridKolonTip_Ozel extends GridKolonTip {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get anaTip() { return 'ozel' } static get ozelmi() { return true } static get isEditable() { return false }
-	get cellClassName() { return 'ozel' } get defaultAlign() { return 'center' }
+	static get anaTip() { return 'ozel' }
+	static get ozelmi() { return true }
+	static get isEditable() { return false }
+	get cellClassName() { return 'ozel' }
+	get defaultAlign() { return 'center' }
 	readFrom(e) {
-		if (!super.readFrom(e)) { return false } let {value} = e;
-		try { if (value && typeof value == 'string') { let _value = getFunc.call(this, value, e); if (_value != null) { value = _value } } } catch (ex) { }
-		this.value = value; return true
+		if (!isObject(e))
+			e = { value: e }
+		
+		if (!super.readFrom(e))
+			return false
+		
+		let { value } = e
+		try {
+			if (value && isString(value)) {
+				let func = getFunc.call(this, value, e)
+				if (func != null)
+					value = func
+			}
+		}
+		catch (ex) { }
+		
+		this.value = value
+		return true
 	}
 	setValue(value) { this.value = value; return this }
 }
 class GridKolonTip_Button extends GridKolonTip_Ozel {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get tip() { return 'button' } static get butonmu() { return true } static get buttonmu() { return this.butonmu } get jqxColumnType() { return 'button' }
+	static get tip() { return 'button' }
+	static get butonmu() { return true }
+	static get buttonmu() { return this.butonmu }
+	get jqxColumnType() { return 'button' }
+
 	readFrom(e) {
-		if (!super.readFrom(e)) { return false }
-		this.click(null); let handler = e.click || e.onClick || e.buttonClick || e.onButtonClick; this.click(handler);
+		if (!super.readFrom(e))
+			return false
+		this.click(null)
+		let handler = e.click || e.onClick || e.buttonClick || e.onButtonClick
+		this.click(handler)
 		return true
 	}
 	get cellsRenderer() {
-		return ((colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
-			if (rec?.totalsrow) { return GridKolonTip.getHTML_groupsTotalRow(value) }
-			rec = colDef.gridPart.gridWidget.getboundrows()[rowIndex] ?? rec; rec = rec?.originalRecord || rec;
-			let _value = this.value; if (_value && (isFunction(_value) || _value.run)) {
-				let _e = { colDef, rowIndex, columnField, value, html, jqxCol, rec }; _value = getFuncValue.call(this, _value, _e) }
+		return ((colDef, rowIndex, belirtec, value, html, jqxCol, rec) => {
+			if (rec?.totalsrow)
+				return GridKolonTip.getHTML_groupsTotalRow(value)
+			
+			rec = colDef.gridPart.gridWidget.getboundrows()[rowIndex] ?? rec
+			rec = rec?.originalRecord || rec
+			let { value: _value = value } = this
+			if (_value && isFunction(_value)) {
+				let _e = { colDef, rowIndex, belirtec, columnField: belirtec, value, html, jqxCol, rec }
+				_value = _value.call(this, _e)
+			}
 			return _value ?? value
 		})
 	}
 	get cellClick() {
 		return (async e => {
-			let {clickEvent} = this
+			let { clickEvent } = this
 			if (empty(clickEvent))
 				return
-			let {args, args: { owner: gridWidget, row: rec } = {}} = e
+
+			let { args = {} } = e
+			let { owner: gridWidget, row: rec } = args
 			rec = rec.bounddata ?? rec
 			let {uid} = rec
-			let _e = { ...e, tip: this, gridWidget, rec, uid }
+			let _e = { ...e, tip: this, gridWidget, rec, uid, args }
 			for (let handler of clickEvent)
 				await handler?.call(this, _e)
 		})
 	}
 	onClick(handler) {
-		if (handler === undefined) { return this }
-		if (handler == null) { this.clickEvent = [] }
+		if (handler === undefined)
+			return handler
+		
+		if (handler == null)
+			this.clickEvent = []
 		else {
-			let {clickEvent} = this; if (clickEvent == null) { this.clickEvent = clickEvent = [] }
-			if (typeof handler == 'string') { let _value = getFunc.call(this, value, e); if (_value != null) { handler = _value } }
-			if (handler) { clickEvent.push(handler) }
+			let { clickEvent } = this
+			if (clickEvent == null)
+				this.clickEvent = clickEvent = []
+			
+			if (isString(handler)) {
+				let _value = getFunc.call(this, value, e)
+				if (_value != null)
+					handler = _value
+			}
+			
+			if (handler)
+				clickEvent.push(handler)
 		}
 		return this
 	}
-	click(handler) { return this.onClick(handler) }
+	click(handler) {
+		return this.onClick(handler)
+	}
 }
 class GridKolonTip_Image extends GridKolonTip_Button {
     static { window[this.name] = this; this._key2Class[this.name] = this }

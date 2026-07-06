@@ -262,12 +262,20 @@ class SBTabloVeriTipi extends TekSecim {
 					sisk && disk ? `(${sisk} + ${disk})` : '(har.satiriskonto + har.dipiskonto)' })
 			}]),
 			new CKodAdiVeEkBilgi(['CIR', 'Ciro', 'ciromu', {
-				gosterimUygunluk, sentUygunluk, sentDuzenle: e => topSahaEkle({ ...e, clause: hv => hv?.harciro && 'har.harciro' })
+				gosterimUygunluk, sentUygunluk, sentDuzenle: e => topSahaEkle({ ...e, clause: hv => hv?.harciro || 'har.harciro' })
 			}]),
 			new CKodAdiVeEkBilgi(['MAL', 'Maliyet', 'maliyetmi', {
-				gosterimUygunluk, sentUygunluk: e => e.stokmu && sentUygunluk(e),
+				gosterimUygunluk,
+				sentUygunluk: e => e.stokmu && sentUygunluk(e),
 				sentDuzenle: e => topSahaEkle({ ...e, clause: ({ fmalhammadde: hamm, fmalmuh: mmuh } = {}) =>
 					hamm && mmuh ? `(${hamm} + ${mmuh})` : '(har.fmalhammadde + har.fmalmuh)' })
+			}]),
+			new CKodAdiVeEkBilgi(['OMAL', 'Ort. Mal. Değerleme', 'ortMaliyetmi', {
+				gosterimUygunluk,
+				sentUygunluk: e => e.stokmu && sentUygunluk(e),
+				sentDuzenle: e => topSahaEkle({ ...e, clause: ({ miktar } = {}) =>
+					`ROUND(${miktar || 'har.miktar'} * stk.ortmalfiyat, 2)`
+				})
 			}]),
 			new CKodAdiVeEkBilgi(['KCR', 'KDVli Ciro', 'kdvliCiromu', {
 				gosterimUygunluk, sentDuzenle: e => topSahaEkle({ ...e, clause: ({ hv: { harciro: ciro, topkdv: kdv } = {} }) =>
@@ -287,9 +295,16 @@ class SBTabloVeriTipi extends TekSecim {
 			new CKodAdiVeEkBilgi(['MAL2', 'Maliyet', 'stokCikis_maliyetmi', {
 				gosterimUygunluk, sentUygunluk,
 				sentDuzenle: e =>
-					topSahaEkle({ ...e, clause: ({ hv: { bedel: maliyet } = {} }) => maliyet || 'har.fmalhammadde + har.fmalmuh' })
+					topSahaEkle({ ...e, clause: ({ hv: { bedel: maliyet } = {} }) =>
+						maliyet || 'har.fmalhammadde + har.fmalmuh' })
+			}]),
+			new CKodAdiVeEkBilgi(['OML2', 'Ort. Mal. Değerleme', 'stokCikis_ortMaliyetmi', {
+				gosterimUygunluk, sentUygunluk,
+				sentDuzenle: e => topSahaEkle({ ...e, clause: ({ miktar } = {}) =>
+					`ROUND(${miktar || 'har.miktar'} * stk.ortmalfiyat, 2)`
+				})
 			}])
-		);
+		)
 		return this
 	}
 	kaListeDuzenle_hareketci({ kaListe, topSahaEkle }) {

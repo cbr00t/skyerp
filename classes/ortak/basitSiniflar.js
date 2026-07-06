@@ -52,7 +52,7 @@ class CBasiSonu extends CObject {
 	    return `${b.gun}.${kisaAy[b.ay - 1]}.${sifirlaDoldur(b.yil % 100, 2)} -> ${s.gun}.${kisaAy[s.ay - 1]}.${sifirlaDoldur(s.yil % 100, 2)}`
 	}
 	
-	constructor(e) { e = e || {}; super(e); $.extend(this, { basi: e.basi ?? e.Basi, sonu: e.sonu ?? e.Sonu }) }
+	constructor(e) { e = e || {}; super(e); extend(this, { basi: e.basi ?? e.Basi, sonu: e.sonu ?? e.Sonu }) }
 	static fromText(e) {
 		e = e || {}; if (typeof e == 'object' && !$.isPlainObject(e)) return e		/* CBasiSonu gelmistir */
 		let value = typeof e == 'object' && e.value !== undefined ? e.value : e; if (value == null) return null
@@ -196,7 +196,7 @@ class YilVeAy extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get bosmu() { return !(this.basi || !this.sonu) }
 	get yilAy() { const {yil, ay} = this; return asYilAy(yil, ay) }
-	set yilAy(value) { const yilVeAy = ya2YilVeAy(value); if (yilVeAy) { const {yil, ay} = yilVeAy; $.extend(this, { yil, ay }) } }
+	set yilAy(value) { const yilVeAy = ya2YilVeAy(value); if (yilVeAy) { const {yil, ay} = yilVeAy; extend(this, { yil, ay }) } }
 	constructor(e, _ay) {
 		e = e || {}; super(e); let yil, ay;
 		if (typeof e == 'object') {
@@ -208,7 +208,7 @@ class YilVeAy extends CObject {
 			else { yil = e; ay = _ay }
 		}
 		if (yil && yil < 100) { yil = yil2To4(yil) }
-		$.extend(this, { yil, ay })
+		extend(this, { yil, ay })
 	}
 }
 class Countdown extends CObject {
@@ -224,7 +224,7 @@ class Countdown extends CObject {
 		result = remainingSecs < 60 ? `${remainingSecs} sn` : `${Math.round(remainingSecs / 60, 1)} dk`;
 		return this._lastText = result
 	}
-	constructor(e) { e = e || {}; super(e); $.extend(this, { layout: e.layout, totalSecs: e.totalSecs ?? 0, remainingSecs: e.remainingSecs, callback: e.callback }) }
+	constructor(e) { e = e || {}; super(e); extend(this, { layout: e.layout, totalSecs: e.totalSecs ?? 0, remainingSecs: e.remainingSecs, callback: e.callback }) }
 	run(e) { delete this.isDestroyed; this.reset(e).start(e) }
 	destroyPart(e) { this.isDestroyed = true; this.abort(e); const {layout} = this; if (layout?.length) { layout.remove() } }
 	abort(e) { this.stop(e).reset(e); return this }
