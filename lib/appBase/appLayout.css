@@ -108,7 +108,7 @@ body.dark-theme .app-title,
 }*/
 body > .bg-image-wrapper { width: var(--full); height: var(--background-image-height); background-color: #0327742b; opacity: .7; z-index: 1010 !important }
 body > .app-titlebar {
-	font-size: 70%; font-weight: bold; color: lightskyblue; position: fixed; top: var(--appTitle-top); right: 50px;
+	font-size: 65%; font-weight: bold; color: lightskyblue; position: fixed; top: var(--appTitle-top); right: 50px;
 	padding: .15% 10px; line-height: 16px; opacity: .8; pointer-events: none; z-index: 100 !important
 }
 body > .app-titlebar > div { text-align: right }
@@ -283,7 +283,7 @@ input[type = text]::placeholder,
 @media (max-width: 850px) {
 	.sn-notifications-container { --sn-notify-width: 400px }
 	.sn-notifications-container .sn-notify-content > * {
-		font-size: 80% !important;
+		font-size: 85% !important;
 		line-height: 16px
 	}
 	.sn-notifications-container .sn-notify-content > * > * > * {
@@ -293,3 +293,9 @@ input[type = text]::placeholder,
 @media (max-width: 600px) {
 	.sn-notifications-container { --sn-notify-width: 350px }
 }
+
+
+body:not(.no-wnd) > .app-titlebar {
+	display: none
+}
+

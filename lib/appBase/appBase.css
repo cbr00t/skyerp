@@ -1,4 +1,9 @@
-:root { --full: 100%; --half: 50%; --base-fontSize: 13pt /*color-scheme: light dark*/ }
+:root {
+	--full: 100%;
+	--half: 50%;
+	--base-fontSize: 14pt
+	/*color-scheme: light dark*/
+}
 /*@font-face {
   font-family: SkyERP-Default; src: url("../../fonts/OpenSans-VariableFont.ttf") format("truetype");
   -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; display: inline-block
@@ -20,7 +25,8 @@ html { /* background: #efefef */ }
 body { background: linear-gradient(300deg, #eae1d42b 15%, #d2d0e626 90%) !important }
 html, .jqx-widget, .jqx-widget div[role=row] > *,
 input, button, select, optgroup, textarea {
-	font-family: SkyERP-Default, Segoe UI, Verdana, sans-serif !important; font-size: var(--base-fontSize)
+	font-family: SkyERP-Default, Segoe UI, Verdana, sans-serif !important;
+	font-size: var(--base-fontSize)
 }
 select[readonly] { background: #f0f0f0 }
 label { margin-bottom: 0; padding: 2px 0 }
@@ -92,7 +98,8 @@ body.dark-theme .jqx-window-header { color: #111; background-color: #99b1e4; fil
 .jqx-grid .jqx-adaptive-table { width: var(--full) }
 .jqx-grid .jqx-adaptive-table tr td {
 	font-size: 110%; font-weight: bold; color: #888;
-	background: linear-gradient(45deg, #a1b2c412 50%, #ececec8c 20%); padding-block-end: 25px !important
+	background: linear-gradient(45deg, #a1b2c412 50%, #ececec8c 20%);
+	padding-block-end: 25px !important
 }
 .jqx-grid .jqx-adaptive-table tr:nth-child(1) > td:nth-child(1) { display: none }
 .jqx-dropdownlist, .jqx-combobox { border-radius: 8px; box-sizing: border-box }
@@ -106,6 +113,6 @@ body.dark-theme .jqx-window-header { color: #111; background-color: #99b1e4; fil
 	float: right !important; z-index: 5000 !important
 }
 @media (max-width: 900px) {
-	.jqx-grid .jqx-grid-column-header > div { font-size: 180% !important }
-	.jqx-grid [role = row] > * { font-size: 85% !important }
+	.jqx-grid .jqx-grid-column-header > div { font-size: 150% !important }
+	.jqx-grid [role = row] > * { font-size: 95% !important }
 }

@@ -1,14 +1,20 @@
 class PortalApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	get configParamSinif() { return MQYerelParamConfig_App } get yerelParamSinif() { return MQYerelParam }
-	get defaultWSPath() { return 'ws/vioPortal' } get defaultLoginTipi() { return 'bayiLogin' } get autoExecMenuId() { return null }
+	get configParamSinif() { return MQYerelParamConfig_App }
+	get yerelParamSinif() { return MQYerelParam }
+	get defaultWSPath() { return 'ws/vioPortal' }
+	get defaultLoginTipi() { return 'bayiLogin' }
+	get autoExecMenuId() { return null }
+
 	constructor(e) {
 		super(e)
-		this.defaultSurum = '416'
-		this.dbNames = {
-			skylog: 'YI26SKYLOGFAT',
-			polen: 'YI26POLENFAT'
-		}
+		extend(this, {
+			defaultSurum: '417',
+			dbNames: {
+				skylog: 'YI26SKYLOGFAT',
+				polen: 'YI26POLENFAT'
+			}
+		})
 	}
 	loginTipleriDuzenle({ loginTipleri }) {
 		/* super yok */
@@ -18,22 +24,37 @@ class PortalApp extends TicariApp {
 			{ kod: 'musteriLogin', aciklama: 'Müşteri' }
 		])
 	}
-	paramsDuzenle(e) { super.paramsDuzenle(e) /*; let {params} = e; $.extend(params, { x: MQParam_X.getInstance() })*/ }
+	paramsDuzenle({ params }) {
+		super.paramsDuzenle(...arguments)
+	}
 	async paramsDuzenleSonrasi(e) {
 		await super.paramsDuzenleSonrasi(e)
-		let {params} = this, {ticariGenel} = params 
-		if (!ticariGenel.kullanim.eFatura) { ticariGenel.kullanim.eFatura = true; ticariGenel.kaydet() }
+		let { params } = this
+		;{
+			let { ticariGenel: par } = params
+			let { kullanim: kull } = par
+			if (!kull.eFatura) {
+				kull.eFatura = true
+				par.kaydet()
+			}
+		}
 	}
 	async afterRun(e) {
-		let {loginTipi, user: kod} = config.session;
-		let login = MQLogin.current = MQLogin.newFor({ loginTipi, kod });
-		await login?.yukle(); await super.afterRun(e)
+		let { loginTipi, user: kod } = config.session
+		;{
+			let l = MQLogin.current = MQLogin.newFor({ loginTipi, kod })
+			await l?.yukle()
+		}
+		await super.afterRun(e)
 	}
 	async anaMenuOlustur(e) {
-		await this.promise_ready; let eksikParamIsimleri = [];
-		/*if (!kullanim.webOzetRapor) { eksikParamIsimleri.push('Web Özet Rapor') }*/
+		await this.promise_ready
+		let eksikParamIsimleri = []
 		if (eksikParamIsimleri.length) {
-			this.noMenuFlag = true; let paramIsimleriGosterim = eksikParamIsimleri.map(x => `<span class="bold firebrick">${x}</span>`).join(' VE ');
+			this.noMenuFlag = true
+			let paramIsimleriGosterim = eksikParamIsimleri
+				.map(x => `<span class="bold firebrick">${x}</span>`)
+				.join(' VE ')
 			let wnd = createJQXWindow({
 				content: (
 					`<div>${paramIsimleriGosterim} parametreleri</div>
@@ -43,8 +64,10 @@ class PortalApp extends TicariApp {
 				title: `<span class="bold">!! UYARI !!</span><span class="gray"> - ${appName}</span>`,
 				args: { isModal: true, width: Math.min(830, $(window).width() / 1.5), height: 330, showCloseButton: true, showCollapseButton: false, closeButtonAction: 'destroy' }
 				// buttons: { TAMAM: e => e.close() }
-			});
-			wnd.css('font-size', '130%'); wnd.find('div > .jqx-window-header').addClass('bg-darkred') /* wnd.find('div > .buttons > button:eq(0)').jqxButton('template', 'danger') */
+			})
+			wnd.css('font-size', '130%')
+			wnd.find('div > .jqx-window-header')
+					.addClass('bg-darkred')
 		}
 		await super.anaMenuOlustur(e)
 	}
@@ -57,18 +80,21 @@ class PortalApp extends TicariApp {
 		let items = [
 			(adminmi || bayimi ? new FRMenuCascade({
 				mne: 'TAN', text: 'Tanımlar', items: (
-					[MQLogin_Admin, MQLogin_Bayi, MQVPAnaBayi, MQVPAltMusteri].filter(cls => cls.uygunmu).map(cls => {
-						let { kodListeTipi: mne, sinifAdi: text } = cls
-						return new FRMenuChoice({
-							mne, text,
-							block: e =>
-								cls.listeEkraniAc(e)
+					[MQLogin_Admin, MQLogin_Bayi, MQVPAnaBayi, MQVPAltMusteri]
+						.filter(cls => cls.uygunmu)
+						.map(cls => {
+							let { kodListeTipi: mne, sinifAdi: text } = cls
+							return new FRMenuChoice({
+								mne, text,
+								block: e =>
+									cls.listeEkraniAc(e)
+							})
 						})
-					})
 				)
 			}) : null),
 			...[MQLogin_Musteri, MQAktivasyon]
-				.filter(cls => cls.uygunmu != false).map(cls => {
+				.filter(cls => cls.uygunmu != false)
+				.map(cls => {
 					let { kodListeTipi: mne, sinifAdi: text } = cls
 					return new FRMenuChoice({
 						mne, text,
@@ -77,7 +103,8 @@ class PortalApp extends TicariApp {
 					})
 				}),
 			new FRMenuCascade({
-				mne: 'KHA', text: 'Kontör<br/><b class=royalblue>Hareketler</b>', items: (
+				mne: 'KHA', text: 'Kontör<br/><b class=royalblue>Hareketler</b>',
+				items: (
 					[MQKontorHareket, ...MQKontorHareket.subClasses]
 						.filter(cls => cls.uygunmu != false).map(cls => {
 							let { kodListeTipi: mne, sinifAdi: text } = cls
@@ -90,7 +117,8 @@ class PortalApp extends TicariApp {
 				)
 			}),
 			new FRMenuCascade({
-				mne: 'KMD', text: 'Kontör<br/><b class=forestgreen>Müşteri Durumu</b>', items: (
+				mne: 'KMD', text: 'Kontör<br/><b class=forestgreen>Müşteri Durumu</b>',
+				items: (
 					[MQKontor, ...MQKontor.kaListe.map(ka => ka.ekBilgi)].map(cls => {
 						let { kodListeTipi: mne, sinifAdi: text } = cls
 						return new FRMenuChoice({
@@ -110,6 +138,7 @@ class PortalApp extends TicariApp {
 				: null
 			)
 		].filter(Boolean)
+		
 		return new FRMenu({ items })
 	}
 	onMuhDBDo_skylog(block) { return this.onMuhDBDo(this.dbNames.skylog, block) }

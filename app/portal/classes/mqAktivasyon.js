@@ -1,27 +1,51 @@
 class MQAktivasyon extends MQDetayliMaster {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kodListeTipi() { return 'AKT' } static get sinifAdi() { return 'Aktivasyon' } static get gridHeight_bosluk() { return 360 }
-	static get table() { return 'muslisans' } static get tableAlias() { return 'fis' } static get sayacSaha() { return 'kaysayac' }
-	static get detaySinif() { return MQAktivasyonDetay } static get gridKontrolcuSinif() { return MQAktivasyonGridci }
-	static get tumKolonlarGosterilirmi() { return true } static get kolonFiltreKullanilirmi() { return false } static get raporKullanilirmi() { return false }
+	static get kodListeTipi() { return 'AKT' } static get sinifAdi() { return 'Aktivasyon' }
+	static get table() { return 'muslisans' } static get tableAlias() { return 'fis' }
+	static get detaySinif() { return MQAktivasyonDetay } 
+	static get gridKontrolcuSinif() { return MQAktivasyonGridci }
+	static get sayacSaha() { return 'kaysayac' }
+	static get tumKolonlarGosterilirmi() { return true }
+	static get kolonFiltreKullanilirmi() { return false }
+	static get raporKullanilirmi() { return false }
+	static get gridHeight_bosluk() { return 20 }
 	static get tanimlanabilirmi() {
-		if (!(super.tanimlanabilirmi && MQLogin.current?.yetkiVarmi('tanimla'))) { return false }
-		let {current: login} = MQLogin; if (login.adminmi) { return true }
-		return login.bayimi && login.yetkiVarmi('aktivasyonYap')
+		if (!(super.tanimlanabilirmi && MQLogin.current?.yetkiVarmi('tanimla')))
+			return false
+		
+		let { current: l } = MQLogin
+		if (l.adminmi)
+			return true
+		
+		return l.bayimi && l.yetkiVarmi('aktivasyonYap')
 	}
 	static get silinebilirmi() {
-		if (!(super.silinebilirmi && MQLogin.current?.yetkiVarmi('sil'))) { return false }
-		let {current: login} = MQLogin; if (login.adminmi) { return true }
-		return login.bayimi && login.yetkiVarmi('aktivasyonSil')
+		if (!(super.silinebilirmi && MQLogin.current?.yetkiVarmi('sil')))
+			return false
+		
+		let { current: l } = MQLogin
+		if (l.adminmi)
+			return true
+		
+		return l.bayimi && l.yetkiVarmi('aktivasyonSil')
 	}
+
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
-		$.extend(pTanim, {
-			tarih: new PInstDateToday('tarih'), ilkTarih: new PInstDateToday('ilktarih'), mustKod: new PInstStr('mustkod'),
-			aktifmi: new PInstBitTrue('baktifmi'), surum: new PInstTekSecim('surum', VIOSurum), tanitim: new PInstStr(),
-			kullaniciSayi: new PInstNum('kullanicisayi'), elTerminalSayi: new PInstNum('elterminalsayi'), dokunmatikSayi: new PInstNum('dokunmatiksayi'),
-			topBedel: new PInstNum('topbedel'), demoSuresiSifirlaTarih: new PInstDate('demosuresifirlatarih'),
-			ekBilgi: new PInstStr('ekbilgi'), ozelEkBilgi: new PInstStr('ozelekbilgi')
+		extend(pTanim, {
+			tarih: new PInstDateToday('tarih'),
+			ilkTarih: new PInstDateToday('ilktarih'),
+			mustKod: new PInstStr('mustkod'),
+			aktifmi: new PInstBitTrue('baktifmi'),
+			surum: new PInstTekSecim('surum', VIOSurum),
+			tanitim: new PInstStr(),
+			kullaniciSayi: new PInstNum('kullanicisayi'),
+			elTerminalSayi: new PInstNum('elterminalsayi'),
+			dokunmatikSayi: new PInstNum('dokunmatiksayi'),
+			topBedel: new PInstNum('topbedel'),
+			demoSuresiSifirlaTarih: new PInstDate('demosuresifirlatarih'),
+			ekBilgi: new PInstStr('ekbilgi'),
+			ozelEkBilgi: new PInstStr('ozelekbilgi')
 		})
 	}
 	static secimlerDuzenle({ secimler: sec }) {
@@ -47,36 +71,69 @@ class MQAktivasyon extends MQDetayliMaster {
 		})
 	}
 	static rootFormBuilderDuzenleSonrasi_listeEkrani(e) {
-		super.rootFormBuilderDuzenleSonrasi_listeEkrani(e); let {rootBuilder: rfb} = e;
-		this.fbd_listeEkrani_addButton(rfb, 'kontorMenu', '...', 50, e => this.kontorMenuIstendi(e))
+		super.rootFormBuilderDuzenleSonrasi_listeEkrani(e)
+		let { rootBuilder: rfb } = e
+		this.fbd_listeEkrani_addButton(rfb, 'kontorMenu', '...', 50, e =>
+			this.kontorMenuIstendi(e))
 	}
 	static rootFormBuilderDuzenle(e) {
-		super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e);
-		let {current: login} = MQLogin, {tanimFormBuilder: tanimForm, tabPage_genel: tabPage} = e;
-		let form = tabPage.addFormWithParent().yanYana();
-			form.addDateInput('tarih', 'Tarih'); form.addDateInput('ilkTarih', 'İlk Lisans');
-			form.addModelKullan('surum', 'Sürüm').dropDown().noMF().kodsuz().autoBind().addStyle_wh(150);
-			form.addNumberInput('kullaniciSayi', 'Kullanıcı').setMaxLength(4).addStyle_wh(150);
-			form.addNumberInput('elTerminalSayi', 'El Term.').setMaxLength(4).addStyle_wh(150);
-			form.addNumberInput('dokunmatikSayi', 'Tablet').setMaxLength(4).addStyle_wh(150);
-			form.addCheckBox('aktifmi', 'Aktif?').addStyle(`$elementCSS { margin: 40px 0 0 20px !important }`);
-		form = tabPage.addFormWithParent().yanYana();
-			form.addModelKullan('mustKod', 'Müşteri').comboBox().setMFSinif(MQLogin_Musteri)
-				.autoBind().addStyle_wh(800)
-				.ozelQueryDuzenleHandler(({ stm, aliasVeNokta, mfSinif }) => {
-					let {kodSaha} = mfSinif, clauses = { musteri: `${aliasVeNokta}${kodSaha}`, bayi: `${aliasVeNokta}bayikod`, anaBayi: 'bay.anabayikod' };
+		super.rootFormBuilderDuzenle(e)
+		this.formBuilder_addTabPanelWithGenelTab(e)
+		let { current: login } = MQLogin
+		let { tanimFormBuilder: tanimForm, tabPage_genel: tabPage } = e
+		tanimForm.addStyle_fullWH()
+		let form = tabPage.addFormWithParent().yanYana()
+			form.addDateInput('tarih', 'Tarih')
+			form.addDateInput('ilkTarih', 'İlk Lisans')
+			form.addSelect('surum', 'Sürüm')
+				.setSource(VIOSurum.kaListe)
+				.addStyle_wh(150)
+			form.addNumberInput('kullaniciSayi', 'Kullanıcı').setMaxLength(4).addStyle_wh(150)
+			form.addNumberInput('elTerminalSayi', 'El Term.').setMaxLength(4).addStyle_wh(150)
+			form.addNumberInput('dokunmatikSayi', 'Tablet').setMaxLength(4).addStyle_wh(150)
+			form.addCheckBox('aktifmi', 'Aktif?')
+				.addStyle(`$elementCSS { margin: 40px 0 0 20px !important }`)
+		form = tabPage.addFormWithParent().yanYana()
+			form.addSimpleComboBox('mustKod', 'Müşteri', 'Müşteri')
+				.etiketGosterim_yok()
+				.setMFSinif(MQLogin_Musteri).autoBind()
+				.ozelQueryDuzenleIslemi(({ stm, aliasVeNokta, mfSinif }) => {
+					let { kodSaha } = mfSinif
+					let clauses = {
+						musteri: `${aliasVeNokta}${kodSaha}`,
+						bayi: `${aliasVeNokta}bayikod`,
+						anaBayi: 'bay.anabayikod'
+					}
 					for (let sent of stm) {
-						let {where: wh} = sent;
-						wh.add(`${aliasVeNokta}aktifmi <> ''`);
+						let { where: wh } = sent
+						wh.add(`${aliasVeNokta}aktifmi <> ''`)
 						MQLogin.current.yetkiClauseDuzenle({ sent, clauses })
 					}
-				});
-			form.addNumberInput('topBedel', 'Toplam Bedel').setFra(2).setMaxLength(17).addStyle_wh(200);
-		form = tabPage.addFormWithParent().yanYana();
-			form.addTextInput('tanitim', 'Tanıtım').addStyle_wh(800).readOnly().addCSS('center');
-		form = tabPage.addFormWithParent().yanYana();
-			form.addTextArea('ekBilgi', 'Ek Bilgi').setRows(3).setMaxLength(300);
-			if (login.adminmi || login.sefmi) { form.addTextArea('ozelEkBilgi', 'Ek Bilgi').setRows(3).setMaxLength(300) }
+				})
+				.addStyle_wh(800)
+				.addStyle(`$elementCSS { margin-top: 35px }`)
+			form.addNumberInput('topBedel', 'Toplam Bedel')
+				.setFra(2).setMaxLength(17)
+				.addStyle_wh(200)
+		form = tabPage.addFormWithParent().yanYana()
+			form.addTextInput('tanitim', 'Tanıtım')
+				.etiketGosterim_yok()
+				.readOnly().addCSS('center')
+				.addStyle_wh(800, 40)
+				.addStyle(`$elementCSS > input { height: var(--full) !important; min-height: unset !important }`)
+		
+		form = tabPage.addFormWithParent().yanYana()
+				.addStyle(`$elementCSS { margin-top: -13px }`)
+			form.addTextArea('ekBilgi', 'Ek Bilgi')
+				.setRows(2)
+				.setMaxLength(300)
+				.addStyle_wh('58%')
+			if (login.adminmi || login.sefmi) {
+				form.addTextArea('ozelEkBilgi', 'Özel Ek Bilgi')
+					.setRows(2)
+					.addStyle_wh('40%')
+					.setMaxLength(200)
+			}
 	}
 	static ekCSSDuzenle({ rec, result }) {
 		super.ekCSSDuzenle(...arguments);
@@ -117,26 +174,35 @@ class MQAktivasyon extends MQDetayliMaster {
 			.leftJoin('bay', `${MQVPAnaBayi.table} abay`, 'bay.anabayikod = abay.kod');
 		sahalar.add(`${alias}.surum`, 'mus.tanitim')
 		if (!basit) {
-			let clauses = { anaBayi: 'bay.anabayikod', bayi: 'mus.bayikod', musteri: `${alias}.mustkod` };
-			if (!alias2Deger.mustkod) { sahalar.add('fis.mustkod') }
-			MQLogin.current.yetkiClauseDuzenle({ sent, clauses });
-			if (!(tekilOku || modelKullanmi)) { orderBy.liste = ['tarih DESC', 'mustkod'] }
+			let clauses = {
+				anaBayi: 'bay.anabayikod',
+				bayi: 'mus.bayikod',
+				musteri: `${alias}.mustkod`
+			}
+			MQLogin.current.yetkiClauseDuzenle({ sent, clauses })
+
+			if (!alias2Deger.mustkod)
+				sahalar.add('fis.mustkod')
+			if (!(tekilOku || modelKullanmi))
+				orderBy.liste = ['tarih DESC', 'mustkod']
 		}
 	}
 	setValues({ rec }) {
-		super.setValues(...arguments); let {tanitim} = rec;
-		$.extend(this, { tanitim })
+		super.setValues(...arguments)
+		let { tanitim } = rec
+		extend(this, { tanitim })
 	}
 	static kontorMenuIstendi(e) {
 		this.openContextMenu({
 			...e, title: 'Kontör İşlemleri',
-			wndArgsDuzenle: ({ wndArgs: args }) => $.extend(args, { height: 150 }),
+			wndArgsDuzenle: ({ wndArgs: args }) => extend(args, { height: 150 }),
 			formDuzenleyici: ({ form: parentForm, close, rec }) => {
 				let listele = cls => {
 					let {mustkod: mustKod} = rec;
 					cls.listeEkraniAc({ args: { mustKod } });
 				};
-				parentForm.altAlta().addStyle(e = `$elementCSS .formBuilder-element.parent { margin-top: 5px !important }`);
+				parentForm.altAlta()
+					.addStyle(`$elementCSS .formBuilder-element.parent { margin-top: 5px !important }`)
 				let form = parentForm.addFormWithParent().yanYana(2);
 				form.addButton('eBelge', undefined, 'e-Belge Kontör').onClick(() => { close(); listele(MQKontor_EBelge) });
 				form.addButton('turmob', undefined, 'Turmob Kontör').onClick(() => { close(); listele(MQKontor_Turmob) })
@@ -149,7 +215,7 @@ class MQAktivasyonDetay extends MQDetay {
 	static get table() { return 'muslisansdetay' }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
-		$.extend(pTanim, {
+		extend(pTanim, {
 			psmKod: new PInstStr('psmkod'), psmAdi: new PInstStr(),
 			hesapSekli: new PInstTekSecim('hesapsekli', AktHesapSekli),
 			otoAnahtarmi: new PInstBitBool('botoanahtarverilirmi'), anahtar: new PInstStr('anahtar')
@@ -173,14 +239,14 @@ class MQAktivasyonDetay extends MQDetay {
 	}
 	setValues({ rec }) {
 		super.setValues(...arguments); let {psmadi: psmAdi} = rec;
-		$.extend(this, { psmAdi })
+		extend(this, { psmAdi })
 	}
 }
 class MQAktivasyonGridci extends GridKontrolcu {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	gridArgsDuzenle({ gridPart, sender, args }) {
 		gridPart = gridPart ?? sender;
-		$.extend(args, { groupsExpandedByDefault: true /*, editMode: 'click'*/ })
+		extend(args, { groupsExpandedByDefault: true /*, editMode: 'click'*/ })
 	}
 	tabloKolonlariDuzenle_ilk({ tabloKolonlari }) {
 		super.tabloKolonlariDuzenle_ilk(...arguments);

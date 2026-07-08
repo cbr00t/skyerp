@@ -313,6 +313,8 @@ class TabRapor_SonStok extends TabRapor {
 		let e = arguments[0]
 		if (tip != 'cols') {
 			switch (key) {
+				case 'stokAdi':
+					return inst.stokText
 				case 'miktar':
 					return inst[key]
 				case 'dip': {

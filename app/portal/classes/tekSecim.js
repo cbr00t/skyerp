@@ -40,26 +40,25 @@ class KontorFatDurum extends TekSecim {
 		])
 	}
 }
+
 class VIOSurum extends TekSecim {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return app.defaultSurum }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)
 		kaListe.push(...[
+			new CKodVeAdi(['417', '<span class=green>4.17</span>']),
 			new CKodVeAdi(['416', '<span class=green>4.16</span>']),
 			new CKodVeAdi(['415', '<span class=forestgreen>4.15</span>']),
 			new CKodVeAdi(['414', '<span class=darkcyan>4.14</span>']),
 			new CKodVeAdi(['413', '<span class=orange>4.13</span>']),
 			new CKodVeAdi(['412', '<span class=orangered>4.12</span>']),
 			new CKodVeAdi(['411', '<span class=firebrick>4.11</span>']),
-			new CKodVeAdi(['410', '<span class=red>4.10</span>']),
-			new CKodVeAdi(['49', '<span class=darkred>4.09</span>']),
-			new CKodVeAdi(['48', '<span class=lightgray>4.08</span>']),
-			new CKodVeAdi(['47', '<span class=lightgray>4.07</span>']),
-			new CKodVeAdi(['46', '<span class=lightgray>4.06</span>'])
+			new CKodVeAdi(['410', '<span class=red>4.10</span>'])
 		])
 	}
 }
+
 class AktHesapSekli extends TekSecim {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return ' ' }

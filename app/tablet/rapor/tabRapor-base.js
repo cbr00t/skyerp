@@ -231,7 +231,17 @@ class TabRapor extends MQKAOrtak {
 			darDokum, kolonBaslik, tekDetaySatirSayisi,
 			sayfaBoyut, otoYBasiSonu, detay, oto
 		}
+		
 		mergeIntoIfTargetEmpty(defaults, form)
+
+		tekDetaySatirSayisi = max(
+			tekDetaySatirSayisi,
+			...form.detay.map(d => {
+				let { x = d.pos?.x, y = d.pos.y, length } = d
+				return ( !(x === null || x === 0) && length ? y : null ) || 0
+			})
+		)
+		
 		mergeInto(defaults, form, 'tekDetaySatirSayisi')    // override
 		if (isPlainObject(form))
 			form = new TabDokumForm(form)

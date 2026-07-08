@@ -3,12 +3,12 @@
 	--acc-header-height: 35px;
 	--acc-header-collapsed-lineHeight: 16px;
 	--border-size: 2px;
-	width: calc(var(--full) - var(--item-pad-x) * 2);
+	width: calc(var(--full) - var(--item-pad-x) * 1 - 3px);
 	height: calc(var(--full) - var(--item-pad-y) * 2 + 50px)
 }
 .accordion.part .accordion.item {
 	position: relative;
-	width: calc(var(--full) - 0px);
+	width: calc(var(--full) - 2px);
 	margin: var(--item-pad-y) var(--item-pad-x);
 	border-radius: 10px;
 	border: var(--border-size) solid rgba(0, 0, 0, .10);
@@ -24,7 +24,7 @@
 /*.accordion.part .accordion.item.expanded > .header > .collapsed-content,*/
 .accordion.part .accordion.item:not(.expanded) > .content { display: none }
 .accordion.part .accordion.item > .header {
-	font-size: 110%; user-select: none; cursor: pointer;
+	font-size: 105%; user-select: none; cursor: pointer;
 	height: var(--acc-header-height);
 	padding: 0 8px; padding-right: 5px;
 	border: 1px solid #ccc; border-bottom: 1px solid rgba(0, 0, 0, 0.15);
@@ -50,7 +50,7 @@
 }
 .accordion.part .accordion.item > .header > .title {
 	height: var(--full) !important; margin-top: 0;
-	font-weight: 600; color: #222; white-space: nowrap;
+	font-weight: 800; color: #222; white-space: nowrap;
 	overflow: hidden; text-overflow: ellipsis
 }
 .accordion.part .accordion.item > .header > .collapsed-content {
@@ -99,18 +99,18 @@
 	.accordion.part .accordion.item > .header > .title {
 		margin-top: 0;
 		margin-bottom: -30px;
-		line-height: 16px
+		line-height: 13px
 	}
 	.accordion.part .accordion.item > .header > .collapsed-content {
 		--acc-header-collapsed-lineHeight: 13px;
-		font-size: 74%
+		font-size: 80%
 	}
 	.accordion.part .item:not(.expanded) { --acc-header-height: 33px }
 	.accordion.part .item.expanded { --acc-header-height: 50px }
-	.accordion.part .accordion.item.expanded > .header > .collapsed-content { margin-top: -30px }
-	.accordion.part .accordion.item:not(.expanded) > .header > .collapsed-content { margin-top: -20px }
+	.accordion.part .accordion.item.expanded > .header > .collapsed-content { margin-top: -25px }
+	.accordion.part .accordion.item:not(.expanded) > .header > .collapsed-content { margin-top: -8px }
 }
 @media (max-width: 600px) {
 	/*.accordion.part.expanded { --acc-header-height: 45px }*/
-	.accordion.part .accordion.item > .header > .collapsed-content { font-size: 70% }
+	.accordion.part .accordion.item > .header > .collapsed-content { font-size: 75% }
 }
