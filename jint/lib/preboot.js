@@ -2,16 +2,19 @@ Object.assign(globalThis, {
 	window: globalThis,
 	self: globalThis
 })
-Object.assign(Object.prototype, {
-	size() {
+
+Object.defineProperty(Object.prototype, 'size', {
+	enumerable: false, writable: false,
+	configurable: true,
+	value: function size() {
 		return (
 			typeof this == 'object' ? this.keys(...arguments).length :
 			this.length
 		)
 	}
 })
+
 Object.assign(globalThis, {
-	len(v) { return Object.size(v) },
 	$: {
 		extend(...args) {
 			let deep = false
@@ -31,6 +34,7 @@ Object.assign(globalThis, {
 	navigator: { onLine: true }
 })
 
+function len(v) { return Object.size(v) }
 function setTimeout(ms) { return delay(ms) }
 function clearTimeout() { }
 

@@ -12,11 +12,13 @@
 	self.myFunc = async function myFunc(e) {
 		//debugger
 		callback('callback test')
-		await delay(500)
+		await delay(200)
 		callback('callback test 2')
-		delay(1000).then(() =>
+		delay(100).then(() =>
 			callback('defer callback test 3'))
 		console.info('deneme')
+		console.debug( 'ok?', self.confirm('ok?') )
+		console.debug()
 		return new CBasiSonu({ basi: 1, sonu: 3 })
 	}
 })()
