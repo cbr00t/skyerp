@@ -172,3 +172,10 @@ body.dark-theme #windows.skyTabs.part > .tabs > .tabPage:not(:hover):not(.select
 		color: red !important
 	}
 }
+
+@media (max-width: 600px) {
+	.skyTabs.part > .tabs > .tabPage > .header {
+		font-size: 70%;
+		width: 80px !important
+	}
+}

@@ -294,11 +294,11 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		tekilBuildCount ||= 1    // eldeki varlıklarda ilk query düzenlemede temp değişkenlerle alakalı muhtemel sorun yüzünden ilk tazelede sapıtıyor
 		for (let i = 0; i < tekilBuildCount; i++) {
 			_e.stm = new MQStm()
-			if (this.loadServerData_queryDuzenle_tekil(_e) === false)
+			if (await this.loadServerData_queryDuzenle_tekil(_e) === false)
 				return null
-			if (this.loadServerData_queryDuzenle_tekilSonrasi(_e) === false)
+			if (await this.loadServerData_queryDuzenle_tekilSonrasi(_e) === false)
 				return null
-			if (this.loadServerData_queryDuzenle_genelSon(_e) === false)
+			if (await this.loadServerData_queryDuzenle_genelSon(_e) === false)
 				return null
 		}
 		let {stm: query} = _e
@@ -482,13 +482,15 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		}
 		if (keys(attrSet).length == keys(orjAttrSet).length)    // yeni birşey eklenmedi
 			return
+		
 		let _e = { ...e, stm: new MQStm(), attrSet, internal }
 		deleteKeys(e, 'sent', 'uni')
 		if (this.loadServerData_queryDuzenle_tekil(_e) === false)
 			return false
-		let {stm: _stm} = _e, _enm = _stm.getSentListe()        // ** her iki stm içindeki sent sayısı aynı olmalıdır
-		for (let {from: asilFrom} of stm) {
-			let {done, value: { from }} = _enm.next()
+		
+		let { stm: _stm } = _e, _enm = _stm.getSentListe()        // ** her iki stm içindeki sent sayısı aynı olmalıdır
+		for (let { from: asilFrom } of stm) {
+			let { done, value: { from } } = _enm.next()
 			asilFrom.liste = [...from.liste]
 			if (done)
 				break
@@ -496,20 +498,23 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	loadServerData_queryDuzenle_tekilSonrasi(e) {
 		this.loadServerData_queryDuzenle_tekilSonrasi_ilk_ozel?.(e)
-		let { yatayAnaliz, stm, attrSet } = e, { with: _with } = stm, { konsolideVarmi, secimler: sec } = this
+		let { yatayAnaliz, stm, attrSet } = e, { with: _with } = stm
+		let { konsolideVarmi, secimler: sec } = this
 		if (konsolideVarmi && !_with.toplamVarmi) {
 			let { session } = config, { dbName: buDBName } = session
 			let { ekDBListe } = app.params?.dRapor ?? {}, alias_db = 'db'
-			let {value: filtreDBListe} = sec.db ?? {}, filtreDBSet = filtreDBListe?.length ? asSet(filtreDBListe) : null;
+			let { value: filtreDBListe } = sec.db ?? {}
+			let filtreDBSet = filtreDBListe?.length ? asSet(filtreDBListe) : null
 			if (filtreDBListe?.length) {
 				ekDBListe = filtreDBListe.filter(name => name != buDBName)
 				/* if (!filtreDBSet[buDBName]) { filtreDBSet[buDBName] = true } */
 			}
-			let asilUniDuzenlendimi = false, asilUni = stm.sent = stm.sent.asUnionAll()
+			let asilUniDuzenlendimi = false
+			let asilUni = stm.sent = stm.sent.asUnionAll()
 			if (!filtreDBSet || filtreDBSet[buDBName]) {
 				if (!asilUni.liste.length)
 					asilUni.add(new MQSent())
-				for (let {sahalar} of asilUni) {
+				for (let { sahalar } of asilUni) {
 					if (attrSet.DB && !sahalar.liste.find(saha => saha.alias == alias_db))
 						sahalar.add(`${`(<span class=forestgreen>${buDBName}</span>)`.sqlServerDegeri() ?? '- Aktif VT -'} ${alias_db}`)
 				}
@@ -524,39 +529,40 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				for (let sent of asilUni)
 					(tmpName2Yapi[''] ??= []).push(sent)
 				// fromEntries(_with.liste.map(_ => [_.table, _.sent]))
+				
 				let ekSentListe = []
-				for (let db of ekDBListe) {
-					if (filtreDBSet && !filtreDBSet[db])
-						continue
+				for (let db of ekDBListe.filter(db => !filtreDBSet || filtreDBSet[db])) {
 					for (let [table, [tmpSentOrUni]] of entries(tmpName2Yapi)) {
 						let yTmpSentOrUni = tmpSentOrUni.deepCopy()
 						// for (let item of yTmpSent.from.liste)
 						for (let yTmpSent of yTmpSentOrUni) {
-							let {from, sahalar} = yTmpSent
+							let { from, sahalar } = yTmpSent
 							for (let item of from) {                                                                     // ** 'from.liste' değil sadece 'from'. 'from' iterasyon içerir (kendisi ve altındaki joinler için)
-								let {deger: table} = item
-								table = item.deger = tmpName2Yapi[table] ? `${db}_${table}` : `${db}..${table}`
+								let { deger: table } = item
+								let hasTmp = tmpName2Yapi[table]
+								table = item.deger = hasTmp ? `${db}_${table}` : `${db}..${table}`
 							}
-							for (let saha of sahalar) {
-								let {deger} = saha
-								if (MQSQLOrtak.sqlBosDegermi(deger))
-									continue
+							
+							for (let saha of sahalar.filter(v => MQSQLOrtak.sqlDoluDegermi(v?.deger))) {
+								let { deger } = saha
 								let name = deger.split('.')?.[0]
 								if (tmpName2Yapi[name])
 									deger = saha.deger = `${db}_${deger}`
 							}
 						}
+						
 						if (table) {
 							let yTable = `${db}_${table}`
 							_with.add(yTmpSentOrUni.asTmpTable(yTable))
 						}
 					}
+					
 					let tmpTableSet = asSet(keys(tmpName2Yapi))
 					let { liste } = asilUni.deepCopy()
-					for (let {from, sahalar} of liste) {
+					for (let { from, sahalar } of liste) {
 						// for (let item of from.liste) {
 						for (let item of from) {                                                                          // from.liste değil from sadece. from kendisi ve altındaki joinler için iterasyon
-							let {deger: table} = item
+							let { deger: table } = item
 							let hasDB = table.includes('.')
 							if (hasDB || table.includes('('))                                                             // table doğrudan select cümlesi olabilir
 								continue
@@ -565,7 +571,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 							table = tmpTableSet[table] ? `${db}_${table}` : `${db}..${table}`
 							item.deger = table
 						}
-						{
+						;{
 							let saha = sahalar.liste.find(x => x.alias == alias_db)
 							if (attrSet.DB && !saha) {
 								sahalar.add(`'NULL' ${alias_db}`)
@@ -590,20 +596,25 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		let { yatayAnaliz, stm, attrSet } = e
 		for (let sent of stm)
 			sent.groupByOlustur()
+		
 		if (stm.sent.unionmu)
 			stm = e.stm = stm.asToplamStm()
-		/* stm.sent => bu noktada #asToplamStm sonucudur */
+		
+		// stm.sent => bu noktada #asToplamStm sonucudur
 		this.loadServerData_queryDuzenle_genelSon_havingOlustur(e)
-		let { orderBy } = stm, { grup } = this.tabloYapi
+		
+		let { orderBy } = stm
+		let { grup } = this.tabloYapi
 		for (let kod in attrSet) {
-			let { orderBySaha } = grup[kod] ?? {}
-			if (orderBySaha)
-				orderBy.add(orderBySaha)
+			let { orderBySaha: v } = grup[kod] ?? {}
+			if (v)
+				orderBy.add(v)
 		}
 		if (yatayAnaliz) {
 			for (let sent of stm)
 				sent.distinctYap()
 		}
+		
 		this.loadServerData_queryDuzenle_genelSon_son_ozel?.(e)
 	}
 	loadServerData_queryDuzenle_genelSon_havingOlustur({ stm }) {
@@ -613,10 +624,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	async loadServerData_recsDuzenle({ attrSet, recs }) {
 		attrSet = attrSet ?? this.raporTanim.attrSet;
 		if (attrSet.STOKRESIM) {
-			for (let rec of recs) {
-				let {resimid: id} = rec
-				if (!id)
-					continue
+			for (let rec of recs.filter(r => r.resimid)) {
+				let { resimid: id } = rec
 				let url = app.getWSUrl({ session: false, api: 'stokResim', args: { id } })
 				rec.stokresim = `<div class="full-wh"><img align="center" style="height: 250px" src="${url}"/></div>`
 			}
@@ -826,14 +835,14 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 					let grupKod = kod
 					grupListe[grupKod].kapalimi = false
 					let sec = liste[kod] = new SecimTekSecim({ etiket: 'İşaret', tekSecimSinif, grupKod }).autoBind()
-				}).setTBWhereClauseDuzenleyici(({ kod, secimler, where: wh, kodClause }) => {
+				}).setTBWhereClauseDuzenleyici(({ kod, secimler, where: wh, kodClause, hvDegeri }) => {
 					let { tekSecim: tSec } = secimler.liste[kod]
 					if (!tSec)
 						return
-					
-					if (!kodClause)
-						kodClause = item.colDefs[0].belirtec
-					if (!kodClause.sqlDoluDegermi)
+
+					let { belirtec: k } = item.colDefs[0]
+					kodClause = hvDegeri?.(k) || k
+					if (!kodClause.sqlDoluDegermi())
 						return
 					
 					let notValue = tSec.normalmi ? '*' : 'X'    // seçilmemiş olabilir ama iki seçenek var

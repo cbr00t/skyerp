@@ -316,8 +316,28 @@ class TabRotaListe extends MQMasterOrtak {
 		let { params: { tablet } } = app
 		let { sutToplama } = tablet
 		sutToplama ||= app.sutAlimmi
+		;{
+			let part = this.fisListesiIstendi({ ...e, rec }) ?? {}
+			if (part) {
+				let { gridWidget: w, bindingCompleteBlock: handler } = part
+				part.veriYuklenince(() => {
+					part.veriYuklenince(handler)
+					let { boundRecs: recs = [] } = part
+					let { fisTipi: t } = TabSutAlimFis
+					let r = recs.find(r => r.fisTipi == t && !(r.silindi || r.merkez || r.gonderimts))
+					if (r) {
+						w.clearselection()
+						w.selectrow(r.boundindex)
+						delay(1).then(() =>
+							part.degistirIstendi())
+					}
+					else if (sutToplama)
+						part.yeniIstendi()
+				})
+			}
+		}
 		
-		this[sutToplama ? 'yeniIstendi' : 'fisListesiIstendi']({ ...e, rec })
+		// this[sutToplama ? 'yeniIstendi' : 'fisListesiIstendi']({ ...e, rec })
 	}
 	static async yeniIstendi(e = {}) {
 		let { gridPart = e.parentPart ?? e.sender } = e
@@ -354,12 +374,14 @@ class TabRotaListe extends MQMasterOrtak {
 		let { rec = gridPart?.selectedRec } = e
 		let { mustKod, rotaID, posta } = rec ?? {}
 		if (!mustKod)
-			return
+			return null
 
 		let args = { mustKod, rotaID, posta }
 		let { part } = TabFisListe.listeEkraniAc({ args })
 		if (gridPart && part)
 			part.kapaninca(() => gridPart.tazele())
+
+		return part
 	}
 	
 	static getDefaultContextMenuItems(e) {

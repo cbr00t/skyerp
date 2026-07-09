@@ -41,6 +41,12 @@ class FiltreFormPart extends Part {
 			else
 				this.timer_change = setTimeout(() => changeHandler(evt), 5_000)
 		})
+		input.off('click').on('click', evt => {
+			let { currentTarget: target, originalEvent: orj = {} } = evt
+			let { offsetX: x } = orj
+			if (x != null && x < 45)
+				changeHandler(evt)
+		})
 	}
 	static hizliBulIslemi(e = {}) {
 		let { layout, tokens = e.parts ?? [] } = e

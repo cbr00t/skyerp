@@ -15,7 +15,7 @@ class MQTabStok extends MQKAOrtak {
 
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
-		$.extend(pTanim, {
+		extend(pTanim, {
 			aktifmi: new PInstTrue('calismadurumu'), satilamazmi: new PInstBool('satilamazfl'),
 			brm: new PInstStr('brm'), brm2: new PInstStr('brm2'), brmOrani: new PInstNum('brmorani'),
 			kisaAdi: new PInstStr('kisaadi'), grupKod: new PInstStr('grupkod'), markaKod: new PInstStr('smarkakod'),
@@ -121,6 +121,8 @@ class MQTabStok extends MQKAOrtak {
 	}
 	static async loadServerData(e = {}) {
 		let { sender, offlineRequest, offlineMode } = e
+		let { table } = this
+		this._hasCol_almnetfiyat ??= await app.sqlHasColumn(table, 'almnetfiyat')
 		let recs = await super.loadServerData(e)
 		if (empty(recs))
 			return recs
@@ -181,7 +183,9 @@ class MQTabStok extends MQKAOrtak {
 			}
 		}
 		sent.stok2GrupBagla().stok2MarkaBagla()
-		sahalar.addWithAlias(alias, 'aciklama', 'brm', 'grupkod', 'satfiyat1 fiyat', 'almfiyat', 'almnetfiyat')
+		sahalar.addWithAlias(alias, 'aciklama', 'brm', 'grupkod', 'satfiyat1 fiyat', 'almfiyat')
+		if (this._hasCol_almnetfiyat)
+			shalar.add(`${alias}.almnetfiyat`)
 		sahalar.add('grp.aciklama grupadi', 'smar.aciklama markaadi')
 		sahalar.add(getKdvKodClauseVeAlias('TAH', 'sat'), getKdvKodClauseVeAlias('IND', 'alm'))
 		if (offlineRequest && !offlineMode) {

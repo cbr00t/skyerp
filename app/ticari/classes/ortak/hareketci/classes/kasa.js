@@ -39,10 +39,18 @@ class KasaHareketci extends Hareketci {
 		super.varsayilanHVDuzenle(...arguments)
 		for (let key of ['makbuzno'])
 			hv[key] = sqlZero
+		
 		extend(hv, {
 			kasakod: hv => hv.refkod,
 			bastarih: 'fis.tarih', basseri: 'fis.seri',
-			basno: hv => hv.fisno, dvkod: 'kas.dvtipi'
+			basno: hv => hv.fisno, dvkod: 'kas.dvtipi',
+			aciklama: ({ hv }) => {
+                let withCoalesce = clause => `COALESCE(${clause}, '')`
+				let { fisaciklama: fisAciklama, detaciklama: detAciklama } = hv
+                return fisAciklama && detAciklama
+                    ? `${withCoalesce(fisAciklama)} + ' ' + ${withCoalesce(detAciklama)}`
+                    : withCoalesce(detAciklama || fisAciklama || sqlEmpty)
+            }
 		})
 	}
 	uygunluk2UnionBilgiListeDuzenleDevam(e) {

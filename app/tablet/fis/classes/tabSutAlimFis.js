@@ -606,7 +606,7 @@ class TabSutAlimFis extends TabFis {
 							w.updaterow(det.uid, det)
 							acc?.render()
 							if (gridPart) {
-								setTimeout(() => {
+								delay(30).then(() => {
 									let { selectedBelirtec: newBelirtec, selectedRowIndex: newRowIndex } = gridPart
 									let { gridWidget: w } = gridPart
 									if (newBelirtec == belirtec && newRowIndex != rowIndex) {
@@ -628,18 +628,21 @@ class TabSutAlimFis extends TabFis {
 				])
 				.veriYukleninceIslemi(({ builder: { part: gridPart } }) => {
 					let { boundRecs: recs, gridWidget: w } = gridPart
-					let ind = recs.findLastIndex(_ => _.miktar) + 1
-					if (ind > -1) {
+					let ind = recs.findLastIndex(_ => _.miktar) || 0
+					if (ind + 1 < recs.length)
+						ind++
+					
+					;{
 						let ekSatir = $(window).height() < 800 ? 5 : 7
 						w.ensurerowvisible(Math.min(ind + ekSatir, recs.length - 1))
-						setTimeout(() => {
+						delay(50).then(() => {
 							// w.selectcell(ind, 'miktar')
 							w.selectrow(ind)
-							setTimeout(() => {
+							delay(200).then(() => {
 								if (!gridPart.editing)
 									w.begincelledit(ind, 'miktar')
-							}, 200)
-						}, 50)
+							})
+						})
 					}
 					setTimeout(() => w.focus(), 10)
 				})

@@ -1,11 +1,5 @@
-Object.assign(globalThis, {
-	window: globalThis,
-	self: globalThis
-})
-
 Object.defineProperty(Object.prototype, 'size', {
-	enumerable: false, writable: false,
-	configurable: true,
+	enumerable: false, writable: false, configurable: true,
 	value: function size() {
 		return (
 			typeof this == 'object' ? this.keys(...arguments).length :
@@ -14,7 +8,7 @@ Object.defineProperty(Object.prototype, 'size', {
 	}
 })
 
-Object.assign(globalThis, {
+Object.assign(g, {
 	$: {
 		extend(...args) {
 			let deep = false
@@ -26,8 +20,9 @@ Object.assign(globalThis, {
 				: args;
 			return Object.assign(target, ...sources)
 		},
-		isArray() { return Array.isArray(arguments[0]) },
-		isEmptyObject(v) { return !v || v?.length === 0 || len(v) == 0 }
+		isEmptyObject(v) { return !v || v?.length === 0 || len(v) == 0 },
+		isArray(v) { return Array.isArray(v) },
+		makeArray(v) { return Array.isArray(v) ? v : [v] }
 	},
 	addEventListener() { },
 	removeEventListener() { },

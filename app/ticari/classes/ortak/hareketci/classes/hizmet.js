@@ -72,9 +72,12 @@ class HizmetHareketci extends Hareketci {
 			bizsubekod: 'fis.bizsubekod', ozelisaret: 'fis.ozelisaret', kaysayac: 'har.kaysayac', hizmetkod: 'har.hizmetkod',
 			/*kdetaysayac: 'har.kdetaysayac', kdetay: 'kdet.kdetay',*/ tarih: 'fis.tarih', fisnox: 'fis.fisnox',
 			fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama', bedel: 'har.bedel',
-			vade: ({ hv }) => hv.tarih, brutbedel: ({ hv }) => hv.bedel, isaretlibedel: ({ hv }) => hv.bedel,
+			vade: ({ hv }) => hv.tarih,
+			brutbedel: ({ hv }) => hv.bedel,
+			isaretlibedel: ({ hv }) => hv.bedel,
 			aciklama: ({ hv }) => {
-                const withCoalesce = (clause) => `COALESCE(${clause}, '')`, {fisaciklama: fisAciklama, detaciklama: detAciklama} = hv;
+                let withCoalesce = clause => `COALESCE(${clause}, '')`
+				let { fisaciklama: fisAciklama, detaciklama: detAciklama } = hv
                 return fisAciklama && detAciklama
                     ? `${withCoalesce(fisAciklama)} + ' ' + ${withCoalesce(detAciklama)}`
                     : withCoalesce(detAciklama || fisAciklama || sqlEmpty)

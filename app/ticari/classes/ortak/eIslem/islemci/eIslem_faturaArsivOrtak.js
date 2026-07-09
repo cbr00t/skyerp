@@ -327,28 +327,43 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 		stm.orderBy.addAll('pstip', 'fissayac', 'alttip', 'kayitno');
 		return stm
 	}
-	dipAciklamaYukle(e) { let dipNotlar = this.dipNotlar = [], {recs} = e; for (let rec of recs) { dipNotlar.push((rec.aciklama || '').trimEnd()) } }
-	static getDipEIcmalStm(e) {
-		let stm, uni;
-		let fhBagla = _e => {
-			let {fisSayaclar, psTip} = _e, fisSayacSaha = psTip == 'S' ? 'sipsayac' : 'pifsayac';
+	dipAciklamaYukle({ recs }) {
+		let dipNotlar = this.dipNotlar = []
+		dipNotlar.push(...recs.map(r => r?.aciklama?.trimEnd() ?? ''))
+	}
+	static getDipEIcmalStm({ ps2SayacListe } = {}) {
+		let fhBagla = ({ fisSayaclar, psTip }) => {
+			if (!fisSayaclar)
+				return
+			
+			let fisSayacSaha = psTip == 'S' ? 'sipsayac' : 'pifsayac'
 			let sent = new MQSent({
-				from: 'dipebilgi', where: [{ inDizi: fisSayaclar, saha: fisSayacSaha }],
-				sahalar: [`${MQSQLOrtak.sqlServerDegeri(psTip)} pstip`, `${fisSayacSaha} fissayac`, 'seq', 'xadi', 'xkod', 'hvtip', 'anatip', 'alttip', 'ustoran', 'oran', 'matrah', 'dvmatrah', 'bedel', 'dvbedel']
-			});
+				from: 'dipebilgi',
+				where: { inDizi: fisSayaclar, saha: fisSayacSaha },
+				sahalar: [
+					`${MQSQLOrtak.sqlServerDegeri(psTip)} pstip`,
+					`${fisSayacSaha} fissayac`, 'seq', 'xadi', 'xkod',
+					'hvtip', 'anatip', 'alttip', 'ustoran', 'oran',
+					'matrah', 'dvmatrah', 'bedel', 'dvbedel'
+				]
+			})
 			uni.add(sent)
-		};
-		uni = new MQUnionAll(); stm = new MQStm({ sent: uni });
-		let {ps2SayacListe} = e;
-		let fisSayaclar = ps2SayacListe.P; if (fisSayaclar) { fhBagla(({ fisSayaclar, psTip: 'P' })) }
-		fisSayaclar = ps2SayacListe.S; if (fisSayaclar) { fhBagla(({ fisSayaclar, psTip: 'S' })) }
-		if (empty(uni.liste)) { return null }
-		stm.orderBy.addAll('pstip', 'fissayac', 'seq');
+		}
+		
+		let uni = new MQUnionAll()
+		let stm = new MQStm({ sent: uni })
+		let { orderBy } = stm
+		fhBagla({ fisSayaclar: ps2SayacListe.P, psTip: 'P' })
+		fhBagla({ fisSayaclar: ps2SayacListe.S, psTip: 'S' })
+		if (empty(uni.liste))
+			return null
+		
+		orderBy.add('pstip', 'fissayac', 'seq')
 		return stm
 	}
 	dipEIcmalYukle(e) {
-		let icmal = this.icmalYoksaOlustur()
-		icmal.dipEIcmalYukle(e)
+		this.icmalYoksaOlustur()
+			.dipEIcmalYukle(e)
 	}
 	static getSubeStm(e) {
 		let sent = new MQSent(), {where: wh, sahalar} = sent
@@ -374,22 +389,30 @@ class EIslFaturaArsivOrtak extends EIslemOrtak {
 		for (let rec of recs)
 			result[rec.kod] = rec
 	}
-	static getOncekiIrsTSNStm(e) {
+	static getOncekiIrsTSNStm({ ps2SayacListe } = {}) {
 		let uni = new MQUnionAll()
-		let stm = new MQStm({ sent: uni }), {ps2SayacListe} = e;
-		let fisSayaclar = ps2SayacListe.P; if (fisSayaclar) {
-			let sent = new MQSent({
-				from: 'irs2fat don', where: { inDizi: fisSayaclar, saha: 'don.fatsayac' },
-				fromIliskiler: [ { from: 'piffis irs', iliski: 'don.irssayac = irs.kaysayac' } ],
-				sahalar: [`'P' pstip`, `don.fatsayac fissayac`, 'irs.tarih', 'irs.fisnox nox']
-			});
-			uni.add(sent)
+		let stm = new MQStm({ sent: uni })
+		let { orderBy } = stm
+		;{
+			let { P: fisSayaclar } = ps2SayacListe
+			if (fisSayaclar) {
+				let sent = new MQSent({
+					from: 'irs2fat don', where: { inDizi: fisSayaclar, saha: 'don.fatsayac' },
+					fromIliskiler: [ { from: 'piffis irs', iliski: 'don.irssayac = irs.kaysayac' } ],
+					sahalar: [`'P' pstip`, `don.fatsayac fissayac`, 'irs.tarih', 'irs.fisnox nox']
+				})
+				uni.add(sent)
+			}
 		}
-		if (empty(uni.liste)) { return null }
-		stm.orderBy.addAll('pstip', 'fissayac', 'tarih', 'nox');
+		if (empty(uni.liste))
+			return null
+		
+		orderBy.addAll('pstip', 'fissayac', 'tarih', 'nox')
 		return stm
 	}
-	oncekiIrsTSNYukle(e) { let {baslik} = this; baslik.oncekiIrsTSNListe = e._detaylar }
+	oncekiIrsTSNYukle({ _detaylar: d } = {}) {
+		this.baslik.oncekiIrsTSNListe = d
+	}
 
 	async onKontrol_efa(e) {
 		let { baslik, detaylar, temps, dipNotlar } = this

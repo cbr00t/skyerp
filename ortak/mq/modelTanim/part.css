@@ -5,9 +5,10 @@
 .modelTanim.part .header .islemTuslari > .sag { z-index: 1002 !important }
 .modelTanim.part .bulForm {
 	position: fixed; min-width: unset !important;
-	top: -5px; right: 250px;
+	top: -3px; right: 155px;
 	width: 80px; height: 30px;
-	padding: 10px; z-index: 1001
+	padding: 10px;
+	z-index: 1011 !important
 }
 .modelTanim.part .bulForm input:not(:focus):not(:hover):not(:active) { opacity: .3 }
 .modelTanim.part .bulForm input:hover { opacity: .5 }

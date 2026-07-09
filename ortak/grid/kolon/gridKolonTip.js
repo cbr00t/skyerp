@@ -61,7 +61,7 @@ class GridKolonTip extends CObject {
 		switch (key) {
 			case 'enter':
 			case 'tab': {
-				let preventGridEvents = !editing
+				let preventGridEvents = !editing || key == 'tab'
 				if (editing)
 					gridPart.endCellEdit(true)
 				gridPart.selectEditableCell({ ...e, prev: !!modifiers.shift })
