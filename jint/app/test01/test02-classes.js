@@ -3,6 +3,7 @@ class WS {
 		let { WSPath: path } = ws
 		let { RemoteIP: ip } = ctx
 		let tip = makeArray(path).at(-1)
+		System.Console.WriteLine('ABC')
 		switch (tip) {
 			case 'x': {
 				console.debug('handle req from:', ip)

@@ -651,10 +651,10 @@ class SBTabloDetay extends MQDetay {
 			rfb.addIslemTuslari('islemTuslari')
 				.addCSS('absolute')
 				.addStyle_fullWH(null, headerHeight)
-				.addStyle(
+				.addStyle(...[
 					`$elementCSS .butonlar.part { background: transparent !important; pointer-events: none }
 					 $elementCSS .butonlar.part > .sag { pointer-events: auto }`
-				)
+				])
 				.setTip('tamamVazgec')
 				/*.setEkSagButonlar('yazdir', 'html', 'excel')
 				.setButonlarIlk([
@@ -667,7 +667,8 @@ class SBTabloDetay extends MQDetay {
 				.setId2Handler({
 					// tazele: ({ builder: { rootPart } }) => gridPart?.tazele(),
 					tamam: () => {
-						let {selectedRecs: recs} = gridPart, values = recs?.map(_ => _.kod) ?? []
+						let { selectedRecs: recs } = gridPart
+						let values = recs?.map(_ => _.kod) ?? []
 						promise?.resolve({ sender: gridPart, recs, values })
 						wnd.jqxWindow('close')
 					},
@@ -688,13 +689,20 @@ class SBTabloDetay extends MQDetay {
 			fbd_content.addGridliGosterici('grid').addStyle_fullWH()
 				.rowNumberOlmasin().notAdaptive()
 				.setTabloKolonlari(colDefs).setSource(recs)
-				.widgetArgsDuzenleIslemi(({ args }) => extend(args, { columnsResize: false, showFilterRow: true, selectionMode: 'checkbox', columnsHeight: 18 }))
+				.widgetArgsDuzenleIslemi(({ args }) => {
+					extend(args, {
+						columnsResize: false, showFilterRow: true,
+						selectionMode: 'checkbox', columnsHeight: 18
+					})
+				})
+				.onAfterRun(({ builder: { part } }) =>
+					gridPart = part)
 				/*.veriYukleninceIslemi(() => {
 					let {recs, gridWidget: w} = gridPart
 					for (let i = 0; i < recs.length; i++)
 						w.selectrow(i)
 				})*/
-				.onAfterRun(({ builder: { part } }) => gridPart = part)
+			
 			let wnd = createJQXWindow({
 				isModal: true, autoOpen: false,
 				content: rfb.layout, title: 'Yatay Seçim',
@@ -738,18 +746,19 @@ class SBTabloDetay extends MQDetay {
 				// yatayDegerler; yatayAttrListe
 				wh.inDizi(keys(filtreYatayDegerSet), alias2Deger.yatay)
 			}
-			{
-				let {takipno: clause} = alias2Deger
-				if (MQSQLOrtak.sqlBosDegermi(clause)) {
-					for (let alias of ['takipadi', 'takipgrupkod', 'takipgrupadi'])
-						sahalar.add(`${sqlEmpty} ${alias}`)
-				}
-				else {
+			
+			;{
+				let { takipno: clause } = alias2Deger
+				if (MQSQLOrtak.sqlDoluDegermi(clause)) {
 					if (!from.aliasIcinTable('tak'))
 						sent.fromIliski('takipmst tak', `${clause} = tak.kod`)
 					if (!from.aliasIcinTable('tgrp'))
 						sent.fromIliski('takipgrup tgrp', 'tak.grupkod = tgrp.kod')
 					sahalar.add('tak.aciklama takipadi', 'tak.grupkod takipgrupkod', 'tgrp.aciklama takipgrupadi')
+				}
+				else {
+					;['takipadi', 'takipgrupkod', 'takipgrupadi'].forEach(als =>
+						sahalar.add(`${sqlEmpty} ${als}`))
 				}
 			}
 			/*if (konsolide && !alias2Deger.db) {

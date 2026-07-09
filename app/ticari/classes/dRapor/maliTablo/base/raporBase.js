@@ -31,9 +31,12 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 	}
 	
 	onGridInit(e) {
-		let result = super.onGridInit(e); let {grid} = this.gridPart
+		let result = super.onGridInit(e)
+		let { gridPart } = this
+		let { grid } = gridPart
 		grid.on('rowDoubleClick', _e => {
-			let { args: { row: { id } = {} } = {} } = _e
+			let { args = {} } = _e
+			let { row: { id } = {} } = args
 			this.hareketKartiGoster({ ..._e, ...e, id })
 		})
 		return result

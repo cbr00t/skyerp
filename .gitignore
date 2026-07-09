@@ -10,3 +10,4 @@ lib_external/etc/
 alasql.js
 sql-asm.debug.js
 sql-wasm.debug.js
+jint/

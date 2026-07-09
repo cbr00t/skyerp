@@ -1,5 +1,4 @@
-<?php header('Content-Type: text/javascript'); require_once('config.php') ?>
-const APP_NAME = '<?=$globalAppName?>', VERSION = '<?=$appVersion?>'
+const APP_NAME = 'SkyERP', VERSION = '1.41.51'
 const CACHE_NAME = `cache-${APP_NAME}-${VERSION}`
 const StreamHeaders = { 'text/event-stream': true, 'application/x-ndjson': true }
 
@@ -93,7 +92,7 @@ async function handleReq(req) {
 	let withCache = async () => {
 		let cachedResponse = await cache.match(req)
 		if (!cachedResponse)
-			throw ex
+			throw { isError: true, rc: 'cacheNotFound' }
 		return cachedResponse
 	}
 	let withFetch = async () => {

@@ -71,6 +71,7 @@ class DRapor_Hareketci extends DRapor_Donemsel {
 		return this
 	}
 }
+
 class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get hareketcimi() { return true } 
@@ -79,6 +80,17 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	static get envantermi() { return this.raporClass.envantermi }
 	static get ticarimi() { return false }
 
+	async onGridInit(e) {
+		let result = await super.onGridInit(e)
+		let { gridPart } = this
+		let { grid } = gridPart
+		grid.on('rowDoubleClick', _e => {
+			let { args = {} } = _e
+			let { row: rec } = args
+			this.hareketKartiGoster({ ..._e, ...e, rec })
+		})
+		return result
+	}
 	onInit(e) {
 		super.onInit(e)
 		let { hareketciSinif } = this.class
@@ -89,7 +101,8 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		let { rapor: { isPanelItem }, class: { totalmi } } = this
 		let { secimler: sec = {} } = this, { tarihBS } = sec
 		if (!(isPanelItem || totalmi || tarihBS?.basi || this.secimlerIstendimi)) {
-			this.secimlerIstendi(); this.secimlerIstendimi = true
+			this.secimlerIstendi()
+			this.secimlerIstendimi = true
 			return
 		}
 		return super.tazele(e)
@@ -97,12 +110,16 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments)
 		let grupKod = 'donemVeTarih'
-		let { hareketci } = this, { totalmi } = this.class
+		let { hareketci, class: { totalmi }} = this
 		let { hareketTipSecim: tekSecim } = hareketci?.class ?? {}
+		
 		let liste = {}
 		if (tekSecim)
 			liste.tip = new SecimBirKismi({ etiket: 'Tip', tekSecim, grupKod }).birKismi().autoBind()
-		if (!totalmi)
+		
+		if (totalmi)
+			liste._id = new SecimBirKismi({ etiket: 'ID' }).hidden()
+		else
 			liste.devirAlinmasin = new SecimBool({ grupKod, etiket: `Devir <b class=firebrick>AlınMAsın</b>` })
 		if (!empty(liste))
 			sec.secimTopluEkle(liste)
@@ -114,6 +131,14 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 				tarihAralik.sonu = tarihAralik.sonu || today()
 			}
 		}
+
+		sec.whereBlockEkle(({ aliasVeNokta = '', where: wh, secimler: sec, hvDegeri }) => {
+			;{
+				let cl = hvDegeri('kaysayac') ?? hvDegeri('sayac') ?? hvDegeri('id')
+				if (cl)
+					wh.birKismi(sec._id, aliasVeNokta + cl)
+			}
+		})
 
 		/*let { muhasebemi } = this.class
 		;{
@@ -200,11 +225,32 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		if (!(totalmi || attrSet.TARIH))
 			devirAlinmasin = true
 		await hareketci?.class?.ilkIslemler(e)
-		let result, addRecs = recs => {
-			if (recs?.length) {
-				if (result) { $.merge(result, recs) }
-				else { result = recs }
+
+		// let harGosterCode = totalmi ? 'app.activeWndPart.inst.main.hareketKartiGoster()' : null
+		let harGosterCode = null
+
+		let result
+		let addRecs = recs => {
+			if (empty(recs))
+				return
+
+			if (harGosterCode) {
+				let k
+				;recs.forEach(r => {
+					k = k ?? keys(r)[0]
+					r[k] += (
+						`<button id="izle" class="float-right"
+							style="width: 30px; height: 22px; margin-right: 5px"
+							onclick="${harGosterCode}">
+						 </button>`
+					)
+				})
 			}
+			
+			if (result)
+				merge(result, recs)
+			else
+				result = recs
 		}
 		if (!(totalmi || devirAlinmasin))
 			addRecs(await super.loadServerDataInternal({ ...e, devir: true, attrSet }))
@@ -300,7 +346,6 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	loadServerData_queryDuzenle_hrkStm_sonIslemler({ stm, uni, hareketci: har }) {
 		har ??= this.hareketci
 		har.stmIcinSonIslemler(...arguments)
-		
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
 		let { attrSet, sentHVEkle, sent, hrkHV: hv, hrkDefHV: defHV, hvDegeri } = e
@@ -456,18 +501,33 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		}
 	}
 	hrkSentHVEkle(e) {
-		let {key: alias, sent} = e, {sahalar} = sent
+		let { key: alias, sent } = e, { sahalar } = sent
 		let deger = this.hrkHVDegeri(e)
 		sahalar.add(new MQAliasliYapi({ deger, alias }))
 		return this
 	}
 	hrkHVDegeri(e) {
-		let {key, hrkHV: hv, hrkDefHV: defHV} = e
+		let { key, hrkHV: hv, hrkDefHV: defHV } = e
 		let result = hv[key] || defHV[key]
 		if (isFunction(result)) {
 			let sender = this, {hareketci} = this
 			result = result?.call(this, { ...e, sender, hareketci, key, hv, defHV })
 		}
 		return result ?? 'NULL'
+	}
+
+	async hareketKartiGoster({ rec, uid } = {}) {
+		let e = arguments[0]
+		let rapor = this
+		let { gridPart, boundRecs: recs } = this
+		let { grid, gridWidget: { base: w } } = gridPart
+		rec ??= w.rowsByKey[uid] ?? w.getSelection()[0]
+		if (rec == null)
+			return
+		
+		try {
+			debugger
+		}
+		catch (ex) { hConfirm(getErrorText(ex), 'Hareket Kartı'); throw ex }
 	}
 }
