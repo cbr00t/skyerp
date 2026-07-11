@@ -311,6 +311,53 @@ class TicariApp extends App {
 		let result = await ajaxGet({ url })
 		return result ?? null
 	}
+	wsPlasiyerIcinCariler(e = {}) {
+		return ajaxPost({
+			timeout: 10 * 60000,
+			processData: false, ajaxContentType: wsContentTypeVeCharSet,
+			url: app.getWSUrl({ wsPath: 'ws/genel', api: 'plasiyerIcinCariler', args: e })
+		})
+	}
+	/*wsTopluDurum(e) {
+		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }
+		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'topluDurum', args: e }) })
+	}*/
+	wsTopluDurum({ plasiyerKod, mustKod } = {}) {
+		let params = [
+			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null),
+			(mustKod ? { name: '@argMustKod', value: mustKod } : null)
+		].filter(Boolean)
+		return this.sqlExecSP({ query: 'tic_topluDurum', params })
+	}
+	wsTicKapanmayanHesap({ plasiyerKod, mustKod } = {}) {
+		let { params: par } = app
+		let { yaslandirmaTarihmi } = par.tablet ?? {}
+		yaslandirmaTarihmi ??= par.finans?.yaslandirmaTarihmi
+		
+		let params = [
+			( plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null ),
+			( mustKod ? { name: '@argMustKod', value: mustKod } : null ),
+			{ name: '@argSadecePlasiyereBagliOlanlar', type: 'bit', value: bool2Int(!!plasiyerKod) },
+			( yaslandirmaTarihmi ? { name: '@argGecikmeTarihten', type: 'bit', value: bool2Int(yaslandirmaTarihmi) } : null )
+		].filter(Boolean)
+		return this.sqlExecSP({ query: 'tic_kapanmayanHesap', params })
+	}
+	wsTicCariEkstre({ plasiyerKod, mustKod } = {}) {
+		let params = [
+			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null),
+			(mustKod ? { name: '@argMustKod', value: mustKod } : null),
+			{ name: '@argSadecePlasiyereBagliOlanlar', value: bool2Int(!!plasiyerKod) }
+		].filter(Boolean)
+		return this.sqlExecSP({ query: 'tic_cariEkstre', params })
+	}
+	wsTicCariEkstre_icerik({ plasiyerKod, mustKod, cariTipKod } = {}) {
+		let params = [
+			( plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null ),
+			( mustKod ? { name: '@argMustKod', value: mustKod } : null ),
+			{ name: '@argSadecePlasiyereBagliOlanlar', value: bool2Int(!!plasiyerKod) }
+		].filter(Boolean)
+		return this.sqlExecSP({ query: 'tic_ticariIcerik', params })
+	}
 	wsCariEkstre_normal(e) {
 		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }
 		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'cariEkstre_normal', args: e }) })
@@ -326,10 +373,6 @@ class TicariApp extends App {
 	wsKapanmayanHesaplar(e) {
 		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }
 		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'kapanmayanHesaplar', args: e }) })
-	}
-	wsTopluDurum(e) {
-		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }
-		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'topluDurum', args: e }) })
 	}
 	wsBekleyenSiparisler(e) {
 		e = e || {}; for (const key of ['data', 'args']) { delete e[key] }

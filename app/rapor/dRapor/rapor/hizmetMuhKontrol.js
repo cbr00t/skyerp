@@ -8,6 +8,7 @@ class DRapor_HizmetMuhKontrol extends DRaporMQ {
 	static get uygunmu() { return app.params?.dRapor?.hizmetVeMuhKarsilastirma }
 	// static get vioAdim() { return 'MH-R' }
 	static get secimSinif() { return DonemselSecimler }
+
 	async onAfterRun({ gridPart, builder: rfb }) {
 		await super.onAfterRun(...arguments)
 		if (!this.isPanelItem)
@@ -19,21 +20,21 @@ class DRapor_HizmetMuhKontrol extends DRaporMQ {
 			// { id: 'eIslemXMLOlustur', handler: e => this.eIslemIzleIstendi({ ...arguments[0], ...e, recs: gridPart.selectedRecs }) }
 		]
 		liste.push(...items)
-		$.extend(sagSet, asSet(items.map(_ => _.id)))
+		extend(sagSet, asSet(items.map(_ => _.id)))
 	}
 	static orjBaslikListesi_argsDuzenle({ sender: gridPart, args }) {
 		super.orjBaslikListesi_argsDuzenle(...arguments)
 		gridPart.tekil()
-		$.extend(args, { showStatusBar: true, showAggregates: true, selectionMode: 'multiplerowsextended' })
+		extend(args, { showStatusBar: true, showAggregates: true, selectionMode: 'multiplerowsextended' })
 	}
 	static orjBaslikListesi_groupsDuzenle({ liste }) {
 		super.orjBaslikListesi_groupsDuzenle(...arguments)
 	}
 	static secimlerDuzenle({ secimler: sec }) {
-		let {liste: l, donem: { tekSecim: donem }} = sec
+		let { liste: l, donem: { tekSecim: donem } } = sec
 		donem.buAy()
 		sec.addKA('muhHesap', DMQMuhHesap, null, null, false)
-		$.extend(l.muhHesapKod, { birKismimi: false, basi: '7', sonu: '7z' })
+		extend(l.muhHesapKod, { birKismimi: false, basi: '7', sonu: '7z' })
 		delete l.muhHesapAdi
 	}
 	static ekCSSDuzenle({ dataField: belirtec, rec, value, result }) {
@@ -64,8 +65,8 @@ class DRapor_HizmetMuhKontrol extends DRaporMQ {
 		)
 	}
 	static async loadServerDataDogrudan({ gridPart, secimler: sec, secimler: { tarihBSVeyaCariDonem: tarihBS } }) {
-		let {hizmetVeMuhKarsilastirma_ozelIsaret: ozelIsaretAlinir} = app.params?.dRapor ?? {}
-		let {muhHesapKod: sec_muhHesapKod, muhHesapAdi: sec_muhHesapAdi} = sec
+		let { hizmetVeMuhKarsilastirma_ozelIsaret: ozelIsaretAlinir } = app.params?.dRapor ?? {}
+		let { muhHesapKod: sec_muhHesapKod, muhHesapAdi: sec_muhHesapAdi } = sec
 		let recs
 		{
 			let har = new HizmetHareketci()
@@ -89,7 +90,7 @@ class DRapor_HizmetMuhKontrol extends DRaporMQ {
 				sent.gereksizTablolariSilDogrudan(['hiz'])
 			})
 			let uni = har.uniOlustur()
-			{
+			;{
 				let sent = new MQSent(), {where: wh, sahalar} = sent
 				sent.fisHareket('muhfis', 'muhhar')
 				wh.fisSilindiEkle()

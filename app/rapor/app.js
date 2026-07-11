@@ -21,17 +21,20 @@ class SkyRaporApp extends TicariApp {
 				TICARI: '',
 				'TICARI-STOK': 'Ticari<br/><b class="royalblue">Stok</b>',
 				'TICARI-HIZMET': 'Ticari<br/><b class="orangered">Hizmet</b>)',
-				FINANSAL: 'Finansal', FINANLZ: 'Finansal Analiz'
-			};
-			let {kod2Sinif} = DRapor, e = { liste: result }
+				FINANSAL: 'Finansal',
+				FINANLZ: 'Finansal Analiz'
+			}
+			let { kod2Sinif } = DRapor
+			let e = { liste: result }
 			for (let [mne, cls] of entries(kod2Sinif)) {
 				if (cls.dAltRapormu || !cls.uygunmu)
 					continue
-				let {kategoriKod: kod} = cls
+				let { kategoriKod: kod, kategoriAdi: adi } = cls
 				if (!kod)
 					continue
-				let {kategoriAdi: adi} = cls;
-				result[kod] = kod == null ? result[kod] ?? (adi ?? kod) : adi
+				result[kod] = kod == null
+					? result[kod] ?? (adi ?? kod)
+					: adi
 			}
 			result = e.liste
 			this._kategoriKod2Adi = result
@@ -96,7 +99,7 @@ class SkyRaporApp extends TicariApp {
 	}
 	async anaMenuOlustur(e) {
 		try {
-			let {divMenu} = this
+			let { divMenu } = this
 			divMenu?.children()?.remove()
 			let {yetkiVarmi, dbName} = config.session ?? {}
 			if (!yetkiVarmi) {
@@ -165,20 +168,25 @@ class SkyRaporApp extends TicariApp {
 	}
 	super_anaMenuOlustur(e) { return super.anaMenuOlustur(e) }
 	async getAnaMenu(e) {
-		let {noMenuFlag, mainRaporBase} = this
+		let { noMenuFlag, mainRaporBase } = this
 		if (noMenuFlag)
 			return new FRMenu()
-		let {isAdmin} = config.session ?? {}
-		let {kod2Sinif} = mainRaporBase, kategoriKod2MenuItems = {}
+		
+		let { isAdmin } = config.session ?? {}
+		let { kod2Sinif } = mainRaporBase
+		let kategoriKod2MenuItems = {}
 		kod2Sinif = { ...DPanel.kod2Sinif, ...kod2Sinif }
 		for (let [mne, sinif] of entries(kod2Sinif)) {
 			if (sinif.dAltRapormu || !sinif.uygunmu)
 				continue
-			let {vioAdim, kategoriKod} = sinif
+			
+			let { vioAdim, kategoriKod } = sinif
 			kategoriKod ??= ''
 			let subItems = (kategoriKod2MenuItems[kategoriKod] ??= [])
 			subItems.push(new FRMenuChoice({
-				mne, vioAdim, text: sinif.aciklama, block: async e => {
+				mne, vioAdim,
+				text: sinif.aciklama,
+				block: async e => {
 					let { menuItemElement: item, event: evt } = e ?? {}
 					let { ctrlKey: ctrl, shiftKey: shift, altKey: alt } = evt ?? {}
 					let newWindow = !alt && ( ( ctrl || shift ) || !( asBoolQ(qs.sameWindow) ?? false ))
@@ -195,9 +203,11 @@ class SkyRaporApp extends TicariApp {
 			}))
 		}
 		let items = [], items_raporlar = []
-		let {kategoriKod2Adi} = this.class, kategoriKod2Cascade = {}
+		let { kategoriKod2Adi } = this.class
+		let kategoriKod2Cascade = {}
 		for (let [kategoriKod, _items] of entries(kategoriKod2MenuItems)) {
-			let kategoriAdi = kategoriKod2Adi[kategoriKod] ?? kategoriKod, target = items_raporlar
+			let kategoriAdi = kategoriKod2Adi[kategoriKod] ?? kategoriKod
+			let target = items_raporlar
 			if (kategoriAdi) {
 				let parentItem = kategoriKod2Cascade[kategoriKod] ??= new FRMenuCascade({ mne: kategoriKod, text: kategoriAdi })
 				target.push(parentItem)
@@ -205,7 +215,7 @@ class SkyRaporApp extends TicariApp {
 			}
 			target.push(..._items)
 		}
-		items.push(...items_raporlar.filter(x => !!x))
+		items.push(...items_raporlar.filter(Boolean))
 		;{
 			let { session: { encUser } } = config
 			let sent = new MQSent(), {where: wh, sahalar} = sent
@@ -217,13 +227,15 @@ class SkyRaporApp extends TicariApp {
 					.degerAta(encUser, 'xuserkod')
 			)
 			sahalar.add('raportip tip', 'id', 'aciklama raporAdi')
+			
 			let stm = new MQStm({ sent, orderBy: ['tip', 'raporAdi'] })
 			let favItems = []
 			for (let { tip, id, raporAdi: text } of await app.sqlExecSelect(stm)) {
 				let raporSinif = kod2Sinif[tip]
 				if (!raporSinif)
 					continue
-				let {vioAdim} = raporSinif
+				
+				let { vioAdim } = raporSinif
 				let mne = `${tip}_${id}`
 				favItems.push(new FRMenuChoice({
 					mne, vioAdim, text,
@@ -255,7 +267,10 @@ class SkyRaporApp extends TicariApp {
 				}))
 			}
 			if (!empty(favItems)) {
-				let favParent = new FRMenuCascade({ mne: 'FAV', text: '❤️ Favori<br/>Raporlarım', items: favItems })
+				let favParent = new FRMenuCascade({
+					mne: 'FAV', text: '❤️ Favori<br/>Raporlarım',
+					items: favItems
+				})
 				items = [favParent, ...items]
 			}
 		}
@@ -270,13 +285,17 @@ class SkyRaporApp extends TicariApp {
 				})
 			)
 		}
-		/*let menu_test = (dev ? new FRMenuCascade({ mne: 'TEST', text: 'TEST', items: items_raporlar }) : null);
-		if (config.dev) {
-			items.push(
-				...[SBTablo].map(cls =>
-					new FRMenuChoice({ mne: cls.kodListeTipi, text: cls.sinifAdi, block: e => cls.listeEkraniAc(e) }))
+
+		/*;{
+			let { items: subItems } = items.find(r => r.id == 'FINANLZ') ?? {}
+			subItems?.push(
+				new FRMenuChoice({
+					mne: 'YASL', text: 'Yaşlandırma Analizi',
+					block: e => MQYaslandirma.listeEkraniAc(e)
+				})
 			)
 		}*/
+		
 		return new FRMenu({ items })
 	}
 	async getNavBarMenu(e) {

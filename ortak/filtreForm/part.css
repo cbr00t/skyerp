@@ -1,17 +1,24 @@
 .filtreForm.part {
+	--expanded-input-width: 130px;
 	position: relative; right: 55px;
 	width: unset !important; height: var(--full);
 	padding: 8px 5px
 }
 .bulForm.filtreForm.part {
-	position: fixed; top: -8px;
+	position: fixed; top: -5px;
 	min-width: unset !important;
 	background: transparent !important;
-	width: 180px; height: 33px; padding: 10px; z-index: 1001 !important
+	width: 180px; height: 33px; padding: 5px 8px; z-index: 1001 !important
 }
+.part .header > *  .filtreForm.part,
+.part .baslikFormlar .filtreForm.part {
+	--expanded-input-width: 200px
+}
+
+
 /*.bulForm.filtreForm.part input:hover:not(.has-data) { opacity: .7 }*/
 .filtreForm.part .input {
-	font-size: 90% !important;
+	font-size: 95% !important;
 	width: 0px;
 	padding-left: 45px;
 	background-image: url(../../images/search.png);
@@ -23,25 +30,31 @@
 	background-color: #ffffffaa !important;
 	border: 2px solid #333
 }
-/*.bulForm.filtreForm.part input.has-data { opacity: .8 !important }*/
-.bulForm.filtreForm.part input:hover { opacity: 1 !important }
+/*.bulForm.filtreForm.part input.has-data { opacity: .8 !important }
+.bulForm.filtreForm.part input:hover { opacity: 1 !important }*/
+.bulForm.filtreForm.part input:hover,
 .bulForm.filtreForm.part input:focus,
 	.bulForm.filtreForm.part input:active {
-		--input-width: 50px;
-		width: var(--input-width);
+		width: var(--expanded-input-width);
 		box-shadow: 0 0 5px 3px #333;
-		margin-left: calc(0px - var(--input-width));
+		margin-left: calc(0px - var(--expanded-input-width));
 		opacity: 1 !important
 	}
 .bulForm.filtreForm.part input:focus:active {
 	box-shadow: 0 0 10px 3px forestgreen; transition: 10ms 20ms
 }
 
-
-@media (max-width: 650px) {
+@media (max-width: 700px) {
 	.bulForm.filtreForm.part {
-		top: -3px;
-		padding: 5px 3px
+		--expanded-input-width: 75px;
+		top: 0;
+		padding: 3px
+	}
+	.part .header > *  .filtreForm.part,
+	.part .baslikFormlar .filtreForm.part {
+		--expanded-input-width: 150px
+	}
+	.filtreForm.part input {
+		font-size: 90% !important
 	}
 }
-

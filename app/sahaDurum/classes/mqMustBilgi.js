@@ -17,7 +17,7 @@ class MQMustBilgi extends MQKAOrtak {
 	}
 	static orjBaslikListesi_argsDuzenle({ args }) {
 		super.orjBaslikListesi_argsDuzenle(...arguments)
-		$.extend(args, { groupsExpandedByDefault: true })
+		extend(args, { groupsExpandedByDefault: true })
 	}
 	static orjBaslikListesi_gridInit({ grid }) {
 		super.orjBaslikListesi_gridInit(...arguments)
@@ -257,7 +257,7 @@ class MQMustBilgi extends MQKAOrtak {
 					let builder_sol = parentBuilder.id2Builder[id]
 					let { kapanmayanHesap: builder_sag } = parentBuilder.id2Builder
 					builder_sol.layout.toggleClass('jqx-hidden')
-					builder_sag.layout.toggleClass('full-width-important');
+					builder_sag.layout.toggleClass('full-width-important')
 					rootPart.onResize()
 				}).addStyle(e => `$elementCSS { position: absolute; width: auto !important; height: auto !important; margin-top: -45px; z-index: 500 }`)
 				.addStyle(e => `$elementCSS > button { width: 45px !important; height: 45px !important }`);

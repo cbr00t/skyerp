@@ -227,23 +227,40 @@ class DMQTakipNo extends DMQKA {
 	}
 }
 class DMQCari extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Cari' } static get zeminRenkDesteklermi() { return true }
-	static get kodListeTipi() { return 'CARI' } static get table() { return 'carmst' } static get tableAlias() { return 'car' }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'CARI' } static get sinifAdi() { return 'Cari' }
+	static get table() { return 'carmst' } static get tableAlias() { return 'car' }
 	static get kodSaha() { return 'must' } static get adiSaha() { return 'birunvan' }
+	static get zeminRenkDesteklermi() { return true }
+
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
 		liste.push(
-			new GridKolon({ belirtec: 'tipkod', text: 'Tip', genislikCh: 10 }), new GridKolon({ belirtec: 'tipadi', text: 'Tip Adı', genislikCh: 20, sql: 'ctip.aciklama' }),
-			new GridKolon({ belirtec: 'bolgekod', text: 'Bölge', genislikCh: 10, }), new GridKolon({ belirtec: 'bolgeadi', text: 'Bölge Adı', genislikCh: 25, sql: 'bol.aciklama' }),
-			new GridKolon({ belirtec: 'cistgrupkod', text: 'İst. Grup', genislikCh: 10 }), new GridKolon({ belirtec: 'cistgrupadi', text: 'İst. Grup Adı', genislikCh: 20, sql: 'cigrp.aciklama' })
+			new GridKolon({ belirtec: 'yore', text: 'Yöre', genislikCh: 10 }),
+			new GridKolon({ belirtec: 'ilkod', text: 'İl', genislikCh: 5 }),
+			new GridKolon({ belirtec: 'iladi', text: 'İl Adı', genislikCh: 15, sql: 'il.aciklama' }),
+			new GridKolon({ belirtec: 'tipkod', text: 'Tip', genislikCh: 10 }),
+			new GridKolon({ belirtec: 'tipadi', text: 'Tip Adı', genislikCh: 20, sql: 'ctip.aciklama' }),
+			new GridKolon({ belirtec: 'bolgekod', text: 'Bölge', genislikCh: 10, }),
+			new GridKolon({ belirtec: 'bolgeadi', text: 'Bölge Adı', genislikCh: 25, sql: 'bol.aciklama' }),
+			new GridKolon({ belirtec: 'cistgrupkod', text: 'İst. Grup', genislikCh: 10 }),
+			new GridKolon({ belirtec: 'cistgrupadi', text: 'İst. Grup Adı', genislikCh: 20, sql: 'cigrp.aciklama' })
 		)
 	}
-	static super_orjBaslikListesiDuzenle(e) { super.orjBaslikListesiDuzenle(e) }
+	static super_orjBaslikListesiDuzenle(e) {
+		super.orjBaslikListesiDuzenle(e)
+	}
 	static loadServerData_queryDuzenle({ sent }) {
 		super.loadServerData_queryDuzenle(...arguments)
-		sent.cari2TipBagla(); sent.cari2IstGrupBagla(); sent.cari2BolgeBagla(); sent.cari2IlBagla()
+		sent
+			.cari2IlBagla()
+			.cari2TipBagla()
+			.cari2IstGrupBagla()
+			.cari2BolgeBagla()
 	}
-	static super_loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e) }
+	static super_loadServerData_queryDuzenle(e) {
+		super.loadServerData_queryDuzenle(e)
+	}
 }
 class DMQAltHesap extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Alt Hesap' }

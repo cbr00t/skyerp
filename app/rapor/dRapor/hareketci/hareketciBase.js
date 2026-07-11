@@ -5,7 +5,9 @@ class DRapor_Hareketci extends DRapor_Donemsel {
 	static get hareketcimi() { return true }
 	static get oncelik() { return this.hareketciSinif.oncelik } static get uygunmu() { return this.mainClass?.hareketciSinif?.uygunmu ?? true }
 	static get yatayAnalizVarmi() { return this.totalmi } static get ozetVarmi() { return this.totalmi } static get chartVarmi() { return this.totalmi }
-	static get totalmi() { return !(this.hareketmi || this.envantermi) } static get hareketmi() { return false } static get envantermi() { return false }
+	static get totalmi() { return !(this.hareketmi || this.envantermi) }
+	static get hareketmi() { return false }
+	static get envantermi() { return false }
 	static get sadeceTotalmi() { return false }
 	static get kod() {
 		let {_kod: result, kodEk: ek} = this
@@ -280,9 +282,12 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		e.alias ??= 'hrk'
 		super.loadServerData_queryDuzenle(e)
 		let { stm, attrSet, hareketci } = e
-		let { raporTanim } = this, { kullanim: { yatayAnaliz } } = raporTanim
+		let { raporTanim } = this
+		let { yatayAnaliz } = raporTanim.kullanim ?? {}
+		
 		hareketci ??= this.hareketci
 		hareketci.reset()
+		
 		let { uygunluk } = hareketci
 		let uygunlukVarmi = !empty(uygunluk)
 		if (!uygunlukVarmi) {
@@ -291,10 +296,13 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 			if (uygunlukVarmi)
 				uygunluk = asSet(hareketTipSecim.kaListe.map(({ kod }) => kod))
 		}
+		
 		let { varsayilanHV: hrkDefHV } = hareketci.class
 		extend(e, { hareketci, hrkDefHV })
+		
 		if (yatayAnaliz)
 			attrSet[DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod] = true
+		
 		let uni = e.uni = stm.sent = new MQUnionAll()
 		let calcUygunluk = this.calcUygunluk = uygunlukVarmi ? {} : null
 		let uniBilgiYapi = this.uniBilgiYapi = []
@@ -310,14 +318,16 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 			if (uygunlukVarmi) {
 				let _keys = selectorStr.split('$').filter(Boolean)
 				uygunmu = !!_keys.find(key => uygunluk[key])
-				if (!uygunmu)
-					continue
-				_keys.forEach(key =>
-					calcUygunluk[key] = true)
+				if (uygunmu) {
+					_keys.forEach(key =>
+						calcUygunluk[key] = true)
+				}
 			}
+			
 			unionBilgiListe = unionBilgiListe
 				.map(item => getFuncValue.call(this, item, e))
 				.filter(Boolean)
+			
 			for (let uniBilgi of unionBilgiListe) {
 				let { sent, hv: hrkHV } = uniBilgi
 				extend(_e, {
@@ -329,6 +339,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 							this.hrkSentHVEkle({ ..._e, key })
 					}
 				})
+				
 				this.loadServerData_queryDuzenle_hrkSent(_e)
 				hareketci.uniDuzenle_tumSonIslemler(_e)
 				this.loadServerData_queryDuzenle_hkrSent_son(_e)
@@ -349,13 +360,14 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
 		let { attrSet, sentHVEkle, sent, hrkHV: hv, hrkDefHV: defHV, hvDegeri } = e
-		let { sahalar } = sent, tarihClause = hvDegeri('tarih')
+		let { sahalar } = sent
+		let tarihClause = hvDegeri('tarih')
 		this.donemBagla({ ...e, tarihClause })
 		for (let key in attrSet) {
 			switch (key) {
-				case 'FISNOX': sentHVEkle('fisnox');
-				break; case 'REF': sentHVEkle('refkod', 'refadi'); break
-				case 'ANAISLEM': sentHVEkle('anaislemadi'); break;
+				case 'FISNOX': sentHVEkle('fisnox'); break
+				case 'REF': sentHVEkle('refkod', 'refadi'); break
+				case 'ANAISLEM': sentHVEkle('anaislemadi'); break
 				case 'ISL': sentHVEkle('islkod', 'isladi'); break
 				case 'ALTHESAP': sentHVEkle('althesapkod', 'althesapadi'); break
 				case 'DVKOD': sentHVEkle('dvkod'); break
@@ -366,9 +378,11 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		this.loadServerData_queryDuzenle_tarih({ ...e, alias: '', tarihClause })
 		this.loadServerData_queryDuzenle_takip({ ...e, kodClause: hvDegeri('takipno') })
 		this.loadServerData_queryDuzenle_plasiyer({ ...e, kodClause: hvDegeri('plasiyerkod') })
+		
 		let baClause = hvDegeri('ba'), bedelClause = hvDegeri('bedel').sumOlmaksizin()
 		this.loadServerData_queryDuzenle_baBedel({ ...e, baClause, bedelClause })
-		{
+	
+		;{
 			let alias = MQAliasliYapi.getDegerAliasListe(tarihClause)?.at(-1)
 			this.loadServerData_queryDuzenle_dovizli_baBedel({ ...e, alias, tarihClause, baClause, bedelClause })
 		}
@@ -376,14 +390,18 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	loadServerData_queryDuzenle_hkrSent_son(e) {
 		this.loadServerData_queryDuzenle_son_araIslem_sentDuzenleyiciIslemleri({ ...e, stm: null })
 	}
-	loadServerData_queryDuzenle_ek(e) {
+	loadServerData_queryDuzenle_ek(e = {}) {
+		let { hareket = e.hareketmi, envanter = e.envantermi } = e
 		this.loadServerData_queryDuzenle_hrkStm_sonIslemler(e)
 		if (e.uni)
 			e.uni = e.stm.sent
+		
 		super.loadServerData_queryDuzenle_ek(e)
-		if (this.class.hareketmi)
+		
+		if (hareket ?? this.class.hareketmi)
 			return this.loadServerData_queryDuzenle_ek_hareket(e)
-		if (this.class.envantermi)
+		
+		if (envanter ?? this.class.envantermi)
 			return this.loadServerData_queryDuzenle_ek_envanter(e)
 	}
 	loadServerData_queryDuzenle_ek_hareket(e) {
@@ -451,7 +469,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	loadServerData_queryDuzenle_son_araIslem({ internal, alias, stm, attrSet }) {
 		let e = arguments[0]
 		super.loadServerData_queryDuzenle_son_araIslem(e)
-		let {hareketci: orj} = this
+		let { hareketci: orj } = this
 		orj.sonIslemler(e)
 		let {with: _with} = stm
 		let {degerlemeDvKodListe: dvKodListe} = this
@@ -519,11 +537,56 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	async hareketKartiGoster({ rec, uid } = {}) {
 		let e = arguments[0]
 		let rapor = this
-		let { gridPart, boundRecs: recs } = this
+		let { gridPart } = this
 		let { grid, gridWidget: { base: w } } = gridPart
 		rec ??= w.rowsByKey[uid] ?? w.getSelection()[0]
-		if (rec == null)
+		if (!rec?.leaf)
 			return
+
+		/*let toplamValidSet = asSet('bedel', 'borcbedel', 'alacakbedel', 'isaretlibedel')
+		let { tabloYapi: ty, raporTanim: tan } = this
+		let ky = { grup: {}, toplam: {} }
+		for (let k in tan.attrSet) {
+			if (ty.grup[k])
+				ky.grup[k] = true
+			else if (ty.toplam[k] && toplamValidSet[k])
+				ky.toplam[k] = true
+		}
+
+		let attrSet = {
+			...asSet('tarih'),
+			...ky.grup,
+			...ky.toplam
+		}
+
+		let recs = await this.loadServerData({ hareket: true, attrSet })
+		debugger*/
+		
+
+		/* TO DO:
+		    toplam olmayan sahalar => grup:
+		        f:/tmp/rapor_not01.jpg
+			
+			Hareket Kartı Göster işlemi (Seçilen satır için):
+				- this.tabloYapi:
+					- Tüm kolon yapısıdır
+					- grup: Toplanabilir olmayan sahaların "key + tanımını" belirtir
+					- toplam: Toplanabilir sahaların "key + tanımını" belirtir
+					
+				- this.raporTanim:
+					- grup: Seçilmiş olan Kırılma (gruplamaya) esas saha "key" lerini belirtir
+					- icerik: Seçilmiş olan Leaf (en alt seviye) saha "key" lerini belirtir
+					- attrSet: (grup + icerik) unique keys
+				
+				- Hedef:
+					- sabitler = raporTanim.attrSet [where in: tabloYapi.grup] -->
+						( hareketci.withAttrs(...sabitler, ...'bedel??') ) +
+						( union oluştur [ .sumOlmaksizin() ] ) +
+						( FormBuilder Gridli GUI Build ) +
+						( Yatay Analiz düzenle ) + ( Yatay Analiz GUI Build )
+						( Sanal MQ Sınıf oluştur ) +
+						( Mali Tablodakine benzer sürecin devamı )
+		*/
 		
 		try {
 			debugger

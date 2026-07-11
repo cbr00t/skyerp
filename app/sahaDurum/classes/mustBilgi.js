@@ -1,7 +1,7 @@
 class MustBilgi extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static {
-		$.extend(this, {
+		extend(this, {
 			yaslandirmaKey: 'kapanmayanHesap_yaslandirma',
 			kademeler: [0, 15, 30, 45, 60],
 			kademeEk: 0
@@ -20,8 +20,9 @@ class MustBilgi extends CObject {
 	}
 
 	constructor(e = {}) {
-		super(e); $.extend(this, e)
-		let {yaslandirmalar} = this
+		super(e)
+		extend(this, e)
+		let { yaslandirmalar } = this
 		if (yaslandirmalar) {
 			yaslandirmalar.forEach((rec, i) => {
 				if (isPlainObject(rec))

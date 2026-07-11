@@ -14,7 +14,10 @@
 <script src="<?=$_partRoot?>/mes.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/pdksBase.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/pdks.js?<?=$appVersion?>"></script>
-<?php require_once("$webRoot_rapor/dRapor/rapor/pratikSatis/include.php") ?>
+<?php
+	require_once("$webRoot_rapor/dRapor/rapor/pratikSatis/include.php");
+	require_once("$webRoot_rapor/dRapor/rapor/yaslandirma/include.php")
+?>
 
 <?php
 /*let text = 'cbr00t', tmp = {}, r = {}

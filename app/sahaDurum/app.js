@@ -18,7 +18,11 @@ class SahaDurumApp extends App {
 			await this.loginIstendi(e)
 		else
 			this.promise_login?.resolve()
-		/*if (app.params.tablet?.yaslandirmaTarihmi) { MustBilgi.kademeEk = 30 }*/
+		
+		/*if (app.params.tablet?.yaslandirmaTarihmi)
+			MustBilgi.kademeEk = 30
+		*/
+		
 		await this.anaMenuOlustur(e)
 		let { session } = config, { yerel: yerelParam } = this.params
 		let lastSession = yerelParam?.lastSession ?? session
@@ -28,7 +32,9 @@ class SahaDurumApp extends App {
 			yerelParam.kaydetDefer()
 		}
 		this.updateAppTitle({
-			userSession: session?.hasSession ? session : new Session(yerelParam?.lastSession)
+			userSession: session?.hasSession
+				? session
+				: new Session(yerelParam?.lastSession)
 		})
 	}
 	loginTipleriDuzenle({ loginTipleri }) {
@@ -46,7 +52,7 @@ class SahaDurumApp extends App {
 		finally { this.params.localData = await this.localDataSinif.getInstance() }
 	}
 	getAnaMenu(e) {
-		/* let disabledMenuIdSet = this.disabledMenuIdSet || {}; */
+		// let disabledMenuIdSet = this.disabledMenuIdSet ?? {}
 		return new FRMenu({ items: [
 			new FRMenuChoice({ mnemonic: 'BILGI-YUKLE', text: 'Bilgi Yükle', block: e => this.bilgiYukleIstendi(e) }),
 			new FRMenuChoice({ mnemonic: 'MUSTERILER', text: 'Müşteriler', block: e => MQMustBilgi.listeEkraniAc(e) }),
@@ -70,7 +76,8 @@ class SahaDurumApp extends App {
 			if (session?.user) { yerelParam.lastSession = session; setTimeout(() => yerelParam.kaydet(), 100) }
 		}
 		try {
-			showProgress('İnternet bağlantısı kontrol ediliyor...', null, true); await new $.Deferred(p => setTimeout(() => p.resolve(), 100))
+			showProgress('İnternet bağlantısı kontrol ediliyor...', null, true)
+			await new $.Deferred(p => setTimeout(() => p.resolve(), 100))
 			try {
 				if (!navigator.onLine)
 					throw { isError: true, rc: 'noInternet', errorText: 'Bu işlem için İnternet Bağlantısı gereklidir' }
@@ -78,11 +85,13 @@ class SahaDurumApp extends App {
 			finally { hideProgress() }
 			if ((await ehConfirm('Bilgi Yükle yapılsın mı?', appName)) != true)
 				return
+			
 			showProgress(' ', null, true, e => { e.abortFlag = true })
 			let result = await this.bilgiYukle(e)
 			progressManager?.progressEnd()
 			await delay(200)
 			hideProgress()
+			
 			if (result !== false)
 				eConfirm('Bilgi yükleme işlemi bitti', appName)
 		}
@@ -164,6 +173,7 @@ class SahaDurumApp extends App {
 			eConfirm('Yerel veriler silindi', '')
 		}
 	}
+
 	async verileriSil(e = {}) {
 		let {params} = this, selectors = ['yerel', 'localData']
 		for (let selector of selectors) {
@@ -230,66 +240,4 @@ class SahaDurumApp extends App {
 		}
 		return null
 	}
-
-	
-	wsPlasiyerIcinCariler(e) {
-		e = e || {}; return ajaxPost({
-			timeout: 10 * 60000, processData: false, ajaxContentType: wsContentTypeVeCharSet,
-			url: app.getWSUrl({ wsPath: 'ws/genel', api: 'plasiyerIcinCariler', args: e })
-		})
-	}
-	wsTopluDurum(e) {
-		e = e || {}; let {plasiyerKod, mustKod} = e, params = [
-			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null),
-			(mustKod ? { name: '@argMustKod', value: mustKod } : null)
-		].filter(Boolean)
-		return this.sqlExecSP({ query: 'tic_topluDurum', params })
-	}
-	wsTicKapanmayanHesap(e) {
-		e = e || {}; let {plasiyerKod, mustKod} = e, {yaslandirmaTarihmi} = app.params.tablet, params = [
-			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null),
-			(mustKod ? { name: '@argMustKod', value: mustKod } : null),
-			/*(cariTipKod ? { name: '@argCariTipKod', value: cariTipKod } : null),*/
-			{ name: '@argSadecePlasiyereBagliOlanlar', type: 'bit', value: bool2Int(!!plasiyerKod) },
-			(yaslandirmaTarihmi ? { name: '@argGecikmeTarihten', type: 'bit', value: bool2Int(yaslandirmaTarihmi) } : null)
-		].filter(Boolean)
-		return this.sqlExecSP({ query: 'tic_kapanmayanHesap', params })
-		/*return ajaxPost({
-			timeout: 10 * 60000, processData: false, ajaxContentType: wsContentTypeVeCharSet,
-			url: app.getWSUrl({ wsPath: 'ws/genel', api: 'tic_kapanmayanHesap', args: e })
-		})*/
-	}
-	wsTicCariEkstre(e) {
-		e = e || {}; let {plasiyerKod, mustKod} = e, params = [
-			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null),
-			(mustKod ? { name: '@argMustKod', value: mustKod } : null),
-			/*(cariTipKod ? { name: '@argCariTipKod', value: cariTipKod } : null),*/
-			{ name: '@argSadecePlasiyereBagliOlanlar', value: bool2Int(!!plasiyerKod) }
-		].filter(Boolean)
-		return this.sqlExecSP({ query: 'tic_cariEkstre', params })
-		/* return ajaxPost({
-			timeout: 10 * 60000, processData: false, ajaxContentType: wsContentTypeVeCharSet,
-			url: app.getWSUrl({ wsPath: 'ws/genel', api: 'tic_cariEkstre', args: e })
-		})*/
-	}
-	wsTicCariEkstre_icerik(e) {
-		e = e || {}; let {plasiyerKod, mustKod, cariTipKod} = e, params = [
-			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null),
-			(mustKod ? { name: '@argMustKod', value: mustKod } : null),
-			/*(cariTipKod ? { name: '@argCariTipKod', value: cariTipKod } : null),*/
-			{ name: '@argSadecePlasiyereBagliOlanlar', value: bool2Int(!!plasiyerKod) }
-		].filter(Boolean)
-		return this.sqlExecSP({ query: 'tic_ticariIcerik', params })
-	}
-	/*wsX(e) {
-		e = e || {}; let {args} = e;
-		let url = this.getWSUrl({ api: 'X', args }); return ajaxPost({ url })
-	}
-	wsY(e) {
-		e = e || {}; let data = e.args || {}; delete e.args;
-		return ajaxPost({
-			processData: false, ajaxContentType: wsContentType,
-			url: app.getWSUrl({ wsPath: 'ws/yonetim', api: 'Y', args: e }), data: toJSONStr(data)
-		})
-	}*/
 }

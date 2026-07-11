@@ -78,7 +78,7 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 			fbd.addStyle_wh(40, 50).addStyle(`$elementCSS { margin-top: 30px; margin-left: 10px }`);
 			fbd.onClick(async _e => {
 				let {id} = _e.input[0], selector = `${id}Istendi`;
-				let {part: gridPart, kontrolcu} = e.fbd_grid                                                /* !! burası doğru: '_e' değil 'e' olacak */
+				let { part: gridPart, kontrolcu } = e.fbd_grid                                                /* !! burası doğru: '_e' değil 'e' olacak */
 				let {selectedRecs: recs, selectedRec: gridRec, selectedRowIndex: rowIndex} = gridPart;
 				// if (!gridRec) { return }
 				let args = { ...e, ..._e, gridPart, recs, gridRec, rowIndex };
@@ -647,7 +647,8 @@ class SBTabloDetay extends MQDetay {
 			let promise = new defer()
 			
 			let rfb = new RootFormBuilder().addCSS('yataySecim masterListe part')
-			let headerHeight = 70, gridPart
+			let headerHeight = 70
+			let gridPart
 			rfb.addIslemTuslari('islemTuslari')
 				.addCSS('absolute')
 				.addStyle_fullWH(null, headerHeight)
@@ -688,7 +689,8 @@ class SBTabloDetay extends MQDetay {
 				// .addStyle_fullWH(null, `calc(var(--full) - ${headerHeight}px + 5px)`)
 			fbd_content.addGridliGosterici('grid').addStyle_fullWH()
 				.rowNumberOlmasin().notAdaptive()
-				.setTabloKolonlari(colDefs).setSource(recs)
+				.setTabloKolonlari(colDefs)
+				.setSource(recs)
 				.widgetArgsDuzenleIslemi(({ args }) => {
 					extend(args, {
 						columnsResize: false, showFilterRow: true,
@@ -768,6 +770,7 @@ class SBTabloDetay extends MQDetay {
 				sahalar.add(`'${db}' db`)
 			}*/
 		}
+		
 		extend(e, { konsolide, detayli: true, detay: this, ekAttrListe, sentDuzenle })
 		
 		let cls = class extends MQCogul {

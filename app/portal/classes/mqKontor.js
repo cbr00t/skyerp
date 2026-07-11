@@ -517,17 +517,35 @@ class MQKontor extends MQDetayliMaster {
 			hideProgress()
 			return false
 		}
-		
+
+		let fatmi2Sayi = {}
+		;kRecs.forEach(r => {
+			let { fatdurum: fatDurum } = r
+			let faturami = fatDurum == 'B'
+			fatmi2Sayi[faturami] = (fatmi2Sayi[faturami] ?? 0) + 1
+			//r.fatdurum != 'B'
+		})
 		;{
 			let msg = [
-				`Seçilen kayıtlara ait`,
-				`<b>Faturalaşmamış</b> olan`,
-				`<b class="forestgreen">${kRecs.length} adet</b> kontör satırı için`,
-				`Fatura oluşturulacaktır.<p/>`,
+				`Seçilen kayıtlara ait<br>`,
+				`<ul style="margin-top: 10px">`,
+				(
+					empty(fatmi2Sayi[true]) ? null :
+						`<li><b>Faturalaşmamış</b> olan <b class="forestgreen">${fatmi2Sayi[true]} adet</b> kontör satırı için <u class="bold orangered">Fatura</u></li>`
+				),
+				(
+					empty(fatmi2Sayi[false]) ? null :
+						`<li><b>İşlenmemiş</b> olan <b class="forestgreen">${fatmi2Sayi[false]} adet</b> kontör satırı için <u class="bold royalblue">Tahsilat kaydı</u></li>`
+				),
+				`</ul>`,
+				`oluşturulacaktır.<br><br>`,
 				`Devam edilsin mi?`
-			].join(' ')
-			if (!await ehConfirm(msg, islemAdi))
-				return false
+			].filter(Boolean).join(' ')
+			try {
+				if (!await ehConfirm(msg, islemAdi))
+					return false
+			}
+			catch (ex) { return false }
 		}
 		
 		e.abortFlag = false
