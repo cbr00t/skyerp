@@ -104,7 +104,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 		let {ozelIsaret: ozelIsaretVarmi} = app.params.zorunlu
 		let {value: anaTipListe, disindakilermi: anaTip_haricmi} = sec.anaTip ?? {}
 		let anaTipSet = e.anaTipSet = asSet(anaTipListe)
-		if (!anaTip_haricmi && $.isEmptyObject(anaTipSet))
+		if (!anaTip_haricmi && empty(anaTipSet))
 			anaTipSet = null
 		let sabitBelirtecler = e.sabitBelirtecler = ['alttiponcelik', 'alttipadi', 'tarih', 'ba', 'bedel', 'dvbedel', 'dvkod', 'belgetipi', 'finanalizkullanilmaz']
 		if (ozelIsaretVarmi) { sabitBelirtecler.push('ozelisaret') }

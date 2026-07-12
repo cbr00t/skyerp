@@ -28,6 +28,18 @@ class MQYaslandirma extends DRaporMQ {
 	}
 	static islemTuslariDuzenle_listeEkrani({ sender: gridPart, liste, part: { ekSagButonIdSet: sagSet } }) {
 		super.islemTuslariDuzenle_listeEkrani(...arguments)
+		let items = [
+			{
+				id: 'kapanmayanHesap', text: 'KAP. HESAP', handler: e =>
+					this.detayGoster({ ...e, mfSinif: MQKapanmayanHesap })
+			},
+			{
+				id: 'cariEkstre', text: 'CARİ EKSTRE.', handler: e =>
+					this.detayGoster({ ...e, mfSinif: MQCariEkstre })
+			}
+		]
+		liste.push(...items)
+		extend(sagSet, asSet(items.map(r => r.id)))
 	}
 	static async orjBaslikListesi_gridInit({ sender: gridPart } = {}) {
 		await super.orjBaslikListesi_gridInit(...arguments)
@@ -48,19 +60,24 @@ class MQYaslandirma extends DRaporMQ {
 	static ekCSSDuzenle({ dataField: k, value: v, rec: r, result: res }) {
 		super.ekCSSDuzenle(...arguments)
 		if (k == 'bakiye' || k.startsWith('kademe')) {
-			if (!v && k == 'bakiye')
-				v = r._bakiye
+			//if (!v && k == 'bakiye')
+			//	v = r._bakiye
 			res.push(
 				v
 					? v < 0 ? 'firebrick' : 'forestgreen'
 					: 'lightgray'
 			)
+			if (k == 'bakiye' || k == 'bedel')
+				res.push('bold', 'fs-110')
 		}
+		else if (r.dengesizmi)
+			res.push('orangered')
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
 		let { kademeler } = Yaslandirma
 		liste.push(
+			new GridKolon({ belirtec: 'dengesizmi', text: 'Dengesiz?', genislikCh: 9 }).checkedList().bool(),
 			...MQCogul.getKAKolonlar(
 				new GridKolon({ belirtec: 'mustKod', text: 'Müşteri', genislikCh: 13 }).input(),
 				new GridKolon({ belirtec: 'mustUnvan', text: 'Ünvan', genislikCh: 45 }).input()
@@ -69,7 +86,7 @@ class MQYaslandirma extends DRaporMQ {
 				new GridKolon({ belirtec: 'yore', text: 'Yöre', genislikCh: 16 }).checkedList(),
 				new GridKolon({ belirtec: 'ilAdi', text: 'İl Adı', genislikCh: 13 }).checkedList()
 			),
-			new GridKolon({ belirtec: 'bakiye', text: 'Bakiye', genislikCh: 15 }).input().tipDecimal_bedel(),
+			new GridKolon({ belirtec: 'bakiye', text: 'Bakiye', genislikCh: 18 }).input().tipDecimal_bedel(),
 			...keys(kademeler).map(i => {
 				i = Number(i)
 				return new GridKolon({
@@ -80,7 +97,7 @@ class MQYaslandirma extends DRaporMQ {
 			}),
 			...MQCogul.getKAKolonlar(
 				new GridKolon({ belirtec: 'plasiyerKod', text: 'Plasiyer', genislikCh: 13 }).input(),
-				new GridKolon({ belirtec: 'plasiyerAdi', text: 'Plas. Adı', genislikCh: 45 }).input()
+				new GridKolon({ belirtec: 'plasiyerAdi', text: 'Plasiyer Adı', genislikCh: 45 }).input()
 			)
 		)
 	}
@@ -109,10 +126,19 @@ class MQYaslandirma extends DRaporMQ {
 				let m = k2m[k] ??= new MustBilgi({ rec })
 				m.kapanmayanHesap.push(rec)
 			})
-			;cariEkstre.forEach(rec => {
-				let k = MustBilgi.getKey(rec)
-				let m = k2m[k] ??= new MustBilgi({ rec })
-				m.cariEkstre.push(rec)
+			;cariEkstre.forEach(r => {
+				let k = MustBilgi.getKey(r)
+				let m = k2m[k] ??= new MustBilgi({ rec: r })
+				;{
+					let { bedel, ba, borcbedel: borc, alacakbedel: alacak } = r
+					if (borc == null && alacak == null && bedel != null) {
+						r.borcbedel = borc = ba == 'B' ? bedel : 0
+						r.alacakbedel = alacak = ba == 'A' ? bedel : 0
+					}
+					if (bedel && ba == 'A')
+						bedel = r.bedel = -bedel
+				}
+				m.cariEkstre.push(r)
 			})
 		}
 
@@ -140,6 +166,27 @@ class MQYaslandirma extends DRaporMQ {
 	}
 	static async gridVeriYuklendi({ gridPart } = {}) {
 		await super.gridVeriYuklendi(...arguments)
-		let { boundRecs: recs } = gridPart
+		//let { boundRecs: recs } = gridPart
+	}
+	static orjBaslikListesi_satirCiftTiklandi({ event: { args = {} } }) {
+		let { row: { bounddata: rec } = {} } = args
+	}
+	
+	static detayGoster(e = {}) {
+		let { mfSinif, gridPart = e.sender, rec: parentRec } = e
+		let { dataKey } = mfSinif ?? {}
+		if (!dataKey)
+			return
+		
+		parentRec ??= gridPart.selectedRec
+		if (!parentRec)
+			return
+
+		let _recs = parentRec[dataKey]
+		if (!_recs)
+			return
+
+		let args = { parentRec, _recs }
+		return mfSinif.listeEkraniAc({ args })
 	}
 }

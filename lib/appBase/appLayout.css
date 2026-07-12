@@ -194,6 +194,11 @@ body #ust-parent > #nav ul > li#_logout > a:hover .img { background-color: fireb
 
 body #ust-parent > #parent > main { position: absolute; top: calc(var(--appTitle-bottom) + var(--background-image-height) - 20px) }
 .part > .header { width: calc(var(--full) - 5px); /* text-align: right; */ padding-right: 0 }
+/*#windows .tabs > * > *,*/
+#windows .tabs .tabPage.nav-item .header {
+	transition: 300ms ease !important;
+	animation: 330ms cubic-bezier(0.55, 0.09, 0.68, 0.53) 0ms 1 normal animation--wnd-content
+}
 #windows .tabs .tabPage.nav-item .header .wnd-title.sinifAdi { /* font-size: 110% */ }
 body #ust-parent > #parent .part.wnd-content { /* height: var(--full); */ box-sizing: border-box }
 body #ust-parent > #parent .part.wnd-content:not(.slow-animation),

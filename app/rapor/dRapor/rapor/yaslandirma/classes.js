@@ -17,12 +17,12 @@ MustBilgi: class MustBilgi extends CObject {
 		super(e)
 		let { rec = e ?? {} } = e
 		let { mustKod = rec.mustkod ?? rec.must } = rec
-		let { altHesapKod = rec.althesapkod, yaslandirmalar: _yaslandirmalar } = rec
-		extend(this, { mustKod, altHesapKod, _yaslandirmalar })
+		let { altHesapKod = rec.althesapkod, yaslandirmalar } = rec
+		extend(this, { mustKod, altHesapKod, yaslandirmalar })
 		;['kapanmayanHesap', 'cariEkstre'].forEach(k =>
 			this[k] ??= [])
 		;{
-			let arr = this._yaslandirmalar ??= []
+			let arr = this.yaslandirmalar ??= []
 			;arr.forEach((r, i) => {
 				if (isPlainObject(r))
 					arr[i] = new Yaslandirma(r)
@@ -120,7 +120,7 @@ MustBilgi: class MustBilgi extends CObject {
 		}
 		*/
 		
-		let yaslandirmalar = this._yaslandirmalar = []
+		let yaslandirmalar = this.yaslandirmalar = []
 		;kademeler.forEach((_, index) =>
 			yaslandirmalar[index] = new Yaslandirma({ index, gecmis: 0, gelecek: 0 }))
 		

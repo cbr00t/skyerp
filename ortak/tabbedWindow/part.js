@@ -2,13 +2,14 @@ class TabbedWindowPart extends Part {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get isSubPart() { return true }  get partName() { return 'tabbedWindow' }
 	
-	constructor(e) {
-		e = e || {}; super(e); $.extend(this, {
+	constructor(e = {}) {
+		super(e)
+		extend(this, {
 			wndId: e.id || e.wndId || newGUID(), title: e.title, autoOpenFlag: e.autoOpen ?? e.autoOpenFlag ?? true,
 			widgetArgs: e.widgetArgs || {}, parentPart: e.parentPart, asilPart: e.asilPart || this
-		});
-		const {asilPart, parentPart} = this;
-		const ownerPart = this.ownerPart = e.ownerPart ?? asilPart?.parentPart ?? asilPart?.wndPart?.parentPart ?? parentPart?.parentPart ?? parentPart?.wndPart?.parentPart ?? asilPart;
+		})
+		let {asilPart, parentPart} = this
+		let ownerPart = this.ownerPart = e.ownerPart ?? asilPart?.parentPart ?? asilPart?.wndPart?.parentPart ?? parentPart?.parentPart ?? parentPart?.wndPart?.parentPart ?? asilPart
 		this.ownerWndPart = ownerPart?.wndPart
 	}
 	runDevam(e) { super.runDevam(e); if (this.autoOpenFlag) { this.open(e) } }
@@ -17,29 +18,60 @@ class TabbedWindowPart extends Part {
 		for (const key of ['layout']) { delete this[key] } return super.destroyPart(e)
 	}
 	open(e) {
-		const {wndId, layout, title, asilPart} = this, {mainWindowsPart} = app, {id2TabPage} = mainWindowsPart, {isSubPart, isDestroyed} = asilPart || {};
-		if (wndId && isSubPart) { delete id2TabPage[wndId] }
-		let elmTabHeader = mainWindowsPart.divTabs.children(`.tabPage#${wndId}`);
-		if (elmTabHeader?.length && (elmTabHeader.hasClass('jqx-hidden') || elmTabHeader?.hasClass('basic-hidden'))) { return this.show(e) }
-		const elmTabPage = $(`<li id="${wndId}" class="tabPage"><div class="header">${title || ''}</div><button id="kapat" class="tabPage-button">X</button></li>`);
-		const {divTabs} = mainWindowsPart; divTabs.prepend(elmTabPage);
-		elmTabHeader = mainWindowsPart.divTabs.children(`.tabPage#${wndId}`);
-		elmTabHeader.off('mouseup'); elmTabHeader.on('mouseup', evt => {
-			let {target} = evt; const {currentTarget} = evt;
-			if (target && (target.classList.contains('nav-link') || target.classList.contains('tabPage-button'))) { target = target.parentElement }
-			else if (target?.parentElement && (target.parentElement?.classList.contains('nav-link') || target.parentElement?.classList.contains('tabPage-button'))) { target = target.parentElement.parentElement }
-			if (target == currentTarget && evt.button == 1) { const btnKapat = $(currentTarget).children('button#kapat'); if (btnKapat?.length) { btnKapat.click() } }
-		});
-		const wndContent = this.layout = $(`<div id="${wndId}" class="content"/>`); layout.appendTo(wndContent); wndContent.insertAfter(divTabs); /* wndContent.appendTo(elmTabPage) */
-		for (const elm of [elmTabPage, elmTabPage.children(), layout, wndContent]) { elm.data('part', this) }
-		if (!(isDestroyed /*|| isSubPart*/)) { mainWindowsPart.activePageId = wndId }
-		mainWindowsPart.refresh();
-		elmTabPage.children('button#kapat').jqxButton({ theme, width: 40, height: 30 }).on('click', evt => {
-			const part = $(evt.currentTarget).parents('.tabPage').data('part');
-			if (part) { const {canDestroy} = part.asilPart ?? part; part[canDestroy ? 'close' : 'hide']() }
-		});
-		app.content.addClass('jqx-hidden'); $('body').removeClass('no-wnd');
-		this.triggerAcilincaEvent(e); return this
+		let { wndId, layout, title, asilPart } = this
+		let { mainWindowsPart } = app
+		let { divTabs, id2TabPage } = mainWindowsPart
+		let { isSubPart, isDestroyed } = asilPart ?? {}
+		if (wndId && isSubPart)
+			delete id2TabPage[wndId]
+
+		let elmTabHeader = divTabs.children(`.tabPage#${wndId}`)
+		if (elmTabHeader?.length && (elmTabHeader.hasClass('jqx-hidden') || elmTabHeader?.hasClass('basic-hidden')))
+			return this.show(e)
+		
+		let elmTabPage = $(`<li id="${wndId}" class="tabPage"><div class="header">${title || ''}</div><button id="kapat" class="tabPage-button">X</button></li>`)
+		//divTabs.prepend(elmTabPage)
+		divTabs.append(elmTabPage)
+		elmTabHeader = mainWindowsPart.divTabs.children(`.tabPage#${wndId}`)
+		elmTabHeader.off('mouseup')
+		elmTabHeader.on('mouseup', evt => {
+			let { target, currentTarget } = evt
+			if (target && (target.classList.contains('nav-link') || target.classList.contains('tabPage-button')))
+				target = target.parentElement
+			else if (
+				target?.parentElement && (
+					target.parentElement?.classList.contains('nav-link') ||
+					target.parentElement?.classList.contains('tabPage-button'))
+			) { target = target.parentElement.parentElement }
+			if (target == currentTarget && evt.button == 1) {
+				let btnKapat = $(currentTarget).children('button#kapat')
+				if (btnKapat?.length)
+					btnKapat.click()
+			}
+		})
+		
+		let wndContent = this.layout = $(`<div id="${wndId}" class="content"/>`)
+		layout.appendTo(wndContent)
+		//wndContent.insertAfter(divTabs)
+		wndContent.appendTo(divTabs.parent())
+		
+		;[elmTabPage, elmTabPage.children(), layout, wndContent].forEach(elm =>
+			elm.data('part', this))
+		if (!(isDestroyed /*|| isSubPart*/))
+			mainWindowsPart.activePageId = wndId
+		mainWindowsPart.refresh()
+		
+		elmTabPage.children('button#kapat')
+			.jqxButton({ theme, width: 40, height: 30 })
+			.on('click', evt => {
+				let part = $(evt.currentTarget).parents('.tabPage').data('part');
+				if (part) { const {canDestroy} = part.asilPart ?? part; part[canDestroy ? 'close' : 'hide']() }
+			})
+		app.content.addClass('jqx-hidden')
+		$('body').removeClass('no-wnd')
+		
+		this.triggerAcilincaEvent(e)
+		return this
 	}
 	close(e) {
 		const {wndId} = this, {mainWindowsPart} = app, {ownerWndPart, asilPart} = this;
@@ -80,9 +112,14 @@ class TabbedWindowPart extends Part {
 	}
 	show(e) {
 		const {wndId} = this, {mainWindowsPart} = app, {id2TabPage} = mainWindowsPart;
-		const elmTabHeader = mainWindowsPart.divTabs.children(`.tabPage#${wndId}`); if (!elmTabHeader?.length || !(elmTabHeader.hasClass('jqx-hidden') || elmTabHeader.hasClass('basic-hidden'))) { return this.open(e) }
-		elmTabHeader.removeClass('jqx-hidden'); mainWindowsPart.activePageId = wndId; mainWindowsPart.refresh();
-		const closeableTabPages = Object.values(id2TabPage).filter(tabPage => tabPage?.header?.data('part')?.asilPart?.isCloseable);
+		const elmTabHeader = mainWindowsPart.divTabs.children(`.tabPage#${wndId}`)
+		if (!elmTabHeader?.length || !(elmTabHeader.hasClass('jqx-hidden') || elmTabHeader.hasClass('basic-hidden')))
+			return this.open(e)
+		
+		elmTabHeader.removeClass('jqx-hidden')
+		mainWindowsPart.activePageId = wndId
+		mainWindowsPart.refresh()
+		const closeableTabPages = values(id2TabPage).filter(tabPage => tabPage?.header?.data('part')?.asilPart?.isCloseable)
 		const noWndFlag = !closeableTabPages.length; app.content[noWndFlag ? 'removeClass' : 'addClass']('jqx-hidden');
 		$('body')[noWndFlag ? 'addClass' : 'removeClass']('no-wnd')
 		return this
@@ -92,10 +129,14 @@ class TabbedWindowPart extends Part {
 		const elmTabHeader = mainWindowsPart.divTabs.children(`.tabPage#${wndId}`);
 		if (elmTabHeader?.length) { elmTabHeader.addClass('jqx-hidden') }
 		let {ownerWndPart} = this; if (ownerWndPart && (!ownerWndPart.asilPart || ownerWndPart.asilPart.isDestroyed)) { ownerWndPart = null }
-		let {asilPart} = ownerWndPart || {}; if (asilPart?.isSubPart /*|| (asilPart.layout?.hasClass('jqx-hidden') || asilPart.layout?.hasClass('basic-hidden')))*/) { ownerWndPart = ownerWndPart.ownerWndPart; asilPart = ownerWndPart?.asilPart }
-		let newPageId = ownerWndPart?.wndId; if (!newPageId) { newPageId = Object.keys(id2TabPage).filter(id => id != wndId).slice(-1)[0] }
+		let {asilPart} = ownerWndPart || {}; if (asilPart?.isSubPart /*|| (asilPart.layout?.hasClass('jqx-hidden') || asilPart.layout?.hasClass('basic-hidden')))*/) {
+			ownerWndPart = ownerWndPart.ownerWndPart
+			asilPart = ownerWndPart?.asilPart
+		}
+		let newPageId = ownerWndPart?.wndId
+		if (!newPageId) { newPageId = keys(id2TabPage).filter(id => id != wndId).slice(-1)[0] }
 		mainWindowsPart.activePageId = newPageId; mainWindowsPart.refresh()
-		const closeableTabPages = Object.values(id2TabPage).filter(tabPage => tabPage?.header?.data('part')?.asilPart?.isCloseable);
+		const closeableTabPages = values(id2TabPage).filter(tabPage => tabPage?.header?.data('part')?.asilPart?.isCloseable);
 		const noWndFlag = !closeableTabPages.length; app.content[noWndFlag ? 'removeClass' : 'addClass']('jqx-hidden');
 		$('body')[noWndFlag ? 'addClass' : 'removeClass']('no-wnd'); if (noWndFlag) { $('body').removeClass('bg-modal') }; return this
 	}
@@ -103,7 +144,8 @@ class TabbedWindowPart extends Part {
 		const {wndId} = this, {mainWindowsPart} = app;
 		const elmTabHeader = mainWindowsPart.divTabs.children(`.tabPage#${wndId}`);
 		if (!elmTabHeader?.length || !(elmTabHeader.hasClass('jqx-hidden') || elmTabHeader.hasClass('basic-hidden'))) {
-			$('body').removeClass('no-wnd'); app.content.addClass('jqx-hidden');
+			$('body').removeClass('no-wnd')
+			app.content.addClass('jqx-hidden')
 			return this
 		}
 		return this.show(e)

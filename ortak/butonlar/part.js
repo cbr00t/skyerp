@@ -24,8 +24,8 @@ class ButonlarPart extends Part {
 		if (typeof liste == 'object') { this.butonlariEkle({ liste }) }
 		return true
 	}
-	butonlariEkle(e) {
-		e = e || {}; const {parentPart, builder, userData, ekButonlarIlk, ekButonlarSon, butonlarDuzenleyici, layout, prepend, id2Handler} = this;
+	butonlariEkle(e = {}) {
+		const {parentPart, builder, userData, ekButonlarIlk, ekButonlarSon, butonlarDuzenleyici, layout, prepend, id2Handler = {}} = this
 		const sender = this.sender || this, _liste = e.liste ?? e; let liste = [];
 		if (!$.isEmptyObject(ekButonlarIlk)) { liste.push(...ekButonlarIlk) }
 		if (!$.isEmptyObject(_liste)) { liste.push(..._liste) }

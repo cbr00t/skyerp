@@ -221,20 +221,27 @@ class GridKolon extends GridKolonVeGrupOrtak {
 	set isHidden(value) { this.attributes.hidden = value }
 	hidden() { this.attributes.hidden = true; return this } visible() { this.attributes.hidden = false; return this }
 	sabitle() { this.attributes.pinned = true; return this } serbestBirak() { this.attributes.pinned = false; return this }
-	alignLeft() { this.align = 'left'; return this } alignCenter() { this.align = 'center'; return this } alignRight() { this.align = 'right'; return this }
+	alignLeft() { this.align = 'left'; return this } left() { return this.alignLeft() }
+	alignCenter() { this.align = 'center'; return this } center() { return this.alignCenter() }
+	alignRight() { this.align = 'right'; return this } right() { return this.alignRight() }
 	noSql() { this.sql = false; return this } resetNoSql() { this.sql = null; return this }
-	sifirGosterme() { let {tip} = this; if (tip?.sifirGosterme) tip.sifirGosterme(); return this } sifirGoster() { let {tip} = this; if (tip?.sifirGoster) tip.sifirGoster(); return this }
-	kodsuz() { return this.kodGosterilmesin() } kodGosterilmesin() { let {tip} = this; if (tip?.kodGosterilmesin) { tip.kodGosterilmesin() } return this }
+	sifirGosterme() { let {tip} = this; if (tip?.sifirGosterme) tip.sifirGosterme(); return this }
+	sifirGoster() { let {tip} = this; if (tip?.sifirGoster) tip.sifirGoster(); return this }
+	kodsuz() { return this.kodGosterilmesin() }
+	kodGosterilmesin() { let {tip} = this; if (tip?.kodGosterilmesin) { tip.kodGosterilmesin() } return this }
 	kodGosterilsin() { let {tip} = this; if (tip?.kodGosterilsin) { tip.kodGosterilsin() } return this }
 	listedenSecilmez(e) { return this.listedenSecilemez() }
 	listedenSecilemez(e) { this.tip?.listedenSecilemez?.(); return this }
 	listedenSecilir(e) { this.tip?.listedenSecilir?.(); return this }
-	dropDown() { let {tip} = this; if (tip?.dropDown) { tip.dropDown() } return this } comboBox() { let {tip} = this; if (tip?.comboBox) { tip.comboBox() } return this }
-	autoBind() { let {tip} = this; if (tip?.autoBind) { tip.autoBind() } return this } noAutoBind() { let {tip} = this; if (tip?.noAutoBind) { tip.noAutoBind() } return this }
+	dropDown() { let {tip} = this; if (tip?.dropDown) { tip.dropDown() } return this }
+	comboBox() { let {tip} = this; if (tip?.comboBox) { tip.comboBox() } return this }
+	autoBind() { let {tip} = this; if (tip?.autoBind) { tip.autoBind() } return this }
+	noAutoBind() { let {tip} = this; if (tip?.noAutoBind) { tip.noAutoBind() } return this }
 	onKeyDown(handler) { let {tip} = this; if (tip?.onKeyDown) tip.onKeyDown(handler); return this }
 	setMaxLength(value) { let {tip} = this; if (tip?.setMaxLength) { tip.setMaxLength(value) } return this }
 	setValue(value) { this.tip?.setValue?.(value); return this }
-	click(handler) { this.tip?.click?.(handler); return this } onClick(handler) { this.tip?.onClick?.(handler); return this }
+	click(handler) { this.tip?.click?.(handler); return this }
+	onClick(handler) { this.tip?.onClick?.(handler); return this }
 	tipString(e) {
 		e = e || {}; let maxLength = typeof e == 'object' ? e.maxLength : e;
 		this.tip = new GridKolonTip_String({ maxLength }); return this
@@ -244,36 +251,60 @@ class GridKolon extends GridKolonVeGrupOrtak {
 		if (e.sifirGosterme ?? e.sifirGostermeFlag) { tip.sifirGosterme() }
 		this.alignRight(); return this
 	}
+	numerik(e) { return this.tipNumerik(e) }
 	tipNumber(e) { return this.tipNumerik(e) }
+	number(e) { return this.tipNumerik(e) }	
 	tipDecimal(e) {
 		e = e || {}; let fra = typeof e == 'object' ? e.fra : e;
 		let tip = this.tip = new GridKolonTip_Decimal({ fra });
 		if (e.sifirGosterme ?? e.sifirGostermeFlag) { tip.sifirGosterme() }
 		this.alignRight(); return this
 	}
+	decimal(e) { return this.tipDecimal(e) }
+	dec(e) { return this.tipDecimal(e) }
 	tipDecimal_fiyat(e) { return this.tipDecimal({ fra: 'fiyat' }) }
+	fiyat(e) { return this.tipDecimal_fiyat(e) }
 	tipDecimal_dvFiyat(e) { return this.tipDecimal({ fra: 'dvFiyat' }) }
 	tipDecimal_bedel(e) { return this.tipDecimal({ fra: 'bedel' }) }
+	bedel(e) { return this.tipDecimal_bedel(e) }
 	tipDecimal_dvBedel(e) { return this.tipDecimal({ fra: 'dvBedel' }) }
-	tipDate(e) { this.tip = new GridKolonTip_Date(e); return this } tipTarih(e) { return this.tipDate(e) }
+	dvBedel(e) { return this.tipDecimal_dvBedel(e) }
+	tipDate(e) { this.tip = new GridKolonTip_Date(e); return this }
+	date(e) { return this.tipDate(e) }
+	tipTarih(e) { return this.tipDate(e) }
+	tarih(e) { return this.tipDate(e) }
 	tipTime(e) { this.tip = new GridKolonTip_Time(e); return this }
+	time(e) { return this.tipTime(e) }
 	tipSaat(e) { return this.tipTime(e) }
+	saat(e) { return this.tipTime(e) }
 	tipZaman(e) { return this.tipTime(e) }
+	zaman(e) { return this.tipTime(e) }
 	tipTime_noSecs(e = {}) {
 		let noSecs = true
 		return this.tipTime({ ...e, noSecs })
 	}
-	tipCheckbox(e) { return this.tipBool(e) }
+	time_noSecs(e) { return this.tipTime_noSecs(e) }
 	tipBool(e) { this.tip = new GridKolonTip_Bool(e); return this }
+	bool(e) { return this.tipBool(e) }
+	tipCheckbox(e) { return this.tipBool(e) }
 	tipTekSecim(e) { this.tip = new GridKolonTip_TekSecim(e); return this }
+	tekSecim(e) { return this.tipTekSecim(e) }
 	tipBirKismi(e) { this.tip = new GridKolonTip_BirKismi(e); return this }
+	birKismi(e) { return this.tipBirKismi(e) }
 	tipOzel(e) { if (typeof e == 'string') e = { value: e }; this.tip = new GridKolonTip_Ozel(e); return this }
+	ozel(e) { return this.tipOzel(e) }
 	tipButton(e) { if (typeof e == 'string') e = { value: e }; this.tip = new GridKolonTip_Button(e); return this }
+	button(e) { return this.tipButton(e) }
 	tipResim(e) { if (typeof e == 'string') e = { value: e }; this.tip = new GridKolonTip_Image(e); return this }
+	resim(e) { return this.tipResim(e) }
 	tipImage(e) { return this.tipResim(e) }
-	dipSum(e) { this.aggregates = ['sum']; return this } dipAvg(e) { this.aggregates = ['avg']; return this }
-	dipSumVeAvg(e) { this.aggregates = ['sum', 'avg']; return this } setDip(value) { this.aggregates = value; return this }
-	*getIter() { yield this }
+	dipSum(e) { this.aggregates = ['sum']; return this }
+	sum(e) { return this.dipSum(e) }
+	dipAvg(e) { this.aggregates = ['avg']; return this }
+	avg(e) { return this.dipAvg(e) }
+	dipSumVeAvg(e) { this.aggregates = ['sum', 'avg']; return this }
+	sumVeAvg(e) { return this.dipSum(e) }
+	setDip(value) { this.aggregates = value; return this }
 	setBelirtec(value) { this.belirtec = value; return this }
 	setText(value) { this.text = value; return this }
 	setWidth(value) { this.width = value; return this }
@@ -287,6 +318,7 @@ class GridKolon extends GridKolonVeGrupOrtak {
 	avg() { this.aggregates = ['avg']; return this }
 	checkedList() { this.filterType = 'checkedlist'; return this }
 	input() { this.filterType = 'input'; return this }
+	*getIter() { yield this }
 }
 
 (function() {

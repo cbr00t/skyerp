@@ -12,7 +12,8 @@ class TabsPart extends Part {
 		super.runDevam(e); let {layout} = this; if (!layout?.length) { return }
 		let useCloseAllFlag = app.useCloseAll, btnToggle = this.btnToggle = layout.children('#toggle'), btnCloseAll = this.btnCloseAll = layout.children('#closeAll');
 		if (btnToggle?.length) {
-			btnToggle.jqxButton({ theme, width: false, height: false }); btnToggle.on('click', evt => this.toggle($.extend({}, e, { event: evt })));
+			btnToggle.jqxButton({ theme, width: false, height: false })
+			btnToggle.on('click', evt => this.toggle($.extend({}, e, { event: evt })))
 			if (useCloseAllFlag) { btnToggle.addClass('jqx-hidden') }
 		}
 		if (btnCloseAll?.length) {
@@ -91,7 +92,7 @@ class TabsPart extends Part {
 			let html = header.html()
 			idSet[id] = true
 			let tabPage = id2TabPage[id] = id2TabPage[id] ?? ({ id, index: i })
-			$.extend(tabPage, { html, header, layout: elmTabPage })
+			extend(tabPage, { html, header, layout: elmTabPage })
 			let content = tabPage.content = layout.children('.content').eq(i)
 			if (!content.prop('id'))
 				content.prop('id', id)
@@ -144,12 +145,13 @@ class TabsPart extends Part {
 		let sender = this, {builder} = this
 		let tabPage = e.tabPage ?? this.id2TabPage[id]
 		let _e = { ...e, sender, builder, tabPage, id }
-		let promise
+		//await this.triggerTabPageChanged(_e)
+		let pr
 		if (!tabPage.initFlag) {
-			promise = new Promise((r, f) => setTimeout(async () => {
+			pr = promise((r, f) => setTimeout(async () => {
 				try {
 					await this.triggerInitContent({ ..._e })
-					let {content} = tabPage
+					let { content } = tabPage
 					/*if (!(this.noScrollFlag || content?.hasClass('no-scroll') || content?.children().hasClass('no-scroll'))) {
 						makeScrollable(tabPage.content, evt =>
 							!(document.activeElement && document.activeElement.classList.contains('jqx-widget-content')))
@@ -162,7 +164,7 @@ class TabsPart extends Part {
 				catch (ex) { f(ex) }
 			}, 10))
 		}
-		await promise
+		await pr
 		await this.triggerToggled(_e)
 		await this.triggerTabPageChanged(_e)
 		setTimeout(() => app.activeWndPart?.onResize(e), 20)
@@ -174,12 +176,24 @@ class TabsPart extends Part {
 	triggerToggled(...args) { return this.trigger('toggled', ...args) }
 	triggerInitContent(...args) { return this.trigger('initContent', ...args) }
 	triggerTabPageChanged(...args) {
-		let id = this.activePageId, {layout, divTabs, parentPart} = this, notSelector = id ? `:not(#${id})` : '';
-		divTabs.children(`.tabPage${notSelector}`).removeClass('selected'); layout.children(`.content${notSelector}`).addClass('jqx-hidden');
-		let tabPage = this.id2TabPage[id]; if (tabPage) { tabPage.layout.addClass('selected'); tabPage.content.removeClass('jqx-hidden'); layout.removeClass('collapsed') } else { layout.addClass('collapsed') }
+		let { activePageId: id } = this
+		let { layout, divTabs, parentPart } = this
+		let notSelector = id ? `:not(#${id})` : ''
+		divTabs.children(`.tabPage${notSelector}`).removeClass('selected')
+		layout.children(`.content${notSelector}`).addClass('jqx-hidden')
+		let tabPage = this.id2TabPage[id]
+		if (tabPage) {
+			tabPage.layout.addClass('selected')
+			tabPage.content.removeClass('jqx-hidden')
+			layout.removeClass('collapsed')
+		}
+		else
+			layout.addClass('collapsed')
+		
 		if (id != this.lastActivePageId) {
-			this.lastActivePageId = id;
-			if (!(parentPart?.isDestroyed || parentPart?.isSubPart)) { this.trigger('tabPageChanged', ...args) }
+			this.lastActivePageId = id
+			if (!(parentPart?.isDestroyed || parentPart?.isSubPart))
+				this.trigger('tabPageChanged', ...args)
 		}
 		return this
 	}
