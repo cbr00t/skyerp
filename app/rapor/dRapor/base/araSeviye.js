@@ -24,7 +24,7 @@ class DRapor_AraSeviye extends DGrupluPanelRapor {
 		return result
 	}
 	get degerlemeDovizKAListe() {
-		let {_degerlemeDovizKAListe: result} = this
+		let { _degerlemeDovizKAListe: result } = this
 		if (result == null) {
 			let recs = values(this.degerlemeDvKod2Rec ?? {})
 			result = this._degerlemeDovizKAListe = recs.map(rec => new CKodVeAdi(rec))
@@ -291,6 +291,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		let recs = await this.loadServerData_ilk(_e)
 		if (recs !== undefined)
 			return recs
+		
 		tekilBuildCount ||= 1    // eldeki varlıklarda ilk query düzenlemede temp değişkenlerle alakalı muhtemel sorun yüzünden ilk tazelede sapıtıyor
 		for (let i = 0; i < tekilBuildCount; i++) {
 			_e.stm = new MQStm()
@@ -301,12 +302,13 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			if (await this.loadServerData_queryDuzenle_genelSon(_e) === false)
 				return null
 		}
-		let {stm: query} = _e
+		
+		let { stm: query } = _e
 		try {
 			recs = e.recs = query ? await app.sqlExecSelect({ query, maxRow }) : null
 			let _recs = await this.loadServerData_son(e)
 			if (_recs !== undefined)
-				recs = _recs
+				recs = this.lastRecs = _recs
 			console.info({ sender: this, query, recs }, query?.getQueryYapi() ?? query.toString())
 		}
 		catch (ex) {
@@ -593,7 +595,10 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	loadServerData_queryDuzenle_genelSon(e) {
 		this.loadServerData_queryDuzenle_genelSon_ilk_ozel?.(e)
-		let { yatayAnaliz, stm, attrSet } = e
+		let { yatayAnaliz, stm, attrSet, genelSon_ilkIslem, genelSon_sonIslem } = e
+		if (genelSon_ilkIslem?.call(this, e) === false)
+			return false
+		
 		for (let sent of stm)
 			sent.groupByOlustur()
 		
@@ -614,6 +619,9 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			for (let sent of stm)
 				sent.distinctYap()
 		}
+
+		if (genelSon_sonIslem?.call(this, e) === false)
+			return false
 		
 		this.loadServerData_queryDuzenle_genelSon_son_ozel?.(e)
 	}

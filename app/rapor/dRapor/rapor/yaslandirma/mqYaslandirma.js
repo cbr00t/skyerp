@@ -102,12 +102,15 @@ class MQYaslandirma extends DRaporMQ {
 		)
 	}
 	static async loadServerDataDogrudan({ gridPart, secimler: sec, wsArgs = {} }) {
-		let { plasiyerKod: { value: plasiyerKod } } = sec
-		let { mustKod: { value: mustKod } } = sec
-		if (!(isArray(plasiyerKod) && plasiyerKod.length == 1))
-			plasiyerKod = null
-		if (!(isArray(mustKod) && mustKod.length == 1))
-			mustKod = null
+		let { plasiyerKod: { value: plasiyerKodArr } } = sec
+		let { mustKod: { value: mustKodArr } } = sec
+		if (!(isArray(plasiyerKodArr) && plasiyerKodArr.length == 1))
+			plasiyerKodArr = null
+		if (!(isArray(mustKodArr) && mustKodArr.length == 1))
+			mustKodArr = null
+
+		let plasiyerKod = plasiyerKodArr?.[0]
+		let mustKod = mustKodArr?.[0]
 		
 		let data = {
 			plasiyer: app.wsPlasiyerIcinCariler({ plasiyerKod, mustKod }),
@@ -135,8 +138,7 @@ class MQYaslandirma extends DRaporMQ {
 						r.borcbedel = borc = ba == 'B' ? bedel : 0
 						r.alacakbedel = alacak = ba == 'A' ? bedel : 0
 					}
-					if (bedel && ba == 'A')
-						bedel = r.bedel = -bedel
+					r.isaretlibedel = ba == 'A' ? -bedel : bedel
 				}
 				m.cariEkstre.push(r)
 			})

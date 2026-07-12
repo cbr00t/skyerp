@@ -89,7 +89,11 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		grid.on('rowDoubleClick', _e => {
 			let { args = {} } = _e
 			let { row: rec } = args
-			this.hareketKartiGoster({ ..._e, ...e, rec })
+			try { this.hareketKartiGoster({ ..._e, ...e, rec }) }
+			catch (ex) {
+				hConfirm(getErrorText(ex), 'Hareket Kartı Göster')
+				throw ex
+			}
 		})
 		return result
 	}
@@ -226,6 +230,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		attrSet ??= raporTanim.attrSet
 		if (!(totalmi || attrSet.TARIH))
 			devirAlinmasin = true
+		
 		await hareketci?.class?.ilkIslemler(e)
 
 		// let harGosterCode = totalmi ? 'app.activeWndPart.inst.main.hareketKartiGoster()' : null
@@ -257,6 +262,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		if (!(totalmi || devirAlinmasin))
 			addRecs(await super.loadServerDataInternal({ ...e, devir: true, attrSet }))
 		addRecs(await super.loadServerDataInternal(e))
+		
 		result ??= []
 		if (!totalmi && (attrSet.ISARETLIBEDEL || attrSet.BEDEL)) {
 			let bakiye = 0, bedelSaha
@@ -274,6 +280,10 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 				rec[bedelSaha] = bakiye
 			}
 		}
+
+		let { harYapi = {} } = this
+		this.lastRecs = harYapi.recs = result
+		
 		return result
 	}
 	super_loadServerDataInternal(e) { return super.loadServerDataInternal(e) }
@@ -306,6 +316,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		let uni = e.uni = stm.sent = new MQUnionAll()
 		let calcUygunluk = this.calcUygunluk = uygunlukVarmi ? {} : null
 		let uniBilgiYapi = this.uniBilgiYapi = []
+		let harYapi = this.harYapi = { uniBilgiYapi }
 		let sender = this
 		let _e = { ...e, sender, hrkDefHV, temps: {}, uniBilgiYapi }
 		hareketci.ilkIslemler(_e)
@@ -348,9 +359,10 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 				// if (config.dev && selectorStr.includes('perakende') /* && sahaSayisi != 30 */) { debugger }
 				sent.groupByOlustur().gereksizTablolariSil()
 				uni.add(sent)
-				uniBilgiYapi.push({ sender, uniBilgi, defHV: hrkDefHV })
+				uniBilgiYapi.push({ sender, uniBilgi, sent, defHV: hrkDefHV })
 			}
 		}
+		harYapi.ilkStm = stm.deepCopy()
 		return this.loadServerData_queryDuzenle_ek(e)
 	}
 	loadServerData_queryDuzenle_hrkStm_ilkIslemler({ stm, uni }) { }
@@ -471,7 +483,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		super.loadServerData_queryDuzenle_son_araIslem(e)
 		let { hareketci: orj } = this
 		orj.sonIslemler(e)
-		let {with: _with} = stm
+		let { with: _with } = stm
 		let {degerlemeDvKodListe: dvKodListe} = this
 		let dvKodSet = asSet(dvKodListe) ?? {}
 		let gecerliDvKodSet = {}, dvKodVarmi = false
@@ -518,6 +530,13 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 				_with.liste = [...withListe, ..._with.liste]
 		}
 	}
+	loadServerData_queryDuzenle_genelSon({ internal, alias, stm, attrSet }) {
+		let { harYapi = {} } = this
+		harYapi.araStm = stm.deepCopy()
+		super.loadServerData_queryDuzenle_genelSon(...arguments)
+		extend(harYapi, { sonStm: stm, attrSet })
+	}
+
 	hrkSentHVEkle(e) {
 		let { key: alias, sent } = e, { sahalar } = sent
 		let deger = this.hrkHVDegeri(e)
@@ -534,63 +553,123 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		return result ?? 'NULL'
 	}
 
-	async hareketKartiGoster({ rec, uid } = {}) {
-		let e = arguments[0]
+	async hareketKartiGoster({ rec: parentRec, uid } = {}) {
+		let e = { ...arguments[0] }
 		let rapor = this
 		let { gridPart } = this
 		let { grid, gridWidget: { base: w } } = gridPart
-		rec ??= w.rowsByKey[uid] ?? w.getSelection()[0]
-		if (!rec?.leaf)
+		parentRec ??= w.rowsByKey[uid] ?? w.getSelection()[0]
+		if (!parentRec?.leaf)
 			return
 
-		/*let toplamValidSet = asSet('bedel', 'borcbedel', 'alacakbedel', 'isaretlibedel')
-		let { tabloYapi: ty, raporTanim: tan } = this
-		let ky = { grup: {}, toplam: {} }
-		for (let k in tan.attrSet) {
-			if (ty.grup[k])
-				ky.grup[k] = true
-			else if (ty.toplam[k] && toplamValidSet[k])
-				ky.toplam[k] = true
-		}
-
-		let attrSet = {
-			...asSet('tarih'),
-			...ky.grup,
-			...ky.toplam
-		}
-
-		let recs = await this.loadServerData({ hareket: true, attrSet })
-		debugger*/
+		let { tabloYapi, raporTanim, harYapi = {}, lastRecs: recs } = this
+		let { hareketci: har, hareketci: { class: harSinif } } = this
+		let { icerikSabit2Def: sabit2CD } = harSinif
+		let { attrSet = raporTanim.attrSet } = e
+		let kaSet = asSet(tabloYapi.kaPrefixes)
 		
-
-		/* TO DO:
-		    toplam olmayan sahalar => grup:
-		        f:/tmp/rapor_not01.jpg
-			
-			Hareket Kartı Göster işlemi (Seçilen satır için):
-				- this.tabloYapi:
-					- Tüm kolon yapısıdır
-					- grup: Toplanabilir olmayan sahaların "key + tanımını" belirtir
-					- toplam: Toplanabilir sahaların "key + tanımını" belirtir
+		extend(e, {
+			attrSet: attrSet = {
+				...attrSet,
+				...asSet('TARIH', 'REF', 'ISL', 'FISNOX')
+			},
+			genelSon_ilkIslem({ stm, toplamColDefs }) {
+				let cdYapi = { sabit: {}, toplam: {} }
+				let keyYapi = { sabit: {}, toplam: {} }
+				let key2Saha = {}, saha2Key = {}
+				;{
+					let { grup: sabit, toplam, grupVeToplam: all } = tabloYapi
+					for (let k in attrSet) {
+						let sel = (
+							sabit[k] ? 'sabit' :
+							toplam[k] ? 'toplam' :
+							null
+						)
+						if (!sel)
+							continue
+						
+						keyYapi[sel][k] = true
+						let cd = all[k]?.colDefs?.[0]
+						let { belirtec: saha } = cd ?? {}
+						if (saha) {
+							key2Saha[k] = saha
+							saha2Key[saha] = k
+							if (sel == 'toplam')
+								toplamColDefs.push(cd)
+						}
+					}
+				}
+	
+				;{
+					let { sabit, toplam } = keyYapi
+					let dateSet = asSet(
+						keys(sabit)
+							.map(k => key2Saha[k])
+							.filter(b => b?.includes('tarih') || b?.endsWith('vade'))
+					)
 					
-				- this.raporTanim:
-					- grup: Seçilmiş olan Kırılma (gruplamaya) esas saha "key" lerini belirtir
-					- icerik: Seçilmiş olan Leaf (en alt seviye) saha "key" lerini belirtir
-					- attrSet: (grup + icerik) unique keys
-				
-				- Hedef:
-					- sabitler = raporTanim.attrSet [where in: tabloYapi.grup] -->
-						( hareketci.withAttrs(...sabitler, ...'bedel??') ) +
-						( union oluştur [ .sumOlmaksizin() ] ) +
-						( FormBuilder Gridli GUI Build ) +
-						( Yatay Analiz düzenle ) + ( Yatay Analiz GUI Build )
-						( Sanal MQ Sınıf oluştur ) +
-						( Mali Tablodakine benzer sürecin devamı )
-		*/
+					for (let sent of stm) {
+						let { alias2Deger: hv, where: wh, sahalar, groupBy } = sent
+						for (let k in sabit) {
+							let b = key2Saha[k]
+							let kami = kaSet[b]
+							let adiSaha
+							if (kami) {
+								adiSaha = b + 'adi'
+								b += 'kod'
+							}
+							let cl = hv[b]
+							let v = parentRec[b]
+							if (!cl || v === undefined)
+								continue
+	
+							//if (cl?.sqlDoluDegermi() && v) {
+							if (dateSet[b])
+								v = asDate(v)
+							wh.degerAta(v, cl)
+							//}
+
+							if (!sabit2CD[b])
+								delete hv[b]
+							delete hv[adiSaha]
+						}
+						
+						for (let k in toplam) {
+							let b = key2Saha[k]
+							let cl = hv[b]
+							if (cl)
+								hv[b] = cl.sumOlmaksizin()
+						}
+						sahalar.liste = entries(hv).map(([ alias, deger ]) =>
+							new MQAliasliYapi({ alias, deger }))
+					}
+				}
+			},
+			genelSon_sonIslem({ stm }) {
+				let { orderBy, with: _with } = stm
+				// groupBy.liste = []
+				;{
+					let { liste } = _with
+					let i = liste.findIndex(t => t.table == 'toplam')
+					stm.sent = liste[i].sent
+					liste = _with.liste = liste.slice(0, i - 1)
+				}
+				orderBy.liste = ['tarih']
+			}
+		})
 		
-		try {
-			debugger
+		let args = {
+			rapor: this,
+			harYapi, parentRec,
+			getRecs: async () => {
+				e.toplamColDefs = []
+				return await this.loadServerData(e) ?? []
+			},
+			getColDefs: () => [
+				...values(sabit2CD),
+				... values(e.toplamColDefs)
+			]
 		}
-		catch (ex) { hConfirm(getErrorText(ex), 'Hareket Kartı'); throw ex }
+		await MQHareketKarti.listeEkraniAc({ args })
 	}
 }

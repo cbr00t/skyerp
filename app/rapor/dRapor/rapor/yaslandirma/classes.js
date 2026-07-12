@@ -154,16 +154,7 @@ MustBilgi: class MustBilgi extends CObject {
 
 		if (!empty(cariEkstre)) {
 			let ekstreToplam = roundToFra2(topla(
-				r => {
-					let { ba, bedel } = r
-					if (bedel == null)
-						bedel = ( r.borcbedel - r.alacakbedel )
-					else {
-						if (ba == 'A')
-							bedel = -bedel
-					}
-					return bedel || 0
-				},
+				r => r.isaretlibedel || 0,
 				cariEkstre
 			))
 			if (bakiye != ekstreToplam) {

@@ -817,30 +817,53 @@ class GridPart extends Part {
 		this[timerKey] = setTimeout(() => { if (this.isDestroyed) { return } try { this.tazele(e) } finally { delete this[timerKey] } }, deferMS)
 		return this
 	}
-	tazele(e) {
-		e = e || {}; let {action} = e; if (action) { this._tazele_lastAction = action }
-		this.expandedIndexes = {}; let {grid, gridWidget, noAnimateFlag} = this;
+	tazele(e = {}) {
+		let { action } = e
+		if (action)
+			this._tazele_lastAction = action
+		
+		this.expandedIndexes = {}
+		let { grid, gridWidget, noAnimateFlag } = this
 		if (gridWidget?.isbindingcompleted()) {
 			if (!noAnimateFlag) {
-				let animation = 'grid-open-slow'; grid.removeClass('grid-open grid-open-fast grid-open-slow'); grid.addClass(animation);
-				clearTimeout(this.timer_animate); this.timer_animate = setTimeout(() => { grid.removeClass(animation); delete this.timer_animate }, 2000)
+				let animation = 'grid-open-slow'
+				grid.removeClass('grid-open grid-open-fast grid-open-slow')
+				grid.addClass(animation)
+				clearTimeout(this.timer_animate)
+				this.timer_animate = setTimeout(() => {
+					grid.removeClass(animation)
+					delete this.timer_animate
+				}, 2000)
 			}
-			try { gridWidget.refresh() } catch (ex) { }
+			try { gridWidget.refresh() }
+			catch (ex) { }
+			
 			try { return gridWidget.updatebounddata() }
-			catch (ex) { setTimeout(() => gridWidget.updatebounddata(), 500); console.debug(ex); return this }
+			catch (ex) {
+				delay(500).then(() => gridWidget.updatebounddata())
+				console.debug(ex)
+				return this
+			}
 		}
 		return this
 	}
-	updateColumns(e) {
-		e = e || {}; let tabloKolonlari = (e.tabloKolonlari || e.liste || ($.isArray(e) ? e : null)) ?? this.duzKolonTanimlari;
-		for (let key of ['_listeBasliklari', '_standartGorunumListesi', '_orjBaslikListesi', 'belirtec2Kolon', 'tabloKolonlari', 'duzKolonTanimlari']) { delete this[key] }
-		let jqxCols = [], _e = $.extend({}, e, { belirtec2Kolon: {}, duzKolonTanimlari: [] });
-		for (let colDef of tabloKolonlari || []) {
-			let {belirtec} = colDef; if (!belirtec) continue; colDef.gridPart = this;
-			jqxCols.push(...colDef.jqxColumns); colDef.belirtec2KolonDuzenle(_e)
+	updateColumns(e = {}) {
+		let { tabloKolonlari = e.liste ?? (isArray(e) ? e : null) } = e
+		tabloKolonlari ??= this.duzKolonTanimlari
+		deleteKeys(this,
+			'_listeBasliklari', '_standartGorunumListesi', '_orjBaslikListesi', 'belirtec2Kolon', 'tabloKolonlari', 'duzKolonTanimlari')
+		let jqxCols = []
+		let _e = { ...e, belirtec2Kolon: {}, duzKolonTanimlari: [] }
+		tabloKolonlari = tabloKolonlari?.filter(cd => cd.belirtec) ?? []
+		for (let cd of tabloKolonlari) {
+			cd.gridPart = this
+			jqxCols.push(...(cd.jqxColumns?.filter(Boolean) ?? []))
+			cd.belirtec2KolonDuzenle(_e)
 		}
-		$.extend(this, _e); /* let gridContent = this.grid; gridContent.addClass('fade-inout'); setTimeout(() => gridContent.removeClass('fade-inout'), 1000); */
-		this.columns = jqxCols; return this
+		extend(this, _e)
+		// let gridContent = this.grid; gridContent.addClass('fade-inout'); setTimeout(() => gridContent.removeClass('fade-inout'), 1000); 
+		this.columns = jqxCols
+		return this
 	}
 	hizliBulIslemi(e = {}) {
 		let { tokens } = e, { gridWidget, parentPart } = this

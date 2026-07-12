@@ -30,7 +30,7 @@ class MQYaslandirmaEk_Base extends DMQCogul {
 			let form = e.fbd_ekBilgi = parent.addForm('ekBilgi')
 				.setLayout(({ builder: fbd, builder: { id }, ...rest }) => $([
 					`<div class="${id} full-wh flex-row" style="gap: 30px">`,
-						( mustKod ? new CKodVeAdi([mustKod, mustUnvan]).parantezliOzet({ styled: true }) : null ),
+						( mustKod ? `<div>${new CKodVeAdi([mustKod, mustUnvan]).parantezliOzet({ styled: true })}</div>` : null ),
 						...this.getEkBilgiHTML({ ...e, builder: fbd, id, ...rest, gridPart, rec }),
 					`</div>`
 				].filter(Boolean).join('\n')))
@@ -50,7 +50,7 @@ class MQYaslandirmaEk_Base extends DMQCogul {
 	}
 	static orjBaslikListesi_groupsDuzenle({ liste }) {
 		super.orjBaslikListesi_groupsDuzenle(...arguments)
-		liste.push('takipadi')
+		// liste.push('takipadi')
 	}
 	static ekCSSDuzenle({ dataField: k, value: v, rec: r, result: res }) {
 		super.ekCSSDuzenle(...arguments)
@@ -77,7 +77,10 @@ class MQYaslandirmaEk_Base extends DMQCogul {
 	}
 	static async loadServerDataDogrudan({ gridPart }) {
 		let { _recs: recs } = gridPart
-		recs = recs?.toReversed()
+		recs?.sort((a, b) =>
+			asDate(b.tarih)?.getTime() -
+			asDate(a.tarih)?.getTime()
+		)
 		return recs
 	}
 	static async gridVeriYuklendi({ gridPart } = {}) {
@@ -156,18 +159,24 @@ class MQCariEkstre extends MQYaslandirmaEk_Base {
 	static get sinifAdi() { return 'Cari Ekstre' }
 	static get dataKey() { return 'cariEkstre' }
 
-	static ekCSSDuzenle({ dataField: k, value: v, rec: r, result: res }) {
+	static ekCSSDuzenle({ rowIndex: i, dataField: k, value: v, rec: r, result: res }) {
 		super.ekCSSDuzenle(...arguments)
 		switch (k) {
 			case 'borcbedel':
 			case 'alacakbedel':
-			case 'bedel': {
-				res.push(
-					'fs-110', 'bold',
-					v
-						? v < 0 ? 'firebrick' : 'forestgreen'
-						: 'lightgray'
-				)
+			case 'bedel':
+			case 'isaretlibedel':
+			case 'bakiye': {
+				let bakiyemi = k == 'bakiye'
+				if (bakiyemi ? !i : true) {
+					res.push(
+						( bakiyemi ? 'fs-130' : 'fs-110' ),
+						'bold',
+						v
+							? v < 0 ? 'firebrick' : ( bakiyemi ? 'royalblue' : 'forestgreen' )
+							: 'lightgray'
+					)
+				}
 				break
 			}
 		}
@@ -179,7 +188,22 @@ class MQCariEkstre extends MQYaslandirmaEk_Base {
 			//new GridKolon({ belirtec: 'ba', text: 'B/A', genislikCh: 5 }).checkedList().center(),
 			new GridKolon({ belirtec: 'borcbedel', text: 'Borç Bedel', genislikCh: 16 }).input().sum().bedel(),
 			new GridKolon({ belirtec: 'alacakbedel', text: 'Alacak Bedel', genislikCh: 16 }).input().sum().bedel(),
-			new GridKolon({ belirtec: 'bedel', text: 'Bakiye', genislikCh: 16 }).input().sum().bedel()
+			new GridKolon({ belirtec: 'bakiye', text: 'Bakiye', genislikCh: 18 }).input().bedel()
 		)
+	}
+	static async loadServerDataDogrudan(e) {
+		let recs = await super.loadServerDataDogrudan(e)
+		if (!recs)
+			return recs
+
+		// tarih DESC gelecek
+		let bakiye = 0
+		for (let i = recs.length - 1; i >= 0; i--) {
+			let r = recs[i]
+			let { isaretlibedel: b = 0 } = r
+			bakiye += b
+			r.bakiye = bakiye
+		}
+		return recs
 	}
 }

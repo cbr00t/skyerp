@@ -118,9 +118,10 @@ class Hareketci extends CObject {
 		return result
 	}
 	get uygunluk2UnionBilgiListe() {
-		let e, {uygunluk} = this, {zorunluAttrSet} = this.class
+		let { uygunluk } = this, { zorunluAttrSet } = this.class
+		let e
 		this.uygunluk2UnionBilgiListeDuzenle(e = { uygunluk, zorunluAttrSet, liste: {} })
-		let {liste} = e
+		let { liste } = e
 		this.uniBilgiAllHVFix({ liste })
 		return liste
 	}
@@ -134,7 +135,7 @@ class Hareketci extends CObject {
 		return result
 	}*/
 	static get varsayilanHV() {
-		let {_varsayilanHV: result} = this, e;
+		let { _varsayilanHV: result } = this
 		if (result == null) {
 			let hv = {}, e = { hv, ...Hareketci_UniBilgi.ortakArgs }
 			this.varsayilanHVDuzenle_ortak(e)
@@ -142,6 +143,12 @@ class Hareketci extends CObject {
 			result = this._varsayilanHV = hv = e.hv
 		}
 		return result
+	}
+	static get icerikSabit2Def() {
+		let e = { liste: [] }
+		this.icerikSabit2DefDuzenle(e)
+		return fromEntries(e.liste.map(cd =>
+			[cd.belirtec, cd]))
 	}
 
 	constructor(e = {}) {
@@ -172,6 +179,15 @@ class Hareketci extends CObject {
 	static getAltTipAdiVeOncelikClause({ hv, sqlEmpty }) {
 		return {}
 		/*return ({ adi: this.aciklama.sqlServerDegeri(), oncelik: '0', yon: this.defaultYon })*/
+	}
+	static icerikSabit2DefDuzenle({ liste }) {
+		liste.push(...[
+			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 13 }).checkedList().date(),
+			new GridKolon({ belirtec: 'fisnox', text: 'Belge No', genislikCh: 18 }).input(),
+			new GridKolon({ belirtec: 'isladi', text: 'İşlem', genislikCh: 30 }).checkedList(),
+			new GridKolon({ belirtec: 'refkod', text: 'Referans', genislikCh: 18 }).checkedList(),
+			new GridKolon({ belirtec: 'refadi', text: 'Ref. Adı', genislikCh: 40 }).checkedList()
+		])
 	}
 	static mstYapiDuzenle(e) { }
 	static hareketTipSecim_kaListeDuzenle(e) {
@@ -307,7 +323,7 @@ class Hareketci extends CObject {
 	}
 	uniBilgiAllHVFix(e) {
 		let liste = e.liste ?? e.uygunluk2UnionBilgiListe ?? this.uygunluk2UnionBilgiListe ?? []
-		let {varsayilanHV: defHV} = this.class
+		let { varsayilanHV: defHV } = this.class
 		if (!isArray(liste))
 			liste = values(liste)
 		liste = liste.flat().map(item => getFuncValue.call(this, item, e)).filter(x => !!x)
