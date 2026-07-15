@@ -6,14 +6,28 @@ class CRMApp extends App {
 	get offlineClasses() {
 		return [
 			...[MQMasterOrtak, MQKAOrtak, MQSayacliOrtak, MQDetayliOrtak,
-					MQDetayliVeAdiOrtak, MQDetayliMasterOrtak].flatMap(cls => cls.subClasses).filter(cls => !!cls.table && cls.gonderildiDesteklenirmi),
+					MQDetayliVeAdiOrtak, MQDetayliMasterOrtak].flatMap(cls => cls.subClasses)
+			.filter(cls => !!cls.table && cls.gonderildiDesteklenirmi),
 			MQMusIslemDetay
 		]
 	}
 	get yukleOfflineClasses() { return [...this.offlineClasses, ...MQApiOrtak.subClasses] } get dropOfflineClasses() { return this.yukleOfflineClasses }
 	get gonderOfflineClasses() { return this.offlineClasses }
 	async runDevam(e) { await super.runDevam(e); await this.anaMenuOlustur(e); this.show() }
-	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { localData: MQLocalData.getInstance(), crm: MQParam_CRM.getInstance(), tablet: MQTabletParam.getInstance() }) }
+	paramsDuzenle({ params }) {
+		super.paramsDuzenle(...arguments)
+		extend(params, {
+			zorunlu: MQZorunluParam.getInstance(),
+			finans: MQFinansParam.getInstance(),
+			crm: MQParam_CRM.getInstance(),
+			tablet: MQTabletParam.getInstance()
+		})
+	}
+	async paramsDuzenleSonrasi(e) {
+		try { await super.paramsDuzenleSonrasi(e) }
+		finally { this.params.localData = await this.localDataSinif.getInstance() }
+		await this.yaslandirmaGunleriDuzenle(e)
+	}
 	async getAnaMenu(e) {
 		const {noMenuFlag, offlineMode} = this; if (noMenuFlag) { return new FRMenu() }
 		let items = [
@@ -69,30 +83,57 @@ class CRMApp extends App {
 		let db2Urls = super.dbMgr_tablolariOlustur_getQueryURLs(e) ?? {}; (db2Urls.main = db2Urls.main ?? []).push(`${webRoot_crm}/queries/main.sql`);
 		return db2Urls
 	}
-	wsPlasiyerIcinCariler(e) {
-		e = e || {}; const timeout = 10 * 60000, processData = false, ajaxContentType = wsContentTypeVeCharSet;
-		const url = app.getWSUrl({ wsPath: 'ws/genel', api: 'plasiyerIcinCariler', args: e }); return ajaxPost({ timeout, processData, ajaxContentType, url })
+
+	wsPlasiyerIcinCariler(e = {}) {
+		let timeout = 10 * 60000, processData = false
+		let ajaxContentType = wsContentTypeVeCharSet
+		let url = app.getWSUrl({ wsPath: 'ws/genel', api: 'plasiyerIcinCariler', args: e })
+		return ajaxPost({ timeout, processData, ajaxContentType, url })
 	}
-	wsTicKapanmayanHesap(e) {
-		e = e || {}; const {plasiyerKod, mustKod} = e, {yaslandirmaTarihmi} = app.params.tablet, params = [
-			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null), (mustKod ? { name: '@argMustKod', value: mustKod } : null),
-			/*(cariTipKod ? { name: '@argCariTipKod', value: cariTipKod } : null),*/ { name: '@argSadecePlasiyereBagliOlanlar', value: bool2Int(!!plasiyerKod) },
-			(yaslandirmaTarihmi ? { name: '@argGecikmeTarihten', type: 'bit', value: bool2Int(yaslandirmaTarihmi) } : null)
-		].filter(x => !!x);
+	wsTopluDurum({ plasiyerKod, mustKod } = {}) {
+		let params = [
+			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null),
+			(mustKod ? { name: '@argMustKod', value: mustKod } : null)
+		].filter(Boolean)
+		return this.sqlExecSP({ query: 'tic_topluDurum', params })
+	}
+	wsTicKapanmayanHesap({ plasiyerKod, mustKod } = {}) {
+		let { params: par } = app
+		let { yaslandirmaTarihmi } = par.finans ?? {}
+		let params = [
+			( plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null ),
+			( mustKod ? { name: '@argMustKod', value: mustKod } : null ),
+			{ name: '@argSadecePlasiyereBagliOlanlar', type: 'bit', value: bool2Int(!!plasiyerKod) },
+			( yaslandirmaTarihmi ? { name: '@argGecikmeTarihten', type: 'bit', value: bool2Int(yaslandirmaTarihmi) } : null )
+		].filter(Boolean)
 		return this.sqlExecSP({ query: 'tic_kapanmayanHesap', params })
 	}
-	wsTicCariEkstre(e) {
-		e = e || {}; const {plasiyerKod, mustKod, cariTipKod} = e, params = [
-			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null), (mustKod ? { name: '@argMustKod', value: mustKod } : null),
-			/*(cariTipKod ? { name: '@argCariTipKod', value: cariTipKod } : null),*/ { name: '@argSadecePlasiyereBagliOlanlar', value: bool2Int(!!plasiyerKod) }
-		].filter(x => !!x);
+	wsTicCariEkstre({ plasiyerKod, mustKod } = {}) {
+		let params = [
+			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null),
+			(mustKod ? { name: '@argMustKod', value: mustKod } : null),
+			{ name: '@argSadecePlasiyereBagliOlanlar', value: bool2Int(!!plasiyerKod) }
+		].filter(Boolean)
 		return this.sqlExecSP({ query: 'tic_cariEkstre', params })
 	}
-	wsTicCariEkstre_icerik(e) {
-		e = e || {}; const {plasiyerKod, mustKod, cariTipKod} = e, params = [
-			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null), (mustKod ? { name: '@argMustKod', value: mustKod } : null),
-			/*(cariTipKod ? { name: '@argCariTipKod', value: cariTipKod } : null),*/ { name: '@argSadecePlasiyereBagliOlanlar', value: bool2Int(!!plasiyerKod) }
-		].filter(x => !!x);
+	wsTicCariEkstre_icerik({ plasiyerKod, mustKod, cariTipKod } = {}) {
+		let params = [
+			( plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null ),
+			( mustKod ? { name: '@argMustKod', value: mustKod } : null ),
+			{ name: '@argSadecePlasiyereBagliOlanlar', value: bool2Int(!!plasiyerKod) }
+		].filter(Boolean)
 		return this.sqlExecSP({ query: 'tic_ticariIcerik', params })
+	}
+	wsCariEkstre_normal(e) {
+		deleteKeys(e, 'data', 'args')
+		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'cariEkstre_normal', args: e }) })
+	}
+	wsCariEkstre_fiili(e = {}) {
+		deleteKeys(e, 'data', 'args')
+		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'cariEkstre_fiili', args: e }) })
+	}
+	wsCariEkstre_detaylar(e = {}) {
+		deleteKeys(e, 'data', 'args')
+		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'cariEkstre_detaylar', args: e }) })
 	}
 }

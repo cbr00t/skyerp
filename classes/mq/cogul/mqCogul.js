@@ -20,7 +20,8 @@ class MQCogul extends MQYapi {
 	static get kolonFiltreKullanilirmi() { return false }
 	static get seviyeAcKapatKullanilirmi() { return true }
 	static get gridIslemTuslariKullanilirmi() { return !isMiniDevice() }
-	static get yerelParamBelirtec() { return this.classKey } static get sayacSahaGosterilirmi() { return false }
+	static get yerelParamBelirtec() { return this.classKey }
+	static get sayacSahaGosterilirmi() { return false }
 	static get tumKolonlarGosterilirmi() { return false }
 	static get gridDetaylimi() { return this.detaylimi }
 	static get ozelTanimIslemi() { return null }
@@ -892,14 +893,23 @@ class MQCogul extends MQYapi {
 		}
 	}
 	setValues(e) {
-		super.setValues(e); let {rec} = e, ayrimlar = this.ayrimlar = {}, ozelSahalar = this.ozelSahalar = {}, {ayrimIsimleri} = this.class;
+		super.setValues(e)
+		let { rec } = e
+		let ayrimlar = this.ayrimlar = {}
+		let ozelSahalar = this.ozelSahalar = {}
+		let { ayrimIsimleri } = this.class
 		for (let key in rec) {
-			let prefix;
-			if (!$.isEmptyObject(ayrimIsimleri)) {
-				prefix = 'ayrim';
+			let prefix
+			if (!empty(ayrimIsimleri)) {
+				prefix = 'ayrim'
 				if (key.length > prefix.length && key.startsWith(prefix)) {
-					let value = rec[key];
-					if (value != null) { let seq = asInteger(key.substring(prefix.length)), index = seq - 1; if (index < ayrimIsimleri.length) ayrimlar[seq] = value }
+					let value = rec[key]
+					if (value != null) {
+						let seq = asInteger(key.substring(prefix.length))
+						let index = seq - 1
+						if (index < ayrimIsimleri.length)
+							ayrimlar[seq] = value
+					}
 				}
 			}
 			if (window.MQOzelSahaDetay) {
@@ -912,10 +922,16 @@ class MQCogul extends MQYapi {
 		}
 		this.forAltYapiKeysDo('setValues', e)
 	}
-	static listeEkraniAc(e) {
-		let {listeUISinif} = this; if (!listeUISinif) { return null }
-		e = e || {}; e.mfSinif = e.mfSinif || this;
-		try { let part = new listeUISinif(e), result = part.run(); return { part, result } }
+	static listeEkraniAc(e = {}) {
+		let { listeUISinif } = this
+		if (!listeUISinif)
+			return null
+		e.mfSinif ??= this
+		try {
+			let part = new listeUISinif(e)
+			let result = part.run()
+			return { part, result }
+		}
 		catch (ex) { displayMessage(getErrorText(ex)); throw ex }
 	}
 	static async tanimla(e = {}) {

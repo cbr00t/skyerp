@@ -18,8 +18,10 @@ class HizmetHareketci extends Hareketci {
     /* Hareket tiplerini (işlem türlerini) belirleyen seçim listesi */
     static hareketTipSecim_kaListeDuzenle({ kaListe }) {
         super.hareketTipSecim_kaListeDuzenle(...arguments)
-		let {params} = app, {kullanim: ticGenel} = params.ticariGenel, {kullanim: muhasebe} = params.muhasebe, {kullanim: banka} = params.bankaGenel
-		let {kullanim: alim} = params.alim, {kullanim: satis} = params.satis, {kullanim: aktarim} = params.aktarim
+		let { params } = app, {kullanim: ticGenel} = params.ticariGenel
+		let { kullanim: muhasebe } = params.muhasebe, { kullanim: banka } = params.bankaGenel
+		let { kullanim: alim } = params.alim, { kullanim: satis } = params.satis
+		let { kullanim: aktarim } = params.aktarim
 		kaListe.push(...[
 			new CKodVeAdi(['hizmetDevir', 'Devir']), new CKodVeAdi(['kasa', 'Kasa Hizmet']),
 			new CKodVeAdi(['banka', 'Banka Hizmet']), new CKodVeAdi(['cari', 'Cari Hizmet']),
@@ -86,11 +88,17 @@ class HizmetHareketci extends Hareketci {
     }
     /** UNION sorgusu hazırlama – hareket tipleri için */
     uygunluk2UnionBilgiListeDuzenleDevam(e) {
+		let { params } = app
+		let { kullanim: aktarim } = params.aktarim
         super.uygunluk2UnionBilgiListeDuzenleDevam(e)
         this.uniDuzenle_devir(e).uniDuzenle_finansalIslemler(e).uniDuzenle_tahsilatOdeme(e)
-		this.uniDuzenle_pos(e);this.uniDuzenle_dekont(e).uniDuzenle_ekMasraf(e).uniDuzenle_goMaliyet(e)
-		this.uniDuzenle_fatura_giderPusula_perakende(e).uniDuzenle_fasonFatura(e)
-		this.uniDuzenle_taksitliKredi(e).uniDuzenle_krediFaizi(e).uniDuzenle_yatirimGeliri(e)
+		this.uniDuzenle_pos(e).uniDuzenle_dekont(e).uniDuzenle_ekMasraf(e)
+		if (aktarim.guleryuzOnline)
+			this.uniDuzenle_goMaliyet(e)
+		this.uniDuzenle_fatura_giderPusula_perakende(e)
+		this.uniDuzenle_fasonFatura(e)
+		this.uniDuzenle_taksitliKredi(e)
+		this.uniDuzenle_krediFaizi(e).uniDuzenle_yatirimGeliri(e)
     }
     /** (Hizmet Devir) için UNION */
     uniDuzenle_devir({ uygunluk, liste }) {
@@ -326,7 +334,7 @@ class HizmetHareketci extends Hareketci {
     }
 	/** (Güleryüz Maliyet) için UNION */
 	uniDuzenle_goMaliyet({ uygunluk, liste }) {
-		const getUniBilgi = tahakkukmu => {
+		let getUniBilgi = tahakkukmu => {
 			return new Hareketci_UniBilgi()
 				.sentDuzenleIslemi(({ sent, sent: { where: wh } }) => {
 					sent.fromAdd('gofirmahakedis ghak')

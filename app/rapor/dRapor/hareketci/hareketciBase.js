@@ -38,6 +38,21 @@ class DRapor_Hareketci extends DRapor_Donemsel {
 		await super.ilkIslemler(e)
 		await MQVergiKdv.getKod2VergiBilgi()
 	}
+	islemTuslariArgsDuzenle({ liste, part: butonPart }) {
+		let { class: { sabitmi } } = this
+		let items = [
+			{ id: 'izle', handler: _e => this.main.hareketKartiGoster({ ...e, ..._e }) }
+		].filter(Boolean)
+		
+		let ind = liste.indexOf(r => r.id == 'tazele') ?? -1
+		liste.splice(ind - 1, 0, ...items)
+
+		let sagIdSet = butonPart.ekSagButonIdSet ??= {}
+		extend(sagIdSet, asSet(items.map(r => r.id)))
+		
+		super.islemTuslariArgsDuzenle(...arguments)
+	}
+	
 	static autoGenerateSubClasses(e) {
 		let subNames = ['Hareket', 'Envanter'];
 		let { raporBilgiler } = this
@@ -623,12 +638,10 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 							if (!cl || v === undefined)
 								continue
 	
-							//if (cl?.sqlDoluDegermi() && v) {
 							if (dateSet[b])
 								v = asDate(v)
 							wh.degerAta(v, cl)
 							//}
-
 							if (!sabit2CD[b])
 								delete hv[b]
 							delete hv[adiSaha]
@@ -654,6 +667,12 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 					stm.sent = liste[i].sent
 					liste = _with.liste = liste.slice(0, i - 1)
 				}
+				;stm.forEach(sent => {
+					let { sahalar, groupBy } = sent
+					sahalar.liste = sahalar.liste.filter(({ alias }) => alias != 'kayitsayisi')
+					groupBy.liste = []
+					// groupBy.liste = groupBy.liste.filter(v => v.split('.').at(-1) != 'tarih')
+				})
 				orderBy.liste = ['tarih']
 			}
 		})

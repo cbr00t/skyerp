@@ -3,6 +3,8 @@ class SahaDurumCastrolApp extends SahaDurumApp {
 	init(e) {
 		super.init(e)
 		MustBilgi.kademeler.push(90)
-		/* $.extend(MustBilgi, { kademeler: [0, 60, 90] }) */
+	}
+	yaslandirmaGunleriDuzenle(e) {
+		// do nothing
 	}
 }

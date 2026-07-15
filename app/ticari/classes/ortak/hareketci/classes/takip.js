@@ -18,7 +18,8 @@ class TakipHareketci extends Hareketci {
 		kaListe.push(...[
 			new CKodVeAdi(['fatura', 'Alım/Satış']), new CKodVeAdi(['hizmet', 'Gelir/Gider']),
 			new CKodVeAdi(['ekMasraf', 'Ek Masraf']), new CKodVeAdi(['genelDekont', 'Dekont']),
-			new CKodVeAdi(['stok', 'Stok Giriş/Çıkış']), (akt.guleryuzOnline ? new CKodVeAdi(['goMaliyet', 'Güleryüz Online']) : null)
+			new CKodVeAdi(['stok', 'Stok Giriş/Çıkış']),
+			(akt.guleryuzOnline ? new CKodVeAdi(['goMaliyet', 'Güleryüz Online']) : null)
 		].filter(Boolean))
     }
 	uniOrtakSonIslem({ sender, hv, sent, attrSet }) {
@@ -49,9 +50,13 @@ class TakipHareketci extends Hareketci {
     }
     /** UNION sorgusu hazırlama – hareket tipleri için */
     uygunluk2UnionBilgiListeDuzenleDevam(e) {
-        super.uygunluk2UnionBilgiListeDuzenleDevam(e);
-        this.uniDuzenle_fatura(e).uniDuzenle_hizmet(e).uniDuzenle_ekMasraf(e);
-		this.uniDuzenle_genelDekont(e).uniDuzenle_stok(e).uniDuzenle_goMaliyet(e)
+		let { params } = app
+		let { kullanim: aktarim } = params.aktarim
+        super.uygunluk2UnionBilgiListeDuzenleDevam(e)
+        this.uniDuzenle_fatura(e).uniDuzenle_hizmet(e).uniDuzenle_ekMasraf(e)
+		this.uniDuzenle_genelDekont(e).uniDuzenle_stok(e)
+		if (aktarim.guleryuzOnline)
+			this.uniDuzenle_goMaliyet(e)
     }
     /** (Fatura) için UNION */
     uniDuzenle_fatura({ uygunluk, liste }) {

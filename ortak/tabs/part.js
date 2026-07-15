@@ -43,7 +43,7 @@ class TabsPart extends Part {
 		}
 		let tabPage = _e.tabPage = this.id2TabPage[id];
 		if (tabPage) {
-			let {content} = tabPage, hasContent = !!content?.length
+			let { content } = tabPage, hasContent = !!content?.length
 			let prevVisibleFlag = !(hasContent && content.hasClass('jqx-hidden'))
 			let visibleFlag = !prevVisibleFlag; layout[visibleFlag ? 'removeClass' : 'addClass']('collapsed')
 			if (hasContent) { content[visibleFlag ? 'removeClass' : 'addClass']('jqx-hidden') }
@@ -167,7 +167,8 @@ class TabsPart extends Part {
 		await pr
 		await this.triggerToggled(_e)
 		await this.triggerTabPageChanged(_e)
-		setTimeout(() => app.activeWndPart?.onResize(e), 20)
+		delay(10).then(() =>
+			app.activeWndPart?.onResize(e))
 	}
 	initContent(handler) { return this.on('initContent', handler) }
 	initTabContent(handler) { return this.on('initContent', handler) }

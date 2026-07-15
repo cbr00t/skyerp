@@ -14,22 +14,44 @@ class HatYonetimiPart extends Part {
 	get selectedTezgahKodListe() { return $.makeArray(this.selectedTezgahElmListe).map(elm => elm.dataset.id) }
 	get selectedTezgahRecs() { let {tezgah2Rec, selectedTezgahKodListe} = this; return selectedTezgahKodListe.map(kod => tezgah2Rec[kod]) }
 	constructor(e) {
-		e = e || {}; super(e); let {sinifAdi: title} = this.class, {args, secince} = e; $.extend(this, {
+		e ??= {}
+		super(e)
+		let {sinifAdi: title} = this.class
+		let {args, secince} = e
+		extend(this, {
 			title, tezgahKod: (e.tezgahKod ?? e.tezgahId)?.trimEnd(), cokluSecimmi: e.cokluSecim ?? e.cokluSecimmi ?? true, boxSize: e.boxSize, secince,
 			hizliBulAttrListe: e.hizliBulAttrListe ?? ['hatKod', 'hatAdi', 'tezgahKod', 'tezgahAdi', 'perKod', 'perIsim', 'ip', 'isListe', 'ekAramaText_zamanEtudu', 'ekAramaText'],
 			...args
 		})
 	}
-	static listeEkraniAc(e) { e = e ?? {}; let part = new this(e); part.run(); return part }
+	static listeEkraniAc(e = {}) {
+		let part = new this(e)
+		part.run()
+		return part
+	}
 	init(e) {
-		e = e || {}; super.init(e); let {layout} = this;
-		let header = this.header = layout.children('.header'), subContent = this.subContent = layout.children('.content');
+		e ??= {}; super.init(e)
+		let { layout } = this
+		let header = this.header = layout.children('.header')
+		let subContent = this.subContent = layout.children('.content')
 		let divListe = this.divListe = subContent.children('.liste')
 	}
-	run(e) {
-		e = e || {}; super.run(e); let {layout} = this;
-		this.tazele(e); if (app.otoTazeleFlag == null) { app.otoTazeleFlag = true }
-		let builder = this.builder = this.getRootFormBuilder(e); if (builder) { let {inst} = this; $.extend(builder, { part: this, inst }); builder.autoInitLayout().run(e) }
+	runDevam(e) {
+		e ??= {}
+		super.runDevam(e)
+		let { layout } = this
+		this.tazele(e)
+		if (app.otoTazeleFlag == null)
+			app.otoTazeleFlag = true
+		
+		let rfb = this.builder = this.getRootFormBuilder(e)
+		if (rfb) {
+			let { inst } = this
+			extend(rfb, { part: this, inst })
+			rfb.autoInitLayout()
+			rfb.run(e)
+			this.onResize(e)
+		}
 	}
 	destroyPart(e) { super.destroyPart(e) }
 	activated(e) { super.activated(e); this.tazeleBasit(e) }
@@ -70,37 +92,78 @@ class HatYonetimiPart extends Part {
 		return rfb
 	}
 	initBulForm(e) {
-		let {bulPart} = this; if (bulPart && !bulPart.isDestroyed) { return this }
-		let sender = this, {bulForm: layout} = this; if (layout?.length) {
-			bulPart = this.bulPart = new FiltreFormPart({ layout, degisince: e => { let {tokens} = e; this.hizliBulIslemi({ sender, layout, tokens }) } });
-			bulPart.run(); layout.removeClass('jqx-hidden')
+		let { bulPart } = this
+		if (bulPart && !bulPart.isDestroyed)
+			return this
+		
+		let sender = this
+		let { bulForm: layout } = this
+		if (layout?.length) {
+			bulPart = this.bulPart = new FiltreFormPart({
+				layout,
+				degisince: ({ tokens }) =>
+					this.hizliBulIslemi({ sender, layout, tokens })
+			})
+			bulPart.run()
+			layout.removeClass('jqx-hidden')
 		}
 		return this
 	}
-	hizliBulIslemi(e) { let {tokens} = e; this.filtreTokens = tokens; this.tazele(e); return this }
+	hizliBulIslemi(e) {
+		let { tokens } = e
+		this.filtreTokens = tokens
+		this.tazele(e)
+		return this
+	}
 	tazeleBasit(e) { return this.tazele({ ...e, basit: true }) }
 	tazeleWithSignal() { app.signalChange(); return this }
 	onSignalChange(e) {
-		clearTimeout(this._timer_signalChange);
-		this._timer_signalChange = setTimeout(() => { try { this.tazeleBasit(e) } finally { delete this._timer_signalChange } }, 2000);
+		clearTimeout(this._timer_signalChange)
+		this._timer_signalChange = setTimeout(() => {
+			try { this.tazeleBasit(e) }
+			finally { delete this._timer_signalChange }
+		}, 2000)
 		return this
 	}
-	async tazele(e) {
-		e = e ?? {}; let basitmi = e.basit ?? e.basitmi, {action} = e, butonmu = action == 'button', waitMS = 500;
+	async tazele(e = {}) {
+		let { basitmi = e.basit, action } = e
+		let butonmu = action == 'button'
+		let waitMS = 500
 		try {
-			let recs = this.tezgahRecs = await this.loadServerData(e); if (!recs) { return this }
-			let hat2Sev = this.hat2Sev = {}, tezgah2Rec = this.tezgah2Rec = {}; for (let rec of recs) {
+			let recs = this.tezgahRecs = await this.loadServerData(e)
+			if (!recs)
+				return this
+			
+			let hat2Sev = this.hat2Sev = {}, tezgah2Rec = this.tezgah2Rec = {}
+			for (let rec of recs) {
 				let {hatKod, tezgahKod} = rec; let sev = hat2Sev[hatKod];
-				if (!sev) { let {hatAdi, grupStyle} = rec, detaylar = []; hat2Sev[hatKod] = sev = { hatKod, hatAdi, grupStyle, detaylar } }
-				sev.detaylar.push(rec); tezgah2Rec[tezgahKod] = rec
+				if (!sev) {
+					let {hatAdi, grupStyle} = rec
+					let detaylar = []
+					hat2Sev[hatKod] = sev = { hatKod, hatAdi, grupStyle, detaylar }
+				}
+				sev.detaylar.push(rec)
+				tezgah2Rec[tezgahKod] = rec
 			}
-			let {_lastTezgahRecs: lastRecs} = this; if (basitmi && !(lastRecs && lastRecs.length == recs.length)) { basitmi = false }
-			if (!basitmi) { this.createLayout(e) } this.updateLayout(e)
-			this._lastTezgahRecs = lastRecs = recs; if (butonmu) {
+			
+			let { _lastTezgahRecs: lastRecs } = this
+			if (basitmi && !(lastRecs && lastRecs.length == recs.length))
+				basitmi = false
+			
+			if (!basitmi)
+				this.createLayout(e)
+			this.updateLayout(e)
+			
+			this._lastTezgahRecs = lastRecs = recs
+			if (butonmu) {
 				setTimeout(async () => {
 					let {divListe} = this, promises = []; for (let {tezgahKod} of recs) {
-						let elm = divListe.find(`.hat.item > .tezgahlar > .tezgah.item[data-id = ${tezgahKod}]`); if (!elm.length) { continue }
-						elm.attr('data-led', 'progress'); promises.push(new $.Deferred(async p => {
+						let elm = divListe.find(`.hat.item > .tezgahlar > .tezgah.item[data-id = ${tezgahKod}]`)
+						if (!elm.length)
+							continue
+						
+						elm.attr('data-led', 'progress')
+						promises.push(new defer(async p => {
 							try {
 								let {result, ledDurum} = await app.wsGetLEDDurum({ tezgahKod })
 								if (!result || ledDurum == null)
@@ -112,10 +175,14 @@ class HatYonetimiPart extends Part {
 								elm.attr('data-led', 'error')
 								p.resolve(ex)
 							}
-						}));
+						}))
 						if (promises.length >= 4) {
-							try { await Promise.all(promises) } catch (ex) { }
-							finally { promises = []; await new $.Deferred(p => setTimeout(() => p.resolve(), 20)) }
+							try { await promiseAll(promises) }
+							catch (ex) { }
+							finally {
+								promises = []
+								delay(20).then(p.resolve())
+							}
 						}
 					}
 				}, waitMS)
@@ -137,7 +204,7 @@ class HatYonetimiPart extends Part {
 		let hatIdListe = app.sabitHatKodVarmi ? app.sabitHatKodListe : $.makeArray(this.hatKod)
 		let wsArgs = {}
 		if (hatIdListe?.length)
-			$.extend(wsArgs, { hatIdListe: hatIdListe.join(delimWS) })
+			extend(wsArgs, { hatIdListe: hatIdListe.join(delimWS) })
 		let recs = await app.wsTezgahBilgileri(wsArgs)
 		if (recs) {
 			let {durumKod2KisaAdi, hatBilgi_recDonusum: donusum} = app
@@ -184,7 +251,7 @@ class HatYonetimiPart extends Part {
 				}
 				let isSaymaInd = tezgahRec.isSaymaInd || 0
 				let isSaymaSayisi = rec.isSaymaSayisi = rec.isSaymaSayisi || (isID ? 1 : 0)
-				$.extend(tezgahRec, { isSaymaInd: isSaymaInd + isSaymaInd, isSaymaSayisi: isSaymaSayisi + isSaymaSayisi })
+				extend(tezgahRec, { isSaymaInd: isSaymaInd + isSaymaInd, isSaymaSayisi: isSaymaSayisi + isSaymaSayisi })
 				if (isID) {
 					let {oemgerceklesen, oemistenen} = rec
 					rec.oee = oemistenen ? roundToFra(Math.max(oemgerceklesen * 100 / oemistenen, 0), 2) : 0
@@ -203,7 +270,7 @@ class HatYonetimiPart extends Part {
 			let zRecs = await app.wsGorevZamanEtuduVeriGetir({ tezgahIdListe: keys(tezgah2Rec).join(delimWS) });
 			for (let {isid: isID, bzamanetudu: varmi} of zRecs) {
 				let {tezgahRec} = isId2Bilgi[isID] ?? {}; if (!tezgahRec) { continue }
-				$.extend(tezgahRec, { zamanEtuduVarmi: varmi, ekAramaText_zamanEtudu: varmi ? 'zmn:var zaman:var etüd:var' : 'zmn:yok zaman:yok etüd:yok' })
+				extend(tezgahRec, { zamanEtuduVarmi: varmi, ekAramaText_zamanEtudu: varmi ? 'zmn:var zaman:var etüd:var' : 'zmn:yok zaman:yok etüd:yok' })
 			}
 		}
 		if (promise_tezgah2SinyalSayiRecs && tezgah2Rec) {
@@ -259,7 +326,7 @@ class HatYonetimiPart extends Part {
 				let styles_bgImg_size = styles_bgImg_url.map(x => 'contain')
 				let styles_bgImg = [`background: ${styles_bgImg_url.join(', ')}`, `background-size: ${styles_bgImg_size.join(', ')}`]
 				/* styles_bgImg.push(`mix-blend-mode: difference`) */
-				$.extend(rec, { grupStyle: `${styles_bgImg.join('; ')}`, aktifIsSayi: rec.isListe?.length })
+				extend(rec, { grupStyle: `${styles_bgImg.join('; ')}`, aktifIsSayi: rec.isListe?.length })
 			}
 		}
 		let {ekNotlarUpdate} = e
@@ -746,7 +813,8 @@ class HatYonetimiPart extends Part {
 								return isIdListe?.length ? app.wsSiradanKaldir({ tezgahKod, isIdListe }) : null
 							}))
 						}
-						await Promise.all(promises); this.tazele()
+						await Promise.all(promises)
+						this.tazele()
 					} catch (ex) { console.error(ex); hConfirm(getErrorText(ex)) }
 				}
 			})
@@ -778,7 +846,7 @@ class HatYonetimiPart extends Part {
 					case 'isBitti': await app.wsTopluIsBittiYap(wsArgs); break
 					case 'zamanEtuduBaslat': await app.wsTopluZamanEtuduBaslat(wsArgs).then(() => this.tazele()); break
 					case 'zamanEtuduKapat': await app.wsTopluZamanEtuduKapat(wsArgs).then(() => this.tazele()); break
-					default: $.extend(wsArgs, { tip: id }); await app.wsTopluDuraksamaYap(wsArgs); break
+					default: extend(wsArgs, { tip: id }); await app.wsTopluDuraksamaYap(wsArgs); break
 				}
 				this.tazele()
 			}
@@ -859,7 +927,7 @@ class HatYonetimiPart extends Part {
 			secimlerDuzenle: e => {
 				let sec = e.secimler, isHidden = !!app.params.config.hatKod;
 				if (!hepsimi && hatKod) {
-					$.extend(sec.hatKod, { birKismimi: true, value: hatKod, isHidden })
+					extend(sec.hatKod, { birKismimi: true, value: hatKod, isHidden })
 					sec.hatAdi.isHidden = isHidden
 				}
 			}
@@ -917,7 +985,7 @@ class HatYonetimiPart extends Part {
 	}
 	tezgahMenuIstendi(e) {
 		let topluMenumu = e.id == 'tezgahMenu'; if (topluMenumu) { e.title = 'Seçilen tezgah(lar) için:' }
-		$.extend(e, { formDuzenleyici: _e => {
+		extend(e, { formDuzenleyici: _e => {
 			_e = { ...e, ..._e }; let {form, close} = _e; form.yanYana(2);
 			form.addButton('siradakiIsler', undefined, 'Sıradaki İşler').onClick(() => { close(); this.siradakiIslerIstendi(_e) });
 			form.addButton('bekleyenIsler', undefined, 'Bekleyen İşler').onClick(() => { close(); this.bekleyenIslerIstendi(_e) });
@@ -930,27 +998,27 @@ class HatYonetimiPart extends Part {
 		} }); this.openContextMenu(e)
 	}
 	bekleyenXMenuIstendi(e) {
-		$.extend(e, { formDuzenleyici: _e => {
+		extend(e, { formDuzenleyici: _e => {
 			_e = { ...e, ..._e }; let {form, close} = _e; form.yanYana(2);
 			form.addButton('isEmirleri', undefined, 'İş Emirleri').onClick(() => { close(); this.bekleyenIsEmirleriIstendi(_e) });
 			form.addButton('hatBekleyenIsler', undefined, 'Bekleyen İşler (HAT)').onClick(() => { close(); _e.hatBazinda = true; this.bekleyenIslerIstendi_hatBazinda(_e) })
 		} }); this.openContextMenu(e)
 	}
 	topluXMenuIstendi(e) {
-		e = e || {}; let {selectedTezgahRecs: recs} = e, rec = recs?.[0], {sabitHatKodVarmi} = app, hatKod = e.hatKod = e.hatKod ?? rec?.hatKod;
-		$.extend(e, { noCheck: true, formDuzenleyici: _e => {
+		e ??= {}; let {selectedTezgahRecs: recs} = e, rec = recs?.[0], {sabitHatKodVarmi} = app, hatKod = e.hatKod = e.hatKod ?? rec?.hatKod;
+		extend(e, { noCheck: true, formDuzenleyici: _e => {
 			_e = { ...e, ..._e }; let {form, close} = _e; form.yanYana(2);
-			form.addButton('mola', undefined, 'Mola').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
-			form.addButton('vardiyaDegisimi', undefined, 'Vardiya Değişimi').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
+			form.addButton('mola', undefined, 'Mola').onClick(e => { close(); this.topluXIstendi(extend({}, _e, e, { id: e.builder.id })) });
+			form.addButton('vardiyaDegisimi', undefined, 'Vardiya Değişimi').onClick(e => { close(); this.topluXIstendi(extend({}, _e, e, { id: e.builder.id })) });
 			if (!sabitHatKodVarmi || hatKod) {
-				if (config.dev) { form.addButton('devam', undefined, 'Toplu Devam').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) }) }
-				form.addButton('isBitti', undefined, 'İş Bitti').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
-				form.addButton('gerceklemeYap', undefined, 'Gerçekleme Yap').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
-				form.addButton('zamanEtuduBaslat', undefined, 'Zaman Etüdü Başlat').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) });
-				form.addButton('zamanEtuduKapat', undefined, 'Zaman Etüdü Kapat').onClick(e => { close(); this.topluXIstendi($.extend({}, _e, e, { id: e.builder.id })) })
+				if (config.dev) { form.addButton('devam', undefined, 'Toplu Devam').onClick(e => { close(); this.topluXIstendi(extend({}, _e, e, { id: e.builder.id })) }) }
+				form.addButton('isBitti', undefined, 'İş Bitti').onClick(e => { close(); this.topluXIstendi(extend({}, _e, e, { id: e.builder.id })) });
+				form.addButton('gerceklemeYap', undefined, 'Gerçekleme Yap').onClick(e => { close(); this.topluXIstendi(extend({}, _e, e, { id: e.builder.id })) });
+				form.addButton('zamanEtuduBaslat', undefined, 'Zaman Etüdü Başlat').onClick(e => { close(); this.topluXIstendi(extend({}, _e, e, { id: e.builder.id })) });
+				form.addButton('zamanEtuduKapat', undefined, 'Zaman Etüdü Kapat').onClick(e => { close(); this.topluXIstendi(extend({}, _e, e, { id: e.builder.id })) })
 			}
-			/*form.addButton('topluEkNotlar', undefined, 'Tüm Notlar').onClick(e => { close(); this.ekNotlarIstendi($.extend({}, _e, e, { id: e.builder.id, hepsi: true })) })
-			form.addButton('ozetBilgi', undefined, 'Özet Bilgi').onClick(e => { close(); this.ozetBilgiGoster($.extend({}, _e, e, { id: e.builder.id })) })*/
+			/*form.addButton('topluEkNotlar', undefined, 'Tüm Notlar').onClick(e => { close(); this.ekNotlarIstendi(extend({}, _e, e, { id: e.builder.id, hepsi: true })) })
+			form.addButton('ozetBilgi', undefined, 'Özet Bilgi').onClick(e => { close(); this.ozetBilgiGoster(extend({}, _e, e, { id: e.builder.id })) })*/
 		} }); this.openContextMenu(e)
 	}
 	openContextMenu(e) {

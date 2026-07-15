@@ -1,6 +1,6 @@
 Object.defineProperty(Object.prototype, 'size', {
-	enumerable: false, writable: false, configurable: true,
-	value: function size() {
+	enumerable: false, configurable: true,
+	get: function size() {
 		return (
 			typeof this == 'object' ? this.keys(...arguments).length :
 			this.length
@@ -32,4 +32,5 @@ Object.assign(g, {
 function len(v) { return Object.size(v) }
 function setTimeout(ms) { return delay(ms) }
 function clearTimeout() { }
+function clr(ns) { return importNamespace(ns) }
 

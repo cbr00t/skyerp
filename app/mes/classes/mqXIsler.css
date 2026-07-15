@@ -1,8 +1,23 @@
-.MQXIsler.masterListe.part .islemTuslari > .sol > button#kolonFiltre ~ button:not(#switch):not(#yazdir):not(#excel) { width: 110px }
-.MQXIsler.masterListe.part .islemTuslari > .sol > button#kolonFiltre ~ button:not(#switch):not(#yazdir):not(#excel).jqx-fill-state-normal { color: #333 !important; background: transparent }
-.MQXIsler.masterListe.part .islemTuslari #switch { margin-right: 40px }
-.MQXIsler.masterListe.part .jqx-grid [role = row] > *:not(.fisnox) > * > * { margin-inline-end: 10px !important }
-.MQXIsler.masterListe.part .jqx-grid [role = row] > .atandimiText > *, .MQXIsler.masterListe.part .jqx-grid [role = row] > .zamanEtudumuText > * { font-weight: bold; font-size: 83%; text-align: center; padding: 8px 0 0 2px }
+
+.MQXIsler.masterListe.part .islemTuslari {
+	--width-sag-ek: 25px !important
+}
+.MQXIsler.masterListe.part .islemTuslari > .sol > button ~ button ~ :not(#switch):not(#yazdir):not(#excel) {
+	font-size: 80%;
+	width: 65px;
+	min-width: unset !important
+}
+.MQXIsler.masterListe.part .islemTuslari > .sol > button ~ button ~ button:not(#switch):not(#yazdir):not(#excel).jqx-fill-state-normal {
+	color: #333 !important; background: transparent
+}
+.MQXIsler.masterListe.part .islemTuslari > .sol > button {
+	margin-right: 10px
+}
+.MQXIsler.masterListe.part .islemTuslari #switch { margin-right: 10px }
+.MQXIsler.masterListe.part .islemTuslari #switch
+	.MQXIsler.masterListe.part .jqx-grid [role = row] > *:not(.fisnox) > * > * { margin-inline-end: 10px !important }
+.MQXIsler.masterListe.part .jqx-grid [role = row] > .atandimiText > *, 
+	.MQXIsler.masterListe.part .jqx-grid [role = row] > .zamanEtudumuText > * { font-weight: bold; font-size: 83%; text-align: center; padding: 8px 0 0 2px }
 .MQXIsler.masterListe.part .jqx-grid .atandimiText, .MQXIsler.masterListe.part .jqx-grid [role = row] > .atandimiText > * { color: #e67e0b }
 .MQXIsler.masterListe.part .jqx-grid [role = row] > .atandi:not(.jqx-grid-cell-selected) { background: #fff6ec }
 .MQXIsler.masterListe.part .jqx-grid .zamanEtudumuText, .MQXIsler.masterListe.part .jqx-grid [role = row] > .zamanEtudumuText > * { color: #0f833f }

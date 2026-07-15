@@ -6,7 +6,8 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 	static get uygunmu() { return true } get uygunmu() { return this.class.uygunmu } static get araSeviyemi() { return false }
 	static get dRapormu() { return true } get dRapormu() { return this.class.dRapormu } static get dAltRapormu() { return false } get dAltRapormu() { return this.class.dAltRapormu }
 	static get mainClass() { return window[`${this.name}_Main`] } static get tumKolonlarGosterilirmi() { return false }
-	static get noOverflowFlag() { return false } get isPanelItem() { return !!this.panel || qs.panelItem }
+	static get noOverflowFlag() { return false }
+	get isPanelItem() { return !!this.panel || qs.panelItem }
 	get raporVarmi() { return this.raporTanim?.secilenVarmi }
 	static get raporBilgiler() {
 		return values(this.kod2Sinif)
@@ -14,7 +15,7 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 			.map(cls => ({ kod: cls.kod, aciklama: cls.aciklama, vioAdim: cls.vioAdim, cls }))
 	}
 	static get kod2Sinif() {
-		let {_kod2Sinif: result} = this
+		let { _kod2Sinif: result } = this
 		if (result == null) {
 			result = {}
 			let subClasses = this.subClasses.filter(({ araSeviyemi, dAltRapormu, uygunmu, kod }) =>
@@ -34,12 +35,12 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 		return result
    }
 	static get uygunRaporlar() {
-		return values(this.kod2Sinif)
-			.filter(cls => cls.uygunmu && cls.dRapormu && !(cls.araSeviyemi || cls.dAltRapormu || cls.dPanelmi))
+		return values(this.kod2Sinif).filter(cls =>
+			cls.uygunmu && cls.dRapormu && !(cls.araSeviyemi || cls.dAltRapormu || cls.dPanelmi))
 	}
 	static get uygunRaporlarKAListe() {
-		return this.uygunRaporlar
-			.map(cls => ({ kod: cls.kod, aciklama: cls.aciklama, sinif: cls }))
+		return this.uygunRaporlar.map(cls =>
+			({ kod: cls.kod, aciklama: cls.aciklama, sinif: cls }))
 	}
 	
 	constructor(e = {}) {
@@ -82,6 +83,7 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 	otoTazeleYapilir() { this.otoTazeleYapilirmi = true; return this }
 	otoTazeleYapilmaz() { this.otoTazeleYapilirmi = false; return this }
 }
+
 class DRaporMQ extends DRapor {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get anaTip() { return 'mq' } static get dMQRapormu() { return true }
@@ -91,48 +93,80 @@ class DRaporMQ extends DRapor {
 	goster(e = {}) {
 		let args = e.args = e.args || {}
 		args.inst = this
-		let {sadeceTanimmi} = this.class
+		let { sadeceTanimmi } = this.class
 		if (sadeceTanimmi)
 			e.islem ||= 'yeni'
+		
 		let result = this.class[sadeceTanimmi ? 'tanimla' : 'listeEkraniAc'](e)
 		if (result == null)
 			return null
-		let {part} = result, {anaTip} = this.class, {partName} = this
+
+		let { part } = result
+		let { isPanelItem, partName, class: { anaTip } } = this
+		let { rfb } = e
 		if (part) {
+			let acilinca = part => {
+				let { layout } = part ?? {}
+				layout?.addClass(`${anaTip} ${partName}`)
+				if (isPanelItem && rfb) {
+					part.canDestroy = false
+					layout = layout.children('.grid-parent')
+					layout.addClass('parent formBuilder item formBuilder-element panel dRapor part ui-resizable')
+					layout.prepend($(`
+						<label>${this.raporAdi}</label>
+						<button id="close"></button>
+					`))
+					layout
+						.detach()
+						.appendTo(rfb.parent)
+					part.close()
+				}
+			}
+			
 			if (part.then)
-				part.then(part => part?.layout?.addClass(`${anaTip} ${partName}`))
+				part.then(acilinca)
 			else
-				part.layout?.addClass(`${anaTip} ${partName}`)
+				acilinca(part)
 			
 		}
-		let {builder} = part ?? {}
-		$.extend(this, { part, builder })
+		let { builder } = part ?? {}
+		extend(this, { part, builder })
 		return result
 	}
 	tazele(e) { super.tazele(e) }
 	static listeEkrani_init(e) { return e.sender.inst.onInit(e) }
 	static listeEkrani_afterRun(e) { return e.sender.inst.onAfterRun(e) }
 }
+
 class DRaporOzel extends DRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'ozel' } static get dOzelRapormu() { return true }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get anaTip() { return 'ozel' } static get dOzelRapormu() { return true }
 	async goster(e = {}) {
-		let inst = this, {partName, isPanelItem, class: { aciklama }} = this
+		let inst = this, { partName, isPanelItem, class: { aciklama } } = this
 		let title = e.title ?? `<b class="royalblue">${aciklama}</b> Raporu`
 		let rfb = e.rfb ?? new RootFormBuilder({ id: partName }).noDestroy()
 			.setInst(this).addCSS('slow-animation')
-		if (!isPanelItem) { rfb = rfb.asWindow?.(title) }
-		let _e = { ...e, rfb }; this.rootFormBuilderDuzenle(_e)
+		
+		if (!isPanelItem)
+			rfb = rfb.asWindow?.(title)
+		
+		let _e = { ...e, rfb }
+		this.rootFormBuilderDuzenle(_e)
 		rfb = _e.rfb
-		await this.ilkIslemler(e); await this.ilkIslemler_ek(e)
+		await this.ilkIslemler(e)
+		await this.ilkIslemler_ek(e)
+		
 		rfb.onInit(e => this.onInit({ ...e, rfb: e.builder }))
 		rfb.onBuildEk(e => this.onBuildEk({ ...e, rfb: e.builder }))
 		rfb.onAfterRun(e => this.onAfterRun({ ...e, rfb: e.builder }))
 		await rfb.run()
+		
 		let builder = rfb, {part} = builder, {anaTip} = this.class
 		let {layout} = part; //layout.prop('id', partName)
 		layout.addClass(`${anaTip} ${partName} part`)
-		$.extend(this, { part, builder })
-		await this.sonIslemler(e); await this.sonIslemler_ek(e)
+		extend(this, { part, builder })
+		await this.sonIslemler(e)
+		await this.sonIslemler_ek(e)
 		return ({ inst, part, builder })
 	}
 	async ilkIslemler(e) { this.tazeleCount = 0 }
@@ -308,6 +342,7 @@ class DRaporOzel extends DRapor {
 		setTimeout(() => this._inTazeleProc = false, 1_000)
 	}
 }
+
 class DPanelRapor extends DRaporOzel {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get dPanelRapormu() { return true }
 	static get anaTip() { return 'panel' } static get sabitmi() { return false } static get yatayAnalizVarmi() { return !this.sabitmi }

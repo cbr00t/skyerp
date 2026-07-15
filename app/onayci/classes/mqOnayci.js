@@ -114,6 +114,31 @@ class MQOnayci extends MQCogul {
 			}, 100)
 		}
 
+		;{
+			let { sol: parent } = gridPart.islemTuslariPart
+			let kaListe = [
+				new CKodVeAdi(['', ' ']),
+				new CKodVeAdi(['O', `Onaylanan`]),
+				new CKodVeAdi(['R', `RED Edilen`])
+			]
+			let fbd = new RootFormBuilder().addSelect('onayDurum')
+				.etiketGosterim_yok()
+				.setInst(gridPart)
+				.setParent(parent)
+				.setSource(kaListe)
+				.degisince(({ builder: fbd, value: v }) => {
+					// gridPart.onayDurum = v
+					let chk = parent.find('#hepsiniGoster')
+					if (!chk.is(':checked'))
+						chk.attr('checked', true)
+					gridPart.hepsiniGoster = true
+					gridPart.tazele()
+				})
+				.addCSS('float-right')
+				.addStyle_fullWH(150)
+			fbd.run()
+		}
+
 		/*setTimeout(() => {
 			let n = 'grid-open-slow'
 			grid.removeClass(n).addClass(n)
@@ -151,7 +176,7 @@ class MQOnayci extends MQCogul {
 	static rootFormBuilderDuzenle_listeEkrani({ sender: gridPart, rootBuilder: rfb }) {
 		super.rootFormBuilderDuzenle_listeEkrani(...arguments)
 		this.fbd_listeEkrani_addCheckBox(rfb, {
-			id: 'hepsiniGoster', text: '+ Onaylı',
+			id: 'hepsiniGoster', text: 'Hepsi',
 			value: gridPart.hepsiniGoster,
 			handler: ({ builder: { layout } }) => {
 				let input = layout.children('input')
@@ -165,7 +190,7 @@ class MQOnayci extends MQCogul {
 		let mini = isMiniDevice()
 		extend(args, {
 			columnsMenu: !mini, groupsExpandedByDefault: true,
-			rowsHeight: mini ? 75 : 65
+			rowsHeight: mini ? 100 : 65
 		})
 	}
 	static orjBaslikListesi_groupsDuzenle({ sender: gridPart, liste }) {
@@ -209,7 +234,7 @@ class MQOnayci extends MQCogul {
 		let { onayNo: aktifOnayNo, onayMax } = app
 		let { encUser, user /*, dbName: db*/ } = config.session
 		let { ay: buAy, yil2: buKisaYil } = today()
-		let { hepsiniGoster } = gridPart
+		let { hepsiniGoster, onayDurum } = gridPart
 
 		let _cache = /*this._cache ??=*/ await (async () => {
 			// let kurallar = [], kuralKey2Kural = {}
@@ -289,8 +314,13 @@ class MQOnayci extends MQCogul {
 				;{
 					sent.fromAdd(`${db}..webonay ony`)
 					wh.degerAta(user, `ony.w${i}onayuser`)    // her asama icin ayri sent
-					if (!hepsiniGoster)
+					if (hepsiniGoster) {
+						if (onayDurum)
+							wh.degerAta(onayDurum, `ony.w${i}onaydurum`)	
+					}
+					else
 						wh.degerAta('', `ony.w${i}onaydurum`)
+					
 					if (!ilkmi)
 						wh.degerAta('O', `ony.w${i - 1}onaydurum`)
 				}

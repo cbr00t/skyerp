@@ -62,7 +62,7 @@ class DPanel extends Part {
 			secimler = _e.secimler
 		}
 		let {title = `<b class="royalblue">${aciklama}</b>`} = this
-		$.extend(this, { title, raporTanim, id2Detay, secimler })
+		extend(this, { title, raporTanim, id2Detay, secimler })
 	}
 	static getClass(e) {
 		let kod = typeof e == 'object' ? (e.kod ?? e.tip) : e
@@ -76,7 +76,7 @@ class DPanel extends Part {
 		rfb.setLayout(layout).setPart(this).setInst(this)
 		this.rootFormBuilderDuzenle(e)
 		let inst = this, part = this, {rfb: builder} = e
-		$.extend(this, { builder }); builder.run(e)
+		extend(this, { builder }); builder.run(e)
 		// makeScrollable(this.items)
 		return { inst, part, builder }
 	}
@@ -143,7 +143,7 @@ class DPanel extends Part {
 			.setButonlarDuzenleyici(e => this.islemTuslariArgsDuzenle(e))
 			.setId2Handler(this.islemTuslariGetId2Handler(e))
 			.onAfterRun(({ builder: fbd_islemTuslari, builder: { part: islemTuslariPart } }) =>
-				$.extend(this, { fbd_islemTuslari, islemTuslariPart }))
+				extend(this, { fbd_islemTuslari, islemTuslariPart }))
 		fbd_islemTuslari.addNumberInput('_otoTazeleDk', null, null, 'Tazele (dk)')
 			.etiketGosterim_yok()
 			.setAltInst(this)
@@ -174,7 +174,7 @@ class DPanel extends Part {
 				 }`
 			)
 		let fbd_items = rfb.addFormWithParent('items').addCSS('items')
-			.onAfterRun(({ builder: fbd_items, builder: { layout: items } }) => $.extend(this, { fbd_items, items }))
+			.onAfterRun(({ builder: fbd_items, builder: { layout: items } }) => extend(this, { fbd_items, items }))
 		rfb.addForm('bulForm')
 			.setLayout(({ builder: { id }}) =>
 				$(`<div class="${id} part"><input class="input full-wh" type="textbox" maxlength="100"></input></div>`))
@@ -245,7 +245,7 @@ class DPanel extends Part {
 					let sec = secimler[k]
 					if (!sec)
 						continue
-					$.extend(sec, v)
+					extend(sec, v)
 					sec.hidden()
 				}
 			}
@@ -293,7 +293,7 @@ class DPanel extends Part {
 		setTimeout(() => this._inTazeleProc = false, 1_000)
 	}
 	add(...coll) {
-		let {id2Detay, _rendered} = this, {kod2Sinif} = DRapor
+		let {id2Detay, _rendered} = this, { kod2Sinif } = DRapor
 		for (let det of coll) {
 			if (det == null)
 				continue
@@ -307,7 +307,7 @@ class DPanel extends Part {
 			if (tip.rapormu) {
 				let {raporId} = det
 				inst ??= value
-				if (typeof inst == 'string')
+				if (isString(inst))
 					inst = kod2Sinif[inst] ?? window[inst]
 				if (isClass(inst))
 					inst = new inst()
@@ -318,7 +318,7 @@ class DPanel extends Part {
 				if (inst)
 					det.inst = inst
 			}
-			$.extend(det, { id, panel: this })
+			extend(det, { id, panel: this })
 			id2Detay[id] = det
 		}
 		if (_rendered)
@@ -472,12 +472,12 @@ class DPanel extends Part {
 			let item = _rfb.addFormWithParent(id).altAlta()
 				.addCSS('item _loading')
 				.setParent(items).setRootBuilder(rfb)
-			// item.onInit(({ builder: { layout } }) => $.extend(inst, { layout }))
+			// item.onInit(({ builder: { layout } }) => extend(inst, { layout }))
 			let _e = { ...e, rfb: item }
-			$.extend(inst, { _baslik: baslik, panel: this, detay: det })
+			extend(inst, { _baslik: baslik, panel: this, detay: det })
 			let result
 			if (tip.rapormu) {
-				if (inst && $.isPlainObject(inst))
+				if (inst && isPlainObject(inst))
 					inst = null
 				if (!inst) {
 					console.warn('panel inst yok, muhtemelen class değişti')
@@ -493,7 +493,7 @@ class DPanel extends Part {
 			else if (tip.webmi || tip.evalmi) {
 				let {value: url} = det;
 				item.setInst(det.inst = inst)
-				$.extend(inst, { exportHTMLIstendi: e => openNewWindow(url) })
+				extend(inst, { exportHTMLIstendi: e => openNewWindow(url) })
 				item.noAutoAppend().setLayout(({ builder: { parent } }) => {
 					let layout =
 						$(`<div id="${id}" class="parent item item-ozel full-wh">
@@ -587,7 +587,7 @@ class DPanel extends Part {
 							catch (ex) { code = null; console.error('code eval', code, e, ex, getErrorText(ex)) }
 						}
 						if (code) {
-							$.extend(_e, { panel: this, detay: det, layout, items, item, itemLayout, content });
+							extend(_e, { panel: this, detay: det, layout, items, item, itemLayout, content });
 							(async () => {
 								try { await getFuncValue.call(this, code, _e) }
 								catch (ex) { console.error('code eval #2', code, result, _e, ex, getErrorText(ex)) }
@@ -850,31 +850,40 @@ class DPanel extends Part {
 			let det = new DPanelDetay()
 			if (!yenimi) {
 				eDet ??= this.detay
-				if (!eDet) { hConfirm('Bir panel seçilmelidir', islemAdi); return false }
-				$.extend(det, eDet)
+				if (!eDet) {
+					hConfirm('Bir panel seçilmelidir', islemAdi)
+					return false
+				}
+				extend(det, eDet)
 				for (let key of ['panel', 'inst', 'part', 'sinif', '_raporId', '_url', '_code', ...keys(CObject.prototype)])
 					delete det[key]
-				if (!degistirmi)
-					for (let key of ['okunanHarSayac', 'sayac', 'eskiSeq', 'seq']) { det = undefined }
+				if (!degistirmi) {
+					for (let key of ['okunanHarSayac', 'sayac', 'eskiSeq', 'seq'])
+						det = undefined
+				}
+				
 				det = det.deepCopy()
-				let {value} = det
+				let { value } = det
 				if (value) {
 					let {tip: { rapormu, webmi, evalmi }} = det
 					let selector = rapormu ? '_raporId' : webmi ? '_url' : evalmi ? '_code' : null
-					if (selector) { det[selector] = value }
+					if (selector)
+						det[selector] = value
 					det.value = null
 				}
 			}
+			
 			let validate = () => {
-				let {tip: { rapormu, webmi, evalmi }, _raporId, _url, _code} = det
+				let { tip: { rapormu, webmi, evalmi }, _raporId, _url, _code } = det
 				if (rapormu && !_raporId) { hConfirm(`<b class="firebrick bold">Rapor</b> seçilmelidir`, islemAdi); return false }
 				if (webmi && !_url) { hConfirm(`<b class="firebrick bold">Web Adresi (URL)</b> belirtilmelidir`, islemAdi); return false }
 				if (evalmi && !_code) { hConfirm(`<b class="firebrick bold">JS Kodu</b> belirtilmelidir`, islemAdi); return false }
 				return true
 			}
+			
 			let rfb = new RootFormBuilder().setInst(det)
-			let promise_wait = new $.Deferred()
-			{
+			let promise_wait = defer()
+			;{
 				rfb.addStyle_fullWH().addStyle(`$elementCSS { --islemTuslari-height: 50px }`)
 				let fbd_islemTuslari = rfb.addIslemTuslari('islemTuslari').addCSS('islemTuslari')
 					.setTip('tamamVazgec').addStyle_fullWH(null, 'var(--islemTuslari-height)')
@@ -885,7 +894,8 @@ class DPanel extends Part {
 						},
 						vazgec: ({ builder: { rootPart: part } }) => { promise_wait?.resolve(false); part?.jqxWindow('close') }
 					})
-					.onAfterRun(({ builder: fbd_islemTuslari, builder: { part: islemTuslariPart } }) => $.extend(this, { fbd_islemTuslari, islemTuslariPart }))
+					.onAfterRun(({ builder: fbd_islemTuslari, builder: { part: islemTuslariPart } }) => extend(this, { fbd_islemTuslari, islemTuslariPart }))
+				
 				let content = rfb.addFormWithParent('content').addCSS('content').altAlta()
 				content.onAfterRun(({ builder: { rootBuilder: { id2Builder: { islemTuslari } }, layout }}) => {
 					layout.on('keyup', ({ key }) => {
@@ -894,20 +904,27 @@ class DPanel extends Part {
 							islemTuslari.layout.find('#tamam').click()
 					})
 				})
+				
 				let form = content.addFormWithParent()
 				form.addTextInput('baslik', 'Başlık')
+				
 				form = content.addFormWithParent()
-				form.addModelKullan('tip', 'Tip').dropDown().kodsuz().noMF().autoBind()
+				form.addModelKullan('tip', 'Tip')
+					.dropDown().kodsuz().noMF().autoBind()
 					.bosKodAlinmaz().bosKodEklenmez().listedenSecilmez()
-					.setSource(DPanelTip.kaListe).addStyle_wh(350)
+					.setSource(DPanelTip.kaListe)
 					.degisince(({ builder: { parentBuilder } }) => {
 						for (let _ of parentBuilder)
 							_.updateVisible()
 					})
-				form.addModelKullan('raporTip', 'Rapor Tip').dropDown().kodsuz().noMF().autoBind()
+					.addStyle_wh(350)
+				
+				form.addModelKullan('raporTip', 'Rapor Tip')
+					.dropDown().kodsuz().noMF().autoBind()
 					.bosKodAlinmaz().bosKodEklenmez().listedenSecilmez()
-					.setSource(DAltRaporTip.kaListe).addStyle_wh(300)
+					.setSource(DAltRaporTip.kaListe)
 					.setVisibleKosulu(({ builder: { inst } }) => inst.tip.rapormu ? true : 'jqx-hidden')
+					.addStyle_wh(300)
 				form.addModelKullan('_urlTemplate', 'Şablonlar').dropDown().kodsuz().noMF()
 					.bosKodAlinir().bosKodEklenir().listedenSecilmez()
 					.setSource(() => {
@@ -1136,8 +1153,10 @@ class DPanel extends Part {
 					})
 					.addStyle_wh(500)
 					.setVisibleKosulu(({ builder: { inst: { tip } = {} } }) => tip.evalmi ? true : 'jqx-hidden')
+				
 				let altForm = form.addFormWithParent('_ekTanimlar').altAlta().addStyle_fullWH()
-				altForm.addModelKullan('_raporId', 'Rapor').dropDown().noMF().autoBind()
+				altForm.addModelKullan('_raporId', 'Rapor')
+					.dropDown().noMF().autoBind()
 					.addStyle_wh('var(--full)')
 					.setSource(e => app.mainRaporBase.uygunRaporlarKAListe)
 					.setVisibleKosulu(({ builder: { inst } }) => inst.tip.rapormu ? true : 'jqx-hidden')
@@ -1147,7 +1166,8 @@ class DPanel extends Part {
 					.addStyle_wh('var(--full)').setRows(8).setCols(1000)
 					.setVisibleKosulu(({ builder: { inst } }) => inst.tip.evalmi ? true : 'jqx-hidden')
 			}
-			{
+			
+			;{
 				let wnd = createJQXWindow({
 					title: 'Panel Ekle',
 					args: {
@@ -1170,6 +1190,7 @@ class DPanel extends Part {
 			)
 			if (!det?.value)
 				return
+			
 			showProgress()
 			switch (islem) {
 				case 'yeni':
@@ -1177,8 +1198,8 @@ class DPanel extends Part {
 					await this.add(det)
 					break
 				case 'degistir':
-					$.extend(eDet, det)
-					let {id} = eDet, {raporTanim} = this
+					extend(eDet, det)
+					let { id } = eDet, { raporTanim } = this
 					// await this.render({ ...e, noTitleUpdate: true })
 					await this.saveLayout(e)
 					if (await raporTanim.yukle())
@@ -1316,7 +1337,7 @@ class DPanel extends Part {
 					let raporTanim = new raporSinif().setId(id)
 					if (await raporTanim.yukle() === false)
 						throw { isError: true, errorText: 'Yükleme başarısız' }
-					$.extend(defRaporTanim, raporTanim, saved)
+					extend(defRaporTanim, raporTanim, saved)
 					; (async () => {
 						try {
 							if (raporTanim.aciklama != defRaporAdi)

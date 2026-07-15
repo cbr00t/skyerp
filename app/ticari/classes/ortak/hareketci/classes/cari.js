@@ -645,8 +645,10 @@ class CariHareketci extends Hareketci {
 		return this
 	}
 	uniDuzenle_siteYonetimTahakkuk({ liste, uygunluk }) {
-		$.extend(liste, {
-			siteYonetimTahakkuk: [
+		let { params } = app
+		let { kullanim: ticGenel } = params.ticariGenel ?? {}
+		extend(liste, {
+			siteYonetimTahakkuk: [ticGenel.siteYonetimTahakkuk ? 
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					let {where: wh} = sent;
 					sent.fisHareket('sytahfis', 'sytahhar').har2CariBagla()
@@ -658,8 +660,8 @@ class CariHareketci extends Hareketci {
 						ba: `'B'`, isladi: 'tgrp.aciklama', bedel: 'har.bedel', dvbedel: sqlZero
 					})
 				})
-			]
-		});
+			: null].filter(Boolean)
+		})
 		return this
 	}
 

@@ -19,10 +19,6 @@ class SahaDurumApp extends App {
 		else
 			this.promise_login?.resolve()
 		
-		/*if (app.params.tablet?.yaslandirmaTarihmi)
-			MustBilgi.kademeEk = 30
-		*/
-		
 		await this.anaMenuOlustur(e)
 		let { session } = config, { yerel: yerelParam } = this.params
 		let lastSession = yerelParam?.lastSession ?? session
@@ -43,6 +39,8 @@ class SahaDurumApp extends App {
 	paramsDuzenle({ params }) {
 		super.paramsDuzenle(...arguments)
 		extend(params, {
+			zorunlu: MQZorunluParam.getInstance(),
+			finans: MQFinansParam.getInstance(),
 			tablet: MQTabletParam.getInstance(),
 			eIslem: MQEIslemParam.getInstance()
 		})
@@ -50,14 +48,26 @@ class SahaDurumApp extends App {
 	async paramsDuzenleSonrasi(e) {
 		try { await super.paramsDuzenleSonrasi(e) }
 		finally { this.params.localData = await this.localDataSinif.getInstance() }
+		await this.yaslandirmaGunleriDuzenle(e)
+	}
+	yaslandirmaGunleriDuzenle(e) {
+		let { finans: { yaslandirmaGunleri } = {} } = app.params
+		if (!empty(yaslandirmaGunleri))
+			MustBilgi.kademeler = yaslandirmaGunleri
 	}
 	getAnaMenu(e) {
 		// let disabledMenuIdSet = this.disabledMenuIdSet ?? {}
-		return new FRMenu({ items: [
-			new FRMenuChoice({ mnemonic: 'BILGI-YUKLE', text: 'Bilgi Yükle', block: e => this.bilgiYukleIstendi(e) }),
-			new FRMenuChoice({ mnemonic: 'MUSTERILER', text: 'Müşteriler', block: e => MQMustBilgi.listeEkraniAc(e) }),
-			new FRMenuChoice({ mnemonic: 'TABLET-PARAM', text: 'Tablet Parametreleri', block: e => app.params.tablet.tanimla(e) })
-		]})
+		let items = [
+			new FRMenuChoice({ mne: 'BILGI-YUKLE', text: 'Bilgi Yükle', block: e => this.bilgiYukleIstendi(e) }),
+			new FRMenuChoice({ mne: 'MUSTERILER', text: 'Müşteriler', block: e => MQMustBilgi.listeEkraniAc(e) }),
+			( config.dev ? new FRMenuCascade({
+				mne: 'PARAM', text: 'Parametreler', items: [
+					new FRMenuChoice({ mne: 'TABLET', text: 'Tablet', block: e => app.params.tablet.tanimla(e) }),
+					new FRMenuChoice({ mne: 'FINANS', text: 'Finans', block: e => app.params.finans.tanimla(e) })
+				]
+			}) : null)
+		].filter(Boolean)
+		return new FRMenu({ items })
 	}
 	navLayoutOlustur_araIslem(e) {
 		super.navLayoutOlustur_araIslem(e)
@@ -239,5 +249,52 @@ class SahaDurumApp extends App {
 				return v
 		}
 		return null
+	}
+
+	wsTopluDurum({ plasiyerKod, mustKod } = {}) {
+		let params = [
+			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null),
+			(mustKod ? { name: '@argMustKod', value: mustKod } : null)
+		].filter(Boolean)
+		return this.sqlExecSP({ query: 'tic_topluDurum', params })
+	}
+	wsTicKapanmayanHesap({ plasiyerKod, mustKod } = {}) {
+		let { params: par } = app
+		let { yaslandirmaTarihmi } = par.finans ?? {}
+		let params = [
+			( plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null ),
+			( mustKod ? { name: '@argMustKod', value: mustKod } : null ),
+			{ name: '@argSadecePlasiyereBagliOlanlar', type: 'bit', value: bool2Int(!!plasiyerKod) },
+			( yaslandirmaTarihmi ? { name: '@argGecikmeTarihten', type: 'bit', value: bool2Int(yaslandirmaTarihmi) } : null )
+		].filter(Boolean)
+		return this.sqlExecSP({ query: 'tic_kapanmayanHesap', params })
+	}
+	wsTicCariEkstre({ plasiyerKod, mustKod } = {}) {
+		let params = [
+			(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null),
+			(mustKod ? { name: '@argMustKod', value: mustKod } : null),
+			{ name: '@argSadecePlasiyereBagliOlanlar', value: bool2Int(!!plasiyerKod) }
+		].filter(Boolean)
+		return this.sqlExecSP({ query: 'tic_cariEkstre', params })
+	}
+	wsTicCariEkstre_icerik({ plasiyerKod, mustKod, cariTipKod } = {}) {
+		let params = [
+			( plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null ),
+			( mustKod ? { name: '@argMustKod', value: mustKod } : null ),
+			{ name: '@argSadecePlasiyereBagliOlanlar', value: bool2Int(!!plasiyerKod) }
+		].filter(Boolean)
+		return this.sqlExecSP({ query: 'tic_ticariIcerik', params })
+	}
+	wsCariEkstre_normal(e) {
+		deleteKeys(e, 'data', 'args')
+		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'cariEkstre_normal', args: e }) })
+	}
+	wsCariEkstre_fiili(e = {}) {
+		deleteKeys(e, 'data', 'args')
+		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'cariEkstre_fiili', args: e }) })
+	}
+	wsCariEkstre_detaylar(e = {}) {
+		deleteKeys(e, 'data', 'args')
+		return ajaxGet({ timeout: 300000, processData: false, ajaxContentType: wsContentType, url: app.getWSUrl({ wsPath: 'ws/genel', api: 'cariEkstre_detaylar', args: e }) })
 	}
 }

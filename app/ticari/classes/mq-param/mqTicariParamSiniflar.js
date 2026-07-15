@@ -554,6 +554,8 @@ class MQFinansParam extends MQTicariParamBase {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Finans Parametreleri' }
 	static get paramKod() { return 'PFINPAR' }
+	get yaslandirmaGunleriStr() { return array2MLStr(makeArray(this.yaslandirmaGunleri).map(String)) }
+	set yaslandirmaGunleriStr(value) { this.yaslandirmaGunleri = mlStr2Array(value).map(Number) }
 
 	static paramYapiDuzenle({ paramci }) {
 		super.paramYapiDuzenle(...arguments)
@@ -572,9 +574,34 @@ class MQFinansParam extends MQTicariParamBase {
 			form.addTekSecim('eldekiVarlikStokDegerlemeTipi', 'Eldeki Varlık Stok Değ. Tipi')
 				.dropDown().noMF().kodsuz().setTekSecim(StokDegerleme).addStyle_wh(300)
 		}
+		;{
+			let form = paramci.addFormWithParent()
+			form.addBool('yaslandirmaTarihmi', `Yaşlandırma Tarih'e göredir`)
+				.setRowAttr('yaslandirmaTarihBazinda')
+			form.addML('yaslandirmaGunleriStr', 'Yaşlandırma Günleri')
+				.noRowAttr()
+				.setRowCount(5)
+				.addStyle_wh(200)
+		}
 	}
-	paramSetValues({ rec }) {
+	paramHostVarsDuzenle({ hv = {} } = {}) {
+		super.paramHostVarsDuzenle(...arguments)
+		let yaslandirmaGunleri = makeArray(this.yaslandirmaGunleri)
+		extend(hv, { yaslandirmaGunleri })
+	}
+	paramSetValues({ rec = {} } = {}) {
 		super.paramSetValues(...arguments)
+		//let donusum = { yaslandirmaTarihBazinda: 'yaslandirmaTarihmi' }
+		let donusum = {}
+		;entries(donusum).forEach(([s, t]) => {
+			let v = rec[s]
+			if (v !== undefined)
+				rec[t] = v
+			delete rec[s]
+		})
+
+		let { yaslandirmaGunleri } = rec
+		extend(this, { yaslandirmaGunleri: makeArray(yaslandirmaGunleri) })
 	}
 }
 
@@ -595,11 +622,19 @@ class MQWebParam extends MQTicariParamBase {
 	}
 	static paramYapiDuzenle({ paramci }) {
 		super.paramYapiDuzenle(...arguments)
-		let {dbName} = config.session ?? {}, dbNamePrefix = dbName?.slice(0, 4)
+		let { dbName } = config.session ?? {}, dbNamePrefix = dbName?.slice(0, 4)
+		
 		let form = paramci.addFormWithParent().yanYana(1.4)
-			if (window.MQCari) { form.addModelKullan('pesinMustKod', 'Peşin Müşteri').comboBox().autoBind().setMFSinif(MQCari) }
-				else { form.addString('pesinMustKod', 'Peşin Müşteri') };
-			form.addML('ekOzellikKodlariStr', 'Ek Özellik Kodları').noRowAttr().setRowCount(5).addStyle_wh(200);
+		if (globalThis.MQCari)
+			form.addModelKullan('pesinMustKod', 'Peşin Müşteri').comboBox().autoBind().setMFSinif(MQCari)
+		else
+			form.addString('pesinMustKod', 'Peşin Müşteri')
+		
+		form.addML('ekOzellikKodlariStr', 'Ek Özellik Kodları')
+			.noRowAttr()
+			.setRowCount(5)
+			.addStyle_wh(200)
+		
 		form = paramci.addFormWithParent()
 			form.addBool('stokResim', 'Stok Resim Kullanılır')
 
@@ -692,7 +727,6 @@ class MQTabletParam extends MQTicariParamBase {
 		super.paramYapiDuzenle(...arguments)
 		;{
 			let form = paramci.addFormWithParent()
-			form.addBool('yaslandirmaTarihmi', `Yaşlandırma Tarih'e göredir`);
 			form.addBool('cariHareketTakipNo', 'Cari Hareket Takip No Bazında Gruplanır')
 			form.addBool('rotaDisiMusteriAlinirmi', 'Rota Dışı Müşteri Alınır')
 			form.addBool('silmeYerineDevreDisi', 'Silme Yerine DevreDışı')
@@ -721,18 +755,12 @@ class MQTabletParam extends MQTicariParamBase {
 			].forEach(k =>
 				form.addBool(k, k))
 		}
-		;{
-			let form = paramci.addFormWithParent()
-			;['yaslandirmaGunleri'].forEach(k =>
-				form.addAltArray(k, k))
-		}
 	}
 	paramSetValues({ rec } = {}) {
 		super.paramSetValues(...arguments)
 		let donusum = {
 			rotaSirasaindaUgrama: 'rotaDisiMusteriAlinirmi',
 			silmeYerineDevredisi: 'silmeYerineDevreDisi',
-			yaslandirmaTarihten: 'yaslandirmaTarihmi',
 			detaydaFiyatDegisiklik: 'fiyatDegistirir',
 			detaydaIskontoDegisiklik: 'iskDegistirir'
 		}

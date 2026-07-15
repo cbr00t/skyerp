@@ -1,17 +1,24 @@
 class BuVeDiger extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get defaultChar() { return '1' } get bumu() { return this.char == '1' } get digermi() { return this.char == '2' }
+	static get defaultChar() { return '1' }
+	get bumu() { return this.char == '1' }
+	get digermi() { return this.char == '2' }
 	init(e) {
-		e = e || {}; super.init(e);
-		let buDigerYapi = e;
-		if (buDigerYapi) { if (buDigerYapi == 'object' && !$.isArray(buDigerYapi)) buDigerYapi = [buDigerYapi.bu, buDigerYapi.diger] }
+		super.init(e);
+		let buDigerYapi = e
+		if (buDigerYapi) {
+			if (buDigerYapi == 'object' && !isArray(buDigerYapi))
+				buDigerYapi = [buDigerYapi.bu, buDigerYapi.diger]
+		}
 		if (empty(buDigerYapi))
-			buDigerYapi = ['Bu', 'Diğer'];
+			buDigerYapi = ['Bu', 'Diğer']
 		this._buDigerYapi = buDigerYapi
 	}	
-	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); let questions = ['bumu', 'digermi'], {_buDigerYapi} = this;
-		for (let i = 0; i < _buDigerYapi.length; i++) e.kaListe.push(new CKodVeAdi({ kod: (i + 1).toString(), aciklama: _buDigerYapi[i], question: questions[i] }))
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		let questions = ['bumu', 'digermi'], { _buDigerYapi } = this
+		for (let i = 0; i < _buDigerYapi.length; i++)
+			kaListe.push(new CKodVeAdi({ kod: (i + 1).toString(), aciklama: _buDigerYapi[i], question: questions[i] }))
 	}
 	bu() { this.char = '1'; return this }
 	diger() { this.char = '2'; return this }
@@ -71,7 +78,11 @@ class BuDigerVeHepsi extends BuVeDiger {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return null }
 	get hepsimi() { return !this.char }
-	kaListeDuzenle(e) { super.kaListeDuzenle(e); e.kaListe.push(new CKodVeAdi({ kod: null, aciklama: 'Hepsi', question: 'hepsimi' }))} hepsi() { this.char = null; return this }
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		kaListe.push(new CKodVeAdi({ kod: null, aciklama: 'Hepsi', question: 'hepsimi' }))
+	}
+	hepsi() { this.char = null; return this }
 }
 class EvetHayirTekSecim extends BuDigerVeHepsi {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

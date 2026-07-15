@@ -1,7 +1,13 @@
 class MQXIsler extends MQMasterOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get parentMFSinif() { return MQXIsler } static get noAutoFocus() { return true } static get menuyeAlinmazmi() { return true }
-	static get sinifAdi() { return 'X İşler' } static get gridIslemTuslariKullanilirmi() { return false }
-	static get switchPartClass() { return this } static get switchButtonText() { return null }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get parentMFSinif() { return MQXIsler } static get noAutoFocus() { return true }
+	static get menuyeAlinmazmi() { return true }
+	static get sinifAdi() { return 'X İşler' }
+	static get kolonFiltreKullanilirmi() { return false }
+	static get seviyeAcKapatKullanilirmi() { return false }
+	static get gridIslemTuslariKullanilirmi() { return false }
+	static get switchPartClass() { return this }
+	static get switchButtonText() { return null }
 
 	static ekCSSDuzenle({ rec, result }) {
 		if (rec.devreDisimi)
@@ -16,12 +22,12 @@ class MQXIsler extends MQMasterOrtak {
 	static listeEkrani_activated(e) {
 		super.listeEkrani_activated(e)
 		let gridPart = e.gridPart ?? e.sender
-		gridPart.tazele()
+		//gridPart.tazele()
 	}
 	static orjBaslikListesi_argsDuzenle({ args, sender }) {
 		super.orjBaslikListesi_argsDuzenle(...arguments)
 		let rowsHeight = 60
-		$.extend(args, { rowsHeight })
+		extend(args, { rowsHeight })
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
@@ -162,12 +168,15 @@ class MQSiradakiIsler extends MQXIsler {
 		}
 	}
 	static islemTuslariDuzenle_listeEkrani(e) {
-		super.islemTuslariDuzenle_listeEkrani(e); let {liste} = e, gridPart = e.gridPart ?? e.sender ?? e.parentPart, {siralamami} = gridPart;
+		super.islemTuslariDuzenle_listeEkrani(e)
+		let { liste } = e
+		let gridPart = e.gridPart ?? e.sender ?? e.parentPart
+		let { siralamami } = gridPart
 		liste.push(...[
-			{ id: 'isAtaKaldir', text: 'İŞ ATA/KALDIR', handler: e => this.isAtaKaldirIstendi(e) },
-			{ id: 'sirayadanKaldir', text: 'SIRADAN KALDIR', handler: e => this.siradanKaldirIstendi(e) },
+			{ id: 'isAtaKaldir', text: 'İŞ ATA/KLDR', handler: e => this.isAtaKaldirIstendi(e) },
+			{ id: 'sirayadanKaldir', text: 'SIRA KLDR', handler: e => this.siradanKaldirIstendi(e) },
 			{ id: 'isBitti', text: 'İŞ BİTTİ', handler: e => this.isBittiIstendi(e) },
-			{ id: 'sureSayiDuzenle', text: 'SÜRE DÜZENLE', handler: e => this.sureSayiDuzenleIstendi(e) },
+			{ id: 'sureSayiDuzenle', text: 'SÜRE DZNLE', handler: e => this.sureSayiDuzenleIstendi(e) },
 			{ id: 'zamanEtudu', text: 'ZAMAN ETÜDÜ', handler: e => this.zamanEtuduIstendi(e) },
 			{ id: 'baskaTezgahaTasi', text: 'TAŞI', handler: e => this.baskaTezgahaTasiIstendi(e) },
 			{ id: 'isParcala', text: 'PARÇALA', handler: e => this.isParcalaIstendi(e) },
@@ -259,23 +268,31 @@ class MQSiradakiIsler extends MQXIsler {
 		} })
 	}
 	static isParcalaIstendi(e) {
-		let islemAdi = 'İş Parçala', gridPart = e.gridPart ?? e.parentPart ?? e.sender, {hatKod, tezgahKod} = gridPart, excludeTezgahKod = tezgahKod;
-		let isIdListe = e.recs ?? gridPart.selectedRecs.filter(rec => !rec.devreDisimi).map(rec => rec.issayac);
-		if (!isIdListe?.length) { hConfirm('İşlem yapılacak Aktif kayıt(lar) seçilmelidir', islemAdi); return }
-		let args = { cokluSecimFlag: true, tezgahKod, hatKod, excludeTezgahKod, title: `<b class="gray">${tezgahKod}</b> - <span class="ek-bilgi">Parçala:</span>` };
+		let islemAdi = 'İş Parçala', gridPart = e.gridPart ?? e.parentPart ?? e.sender
+		let {hatKod, tezgahKod} = gridPart
+		let excludeTezgahKod = tezgahKod
+		let isIdListe = e.recs ?? gridPart.selectedRecs.filter(rec => !rec.devreDisimi).map(rec => rec.issayac)
+		if (!isIdListe?.length) {
+			hConfirm('İşlem yapılacak Aktif kayıt(lar) seçilmelidir', islemAdi)
+			return
+		}
+		
+		let args = { cokluSecimFlag: true, tezgahKod, hatKod, excludeTezgahKod, title: `<b class="gray">${tezgahKod}</b> - <span class="ek-bilgi">Parçala:</span>` }
 		HatYonetimiPart.listeEkraniAc({ args, secince: async e => {
-			/*let _gridPart = e.gridPart ?? e.parentPart ?? e.sender, hedefTezgahKodListe = _gridPart.getSubRecs({ cells: _gridPart.gridWidget.getselectedcells() }).map(rec => rec.tezgahKod);*/
-			let hedefTezgahKodListe = e.recs.map(rec => rec.tezgahKod); if (!hedefTezgahKodListe?.length) { return }
-			if (!hedefTezgahKodListe?.length) { return }
+			/*let _gridPart = e.gridPart ?? e.parentPart ?? e.sender
+			let hedefTezgahKodListe = _gridPart.getSubRecs({ cells: _gridPart.gridWidget.getselectedcells() }).map(rec => rec.tezgahKod)*/
+			let hedefTezgahKodListe = e.recs.map(rec => rec.tezgahKod)
+			if (!hedefTezgahKodListe?.length)
+				return
 			try {
-				await app.wsCokluIsParcala({ isIdListe: isIdListe.join(delimWS), tezgahKod, hedefTezgahKod: hedefTezgahKodListe.join(delimWS) });
+				await app.wsCokluIsParcala({ isIdListe: isIdListe.join(delimWS), tezgahKod, hedefTezgahKod: hedefTezgahKodListe.join(delimWS) })
 				let kod2Rec = await app.getTezgahKod2Rec({ hedefTezgahKodListe });
 				for (let hedefTezgahKod of hedefTezgahKodListe) {
 					let tezgahKod = hedefTezgahKod, rec = kod2Rec[tezgahKod] || {}, {tezgahAdi, hatKod, hatAdi} = rec;
 					/*let bindingCompleteBlock = e => {
 						delete e.sender.bindingCompleteBlock; setTimeout(() => { e.gridWidget.clearselection(); gridPart.gridWidget.clearselection() }, 300) };*/
-					this.listeEkraniAc({ /*bindingCompleteBlock,*/ args: { hatKod, hatAdi, tezgahKod, tezgahAdi } });
-					try { await new $.Deferred(p => setTimeout(() => p.resolve(null), 200)) } catch (ex) { }
+					this.listeEkraniAc({ /*bindingCompleteBlock,*/ args: { hatKod, hatAdi, tezgahKod, tezgahAdi } })
+					try { await new defer(p => setTimeout(() => p.resolve(null), 200)) } catch (ex) { }
 				}
 				if (gridPart && !gridPart.isDestroyed) { gridPart.tazele(e) }
 			}
@@ -375,16 +392,18 @@ class MQBekleyenIsler extends MQXIsler {
 		sadeceUygunAsamami = args.sadeceUygunAsamami = sadeceUygunAsamami ?? true; return app.wsBekleyenIsler(args)
 	}
 	static islemTuslariDuzenle_listeEkrani(e) {
-		super.islemTuslariDuzenle_listeEkrani(e); let {liste} = e, gridPart = e.gridPart ?? e.sender ?? e.parentPart;
+		super.islemTuslariDuzenle_listeEkrani(e)
+		let { liste } = e
+		let gridPart = e.gridPart ?? e.sender ?? e.parentPart
 		liste.push(
-			{ id: 'sirayaAl', text: 'SIRAYA AL', handler: e => this.sirayaAlIstendi(e) },
+			{ id: 'sirayaAl', text: 'SIRA AL', handler: e => this.sirayaAlIstendi(e) },
 			{ id: 'aktifPasif', text: 'AKTİF PASİF', handler: e => this.aktifPasifIstendi(e) },
 			{ id: 'yeniOper', text: 'YENİ OPER', handler: e => this.yeniOperIstendi(e) }
 		)
 	}
 	static async sirayaAlIstendi(e) {
-		let gridPart = e.gridPart ?? e.parentPart ?? e.sender;
-		let tezgahKod = e.tezgahKod ?? gridPart.tezgahKod, hatKod = e.hatKod ?? gridPart.hatKod;
+		let gridPart = e.gridPart ?? e.parentPart ?? e.sender
+		let tezgahKod = e.tezgahKod ?? gridPart.tezgahKod, hatKod = e.hatKod ?? gridPart.hatKod
 		let hatBazindami = e.hatBazinda ?? e.hatBazindami ?? gridPart.hatBazinda ?? gridPart.hatBazindami;
 		let recs = e.recs ?? gridPart.selectedRecs.filter(rec => !rec.devreDisimi); if (!recs?.length) { hConfirm('İşlem yapılacak Aktif kayıt(lar) seçilmelidir', 'Sıraya Al'); return }
 		let oemSayacListe = recs.map(rec => rec.oemsayac).join(delimWS); if (!oemSayacListe?.length) { return }
