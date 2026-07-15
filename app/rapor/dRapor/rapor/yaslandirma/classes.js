@@ -157,7 +157,7 @@ MustBilgi: class MustBilgi extends CObject {
 				r => r.isaretlibedel || 0,
 				cariEkstre
 			))
-			if (bakiye != ekstreToplam) {
+			if (abs(bakiye) != abs(ekstreToplam)) {
 				this.dengesizmi = true
 				this.bakiye = bakiye = ekstreToplam
 			}

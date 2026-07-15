@@ -8,7 +8,7 @@ class MQYaslandirma extends DRaporMQ {
 	static get uygunmu() { return true }
 	get uygunmu() { return this.class.uygunmu }
 	static get tanimUISinif() { return null }
-	static get secimSinif() { return DonemselSecimler }
+	static get secimSinif() { return Secimler }
 	static get sadeceTanimmi() { return false }
 	static get bulFormKullanilirmi() { return true }
 	static get kolonDuzenlemeYapilirmi() { return true }
@@ -17,14 +17,33 @@ class MQYaslandirma extends DRaporMQ {
 	static get tumKolonlarGosterilirmi() { return true }
 	// static get vioAdim() { return 'MH-R' }
 
+	async onAfterRun({ gridPart }) {
+		await super.onAfterRun(...arguments)
+		gridPart.secimlerIstendi()
+	}
 	static secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments)
 		let { liste: l } = sec
 		deleteKeys(l, 'instKod', 'instAdi')
+		;{
+			let grupKod = 'genel'
+			sec
+				.grupEkle({ kod: grupKod, aciklama: 'Genel', kapali: false })
+				.secimTopluEkle({
+					bakiyesizleriGoster: new SecimBool({ grupKod, etiket: 'Bakiyesizleri de göster' }),
+					sadecePlasiyereBagliOlanlar: new SecimBool({ grupKod, etiket: 'Plasiyere bağlı olanlar' }),
+					smTipi: new SecimTekSecim({ grupKod, etiket: 'Satıcı/Müşteri', tekSecim: new BuDigerVeHepsi(['Satıcılar', 'Müşteriler']).hepsi() })
+				})
+		}
 		sec
-			.addKA('must', DMQCari)
 			.addKA('plasiyer', DMQPlasiyer)
-		deleteKeys(l, 'mustAdi', 'plasiyerAdi')
+			.addKA('must', DMQCari)
+			.addKA('cariTip', DMQCariTip)
+			.addKA('bolge', DMQCariBolge)
+		;{
+			let _keys = ['must', 'cariTip', 'plasiyer', 'bolge']
+			deleteKeys(l, _keys.map(k => k + 'Adi'))
+		}
 	}
 	static islemTuslariDuzenle_listeEkrani({ sender: gridPart, liste, part: { ekSagButonIdSet: sagSet } }) {
 		super.islemTuslariDuzenle_listeEkrani(...arguments)
@@ -102,21 +121,41 @@ class MQYaslandirma extends DRaporMQ {
 		)
 	}
 	static async loadServerDataDogrudan({ gridPart, secimler: sec, wsArgs = {} }) {
-		let { plasiyerKod: { value: plasiyerKodArr } } = sec
-		let { mustKod: { value: mustKodArr } } = sec
-		if (!(isArray(plasiyerKodArr) && plasiyerKodArr.length == 1))
-			plasiyerKodArr = null
-		if (!(isArray(mustKodArr) && mustKodArr.length == 1))
-			mustKodArr = null
+		if (!gridPart._triggered) {
+			gridPart._triggered = true
+			return []
+		}
 
-		let plasiyerKod = plasiyerKodArr?.[0]
-		let mustKod = mustKodArr?.[0]
+		let { bakiyesizleriGoster: { value: bakiyesizleriGoster } } = sec
+		let { sadecePlasiyereBagliOlanlar: { value: sadecePlasiyereBagliOlanlar } } = sec
+		let { smTipi } = sec
+		let { plasiyerKod: { value: plasiyer } } = sec
+		let { mustKod: { value: must } } = sec
+		let { cariTipKod: { value: tip } } = sec
+		let { bolgeKod: { value: bolge } } = sec
+
+		smTipi = smTipi?.tekSecim ?? smTipi
+		smTipi = (
+			smTipi?.bumu ? 'S' :
+			smTipi?.digermi ? 'M' :
+			isString(smTipi) ? smTipi : null
+		)
 		
+		//if (!(isArray(plasiyerKodArr) && plasiyerKodArr.length == 1))
+		//	plasiyerKodArr = null
+		//if (!(isArray(mustKodArr) && mustKodArr.length == 1))
+		//	mustKodArr = null
+
+		let args = {
+			sadecePlasiyereBagliOlanlar,
+			smTipi,
+			filtre: { plasiyer, must, bolge, tip }
+		}
 		let data = {
-			plasiyer: app.wsPlasiyerIcinCariler({ plasiyerKod, mustKod }),
-			kapanmayanHesap: app.wsTicKapanmayanHesap({ plasiyerKod, mustKod }),
-			cariEkstre: app.wsTicCariEkstre({ plasiyerKod, mustKod })
-			//cariEkstre_detay: app.wsTicCariEkstre_icerik({ plasiyerKod, mustKod })
+			plasiyer: app.wsPlasiyerIcinCariler(args),
+			kapanmayanHesap: app.wsTicKapanmayanHesap(args),
+			cariEkstre: app.wsTicCariEkstre(args)
+			//cariEkstre_detay: app.wsTicCariEkstre_icerik(args)
 		}
 		for (let [k, v] of entries(data))
 			data[k] = await v
@@ -127,6 +166,13 @@ class MQYaslandirma extends DRaporMQ {
 			;kapanmayanHesap.forEach(rec => {
 				let k = MustBilgi.getKey(rec)
 				let m = k2m[k] ??= new MustBilgi({ rec })
+				if (smTipi == 'S') {
+					;['orjbedel', 'acikkisim'].forEach(_k => {
+						let v = rec[_k]
+						if (v)
+							rec[_k] = v = -v
+					})
+				}
 				m.kapanmayanHesap.push(rec)
 			})
 			;cariEkstre.forEach(r => {
@@ -163,6 +209,9 @@ class MQYaslandirma extends DRaporMQ {
 			extend(m, { mustUnvan, yore, ilKod, ilAdi, plasiyerKod, plasiyerAdi, renk })
 			await m.init()
 		}
+
+		if (!bakiyesizleriGoster)
+			recs = recs.filter(r => r.bakiye)
 		
 		return recs
 	}

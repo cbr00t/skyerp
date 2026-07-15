@@ -148,7 +148,8 @@ class TabbedWindowPart extends Part {
 		mainWindowsPart.refresh()
 		let closeableTabPages = values(id2TabPage).filter(tabPage =>
 			tabPage?.header?.data('part')?.asilPart?.isCloseable)
-		let noWndFlag = !closeableTabPages.length; app.content[noWndFlag ? 'removeClass' : 'addClass']('jqx-hidden');
+		let noWndFlag = !closeableTabPages.length
+		app.content[noWndFlag ? 'removeClass' : 'addClass']('jqx-hidden')
 		$('body')[noWndFlag ? 'addClass' : 'removeClass']('no-wnd')
 		return this
 	}

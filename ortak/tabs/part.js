@@ -121,7 +121,7 @@ class TabsPart extends Part {
 		}
 	}
 	_renderHeaders(e = {}) {
-		let {id2TabPage} = this
+		let { id2TabPage } = this
 		for (let id in id2TabPage) {
 			let tabPage = id2TabPage[id], {header} = tabPage
 			for (let elm of [header, header.find('div')]) {
@@ -133,7 +133,7 @@ class TabsPart extends Part {
 							header = header.parents(`.${targetCSSClass}`)
 						let id = header.prop('id')
 						let tabPage = this.id2TabPage[id]
-						let _e = { ...e, event: evt, id, tabPage }
+						let _e = { ...e, event: evt, id, tabPage, collapsed: false }
 						await this._renderContent(_e)
 					})
 				}
@@ -142,9 +142,9 @@ class TabsPart extends Part {
 	}
 	async _renderContent(e = {}) {
 		let id = this.activePageId = e.id || this.activePageId
-		let sender = this, {builder} = this
+		let sender = this, { builder } = this
 		let tabPage = e.tabPage ?? this.id2TabPage[id]
-		let _e = { ...e, sender, builder, tabPage, id }
+		let _e = { ...e, sender, builder, tabPage, id, collapsed: false }
 		//await this.triggerTabPageChanged(_e)
 		let pr
 		if (!tabPage.initFlag) {
@@ -158,7 +158,7 @@ class TabsPart extends Part {
 					}*/
 					tabPage.initFlag = true
 					_e.content = content
-					_e.collapsed = content?.length && content.hasClass('jqx-hidden')
+					_e.collapsed = tabPage.id != id && content?.length && content.hasClass('jqx-hidden')
 					r({ tabPage, content })
 				}
 				catch (ex) { f(ex) }

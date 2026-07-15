@@ -628,13 +628,19 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		veriYuklenince?.call(this, e)
 	}
 	secimlerIstendi(e) {
-		let {secimlerPart} = this; if (secimlerPart) { secimlerPart.show() }
+		if (this.secimlerPart)
+			this.secimlerPart.show()
 		else {
-			let {secimler} = this; if (secimler) {
-				secimlerPart = this.secimlerPart =
-					secimler.duzenlemeEkraniAc({ parentPart: this, tamamIslemi: e => this.tazele() })
+			let { secimler } = this
+			if (secimler) {
+				this.secimlerPart =
+					secimler.duzenlemeEkraniAc({
+						parentPart: this,
+						tamamIslemi: e => this.tazele()
+					})
 			}
 		}
+		return this.secimlerPart
 	}
 	async yeniIstendi(e) {
 		let mfSinif = this.getMFSinif(e), {tanimOncesiEkIslemler, gridWidget} = this;
