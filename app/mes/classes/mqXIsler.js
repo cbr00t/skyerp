@@ -22,7 +22,13 @@ class MQXIsler extends MQMasterOrtak {
 	static listeEkrani_activated(e) {
 		super.listeEkrani_activated(e)
 		let gridPart = e.gridPart ?? e.sender
-		//gridPart.tazele()
+		
+		clearTimeout(this._timer_tazele)
+		this._timer_tazele = setTimeout(() => gridPart.tazele(), 100)
+	}
+	static listeEkrani_deactivated(e) {
+		super.listeEkrani_deactivated(e)
+		clearTimeout(this._timer_tazele)
 	}
 	static orjBaslikListesi_argsDuzenle({ args, sender }) {
 		super.orjBaslikListesi_argsDuzenle(...arguments)

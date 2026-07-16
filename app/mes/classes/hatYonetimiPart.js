@@ -181,7 +181,8 @@ class HatYonetimiPart extends Part {
 							catch (ex) { }
 							finally {
 								promises = []
-								delay(20).then(p.resolve())
+								delay(20).then(() =>
+									p.resolve())
 							}
 						}
 					}
@@ -635,8 +636,10 @@ class HatYonetimiPart extends Part {
 		});
 		let elms = divListe.find('button'); if (elms.length) {
 			elms.jqxButton({ theme }).on('click', evt => { 
-				let cssClass = 'selected'; divListe.find(`.hat.item > .tezgahlar > .tezgah.item.${cssClass}`).removeClass(cssClass);
-				$(evt.currentTarget).parents('.tezgah.item').addClass(cssClass); this.tezgahButonTiklandi({ ...e, id: evt.currentTarget.id, evt })
+				let cssClass = 'selected'
+				divListe.find(`.hat.item > .tezgahlar > .tezgah.item.${cssClass}`).removeClass(cssClass)
+				$(evt.currentTarget).parents('.tezgah.item').addClass(cssClass)
+				this.tezgahButonTiklandi({ ...e, id: evt.currentTarget.id, evt })
 			})
 		}
 		elms = divListe.find('.hat.item > .tezgahlar > .tezgah.item .ledDurum'); if (elms.length) { elms.on('click', evt => this.ledDurumTiklandi({ ...e, evt })) }
@@ -788,7 +791,8 @@ class HatYonetimiPart extends Part {
 	}
 	makineDurumIstendi(e) {
 		let {selectedTezgahKodListe: kodListe} = this;
-		for (let tezgahKod of kodListe) { new MakineYonetimiPart({ tezgahKod }).run() }
+		for (let tezgahKod of kodListe)
+			new MakineYonetimiPart({ tezgahKod }).run()
 	}
 	tezgahTasiIstendi(e) {
 		let _recs = e.recs ?? this.selectedTezgahRecs; if (!_recs?.length) { return }

@@ -2,14 +2,23 @@ class MakineYonetimiPart extends Part {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get isWindowPart() { return true } static get partName() { return 'makineYonetimi' } static get sinifAdi() { return 'Makine Yönetimi' }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { tezgahKod: (e.tezgahKod ?? e.tezgahId)?.trimEnd() }); let {tezgahKod} = this }
-	init(e) {
-		e = e || {}; super.init(e); let {layout} = this; this.updateTitle(e); 
+	init(e = {}) {
+		super.init(e)
+		let { layout } = this
+		this.updateTitle(e)
 		let header = this.header = layout.children('.header'), subContent = this.subContent = layout.children('.content');
 		let tblOEMBilgileri = this.tblOEMBilgileri = subContent.find('#oemBilgileri')
 	}
-	run(e) {
-		e = e || {}; super.run(e); let {layout} = this, builder = this.builder = this.getRootFormBuilder(e);
-		if (builder) { let {inst} = this; $.extend(builder, { part: this, inst }); builder.autoInitLayout().run(e) }
+	run(e = {}) {
+		super.run(e)
+		let { layout } = this
+		let rfb = this.builder = this.getRootFormBuilder(e)
+		if (rfb) {
+			let { inst } = this
+			extend(rfb, { part: this, inst })
+			rfb.autoInitLayout()
+			rfb.run(e)
+		}
 		this.tazele(e)
 	}
 	destroyPart(e) { super.destroyPart(e) }
@@ -202,20 +211,35 @@ class MakineYonetimiPart extends Part {
 		let {tezgahKod} = this.inst; try { await app.wsIsBittiYap({ tezgahKod }); this.tazeleWithSignal() } catch(ex) { this.tazeleBasit(e); hConfirm(getErrorText(ex)); console.error(ex) }
 	}
 	getLayoutInternal(e) {
-		let html_oemBilgileri = this.getLayout_tblOEMBilgileri(e); return $(
+		let html_oemBilgileri = this.getLayout_tblOEMBilgileri(e)
+		return $(
 			`<div>
 				<div class="header full-width"></div>
 				<div class="content">${html_oemBilgileri}</div>
 			</div>`
 		)
 	}
-	getLayout_tblOEMBilgileri(e) {
-		e = e ?? {}; let inst = e.rec = this.inst ?? {}, isListe = inst.isListe ?? [], {sonLEDDurum} = this, isBilgiHTML = HatYonetimiPart.getLayout_isBilgileri(e);
-		let {sinyalKritik, duraksamaKritik, durNedenKod, durumKod, durumAdi, ip, zamanEtuduVarmi, siradakiIsSayi, sinyalSayilar} = inst, {kritikDurNedenKodSet} = app.params.mes;
-		let kritikDurNedenmi = kritikDurNedenKodSet && durNedenKod ? kritikDurNedenKodSet[durNedenKod] : false, bostami = !durumKod || durumKod == '?' || durumKod == 'KP' || durumKod == 'BK';
-		let topSaymaInd = 0, topSaymaSayisi = 0; for (let is of isListe) { topSaymaInd += (is.isSaymaInd || 0); topSaymaSayisi += (is.isSaymaSayisi || 0) }
+	getLayout_tblOEMBilgileri(e = {}) {
+		let inst = e.rec = this.inst ?? {}
+		let isListe = inst.isListe ?? []
+		let { sonLEDDurum } = this
+		let isBilgiHTML = HatYonetimiPart.getLayout_isBilgileri(e)
+		let { sinyalKritik, duraksamaKritik, durNedenKod, durumKod, durumAdi, ip, zamanEtuduVarmi, siradakiIsSayi, sinyalSayilar } = inst
+		let { kritikDurNedenKodSet } = app.params.mes
+		let kritikDurNedenmi = kritikDurNedenKodSet && durNedenKod ? kritikDurNedenKodSet[durNedenKod] : false
+		let bostami = !durumKod || durumKod == '?' || durumKod == 'KP' || durumKod == 'BK'
+		let topSaymaInd = 0, topSaymaSayisi = 0
+		for (let is of isListe) {
+			topSaymaInd += (is.isSaymaInd || 0)
+			topSaymaSayisi += (is.isSaymaSayisi || 0)
+		}
+		
 		return (
-			`<table id="oemBilgileri" class="${sinyalKritik ? ' sinyal-kritik' : ''}${duraksamaKritik && kritikDurNedenmi ? ' duraksama-kritik' : ''}${kritikDurNedenmi ? ' kritik-durNeden' : ''}"><tbody>
+			`<table id="oemBilgileri" class="
+				${sinyalKritik ? ' sinyal-kritik' : ''}
+				${duraksamaKritik && kritikDurNedenmi ? ' duraksama-kritik' : ''}
+				${kritikDurNedenmi ? ' kritik-durNeden' : ''}">
+			<tbody>
 				<tr class="hat">
 					<td class="buttons item"><button id="hatSec" aria-disabled="true">HAT</button></td>
 					<td class="veri item" colspan="2"><span class="kod">${inst.hatKod || ''}</span> <span class="adi">${inst.hatAdi || ''}</span></td>
@@ -254,7 +278,8 @@ class MakineYonetimiPart extends Part {
 								</tr></thead>
 								<tbody><tr>
 									<td class="emir">${toStringWithFra(inst.emirMiktar || 0)}</td>
-									<td class="uret">${toStringWithFra(inst.onceUretMiktar || 0)} <span class="ek-bilgi">+${toStringWithFra(inst.aktifUretMiktar || 0)}</span></td>
+									<td class="uret">${toStringWithFra(inst.onceUretMiktar || 0)}
+										<span class="ek-bilgi">+${toStringWithFra(inst.aktifUretMiktar || 0)}</span></td>
 									<td class="isk">${toStringWithFra(inst.isIskMiktar || 0)}</td>
 									<td class="net">${toStringWithFra(inst.isNetMiktar || 0)}</td>
 								</tr></tbody>
@@ -266,8 +291,10 @@ class MakineYonetimiPart extends Part {
 									<th class="sinyal"><button id="sinyalListe">Sinyal</button></th>
 								</tr></thead>
 								<tbody><tr>
-									<td class="cevrim">${toStringWithFra(inst.onceCevrimSayisi || 0)} <span class="ek-bilgi">+${toStringWithFra(inst.aktifCevrimSayisi || 0)}</td>
-									<td class="sayma"><span class="ind">${toStringWithFra(topSaymaInd || 0)}</span> <span class="ek-bilgi">/</span> <span class="topSayi">${toStringWithFra(topSaymaSayisi || 0)}</span></td>
+									<td class="cevrim">${toStringWithFra(inst.onceCevrimSayisi || 0)}
+										<span class="ek-bilgi">+${toStringWithFra(inst.aktifCevrimSayisi || 0)}</td>
+									<td class="sayma"><span class="ind">${toStringWithFra(topSaymaInd || 0)}</span> <span class="ek-bilgi">/</span>
+										<span class="topSayi">${toStringWithFra(topSaymaSayisi || 0)}</span></td>
 									<td class="sinyal">
 										${sinyalSayilar?.cihaz ? `<span class="sinyalSayi-cihaz-parent"><span class="etiket">C:</span><span class="sinyalSayi-cihaz sinyalSayi veri">${sinyalSayilar.cihaz}</span></span>` : ''}
 										${sinyalSayilar?.sanal ? `<span class="sinyalSayi-sanal-parent"><span class="etiket">S:</span><span class="sinyalSayi-sanal sinyalSayi veri">${sinyalSayilar.sanal}</span></span>` : ''}
@@ -296,13 +323,13 @@ class MakineYonetimiPart extends Part {
 						<span class="durumText sub-item">${durumAdi}</span>
 						<span class="nedenText sub-item">${durumKod == 'DR' ? inst.durNedenAdi || '' : ''}</span>
 					</td>
-					<td class="grafikler"><div class="grafik-parent parent">${MQHatYonetimi.getLayout_grafikler({ isListe })}</div></td>
+					<td class="grafikler"><div class="grafik-parent parent">${HatYonetimiPart.getLayout_grafikler({ isListe })}</div></td>
 				</tr>
 			</tbody></table>`
 		)
 	}
 	initEvents_tblOEMBilgileri(e) {
-		let {layout} = e
+		let  {layout } = e
 		let buttons = layout.find(`td button`).jqxButton({ theme })
 		if (buttons?.length) {
 			buttons.off('click').on('click', evt => {
