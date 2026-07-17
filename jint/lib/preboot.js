@@ -14,8 +14,8 @@ Object.assign(g, {
 			let deep = false
 			if (typeof args[0] == 'boolean')
 				deep = args.shift()
-			const target = args.shift()
-			const sources = deep
+			let target = args.shift()
+			let sources = deep
 				? args.map(v => structuredClone(v))
 				: args;
 			return Object.assign(target, ...sources)
@@ -33,4 +33,10 @@ function len(v) { return Object.size(v) }
 function setTimeout(ms) { return delay(ms) }
 function clearTimeout() { }
 function clr(ns) { return importNamespace(ns) }
+function asJS(v) { return isString(v) ? JSON.parse(v) : v }
+
+Object.assign(Object.prototype, {
+	js() { return js(this) },
+	asJS() { return asJS(this) }
+})
 
