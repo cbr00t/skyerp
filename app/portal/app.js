@@ -2,6 +2,7 @@ class PortalApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get configParamSinif() { return MQYerelParamConfig_App }
 	get yerelParamSinif() { return MQYerelParam }
+	get dataKey() { return 'portal' }
 	get defaultWSPath() { return 'ws/vioPortal' }
 	get defaultLoginTipi() { return 'bayiLogin' }
 	get autoExecMenuId() { return null }

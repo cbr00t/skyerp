@@ -358,17 +358,10 @@ button#asagi {
 	background-image: url(../../images/asagi.png) !important
 }
 
-button#export {
-	background-image: url(../../images/export.png) !important
-}
-
-button#import {
-	background-image: url(../../images/download.png) !important
-}
-
-.islemTuslari > div > button#import {
-	margin-left: 30px
-}
+button#export { background-image: url(../../images/export.png) !important }
+button#import { background-image: url(../../images/download.png) !important }
+button#importDefs { background-image: url(../../images/list-1.png) !important }
+.islemTuslari > div > button#import { margin-left: 30px }
 
 .islemTuslari button#seviyeAc { background-image: url(../../images/seviye_ac.png); background-color: #eef9f3; margin-left: 5px }
 .islemTuslari button#seviyeKapat { background-image: url(../../images/seviye_kapat.png); background-color: #f9f2ee}

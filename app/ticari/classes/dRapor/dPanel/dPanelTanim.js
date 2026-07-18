@@ -20,17 +20,17 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 		super(...arguments)
 		let {user, encUser} = config.session
 		this.rapor = rapor = rapor?.main ?? rapor
-		$.extend(this, {
+		extend(this, {
 			ortakmi: ortakmi ?? true,
 			user: userkod ?? user,
 			encUser: encuser ?? encUser
 		})
 		if (id !== undefined)
-			$.extend(this, { id })
+			extend(this, { id })
 	}
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
-		$.extend(pTanim, {
+		extend(pTanim, {
 			user: new PInstStr(),
 			encUser: new PInstStr()
 		})
@@ -43,7 +43,7 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 		let {class: cls, class: { localData: d }} = this
 		await d?._promise
 		let aciklama = '', {id} = await d?.get('_current') ?? {}
-		$.extend(this, { id, aciklama })
+		extend(this, { id, aciklama })
 		if (id)
 			await this.yukle(e)
 		await cls.createEmptyIfNot(e)
@@ -63,7 +63,7 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 		if (!this.aciklama)
 			this.setAciklamaDefault()
 		let {aciklama} = this
-		$.extend(cur, { id, aciklama })
+		extend(cur, { id, aciklama })
 		await d?.set('_current', cur)
 		d?.kaydetDefer()
 		return this
@@ -185,16 +185,16 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 		let {ortakmi, encUser: xuserkod, raporKod, aciklama, class: { adiSaha }} = this
 		if (ortakmi)
 			xuserkod = ''
-		$.extend(hv, { xuserkod, [adiSaha]: aciklama })
+		extend(hv, { xuserkod, [adiSaha]: aciklama })
 	}
 	keySetValues({ rec }) {
 		super.keySetValues(...arguments)
 		let {class: { adiSaha }} = this
-		$.extend(this, { aciklama: rec[adiSaha] })
+		extend(this, { aciklama: rec[adiSaha] })
 	}
 	setValues({ rec }) {
 		super.setValues(...arguments); let {userkod: user = ''} = rec
-		$.extend(this, { user })
+		extend(this, { user })
 	}
 	static async importIstendi({ sender: gridPart }) {
 		try {
@@ -235,21 +235,40 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 			hConfirm('Dışarı aktarılacak tanımlar seçilmelidir', 'Dışa Aktar')
 			return
 		}
-		let {length: total} = recs
+		let { length: total } = recs
 		showProgress(`<b>${total}</b> kayıt dışa aktarılıyor...`, null, true)
 		try {
 			progressManager?.setProgressMax(total + 10)?.progressReset()
 			let data = []
-			for (let {id} of recs) {
+			for (let { id } of recs) {
 				let inst = new this({ id })
 				if (!await inst.yukle())
 					continue
+				
 				let rec = { id, ...inst.asExportData }
 				data.push(rec)
+
 				progressManager?.progressStep()
 			}
 			data = toJSONStr(data) + CrLf
-			await downloadData(data, 'export.json', wsContentType)
+			hideProgress()
+
+			let defName = [
+				( this.aciklama || this.kisaAdi || this.sinifAdi ),
+				recs.length == 1 ? recs[0].aciklama : null
+			].filter(Boolean)
+				//.map(n => turkcesiz(n).replaceAll(' ', '_'))
+				.join(' - ')
+			
+			let exportName = await jqxPrompt({
+				title: `Dışa Aktar: (<span class="royalblue">${data.length} kayıt)`,
+				etiket: 'İsim giriniz',
+				value: defName
+			})
+			if (exportName == null)
+				return false
+			
+			await downloadData(data, exportName, wsContentType)
 			progressManager?.progressEnd()
 			setTimeout(() => hideProgress(), 1000)
 		}
@@ -398,7 +417,7 @@ class DPanelDetay extends MQDetayGUID {
 	}
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments); let {adiSaha} = this
-		$.extend(pTanim, {
+		extend(pTanim, {
 			tip: new PInstTekSecim('tip', DPanelTip), raporTip: new PInstTekSecim('raportip', DAltRaporTip),
 			baslik: new PInstStr('baslik'), value: new PInstStr(adiSaha),
 			raporAdi: new PInstStr('raporadi'), width: new PInstStr('width'), height: new PInstStr('height')
@@ -406,7 +425,7 @@ class DPanelDetay extends MQDetayGUID {
 	}
 	static orjBaslikListesi_argsDuzenle({ args }) {
 		super.orjBaslikListesi_argsDuzenle(...arguments)
-		$.extend(args, { rowsHeight: 120 })
+		extend(args, { rowsHeight: 120 })
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
@@ -441,7 +460,7 @@ class DPanelDetay extends MQDetayGUID {
 	}
 	kaydetOncesiIslemler(e) {
 		let {rapor_id: raporId, rapor_adi: raporAdi} = this
-		$.extend(this, { raporId, raporAdi })
+		extend(this, { raporId, raporAdi })
 		return super.kaydetOncesiIslemler(e)
 	}
 	hostVarsDuzenle({ hv }) {
@@ -465,6 +484,7 @@ class DPanelDetay extends MQDetayGUID {
 		return this
 	}
 }
+
 class DPanelGridci extends GridKontrolcu {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	tabloKolonlariDuzenle_ara({ liste }) {

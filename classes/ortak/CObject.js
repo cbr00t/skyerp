@@ -35,32 +35,56 @@ class CObject {
 	static get subClasses() { let result = this._subClasses; if (result === undefined) { result = this._subClasses = values(this.key2SubClasses) } return result }
 	static get instance() { let {classKey, _class2SingletonInstance} = this; return _class2SingletonInstance[classKey] = _class2SingletonInstance[classKey] ?? new this() }
 	static get inExpKullanilirmi() { return false }
-	get inExpKeys() { let e = { result: [] }; this.inExp_keysDuzenle(e); return keys(asSet(e.result)) }
+	get inExpKeys() {
+		let e = { result: [] }
+		this.inExp_keysDuzenle(e)
+		return keys(asSet(e.result))
+	}
 	get asExportData() {
-		let {inExpKeys} = this, result = {};
+		let { inExpKeys } = this
+		let result = {}
 		for (let key of inExpKeys) {
 			let value = this[key]
 			if (value === undefined)
 				continue
+			
 			if (isPlainObject(value)) {
-				let parent = value; if (isPlainObject(parent)) {
+				let parent = value
+				if (isPlainObject(parent)) {
 					let _isArray = isArray(parent)
-					let newObj = _isArray ? [] : {};
+					let newObj = _isArray ? [] : {}
 					for (let [k, v] of entries(parent)) {
-						v = v === this ? v : (v?.asExportData ?? v);
+						v = (
+							v === this ? v
+							: (v?.asExportData ?? v)
+						)
 						newObj[k] = v
 					}
 					value = newObj
 				}
+			}
+			else if (isArray(value)) {
+				let newArr = []
+				let parent = value
+				for (let [i, v] of entries(parent)) {
+					v = (
+						v === this ? v
+						: (v?.asExportData ?? v)
+					)
+					newArr[i] = v
+				}
+				value = newArr
 			}
 			else if (value instanceof TekSecim)
 				value = value.char
 			value = value?.asExportData ?? value
 			result[key] = value
 		}
+		
 		let e = { result }
 		this.exportDataDuzenle(e)
 		result = e.result
+		
 		return result
 	}
 	/*get super1() { return this.superN(1) } get super2() { return this.superN(2) } get super3() { return this.superN(3) }
@@ -114,8 +138,9 @@ class CObject {
 	}
 	static importAll(e = {}) {
 		let recs = e.recs ?? makeArray(e.rec) ?? e
-		if (!recs.length)
+		if (empty(recs))
 			return []
+		
 		let result = []
 		for (let rec of recs) {
 			let inst = this.importFrom({ ...e, rec })
@@ -128,6 +153,7 @@ class CObject {
 		let rec = e.rec ?? e
 		if (!rec)
 			return []
+		
 		let inst = new this()
 		return inst.importFrom({ ...e, rec }) === false ? null : inst
 	}
@@ -140,15 +166,18 @@ class CObject {
 		let _hv = this.inExp_hostVars(e)
 		if (!_hv)
 			return false
-		$.extend(e.hv, _hv)
+		extend(e.hv, _hv)
 		return true
 	}
-	importFrom(e = {}) {
-		if (!e?.rec)
+	importFrom(e) {
+		e ??= {}
+		if (!e.rec)
 			e = { rec: e }
-		let {rec} = e
+		
+		let { rec } = e
 		if (!rec)
 			return false
+		
 		this.inExp_setValues(e)
 		return true
 	}
@@ -158,10 +187,10 @@ class CObject {
 		return _e.hv
 	}
 	inExp_hostVarsDuzenle({ hv }) {
-		$.extend(hv, this.asExportData)
+		extend(hv, this.asExportData)
 	}
 	inExp_setValues({ rec }) {
-		$.extend(this, rec)
+		extend(this, rec)
 	}
 	static Serialize(e) {
 		if (!e)

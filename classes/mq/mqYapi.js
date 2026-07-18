@@ -48,6 +48,23 @@ class MQYapi extends CIO {
 		}
 		return result
 	}
+
+	static getImportDefsKey(e) {
+		let { frMenu } = app ?? {}
+		if (!frMenu)
+			return null
+
+		let targetName = new this().getExportDefName(e) || this.sinifAdi
+		if (!targetName)
+			return null
+		
+		let res = Array.from(frMenu)
+			.filter(r => r.choicemi && r.text?.toString?.()?.includes(targetName))
+			.at(0) ?? {}
+		return res?.mnemonic || res?.id
+	}
+	getExportDefName(e) { return null }
+	
 	static yeniInstOlustur({ mfSinif, args } = {}) {
 		mfSinif ??= this
 		return new mfSinif(args)
@@ -169,6 +186,7 @@ class MQYapi extends CIO {
 		if (kayitSayisi > 1) { return { isError: false, rc: 'multiRecord', errorText: 'Aynı özellikte birden çok kayıt geldi' } }
 		return true
 	}
+	importIcinVarmi(e) { return this.varmi(e) }
 	async kayitSayisi(e = {}) {
 		let keyHV = e.keyHV || this.alternateKeyHostVars(e)
 		if (empty(keyHV))

@@ -1,5 +1,6 @@
 class SkyRaporApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this }
+	get dataKey() { return 'rapor' }
 	get yerelParamSinif() { return MQYerelParam }
 	get autoExecMenuId() { return 'FAV' }
 	get mainRaporBase() { return DRapor }

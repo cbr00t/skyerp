@@ -375,7 +375,8 @@ class ModelTanimPart extends Part {
 				if (this.yeniVeyaKopyami) { result = await inst.yaz() }
 				else if (this.degistirmi) { result = await inst.degistir(eskiInst) }
 				else if (this.silmi) { result = await inst.sil() }
-				if (!result || result.isError) { return false }
+				if (!result || result.isError)
+					return false
 			}
 			await this.kaydetSonrasiIslemler(e)
 			let {kaydedince} = this

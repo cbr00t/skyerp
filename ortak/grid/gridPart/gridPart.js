@@ -194,7 +194,7 @@ class GridPart extends Part {
 							if (typeof result == 'object' && result.records && !result.totalrecords) { result.totalrecords = result.records.length }
 							if (typeof result != 'object') { return }
 							if (result.records?.length) {
-								let fields = source.datafields = [], ilkRec = result.records?.[0];
+								let fields = source.datafields = [], ilkRec = result.records?.[0]
 								if (ilkRec) {
 									for (let name of Reflect.ownKeys(ilkRec)) {
 										let value = ilkRec[name];
@@ -203,7 +203,13 @@ class GridPart extends Part {
 									}
 								}
 							}
-							setTimeout(() => { try { callback(result) } catch (ex) { console.error(ex) } }, 1)
+							setTimeout(() => {
+								try { callback(result) }
+								catch (ex) {
+									console.error(ex)
+									callback([])
+								}
+							}, 1)
 						}
 					}
 				})

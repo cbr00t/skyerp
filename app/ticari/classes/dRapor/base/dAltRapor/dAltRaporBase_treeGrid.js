@@ -968,6 +968,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		this._notify?.close?.()
 		if (this.wnd_raporTanim?.length)
 			return this.restartWndRaporTanim(e)
+		
 		let { tamamIslemi } = e, { raporTanim, rapor } = this
 		let { class: { aciklama: raporAdi } } = rapor
 		let inst = raporTanim, { class: raporTanimSinif } = raporTanim
@@ -975,6 +976,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		let { sinifAdi } = raporTanimSinif, title = `${sinifAdi} Tanım`
 		if (raporAdi)
 			title += `: <span class="fs-120 bold royalblue" style="margin-left: 5px">${raporAdi}</span>`
+		
 		let ustHeight = '50px', ustEkHeight = '3px', islemTuslariHeight = '55px';
 		let wnd, wRFB = new RootFormBuilder({ id: 'raporTanim' }).setInst(inst).addCSS('part')
 			.addStyle(
@@ -983,26 +985,31 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 					overflow: hidden !important
 				}
 			`)
+		
 		let fbd_ust = wRFB.addFormWithParent('ust').yanYana().addStyle_fullWH(null, 'var(--ustHeight)');
-		let fbd_sablonParent = fbd_ust.addFormWithParent('sablon-parent').yanYana().addStyle_fullWH().addStyle([e =>
-			`$elementCSS { position: relative; top: 5px } $elementCSS > .button { width: 50px !important; height: 45px !important; min-width: unset !important }`]);
-		fbd_sablonParent.addModelKullan('sablonKod', 'Şablon').etiketGosterim_yok()
+		
+		let fbd_sablonParent = fbd_ust.addFormWithParent('sablon-parent').yanYana().addStyle_fullWH().addStyle(
+			`$elementCSS { position: relative; top: 5px }
+			 $elementCSS > .button { width: 50px !important; height: 45px !important; min-width: unset !important }`
+		)
+		fbd_sablonParent
+			.addModelKullan('sablonKod', 'Şablon').etiketGosterim_yok()
 			.addStyle_fullWH('calc(var(--full) - 350px)')
 			.dropDown().kodsuz().bosKodAlinir()
 			.setMFSinif(raporTanimSinif)
 			.initArgsDuzenleHandler(({ args }) =>
 				args.args = { rapor: this })
 			.ozelQueryDuzenleHandler(({ noUserCheck, stm, aliasVeNokta }) => {
-				let {raporKod} = raporTanim
-				let {isAdmin, encUser} = config.session
-				for (let {where: wh} of stm) {
+				let { raporKod } = raporTanim
+				let { isAdmin, encUser } = config.session
+				for (let { where: wh } of stm) {
 					if (!(noUserCheck || isAdmin) && encUser)
 						wh.degerAta(encUser, `${aliasVeNokta}xuserkod`)
 					wh.degerAta(raporKod, `${aliasVeNokta}raportip`)
 				}
 			})
 			.degisince(({ value: sayac }) => {
-				let {raporTanim} = this
+				let { raporTanim } = this
 				if (sayac) {
 					raporTanim.sayac = sayac
 					raporTanim.yukle().then(() =>
@@ -1010,14 +1017,16 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				}
 			})
 			.onAfterRun(async ({ builder: { part } }) => {
-				let {encUser} = config.session
+				let { encUser } = config.session
 				let recs = await raporTanimSinif.loadServerData()
-				let rec = recs
-					.find(({ xuserkod, aciklama }) =>
-						(!xuserkod || xuserkod == encUser) && aciklama == raporTanim.aciklama)
+				let rec = recs.find(({ xuserkod, aciklama }) =>
+					(!xuserkod || xuserkod == encUser) &&
+					aciklama == raporTanim.aciklama
+				)
 				part.val(rec?.kaysayac ?? null)
 			})
-			/* .loadServerDataHandler(e => { let {mfSinif} = e; e.args = { rapor: this }; return mfSinif.loadServerData(e) }) */
+			//.loadServerDataHandler(e => { let {mfSinif} = e; e.args = { rapor: this }; return mfSinif.loadServerData(e) })
+		
 		fbd_sablonParent.addButton('sablonKaydet').addCSS('button')
 			.addStyle(e => `$elementCSS > button { background-image: url('../../images/kaydet.png') !important; background-size: 32px !important }`)
 			.onClick(_e => this.raporTanim_sablonKaydetIstendi({ ...e, ..._e, wnd, inst }));
@@ -1031,29 +1040,40 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				`$elementCSS > button { background-image: url('../../images/temizle.png') !important; background-size: 16px !important }
 				$elementCSS > button.jqx-fill-state-normal, $elementCSS > button.jqx-fill-state-hover { background-color: #8a7159 !important } `)
 			.onClick(_e => this.raporTanim_temizleIstendi({ ...e, ..._e, wnd, inst }));
+		
 		let fbd_islemTuslari = fbd_ust.addFormWithParent('islemTuslari').yanYana()
 			.addStyle_wh('auto', islemTuslariHeight).addStyle(`$elementCSS { position: absolute; top: 0; right: 0; z-index: 1000 }`);
 		fbd_islemTuslari.addButton('tamam').onClick(async _e => {
 			try {
-				let close = () => { if (wnd?.length) { wnd.jqxWindow('close') } }
-				let {tabloYapi} = this, inst = _e.builder.rootBuilder.id2Builder.content.altInst
+				let close = () => {
+					if (wnd?.length)
+						wnd.jqxWindow('close')
+				}
+				let { tabloYapi } = this
+				let inst = _e.builder.rootBuilder.id2Builder.content.altInst
 				let result = await this.raporTanim_tamamIstendi({ ...e, ..._e, wnd, close, tabloYapi, inst, tamamIslemi })
 				if (result !== false)
 					close()
 			}
 			catch (ex) {
-				console.error(ex); wnd.addClass('jqx-hidden')
+				console.error(ex)
+				wnd.addClass('jqx-hidden')
 				let {wnd: _wnd} = displayMessage(getErrorText(ex), title)
 				_wnd.on('close', evt => wnd.removeClass('jqx-hidden'))
 			}
-		});
-		fbd_islemTuslari.addButton('vazgec').onClick(e => wnd.jqxWindow('close'));
-		let _e = { ...e, rootBuilder: wRFB, tanimFormBuilder: wRFB, inst }; raporTanim.class.rootFormBuilderDuzenle(_e);
-		wRFB.id2Builder.content.addStyle_fullWH(null, `calc(var(--full) - (var(--islemTuslariHeight) + var(--ustHeight) + var(--ustEkHeight)))`);
+		})
+		fbd_islemTuslari.addButton('vazgec')
+			.onClick(e => wnd.jqxWindow('close'))
+		
+		let _e = { ...e, rootBuilder: wRFB, tanimFormBuilder: wRFB, inst }
+		raporTanim.class.rootFormBuilderDuzenle(_e)
+		wRFB.id2Builder.content
+			.addStyle_fullWH(null, `calc(var(--full) - (var(--islemTuslariHeight) + var(--ustHeight) + var(--ustEkHeight)))`)
+		
 		this.wnd_raporTanim = wnd = createJQXWindow({
 			title, args: {
 				isModal: false, closeButtonAction: 'close',
-				position: 'center, center + 30px',
+				position: { left: $(window).width() / 3.5, top: -10 },
 				width: Math.max(800, Math.min(630, $(window).width() - 100)),
 				height: Math.min(1000, $(window).height() - 50) }
 		})
@@ -1065,9 +1085,12 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		})
 		wnd.prop('id', wRFB.id); wnd.addClass('dRapor part')
 		setTimeout(() => $('body').addClass('bg-modal'), 10)
-		let parent = wnd.find('div > .subContent'); wRFB.setParent(parent); wRFB.run()
+		
+		let parent = wnd.find('div > .subContent')
+		wRFB.setParent(parent); wRFB.run()
 		wnd.on('resize', evt => {
-			clearTimeout(this._timer_wndResize); this._timer_wndResize = setTimeout(() => {
+			clearTimeout(this._timer_wndResize)
+			this._timer_wndResize = setTimeout(() => {
 				try {
 					let {wnd_raporTanim: wnd} = this
 					if (!wnd?.length)

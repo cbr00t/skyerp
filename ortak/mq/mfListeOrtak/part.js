@@ -252,7 +252,10 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		if (inExpKullanilirmi) {
 			if (tanimlanabilirmi)
 				yListe.push({ id: 'import', handler: e => this.importIstendi(e) })
-			yListe.push({ id: 'export', handler: e => this.exportIstendi(e) })
+			yListe.push(
+				{ id: 'export', handler: e => this.exportIstendi(e) },
+				{ id: 'importDefs', handler: e => this.importDefsIstendi(e) }
+			)
 		}
 		if (silinebilirmi)
 			yListe.push({ id: 'sil', args: { template: 'danger' }, handler: e => this.silIstendi(e) })
@@ -753,7 +756,9 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			let result = await getFuncValue.call(this, ozelTanimIslemi, _e);
 			if (result !== false) { return result }
 		}
-		delete _e.rowIndexes; let {sayacSaha} = mfSinif
+		delete _e.rowIndexes
+		
+		let { sayacSaha } = mfSinif
 		let promises = []
 		for (let rec of recs) {
 			_e.rec = rec
@@ -778,11 +783,16 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			promises = []
 		}
 	}
-	async exportIstendi(e) {
-		e ??= {}; let {gridWidget, selectedRecs} = this;
-		if (!selectedRecs?.length) { wConfirm('Dışa aktarılacak satırlar seçilmelidir', ' '); return false }
-		let mfSinif = this.getMFSinif(e), {yeniInstOlusturucu} = this;
-		let liste = await Promise.all(selectedRecs.map(async rec => {
+	async exportIstendi(e = {}) {
+		let { gridWidget, selectedRecs } = this
+		if (!selectedRecs?.length) {
+			wConfirm('Dışa aktarılacak satırlar seçilmelidir', ' ')
+			return false
+		}
+		
+		let mfSinif = this.getMFSinif(e)
+		let { yeniInstOlusturucu } = this
+		let liste = await promiseAll(selectedRecs.map(async rec => {
 			let inst = yeniInstOlusturucu ? await getFuncValue.call(this, yeniInstOlusturucu, e) : undefined;
 			if (inst === undefined) { inst = await mfSinif.yeniInstOlustur?.(e) }
 			if (inst === undefined) { inst = new mfSinif(e) }
@@ -793,83 +803,209 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 				throw { isError: true, rc: 'instBelirle', errorText: mesaj }
 			}
 			return inst
-		}));
-		liste = liste.filter(x => x);
-		if (!liste?.length) { wConfirm('Dışa aktarılacak uygun satır belirlenemedi', ' '); return false }
-		mfSinif = liste[0].class;
-		let exportRecs = await mfSinif.exportAll({ ...e, liste });
-		if (!exportRecs?.length) { wConfirm('Dışa aktarılacak uygun veri belirlenemedi', ' '); return false }
-		let exportName = await jqxPrompt({ title: `Dışa Aktar: (<span class="royalblue">${exportRecs.length} kayıt)`, etiket: 'İsim giriniz' });
-		if (exportName == null) { return false }
-		let data = toJSONStr(exportRecs);
-		downloadData(data, exportName, wsContentType);
+		}))
+		
+		liste = liste.filter(Boolean)
+		if (empty(liste)) {
+			wConfirm('Dışa aktarılacak uygun satır belirlenemedi', ' ')
+			return false
+		}
+
+		let firstInst = liste[0]
+		mfSinif = firstInst.class
+		let exportRecs = await mfSinif.exportAll({ ...e, liste })
+		if (empty(exportRecs)) {
+			wConfirm('Dışa aktarılacak uygun veri belirlenemedi', ' ')
+			return false
+		}
+
+		let defName = [
+			( firstInst?.getExportDefName?.(e) || mfSinif.aciklama || mfSinif.kisaAdi || mfSinif.sinifAdi ),
+			exportRecs.length == 1 ? exportRecs[0].aciklama : null
+		].filter(Boolean)
+			//.map(n => turkcesiz(n).replaceAll(' ', '_'))
+			.join(' - ')
+		
+		let exportName = await jqxPrompt({
+			title: `Dışa Aktar: (<span class="royalblue">${exportRecs.length} kayıt)`,
+			etiket: 'İsim giriniz',
+			value: defName
+		})
+		if (exportName == null)
+			return false
+		
+		let data = toJSONStr(exportRecs)
+		downloadData(data, exportName, wsContentType)
+		
 		return true
 	}
-	async exportIstendi(e) {
-		e ??= {}; let {gridWidget, selectedRecs} = this, islemAdi = 'Dışarıya Aktar';
-		if (!selectedRecs?.length) { wConfirm('Dışa aktarılacak satırlar seçilmelidir', islemAdi); return false }
-		let mfSinif = this.getMFSinif(e), {yeniInstOlusturucu} = this;
-		let liste = await Promise.all(selectedRecs.map(async rec => {
-			let inst = yeniInstOlusturucu ? await getFuncValue.call(this, yeniInstOlusturucu, e) : undefined;
-			if (inst === undefined) { inst = await mfSinif.yeniInstOlustur?.(e) }
-			if (inst === undefined) { inst = new mfSinif(e) }
-			if (inst == null) { return null }
-			await inst.keySetValues({ rec })
-			if (!await inst.yukle({ ...e, rec: null, _rec: rec })) {
-				let mesaj = 'Seçilen satır için bilgi yüklenemedi';
-				throw { isError: true, rc: 'instBelirle', errorText: mesaj }
-			}
-			return inst
-		}));
-		liste = liste.filter(x => x);
-		if (!liste?.length) { wConfirm('Dışa aktarılacak uygun satır belirlenemedi', islemAdi); return false }
-		mfSinif = liste[0].class;
-		let exportRecs = await mfSinif.exportAll({ ...e, liste });
-		if (!exportRecs?.length) { wConfirm('Dışa aktarılacak uygun veri belirlenemedi', islemAdi); return false }
-		let exportName = await jqxPrompt({ title: `${islemAdi}: (<span class="royalblue">${exportRecs.length} kayıt)`, etiket: 'İsim giriniz' });
-		if (exportName == null) { return false }
-		let data = toJSONStr(exportRecs);
-		downloadData(data, exportName, wsContentType);
-		return true
+	importAllIstendi(e = {}) {
+		e.all = true
+		return importIstendi(e)
 	}
 	importIstendi(e) {
-		e ??= {}; let {gridWidget} = this, mfSinif = this.getMFSinif(e), islemAdi = 'İçeri Al';
-		if (mfSinif && !mfSinif.tanimlanabilirmi) { hConfirm('Tanımlama işlemi yapılamaz', islemAdi); return false }
-		let recs; (async () => {    /* sender button disabled durumda kalmasın diye böyle yapıldı */
+		e = { ...e }
+		let islemAdi = e.islemAdi = 'İçeri Al'
+		;(async () => {    // sender button disabled durumda kalmasın diye böyle yapıldı
+			let recs = []
 			try {
-				let {data} = await openFile({ accept: wsContentType, type: wsDataType }) ?? {};
-				recs = $.makeArray(data)  /* undefined/null gelse de sorun değil, aynı değeri döner o zaman */
+				let { data } = await openFile({ accept: wsContentType, type: wsDataType }) ?? {}
+				recs = makeArray(data)
 			}
-			catch (ex) { hConfirm(getErrorText(ex), islemAdi); return false }
-			let instListe = await mfSinif.importAll({ ...e, recs });
-			instListe = instListe.filter(x => x);
-			if (!instListe.length) { hConfirm('İçeri alınacak uygun veri bulunamadı', islemAdi); return false }
-			let results = await Promise.allSettled(instListe.map(inst => inst.kaydet()));
-			let counts = { ok: 0, fail: 0 }, errors = [];
-			for (let {status, value, reason} of results) {
-				value ??= reason;
-				let isOk = status == 'fulfilled' && !(value?.isError || value instanceof Error);
-				counts[isOk ? 'ok' : 'fail']++;
-				if (!isOk && value) { errors.push(value) }
+			catch (ex) {
+				hConfirm(getErrorText(ex), islemAdi)
+				return false
 			}
-			if (counts.ok || counts.fail) {
-				this.tazele(); let output = [];
-				if (counts.ok) {
-					output.push(`<li class="forestgreen"><b>${counts.ok} adet</b> kayıt yüklendi</li>`) }
-				if (counts.fail) {
-					output.push(`<li class="red"><b>${counts.fail} adet</b> kayıt yüklene<u>ME</u>di</li>`)
-					if (errors.length) {
-						output.push(`<ul style="margin-top: 5px">`);
-						output.push(errors.map(err => `<li class="gray">${getErrorText(err) || err}</li>`))
-						output.push(`</ul>`)
+
+			e.recs = recs
+			let res = await this.import(e)
+			if (res === false)
+				return res
+
+			let { counts = {}, errors = [] } = e
+			if (counts.ok || counts.fail || counts.duplicate) {
+				delay(5).then(() =>
+					this.tazele())
+				
+				let output = []
+				;{
+					if (counts.ok)
+						output.push(`<li class="forestgreen"><b class="royalblue">${counts.ok} adet</b> kayıt yüklendi</li>`)
+					if (counts.duplicate)
+						output.push(`<li class="darkorange"><b class="royalblue">${counts.duplicate} adet</b> kayıt <u>ZATEN VAR</u></li>`)
+					if (counts.fail) {
+						output.push(`<li class="red"><b class="royalblue">${counts.fail} adet</b> kayıt yüklene<u>ME</u>di</li>`)
+						if (errors.length) {
+							output.push(`<ul style="margin-top: 5px">`)
+							output.push(errors.map(err => `<li class="gray">${getErrorText(err) || err}</li>`))
+							output.push(`</ul>`)
+						}
 					}
 				}
-				let mesaj = `<ul>${output.join('')}</ul>`;
+				let mesaj = `<ul>${output.join('')}</ul>`
 				window[counts.fail ? 'hConfirm' : 'eConfirm'](mesaj, islemAdi)
 			}
-		})();
-		return true
+		})()
 	}
+	importDefsIstendi(e) {
+		e = { ...e }
+		let islemAdi = e.islemAdi = 'Varsayılan Tanımları Yükle'
+		let mfSinif = this.getMFSinif(e)
+		if (!mfSinif)
+			return false
+
+		let { key = e.kod || mfSinif.getImportDefsKey(e) || mfSinif.kodListeTipi || mfSinif.kod } = e
+		if (!key)
+			return false
+
+		let { aciklama = mfSinif.kisaAdi || mfSinif.sinifAdi } = e
+		let { dataKey } = app
+		let { DefaultWSHostName_SkyServer: host } = config.class
+		let port = 90
+		let baseUrl = `https://${host}:${port}/data/${dataKey}/defs`
+		let url = `${baseUrl}/${key}.json?${appVersion}`
+
+		;(async () => {    // sender button disabled durumda kalmasın diye böyle yapıldı
+			let recs = []
+			try {
+				let data = await ajaxGet({ url })
+				recs = makeArray(data)
+			}
+			catch (ex) {
+				let { status } = ex ?? {}
+				if (status != 404) {
+					hConfirm(getErrorText(ex), islemAdi)
+					return false
+				}
+			}
+
+			if (empty(recs)) {
+				wConfirm(
+					`<b class="darkgray">${key}</b> - <b class="royalblue">${aciklama}</b> için <u class="bold firebrick">Varsayılan Tanım</u> bulunamadı`,
+					islemAdi
+				)
+				return false
+			}
+
+			;{
+				let rdlg = await ehConfirm(
+					`<b class="forestgreen">${recs.length}</b> varsayılan tanım için Eksik <b class="firebrick">Varsayılan Tanımlar oluşturulacak</b>, devam edilsin mi?`,
+					islemAdi
+				)
+				if (!rdlg)
+					return false
+			}
+			
+			e.recs = recs
+			let res = await this.import(e)
+			if (res === false)
+				return res
+
+			let { counts = {}, errors = [] } = e
+			if (counts.ok || counts.fail || counts.duplicate) {
+				delay(5).then(() =>
+					this.tazele())
+				
+				let output = []
+				;{
+					if (counts.ok)
+						output.push(`<li class="forestgreen"><b>${counts.ok} adet</b> kayıt yüklendi</li>`)
+					if (counts.duplicate)
+						output.push(`<li class="orange"><b>${counts.duplicate} adet</b> <u>ZATEN VAR</u></li>`)
+					if (counts.fail) {
+						output.push(`<li class="red"><b>${counts.fail} adet</b> kayıt yüklene<u>ME</u>di</li>`)
+						if (errors.length) {
+							output.push(`<ul style="margin-top: 5px">`)
+							output.push(errors.map(err => `<li class="gray">${getErrorText(err) || err}</li>`))
+							output.push(`</ul>`)
+						}
+					}
+				}
+				let mesaj = `<ul>${output.join('')}</ul>`
+				window[counts.fail ? 'hConfirm' : 'eConfirm'](mesaj, islemAdi)
+			}
+		})()
+	}
+	async import(e = {}) {
+		let { recs, trnId, all = false, islemAdi = 'İçeri Al' } = e
+		let { gridWidget } = this
+		let mfSinif = this.getMFSinif(e)
+
+		let instListe = (
+			empty(recs) ? [] :
+			await mfSinif.importAll({ ...e, recs })
+		).filter(Boolean)
+		if (empty(instListe)) {
+			hConfirm('İçeri alınacak uygun veri bulunamadı', islemAdi)
+			return false
+		}
+
+		let counts = e.counts ??= { }
+		;['ok', 'fail', 'duplicate'].forEach(k =>
+			counts[k] ||= 0)
+		
+		let errors = e.errors = []
+		for (let inst of instListe) {
+			let isOk = false
+			let err
+			try {
+				isOk = (
+					all
+						? await inst.kaydet({ trnId })
+						: ( await inst.importIcinVarmi({ trnId }) ? null : await inst.yaz({ trnId }) )
+				)
+			}
+			catch (ex) {
+				err = ex
+				cerr(ex)
+			}
+			
+			counts[isOk ? 'ok' : isOk == null ? 'duplicate' : 'fail']++
+			if (!isOk && err)
+				errors.push(err)
+		}
+	}
+	
 	basliklariDuzenleIstendi(e = {}) {
 		let mfSinif = this.getMFSinif(e)
 		let { layout, grid, args, builder } = this

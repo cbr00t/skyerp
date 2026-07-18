@@ -75,8 +75,10 @@ class MQDetay extends MQSayacli {
 		e.det = this
 		fis?.detayHostVarsDuzenle?.(e)
 	}
-	setValues(e) {
-		e = e || {}; super.setValues(e); let {rec, fis} = e, {sayacSaha, seqSaha} = this.class, parentRec = e.parentRec || e.rec || {}
+	setValues(e = {}) {
+		super.setValues(e)
+		let {rec, fis} = e, {sayacSaha, seqSaha} = this.class
+		let parentRec = e.parentRec || e.rec || {}
 		let sayac =  e.sayac || e.kaySayac || e.kaysayac || rec[sayacSaha] || rec.kaySayac || rec.kaysayac
 		let seq = e.seq || parentRec[seqSaha] || parentRec.seq
 		if (sayac) { this.okunanHarSayac = sayac }
@@ -84,14 +86,19 @@ class MQDetay extends MQSayacli {
 		e.det = this
 		fis?.detaySetValues(e)
 	}
+	exportDataDuzenle({ result: res }) {
+		super.exportDataDuzenle(...arguments)
+		deleteKeys(res, 'okunanHarSayac', 'eskiSeq')
+	}
 	inExp_setValues({ rec }) {
 		super.inExp_setValues(...arguments)
-		this.okunanHarSayac = null
+		this.okunanHarSayac = this.eskiSeq = null
 	}
 	eBilgiSetValues(e) { this.eBilgiSetValues_ilk(e); this.eBilgiSetValues_son(e) }
 	eBilgiSetValues_ilk(e) { } eBilgiSetValues_son(e) { }
 	tempsReset() { this._temps = {}; return this }
 }
+
 class MQDetayGUID extends MQDetay {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get idKullanilirmi() { return true }
 	static get sayacSaha() { return 'id' } static get fisSayacSaha() { return 'fisid' }

@@ -661,17 +661,30 @@ class MQDetayliGUID extends MQDetayliMaster {
 		}
 	}
 	inExp_setValues(e) {
-		e ??= {}; super.inExp_setValues(e);
-		let {rec} = e, {detaylar: detHVListe} = rec;
-		this.detaylarReset(); let {detaylar} = this;
-		let defDetaySinif = this.class.detaySinifFor(e) ?? this.detaySinif ?? detaylar[0]?.class;
+		e ??= {}
+		super.inExp_setValues(e)
+		let { rec } = e
+		let { detaylar: detHVListe } = rec
+		
+		this.detaylarReset()
+		let { detaylar } = this
+		let defDetaySinif = (
+			this.class.detaySinifFor(e) ??
+			this.detaySinif ??
+			detaylar[0]?.class
+		)
+		
 		if (detHVListe?.length) {
 			for (let rec of detHVListe) {
-				let {_cls: cls = defDetaySinif} = rec;
-				if (cls && typeof cls == 'string') { cls = window[cls] }
-				if (!cls) { continue }
-				let det = cls.importFrom({ ...e, rec });
-				if (det) { detaylar.push(det) }
+				let { _cls: cls = defDetaySinif } = rec
+				if (cls && isString(cls))
+					cls = window[cls]
+				if (!cls)
+					continue
+				
+				let det = cls.importFrom({ ...e, rec })
+				if (det)
+					detaylar.push(det)
 			}
 		}
 	}

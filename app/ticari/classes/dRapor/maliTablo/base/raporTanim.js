@@ -93,6 +93,12 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 		fbd_grid.readOnly()
 	}
 
+	kayitSayisi(e = {}) {
+		let { aciklama } = this
+		if (aciklama)
+			e = { ...e, keyHV: { aciklama } }
+		return super.kayitSayisi(e)
+	}
 	async yukle() {
 		let { table } = this
 		;{
@@ -404,14 +410,17 @@ class SBTabloDetay extends MQDetay {
 		super.setValues(...arguments)
 		/* extend(this, { satirListeStr }) */
 	}
-	inExp_hostVarsDuzenle(e) {
-		super.inExp_hostVarsDuzenle(e); let {hv} = e
-		let {asObject: secimlerData} = this.secimler ?? {}
-		if (!empty(secimlerData)) { hv.secimler = secimlerData }
+	inExp_hostVarsDuzenle({ hv } = {}) {
+		super.inExp_hostVarsDuzenle(e)
+		let { asObject: secimlerData } = this.secimler ?? {}
+		if (!empty(secimlerData))
+			hv.secimler = secimlerData
 	}
-	inExp_setValues({ rec, rec: { secimler: secimlerData } }) {
-		super.inExp_setValues(...arguments); let {secimler} = this
-		if (secimler) { secimler.readFrom({ liste: secimlerData }) }
+	inExp_setValues({ rec, rec: { secimler: secimlerData } } = {}) {
+		super.inExp_setValues(...arguments)
+		let { secimler } = this
+		if (secimler)
+			secimler.readFrom({ liste: secimlerData })
 	}
 	raporQueryDuzenle(e) {
 		let det = e.det = this

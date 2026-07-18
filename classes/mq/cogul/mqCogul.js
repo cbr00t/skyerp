@@ -1074,6 +1074,15 @@ class MQCogul extends MQYapi {
 		this.forAltYapiClassesDo('gridKolonlarDuzenle', e)
 	}
 	static getGridKolonGrup(e) { }
+
+	exportDataDuzenle({ result: res }) {
+		super.exportDataDuzenle(...arguments)
+		deleteKeys(res,
+			...['ayrimlar', 'ozelSahalar']
+				.filter(k => empty(this[k]))
+		)
+	}
+	
 	static globalleriSil() {
 		let { mqGlobals, classKey } = this
 		if (classKey == 'cls')

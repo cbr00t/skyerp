@@ -10,10 +10,15 @@ class DMQRapor extends DMQSayacliKA {
 	static get kodKullanilirmi() { return false }
 	static get idSaha() { return this.sayacSaha }
 	static get sayacSaha() { return 'id' }
-	get raporKod() { let result = this._raporKod; if (result === undefined) { result = this.class.getRaporKod(this.rapor) }; return result }
+	get raporKod() {
+		let { _raporKod: res } = this
+		if (res === undefined)
+			res = this.class.getRaporKod(this.rapor)
+		return res
+	}
 	get secimler() { return this.rapor?.secimler }
 	get secimlerPart() { return this.rapor?.secimlerPart }
-	get attrSet() { let result = {}; for (let selector of ['grup', 'icerik']) { $.extend(result, asSet(keys(this[selector]))) } return result }
+	get attrSet() { let result = {}; for (let selector of ['grup', 'icerik']) { extend(result, asSet(keys(this[selector]))) } return result }
 	get grupListe() { return keys(this.grup || {}) } set grupListe(value) { return this.grup = asSet(value || []) }
 	get icerikListe() { return keys(this.icerik || {}) } set icerikListe(value) { return this.icerik = asSet(value || []) }
 	get secilenVarmi() { return !!(keys(this.grup).length || keys(this.icerik).length) }
@@ -26,7 +31,7 @@ class DMQRapor extends DMQSayacliKA {
 		super(e)
 		let { isCopy } = e, { user, encUser } = config.session
 		this.rapor = e.rapor?.main ?? e.rapor
-		$.extend(this, {
+		extend(this, {
 			id: e.id, user: e.userkod ?? user, encUser: e.encuser ?? e.encUser ?? encUser,
 			grup: e.grupListe ?? e.grup ?? {}, icerik: e.icerikListe ?? e.icerik ?? {},
 			ozetMax: e.ozetMax ?? 5, favorimi: asBool(e.favori ?? e.favorimi),
@@ -69,6 +74,12 @@ class DMQRapor extends DMQSayacliKA {
 			yerel.kaydetDefer(e)
 		}
 		return this
+	}
+	getExportDefName(e = {}) {
+		let { parentPart = e.sender } = e
+		let { rapor = parentPart?.rapor } = e
+		let { aciklama = rapor?.class?.aciklama } = rapor ?? {}
+		return aciklama
 	}
 	static rootFormBuilderDuzenle(e = {}) {
 		super.rootFormBuilderDuzenle(e)
@@ -114,7 +125,8 @@ class DMQRapor extends DMQSayacliKA {
 			form.addModelKullan('yatayAnaliz', 'Çapraz')
 				.addStyle_wh(200).addCSS('relative')
 				.setInst(null).dropDown().noMF()
-				.kodsuz().listedenSecilemez()
+				.kodsuz()
+				.listedenSecilemez()
 				.setSource(e => {
 					let result = [ new CKodVeAdi(['', '']) ]
 					for (let [kod, {text: aciklama}] of entries(DRapor_AraSeviye_Main.yatayTip2Bilgi))
@@ -314,6 +326,12 @@ class DMQRapor extends DMQSayacliKA {
 		await super.yukleSonrasiIslemler(e); let {encUser} = this;
 		this.user = encUser ? await app.xdec(encUser) : encUser
 	}
+	kayitSayisi(e = {}) {
+		let { aciklama } = this
+		if (aciklama)
+			e = { ...e, keyHV: { aciklama } }
+		return super.kayitSayisi(e)
+	}
 	async kaydet(e) {
 		return await super.kaydet(e)
 		/*await super.sil(e)
@@ -326,7 +344,7 @@ class DMQRapor extends DMQSayacliKA {
 		let {rapor = {}} = parentPart
 		raporKod ||= rapor.rapor?.class?.kod ?? rapor.class?.kod
 		// if (!raporKod) { debugger }
-		$.extend(hv, { raportip: raporKod, xuserkod: encUser })
+		extend(hv, { raportip: raporKod, xuserkod: encUser })
 		hv[adiSaha] = aciklama
 		if (islem == 'sil')
 			delete hv.xuserkod
@@ -336,7 +354,7 @@ class DMQRapor extends DMQSayacliKA {
 	keySetValues({ rec }) {
 		super.keySetValues(...arguments)
 		let {class: { adiSaha }} = this
-		$.extend(this, { id: rec.id, aciklama: rec[adiSaha] })
+		extend(this, { id: rec.id, aciklama: rec[adiSaha] })
 	}
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments)
@@ -344,17 +362,19 @@ class DMQRapor extends DMQSayacliKA {
 			if (value && isObject(value) && !isArray(value)) { value = keys(value) };
 			return isArray(value) ? value.filter(x => !!x).map(x => x.trim()).join(delimWS) : (value?.trim() || '')
 		}
-		$.extend(hv, {
+		extend(hv, {
 			// id: this.id,
 			/*raportip: this.raporKod, xuserkod: this.encUser || '',*/
 			grupbelirtecler: liste2HV(this.grup), icerikbelirtecler: liste2HV(this.icerik),
 			ilkxsayi: this.ozetMax, bfavori: asInteger(this.favorimi),
 			kullanim: toJSONStr(this.kullanim ?? {})
 		})
-		let {secimler, filtreKaydedilirmi} = this
+		
+		let { secimler, filtreKaydedilirmi } = this
 		if (secimler && filtreKaydedilirmi) {
-			let {asObject: data} = secimler
-			data = data ? Base64.encode(JSON.stringify(data)) : ''
+			let { asObject: data } = secimler
+			// data = data ? Base64.encode(JSON.stringify(data)) : ''
+			data = data ? Base64.encode(toJSONStr(data)) : ''
 			if (data)
 				hv.secimlerstr = data
 		}
@@ -366,23 +386,24 @@ class DMQRapor extends DMQSayacliKA {
 						.filter(Boolean).map(x => x.trim())) : {}
 		let kullanim
 		try {
-			let {kullanim: value} = rec
-			if (value)
-				kullanim = JSON.parse(rec.kullanim)
+			let { kullanim: v } = rec
+			if (v) {
+				kullanim = isString(v) ? JSON.parse(v) : v
+			}
 		}
 		catch (ex) { cerr(ex) }
 		kullanim ??= {}
 		kullanim.filtreKaydedilirmi ??= false
-		$.extend(this, {
+		extend(this, {
 			encUser: rec.xuserkod || '',
 			grup: getListe(rec.grupbelirtecler),
 			icerik: getListe(rec.icerikbelirtecler),
 			ozetMax: rec.ilkxsayi, favorimi: asBool(rec.bfavori),
 			kullanim
 		})
-		let {secimler, filtreKaydedilirmi} = this
+		let { secimler, filtreKaydedilirmi } = this
 		if (secimler && filtreKaydedilirmi) {
-			let {secimlerstr: data} = rec
+			let { secimlerstr: data } = rec
 			try { data = data ? JSON.parse(Base64.decode(data)) : null }
 			catch (ex) {
 				data = null
@@ -395,10 +416,66 @@ class DMQRapor extends DMQSayacliKA {
 			}
 		}
 	}
+	exportDataDuzenle(e) {
+		super.exportDataDuzenle(e)
+		this.exportDataDuzenleOrtak(e)
+	}
+	inExp_hostVarsDuzenle(e) {
+		super.inExp_hostVarsDuzenle(e)
+		let { hv } = e    // !! once super() !!
+		this.exportDataDuzenleOrtak({ ...e, result: hv })
+	}
+	exportDataDuzenleOrtak({ result: res, parentPart }) {
+		super.exportDataDuzenle(...arguments)
+		let { kullanim, filtreKaydedilirmi } = this
+		if (kullanim)
+			res.kullanim = isString(kullanim) ? JSON.parse(kullanim) : kullanim
+		let { secimler = parentPart?.rapor?.secimler } = this
+		if (secimler && filtreKaydedilirmi) {
+			let { asObject: data } = secimler
+			if (!empty(data))
+				res.secimler = data
+		}
+	}
+	inExp_setValues({ rec, parentPart }) {
+		super.inExp_setValues(...arguments)
+		let { kullanim } = rec
+		if (!empty(kullanim)) {
+			if (isString(kullanim)) {
+				try { kullanim = JSON.parse(kullanim) }
+				catch (ex) {
+					cerr(ex)
+					kullanim = {}
+				}
+			}
+			this.kullanim = kullanim
+		}
+		let { filtreKaydedilirmi } = this
+		let { secimler = parentPart?.rapor?.secimler } = this
+		if (secimler && filtreKaydedilirmi) {
+			let { secimler: data } = rec
+			try {
+				if (isString(data)) {
+					if (Base64.isValid(data))
+						data = Base64.decode(data)
+					data = JSON.parse(data)
+				}
+			}
+			catch (ex) {
+				data = null
+				// hConfirm(getErrorText(ex))
+				cerr(ex)
+			}
+			
+			if (data)
+				secimler.readFromObject(data)
+		}
+	}
 	addGrup(...liste) { return this.addSaha('grup', ...liste) }
 	addIcerik(...liste) { return this.addSaha('icerik', ...liste) }
 	addSaha(selector, ...liste) {
-		let target = this[selector]; for (let kod of liste) {
+		let target = this[selector]
+		for (let kod of liste) {
 			if (isArray(kod)) {
 				this.addSaha(selector, ...kod)
 				continue
@@ -410,6 +487,6 @@ class DMQRapor extends DMQSayacliKA {
 	}
 	ozetMax(value) { this.ozetMax = value; return this }
 	setYatayAnaliz(value) { this.yatayAnaliz = value; return this }
-	reset(e) { $.extend(this, new this.class()); return this }
-	resetSahalar(e) { $.extend(this, { grup: {}, icerik: {} }); return this }
+	reset(e) { extend(this, new this.class()); return this }
+	resetSahalar(e) { extend(this, { grup: {}, icerik: {} }); return this }
 }

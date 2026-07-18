@@ -459,25 +459,33 @@ class ModelKullanPart extends Part {
 						let {parentPart} = this; let gridWidget = parentPart?.gridPart?.gridWidget;
 						if (gridWidget) {
 							if (!gridWidget.editcell) {
-								let sel = gridWidget.getselection(), rowIndex = (sel.cells || [])[0]?.rowindex ?? (sel.rows || [])[0];
-								let belirtec = (sel.cells || [])[0]?.datafield ?? this.sender?.belirtec;
+								let sel = gridWidget.getselection(), rowIndex = (sel.cells || [])[0]?.rowindex ?? (sel.rows || [])[0]
+								let belirtec = (sel.cells || [])[0]?.datafield ?? this.sender?.belirtec
 								if (value != null && belirtec && (rowIndex ?? -1) > -1) setTimeout(() => gridWidget.setcellvalue(rowIndex, belirtec, value), 10)
 							}
 							setTimeout(() => gridWidget.focus(), 10)
 						}
-						else { setTimeout(() => widget.input.focus(), 10) }
+						else
+							setTimeout(() => widget.input.focus(), 10)
 					}, 1)
 				},
 				kapaninca: e => {
 					let {parentPart} = this, {gridWidget} = parentPart?.gridPart || {};
-					let otherWindows = $('.jqx-window'); if (otherWindows.length) { otherWindows.jqxWindow('expand'); $('body').removeClass('bg-modal') }
-					if (gridWidget) { setTimeout(() => gridWidget.focus(), 10) }
+					let otherWindows = $('.jqx-window')
+					if (otherWindows.length) {
+						otherWindows.jqxWindow('expand')
+						$('body').removeClass('bg-modal')
+					}
+					if (gridWidget)
+						setTimeout(() => gridWidget.focus(), 10)
 				}
 			}
 		};
 		if (initArgsDuzenleBlock) { getFuncValue.call(this, initArgsDuzenleBlock, initArgs) }
 		let part = new MasterListePart(initArgs.args); setTimeout(() => part.run(), 10)
-		let otherWindows = $('.jqx-window'); if (otherWindows.length) { otherWindows.jqxWindow('collapse') }
+		let otherWindows = $('.jqx-window')
+		if (otherWindows.length)
+			otherWindows.jqxWindow('collapse')
 	}
 	getDataAdapter(e) {
 		e = e || {}; let {mfSinif} = this; let {dataAdapterBlock, loadServerDataBlock, loadServerDataEkDuzenleBlock} = this;

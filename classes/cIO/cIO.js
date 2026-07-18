@@ -62,12 +62,29 @@ class CIO extends CObject {
 		if (_p) { inst._p = {}; for (const ioAttr in _p) { const _pInst = _p[ioAttr], pInst = _pInst ? _pInst.deepCopy(e) : _pInst; inst._p[ioAttr] = pInst } }
 		return inst
 	}
+
+	exportDataDuzenle({ result: res }) {
+		super.exportDataDuzenle(...arguments)
+		let { _p: defs } = this
+		if (defs) {
+			for (let [k, def] of entries(defs)) {
+				let { value: v } = def ?? {}
+				if ((v === undefined || v === def.initValue))
+					delete res[k]
+				else
+					res[k] ??= v
+			}
+		}
+		deleteKeys(res, '_p', '_temps')
+	}
+	
 	static cacheReset() {
 		let {_cls2PTanim = {}} = CIO
 		if (_cls2PTanim)
 			CIO._cls2PTanim = {}
 	}
 }
+
 /*class CIO_Test extends CIO {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) { e.pTanim.miktar = new PInstNum('miktar') e.pTanim.bedel = new PInstNum('belgebedel') }
