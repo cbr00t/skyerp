@@ -238,12 +238,12 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	async loadServerData(e) {
 		await this.loadServerData_wsArgsDuzenle(e)
 		let recs = []
-		recs = e.recs = await this.loadServerDataInternal(e); window.progressManager?.progressStep(4); if (!recs) { return recs }
-		let _recs = await this.loadServerData_recsDuzenleIlk(e); recs = e.recs = _recs == null ? e.recs : _recs; window.progressManager?.progressStep(1)
-		_recs = await this.loadServerData_recsDuzenle(e); recs = e.recs = _recs == null ? e.recs : _recs; window.progressManager?.progressStep(2)
-		_recs = await this.loadServerData_recsDuzenleEk(e); recs = e.recs = _recs == null ? e.recs : _recs; window.progressManager?.progressStep(1)
-		_recs = await this.loadServerData_recsDuzenle_seviyelendir(e); recs = e.recs = _recs == null ? e.recs : _recs; window.progressManager?.progressStep(3)
-		_recs = await this.loadServerData_recsDuzenleSon(e); recs = e.recs = _recs == null ? e.recs : _recs; window.progressManager?.progressStep(1)
+		recs = e.recs = await this.loadServerDataInternal(e); globalThis.progressManager?.progressStep(4); if (!recs) { return recs }
+		let _recs = await this.loadServerData_recsDuzenleIlk(e); recs = e.recs = _recs == null ? e.recs : _recs; globalThis.progressManager?.progressStep(1)
+		_recs = await this.loadServerData_recsDuzenle(e); recs = e.recs = _recs == null ? e.recs : _recs; globalThis.progressManager?.progressStep(2)
+		_recs = await this.loadServerData_recsDuzenleEk(e); recs = e.recs = _recs == null ? e.recs : _recs; globalThis.progressManager?.progressStep(1)
+		_recs = await this.loadServerData_recsDuzenle_seviyelendir(e); recs = e.recs = _recs == null ? e.recs : _recs; globalThis.progressManager?.progressStep(3)
+		_recs = await this.loadServerData_recsDuzenleSon(e); recs = e.recs = _recs == null ? e.recs : _recs; globalThis.progressManager?.progressStep(1)
 		return recs
 	}
 	loadServerDataInternal(e) { return null }
@@ -677,15 +677,17 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		return sevListe ?? recs
 	}
 	ozetBilgiRecsOlustur(e) {
-		let {raporTanim, ozetBilgi, gridPart: { gridWidget }} = this
-		let {grupAttr, icerikAttr, icerikColDef} = ozetBilgi
+		let { raporTanim, ozetBilgi, gridPart: { gridWidget } } = this
+		let { grupAttr, icerikAttr, icerikColDef } = ozetBilgi
 		if (!grupAttr)
 			return
-		let {secilenVarmi, ozetMax} = raporTanim
+		
+		let { secilenVarmi, ozetMax } = raporTanim
 		if (!(secilenVarmi && ozetMax)) {
 			ozetBilgi.recs = []
 			return
 		}
+		
 		let sevRecs = e.recs ?? gridWidget.getRows()
 		let deger2Bilgiler = {}
 		for (let sev of sevRecs) {
@@ -693,10 +695,21 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			if (value) 
 				(deger2Bilgiler[value] ??= []).push(sev)
 		}
-		let tersSiraliDegerler = keys(deger2Bilgiler).map(x => asFloat(x)).sort((a, b) => a < b ? 1 : -1);
-		let {sortdirection: sortDir} = gridWidget.base
-		if (sortDir?.ascending)
-			tersSiraliDegerler.reverse()
+
+		let { sortdirection: sortDir } = gridWidget.base
+		let tersSiraliDegerler = keys(deger2Bilgiler)
+			.map(x => asFloat(x))
+			.sort((_a, _b) => {
+				let tersmi = !sortDir?.ascending
+				let a = tersmi ? _b : _a
+				let b = tersmi ? _a : _b
+				return (
+					a == b ? 0 :
+					a?.localeCompare?.(b) ??
+					( a < b ? -1 : 1 )
+				)
+			})
+		
 		let digerRec = {
 			[grupAttr]: `<b class="royalblue">Diğer</b>`,
 			[icerikAttr]: 0
@@ -707,8 +720,15 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			for (let subRec of subRecs) {
 				if (result.length < ozetMax) {
 					this.fixKA(subRec, grupAttr, false)
-					let value = subRec[grupAttr] || subRec?.detaylar?.[0]?.[grupAttr]
-					let _rec = { [grupAttr]: value }
+					/*let v = (
+						subRec[grupAttr] ||
+						subRec?.detaylar?.[0]?.[grupAttr]
+					)*/
+					let { [grupAttr]: v } = walkToLeafUntil(
+						subRec, r =>
+							r[grupAttr]
+					) ?? {}
+					let _rec = { [grupAttr]: v ?? '' }
 					_rec[icerikAttr] = deger
 					result.push(_rec)
 					continue
@@ -717,18 +737,23 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				digerSayi++
 			}
 		}
+		
 		if (digerRec[icerikAttr]) {
-			let {aggregates} = icerikColDef ?? {}
-			if (aggregates?.includes('avg')) {
-				digerRec[icerikAttr] = digerSayi ? roundToFra((digerRec[icerikAttr] || 0) / digerSayi, icerikColDef.tip?.fra ?? 0) : 0 }
+			let { aggregates: agg } = icerikColDef ?? {}
+			if (agg?.includes('avg')) {
+				digerRec[icerikAttr] = digerSayi
+					? roundToFra((digerRec[icerikAttr] || 0) / digerSayi, icerikColDef.tip?.fra ?? 0)
+					: 0
+			}
 			result.push(digerRec)
 		}
 		ozetBilgi.recs = result
-		window.progressManager?.progressStep(2)
+		globalThis.progressManager?.progressStep(2)
 	}
 	tazeleOncesi(e) {
 		super.tazeleOncesi(e)
-		let {rapor: { isPanelItem }, parentBuilder: { rootBuilder } = {}, fbd_grid, tabloYapi, raporTanim, raporTanim: { secilenVarmi } = {}} = this
+		let { rapor: { isPanelItem }, parentBuilder: { rootBuilder } = {} } = this
+		let { fbd_grid, tabloYapi, raporTanim, raporTanim: { secilenVarmi } = {} } = this
 		rootBuilder?.layout?.find('.islemTuslari > div button#tabloTanimlari')[secilenVarmi ? 'removeClass' : 'addClass']('anim-tabloTanimlari-highlight')
 		if (!(isPanelItem || secilenVarmi)) {
 			if (!this._tabloTanimGosterildiFlag)
@@ -750,11 +775,11 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				this._timer_progress = setTimeout(async () => {
 					showProgress('Rapor oluşturuluyor...', null, true)
 					await new $.Deferred(p => setTimeout(() => p.resolve(), 10))
-					window.progressManager?.setProgressMax(15 * tazeleHideProgress_minCount)
-					window.progressManager?.setProgressValue(0)
+					globalThis.progressManager?.setProgressMax(15 * tazeleHideProgress_minCount)
+					globalThis.progressManager?.setProgressValue(0)
 				}, 1000)
 			}
-			await this.tazeleOncesi(e); window.progressManager?.progressStep(1)
+			await this.tazeleOncesi(e); globalThis.progressManager?.progressStep(1)
 			let {gridPart, raporTanim = {}} = this
 			let {degistimi, kullanim} = raporTanim, {yatayAnaliz} = kullanim ?? {}
 			let {grid, gridWidget, gridWidget: { base }} = gridPart
@@ -787,19 +812,19 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				if (colDef)
 					colDef.userData.son = true
 			}
-			window.progressManager?.progressStep(1)
+			globalThis.progressManager?.progressStep(1)
 			if (yatayAnaliz) {
 				let _attrSet = asSet([DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod].filter(x => !!x))
 				if (empty(_attrSet))
 					yatayAnaliz = kullanim.yatayAnaliz = null
 				else {
-					window.progressManager?.setProgressMax((window.progressManager?.progressMax || 0) + 5)
+					globalThis.progressManager?.setProgressMax((globalThis.progressManager?.progressMax || 0) + 5)
 					let { belirtec } = DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz] ?? {}
 					let tumYatayAttrSet = e.tumYatayAttrSet = {}
 					let { secimler: sec = this.secimler, donemBS } = e
 					donemBS ||= sec?.tarihBS
 					let recs = await this.loadServerDataInternal({ yatayAnaliz: true, internal: true, attrSet: _attrSet, donemBS })
-					window.progressManager?.progressStep(3)
+					globalThis.progressManager?.progressStep(3)
 					let liste = {}
 					for (let rec of recs) {
 						let value = rec[belirtec]?.trimEnd?.()
@@ -847,7 +872,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				}
 			}
 			else
-				window.progressManager?.progressStep(3)
+				globalThis.progressManager?.progressStep(3)
 			_colDefs = colDefs
 			colDefs = []
 			let belirtecSet = {}
@@ -884,7 +909,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 					let savedColDefs = colDefs; colDefs = [savedColDefs[0], ...sortColDefs, ...savedColDefs.slice(1).filter(colDef => !sortBelirtecSet[colDef.belirtec])]
 				}*/
 			}
-			window.progressManager?.progressStep(1);
+			globalThis.progressManager?.progressStep(1);
 			for (let tip in attrSet) {
 				if (ozetBilgi.grupTipKod && ozetBilgi.icerikTipKod)
 					break
@@ -899,13 +924,13 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				ozetBilgi[`${prefix}Attr`] = colDef?.belirtec
 				ozetBilgi[`${prefix}Text`] = colDef?.text
 			}
-			window.progressManager?.progressStep(1)
+			globalThis.progressManager?.progressStep(1)
 			try {
 				let jqxCols = colDefs.flatMap(colDef => colDef.jqxColumns)
 				grid.jqxTreeGrid('columns', jqxCols)
 			}
 			catch (ex) { cerr(ex) }
-			window.progressManager?.progressStep(2)
+			globalThis.progressManager?.progressStep(2)
 			/* gridWidget.base.sortcolumn */
 			let ozetBilgi_getColumns = (source, kod, colDefDuzenle) => {
 				return this.getColumns((source[kod]?.colDefs || [])).map(colDef => {
@@ -929,7 +954,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 					}).tipDecimal_bedel()
 				)
 			] : [];
-			window.progressManager?.progressStep(1)
+			globalThis.progressManager?.progressStep(1)
 			raporTanim.degistimi = false; await gridPart._promise_kaFix
 			if (defUpdateOnly) {
 				delete e.recs
@@ -937,9 +962,9 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				await this.ozetBilgiRecsOlustur(e)
 			}
 			else { await super.tazele(e) }
-			window.progressManager?.progressStep(2)
+			globalThis.progressManager?.progressStep(2)
 			await this.tazeleDiger(e)
-			window.progressManager?.progressStep(1)
+			globalThis.progressManager?.progressStep(1)
 			await this.tazeleSonrasi(e)
 		}
 		catch (ex) {
@@ -952,7 +977,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			clearTimeout(this._timer_progress); delete this._timer_progress
 			if (!tazeleHideProgress_minCount || totalCount >= tazeleHideProgress_minCount) {
 				setTimeout(() =>
-					window.progressManager?.progressEnd(), 0)
+					globalThis.progressManager?.progressEnd(), 0)
 				setTimeout((
 					{ sender }) => hideProgress(),
 					tazeleHideProgress_waitMS, { sender: this }

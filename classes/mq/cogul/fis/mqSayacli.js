@@ -114,8 +114,14 @@ class MQSayacli extends MQCogul {
 	}
 	logHVDuzenle({ hv }) {
 		super.logHVDuzenle(...arguments)
-		let {kodKullanilirmi} = this.class
-		hv.xsayac = this.sayac || 0
+		let { kodKullanilirmi, sayacSaha } = this.class
+		;{
+			let k = (
+				sayacSaha == 'id' || sayacSaha == 'fisid' ? 'xid':
+				'xsayac'
+			)
+			hv[k] = this.sayac || 0
+		}
 		if (kodKullanilirmi)
 			hv.xkod = this.kod || ''
 	}
@@ -167,11 +173,25 @@ class MQSayacli extends MQCogul {
 		if (zeminRenkDesteklermi)
 			this.zeminRenk = oscolor ? os2HTMLColor(oscolor) : ''
 	}
+
+
+	exportDataDuzenle(e) {
+		super.exportDataDuzenle(e)
+		let { result: res } = e
+		delete res.sayac
+	}
+	inExp_hostVarsDuzenle(e) {
+		super.inExp_hostVarsDuzenle(e)
+		let { hv } = e    // !! once super() !!
+		let { sayacSaha } = this.class
+		delete hv[sayacSaha]
+	}
 	inExp_setValues({ rec }) {
 		super.inExp_setValues(...arguments)
 		/*let {guidmi} = this.class; if (!guidmi) { this.sayac = null } */
 		this.sayac = null
 	}
+	
 	static async sayacVarmi(e = {}, _zorunlumu) {
 		let sayac = typeof e == 'object' ? e.sayac : e
 		let zorunlumu = _zorunlumu ?? (typeof e == 'object' ? e.zorunlu ?? e.zorunlumu : null)

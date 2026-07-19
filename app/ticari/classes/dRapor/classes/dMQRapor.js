@@ -4,12 +4,15 @@ class DMQRapor extends DMQSayacliKA {
 	static get kodListeTipi() { return 'DMQRAPOR' } static get sinifAdi() { return 'Rapor' }
 	static get table() { return 'wgruprapor' } static get tableAlias() { return 'rap' }
 	static get tanimlanabilirmi() { return true }
+	static get degistirilebilirmi() { return true }
 	static get silinebilirmi() { return true }
 	static get inExpKullanilirmi() { return true }
-	static get tanimUISinif() { return ModelTanimPart } static get secimSinif() { return Secimler }
+	static get tanimUISinif() { return ModelTanimPart }
+	static get secimSinif() { return Secimler }
 	static get kodKullanilirmi() { return false }
 	static get idSaha() { return this.sayacSaha }
 	static get sayacSaha() { return 'id' }
+	static get logKullanilirmi() { return false }
 	get raporKod() {
 		let { _raporKod: res } = this
 		if (res === undefined)
@@ -172,8 +175,13 @@ class DMQRapor extends DMQSayacliKA {
 			listBox.jqxListBox('source',
 			   kalanlarSourceDuzenlenmis(getKalanlarSource(listBox.data('selector')).map(kod => kaDict[kod])))
 		let initListBox = e => {
-			let {builder, source} = e
-			let {id, altInst, input, userData} = builder
+			let _e = { ...e }
+			delay(100).then(() =>
+				_initListBox(_e))
+		}
+		let _initListBox = e => {
+			let { builder, source } = e
+			let { id, altInst, input, userData } = builder
 			let selector = userData?.selector
 			if (source == null)
 				source = (id.startsWith('kalanlar') ? getKalanlarSource(selector) : altInst[id] ?? []).map(kod => kaDict[kod])
@@ -196,16 +204,29 @@ class DMQRapor extends DMQSayacliKA {
 			})
 			let changeHandler = ({ currentTarget: target, args = {} }) => {
 				let { type, owner = {} } = args
-				let { vScrollInstance } = owner
+				if (id.startsWith('kalanlar')) {
+					if (!type || type == 'none') {
+						clearTimeout(this._timer_kalanlarTazele)
+						this._timer_kalanlarTazele = setTimeout(() =>
+							updateKalanlarDS($(target)))
+					}
+				}
+				else {
+					let items = $(target).jqxListBox('getItems')
+					altInst[id] = items.map(_ => _.value)
+				}
+					
+				/*let { vScrollInstance } = owner
 				if (id.startsWith('kalanlar')) {
 					if (!type || type == 'none') {
 						if (vScrollInstance?.value)
 							owner._lastScrollValue = vScrollInstance.value
+						
 						clearTimeout(this._timer_kalanlarTazele)
 						this._timer_kalanlarTazele = setTimeout(() => {
 							try {
 								updateKalanlarDS($(target))
-								let {_lastScrollValue} = owner
+								let { _lastScrollValue } = owner
 								if (_lastScrollValue)
 									owner.scrollTo(0, _lastScrollValue)
 							}
@@ -216,13 +237,16 @@ class DMQRapor extends DMQSayacliKA {
 				else {
 					let items = $(target).jqxListBox('getItems')
 					altInst[id] = items.map(_ => _.value)
-				}
-			};
+				}*/
+			}
 			input.on('change', changeHandler)
 			input.on('dragEnd', changeHandler)
 			if (id.startsWith('kalanlar'))
 				setTimeout(input => updateKalanlarDS(input), 10, input)
-		};
+
+			delay(100).then(() =>
+				input.jqxListBox('refresh'))
+		}
 		let fbd_sol = fbd_content.addFormWithParent('sol').altAlta().addStyle_fullWH(solWidth)
 		let fbd_tabs = fbd_sol.addTabPanel('kalanlar')
 			.addStyle_fullWH()
@@ -266,30 +290,72 @@ class DMQRapor extends DMQSayacliKA {
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
 		liste.push(
-			new GridKolon({ belirtec: 'grupbelirtecler', text: 'Gruplar', maxWidth: 500 }),
-			new GridKolon({ belirtec: 'icerikbelirtecler', text: 'İçerikler', maxWidth: 500 }),
-			new GridKolon({ belirtec: 'ilkxsayi', text: 'Özet Sayı', genislikCh: 10 }).tipNumerik(),
-			new GridKolon({ belirtec: 'bfavori', text: 'Favori?', genislikCh: 10 }).tipBool(),
-			new GridKolon({ belirtec: 'xuserkod', text: 'Kullanıcı', genislikCh: 10 }),
-			new GridKolon({ belirtec: 'kullanim', text: 'Kullanım', genislikCh: 100 }),
+			new GridKolon({ belirtec: 'ilkxsayi', text: 'Özet Sayı', genislikCh: 10 }).tipNumerik().checkedList(),
+			new GridKolon({ belirtec: 'bfavori', text: 'Favori?', genislikCh: 10 }).tipBool().checkedList(),
+			new GridKolon({ belirtec: 'userText', text: 'Kullanıcı', genislikCh: 10 }).noSql().checkedList(),
+			new GridKolon({ belirtec: 'kullanimText', text: 'Kullanım', genislikCh: 30 }).noSql().checkedList(),
+			new GridKolon({ belirtec: 'grupbelirtecler', text: 'Gruplar', genislikCh: 30 }).checkedList(),
+			new GridKolon({ belirtec: 'icerikbelirtecler', text: 'İçerikler', genislikCh: 70 }).checkedList(),
 			new GridKolon({ belirtec: 'id', text: 'ID', genislikCh: 40 })
 		)
 	}
-	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e)
-		let {aliasVeNokta} = this, {noUserCheck, sent, args = {}} = e
-		let {where: wh, sahalar} = sent
-		let {encUser, isAdmin} = config.session
-		let {rapor} = args, raporKod = this.getRaporKod(rapor)
+	static async loadServerDataDogrudan(e = {}) {
+		let recs = await super.loadServerDataDogrudan(e)
+		if (!recs)
+			return recs
+
+		let encUsers = keys(asSet(
+			recs
+				.map(r => r.xuserkod)
+				.filter(Boolean)
+		))
+		let e2d = (
+			empty(encUsers) ? {} :
+			await app.xdec([null, ...encUsers])    // ** tek item varsa object yerine string tekil değer gelir. başa null koyarak önlem alındı
+		)
+
+		;recs.forEach(r => {
+			let { xuserkod: enc, kullanim } = r
+			r.userText = e2d[enc] ?? enc
+
+			try {
+				kullanim = (
+					kullanim && isString(kullanim)
+						? JSON.parse(kullanim)
+						: kullanim
+				)
+			}
+			catch (ex) { cerr(ex) }
+			
+			r.kullanimText = keys(kullanim)
+				?.map(k =>
+					k.toUpperCase()
+						.replace('MI', '').replace('MU', '')
+						.replace('KAYDEDILIR', '')
+						.replace('ANALIZ', '')
+				)
+				?.join(delimWS)
+				?? ''
+		})
+		
+		return recs
+	}
+	static loadServerData_queryDuzenle({ noUserCheck, sent, args = {} } = {}) {
+		super.loadServerData_queryDuzenle(...arguments)
+		let { tableAlias: alias } = this
+		let { where: wh, sahalar } = sent
+		let { encUser, isAdmin } = config.session
+		let { rapor } = args
+		let raporKod = this.getRaporKod(rapor)
 		if (raporKod)
-			wh.degerAta(raporKod, `${aliasVeNokta}raportip`)
+			wh.degerAta(raporKod, `${alias}.raportip`)
 		/*if (!(noUserCheck || isAdmin) && encUser) {    // İPTAL edildi - tüm kullanıcılar gelsin
 			wh.add(new MQOrClause([
-				`${aliasVeNokta}xuserkod = ''`,
-				{ degerAta: encUser, saha: `${aliasVeNokta}xuserkod` }]
+				`${alias}.xuserkod = ''`,
+				{ degerAta: encUser, saha: `${alias}.xuserkod` }]
 			))
 		}*/
-		sahalar.add(`${aliasVeNokta}raportip`, `${aliasVeNokta}xuserkod`)
+		sahalar.addWithAlias(alias, 'raportip', 'xuserkod', 'kullanim')
 	}
 	static yeniInstOlustur(e) {
 		let inst = super.yeniInstOlustur(e)
@@ -323,33 +389,60 @@ class DMQRapor extends DMQSayacliKA {
 		return this
 	}
 	async yukleSonrasiIslemler(e) {
-		await super.yukleSonrasiIslemler(e); let {encUser} = this;
+		await super.yukleSonrasiIslemler(e)
+		let { encUser } = this
 		this.user = encUser ? await app.xdec(encUser) : encUser
-	}
-	kayitSayisi(e = {}) {
-		let { aciklama } = this
-		if (aciklama)
-			e = { ...e, keyHV: { aciklama } }
-		return super.kayitSayisi(e)
 	}
 	async kaydet(e) {
 		return await super.kaydet(e)
 		/*await super.sil(e)
 		return await super.yaz(e)*/
 	}
+	importIcinVarmi(e = {}) {
+		let { keyHV: hv } = e
+		hv ??= this.keyHostVars(hv)
+		delete hv.xuserkod
+		e.keyHV = hv
+		return super.importIcinVarmi(e)
+	}
+	kayitSayisi(e = {}) {
+		let { aciklama, sayacSaha } = this
+		let { keyHV: hv } = e
+		if (aciklama) {
+			hv ??= this.keyHostVars(e)
+			hv.aciklama = aciklama
+			delete hv[sayacSaha]
+			e.keyHV = hv
+		}
+		return super.kayitSayisi(e)
+	}
 	alternateKeyHostVarsDuzenle(e) {
 		super.alternateKeyHostVarsDuzenle(e)
-		let {islem, hv, parentPart = app.activeWndPart} = e
-		let {encUser, raporKod, aciklama, class: { sayacSaha, adiSaha }} = this
-		let {rapor = {}} = parentPart
+		let { islem, hv, parentPart = app.activeWndPart } = e
+		let { sayac, encUser, raporKod, aciklama, class: { sayacSaha, adiSaha } } = this
+		let { rapor = {} } = parentPart
 		raporKod ||= rapor.rapor?.class?.kod ?? rapor.class?.kod
 		// if (!raporKod) { debugger }
 		extend(hv, { raportip: raporKod, xuserkod: encUser })
 		hv[adiSaha] = aciklama
-		if (islem == 'sil')
-			delete hv.xuserkod
-		else
-			delete hv[sayacSaha]
+
+		switch (islem) {
+			case 'degistir': {
+				if (sayac) {
+					hv[sayacSaha] = sayac
+					deleteKeys(hv, 'aciklama', 'xuserkod')
+				}
+				break
+			}
+			case 'sil': {
+				delete hv.xuserkod
+				break
+			}
+			default: {
+				delete hv[sayacSaha]
+				break
+			}
+		}
 	}
 	keySetValues({ rec }) {
 		super.keySetValues(...arguments)
@@ -430,12 +523,15 @@ class DMQRapor extends DMQSayacliKA {
 		let { kullanim, filtreKaydedilirmi } = this
 		if (kullanim)
 			res.kullanim = isString(kullanim) ? JSON.parse(kullanim) : kullanim
+		
 		let { secimler = parentPart?.rapor?.secimler } = this
 		if (secimler && filtreKaydedilirmi) {
 			let { asObject: data } = secimler
 			if (!empty(data))
 				res.secimler = data
 		}
+		
+		deleteKeys(res, 'xuserkod', 'userkod', 'bfavori', 'favorimi')
 	}
 	inExp_setValues({ rec, parentPart }) {
 		super.inExp_setValues(...arguments)
@@ -450,6 +546,7 @@ class DMQRapor extends DMQSayacliKA {
 			}
 			this.kullanim = kullanim
 		}
+		
 		let { filtreKaydedilirmi } = this
 		let { secimler = parentPart?.rapor?.secimler } = this
 		if (secimler && filtreKaydedilirmi) {

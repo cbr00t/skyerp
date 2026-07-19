@@ -75,11 +75,11 @@ class MQKod extends MQCogul {
 	}
 	static orjBaslikListesiDuzenle({ liste, mfSinif }) {
 		let e = arguments[0]; super.orjBaslikListesiDuzenle(e)
-		mfSinif ??= this; let {kodEtiket, kodKullanilirmi, mqGUIDmi, kodSaha, adiSaha} = mfSinif
-		kodEtiket ||= (mqGUIDmi ? 'ID' : 'Kod')
+		mfSinif ??= this; let {kodEtiket, kodKullanilirmi, guidmi, kodSaha, adiSaha} = mfSinif
+		kodEtiket ||= (guidmi ? 'ID' : 'Kod')
 		let mini = isMiniDevice()
 		let cellsRenderer = e.cellsRenderer = (colDef, rowIndex, belirtec, value, html, jqxCol, rec) => {
-			if (belirtec == adiSaha && mini && kodKullanilirmi && !mqGUIDmi) {
+			if (belirtec == adiSaha && mini && kodKullanilirmi && !guidmi) {
 				html = changeTagContent(html, [
 					`<span class="asil">${value}</span>`,
 					`<span class="ek-bilgi bold royalblue float-right" style="padding-left: 10px">${rec[kodSaha]}</span>`
@@ -98,8 +98,8 @@ class MQKod extends MQCogul {
 				belirtec: mfSinif.kodSaha,
 				text: kodEtiket, cellsRenderer,
 				minWidth: 100,
-				width: mini ? 150 : mqGUIDmi ? 320 : 250,
-				hidden: mini || !(kodKullanilirmi || mqGUIDmi),
+				width: mini ? 150 : guidmi ? 320 : 250,
+				hidden: mini || !(kodKullanilirmi || guidmi),
 				sql: kodKullanilirmi ? undefined : false
 			})
 		)
@@ -298,8 +298,11 @@ class MQKA extends MQKod {
 	}
 }
 class MQGuidVeAdi extends MQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static mqGUIDmi() { return true }
-	static get kodKullanilirmi() { return false } static get bosKodAlinirmi() { return true } static get kodSaha() { return 'id' }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static guidmi() { return true }
+	static get kodKullanilirmi() { return false }
+	static get bosKodAlinirmi() { return true }
+	static get kodSaha() { return 'id' }
 	get id() { return this.kod } set id(value) { this.kod = value } get kodUyarlanmis() { return super.kodUyarlanmis || null }
 	constructor(e) { e = e || {}; let {id} = e; if (id !== undefined) { e.kod = id; delete e.id } super(e) }
 	static standartGorunumListesiDuzenle(e) {

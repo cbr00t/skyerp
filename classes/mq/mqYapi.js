@@ -100,17 +100,24 @@ class MQYapi extends CIO {
 	async degistir(e = {}) {
 		if (!isPlainObject(e))
 			e = { islem: 'degistir', eskiInst: e }
+		
 		await this.degistirOncesiIslemler(e)
-		let {table} = this.class
+		let { table } = this.class
 		let keyHV = this.keyHostVars({ ...e, varsayilanAlma: true }) ?? {}
 		let altKeyHV = this.alternateKeyHostVars({ ...e, varsayilanAlma: true })
 		if (!empty(altKeyHV))
 			extend(keyHV, altKeyHV)
-		let sent = new MQSent({ from: table, where: { birlestirDict: keyHV }, sahalar: '*' })
+		
+		let sent = new MQSent({
+			from: table,
+			where: { birlestirDict: keyHV },
+			sahalar: '*'
+		})
 		let basRec = await this.sqlExecTekil(sent)
 		let hv = this.hostVars(e)
 		let degisenHV = degisimHV(hv, basRec)
 		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode
+		
 		let { trnId } = e
 		let _e = { offlineMode, trnId }
 		let result = true
@@ -233,11 +240,19 @@ class MQYapi extends CIO {
 		let {islem} = e; if (islem == 'degistir') {
 			let {isOfflineMode, gonderildiDesteklenirmi, gonderimTSSaha} = this.class;
 			if (isOfflineMode && gonderildiDesteklenirmi && gonderimTSSaha) {
-				let keyHV = this.alternateKeyHostVars(e); if (empty(keyHV)) { keyHV = this.keyHostVars(e) }
+				let keyHV = this.alternateKeyHostVars(e)
+				if (empty(keyHV))
+					keyHV = this.keyHostVars(e)
 				if (!empty(keyHV)) {
-					let {table} = this.class, {trnId} = e;
-					let query = new MQSent({ from: table, where: [`${gonderimTSSaha} <> ''`, { birlestirDict: keyHV }], sahalar: 'count(*) sayi' });
-					let _e = { trnId, isOfflineMode, query }; let result = await this.sqlExecTekilDeger(_e);
+					let { table } = this.class
+					let { trnId } = e
+					let query = new MQSent({
+						from: table,
+						where: [`${gonderimTSSaha} <> ''`, { birlestirDict: keyHV }],
+						sahalar: 'count(*) sayi'
+					})
+					let _e = { trnId, isOfflineMode, query }
+					let result = await this.sqlExecTekilDeger(_e)
 					if (!!result)
 						throw { isError: true, errorText: 'Bu kayıt merkeze gönderildiği için üzerinde değişiklik yapılamaz' }
 				}
@@ -268,12 +283,14 @@ class MQYapi extends CIO {
 	static async logKaydet(e = {}) {
 		if (!this.logKullanilirmi)
 			return true
+		
 		let {
 			sent: _sent, where, wh, adimBelirtec, logAnaTip, islem, degisenler,
 			tableVeAlias, tabloVeAlias, table, alias, logHV, /*logRecDonusturucu,*/
 			duzenle, duzenleyici, trn
 		} = e
-		let {user: loginUser} = config.session ?? {}
+		
+		let { user: loginUser } = config.session ?? {}
 		islem ??= ''; adimBelirtec ??= this.kodListeTipi ?? ''
 		logAnaTip ??= this.logAnaTip ?? ''
 		degisenler = degisenler?.map(x => x.replaceAll(' ', '_')) ?? []
@@ -283,7 +300,8 @@ class MQYapi extends CIO {
 		let tAlias = (alias ?? tableVeAlias?.alias ?? this.tableAlias) || 't'
 		// logRecDonusturucu ??= this.logRecDonusturucu
 		let sysInfo = app._sysInfo ??= await app.sysInfo()
-		let {computerName, userName, ip} = sysInfo ?? {}
+		let { computerName, userName, ip } = sysInfo ?? {}
+		
 		let _e = { ...e, /*logRecDonusturucu,*/ degisenler }
 		let hv = _e.hv = {
 			islem,
@@ -292,9 +310,10 @@ class MQYapi extends CIO {
 			terminal: [ip || '', computerName || '', userName || ''].join('_'),
 			anatip: logAnaTip, tablo: table, ...logHV,
 			xdegisenler: degisenler.join('_').slice(0, 400)
-		};
+		}
 		duzenleyici?.call(this, _e); hv = _e.hv
 		await this.logHVDuzenle(_e); hv = _e.hv
+		
 		let ins = _e.ins = new MQInsert({ table: 'vtlog', hv })
 		await this.logInsertDuzenle(_e); ins = _e.ins
 		return await this.sqlExecNone({ query: ins, trn })
