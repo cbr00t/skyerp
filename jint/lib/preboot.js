@@ -1,3 +1,5 @@
+var $type, $prototype
+
 Object.defineProperty(Object.prototype, 'size', {
 	enumerable: false, configurable: true,
 	get: function size() {

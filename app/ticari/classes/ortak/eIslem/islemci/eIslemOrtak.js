@@ -669,17 +669,13 @@ class EIslemOrtak extends CObject {
 	xmlDuzenle_detayDevam_id({ xw, seq }) {
 		xw.writeElementString('cbc:ID', seq)
 	}
-	xmlDuzenle_detayDevam_notes({ xw }) {
+	xmlDuzenle_detayDevam_notes({ xw, detay: det }) {
 		let { kural } = app.params.eIslem
 		let { aciklama: kuralAciklama, aciklamaKapsam: kapsam } = kural
-		let { detaylar } = this
 		let hasNote = false
 		if ((kapsam.sadeceAciklamami || kapsam.hepsimi) && !kuralAciklama.hepsiDiptemi) {
-			for (let det of detaylar) {
-				let { aciklamalar } = det
-				if (empty(aciklamalar))
-					continue
-				
+			let { aciklamalar } = det
+			if (!empty(aciklamalar)) {
 				for (let value of aciklamalar) {
 					if (value)
 						xw.writeElementString('cbc:Note', escapeXML(value))
