@@ -78,7 +78,7 @@ class MQYaslandirma extends DRaporMQ {
 	}
 	static ekCSSDuzenle({ dataField: k, value: v, rec: r, result: res }) {
 		super.ekCSSDuzenle(...arguments)
-		if (k == 'bakiye' || k.startsWith('kademe')) {
+		if (k == 'bakiye' || k == 'oncesi' || k.startsWith('kademe')) {
 			//if (!v && k == 'bakiye')
 			//	v = r._bakiye
 			res.push(
@@ -106,6 +106,7 @@ class MQYaslandirma extends DRaporMQ {
 				new GridKolon({ belirtec: 'ilAdi', text: 'İl Adı', genislikCh: 13 }).checkedList()
 			),
 			new GridKolon({ belirtec: 'bakiye', text: 'Bakiye', genislikCh: 18 }).input().tipDecimal_bedel(),
+			new GridKolon({ belirtec: 'oncesi', text: 'Öncesi', genislikCh: 15 }).input().tipDecimal_bedel(),
 			...keys(kademeler).map(i => {
 				i = Number(i)
 				return new GridKolon({

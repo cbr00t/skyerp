@@ -641,27 +641,35 @@ class MQDetayliGUID extends MQDetayliMaster {
 		})
 	}
 	hostVarsDuzenle({ hv }) {
-		super.hostVarsDuzenle(...arguments);
-		let {sayacSaha, adiKullanilirmi, adiSaha} = this.class, id = this.id = this.id || newGUID();
-		if (sayacSaha && id) { hv[sayacSaha] = id }
-		if (adiKullanilirmi && adiSaha) { hv[adiSaha] = this.aciklama }
+		super.hostVarsDuzenle(...arguments)
+		let { sayacSaha, adiKullanilirmi, adiSaha } = this.class
+		let id = this.id = this.id || newGUID()
+		if (sayacSaha && id)
+			hv[sayacSaha] = id
+		if (adiKullanilirmi && adiSaha)
+			hv[adiSaha] = this.aciklama
 	}
 	setValues({ rec }) {
-		super.setValues(...arguments);
-		let {adiKullanilirmi, adiSaha} = this.class;
-		if (adiKullanilirmi && adiSaha) { this.aciklama = rec[adiSaha] }
+		super.setValues(...arguments)
+		let {adiKullanilirmi, adiSaha} = this.class
+		if (adiKullanilirmi && adiSaha)
+			this.aciklama = rec[adiSaha]
 	}
 	inExp_hostVarsDuzenle(e) {
-		super.inExp_hostVarsDuzenle(e); let {hv} = e;
-		let {detaylar} = this, detHVListe = hv.detaylar = [];
+		super.inExp_hostVarsDuzenle(e)
+		let { hv } = e
+		let { detaylar } = this
+		let detHVListe = hv.detaylar = []
 		for (let det of detaylar) {
-			let detHV = det.exportSelf(); if (empty(detHV)) { continue }
-			let {class: { name: _cls }} = det;
+			let detHV = det.exportSelf()
+			if (empty(detHV))
+				continue
+			
+			let { class: { name: _cls } } = det
 			detHVListe.push({ _cls, ...detHV })
 		}
 	}
 	inExp_setValues(e) {
-		e ??= {}
 		super.inExp_setValues(e)
 		let { rec } = e
 		let { detaylar: detHVListe } = rec

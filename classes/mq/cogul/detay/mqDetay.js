@@ -90,6 +90,11 @@ class MQDetay extends MQSayacli {
 		super.exportDataDuzenle(...arguments)
 		deleteKeys(res, 'okunanHarSayac', 'eskiSeq')
 	}
+	inExp_HostVarsDuzenle({ hv }) {
+		super.inExp_HostVarsDuzenle(...arguments)
+		let { fisSayacSaha, seqSaha } = this.class
+		deleteKeys(res, fisSayacSaha, seqSaha)
+	}
 	inExp_setValues({ rec }) {
 		super.inExp_setValues(...arguments)
 		this.okunanHarSayac = this.eskiSeq = null

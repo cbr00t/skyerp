@@ -30,7 +30,7 @@ class MQMustBilgi extends MQKAOrtak {
 		super.ekCSSDuzenle(...arguments)
 		if (rec.dengesizmi && belirtec == 'bakiye')
 			result.push('fs-110 lightblack bg-lightorangered')
-		else if (belirtec == 'bakiye' || belirtec.startsWith('kademe')) {
+		else if (belirtec == 'bakiye' || belirtec == 'oncesi' || belirtec.startsWith('kademe')) {
 			let value = rec[belirtec]
 			if (value)
 				result.push(value < 0 ? 'red' : 'green')
@@ -62,7 +62,8 @@ class MQMustBilgi extends MQKAOrtak {
 			new GridKolon({
 				belirtec: 'bakiye', text: 'Bakiye',
 				genislikCh: 13, cellClassName: 'bold'
-			}).tipDecimal_bedel().sum().input()
+			}).tipDecimal_bedel().sum().input(),
+			new GridKolon({ belirtec: 'oncesi', text: 'Öncesi', genislikCh: 15 }).input().tipDecimal_bedel()
 		])
 		for (let i = 1; i <= MustBilgi.kademeler.length; i++) {
 			liste.push(

@@ -5,6 +5,7 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 	static get detaySinif() { return SBTabloDetay } static get gridKontrolcuSinif() { return SBTabloGridci }
 	static get kolonFiltreKullanilirmi() { return false } static get raporKullanilirmi() { return false }
 	static get tumKolonlarGosterilirmi() { return true } static get inExpKullanilirmi() { return true }
+	static get logKullanilirmi() { return false }
 	static get gridHeight_bosluk() { return 90 } static get _repeatButton_delayMS() { return 100 }
 	get yatayAnalizVarmi() { return !!this.yatayAnaliz?.char }
 	static pTanimDuzenle({ pTanim }) {
@@ -400,8 +401,10 @@ class SBTabloDetay extends MQDetay {
 		])
 	}
 	hostVarsDuzenle({ hv }) {
-		super.hostVarsDuzenle(...arguments); let {okunanHarSayac: id} = this
-		id ||= newGUID(); extend(hv, { id })
+		super.hostVarsDuzenle(...arguments)
+		let { okunanHarSayac: id } = this
+		id ||= newGUID()
+		extend(hv, { id })
 		let { hesapTipi: { formulmu, ekBilgi: { querymi } = {} } = {} } = this
 		if (!(querymi || formulmu))
 			hv.bnegated = false
@@ -410,17 +413,28 @@ class SBTabloDetay extends MQDetay {
 		super.setValues(...arguments)
 		/* extend(this, { satirListeStr }) */
 	}
-	inExp_hostVarsDuzenle({ hv } = {}) {
+	inExp_hostVarsDuzenle(e) {
 		super.inExp_hostVarsDuzenle(e)
-		let { asObject: secimlerData } = this.secimler ?? {}
-		if (!empty(secimlerData))
-			hv.secimler = secimlerData
+		let { hv } = e
+		// extend(hv, this.hostVars(e))
+		
+		;{
+			let { secimler: sec } = this
+			let { asObject: secData } = sec ?? {}
+			if (!empty(secData))
+				hv.secimler = secData
+		}
 	}
-	inExp_setValues({ rec, rec: { secimler: secimlerData } } = {}) {
-		super.inExp_setValues(...arguments)
-		let { secimler } = this
-		if (secimler)
-			secimler.readFrom({ liste: secimlerData })
+	inExp_setValues(e) {
+		super.inExp_setValues(e)
+		let { rec } = e
+		// this.setValues(e)
+		;{
+			let { secimler: secData = {} } = rec
+			let { secimler: sec } = this
+			if (sec)
+				sec.readFrom({ liste: secData })
+		}
 	}
 	raporQueryDuzenle(e) {
 		let det = e.det = this

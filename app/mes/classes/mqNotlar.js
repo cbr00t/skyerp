@@ -91,18 +91,36 @@ class MQEkNotlar extends MQSayacliOrtak {
 		for (let i = 1; i <= urlCount; i++) {
 			liste.push(new GridKolon({
 				filterable: false, sortable: false, groupable: false,
-				belirtec: `resim${i}`, text: `Dokuman Resim ${i}`, genislikCh: 20, cellsRenderer: (colDef, rowIndex, belirtec, _value, html, jqxCol, rec) => {
-					let i = asInteger(belirtec.slice('resim'.length)), value = rec[`url${i}`], parts = value ? value.split('=') : null, ext, resimmi = false;
-					if (parts?.length) {
-						let ind = parts.findIndex(part => part?.toLowerCase()?.endsWith('ext'));
-						if (ind != -1) { ext = parts[ind + 1]?.trim()?.toLowerCase(); resimmi = !!fileExtSet_image[ext] }
-					}
-					if (value) {
-						html = resimmi
-									? `<div class="full-wh" style="background-repeat: no-repeat; background-size: contain; background-image: url(${value})"/>`
-									: `<iframe class="full-wh" style="border: none; margin: 0; padding: 0; background-size: contain" src="${value}"></iframe>`
-					}
-					return html
+				belirtec: `resim${i}`, text: `Dokuman Resim ${i}`, genislikCh: 20,
+				cellsRenderer: (cd, i, k, _v, h, jc, r) => {
+					i = Number(k.slice(k.length)) + 1
+					let url = r[`url${i}`]
+					if (url)
+						h = (
+							`<iframe
+								class="full-wh"
+								style="
+									border: none; margin: 0; padding: 0;
+									pointer-events: none
+									${
+										config.colorScheme == 'dark'
+											? `; filter: invert(1) hue-rotate(180deg)`
+											: ''
+									}
+								"
+								src="data:text/html;,<html><body><img style='width: ${jc.width - 25}px' src='${url}'></img></body></html>"
+								onclick="${this.name}.dokumanGosterIstendi({ gridPart: app.activeWndPart, focusURL: ${url} })"
+							></iframe>`
+						)
+					
+						/*let tokens = v.split('.')
+						let ext = tokens?.at(-1)?.toLowerCase()
+						let resimmi = !!fileExtSet_image[ext]
+						h = resimmi
+							? `<div class="full-wh" style="background-repeat: no-repeat; background-size: contain; background-image: url(${url})"/>`
+							: `<iframe class="full-wh" style="border: none; margin: 0; padding: 0; background-size: contain" src="${url}"></iframe>`
+						*/
+					return h
 				}
 			}).noSql())
 		}
@@ -249,15 +267,21 @@ class MQEkNotlar extends MQSayacliOrtak {
 			if (ekNotLastReadId != savedLastReadId) { localData.set('ekNotLastReadId', ekNotLastReadId); localData.kaydetDefer() }
 		}*/
 	}
-	static orjBaslikListesi_satirTiklandi(e) {
-		e = e || {}; let gridPart = e.gridPart ?? e.sender, gridWidget = e?.event?.args?.owner ?? gridPart.gridWidget;
-		setTimeout(() => {
-			let belirtec = e.belirtec ?? gridWidget?._clickedcolumn, rec = e.rec ?? gridPart.selectedRec; let focusURL;
-			if (rec && belirtec?.startsWith('resim') && (focusURL = rec[belirtec.replace('resim', 'url')]?.trim())) { this.dokumanGosterIstendi({ ...e, focusURL }) }
-		}, 100)
+	static orjBaslikListesi_satirTiklandi(e = {}) {
+		let { gridPart = e.sender, event: { args } = {} } = e
+		let gridWidget = args?.owner ?? gridPart.gridWidget
+		delay(100).then(() => {
+			let { belirtec: k = gridWidget?._clickedcolumn } = e
+			let { rec: r = gridPart.selectedRec } = e
+			if (r && k?.startsWith('resim')) {
+				let focusURL = r[ k.replace(k, 'url') ]?.trim()
+				this.dokumanGosterIstendi({ ...e, focusURL })
+			}
+		})
 	}
 	static dokumanGosterIstendi(e = {}) {
-		let islemAdi = 'Döküman Göster'; try {
+		let islemAdi = 'Döküman Göster'
+		try {
 			let {builder, focusURL} = e, gridPart = e.gridPart ?? builder?.rootPart ?? e.sender ?? app.activeWndPart, recs = gridPart.selectedRecs, {urlCount} = this;
 			let urlListe = []; for (let rec of recs) { for (let i = 1; i <= urlCount; i++) { let value = rec[`url${i}`]; if (value) { urlListe.push(value.trim()) } } }
 			if (!urlListe.length) { return } if (focusURL) { urlListe.sort((a, b) => a == focusURL ? -1 : 0) }

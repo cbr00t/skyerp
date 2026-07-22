@@ -20,7 +20,7 @@ class TicariApp extends App {
 			finans: MQFinansParam.getInstance(), maliyet: MQMaliyetParam.getInstance(),
 			kalite: MQKaliteParam.getInstance(), muhasebe: MQMuhasebeParam.getInstance(),
 			web: MQWebParam.getInstance(), eMailVT: MQVTMailParam.getInstance(), eMailOrtak: MQOrtakMailParam.getInstance(),
-			vergi: MQVergiParam.getInstance()
+			vergi: MQVergiParam.getInstance(), proforma: MQProformaParam.getInstance()
 		})
 	}
 	sabitTanimlarDuzenle(e = {}) { super.sabitTanimlarDuzenle(e); const {sabitTanimlar} = e; $.extend(sabitTanimlar, { vergi: this.wsSabitTanimlar_xml('EBYN-KDV-Kodlar') }) }

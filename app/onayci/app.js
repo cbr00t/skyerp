@@ -1,6 +1,6 @@
 class OnayciApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	get onayMax() { return 2 }
+	get onayMax() { return 3 }
 	get ntfyTopic() {
 		let { session: { user } = {} } = config
 		let { portalMustKod: must, ntfyEkId: id } = this

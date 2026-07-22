@@ -383,22 +383,36 @@ class MQAlimSatisParamOrtak extends MQTicariParamBase {
 	}
 }
 class MQAlimParam extends MQAlimSatisParamOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get paramKod() { return 'SFAL' } static get sinifAdi() { return 'Alım Genel Parametreleri' }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get paramKod() { return 'SFAL' }
+	static get sinifAdi() { return 'Alım Genel Parametreleri' }
 	static paramYapiDuzenle(e){
-		super.paramYapiDuzenle(e); let {paramci, temps} = e;
-		let form = temps.islem_kullanim, kullanim = form.addKullanim();
-			kullanim.addBool('hizmetGiderPusulasi', 'Hizmet Gider Pusulası'); kullanim.addBool('stokGiderPusulasi', 'Stok Gider Pusulası')
+		super.paramYapiDuzenle(e)
+		let { paramci, temps } = e
+		let { islem_kullanim: form } = temps
+		let kullanim = form.addKullanim()
+		kullanim.addBool('hizmetGiderPusulasi', 'Hizmet Gider Pusulası')
+		kullanim.addBool('stokGiderPusulasi', 'Stok Gider Pusulası')
+		kullanim.addBool('gelenProformaIslemleri', 'Gelen Proforma İşlemleri')
 	}
 }
 class MQSatisParam extends MQAlimSatisParamOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get paramKod() { return 'SFST' } static get sinifAdi() { return 'Satış Genel Parametreleri' }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get paramKod() { return 'SFST' }
+	static get sinifAdi() { return 'Satış Genel Parametreleri' }
 	static paramYapiDuzenle(e){
-		super.paramYapiDuzenle(e); let {paramci, temps} = e;
-		let form = temps.islem_kullanim, kullanim = form.addKullanim();
-			kullanim.addBool('satisRota', 'Satış Rotası'); kullanim.addBool('malKabulNo', 'Mal Kabul No'); kullanim.addBool('kunyeVeBorsa', 'Künye ve Borsa');
-			kullanim.addBool('mikroIhracat', 'Mikro İhracat'); kullanim.addBool('internetSatisi', 'İnternet Satışı'); kullanim.addBool('kamuIhale', 'Kamu İhale');
+		super.paramYapiDuzenle(e)
+		let { paramci, temps } = e
+		let { islem_kullanim: form } = temps
+		let kullanim = form.addKullanim()
+			kullanim.addBool('satisRota', 'Satış Rotası')
+			kullanim.addBool('malKabulNo', 'Mal Kabul No'); kullanim.addBool('kunyeVeBorsa', 'Künye ve Borsa')
+			kullanim.addBool('mikroIhracat', 'Mikro İhracat')
+			kullanim.addBool('internetSatisi', 'İnternet Satışı'); kullanim.addBool('kamuIhale', 'Kamu İhale')
 			kullanim.addBool('stokIadeGiderPusulasi', 'Gider Pusulası')
-		form = temps.sip2_irsFat; form.addBool('sip2Irsaliye', 'Sip -> İrs Dönüşüm Yapılır'); form.addBool('sip2XSecerek', 'Sip->İrs/Fat Seçerek Dönüşüm'); form.addBool('sip2XEkransalDuzenleme', 'Sip->İrs/Fat Toplu Dönüşüm');
+		form = temps.sip2_irsFat
+				form.addBool('sip2Irsaliye', 'Sip -> İrs Dönüşüm Yapılır')
+		form.addBool('sip2XSecerek', 'Sip->İrs/Fat Seçerek Dönüşüm'); form.addBool('sip2XEkransalDuzenleme', 'Sip->İrs/Fat Toplu Dönüşüm');
 		let tabPage = paramci.addTabPage('sf', 'Sip->Fat'); form = tabPage.addGrup().addFormWithParent(); kullanim = form.addKullanim();
 			form.addBool('sip2Fatura', 'Sip->Fat Dönüşüm Yapılır');
 		form = temps.form_genel2; tabPage = paramci.addTabPage('risk', 'Risk');
@@ -805,5 +819,24 @@ class MQVergiParam extends MQTicariParamBase {
 	paramSetValues({ rec }) {
 		super.paramSetValues(...arguments)
 		this.genelKdvOrani ??= this.class.genelKdvOrani
+	}
+}
+
+class MQProformaParam extends MQTicariParamBase {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get paramKod() { return 'PROPARAM' }
+	static get sinifAdi() { return 'Proforma Parametreleri' }
+
+	constructor(e = {}) {
+		super(e)
+		this.anaBolum ??= 'C:\\VioData\\Proforma'
+	}
+	static paramYapiDuzenle({ paramci }) {
+		super.paramYapiDuzenle(...arguments)
+		paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 10px !important }`)
+		;{
+			let form = paramci.addFormWithParent()
+			form.addString('anaBolum', 'Ana Bölüm')
+		}
 	}
 }

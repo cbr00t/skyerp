@@ -1,9 +1,10 @@
 class MustBilgi extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get ilkKademe() { return 0 }
 	static {
 		extend(this, {
 			yaslandirmaKey: 'kapanmayanHesap_yaslandirma',
-			kademeler: [0, 15, 30, 45, 60],
+			kademeler: [this.ilkKademe, 15, 30, 45, 60],
 			kademeEk: 0
 		})
 	}
@@ -40,29 +41,30 @@ class MustBilgi extends CObject {
 			yaslandirmalar[index] = new Yaslandirma({ index, gecmis: 0, gelecek: 0 }))
 		
 		// if (mustKod == 'M05D47577') { debugger }
-		for (let rec of kapanmayanHesaplar) {
-			let {isaretligecikmegun: isaretliGecikmeGun} = rec
-			let acikKisim = rec.acikkisim || 0
-			if (isaretliGecikmeGun != null) {    // normalde gelmemesi lazım
-				isaretliGecikmeGun = isString(isaretliGecikmeGun) ? asDate(isaretliGecikmeGun) : isaretliGecikmeGun
-				if (isDate(isaretliGecikmeGun))
-					isaretliGecikmeGun = ((isaretliGecikmeGun - minDate) / Date_OneDayNum) + 1
-				rec.gecikmegun = rec.gelecekgun = 0
+		for (let r of kapanmayanHesaplar) {
+			let { isaretligecikmegun: gun } = r
+			let acikKisim = r.acikkisim || 0
+			if (gun != null) {    // normalde gelmemesi lazım
+				gun = isString(gun) ? asDate(gun) : gun
+				if (isDate(gun))
+					gun = ((gun - minDate) / Date_OneDayNum) + 1
+				r.gecikmegun = r.gelecekgun = 0
 				;{
-					let selector = isaretliGecikmeGun < 0 ? 'gelecekgun' : 'gecikmegun'
-					rec[selector] += abs(isaretliGecikmeGun)
+					let sel = `${gun <= 0 ? 'gelecek' : 'gecikme'}gun`
+					r[sel] = abs(gun)
 				}
-				delete rec.isaretligecikmegun
+				delete r.isaretligecikmegun
 			}
-			let { gecikmegun: gecikmeGun, gelecekgun: gelecekGun } = rec
+			let { gecikmegun: gecikmeGun, gelecekgun: gelecekGun } = r
 			let index = this.class.getGunIcinKademeIndex(gecikmeGun || gelecekGun)
 			let yaslandirma = yaslandirmalar[index]
 			;{
-				let selector = gelecekGun ? 'gelecek' : 'gecmis'
+				let selector = gecikmeGun ? 'gecmis' : 'gelecek'
 				yaslandirma[selector] = (yaslandirma[selector] || 0) + acikKisim
 			}
 		}
 		this.bakiye = roundToFra2(topla(_ => _.bedel || 0, yaslandirmalar))
+		this.oncesi = roundToFra2(topla(_ => _.gelecek || 0, yaslandirmalar))
 		for (let i = 1; i <= kademeler.length + 1; i++)
 			this[`kademe${i}Bedel`] = this.getKademeGecmisBedeli(i - 1)
 
@@ -87,18 +89,23 @@ class MustBilgi extends CObject {
 		}
 		return 0
 	}
-	static getKademeText(index) {
-		let { kademeler, kademeEk } = this
-		let kademe = kademeler[index]
-		if (index == kademeler.length - 1)
+	static getKademeText(i) {
+		i = Number(i)
+		let { kademeler: arr, kademeEk: ek } = this
+		let { ilkKademe: ilk } = MustBilgi
+		let v = arr[i]
+		if (i == arr.length - 1)
 			return 'Sonrası'
 		
-		let _kademeBS = new CBasiSonu({ basi: kademe ? kademe + 1 : 0, sonu: kademeler[index + 1] })
-		if (kademeEk) {
-			for (let key in _kademeBS)
-				_kademeBS[key] += kademeEk
+		let bs = new CBasiSonu({
+			basi: v + 1,
+			sonu: arr[i + 1]
+		})
+		if (ek) {
+			for (let k in bs)
+				bs[k] += ek
 		}
-		return _kademeBS.toString()
+		return bs.toString()
 	}
 	getKademeGecmisBedeli(i) {
 		return this.yaslandirmalar[i]?.gecmis || 0

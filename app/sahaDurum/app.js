@@ -52,8 +52,15 @@ class SahaDurumApp extends App {
 	}
 	yaslandirmaGunleriDuzenle(e) {
 		let { finans: { yaslandirmaGunleri } = {} } = app.params
-		if (!empty(yaslandirmaGunleri))
-			MustBilgi.kademeler = yaslandirmaGunleri
+		if (!empty(yaslandirmaGunleri)) {
+			let { ilkKademe: ilk } = MustBilgi
+			let arr = yaslandirmaGunleri
+			if (ilk != 0)
+				arr = arr.filter(Boolean)
+			if (arr[0] != ilk)
+				arr.unshift(ilk)
+			MustBilgi.kademeler = arr
+		}
 	}
 	getAnaMenu(e) {
 		// let disabledMenuIdSet = this.disabledMenuIdSet ?? {}
