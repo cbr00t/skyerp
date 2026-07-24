@@ -169,11 +169,12 @@ class MQCariEkstre extends MQYaslandirmaEk_Base {
 			case 'bakiye': {
 				let bakiyemi = k == 'bakiye'
 				if (bakiyemi ? !i : true) {
+					let _v = k == 'alacakbedel' ? -v : v
 					res.push(
 						( bakiyemi ? 'fs-130' : 'fs-110' ),
 						'bold',
-						v
-							? v < 0 ? 'firebrick' : ( bakiyemi ? 'royalblue' : 'forestgreen' )
+						_v
+							? _v < 0 ? 'firebrick' : ( bakiyemi ? 'royalblue' : 'forestgreen' )
 							: 'lightgray'
 					)
 				}

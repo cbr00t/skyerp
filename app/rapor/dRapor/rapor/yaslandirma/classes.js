@@ -36,109 +36,133 @@ MustBilgi: class MustBilgi extends CObject {
 			.filter(Boolean)
 			.join(delimWS)
 	}
-	init() {
-		let { kapanmayanHesap = [], cariEkstre } = this
+	calc() {
+		let { kapanmayanHesap = [], cariEkstre = [] } = this
 		let { kademeler } = Yaslandirma
-
-		let arr = { neg: [], pos: [] }
-		;kapanmayanHesap.forEach(r => {
-			let { acikkisim: v } = r
-			let k = (
-				v < 0 ? 'neg' :
-				v > 0 ? 'pos' :
-				null
-			)
-			if (k)
-				arr[k].push(r)
-		})
 		
-		function* iter({ neg, pos }) {
-			let ni = 0, pi = 0
-			while (ni < neg.length && pi < pos.length) {
-				let n = neg[ni], p = pos[pi]
-				yield { neg: n, pos: p }
-				
-				if (!n.acikkisim)
-					ni++
-				if (!p.acikkisim)
-					pi++
-			}
-		}
-		for (let { neg, pos } of iter(arr)) {
-			let v = min(-neg.acikkisim, pos.acikkisim)
-			neg.acikkisim += v
-			pos.acikkisim -= v
-		}
-		kapanmayanHesap = this.kapanmayanHesap = []
-		;values(arr).forEach(sub =>
-			kapanmayanHesap.push(...sub.filter(r => r.acikkisim)))
-			
-		/*let it = {
-			neg: kapanmayanHesap.filter(r => r.acikkisim < 0).values(),
-			pos: kapanmayanHesap.filter(r => r.acikkisim > 0).values(),
-			*getIter() {
-				let c = this.cur ??= { neg: this.neg.next(), pos: this.pos.next() }
-				values(c).forEach(_ => {
-					if (!_.value.acikkisim)
-						_.next()
-				})
-				let { neg, pos } = c
-				if (!(neg.done && pos.done))
-					yield { neg: neg.value, pos: pos.value }
-			}
-		}
+		let bakiye = roundToFra2(topla(_ => _.acikkisim || 0, kapanmayanHesap))
+		let dengesizmi = false
 
+		// 1) Kapanmayan Hesaplar ile Cari Ekstre dengeli mi kontrolü kapanmayanHesap
 		;{
-			let arr = {
-				neg: kapanmayanHesap.filter(r => r.acikkisim < 0),
-				pos: kapanmayanHesap.filter(r => r.acikkisim > 0)
-			}
-			let iter = {}, c = {}
-			for (let [k, v] of entries(arr)) {
-				let it = iter[k] = v.values()
-				c[k] = it.next()
-			}
-			
-			while (!(c.neg.done || c.pos.done)) {
-				let { value: neg } = c.neg
-				let { value: pos } = c.pos
-				let minAcik = min( abs(neg.acikkisim), pos.acikkisim )
-				neg.acikkisim += minAcik
-				pos.acikkisim -= minAcik
-
-				;keys(c)
-					.filter(k =>
-						abs(c[k].value.acikkisim) <= .001)
-					.forEach(k =>
-						c[k] = iter[k].next())
-			}
-			
-			kapanmayanHesap = this.kapanmayanHesap =
-				values(arr)
-					.flat()
-					.filter(r => r.acikkisim)
+			let ekstreToplam = roundToFra2(topla(
+				r => r.isaretlibedel || 0,
+				cariEkstre
+			))
+			dengesizmi = abs(bakiye) != abs(ekstreToplam)
 		}
-		*/
 		
-		let yaslandirmalar = this.yaslandirmalar = []
+		if (dengesizmi) {
+			// 2) Cari Ekstre -> Kapanmayan Hesap sanal kayıt oluştur
+			;{
+				// 2.a) Sanal kayıt dönüşüm kuralını belirle
+				let cnv = {
+					...fromEntries([
+						'must', 'tarih', 'isladi', 'vade',
+						'takipno', 'takipadi'
+					].map(k => [k, k])),
+					fisnox: 'belgeNox',
+					isaretlibedel: 'bedel'
+				}
+
+				// 2.b) Sanal Kapanmayan Hesap kayıtları oluştur
+				// let _kapanmayanHesap = kapanmayanHesap
+				kapanmayanHesap = cariEkstre.map(_r => {
+					// 2.b.1) Sanal kayıt oluştur
+					let r = {}
+					for (let [kSrc, kDest] of entries(cnv)) {
+						let v = _r[kSrc]
+						if (v != null)
+							r[kDest] = v
+					}
+
+					// 2.b.2) ( Açık Kısım = Bedel )  kabul et
+					r.acikkisim = r.bedel
+
+					// 2.b.3) (Tarih, Vade) için String -> Date dönüşümü yap
+					;['tarih', 'vade'].forEach(k => {
+						let v = r[k]
+						if (isString(v))
+							r[k] = v = asDate(v)
+					})
+
+					// 2.b.4) Vade varsa ( Tarih - Vade ) üzerinden 'İşaretli Gecikme Gün' belirle
+					;{
+						let { isaretligecikmegun: gun, tarih, vade } = r
+						if (gun == null && tarih && vade)
+							r.isaretligecikmegun = gun = floor(( tarih - vade ) / Date_OneDayNum)
+					}
+					return r
+				})
+			}
+
+			// 3) Dengesiz /(+ ve -) olan/ Kapanmayan Hesapları düzenle
+			;{
+				function* iter({ neg, pos }) {
+					let ni = 0, pi = 0
+					while (ni < neg.length && pi < pos.length) {
+						let n = neg[ni], p = pos[pi]
+						yield { neg: n, pos: p }
+						
+						if (!n.acikkisim)
+							ni++
+						if (!p.acikkisim)
+							pi++
+					}
+				}
+				
+				let arr = { neg: [], pos: [] }
+				;kapanmayanHesap.forEach(r => {
+					let { acikkisim: v } = r
+					let k = (
+						v < 0 ? 'neg' :
+						v > 0 ? 'pos' :
+						null
+					)
+					if (k)
+						arr[k].push(r)
+				})
+				
+				for (let { neg, pos } of iter(arr)) {
+					let v = min(-neg.acikkisim, pos.acikkisim)
+					neg.acikkisim += v
+					pos.acikkisim -= v
+				}
+				
+				kapanmayanHesap = []
+				;values(arr).forEach(sub =>
+					kapanmayanHesap.push(...sub.filter(r => r.acikkisim)))
+			}
+
+			// 4) Yeniden Bakiye Hesapla
+			bakiye = roundToFra2(topla(_ => _.acikkisim || 0, kapanmayanHesap))
+		}
+
+		// 5) Sabit Yaşlandırma dizisini oluştur
+		let yaslandirmalar = []
 		;kademeler.forEach((_, index) =>
 			yaslandirmalar[index] = new Yaslandirma({ index, gecmis: 0, gelecek: 0 }))
-		
+
+		// 6) Kapanmayan Hesap için Gecikme Gün Hesapla ve Yaşlandırmaları oluştur
 		;kapanmayanHesap.forEach(r => {
+			// 6.a) İşaretli Gecikme Gün -> Gecikme/Gelecek Gün ayrımını netleştir
 			let { isaretligecikmegun: gun, acikkisim: acik = 0 } = r
 			;{
 				if (gun && isString(gun))
 					gun = asDate(gun)
 				if (isDate(gun))
 					gun = ((gun - minDate) / Date_OneDayNum) + 1
+				
 				if (gun != null) {
 					r.gecikmegun = r.gelecekgun = 0
 					let sel = `${gun <= 0 ? 'gelecek' : 'gecikme'}gun`
 					r[sel] = abs(gun)
 				}
+				
 				delete r.isaretligecikmegun
 			}
 
+			// 6.b) Yaşlandırma için Gecikme veya Gelecek Gün'e ait uygun Kademeleri belirle ve Bedelleri Hesapla
 			let { gecikmegun: gecikmeGun, gelecekgun: gelecekGun } = r
 			let index = Yaslandirma.getGunIcinKademeIndex(gecikmeGun || gelecekGun)
 			let yasl = yaslandirmalar[index]
@@ -147,28 +171,18 @@ MustBilgi: class MustBilgi extends CObject {
 				yasl[selector] = (yasl[selector] || 0) + acik
 			}
 		})
-		
-		let bakiye = this.bakiye = roundToFra2(topla(_ => _.bedel || 0, yaslandirmalar))
-		this.oncesi = roundToFra2(topla(_ => _.gelecek || 0, yaslandirmalar))
-		for (let i = 1; i <= kademeler.length + 1; i++)
-			this[`kademe${i}Bedel`] = this.getKademeGecmisBedeli(i - 1)
 
-		if (!empty(cariEkstre)) {
-			let ekstreToplam = roundToFra2(topla(
-				r => r.isaretlibedel || 0,
-				cariEkstre
-			))
-			if (abs(bakiye) != abs(ekstreToplam)) {
-				this.dengesizmi = true
-				this.bakiye = bakiye = ekstreToplam
-			}
+		// 7) Yaşlandırma Kademelerinden Öncesi ve Kademe Bedellerini inst içinde sakla
+		;{
+			this.oncesi = roundToFra2(topla(_ => _.gelecek || 0, yaslandirmalar))
+			for (let i = 1; i <= kademeler.length + 1; i++)
+				this[`kademe${i}Bedel`] = yaslandirmalar[i - 1]?.gecmis ?? 0
 		}
+
+		// 7) Diğer hesap sonuçlarını inst içinde sakla
+		extend(this, { dengesizmi, bakiye, kapanmayanHesap, yaslandirmalar })
 		
 		return this
-	}
-	getKademeGecmisBedeli(i) {
-		let { yaslandirmalar: l } = this
-		return l[i]?.gecmis || 0
 	}
 },
 

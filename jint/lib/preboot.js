@@ -31,14 +31,12 @@ Object.assign(g, {
 	navigator: { onLine: true }
 })
 
-function len(v) { return Object.size(v) }
-function setTimeout(ms) { return delay(ms) }
-function clearTimeout() { }
-function clr(ns) { return importNamespace(ns) }
-function asJS(v) { return isString(v) ? JSON.parse(v) : v }
-
 Object.assign(Object.prototype, {
 	js() { return js(this) },
 	asJS() { return asJS(this) }
 })
+
+function len(v) { return Object.size(v) }
+function clr(ns) { return importNamespace(ns) }
+function asJS(v) { return isString(v) ? JSON.parse(v) : v }
 

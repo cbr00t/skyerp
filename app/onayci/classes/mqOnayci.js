@@ -420,8 +420,8 @@ class MQOnayci extends MQCogul {
 						.addWithAlias('ony', ...[
 							'_table', 'tip', 'onayId', 'sayac', 'id', 'onayNo', 'onayDurum',
 							'onayTS', 'onayRedNedeni', 'onceText', 'onceUser', 'sonraUser',
-							'proformaId'
-						])
+							( proformaKullanilir ? 'proformaId' : null )
+						].filter(Boolean))
 						.add(
 							`${new MQCase()
 								.when(
@@ -1603,22 +1603,6 @@ class MQOnayci extends MQCogul {
 				})
 				await delay(10)
 				pm?.progressStep()
-				
-				/*let { sayac, mustKod, onayId, onayNo, proformaId } = rec
-					Ekran aç:
-						- Başlık: (rec) Tarih, Müşteri, Belge No
-						- Grid: (proRecs)
-							Tarih, Açıklama, Dosya Adı
-
-						Seçilen satırlar için:  [ IZLE ]
-							- Dosya Adı => Aç
-
-						Seçilen satırlar için:  [ Belgeye Bağla ]
-							- rec.proformaId => alimproforma.id
-
-					Onay yapılınca ( ek hv ):
-						- ${db}..webonay.proformaid = proformaId || null
-				*/
 			}
 			
 			if (!hasPM) {

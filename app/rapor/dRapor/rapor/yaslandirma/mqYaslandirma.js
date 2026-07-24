@@ -208,7 +208,7 @@ class MQYaslandirma extends DRaporMQ {
 			let { aciklama: mustUnvan = r.birunvan, yore, ilkod: ilKod, iladi: ilAdi, plasiyerKod, plasiyerAdi, oscolor: osColor } = r
 			let renk = os2HTMLColor(osColor)
 			extend(m, { mustUnvan, yore, ilKod, ilAdi, plasiyerKod, plasiyerAdi, renk })
-			await m.init()
+			await m.calc()
 		}
 
 		if (!bakiyesizleriGoster)
