@@ -142,8 +142,8 @@ body.dark-theme .jqx-grid [role = row] .grid-cell-group { color: #ccc; backgroun
 		font-size: 100%
 	}
 	.jqx-grid [role = row] > div:not(:first-child) > div {
-		margin-top: -3px !important;
-		padding: 1px 2px;
+		margin-top: 0 !important;
+		padding: 5px 2px;
 		line-height: 12px
 	}
 }

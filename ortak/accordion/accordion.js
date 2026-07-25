@@ -186,26 +186,28 @@ class AccordionPart extends Part {
 						}
 					})*/
 				}
-				setTimeout(() => {
-					let safeZone = 10
-					let {length: N} = layout.children('.accordion.item')
-					if (fullScreen && N)
-						N = 1
-					let H = layout.height()
-					let headerH = parseInt(layout.css('--acc-header-height'))                   // getComputedStyle(layout[0]).getPropertyValue('--acc-header-height')
-					let itemPadY = parseInt(layout.css('--item-pad-y'))                         // getComputedStyle(layout[0]).getPropertyValue('--item-pad-y')
-					let border = 3                                                              // css’den sabit
-					let collapsedItemHeight = headerH + (itemPadY * 2) + (border * 2)
-					let contentHeight = parseInt(H - collapsedItemHeight * N - safeZone)
-					elmContent.height(contentHeight)
-					//makeScrollable(elmContent)
-					elmContent.scrollTop(0)
-					/*elmContent.css(
-						'height',
-						`calc(${layout.height()}px - (var(--acc-header-height) * ${layout.children().length - 1}))`
-						// `calc(${elmContent.offset().top}px + (var(--acc-header-height) * ${layout.children().length - container.index() + 1}))`
-					)*/
-				}, 100)
+				if (fullScreen) {
+					delay(100).then(() => {
+						let safeZone = 10
+						let {length: N} = layout.children('.accordion.item')
+						if (fullScreen && N)
+							N = 1
+						let H = layout.height()
+						let headerH = parseInt(layout.css('--acc-header-height'))                   // getComputedStyle(layout[0]).getPropertyValue('--acc-header-height')
+						let itemPadY = parseInt(layout.css('--item-pad-y'))                         // getComputedStyle(layout[0]).getPropertyValue('--item-pad-y')
+						let border = 3                                                              // css’den sabit
+						let collapsedItemHeight = headerH + (itemPadY * 2) + (border * 2)
+						let contentHeight = parseInt(H - collapsedItemHeight * N - safeZone)
+						elmContent.height(contentHeight)
+						//makeScrollable(elmContent)
+						elmContent.scrollTop(0)
+						/*elmContent.css(
+							'height',
+							`calc(${layout.height()}px - (var(--acc-header-height) * ${layout.children().length - 1}))`
+							// `calc(${elmContent.offset().top}px + (var(--acc-header-height) * ${layout.children().length - container.index() + 1}))`
+						)*/
+					})
+				}
 				clearTimeout(this._timer_triggerResize)
 				this._timer_triggerResize = setTimeout(() => {
 					try { $(window).trigger('resize') }

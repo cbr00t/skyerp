@@ -1,5 +1,5 @@
 (function() {
-	let rootCls = DRapor_PratikSatis
+	let rootCls = DRapor_KarZararTablosu
 	rootCls.Panel = class Panel extends CKodVeAdi {
 		get id() { return this.kod } set id(v) { this.kod = v }
 		get title() { return this.aciklama } set title(v) { this.aciklama = v }
@@ -9,18 +9,16 @@
 			super(e)
 			mergeInto(e, this,
 				'id', 'title', 'expanded', 'height', 'content', 'collapsedContent',
-				'duzenleIlk', 'duzenleSon', 'initContentIlk', 'initContentSon',
-				'sube2Recs', 'kod2SubeItem', 'subesizmi'
+				'duzenleIlk', 'duzenleSon', 'initContentIlk', 'initContentSon'
 			)
 			let { id2Item = e.items ?? e.detaylar } = e
 			if (isArray(id2Item))
 				id2Item = fromEntries(id2Item.map(r => [r.id, r]))
-			id2Item ??= {}
-			this.id2Item ??= {}
+			
+			this.kod2SubeItem ??= {}
+			this.id2Item = id2Item ??= {}
 			for (let [id, item] of entries(id2Item))
 				this.set(id, item)
-
-			this.kod2SubeItem ??= {}
 		}
 
 		async run() {
@@ -36,10 +34,10 @@
 					.setLayout(layout)
 					.addStyle(...[
 						`$elementCSS > .formBuilder-element:not(.full) { overflow-y: auto !important }
-						 $elementCSS .formBuilder-element.grid-container {}`
+						 $elementCSS .formBuilder-element.grid-container { }`
 					])
 			}
-			duzenleIlk?.call?.(this, e)
+			await duzenleIlk?.call?.(this, e)
 			acc.add({
 				id, title, expanded,
 				content: ({ item }) => {
@@ -49,7 +47,8 @@
 					if (!isFunction(func))
 						func = inst[`acc_initContent_${id}`] ?? this._initDefaultContent
 					let _e = { ...e, item, layout, rfb }
-					setTimeout(() => func.call(this, _e), 10)
+					delay(10).then(() =>
+						func.call(this, _e))
 				},
 				collapsedContent: ({ sender: acc, item }) =>  {
 					let { contentLayout: layout } = item
@@ -61,7 +60,7 @@
 					return func?.call(this, args)
 				}
 			})
-			duzenleSon?.call?.(this, e)
+			await duzenleSon?.call?.(this, e)
 			return this
 		}
 		async tazele(e = {}) {
@@ -70,7 +69,7 @@
 			return this
 		}
 		async _initDefaultContent(e) {
-			let { height, initContentIlk, initContentSon, subesizmi } = this
+			let { height, initContentIlk, initContentSon } = this
 			let { tanimPart = e.sender ?? {}, rfb = {} } = e
 			let { acc = {}, item, inst = {} } = tanimPart
 			let { contentLayout } = item ?? {}
@@ -99,7 +98,7 @@
 				height = 'calc(var(--full) - (var(--acc-header-height) + 20px))'
 			
 			form.addStyle_fullWH(null, height)
-			form.onAfterRun(({ builder: { layout } }) => {
+			/*form.onAfterRun(({ builder: { layout } }) => {
 				setTimeout(() => {
 					let elms = layout.find('.formBuilder-element.baslik')
 					elms.on('click', ({ currentTarget: target }) => {
@@ -111,80 +110,35 @@
 						}
 					})
 				}, 100)
-			})
+			})*/
 
-			let { dRapor: { praUzakSubeVerisi } } = app.params ?? {}
-			e.gridId2InitSubeSet = {}
 			await initContentIlk?.call?.(this, e)
-
-			let altForm = form.addFormWithParent().altAlta()
+			let altForm = form.addFormWithParent()
+				.yanYana()
 				.addCSS('grid-container')
 				.addStyle_fullWH()
 				//.addStyle_wh('auto', 'calc(var(--full) - 100px)')
-			e.fbd_baslik = altForm.addBaslik()
+			/*e.fbd_baslik = altForm.addBaslik()
 				.addCSS('baslik')
-				.setEtiket(`<b class="royalblue">TOPLAM</b>`)
-			for (let item of this.values()) {
-				// item.subesizmi = subesizmi
-				await item.run({
-					...e,
-					parentForm: form, form: altForm
-				})
-			}
-
-			if (praUzakSubeVerisi) {
-				await tanimPart?._promise_getSubeTanimlari
-				let db2Kod2Def = await inst.getSubeTanimlari?.(...arguments) ?? {}
-				for (let [db, kod2Def] of entries(db2Kod2Def))
-				for (let [subeKod, def] of entries(kod2Def)) {
-					let noTitle = false
-					for (let item of this.values()) {
-						if (item.subemi)
-							continue
-						item.noTitle = noTitle
-						item.sube2Recs ??= {}
-						if (!subesizmi)
-							await item.initContent_subeYapilar({
-								...e,
-								parentForm: form, form: altForm,
-								noTitle, subeKod, def
-							})
-						noTitle = true
-					}
-				}
-			}
+				.setEtiket(`<b class="royalblue">TOPLAM</b>`)*/
+			for (let item of this.values())
+				await item.run({ ...e, parentForm: form, form: altForm })
 			
 			await initContentSon?.call?.(this, e)
 			rfb.run()
+			
 			return this
 		}
 		_initDefaultCollapsedContent(e = {}) {
-			let { dbListe } = app
 			let { tanimPart = {}, layout, rfb = {}, item = {}, islem } = e
-			let { inst = {}, acc = tanimPart.acc, id2SubeResult = {} } = tanimPart
+			let { inst = {}, acc = tanimPart.acc } = tanimPart
 			let { secimler = {} } = inst
 			let { id, collapsed = {} } = item ?? {}
-			let { sonTS, success, error } = id2SubeResult[id] ?? {}
 	
 			let container = $(`<div/>`)
-			//let parent = $(`<div class="flex-row"/>`)
-			if ((secimler && !collapsed) || sonTS || !empty(success)) {
+			if (secimler && !collapsed) {
 				let parent = $(`<div class="parent flex-row full-height" style="gap: 10px"/>`)
-				if (sonTS) {
-					$(
-						`<div class="sonTS fs-90">` + 
-							`<span class="etiket lightgray">Son: </span>` +
-							`<b class="royalblue">${timeToString(sonTS)}</b>` +
-						`</div>`
-					).appendTo(parent)
-				}
-				if (!empty(success)) {
-					let liste = values(success)?.map(_ => _.aciklama) ?? []
-					$(`<div class="subeler success fs-90">Gelen: [ <b class="forestgreen">${liste.join(', ') ?? ''}</b> ]</div>`)
-						.appendTo(parent)
-				}
-	
-				if (secimler && !collapsed) {
+				;{
 					let e = { liste: [] }
 					for (let [k, s] of secimler) {
 						if (k != 'tarihAralik')        // 'donem' ozetBilgi gösteriminde zaten gerekirse tarihAralık bilgisi de var)
@@ -192,20 +146,14 @@
 					}
 					let ozetBilgiHTML = e.liste?.filter(x => !!x).join(' ')
 					if (ozetBilgiHTML) {
-						let elmSecimBilgi = $(`<div class="absolute parent secimBilgi" style="top: -5px; right: 0; margin: 0"/>`)
-						$(ozetBilgiHTML).appendTo(elmSecimBilgi)
-						elmSecimBilgi.appendTo(parent)
+						let elm = $(`<div class="absolute parent secimBilgi" style="top: -5px; right: 0; margin: 0"/>`)
+						$(ozetBilgiHTML).appendTo(elm)
+						elm.appendTo(parent)
 					}
 				}
 				
 				if (!empty(parent.children()))
 					parent.appendTo(container)
-			}
-			
-			if (!empty(error)) {
-				let liste = values(error)?.map(_ => _.aciklama) ?? []
-				$(`<div class="subeler error fs-90"><u class="orangered"><b>HATALI</b>:</u> [ <b class="firebrick">${liste.join(', ') ?? ''}</b> ]</div>`)
-					.appendTo(container)
 			}
 			
 			return container
@@ -262,10 +210,8 @@
 		initContentSonIslemi(v) { this.initContentSon = v; return this }
 		setHeight(v) { this.height = v; return this }
 		fullHeight() { return this.setHeight('full') }
-		subesiz() { this.subesizmi = true; return this }
-		subeli() { this.subesizmi = false; return this }
 	}
-
+	
 	rootCls.PanelDetay = class PanelDetay extends CKodVeAdi {
 		get id() { return this.kod } set id(v) { this.kod = v }
 		get title() { return this.aciklama } set title(v) { this.aciklama = v }
@@ -274,7 +220,8 @@
 			super(e)
 			mergeInto(e, this,
 				'id', 'title', 'userData',
-				'width', 'height', 'widgetArgsDuzenle')
+				'width', 'height', 'widgetArgsDuzenle'
+			)
 		}
 		async run() { return this }
 		async tazele(e) { return this }
@@ -291,21 +238,18 @@
 	}
 
 	rootCls.PanelGrid = class PanelGrid extends rootCls.PanelDetay {
+		static get defGridWidth() { return 430 }
+		static get timeout() { return DRapor_PratikSatis.timeout }
 		static get deepCopyAlinmayacaklar() {
 			return [
 				...super.deepCopyAlinmayacaklar,
-				'builder', '_builder',
-				'subeKod', 'kod2SubeItem', 'sube2Recs'
+				'builder', '_builder'
 			]
 		}
-		static get timeout() { return DRapor_PratikSatis.timeout }
-		static get defGridWidth() { return 430 }
-		get subemi() { return this.subeKod != null }
 
 		constructor(e = {}) {
 			super(e)
-			mergeInto(e, this,
-				'subeKod', 'sube2Recs', 'toplamBelirtec')
+			mergeInto(e, this, 'toplamBelirtec')
 			;['cssDuzenle', 'tabloKolonlari', 'source', 'query', 'recsDuzenle', 'veriYuklenince'].forEach(k => {
 				let v = e[k]
 				if (isString(v))
@@ -317,12 +261,11 @@
 		}
 		async run(e = {}) {
 			await super.run(e)
-			let { id, userData, widgetArgsDuzenle, subemi, subeKod } = this
+			let { id: gridId, userData, widgetArgsDuzenle } = this
 			let { toplamBelirtec, width, height, noTitle } = this
 			let { cssDuzenle, tabloKolonlari, source, query, recsDuzenle, veriYuklenince } = this
 			let { defGridWidth } = this.class
 			let { tanimPart = e.sender, rfb, parentForm, form, panelIciTekrarmi } = e
-			let gridId = [id, subeKod].filter(Boolean).join('_')
 
 			let cellClassName = (...rest) => {
 				let result = this.class.gridCSSHandler(...rest) ?? []
@@ -333,29 +276,30 @@
 			if (height == 'full')
 				parentForm.addCSS('full')
 			
-			// width ||= 'calc(var(--full) - 30px)'
-			// height = height == 'full' ? undefined : height ?? undefined
-			width = width == 'full' ? 'var(--full)' : width || min(defGridWidth, $(window).width() - 50)
-			height = height == 'full' ? 'calc(var(--full) - 60px)' : height ?? null
+			;{
+				width = width == 'full'
+					? 'var(--full)'
+					: width || min(defGridWidth, $(window).width() - 50)
+				height = height == 'full'
+					? 'calc(var(--full) - 5px)'
+					: height ?? null
+			}
+			
 			let parent = form.addFormWithParent()
 				.addStyle_wh(width, height)
-			parent.addStyle(`$elementCSS { border-top: 1px solid #ccc }`)
-			if (!(noTitle || panelIciTekrarmi)) {
-				parent.addForm('empty')
-					.addStyle(`$elementCSS { border-top: 0px solid firebrick; margin: 5px 0 30px 0 !important; padding: 3px 50px !important }`)
-					.addStyle_wh('auto', 5)
-					.addCSS('jqx-hidden')
-					.setLayout(() => $(`<div class="empty fs-100 orangered">Bu şube için veri alınamadı</div>`))
-			}
+				.addStyle(`$elementCSS { border-top: 1px solid #ccc }`)
+			
 			let fbd_grid = this.builder = parent.addGridliGosterici(gridId)
 				.addStyle_fullWH()
 				.addStyle(`$elementCSS { padding-left: 10px }`)
 				.noAnimate().setUserData(userData)
 				.rowNumberOlmasin().notAdaptive()
-				.setToplamYapi({ etiket: { belirtec: toplamBelirtec } })
+				.setToplamYapi({
+					etiket: { belirtec: toplamBelirtec }
+				})
 				.widgetArgsDuzenleIslemi(_e => {
 					let { args } = _e
-					_e = { ...e, ..._e, args }
+					_e = { ...e, ..._e }
 					extend(args, this.getGridOrtakArgs(_e))
 					widgetArgsDuzenle?.call(this, _e)
 				})
@@ -369,61 +313,39 @@
 				})
 				.setSource(async _e => {
 					let fbd = _e.builder ?? fbd_grid ?? {}
+					let { id, noTitle } = this
 					let { parent, layout, part: gridPart, input: grid } = fbd
-					let { noTitle, subeKod, sube2Recs } = this
-					let parentParent = parent.parent()
+					// let parentParent = parent.parent()
+					// parent?.find('.empty')?.addClass('jqx-hidden')
+					
 					_e = { ...e, ..._e, panelDetay: this }
-					let recs
-					if (subemi) {
-						await tanimPart?._promise_getSubeTanimlari
-						await tanimPart._promise_getGridData
-						recs = sube2Recs[subeKod]
-						//delete sube2Recs[subeKod]
-						//if (recs)
-						//	recs = extend(true, [], recs)
-
-						// TEST //
-						//recs = sube2Recs[subeKod] ??= [
-						//	{ subeKod, kod: 0, aciklama: 'TEST', bedel: 0, oncelik: 0 }
-						//]
-						// **** //
-
-						let uygunmu = recs != null
-						//if (!parent.hasClass('collapsed'))
-						grid?.[uygunmu ? 'removeClass' : 'addClass']('jqx-hidden')
-						parent?.find('.empty')?.[uygunmu ? 'addClass' : 'removeClass']('jqx-hidden')
-						parent?.prev('.baslik')?.[uygunmu ? 'removeClass' : 'addClass']('empty')
-					}
-					else {
-						// parent?.find('.empty')?.addClass('jqx-hidden')
-						recs = await getFuncValue.call(this, source, _e)
+					let data = tanimPart._promises_data ??= {}
+					let pr = data[id] = promise(async () => {
+						let recs = await getFuncValue.call(this, source, _e)
 						if (recs == null) {
 							let stm = await getFuncValue.call(this, query, _e)
 							recs = await this.getGridData({ ..._e, query: stm })
 						}
-					}
-
-					if (recs != null) {
-						let result = await recsDuzenle?.call?.(this, { ..._e, tanimPart, gridPart, recs, subemi, subeKod, sube2Recs })
-						if (result !== undefined)
-							recs = result
-					}
-
-					return recs ?? []
+	
+						if (recs != null) {
+							let result = await recsDuzenle?.call?.(this, { ..._e, tanimPart, gridPart, recs })
+							if (result !== undefined)
+								recs = result
+						}
+	
+						return recs ?? []
+					})
+					return await pr
 				})
 				.veriYukleninceIslemi(async _e => {
-					let { subemi, subeKod, sube2Recs } = this
 					let { sender: gridPart } = _e
 					let { grid, gridWidget: w } = gridPart
 					let parent = grid.parent()
 					let parentParent = parent.parent()
-					let { boundRecs: recs, boundRecs: { length } } = gridPart
-					//if (subemi)
-					//	debugger
-
-					await veriYuklenince?.call(this, { ...e, ..._e, tanimPart, gridPart, recs, subemi, subeKod, sube2Recs })
+					let { boundRecs: recs } = gridPart
+					await veriYuklenince?.call(this, { ...e, ..._e, tanimPart, gridPart, recs })
 					
-					let wait = 0, waitArtis = 10
+					/*let wait = 0, waitArtis = 10
 					let autoResize = () => {
 						setTimeout(() => {
 							let { height } = this
@@ -433,26 +355,22 @@
 									elm.addClass('full-height'))
 							}
 							let { length } = gridPart.boundRecs
-							grid.jqxGrid('height', fullHeight ? '100%' : max(80, 45 + (length * w.rowsheight)))
-							//let width = elm.width()
-							//elm.width(width - 2)
-							//elm.width(width)
+							grid.jqxGrid('height',
+								fullHeight
+									? '100%'
+									: max(80, 45 + (length * w.rowsheight))
+							)
 							w.refresh()
 						}, wait)
 						wait += waitArtis
 					}
-					let autoResizeCount = 1
-					//if (!gridPart._tazeleYapildimi)
-					//	autoResizeCount++
-					for (let i = 0; i < autoResizeCount; i++)
-						autoResize()
-					gridPart._tazeleYapildimi = true
+					;{
+						let autoResizeCount = 1
+						for (let i = 0; i < autoResizeCount; i++)
+							autoResize()
+					}*/
 					
-					if (!subemi) {
-						let { kod2SubeItem } = this
-						;values(kod2SubeItem ?? []).forEach(_ =>
-							_.tazele())
-					}
+					gridPart._tazeleYapildimi = true
 				})
 				.onAfterRun(({ builder: { part: gridPart } }) => {
 					let { grid, gridWidget } = gridPart
@@ -461,58 +379,9 @@
 			
 			return fbd_grid
 		}
-		async initContent_subeYapilar(e) {
-			let { id: gridId, noTitle, sube2Recs } = this
-			let { tanimPart = e.sender ?? {}, form, gridId2InitSubeSet = {} } = e
-			let { inst = tanimPart.inst ?? {}, def = {} } = e
-			let { subeKod = def.kod } = e
-
-			let kod2SubeItem = this.kod2SubeItem ??= {}
-			let initSubeSet = gridId2InitSubeSet[''] ??= new Set()
-			// let initSubeSet = gridId2InitSubeSet[gridId] ??= new Set()
-			if (this.subemi || kod2SubeItem[subeKod])
-				return false
-
-			let panelIciTekrarmi = initSubeSet?.has(subeKod)
-			noTitle = this.noTitle ||= panelIciTekrarmi
-			let subeText = def.aciklama || def.kod
-			let altForm = form.addFormWithParent()
-				.altAlta()
-				.addCSS('grid-container', 'sube')
-				.addStyle_wh('auto', 'auto')
-				.addStyle(`$elementCSS { padding-left: 20px }`)
-			
-			if (!(noTitle || panelIciTekrarmi)) {
-				altForm.addBaslik()
-					.addCSS('baslik')
-					.setEtiket(`<b class="forestgreen">${subeText}</b>`)
-			}
-			
-			let subeItem = kod2SubeItem[subeKod] = new this.class(this)
-			deleteKeys(subeItem, 'builder', '_builder', 'gridPart', 'grid', 'gridWidget', 'kod2SubeItem')
-			extend(subeItem, { subeKod, sube2Recs })    // !! sube2Recs ==> ref. link
-			;['cssDuzenle', 'tabloKolonlari', 'source', 'query', 'recsDuzenle', 'veriYuklenince', 'userData'].forEach(k => {
-				let v = this[k]
-				if (v != null && !isFunction(v)) {
-					v = isArray(v)
-						? v.map(_ => _.deepCopy?.() ?? extend(true, {}, _))
-						: v.deepCopy?.() ?? extend(true, {}, v)
-				}
-				subeItem[k] = v
-			})
-			await subeItem.run({ ...e, parentForm: form, form: altForm, panelIciTekrarmi })
-			
-			initSubeSet?.add(subeKod)
-			return true
-		}
 
 		async tazele(e) {
 			await super.tazele(e)
-			if (!this.subemi) {
-				/*let { sube2Recs: d = {} } = this    // ** sube2Recs, subeItemlar için aynı referansı paylaşıyor
-				;keys(d).forEach(k =>
-					delete d[k])*/
-			}
 			await this.gridPart?.tazele(e)
 			return this
 		}
@@ -522,7 +391,6 @@
 				rowsHeight: 26, columnsMenu: false, showGroupsHeader: false,
 				columnsReorder: false, selectionMode: 'multiplerowsextended',
 				autoShowLoadElement: false,
-				// autoShowLoadElement: !this.subemi,
 				groupsRenderer: (text, group, expanded, groupInfo) => {
 					let { subItems = [] } = groupInfo ?? {}
 					subItems = subItems?.filter(r => !r.totalsrow)
@@ -543,7 +411,6 @@
 			return result.join(' ')
 		}
 		async getGridData(e = {}) {
-			let { buDB, dbListe } = app
 			let { DefaultWSHostName_SkyServer: defHost } = config.class
 			let { tanimPart = {}, builder: fbd = {}, query, params } = e
 			let { id: gridId, grid, gridPart = this.gridPart ?? {}, class: { timeout } } = this
@@ -554,19 +421,11 @@
 			let { id2Panel = {} } = acc
 			let accItem = id2Panel[panelId] ?? {}
 			let { layout: panelLayout } = accItem ?? {}
-			let { sube2Recs } = this
 
-			//if (accItem)
-			//	accItem.userData ??= {}
-
-			let id2SubeResult = tanimPart.id2SubeResult ??= {}
-			let subeResult = id2SubeResult[panelId] ??= {}
-			;['success', 'error'].forEach(k =>
-				subeResult[k] = {})
-	
 			clearTimeout(tanimPart._timer_tazeleIndicatorClear)
 			rootLayout?.addClass('refreshing')
 			panelLayout?.removeClass('has-error')
+			this._promise_getGridData = defer()
 			try {
 				if (query?.sentDo) {
 					let e = { ...arguments[0], stm: query }
@@ -576,15 +435,10 @@
 					params = e.params = e.params
 				}
 		
-				await tanimPart?._promise_getSubeTanimlari
-				let { praUzakSubeVerisi } = app.params?.dRapor ?? {}
-				if (!praUzakSubeVerisi || this.subesizmi)
-					return await query?.execSelect({ timeout, params }) ?? []
-		
-				let db2Kod2Def = await inst.getSubeTanimlari?.(...arguments)
-				if (empty(db2Kod2Def))
-					return await query?.execSelect({ timeout, params }) ?? []
-		
+				let recs = await query?.execSelect({ timeout, params }) ?? []
+				if (empty(recs))
+					return recs
+				
 				let { keyFields, sortFields, noSort } = fbd.userData ?? {}
 				let cd = { sabit: {}, toplam: {} }
 				;{
@@ -598,72 +452,7 @@
 					}
 				}
 				
-				tanimPart._promise_getGridData = defer()
 				try {
-					;{
-						let { _promises_uzakVeri: promises } = tanimPart
-						if (!empty(promises))
-							await delay(2_000)
-					}
-					/*;{
-						let { _promises_uzakVeri: promises } = tanimPart
-						;promises?.flat?.()?.forEach(p =>
-							p?.abort?.())
-						lastAjaxObj?.abort?.()
-						delete tanimPart._promises_uzakVeri
-					}*/
-			
-					if (query?.sentDo) {
-						for (let { where: wh } of query) {
-							;wh.liste = wh.liste.filter(v =>
-								!( v?.startsWith?.('sub.') || v?.saha?.endsWith?.('bizsubekod')) )
-						}
-					}
-					
-					let delayMS = 5
-					let promises = []
-					let _promises_uzakVeri = tanimPart._promises_uzakVeri = []
-					for (let [db, kod2Def] of entries(db2Kod2Def))
-					for (let [subeKod, def] of entries(kod2Def)) {
-						let pr = promise(async (resolve, fail) => {
-							try {
-								let _pr = remoteProc({
-									...def,
-									proc: () =>
-										query.execSelect({ timeout, params })
-								})
-								_promises_uzakVeri.push(_pr)
-								
-								let { aciklama: subeAdi, port, db } = def
-								let recs = await _pr
-								;recs?.forEach(r => {
-									if (r.subeKod !== undefined)
-										extend(r, { subeKod, subeAdi })
-								})
-								if (sube2Recs)
-									sube2Recs[subeKod] = [ ...recs.map(r => ({ ...r })) ]
-								subeResult.success[subeKod] ??= def
-								
-								/*if (config.dev) {
-									console.group(`${port}: ${db}`)
-									console.table(recs)
-									console.info(query?.getQueryYapi() ?? query)
-									console.groupEnd()
-								}*/
-								
-								resolve({ def, recs })
-							}
-							catch (error) {
-								subeResult.error[subeKod] ??= def
-								cerr(getErrorText(error))
-								fail({ def, error })
-							}
-						})
-						;promises.push(pr)
-						await delay(delayMS)
-						delayMS *= 2.5
-					}
-		
 					let getKey = (r, keyFields, sortFields) => {
 						if (keyFields)
 							keyFields = makeArray(keyFields)
@@ -679,43 +468,7 @@
 							.map(k => String(r[k]))
 							.join('\t')
 					}
-					let all = ( await promiseAllSet(promises) )
-					subeResult.sonTS = now()                           // bu panel item için son veri çekme zamanı
-	
-					let key2Rec = new Map()
-					let errors = tanimPart._errors ??= []
-					for (let { status: s, reason, value: result } of all) {
-						if (s == 'rejected') {
-							let { def = {}, error: err } = reason
-							let { https, host, port, url, sql, db = {} } = def
-							db ??= sql?.db
-							url ??= `${https ? 'https' : 'http'}://${host}:${port}`
-							let origin = !host || host == defHost ? String(port) : `${host}:${port}`
-							let title = `${origin} | ${db}`
-							let content = getErrorText(err, url)
-							errors.push({ title, content, err })
-							continue
-						}
-	
-						let { recs, def } = result
-						if (empty(recs))
-							continue
 
-						let { kod: subeKod } = def ?? {}
-						;recs.forEach(bu => {
-							let k = getKey(bu, keyFields)
-							if (!key2Rec.has(k))
-								key2Rec.set(k, bu)
-							else {
-								let diger = key2Rec.get(k)
-								;keys(cd.toplam).forEach(b =>
-									diger[b] = Number(diger[b]) + Number(bu[b]))
-							}
-						})
-					}
-					delete tanimPart._promises_uzakVeri
-
-					let recs = arrayFrom(key2Rec.values())
 					if (!noSort) {
 						recs.sort((a, b) =>
 							getKey(a, keyFields, sortFields).localeCompare(
@@ -724,19 +477,21 @@
 					}
 	
 					let e = { ...arguments[0], subeResult, recs }
-					setTimeout(() => {
-						acc.render?.()
-						;{
-							let hasErr = !empty(errors)
-							let { layout } = acc.activePanel?.item ?? {}
-							setTimeout(() =>
-								layout?.[hasErr ? 'addClass' : 'removeClass']('has-error'),
-								10)
-						}
-					}, 50)
+					delay(50).then(() =>
+						acc.render?.())
+					
 					return recs
 				}
 				finally { tanimPart._promise_getGridData?.resolve() }
+			}
+			catch (ex) {
+				let { _lastErrors: errs = [] } = tanimPart
+				clearTimeout(tanimPart._timer_error)
+				errs.push(`<li>${getErrorText(ex)}</li>`)
+				tanimPart._timer_error = setTimeout(() =>
+					hConfirm(`<ul>${errs.join('\n')}</ul>`, 'Veri Gösterim Sorunu'),
+					200
+				)
 			}
 			finally {
 				tanimPart._timer_tazeleIndicatorClear = setTimeout(() =>

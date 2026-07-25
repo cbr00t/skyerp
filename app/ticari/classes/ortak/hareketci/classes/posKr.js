@@ -4,7 +4,8 @@ class PsKrOrtakHareketci extends BankaOrtakHareketci {
     static get almSat() { return this.posmu ? 'T' : 'A' } static get almSatClause() { return `fis.almsat = '${this.almSat}'` }
 	/* Hareket tiplerini (işlem türlerini) belirleyen seçim listesi */
     static hareketTipSecim_kaListeDuzenle({ kaListe }) {
-        super.hareketTipSecim_kaListeDuzenle(...arguments); const {posmu} = this;
+        super.hareketTipSecim_kaListeDuzenle(...arguments)
+		let { posmu } = this
         kaListe.push(...[           
             new CKodVeAdi(['devir', posmu ? 'POS Devir' : 'Kredi Kart Devir']),
             new CKodVeAdi(['ilkKayit', posmu ? 'POS ile Tahsil' : 'Kredi Kart ile Ödeme']),
@@ -26,7 +27,7 @@ class PsKrOrtakHareketci extends BankaOrtakHareketci {
 		for (let key of ['onayno', 'komisyon', 'katkipayi']) { hv[key] = sqlZero }
 		/* 'mustkod' olan durumda ('must', 'ticmust') sahalarına ihtiyaç yok, bunların yerini alır */
 		for (let key of ['must', 'ticmust']) { delete hv[key] }
-		$.extend(hv, {
+		extend(hv, {
 			/* 'ndvade' (nakde dönüşüm vadesi) değeri aksi belirtilemdikçe = (hv.vade) değeri ile aynıdır */
 			ndvade: ({ hv }) => hv.vade,
 			/* 'anaislemadi' yoksa 'islemadi' degeri esas alinir */
@@ -48,7 +49,7 @@ class PsKrOrtakHareketci extends BankaOrtakHareketci {
     }
     /** (Devir, İlk Kayıt, Nakde Dönüşüm) için UNION */
     uniDuzenle_devir$ilkKayit$nakdeDonusum({ uygunluk, liste }) {
-        $.extend(liste, {
+        extend(liste, {
             devir$ilkKayit$nakdeDonusum: [
                 new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					const tipDizi = [
@@ -61,7 +62,7 @@ class PsKrOrtakHareketci extends BankaOrtakHareketci {
                     wh.fisSilindiEkle().inDizi(tipDizi, 'fis.fistipi')
 						.add(almSatClause).degerAta(almSat, 'pkos.almsat')
                 }).hvDuzenleIslemi(({ hv }) => {
-                    $.extend(hv, {
+                    extend(hv, {
 						kayittipi: `(case when fis.fistipi = 'DV' then 'PSDEV' when fis.fistipi = 'ND' then 'PSNAK' when fis.fistipi in ('AL', 'AK') then 'PSTAH' else '??' end)`,
                         banhesapkod: 'har.banhesapkod', tarih: 'coalesce(har.belgetarih, fis.tarih)',
 						fisnox: `(case when har.belgeno = 0 then fis.fisnox else har.belgenox end)`,
@@ -82,15 +83,16 @@ class PsKrOrtakHareketci extends BankaOrtakHareketci {
     }
     /** (Fatura Tahsil/Ödeme) için UNION */
     uniDuzenle_fatKayit({ uygunluk, liste }) {
-        $.extend(liste, {
+        extend(liste, {
             fatKayit: [
                 new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
-                    sent.fisHareket('piffis', 'pifpostaksit').fis2CariBagla().har2PosKosulBagla();
-                    const {where: wh} = sent, {almSatClause, almSat} = this.class;
+                    sent.fisHareket('piffis', 'pifpostaksit')
+						.fis2CariBagla().har2PosKosulBagla();
+                    let {where: wh} = sent, {almSatClause, almSat} = this.class
 					wh.fisSilindiEkle().inDizi(['I', 'F', 'P'], 'fis.piftipi')
                         .add(almSatClause).degerAta(almSat, 'pkos.almsat')
-                }).hvDuzenleIslemi(({ hv }) => {
-                    $.extend(hv, {
+                }).hvDuzenleIslemi(({ hv, sqlEmpty }) => {
+                    extend(hv, {
                         kayittipi: `'PIFPOS'`, banhesapkod: 'har.banhesapkod', oncelik: '1',
                         ba: `(case when rtrim(fis.almsat + fis.iade) in ('T', 'AI') then 'B' else 'A' end)`,
                         islemadi: (
@@ -98,7 +100,7 @@ class PsKrOrtakHareketci extends BankaOrtakHareketci {
 								`(case fis.ayrimtipi when 'PR' then 'Mağaza Fiş' else 'Fatura' end) ` +
 							`end) + ' ' + (case fis.almsat when 'T' then 'POS Tahsil' else 'Kr.Kart Ödeme' end))`
 						),     /* ^--  STRING CONCAT için talimatlarda `+ ' ' +` ile boşluk vermek gerekirdi, muhtemelen unutulmuş */
-                        fisaciklama: 'fis.cariaciklama', bedel: 'har.bedel',
+                        fisaciklama: 'fis.cariaciklama', detaciklama: sqlEmpty, bedel: 'har.bedel',
                         dvkur: `(case when har.karsidvvar = '' then fis.dvkur else har.karsidvkur end)`,
                         dvbedel: `(case when har.karsidvvar = '' then har.dvbedel else har.karsidvbedel end)`,
                         ndvade: 'har.nakdedonusumvade', takipno: 'fis.orttakipno', refkod: 'fis.must', refadi: 'car.birunvan',
@@ -112,14 +114,16 @@ class PsKrOrtakHareketci extends BankaOrtakHareketci {
     }
     /** (Cari Tahsilat/Ödeme - cari hesap ile POS/KK ödeme) için UNION */
     uniDuzenle_cariTahsilatOdeme({ uygunluk, liste }) {
-        $.extend(liste, {
+        extend(liste, {
             cariTahsilatOdeme: [
                 new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
                     sent.fisHareket('carifis', 'carihar')
 						.fis2CariBagla({ mustSaha: 'mustkod' })
-						.har2TahSekliBagla().har2PosKosulBagla({ kodSaha: 'tahposkosulkod' })
+						.har2TahSekliBagla()
+						.har2PosKosulBagla({ kodSaha: 'tahposkosulkod' })
                         .fromIliski('caripos cpos', 'har.kaysayac = cpos.harsayac')
-                    const {where: wh} = sent, {almSat} = this.class;
+                    let { where: wh } = sent
+					let { almSat } = this.class
 					/* sadece OR clauseları nesnel olarak ayırmak yeterli, AND kısımları string kalabilir.
 						uzun syntaxları bölelim ancak çok karışık hale de getirmeyelim */
 					wh.fisSilindiEkle().degerAta(almSat, 'pkos.almsat').add(new MQOrClause([
@@ -127,7 +131,7 @@ class PsKrOrtakHareketci extends BankaOrtakHareketci {
 						`(fis.ba = 'B' and tsek.tahsiltipi = 'KR')`
 					]))
                 }).hvDuzenleIslemi(({ hv }) => {
-                    $.extend(hv, {
+                    extend(hv, {
                         kaysayac: 'cpos.kaysayac', kayittipi: `'CRPOS'`, banhesapkod: 'har.tahposhesapkod',
                         oncelik: '5', ba: 'dbo.tersba(fis.ba)', islemadi: `(case when fis.ba = 'A' then 'Cari Tahsilat' else 'Cari Ödeme' end)`,
                         anaislemadi: `'Cari Tahsilat/Ödeme'`, detaciklama: 'har.aciklama', ba: 'dbo.tersba(fis.ba)',
@@ -143,25 +147,27 @@ class PsKrOrtakHareketci extends BankaOrtakHareketci {
     }
     /** (Çek-Senet Tahsilat/Ödeme - elden tahsil/ödeme) için UNION */
     uniDuzenle_csTahsilatOdeme({ uygunluk, liste }) {
-        $.extend(liste, {
+        extend(liste, {
             csTahsilatOdeme: [
                 new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
                     sent.fromAdd('csfis fis')
 						/* !! { MQSent::fis2TahSekliBagla} methodu `${alias}.tahseklino = tsek.kodno` ilişkisini verir, { alias } değeri { e?.alias ?? 'fis' } ile alınabiliyor.
 							('alias' için default = 'fis') ==> mevcut sentence'a uygundur */
 						.fis2TahSekliBagla()
-						.fromIliski('cspos cpos', 'fis.kaysayac = cpos.fissayac');
-                    const {where: wh} = sent, {posmu} = this.class;
-                    wh.fisSilindiEkle().degerAta(posmu ? 'EL' : 'EO', 'fis.fistipi');
+						.fromIliski('cspos cpos', 'fis.kaysayac = cpos.fissayac')
+                    let { where: wh } = sent
+					let { posmu } = this.class
+                    wh.fisSilindiEkle().degerAta(posmu ? 'EL' : 'EO', 'fis.fistipi')
 					/* Reducing-by-logic following directive:
 							if posmu() sent.where.add('fis.belgetipi in ('AC', 'AS')', 'fis.tahsiltipi = 'PS')
 							else sent.where.add('fis.belgetipi in ('BC', 'BS')', 'fis.tahsiltipi = 'KR')
 						Simplified JS Code is: */
 					wh.degerAta(posmu ? 'PS' : 'KR', 'fis.tahsiltipi')
 					  .inDizi(posmu ? ['AC', 'AS'] : ['BC', 'BS'], 'fis.belgetipi')
-                }).hvDuzenleIslemi(({ hv }) => {
-                    $.extend(hv, {
+                }).hvDuzenleIslemi(({ sqlEmpty, hv }) => {
+                    extend(hv, {
                         kaysayac: 'cpos.kaysayac', kayittipi: `'CSPOS'`, banhesapkod: 'fis.refhesapkod',
+						detaciklama: sqlEmpty,
                         oncelik: '5', ba: `(case when fis.belgetipi in ('AC', 'AS') then 'B' else 'A' end)`,
                         islemadi: `(case when fis.belgetipi in ('AC', 'AS') then 'Çek-Senet Elden Tahsil' else 'Çek-Senet Elden Ödeme' end)`,
                         anaislemadi: `'Çek-Senet Tahsilat/Ödeme'`, ba: `(case when fis.belgetipi in ('AC', 'AS') then 'B' else 'A' end)`,
@@ -175,7 +181,7 @@ class PsKrOrtakHareketci extends BankaOrtakHareketci {
     }
     /** (Genel Dekont) için UNION */
     uniDuzenle_dekont({ uygunluk, liste }) {
-        $.extend(liste, {
+        extend(liste, {
             dekont: [
                 new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
                     sent.fisHareket('geneldekontfis', 'geneldekonthar')
@@ -185,7 +191,7 @@ class PsKrOrtakHareketci extends BankaOrtakHareketci {
                     wh.fisSilindiEkle().add(`fis.ozeltip = ''`);
 					wh.degerAta(posmu ? 'PS' : 'PO', 'har.kayittipi')    /* (no cascaded message syntax usage: indent-based visual prettify */
                 }).hvDuzenleIslemi(({ hv }) => {
-                    $.extend(hv, {
+                    extend(hv, {
                         kayittipi: `'GDEK'`, banhesapkod: 'har.banhesapkod', oncelik: '60', ba: 'har.ba',
                         islemadi: `'Genel Dekont'`, detaciklama: 'har.aciklama', dvkur: 'har.dvkur',
                         ba: 'har.ba', bedel: 'har.bedel', dvbedel: 'har.dvbedel', vade: 'har.vade', takipno: 'har.takipno',
@@ -197,6 +203,7 @@ class PsKrOrtakHareketci extends BankaOrtakHareketci {
         return this
     }
 }
+
 class POSHareketci extends PsKrOrtakHareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 22 }
     static get kod() { return 'pos' } static get aciklama() { return 'POS İşlemleri' }
@@ -213,7 +220,7 @@ class POSHareketci extends PsKrOrtakHareketci {
 	}
     /** (Nakde Dönüşüm (POS) – eski POS nakit dönüşüm işlemleri) için UNION */
     uniDuzenle_nakdeDonusum({ uygunluk, liste }) {
-        $.extend(liste, {
+        extend(liste, {
             nakdeDonusum: [
                 new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
                     sent.fisHareket('posfis', 'posdigerhar')
@@ -225,16 +232,17 @@ class POSHareketci extends PsKrOrtakHareketci {
                         .leftJoin('har', 'posilkhar pilk', [`har.bagtipi = ''`, `har.ilkharsayac = pilk.kaysayac`])
                         .leftJoin('pilk', 'posfis pfis', 'pilk.fissayac = pfis.kaysayac')
                         .leftJoin('pfis', 'carmst rcar', `(case har.bagtipi when 'T' then ffis.must else pilk.must end) = rcar.must`);
-                    const {where: wh} = sent, {almSat} = this.class;
+                    let {where: wh} = sent, {almSat} = this.class;
 					wh.fisSilindiEkle().degerAta(almSat, 'fis.almsat').add(`fis.fistipi = 'TE'`)
-                }).hvDuzenleIslemi(({ hv }) => {
-                    $.extend(hv, {
+                }).hvDuzenleIslemi(({ hv, sqlEmpty }) => {
+                    extend(hv, {
                         kayittipi: `'PNAK'`, banhesapkod: 'har.banhesapkod', oncelik: '5', islemadi: `'POS Nakde Dönüşüm'`,
                         ba: `(case when fis.almsat = 'T' then 'A' else 'B' end)`, bedel: 'har.brutbedel', refadi: 'rcar.birunvan',
                         refkod: `(case har.bagtipi when 'T' then ffis.must when 'C' then cfis.mustkod else pilk.must end)`,
                         plasiyerkod: `(case har.bagtipi when 'T' then ffis.plasiyerkod when 'C' then cfis.plasiyerkod else pfis.plasiyerkod end)`,
                         poskosulkod: `(case har.bagtipi when 'T' then fptak.poskosulkod when 'C' then char.tahposkosulkod when '' then pilk.poskosulkod else '' end)`,
-                        komisyon: 'har.komisyon', katkipayi: 'har.katkipayi'
+                        komisyon: 'har.komisyon', katkipayi: 'har.katkipayi',
+						detaciklama: sqlEmpty
                     })
                 })
             ]
@@ -242,6 +250,7 @@ class POSHareketci extends PsKrOrtakHareketci {
         return this
     }
 }
+
 class KrediKartiHareketci extends PsKrOrtakHareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 23 }
     static get kod() { return 'krediKart' } static get aciklama() { return 'Kredi Kartı İşlemleri' }
@@ -263,7 +272,7 @@ class KrediKartiHareketci extends PsKrOrtakHareketci {
     }
     /** (Nakde Dönüşüm (KKart) – eski kredi kartı ödeme işlemleri) için UNION */
     uniDuzenle_nakdeDonusum({ uygunluk, liste }) {
-        $.extend(liste, {
+        extend(liste, {
             nakdeDonusum: [
                 new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
                     sent.fisHareket('posfis', 'posdigerhar')
@@ -274,13 +283,14 @@ class KrediKartiHareketci extends PsKrOrtakHareketci {
                         .leftJoin('char', 'carifis cfis', 'char.fissayac = cfis.kaysayac')
                         .leftJoin('har', 'posilkhar pilk', [`har.bagtipi = ''`, `har.ilkharsayac = pilk.kaysayac`])
                         .leftJoin('pilk', 'posfis pfis', 'pilk.fissayac = pfis.kaysayac');
-                    const {where: wh} = sent, {almSat} = this.class;
+                    let {where: wh} = sent, {almSat} = this.class;
 					wh.fisSilindiEkle().degerAta(almSat, 'fis.almsat').add(`fis.fistipi = 'TE'`)
-                }).hvDuzenleIslemi(({ hv }) => {
-                    $.extend(hv, {
+                }).hvDuzenleIslemi(({ hv, sqlEmpty }) => {
+                    extend(hv, {
                         kayittipi: `'PNAKF'`, banhesapkod: 'har.banhesapkod', oncelik: '40', islemadi: `'POS Nakit Ödemesi'`,
                         ba: `(case when fis.almsat = 'T' then 'A' else 'B' end)`, bedel: 'har.brutbedel',
                         poskosulkod: `(case har.bagtipi when 'T' then fptak.poskosulkod when 'C' then char.tahposkosulkod when '' then pilk.poskosulkod else '' end)`,
+						detaciklama: sqlEmpty
                         /* (komisyon, katkipayi) için { '0' ==> sqlZero } tanımı { this.varsayilanHVDuzenle } seviyesinde zaten mevcut.
 							boş değerleri varsayılan varken belirtmeye gerek yok */
                     })
@@ -291,13 +301,13 @@ class KrediKartiHareketci extends PsKrOrtakHareketci {
     }
     /** (Masraf Ödeme (Hizmet) – kredi kartıyla masraf (hizmet) ödeme işlemi) için UNION */
     uniDuzenle_masrafOdeme({ uygunluk, liste }) {
-        $.extend(liste, {
+        extend(liste, {
             masrafOdeme: [
                 new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
                     sent.fisHareket('posfis', 'posilkhar').har2HizmetBagla();
 					const {where: wh} = sent; wh.fisSilindiEkle().add(`fis.fistipi = 'MS'`)
                 }).hvDuzenleIslemi(({ hv }) => {
-                    $.extend(hv, {
+                    extend(hv, {
                         kayittipi: `'PSTAH'`, banhesapkod: 'har.banhesapkod',
                         oncelik: '1', ba: `(case when fis.almsat='T' then 'B' else 'A' end)`,
                         islemadi: `'Kr.Kart ile Masraf Ödeme'`, detaciklama: 'har.aciklama', dvkur: 'har.dvkur',

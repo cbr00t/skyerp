@@ -1,38 +1,31 @@
-class DRapor_PratikSatis extends DRaporMQ {
+class DRapor_KarZararTablosu extends DRaporMQ {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get hareketciSinif() { return PratikSatisHareketci }
-	static get oncelik() { return this.hareketciSinif.oncelik }
-	static get kategoriKod() { return this.hareketciSinif.kategoriKod }
-	static get kategoriAdi() { return this.hareketciSinif.kategoriAdi }
-	static get kod() { return this.hareketciSinif.kod }
-	static get aciklama() { return this.hareketciSinif.aciklama }
-	static get uygunmu() { return this.hareketciSinif.uygunmu }
-	get uygunmu() { return this.class.uygunmu }
+	static get oncelik() { return DRapor_EldekiVarliklar.oncelik + 1 }
+	static get kategoriKod() { return 'FINANLZ' }
+	static get kategoriAdi() { return 'Finansal Analiz' }
+	static get kod() { return 'KARZARAR' }
+	static get aciklama() { return 'Kar/Zarar Tablosu' }
+	static get uygunmu() { return true }
 	static get secimSinif() { return DonemselSecimler }
 	static get sadeceTanimmi() { return true }
 	static get kolonFiltreKullanilirmi() { return false }
 	static get bulFormKullanilirmi() { return true }
-	static get timeout() { return config.dev ? 1_500 : 5_000 }
 	static get otoTazele_minDk() { return config.dev ? .05 : .1 }
 	// static get vioAdim() { return 'MH-R' }
 
 	constructor(e = {}) {
 		super(e)
-		// mergeInto(this.class, this, 'Panel', 'PanelDetay', 'PanelGrid')
 	}
 
 	async uiGirisOncesiIslemler(e) {
-		let { sender: tanimPart } = e, { sinifAdi: title } = this.class
+		let { sender: tanimPart } = e
+		let { aciklama: title } = this.class
 		e.islem = tanimPart.islem = 'izle'
 		extend(tanimPart, { title })
 		
 		this.secimlerOlustur(e)
-		//let { dRapor: { praUzakSubeVerisi } } = app.params ?? {}
-		//if (praUzakSubeVerisi)
-		
-		tanimPart._promise_getSubeTanimlari = this.getSubeTanimlari({ ...e, tanimPart })
 		app.appTitleBar?.addClass('jqx-hidden')
-
+		
 		if (!document.fullscreen)
 			requestFullScreen()
 		
@@ -53,9 +46,10 @@ class DRapor_PratikSatis extends DRaporMQ {
 			.addKA('kasiyer', DMQKasiyer, 'fis.kasiyerkod', 'kas.aciklama')
 		;{
 			let { donem: { tekSecim: donem } = {} } = secimler
-			donem?.bugun()
+			donem?.buYil()
 		}
 		extend(this, { secimler })
+		
 		secimler.whereBlockEkle(({ secimler: sec, sent, where: wh }) => {
 			let {tarihBS} = sec
 			sent
@@ -73,12 +67,12 @@ class DRapor_PratikSatis extends DRaporMQ {
 		super.rootFormBuilderDuzenle_islemTuslari(...arguments)
 		fbd.addStyle(...[
 			`$elementCSS {
-				--width-sag: 250px !important;
-				--button-width: 40px !important;
-				--button-height: 35px !important;
+				--width-sag: 350px !important;
+				--button-width: 45px !important;
+				--button-height: 40px !important;
 				position: fixed !important;
-				top: 110px !important;
-				right: 15px !important;
+				top: 3px !important;
+				right: 370px !important;
 				pointer-events: none !important
 			}
 			$elementCSS > .sag {
@@ -151,8 +145,9 @@ class DRapor_PratikSatis extends DRaporMQ {
 			])
 		
 		tanimForm.addAccordion('acc')
-			.fullScreen()
-			.addStyle_fullWH(null, 'calc(var(--full) - 45px)')
+			.coklu()
+			//.fullScreen()
+			.addStyle_fullWH(null, 'calc(var(--full) - 30px)')
 			.addStyle(...[`
 				$elementCSS .accordion > .header > .collapsed-content > div {
 					margin-top: 10px;
@@ -164,8 +159,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 						line-height: 18px !important
 					}
 				}
-				$elementCSS accordion.item {
-				}
+				$elementCSS accordion.item { }
 				$elementCSS .accordion.item.expanded.has-error > .header {
 					background: linear-gradient(35deg, #fc8e8e 50%, #cececeee 100%) !important;
 					animation: anim-haserror 900ms ease-in-out infinite !important
@@ -206,10 +200,9 @@ class DRapor_PratikSatis extends DRaporMQ {
 	async onAfterRun({ tanimPart }) {
 		await this.accDuzenle(...arguments)
 		let { acc } = tanimPart
-		await this.acc_onCollapse({ ...arguments[0], acc })
 		await this.acc_onExpand({ ...arguments[0], acc })
+		await this.acc_onCollapse({ ...arguments[0], acc })
 	}
-
 	async accDuzenle(e) {
 		let { tanimPart, acc } = e
 		let panels = this.panels = this.getPanels(e)
@@ -217,54 +210,53 @@ class DRapor_PratikSatis extends DRaporMQ {
 			item.id ??= id
 			await item.run(e)
 		}
-		acc.onCollapse(_e => this.acc_onCollapse({ ...e, ..._e }))
 		acc.onExpand(_e => this.acc_onExpand({ ...e, ..._e }))
+		acc.onCollapse(_e => this.acc_onCollapse({ ...e, ..._e }))
 	}
-	acc_onCollapse({ tanimPart, acc }) {
-		/*let {activePanelId: id} = acc
-		let targetId = id == 'genel' ? 'satis' : 'genel'
-		acc.expand(targetId)*/
-		setTimeout(() => hideNotify(), 10)
-	}
-	acc_onExpand({ tanimPart, acc }) {
+	acc_onExpand({ tanimPart, acc, id, item }) {
 		;{
-			let { _promises_uzakVeri: promises } = tanimPart
+			let { _promises_data: promises } = tanimPart
 			;promises?.flat?.()?.forEach(p =>
 				p?.abort?.())
 			lastAjaxObj?.abort?.()
-			delete tanimPart._promises_uzakVeri
+			delete tanimPart._promises_data
 		}
-		setTimeout(() => {
-			let { activePanelId: id } = acc, { islemTuslari } = tanimPart
-			let btns = islemTuslari.find('#seviyeAc, #seviyeKapat')
-			let selector = id == 'satis' ? 'removeClass' : 'addClass'
-			btns[selector]('jqx-hidden')
+		delay(50).then(() => {
+			/*;{
+				let { islemTuslari } = tanimPart
+				let btns = islemTuslari.find('#seviyeAc, #seviyeKapat')
+				let selector = id == 'satis' ? 'removeClass' : 'addClass'
+				btns[selector]('jqx-hidden')
+			}*/
 			hideNotify()
-		}, 10)
+		})
+	}
+	acc_onCollapse({ tanimPart, acc, id, item }) {
+		delay(10).then(() => {
+			let digerId = (
+				id == 'satis' ? 'diger' :
+				id == 'diger' ? 'satis' :
+				null
+			)
+			if (digerId)
+				acc.expand(digerId)
+		})
 	}
 
 	async tazeleIstendi(e = {}) {
 		let { tanimPart = e.sender ?? {} } = e
 		let { acc = tanimPart.acc ?? {} } = tanimPart
 		let { item } = acc.activePanel ?? {}
-
-		//let layout = acc.layout
 		let layout = item?.contentLayout ?? acc.layout
-		//let elms = arrayFrom(layout?.find('.grid-container:not(.sube) .grid.part'))
 		await tanimPart._promise_tazele
 
+		extend(tanimPart, { _lastErrors: [] })
 		let { panels } = this
 		for (let item of values(panels))
 			await item.tazele(e)
-		/*for (let elm of elms) {
-			let part = $(elm).data('part')
-			if (part?.tazele) {
-				await part.tazele()
-				await delay(10)
-			}
-		}*/
+		
 		acc?.render()
-		tanimPart._promise_tazele = delay(5_000)
+		tanimPart._promise_tazele = delay(3_000)
 	}
 	otoTazele_startTimer(e) {
 		let { class: { otoTazele_minDk } } = this
@@ -354,18 +346,9 @@ class DRapor_PratikSatis extends DRaporMQ {
 	}
 
 	baslikSentDuzele(e = {}) {
-		let { sent, sent: { where: wh, sahalar }, harTable, iptalAlma, iade = e.iademi } = e
-		let { secimler } = this
-		if (harTable)
-			sent.fisHareket('restoranfis', harTable)
-		else
-			sent.fromAdd('restoranfis fis')
-		wh
-			.add(`fis.kapanmazamani IS NOT NULL`)
-			.degerAta(iade ? 'I' : '', 'fis.iade')
-			.birlestir(secimler.getTBWhereClause(e))
-		if (!iptalAlma)
-			wh.add('fis.biptalmi = 0')
+		let { sent: { where: wh } } = e
+		let { secimler: sec } = this
+		wh.birlestir(sec.getTBWhereClause(e))
 		return this
 	}
 	stmSonIslemler({ stm }) {
@@ -388,43 +371,5 @@ class DRapor_PratikSatis extends DRaporMQ {
 		})
 		this.tazeleIstendi(...arguments)
 		return false
-	}
-
-	async getSubeTanimlari({ tanimPart = {} } = {}) {
-		let { buDB, dbListe } = app
-		let { db2SubeKod2Param: result, secimler = {} } = tanimPart
-		if (!result) {
-			let { sube: { value: kodListe } = {} } = secimler
-			let uni = new MQUnionAll()
-			;dbListe.forEach(db => {
-				let fromPrefix = db == buDB ? '' : `${db}..`
-				let sent = new MQSent(), { where: wh, sahalar } = sent
-				sent
-					.fromAdd(`${fromPrefix}marsubeparam par`)
-					.innerJoin('par', 'isyeri sub', 'par.bizsubekod = sub.kod')
-				wh.add(`par.bizsubekod <> ''`, `par.offsubeipadres <> ''`)
-				if (!empty(kodListe))
-					wh.inDizi(kodListe, 'par.bizsubekod')
-				sahalar.add(
-					`'${db}' merkezDB`,
-					'par.bizsubekod kod', 'sub.aciklama', 'par.offsubebhttpsmi https', 'par.offsubeipadres host', 'par.offsubeportno port',
-					'par.offsubesqlserver server', 'par.offsubevtadi db', 'par.offsubesqluser wsUser', 'par.offsubesqlpasswd wsPass'
-				)
-				uni.add(sent)
-			})
-			let stm = new MQStm({ sent: uni })
-			result = {}
-			let recs = await stm.execSelect()
-			for (let r of recs) {
-				let kod2Param = result[r.db] ??= {}
-				kod2Param[r.kod] = r
-			}
-			tanimPart.db2SubeKod2Param = result
-		}
-
-		if (empty(result))
-			debugger
-
-		return result
 	}
 }

@@ -3,8 +3,11 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 	static get anaTip() { return null } static get sinifAdi() { return this.aciklama }
 	static get kategoriKod() { return null } static get kod() { return null }
 	static get aciklama() { return null } static get detaylimi() { return false }
-	static get uygunmu() { return true } get uygunmu() { return this.class.uygunmu } static get araSeviyemi() { return false }
-	static get dRapormu() { return true } get dRapormu() { return this.class.dRapormu } static get dAltRapormu() { return false } get dAltRapormu() { return this.class.dAltRapormu }
+	static get uygunmu() { return true }
+	get uygunmu() { return this.class.uygunmu }
+	static get araSeviyemi() { return false }
+	static get dRapormu() { return true } get dRapormu() { return this.class.dRapormu }
+	static get dAltRapormu() { return false } get dAltRapormu() { return this.class.dAltRapormu }
 	static get mainClass() { return window[`${this.name}_Main`] } static get tumKolonlarGosterilirmi() { return false }
 	static get noOverflowFlag() { return false }
 	get isPanelItem() { return !!this.panel || qs.panelItem }
