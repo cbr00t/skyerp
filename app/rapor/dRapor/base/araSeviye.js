@@ -92,9 +92,10 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	static get donemselIslemlermi() { return false } static get eldekiVarliklarmi() { return false } static get nakitAkismi() { return false }
 	get finansalAnalizmi() { return this.class.finansalAnalizmi } get donemselIslemlermi() { return this.class.donemselIslemlermi }
 	get eldekiVarliklarmi() { return this.class.eldekiVarliklarmi } get nakitAkismi() { return this.class.nakitAkismi }
-	get dvKod2Rec() { return this.rapor.dvKod2Rec } get degerlemeDvKod2Rec() { return this.rapor.degerlemeDvKod2Rec }
-	get dovizKAListe() { return this.rapor.dovizKAListe } get dvKodListe() { return this.rapor.dvKodListe }
-	get degerlemeDovizKAListe() { return this.rapor.degerlemeDovizKAListe } get degerlemeDvKodListe() { return this.rapor.degerlemeDvKodListe }
+	get dvKod2Rec() { return this.rapor.dvKod2Rec } get degerlemeDvKod2Rec() { return this.rapor?.degerlemeDvKod2Rec }
+	get dovizKAListe() { return this.rapor.dovizKAListe } get dvKodListe() { return this.rapor?.dvKodListe }
+	get degerlemeDovizKAListe() { return this.rapor?.degerlemeDovizKAListe }
+	get degerlemeDvKodListe() { return this.rapor?.degerlemeDvKodListe }
 	static get raporDosyaTanimlar() { return [] }
 	static get yatayTip2Bilgi() {
 		let {_yatayTip2Bilgi: result} = this
@@ -912,8 +913,9 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			.addGrupBasit('CRISTGRP', 'Cari İst. Grup', 'cistgrup', DMQCariIstGrup)
 			.addGrupBasit('CARI', 'Cari', 'cari', DMQCari)
 			.addGrupBasit('CRIL', 'Cari İl', 'il', DMQIl).addGrupBasit('CRULKE', 'Ülke', 'ulke', DMQUlke)
-		
-		let { tip2OzelSahalar } = this.rapor
+
+		let { rapor } = this
+		let { tip2OzelSahalar } = rapor ?? {}
 		let { CAR: ozelSahalar = [] } = tip2OzelSahalar ?? {}
 		;ozelSahalar.forEach(r => {
 			let { kod, aciklama, tip, genislik, fra } = r
@@ -1011,7 +1013,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			.addGrupBasit('BRMORANI', 'Brm Oranı', 'brmorani', null, 10, ({ colDef }) => colDef.tipDecimal())
 			.addGrupBasit('STOKRESIM', 'Stok Resim', 'stokresim')
 
-		let { tip2OzelSahalar } = this.rapor
+		let { rapor } = this
+		let { tip2OzelSahalar } = rapor ?? {}
 		let { STK: ozelSahalar = [] } = tip2OzelSahalar ?? {}
 		;ozelSahalar.forEach(r => {
 			let { kod, aciklama, tip, genislik, fra } = r
@@ -1159,7 +1162,8 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			.addGrupBasit('STOKRESIM', 'Stok Resim', 'stokresim')
 
 		let { sqlNull } = Hareketci_UniBilgi.ortakArgs
-		let { tip2OzelSahalar } = this.rapor
+		let { rapor } = this
+		let { tip2OzelSahalar } = rapor ?? {}
 		let { STK: ozelSahalar = [] } = tip2OzelSahalar ?? {}
 		;ozelSahalar.forEach(r => {
 			let { kod, aciklama, tip, genislik, fra } = r
@@ -1379,7 +1383,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 
 	tabloYapiDuzenle_dovizli_baBedelBasit({ result }) {
-		let { degerlemeDvKodListe: dvKodListe } = this
+		let { degerlemeDvKodListe: dvKodListe = [] } = this
 		for (let dvKod of dvKodListe) {
 			result
 				.addToplamBasit_bedel(`DEG_BORCBEDEL_${dvKod}`, `Borç Bedel (${dvKod})`, `deg_borcbedel_${dvKod}`)
@@ -1389,7 +1393,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	tabloYapiDuzenle_dovizli_baBedel({ result }) {
 		this.tabloYapiDuzenle_dovizli_baBedelBasit(...arguments)
-		let { degerlemeDvKodListe: dvKodListe } = this
+		let { degerlemeDvKodListe: dvKodListe = [] } = this
 		for (let dvKod of dvKodListe)
 			result.addToplamBasit_bedel(`DEG_ISARETLIBEDEL_${dvKod}`, `B-A Bedel (${dvKod})`, `deg_isaretlibedel_${dvKod}`)
 		return this
@@ -1427,7 +1431,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return this
 	}
 	tabloYapiDuzenle_dovizli_baBakiye({ result }) {
-		let { degerlemeDvKodListe: dvKodListe } = this
+		let { degerlemeDvKodListe: dvKodListe = [] } = this
 		for (let dvKod of dvKodListe) {
 			result
 				.addToplamBasit_bedel(`DEG_BORCBAKIYE_${dvKod}`, `Borç Bakiye (${dvKod})`, `deg_borcbakiye_${dvKod}`, null, null, ({ item }) => {

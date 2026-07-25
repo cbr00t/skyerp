@@ -21,6 +21,7 @@ class MQOnayci extends MQCogul {
 						oncelik: '1',
 						eIslTip: ({ alias }) => `${alias}.efbelge`,
 						uuid: ({ alias }) => `${alias}.efuuid`,
+						mustKod: ({ alias }) => `${alias}.mustkod`,
 						mustUnvan: ({ alias }) => `${alias}.efmustunvan`,
 						tarih: ({ alias }) => `${alias}.tarih`,
 						fisNox: ({ alias }) => `${alias}.effatnox`,
