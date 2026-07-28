@@ -877,7 +877,10 @@ class Ext_NDVade extends MQExt {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments )
-		extend(pTanim, { dvKur: new PInstDate('nakdedonusumvade') })
+		extend(pTanim, {
+			ndVade: new PInstDate('nakdedonusumvade'),
+			dvKur: new PInstDate('dvkur')
+		})
 	}
 	static orjBaslikListesiDuzenle_ara({ liste }) {
 		liste.push(new GridKolon({ belirtec: 'nakdedonusumvade', text: 'Nakde Dönüşüm Vade', genislikCh: 13 }).tipDate())

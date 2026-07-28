@@ -72,7 +72,7 @@ class PosOrtakGridci extends BankaOrtakGridci {
 					let sent = new MQSent({
 						from: 'poskosul',
 						where: { degerAta: kod, saha: 'kod' },
-						sahalar: ['ndvadegun1 nakDonGun', 'odhesapkesimgunu hesKesGun']
+						sahalar: ['ilknakdedonusumgunu nakDonGun', 'odhesapkesimgunu hesKesGun']
 					})
 					let { nakDonGun, hesKesGun } = await sent.execTekil()
 					let ndVade = krediKartimi ? null : tarih.clone().addDays(nakDonGun)
@@ -181,7 +181,7 @@ class PosTahsilFis extends PosKrediKartiOrtakFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get detaySinif() { return PosTahsilDetay }
 	static get gridKontrolcuSinif() { return PosTahsilGridci }
-	static get sinifAdi() { return 'POS Tahsil' }
+	static get sinifAdi() { return 'POS Tahsil Fiş' }
 	static get kodListeTipi() { return 'POSTAH' }
 	static get numTipKod() { return 'PSALM' }
 	static get almSat() { return 'T' }
@@ -204,7 +204,7 @@ class KrediKartiIleOdemeFis extends PosKrediKartiOrtakFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get detaySinif() { return KrediKartiIleOdemeDetay }
 	static get gridKontrolcuSinif() { return KrediKartiIleOdemeGridci }
-	static get sinifAdi() { return 'Kredi Kartı ile Cari Ödeme' }
+	static get sinifAdi() { return 'Kredi Kartı ile Cari Ödeme Fiş' }
 	static get kodListeTipi() { return 'KKIODE' }
 	static get numTipKod() { return 'PSODE' }
 	static get almSat() { return 'A' }
