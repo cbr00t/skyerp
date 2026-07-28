@@ -185,7 +185,7 @@ class MQTabStok extends MQKAOrtak {
 		sent.stok2GrupBagla().stok2MarkaBagla()
 		sahalar.addWithAlias(alias, 'aciklama', 'brm', 'grupkod', 'satfiyat1 fiyat', 'almfiyat')
 		if (this._hasCol_almnetfiyat)
-			shalar.add(`${alias}.almnetfiyat`)
+			sahalar.add(`${alias}.almnetfiyat`)
 		sahalar.add('grp.aciklama grupadi', 'smar.aciklama markaadi')
 		sahalar.add(getKdvKodClauseVeAlias('TAH', 'sat'), getKdvKodClauseVeAlias('IND', 'alm'))
 		if (offlineRequest && !offlineMode) {

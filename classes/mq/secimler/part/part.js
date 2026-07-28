@@ -238,14 +238,10 @@ class SecimlerPart extends Part {
 					deleteKeys(_secim, 'birKismi', 'b', '_reduce')
 					
 					secim.temizle()
-					/*if (_secim.birKismimi !== undefined) {
-						_secim.hepsimi = !_secim.birKismimi
-						delete _secim.birKismimi
-					}**/
-
 					for (let [k, v] of entries(_secim)) {
 						if (v === undefined)
 							continue
+						
 						if (k == 'birKismimi') {
 							try { secim[k] = v }
 							catch (ex) {
@@ -254,8 +250,10 @@ class SecimlerPart extends Part {
 							}
 							continue
 						}
+						
 						secim[k] = v
 					}
+					
 					let { element: parent } = secim2Info[key]
 					if (parent)
 						secim.uiSetValues({ parent })

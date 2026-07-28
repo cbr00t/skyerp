@@ -59,15 +59,67 @@ class MQCari extends MQKA {
 				let kod = (adi2KodListe[ilAdi] || [])[0]; if (kod) { genel.ilKod = kod }
 			})()
 		}
-		$.extend(this, { kod: this.kod || vkn, vkn, eFaturaKullanirmi: efAyrimTipi != 'A' });
-		$.extend(genel, {
+		extend(this, { kod: this.kod || vkn, vkn, eFaturaKullanirmi: efAyrimTipi != 'A' })
+		extend(genel, {
 			unvan1: unvanParts[0] || '', unvan2: unvanParts[1] || '', adres1: adresParts[0] || '', adres2: adresParts[1] || '',
 			yore: adresYapi?.yore || '', posta: adresYapi?.posta
-		});
-		$.extend(iletisim, { tel1: iletisimYapi?.tel || '', fax: iletisimYapi?.faks, eMail: iletisimYapi?.eMail });
+		})
+		extend(iletisim, { tel1: iletisimYapi?.tel || '', fax: iletisimYapi?.faks, eMail: iletisimYapi?.eMail });
 		this.forAltYapiKeysDo('alimEIslIcinSetValues', e); return this
 	}
-	ozelEntegratordenKontrolEt(e) { return this.eIslem.ozelEntegratordenKontrolEt(e) }
+	ozelEntegratordenKontrolEt(e) {
+		return this.eIslem.ozelEntegratordenKontrolEt(e)
+	}
+	async kimlikBilgiSorgula(e) {
+		let err = errorText =>
+			({ isError: true, errorText })
+		
+		let { vkn } = this
+		if (!vkn)
+			throw err(`VKN belirtilmelidir`)
+
+		let r = await app.wsTurmobSorgu({ vkn })
+		if (!r)
+			return
+
+		let adr = (
+			r.IsAdresi ??
+			r.AdresBilgileri?.IsAdresi ??
+			values(r.AdresBilgileri)[0] ??
+			{}
+		)
+		let unvanTokens =uygunKelimeliParcalaBirlesik(
+			[r.Adi, r.Soyadi, r.Unvan]
+				.filter(Boolean)
+				.join(' '),
+			50, true)
+		let adresTokens = uygunKelimeliParcalaBirlesik(
+			[adr.MahalleSemt, adr.Koy, adr.CaddeSokak]
+				.filter(Boolean)
+				.join(' '),
+			50, true)
+		
+		let { vergi, genel, iletisim } = this
+		extend(vergi, {
+			tcKimlikNo: vergi.tcKimlikNo || r.TCKN,
+			vergiNo: vergi.vergiNo || r.VKN,
+			vergiDaire: vergi.vergiDaire || r.VergiDairesiAdi
+		})
+		extend(genel, {
+			unvan2: genel.unvan1 ? genel.unvan2 : ( unvanTokens[1] ?? '' ),
+			unvan1: genel.unvan1 || ( unvanTokens[0] ?? '' ),
+			ulkeKod: genel.ulkeKod || '052',
+			ilKod: genel.ilKod || adr.IlKodu,
+			yore: genel.yore || adr.IlceAdi,
+			adres2: genel.adres1 ? genel.adres2 : ( adresTokens[1] ?? '' ),
+			adres1: genel.adres1 || ( adresTokens[0] ?? '' )
+		})
+		extend(iletisim, {
+			tcKimlikNo: vergi.tcKimlikNo || r.TCKN,
+			vergiNo: vergi.vergiNo || r.VKN,
+			vergiDaire: vergi.vergiDaire || r.VergiDairesiAdi
+		})
+	}
 }
 class MQCariAlt extends MQAlt {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -89,13 +141,14 @@ class MQCari_Genel extends MQCariAlt {
 			result.push('bg-lightgray', 'iptal')
 	}
 	static rootFormBuilderDuzenle(e) {
-		e = e || {}; let {mfSinif} = this; mfSinif.formBuilder_addTabPanelWithGenelTab(e); let tabPage_genel = e.tabPage_genel;
+		let { mfSinif } = this
+		mfSinif.formBuilder_addTabPanelWithGenelTab(e)
+		let { tabPage_genel } = e
+		tabPage_genel.setAltInst(e => e.builder.inst.genel)
 		tabPage_genel.addStyle(e => `$elementCSS .baslik { color: cadetblue }`);
-		tabPage_genel.addBaslik({ etiket: 'Ünvan Ve Adres' });
+		tabPage_genel.addBaslik({ etiket: 'Ünvan Ve Adres' })
 		
-		let form = tabPage_genel.addFormWithParent().yanYana(2);
-		tabPage_genel.setAltInst(e => e.builder.inst.genel);
-		
+		let form = tabPage_genel.addFormWithParent().yanYana(2)
 		form.addTextInput({ id: 'unvan1', etiket: 'Ünvan-1', maxLength: 50 });
 		form.addTextInput({ id: 'unvan2', etiket: 'Ünvan-2', maxLength: 50 });
 		form = tabPage_genel.addFormWithParent().yanYana(2);
@@ -106,8 +159,18 @@ class MQCari_Genel extends MQCariAlt {
 		form.addTextInput({ id: 'adresKod', etiket: 'Adres Kodu', maxLength: 10 }).addStyle(e => `$elementCSS { max-width: 150px }`);
 		form.addTextInput({ id: 'yore', etiket: 'Yöre', maxLength: 30 });
 		form.addTextInput({ id: 'posta', etiket: 'Posta', maxLength: 10 }).addStyle(e => `$elementCSS { max-width: 100px }`);
-		form.addModelKullan({ id: 'ulkeKod', mfSinif: MQUlke }).etiketGosterim_normal().dropDown();
-		form.addModelKullan({ id: 'ilKod', mfSinif: MQCariIl }).etiketGosterim_normal().dropDown();
+		form.addModelKullan({ id: 'ulkeKod', mfSinif: MQUlke }).etiketGosterim_normal().dropDown()
+		form.addModelKullan({ id: 'ilKod', mfSinif: MQCariIl }).etiketGosterim_normal().dropDown()
+
+		form.addButton('kimlikBilgiSorgula', 'Kimlik Sorgusu')
+			.addStyle_wh(300)
+			.onClick(async _e => {
+				let { builder: fbd } = _e
+				let { inst, input } = fbd
+				let islemAdi = input.val()
+				try { await inst.kimlikBilgiSorgula({ ...e, ..._e }) }
+				catch (ex) { hConfirm(getErrorText(ex), islemAdi); throw ex }
+			})
 
 		tabPage_genel.addBaslik({ etiket: 'Diğer' }).addStyle(e => `$elementCSS { color: orangered }`);
 		form = tabPage_genel.addFormWithParent().yanYana(4);

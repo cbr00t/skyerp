@@ -634,7 +634,7 @@ class MQCogul extends MQYapi {
 		let ozelQueryDuzenleBlock = e.ozelQueryDuzenleBlock ?? e.ozelQueryDuzenle ?? e.stmDuzenle ?? e.stmDuzenleyici ??
 			sender.ozelQueryDuzenleBlock ?? sender.ozelQueryDuzenle ??
 			sender.stmDuzenle ?? sender.stmDuzenleyici
-		let mfSinif = this, {kod, value, stm, stm: { sent, orderBy }, maxRow, wsArgs, tekilOku, basit, modelKullanmi} = e
+		let mfSinif = this, {kod, value, stm, stm: { sent, orderBy } = {}, maxRow, wsArgs, tekilOku, basit, modelKullanmi} = e
 		let {gonderildiDesteklenirmi, gonderimTSSaha, table, tableAlias: alias, aliasVeNokta} = this
 		let { kodKullanilirmi, adiKullanilirmi, idSaha, kodSaha, adiSaha } = this
 		if (wsArgs)
@@ -1126,14 +1126,22 @@ class MQCogul extends MQYapi {
 	static tazeleVeYakala(e) { let part = e.part ?? e.builder?.rootPart; part.tazele() }
 	static getGridRecs(e) { let gridPart = e.gridPart ?? e.part ?? e.builder.rootPart ?? e.sender; return e.recs ?? (e.rec ? [e.rec] : null) ?? gridPart?.selectedRecs }
 	static getGridRec(e) { return (this.getGridRecs(e) || [])[0] }
-	static getKAKolonlar(colKod, colAdi) {
+	static getKAKolonlar(colKod, colAdi, autoReverse) {
 		let result = [colKod, colAdi].filter(_ => !!_)
 		if (result.length < 2)
 			return result
+		
 		if (!isMiniDevice())
 			return result
-		let {belirtec: kodSaha} = colKod ?? {}
-		let {belirtec: adiSaha} = colAdi ?? {}
+
+		if (autoReverse) {
+			let tmp = colKod
+			colKod = colAdi
+			colAdi = tmp
+		}
+		
+		let { belirtec: kodSaha } = colKod ?? {}
+		let { belirtec: adiSaha } = colAdi ?? {}
 		colKod?.hidden()
 		if (colAdi) {
 			let {gonderimTSSaha} = this, {cellsRenderer: saved} = colAdi

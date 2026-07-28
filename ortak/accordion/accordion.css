@@ -18,8 +18,9 @@
 	transition: 100ms ease
 	/*transition-delay: 2ms*/
 }
-.accordion.part.fullScreen:has(> .accordion.item.expanded) .accordion.item.expanded { height: calc(var(--full) - var(--acc-header-height) * 1.55) }
-.accordion.part.fullScreen:has(> .accordion.item.expanded) .accordion.item:not(.expanded) { display: none }
+.accordion.part.fullScreen:has(> .accordion.item.expanded) .accordion.item.expanded { height: calc(var(--full) - var(--acc-header-height) * 1.8) }
+.accordion.part.fullScreen.together:has(> .accordion.item.expanded) .accordion.item.expanded { height: calc(var(--full) - var(--acc-header-height) * 2.5) }
+.accordion.part.fullScreen:not(.together):has(> .accordion.item.expanded) .accordion.item:not(.expanded) { display: none }
 .accordion.part.fullScreen:has(> .accordion.item.expanded) .accordion.item.expanded + .accordion.item { display: block }
 /*.accordion.part .accordion.item.expanded > .header > .collapsed-content,*/
 .accordion.part .accordion.item:not(.expanded) > .content { display: none }

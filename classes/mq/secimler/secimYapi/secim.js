@@ -73,7 +73,7 @@ class Secim extends CIO {
 	get asHTMLElementString() { let _e = { target: '' }; this.buildHTMLElementStringInto(_e); return _e.target }
 	buildHTMLElementStringInto(e) { }
 	initHTMLElements(e) { }
-	ozetBilgiHTMLOlustur({ liste }) {
+	ozetBilgiHTMLOlustur({ liste, key }) {
 		/*if (this.isHidden)
 			return this*/
 		let {ozetBilgiValueDuzenlenmis: result} = this
@@ -82,7 +82,10 @@ class Secim extends CIO {
 		if (result && !isArray(result))
 			result = [result]
 		if (result) {
-			result = result.filter(value => !!value).map(value => `<div class="float-left ozetBilgi-item">${value}</div>`)
+			result = result
+				.filter(Boolean)
+				.map(v =>
+					`<div class="${key ? `${key} ` : ''}ozetBilgi-item float-left">${v}</div>`)
 			liste.push(...result)
 		}
 		return this

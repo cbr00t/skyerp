@@ -5,7 +5,7 @@ class DRapor_KarZararTablosu extends DRaporMQ {
 	static get kategoriAdi() { return 'Finansal Analiz' }
 	static get kod() { return 'KARZARAR' }
 	static get aciklama() { return 'Kar/Zarar Tablosu' }
-	static get uygunmu() { return true }
+	static get uygunmu() { return config.dev }
 	static get secimSinif() { return DonemselSecimler }
 	static get sadeceTanimmi() { return true }
 	static get kolonFiltreKullanilirmi() { return false }
@@ -26,41 +26,159 @@ class DRapor_KarZararTablosu extends DRaporMQ {
 		this.secimlerOlustur(e)
 		app.appTitleBar?.addClass('jqx-hidden')
 		
-		if (!document.fullscreen)
+		if (!(config.dev || document.fullscreen))
 			requestFullScreen()
 		
 		return await super.uiGirisOncesiIslemler(e)
 	}
+	async onAfterRun({ tanimPart }) {
+		await this.accDuzenle(...arguments)
+		let { acc } = tanimPart
+		acc.layout.addClass('together')
+		delay(100).then(async () => {
+			await this.acc_onExpand({ ...arguments[0], acc })
+			this.acc_onCollapse({ ...arguments[0], acc })
+		})
+	}
 	destroyPart(e = {}) {
-		let { tanimPart = e.sender } = e
+		let { tanimPart = e.sender ?? {} } = e
+		let { acc } = tanimPart
 		e.sender = this
 		app.appTitleBar?.removeClass('jqx-hidden')
-		tanimPart?.acc?.destroyPart?.()
+		acc?.destroyPart?.()
 		this.otoTazele_stopTimer(e)
 		return super.destroyPart?.(e)
 	}
 	secimlerOlustur({ sender: tanimPart } = {}) {
-		let secimler = new DonemselSecimler()
-		secimler
-			.addKA('sube', DMQSube, 'fis.bizsubekod', 'sub.aciklama')
-			.addKA('kasiyer', DMQKasiyer, 'fis.kasiyerkod', 'kas.aciklama')
+		let { zorunlu = {}, finans = {}, ticariGenel: { kullanim: ticGenel } = {} } = app.params
+		let { karZararTabloMaliyettenBulunsun: kzMaliyetten } = finans
+		let { takipNo } = ticGenel
+		let { ozelIsaret } = zorunlu
+
+		let sec = tanimPart.secimler = new DonemselSecimler()
 		;{
-			let { donem: { tekSecim: donem } = {} } = secimler
+			let { donem: { tekSecim: donem } = {} } = sec
 			donem?.buYil()
 		}
-		extend(this, { secimler })
+
+		;{
+			let grupKod = 'donemVeTarih'
+			sec.secimTopluEkle({
+				sadeceStoklar: new SecimBool({ grupKod, etiket: 'Sadece Stoklar' }),
+				bekSipVeIrs: new SecimBool({ grupKod, etiket: 'Bekleyen Siparişler ve irsaliye de alınsın' })
+			})
+			if (kzMaliyetten)
+				sec.secimEkle('stokMaliyetYontemi', new SecimTekSecim({ grupKod, etiket: 'Stok Maliyet Yöntemi', tekSecimSinif: StokMaliyetYontemi }))
+			sec.secimTopluEkle({
+				gruplamadaAnaGrup: new SecimBool({ grupKod, etiket: 'Gruplamada Ana Grup da olsun' }),
+				gruplama: new SecimTekSecim({ grupKod, etiket: 'Gruplama', tekSecim: new BuVeDiger(['Normal Grup', 'İst. Grup']) }),
+				miktar2: new SecimBool({ grupKod, etiket: 'Miktar 2 Gösterilir' })
+			})
+			if (ozelIsaret)
+				sec.addSecim('kdvliBedel', new SecimBool({ grupKod, etiket: 'Kdvli Bedeller alınsın' }))
+		}
+		;{
+			sec
+				.addKA('sube', DMQSube)
+				.addKA('yer', DMQYer)
+				.addKA('stok', DMQStok)
+				.addKA('stokGrup', DMQStokGrup)
+				.addKA('stokAnaGrup', DMQStokAnaGrup)
+				.addKA('stokIstGrup', DMQStokIstGrup)
+			if (takipNo) {
+				sec
+					.addKA('takip', DMQTakipNo)
+					.addKA('takipGrup', DMQTakipGrup)
+			}
+		}
+	}
+
+	sentDuzenle_pifOrtak(e = {}) {
+		let { tanimPart, secimler: sec, sent, almSat, detTakipmi } = e
+		let { where: wh } = sent
+		let { params } = app
+		let { finans = {} } = params
+		let { bekSipVeIrs: { value: bekSipVeIrs } } = sec
+		let { kullanim: { takipNo } = {} } = params.ticariGenel ?? {}
+		let { sadeceStoklar: { value: sadeceStoklar } } = sec
+
+		this.sentDuzenle_fisOrtak(e)
 		
-		secimler.whereBlockEkle(({ secimler: sec, sent, where: wh }) => {
-			let {tarihBS} = sec
+		wh.add(new MQOrClause([
+			{ inDizi: ['F', 'P'], saha: 'fis.piftipi' },
+			( bekSipVeIrs ? new MQAndClause([
+				`fis.piftipi = 'I'`,
+				'i2f.kaysayac IS NULL'
+			]) : null )
+		].filter(Boolean)))
+		
+		if (almSat) {
+			wh.degerAta(almSat, 'fis.almsat')
+			if (almSat == 'T') {
+				let { karZararTabloMaliyettenBulunsun: kzMaliyetten } = finans
+				wh.notDegerAta(kzMaliyetten ? 'IH' : 'IN', 'fis.ayrimtipi')
+			}
+		}
+
+		if (takipNo) {
+			let cl_takipNo = (
+				detTakipmi
+					? 'har.takipno'
+					: `(case when fis.takiportakdir <> '' then fis.orttakipno else har.dettakipno end)`
+			)
 			sent
-				.fromIliski('isyeri sub', 'fis.bizsubekod = sub.kod')
-				.fromIliski('kasiyer kas', 'fis.kasiyerkod = kas.kod')
+				.fromIliski('takipmst tak', `${cl_takipNo} = tak.kod`)
+				.fromIliski('takipgrup tgrp', 'tak.grupkod = tgrp.kod')
 			wh
-				.fisSilindiEkle()
-				//.add(new MQOrClause([`fis.ozelisaret <> '*'`, `fis.fisanatipi = 'YM'`]))
-			if (tarihBS)
-				wh.basiSonu(tarihBS, 'fis.tarih')
+				.basiSonu(sec.takipKod, cl_takipNo)
+				.ozellik(sec.takipAdi, 'tak.aciklama')
+				.basiSonu(sec.takipGrupKod, 'tak.grupkod')
+				.ozellik(sec.takipGrupAdi, 'tgrp.aciklama')
+		}
+
+		if (sadeceStoklar) {
+			wh
+				.basiSonu(sec.stokKod, 'har.stokkod')
+				.ozellik(sec.stokAdi, 'stk.aciklama')
+				.basiSonu(sec.stokGrupKod, 'stk.grupkod')
+				.ozellik(sec.stokGrupAdi, 'grp.aciklama')
+				.basiSonu(sec.stokAnaGrupKod, 'grp.anagrupkod')
+				.ozellik(sec.stokAnaGrupAdi, 'agrp.aciklama')
+				.basiSonu(sec.stokIstGrupKod, 'stk.sistgrupkod')
+				.ozellik(sec.stokIstGrupAdi, 'sigrp.aciklama')
+		}
+		
+		return this
+	}
+	sentDuzenle_fisOrtak(e = {}) {
+		let { tanimPart, secimler: sec, sent } = e
+		let { tarihBS } = sec, { where: wh } = sent
+
+		sent.fis2SubeBagla()
+		wh
+			.fisSilindiEkle()
+			.add(`fis.ozelisaret <> 'X'`)
+		if (tarihBS)
+			wh.basiSonu(tarihBS, 'fis.tarih')
+		wh
+			.basiSonu(sec.subeKod, 'fis.bizsubekod')
+			.ozellik(sec.subeAdi, 'sub.aciklama')
+		
+		return this
+	}
+	
+	stmSonIslemler({ stm }) {    // AccPanelGrid yapısı tarafından setQuery() sonrası otomatik çağrılır
+		;stm.forEach(sent => {
+			sent
+				.groupByOlustur()
+				.gereksizTablolariSil(['stk', 'grp'])
 		})
+		/*let { buDB, dbListe } = app
+		if (konsolideCikti && !empty(ekDBListe)) {
+			;stm.forEach(sent => {
+				let { from, where: wh, sahalar } = sent
+			})
+		}*/
 	}
 
 	static rootFormBuilderDuzenle_islemTuslari({ sender: tanimPart, fbd_islemTuslari: fbd }) {
@@ -197,12 +315,6 @@ class DRapor_KarZararTablosu extends DRaporMQ {
 			inst.onAfterRun(e))
 	}
 
-	async onAfterRun({ tanimPart }) {
-		await this.accDuzenle(...arguments)
-		let { acc } = tanimPart
-		await this.acc_onExpand({ ...arguments[0], acc })
-		await this.acc_onCollapse({ ...arguments[0], acc })
-	}
 	async accDuzenle(e) {
 		let { tanimPart, acc } = e
 		let panels = this.panels = this.getPanels(e)
@@ -230,17 +342,30 @@ class DRapor_KarZararTablosu extends DRaporMQ {
 			}*/
 			hideNotify()
 		})
+		delay(10).then(() =>
+			this.acc_onExpandCollapseOrtak({ ...arguments[0], expanded: true }))
 	}
 	acc_onCollapse({ tanimPart, acc, id, item }) {
 		delay(10).then(() => {
-			let digerId = (
+			/*let digerId = (
 				id == 'satis' ? 'diger' :
 				id == 'diger' ? 'satis' :
 				null
 			)
 			if (digerId)
-				acc.expand(digerId)
+				acc.expand(digerId)*/
+			
+			this.acc_onExpandCollapseOrtak({ ...arguments[0], expanded: false })
 		})
+	}
+	acc_onExpandCollapseOrtak({ tanimPart, acc, id, item, expanded }) {
+		let { activePanels, layout } = acc
+		layout[len(activePanels) == 1 ? 'addClass' : 'removeClass']('fullScreen')
+		;{
+			let elms = layout.find('.jqx-grid')
+			if (elms.length)
+				elms.jqxGrid('refresh')
+		}
 	}
 
 	async tazeleIstendi(e = {}) {
@@ -306,10 +431,10 @@ class DRapor_KarZararTablosu extends DRaporMQ {
 	}
 
 	secimlerIstendi(e) {
-		let { tanimPart: parentPart } = e
-		let { secimler } = this
-		let part = secimler?.duzenlemeEkraniAc({
-			parentPart,
+		let { tanimPart } = e
+		let { secimler: sec } = tanimPart
+		let part = sec?.duzenlemeEkraniAc({
+			parentPart: tanimPart,
 			tamamIslemi: _e =>
 				this.tazeleIstendi({ ..._e, ...e })
 		})
@@ -345,20 +470,6 @@ class DRapor_KarZararTablosu extends DRaporMQ {
 		return this
 	}
 
-	baslikSentDuzele(e = {}) {
-		let { sent: { where: wh } } = e
-		let { secimler: sec } = this
-		wh.birlestir(sec.getTBWhereClause(e))
-		return this
-	}
-	stmSonIslemler({ stm }) {
-		/*let { buDB, dbListe } = app
-		if (konsolideCikti && !empty(ekDBListe)) {
-			;stm.forEach(sent => {
-				let { from, where: wh, sahalar } = sent
-			})
-		}*/
-	}
 	tanimPart_hizliBulIslemi({ sender: tanimPart, tokens }) {
 		super.tanimPart_hizliBulIslemi(...arguments)
 		let sender = tanimPart

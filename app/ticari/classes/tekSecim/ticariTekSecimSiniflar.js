@@ -753,6 +753,7 @@ class DonemTarihAralikVeHepsiSecim extends DonemVeTarihAralikSecim {
 	tarihAralik() { this.char = 'TR'; return this }
 }
 class ResimBelirlemeKurali extends TekSecim {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return 'ST' } get stokTanimdami() { return this.char == '' } get stokKodu() { return this.char == 'ST' }
 	get grupVeStokmu() { return this.char == 'GS' } get pdmmi() { return this.char == 'PD' } get grupVePDMmi() { return this.char == 'GP' }
 	kaListeDuzenle(e) {
@@ -764,11 +765,15 @@ class ResimBelirlemeKurali extends TekSecim {
 	}
 }
 class TicBorclanmaSekli extends TekSecim {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return 'F' }
-	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); e.kaListe.push(
-			new CKodVeAdi(['S', 'Sipariş', 'siparismi']), new CKodVeAdi(['I', 'İrsaliye', 'irsaliyemi']),
-			new CKodVeAdi(['X', 'Fatura ve Bekleyen İrsaliye', 'faturaVeBekleyenIrsaliyemi']), new CKodVeAdi(['F', 'Fatura', 'faturami'])
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		kaListe.push(
+			new CKodVeAdi(['S', 'Sipariş', 'siparismi']),
+			new CKodVeAdi(['I', 'İrsaliye', 'irsaliyemi']),
+			new CKodVeAdi(['X', 'Fatura ve Bekleyen İrsaliye', 'faturaVeBekleyenIrsaliyemi']),
+			new CKodVeAdi(['F', 'Fatura', 'faturami'])
 		)
 	}
 }
@@ -822,4 +827,15 @@ class OperDurum extends BuDigerVeHepsi {
 	}
 }
 
-
+class StokMaliyetYontemi extends TekSecim {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get defaultChar() { return ' ' }
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		kaListe.push(
+			new CKodVeAdi([' ', 'Gerçek Maliyet', 'maliyetmi']),
+			new CKodVeAdi(['A', 'Son Alım Net Fiyat', 'sonAlimmi']),
+			new CKodVeAdi(['O', 'Ortalama Maliyet', 'ortalamami'])
+		)
+	}
+}

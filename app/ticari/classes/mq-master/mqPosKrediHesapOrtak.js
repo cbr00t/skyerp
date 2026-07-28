@@ -49,10 +49,9 @@ class MQPosKrediHesapOrtak extends MQKA {
 			wh.ozellik(sec.mevduatHesapAdi, `bhes.aciklama`)
 		})
 	}
-	static ekCSSDuzenle(e) {
-		super.ekCSSDuzenle(e);
-		const {rec, result} = e;
-		if (!rec.baktifmi)
+	static ekCSSDuzenle({ rec, result }) {
+		super.ekCSSDuzenle(...arguments)
+		if (rec.baktifmi != null && !rec.baktifmi)
 			result.push('bg-lightgray', 'iptal')
 	}
 	static orjBaslikListesiDuzenle(e) {
@@ -64,9 +63,9 @@ class MQPosKrediHesapOrtak extends MQKA {
 		);
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e);
-		const {aliasVeNokta} = this, {sent} = e;
-		sent.fromIliski('banbizhesap bhes', `${aliasVeNokta}mevduathesapkod = bhes.kod`);
+		super.loadServerData_queryDuzenle(e)
+		let {aliasVeNokta} = this, {sent} = e
+		sent.fromIliski('banbizhesap bhes', `${aliasVeNokta}mevduathesapkod = bhes.kod`)
 		sent.sahalar.add('baktifmi')
 	}
 	static varsayilanKeyHostVarsDuzenle(e) {

@@ -1,6 +1,14 @@
 class Secimler extends CIO {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get uiSinif() { return window.SecimlerWindowPart } static get duzenlemeUISinif() { return this.uiSinif }
+	static get uiSinif() { return window.SecimlerWindowPart }
+	static get duzenlemeUISinif() { return this.uiSinif }
+	get key2OzetBilgiHTML() { return this.getKey2OzetBilgiHTML() }
+	get ozetBilgiHTML() { return this.getOzetBilgiHTML() }
+	get asHTMLElements() {
+		let _e = { grup2Info: {} }
+		this.buildHTMLElementsInto(_e)
+		return _e.grup2Info
+	}
 	
 	constructor(e) {
 		e = e || {}; super(e); let {eConf} = e; if (eConf != null) { this.eConf = eConf }
@@ -85,9 +93,12 @@ class Secimler extends CIO {
 		}
 		return true
 	}
-	readFromObject(e, _disabled) {
+	readFromObject(e, _disabled, _secim2Info) {
+		let isObj = isObject(e)
 		let data = e?.data ?? e
-		let disabled = isObject(e) ? e.disabled : _disabled
+		let disabled = isObj ? e.disabled : _disabled
+		let secim2Info = isObj ? e.secim2Info : _secim2Info
+		
 		let key2Sec = data
 		if (isString(key2Sec)) {
 			let str = Base64.isValid(key2Sec) ? Base64.decode(key2Sec) : key2Sec
@@ -100,9 +111,11 @@ class Secimler extends CIO {
 		for (let [key, _sec] of entries(key2Sec)) {
 			if (empty(_sec))
 				continue
+			
 			let sec = liste[key]
 			if (!sec)
 				continue
+			
 			let def = key2Sec[key]
 			try {
 				// if (sec is SecimDate && sec is )
@@ -126,6 +139,10 @@ class Secimler extends CIO {
 					sec.hidden()
 				else
 					sec.visible()
+
+				let { element: parent } = secim2Info?.[key] ?? {}
+				if (parent)
+					sec.uiSetValues({ parent })
 			}
 			catch (ex) { cerr(ex) }
 		}
@@ -148,20 +165,39 @@ class Secimler extends CIO {
 		return this
 	}
 	secimTopluEkle(e) {
-		let liste = e.liste || e, noInitFlag = (e.noInit ?? this._noInit);
-		if (!noInitFlag) { this.beginUpdate() } if (liste) { for (let key in liste) { this.secimEkle({ key, secim: liste[key], noInit: true }) } }
-		if (!noInitFlag) { this.endUpdate() }
+		let liste = e.liste ?? e ?? []
+		let noInitFlag = (e.noInit ?? this._noInit)
+		if (!noInitFlag)
+			this.beginUpdate()
+		for (let key in liste)
+			this.secimEkle({ key, secim: liste[key], noInit: true })
+		if (!noInitFlag)
+			this.endUpdate()
 		return this
 	}
 	secimEkle(e, _secim, _noInit) {
-		e = e || {}; let key = e.key ?? e.belirtec ?? e, noInitFlag = (e.noInit ?? _noInit ?? this._noInit);
-		let secim = e.secim ?? e.value ?? e.item ?? _secim;
+		e ??= {}
+		let { key = e.belirtec ?? e } = e
+		let { noInitFlag = e.noInit ?? _noInit ?? this._noInit } = e
+		let { secim = e.value ?? e.item ?? _secim } = e
 		if (!noInitFlag) { this.beginUpdate() }
 		if (key && secim) {
-			if (typeof secim == 'string') { secim = getFunc(secim) } if ($.isPlainObject(secim)) { secim = Secim.From(secim) }
-			if (secim) { this.liste[key] = secim; let {grupListe} = this, {grupKod} = secim; if (grupKod && !grupListe[grupKod]) { this.grupEkle(grupKod) } }
+			if (isString(secim))
+				secim = getFunc(secim)
+			if (isPlainObject(secim))
+				secim = Secim.From(secim)
+			
+			if (secim) {
+				this.liste[key] = secim
+				let { grupListe } = this
+				let { grupKod } = secim
+				if (grupKod && !grupListe[grupKod])
+					this.grupEkle(grupKod)
+			}
 		}
-		if (!noInitFlag) { this.endUpdate() } return this
+		if (!noInitFlag)
+			this.endUpdate()
+		return this
 	}
 	grupTopluEkle(e) {
 		let liste = e.grupListe ?? e;
@@ -220,8 +256,14 @@ class Secimler extends CIO {
 	}
 	get tbWhereClause() { return this.getTBWhereClause() }
 	getTBWhereClause(e = {}) {
-		let secimler = this, {whereBlockListe} = this, {alias} = e, aliasVeNokta = alias ? `${alias}.` : ''
-		let _e = { ...e, alias, aliasVeNokta, secimler, where: new MQWhereClause() }
+		let secimler = this
+		let { whereBlockListe } = this
+		let { alias } = e
+		let aliasVeNokta = alias ? `${alias}.` : ''
+		let _e = {
+			...e, alias, aliasVeNokta, secimler,
+			where: new MQWhereClause()
+		}
 		if (whereBlockListe) {
 			for (let block of whereBlockListe)
 				block.call(this, _e)
@@ -230,7 +272,6 @@ class Secimler extends CIO {
 		return _e.where
 	}
 	tbWhereClauseDuzenle(e) { }
-	get asHTMLElements() { let _e = { grup2Info: {} }; this.buildHTMLElementsInto(_e); return _e.grup2Info }
 	buildHTMLElementsInto(e) {
 		let {grup2Info} = e, {liste, grupListe} = this, grupKod2Liste = {};
 		for (let key in liste) { let secim = liste[key], grupKod = secim.grupKod || '', _liste = (grupKod2Liste[grupKod] = grupKod2Liste[grupKod] || {}); _liste[key] = secim }
@@ -283,23 +324,52 @@ class Secimler extends CIO {
 			innerHTML = innerHTML.html()
 		return innerHTML || null
 	}
+	getOzetBilgiHTML(e) {
+		return values(this.getKey2OzetBilgiHTML(e))
+			.join('\n')
+			
+	}
+	getKey2OzetBilgiHTML() {
+		let { liste } = this
+		let res = {}
+		for (let [key, sec] of entries(liste)) {
+			let _ = []
+			sec.ozetBilgiHTMLOlustur({ key, liste: _ })
+			if (!empty(_))
+				res[key] = _.join('\n')
+		}
+		return res
+	}
 	shallowCopy(e) {
-		let inst = super.deepCopy(); if (!inst) { return inst }
-		let liste = inst.liste = {}; inst.beginUpdate();
-		for (let [tip, _sec] of this) {
-			liste[tip] = _sec.shallowCopy(e) }
-		inst.endUpdate();
+		let inst = super.deepCopy()
+		if (!inst)
+			return inst
+		
+		let liste = inst.liste = {}
+		inst.beginUpdate()
+		for (let [tip, _sec] of this)
+			liste[tip] = _sec.shallowCopy(e)
+		inst.endUpdate()
+		
 		return inst
 	}
 	deepCopy(e) {
-		let inst = super.deepCopy(); if (!inst) { return inst }
-		let liste = inst.liste = {}; inst.beginUpdate();
-		for (let [tip, _sec] of this) {
-			liste[tip] = _sec.deepCopy(e) }
-		inst.endUpdate();
+		let inst = super.deepCopy()
+		if (!inst)
+			return inst
+		
+		let liste = inst.liste = {}
+		inst.beginUpdate()
+		for (let [tip, _sec] of this)
+			liste[tip] = _sec.deepCopy(e)
+		inst.endUpdate()
+		
 		return inst
 	}
-	*[Symbol.iterator](e) { for (let item of Object.entries(this.liste)) { yield item } }
+	*[Symbol.iterator](e) {
+		for (let item of entries(this.liste))
+			yield item
+	}
 }
 
 class DonemselSecimler extends Secimler {

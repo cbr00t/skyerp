@@ -270,7 +270,8 @@ class TicariApp extends App {
 		return new FRMenu({ items })
 	}
 	async getMailParam(e) {
-		let  {eMailKeys } = MQEMailUst, { params } = this
+		let { eMailKeys } = MQEMailUst
+		let { params } = this
 		let setValues = (source, target) => {
 			if (!(source && target)) { return }
 			for (let key of eMailKeys) { let value = source[key]; if (value) { target[key] = value } }
@@ -295,7 +296,8 @@ class TicariApp extends App {
 	}
 	satisTipleriBelirle(e = {}) {
 		let sent = new MQSent({ from: 'satistipi', sahalar: ['kod', 'aciklama'] })
-		return app.sqlExecSelect(sent).then(recs => this.satisTipleri = recs)
+		return app.sqlExecSelect(sent).then(recs =>
+			this.satisTipleri = recs)
 	}
 	wsSabitTanimlar_xml(e = {}) { if (e && !isObject(e)) e = { belirtec: e }; return this.wsSabitTanimlar($.extend({}, e, { tip: 'xml' })) }
 	wsSabitTanimlar_secIni(e = {}) { if (e && !isObject(e)) e = { belirtec: e }; return this.wsSabitTanimlar($.extend({}, e, { tip: 'sec-ini' })) }
@@ -513,6 +515,45 @@ class TicariApp extends App {
 		e.stream = true
 		deleteKeys(e, 'streamFlag', 'isStream')
 		return this.wsLogoBilgileri(e)
+	}
+	async wsTurmobSorgu(e = {}) {
+		let { args = e } = e
+		let {
+			vkn, surum = '417',
+			tanitim = args.tanitim || this.tanitim,
+			turmobToken = args.token || this.turmobToken
+		} = args
+		deleteKeys(e, 'data', 'args')
+
+		tanitim ||= this.tanitim = await this.wsGetTanitim()
+		if (!turmobToken) {
+			let sent = new MQSent({
+				from: 'yflaglar',
+				where: { degerAta: 'PLCARGEN', saha: 'kod' },
+				sahalar: 'tanim'
+			})
+			let tanim = await sent.execTekilDeger() ?? ''
+			;{
+				let pf = 'turmobAnahtar='
+				let v = tanim
+					?.split('!')
+					?.find(t => t.startsWith(pf))
+				if (v) {
+					v = v.slice(pf.length + 3).trim()
+					turmobToken = this.turmobToken = v
+				}
+			}
+		}
+		
+		let { DefaultWSHostName_SkyServer: host } = config.class
+		let port = 8119
+		return await ajaxGet({
+			timeout: 30_000, processData: false,
+			url: (
+				`https://${host}:${port}/ws/turmob/mukellefBilgisi?` +
+				`vkn=${vkn}&surum=${surum}&tanitim=${tanitim}&turmobToken=${turmobToken}`
+			)
+		})
 	}
 }
 

@@ -61,7 +61,31 @@ class PosOrtakGridci extends BankaOrtakGridci {
 	tabloKolonlariDuzenle_ilk(e) {
 		const {tabloKolonlari} = e;
 		tabloKolonlari.push(
-			...this.class.posHesapSinif.getGridKolonlar({ belirtec: 'posKosul', gridKolonGrupcu: 'getGridKolonGrup_bankaHesapli' }),
+			...this.class.posHesapSinif.getGridKolonlar({
+				belirtec: 'posKosul', gridKolonGrupcu: 'getGridKolonGrup_bankaHesapli',
+				degisince: async ({ mfSinif, fis, rec, newValue: kod, setCellValue }) => {
+					let { tarih, class: { krediKartimi } } = fis
+					tarih = asDate(tarih)
+					if (isInvalidDate(tarih))
+						return
+					
+					let sent = new MQSent({
+						from: 'poskosul',
+						where: { degerAta: kod, saha: 'kod' },
+						sahalar: ['ndvadegun1 nakDonGun', 'odhesapkesimgunu hesKesGun']
+					})
+					let { nakDonGun, hesKesGun } = await sent.execTekil()
+					let ndVade = krediKartimi ? null : tarih.clone().addDays(nakDonGun)
+					if (krediKartimi) {
+						hesKesGun ||= 1
+						ndVade = tarih.clone()
+						if (hesKesGun < tarih.gun)
+							ndVade.addMonths(1)
+						ndVade.setDate(hesKesGun)
+					}
+					setCellValue({ belirtec: 'ndVade', value: ndVade })
+				}
+			}),
 			...MQCari.getGridKolonlar({ belirtec: 'must' }),
 			...MQAltHesap.getGridKolonlar({ belirtec: 'altHesap' }),
 			...MQTakipNo.getGridKolonlar({ belirtec: 'takip' }),
@@ -151,7 +175,6 @@ class PosKrediKartiOrtakDetay extends PosOrtakDetay {
 }
 class PosKrediKartiOrtakGridci extends PosOrtakGridci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get posHesapSinif() { return MQKrediKarti }
 }
 
 class PosTahsilFis extends PosKrediKartiOrtakFis {
@@ -162,6 +185,7 @@ class PosTahsilFis extends PosKrediKartiOrtakFis {
 	static get kodListeTipi() { return 'POSTAH' }
 	static get numTipKod() { return 'PSALM' }
 	static get almSat() { return 'T' }
+	static get posmu() { return true }
 }
 class PosTahsilDetay extends PosKrediKartiOrtakDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -173,6 +197,7 @@ class PosTahsilDetay extends PosKrediKartiOrtakDetay {
 }
 class PosTahsilGridci extends PosKrediKartiOrtakGridci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get posHesapSinif() { return MQPosHesap }
 }
 
 class KrediKartiIleOdemeFis extends PosKrediKartiOrtakFis {
@@ -183,6 +208,7 @@ class KrediKartiIleOdemeFis extends PosKrediKartiOrtakFis {
 	static get kodListeTipi() { return 'KKIODE' }
 	static get numTipKod() { return 'PSODE' }
 	static get almSat() { return 'A' }
+	static get krediKartimi() { return true }
 }
 class KrediKartiIleOdemeDetay extends PosKrediKartiOrtakDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -194,4 +220,5 @@ class KrediKartiIleOdemeDetay extends PosKrediKartiOrtakDetay {
 }
 class KrediKartiIleOdemeGridci extends PosKrediKartiOrtakGridci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get posHesapSinif() { return MQKrediKarti }
 }

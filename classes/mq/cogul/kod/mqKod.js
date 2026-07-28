@@ -260,7 +260,7 @@ class MQKA extends MQKod {
 				
 				let {sender, gridPart, value, maxRow} = e, colDef = sender ?? {}, mfSinif = colDef.mfSinif ?? this
 				let belirtec = colDef.belirtec, kodAttr = e.kodAttr || colDef.kodAttr || `${belirtec}Kod`, adiAttr = e.adiAttr || colDef.adiAttr ||`${belirtec}Adi`
-				let {tableAndAlias, aliasVeNokta, kodSaha, adiSaha, emptyKodValue = ''} = mfSinif
+				let {tableAndAlias, tableAlias: alias, aliasVeNokta, kodSaha, adiSaha, emptyKodValue = ''} = mfSinif
 				let sent = new MQSent({
 					from: tableAndAlias, where: [`${aliasVeNokta}${kodSaha} <> ${MQSQLOrtak.sqlDegeri(emptyKodValue)}`],
 					sahalar: [`${aliasVeNokta}${kodSaha} ${kodAttr}`, `${aliasVeNokta}${adiSaha} ${adiAttr}` ]
@@ -279,21 +279,37 @@ class MQKA extends MQKod {
 						}
 					}
 				}
-				let stm = new MQStm({ sent: sent, orderBy: [kodAttr] })
+
+				let keyHV = this.varsayilanKeyHostVars(e)
+				if (keyHV)
+					sent.where.birlestirDict({ alias, dict: keyHV })
+				
+				let stm = new MQStm({ sent, orderBy: [kodAttr] })
 				let { stmDuzenleyiciler } = kolonGrup
 				if (ekStmDuzenleyici || stmDuzenleyiciler) {
 					let fis = e.fis ?? gridPart?.fis, {tableAlias, aliasVeNokta} = mfSinif, {sent} = stm, handlers = [];
 					if (ekStmDuzenleyici) { handlers.push(ekStmDuzenleyici) }
 					if (!$.isEmptyObject(stmDuzenleyiciler)) { handlers.push(...stmDuzenleyiciler) }
 					let _e = { ...e, sender, colDef, fis, mfSinif, alias: tableAlias, aliasVeNokta, stm, sent };
-					for (let handler of stmDuzenleyiciler) { _e.result = getFuncValue.call(mfSinif, handler, _e); if (_e.result === false) { return null } stm = _e.stm }
+					for (let handler of stmDuzenleyiciler) {
+						_e.result = getFuncValue.call(mfSinif, handler, _e)
+						if (_e.result === false)
+							return null
+						stm = _e.stm
+					}
 				}
+				
 				let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e;
-				let result = await this.sqlExecSelect({ offlineMode, trnId, maxRow: (maxRow == null ? app.params.ortak.autoComplete_maxRow : maxRow), query: stm });
+				let result = await this.sqlExecSelect({
+					offlineMode, trnId,
+					maxRow: (maxRow == null ? app.params.ortak.autoComplete_maxRow : maxRow),
+					query: stm
+				})
 				return result
 			}
-		});
-		if (argsDuzenleBlock) { getFuncValue.call(this, argsDuzenleBlock, { ...e, kolonGrup }) }
+		})
+		if (argsDuzenleBlock)
+			getFuncValue.call(this, argsDuzenleBlock, { ...e, kolonGrup })
 		return kolonGrup
 	}
 }

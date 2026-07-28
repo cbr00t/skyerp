@@ -23,9 +23,10 @@ class SecimBasSon extends Secim {
 		let birKismimi = this.birKismimi = e.b ?? e.birKismi ?? e.birKismimi ?? this.defaultBirKismimi
 		this.disindakilermi = e.disindakilermi ?? e.disindakiler ?? false
 		if (birKismimi) {
-			let {kodListe} = e; if (typeof kodListe == 'string') { kodListe = getFunc.call(this, e) }
-			if (kodListe) { if (typeof kodListe == 'string') { kodListe = getFunc.call(this, e) } }
-			this.kodListe = kodListe || []
+			let { kodListe } = e
+			if (isString(kodListe))
+				kodListe = getFunc.call(this, e)
+			this.kodListe = kodListe ?? []
 		}
 		else {		
 			for (let key of ['basi', 'sonu']) {
@@ -33,7 +34,7 @@ class SecimBasSon extends Secim {
 				if (value !== undefined)
 					this[key] = value
 			}
-			let {basiSonu: value} = e
+			let { basiSonu: value } = e
 			if (value !== undefined)
 				this.basiSonu = value
 		}
