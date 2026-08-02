@@ -1,5 +1,6 @@
 class DRapor_StokSiparisler extends DRapor_Donemsel {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get uygunmu() { return false }
 }
 class DRapor_StokSiparisler_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }

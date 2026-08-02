@@ -202,7 +202,7 @@ class DRaporOzel extends DRapor {
 				.addStyle(...[
 					`$elementCSS {
 						position: absolute !important;
-						right: 330px !important;
+						right: 390px !important;
 						border-radius: 13px; z-index: 1001 !important
 					}
 					 $elementCSS.active { animation: 3000ms infinite anim-dRapor-otoTazele }

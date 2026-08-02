@@ -232,10 +232,10 @@ class DRapor_Hareketci_AlimSatisSipOrtak_Main extends DRapor_Hareketci_AlimSatis
 		let {where: wh, sahalar} = sent
 		let mc = {
 			miktar: hvDegeri('miktar'), miktar2: hvDegeri('miktar2'),
-			fiyat: hvDegeri('fiyat'), brutBedel: hvDegeri('brutbedel'), bedel: hvDegeri('bedel'),
-			sevk: 'COALESCE(sdon.sevkmiktar, 0)'
+			fiyat: hvDegeri('fiyat'), brutBedel: hvDegeri('brutbedel'),
+			bedel: hvDegeri('bedel'), sevk: 'COALESCE(sdon.sevkmiktar, 0)'
 		}
-		mc.kalan = `${mc.miktar} - ${mc.sevk}`
+		mc.kalan = `(${mc.miktar} - ${mc.sevk})`
 		for (let key in attrSet) {
 			switch (key) {
 				case 'SEVKTARIHX': sahalar.add(`sdon.sevktarihx`); break
@@ -373,7 +373,7 @@ class DRapor_Hareketci_AlimSatisSipOrtak_Main extends DRapor_Hareketci_AlimSatis
 }
 class DRapor_Hareketci_SipSatislar extends DRapor_Hareketci_AlimSatisSipOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kategoriKod() { return 'SATIS' } static get kategoriAdi() { return 'Satış Siparişler' }
+	static get kategoriKod() { return 'SATIS' } static get kategoriAdi() { return 'Satışlar' }
 	static get vioAdim() { return 'ST-IR' } static get hareketciSinif() { return SatisSipHareketci }
 }
 class DRapor_Hareketci_SipSatislar_Main extends DRapor_Hareketci_AlimSatisSipOrtak_Main {

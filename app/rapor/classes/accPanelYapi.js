@@ -78,12 +78,15 @@ class AccPanel extends CKodVeAdi {
 		// rfb.addStyle_fullWH()
 		// makeScrollable(contentLayout)
 		rfb.addStyle(
-			`$elementCSS, $elementCSS .formBuilder-element { margin: 0 !important; padding: 0 !important }`
+			`$elementCSS, $elementCSS .formBuilder-element {
+				margin: 0 !important; padding: 0 !important
+			}`
 		)
+		
 		let form = e.form = rfb.addFormWithParent().altAlta()
 			.addStyle_fullWH(null, height)
 			.addStyle(
-				`$elementCSS { /* overflow: hidden !important */ }
+				`$elementCSS { /* overflow: hidden !important */ transition: 200ms ease }
 				 .accordion.part.fullScreen $elementCSS { height: var(--full) !important }
 				 $elementCSS:not(.full) > div:last-child { margin-bottom: 300px !important }
 				 $elementCSS .formBuilder-element.baslik {
@@ -95,7 +98,15 @@ class AccPanel extends CKodVeAdi {
 				 $elementCSS .formBuilder-element.baslik:hover { box-shadow: 0 0 3px 0 cadetblue }
 				 $elementCSS .formBuilder-element.baslik:active { box-shadow: 0 0 5px 0 royalblue }
 				 $elementCSS .formBuilder-element.baslik.empty > div > * { color: lightgray !important }
-				 $elementCSS .formBuilder-element.grid-container { transition: 300ms ease }`
+				 $elementCSS .formBuilder-element.grid-container { }
+
+				 $elementCSS :has(.fullScreen) > div { box-shadow: 1px 1px 3px 1px darkblue !important }
+				 $elementCSS :has(.fullScreen) > :not(.fullScreen) {
+					 /*filter: blur(10px) !important;*/
+					 display: none !important
+				 }
+				 $elementCSS .fullScreen { width: var(--full) !important; transition: 100ms ease-out }
+				 `
 			)
 			//.onAfterRun(({ builder: { layout }}) =>
 				//makeScrollable(layout))
@@ -165,7 +176,7 @@ class AccPanel extends CKodVeAdi {
 		return this
 	}
 	get(idOrItem) {
-		id = idOrItem?.id ?? idOrItem
+		let id = idOrItem?.id ?? idOrItem
 		return this.id2Item[id]
 	}
 	set(id, idOrItem) {
@@ -179,7 +190,7 @@ class AccPanel extends CKodVeAdi {
 	}
 	delete(idOrItem) {
 		let { id2Item: d } = this
-		id ??= idOrItem?.id
+		let id = idOrItem?.id ?? idOrItem
 		if (id == null)
 			return undefined
 		let v = d[id]
@@ -234,6 +245,8 @@ class AccPanelDetay extends CKodVeAdi {
 	fullWidth() { return this.setWidth('full') }
 	fullHeight() { return this.setHeight('full') }
 	fullWH() { return this.fullWidth().fullHeight() }
+	halfWidth() { return this.setWidth('49.5%') }
+	halfHeight() { return this.setHeight('49.5%') }
 	widgetArgsDuzenleIslemi(v) { this.widgetArgsDuzenle = v; return this }
 }
 
@@ -268,12 +281,6 @@ class AccPanelGrid extends AccPanelDetay {
 		let { tanimPart = e.sender, rfb, parentForm, form, panelIciTekrarmi } = e
 		e.secimler = tanimPart.secimler
 
-		let cellClassName = (...rest) => {
-			let result = this.class.gridCSSHandler(...rest) ?? []
-			cssDuzenle?.call(this, { ...e, ...rest, result })
-			return result
-		}
-
 		if (height == 'full')
 			parentForm.addCSS('full')
 		
@@ -289,11 +296,28 @@ class AccPanelGrid extends AccPanelDetay {
 		let parent = form.addFormWithParent()
 			.addStyle_wh(width, height)
 			.addStyle(`$elementCSS { border-top: 1px solid #ccc }`)
-		
+			/*.onAfterRun(({ builder: { parent, layout }}) => {
+				delay(100).then(() => {
+					parent.jqxSplitter({
+						theme,
+						width: '100%', height: '100%',
+						orientation: 'vertical', splitBarSize: 20
+						//panels: [ { min: 90, size: fis.class.getUISplitHeight({ ...e, fis, islem }) ?? 170 }, { min: 200 } ]
+					})
+				})
+			})*/
+
+		let cssDuzenleyici = _e => {
+			let result = this.class.gridCSSHandler({ ...e, ..._e }) ?? []
+			cssDuzenle?.call(this, { ...e, ..._e, result })
+			return result
+		}
 		let fbd_grid = this.builder = parent.addGridliGosterici(gridId)
+			.addCSS('relative')
 			.addStyle_fullWH()
 			.addStyle(`$elementCSS { padding-left: 10px }`)
-			.noAnimate().setUserData(userData)
+			.noAnimate()
+			.setUserData(userData)
 			.rowNumberOlmasin().notAdaptive()
 			.setToplamYapi({
 				etiket: { belirtec: toplamBelirtec }
@@ -308,8 +332,23 @@ class AccPanelGrid extends AccPanelDetay {
 				_e = { ...e, ..._e }
 				let defs = getFuncValue.call(this, tabloKolonlari, _e)
 				defs = defs?.filter?.(Boolean) ?? defs ?? []
-				;defs.forEach(def =>
-					def.cellClassName ??= cellClassName)
+
+				let key2CSSHandler = {}
+				;defs.forEach(cd => {
+					let { belirtec: k } = cd
+					let { cellClassName: h } = cd
+					key2CSSHandler[k] = h
+					cd.cellClassName = (cd, i, k, v, r, res) => {
+						res ??= []
+						;{
+							let tmp = makeArray(key2CSSHandler?.[k]?.call(this, cd, i, k, v, r, res))
+							if (!empty(tmp))
+								res.push(...tmp)
+						}
+						cssDuzenleyici?.call(this, { colDef: cd, rowIndex: i, dataField: k, value: v, rec: r, result: res })
+						return makeArray(res).filter(Boolean).join(' ')
+					}
+				})
 				return defs
 			})
 			.setSource(async _e => {
@@ -325,10 +364,9 @@ class AccPanelGrid extends AccPanelDetay {
 					let recs = await getFuncValue.call(this, source, _e)
 					if (recs == null) {
 						let stm = await getFuncValue.call(this, query, _e)
-						recs = await this.getGridData({ ..._e, query: stm })
+						recs = await this.getGridData({ ..._e, tanimPart, gridPart, query: stm, recsDuzenle })
 					}
-
-					if (recs != null) {
+					else {
 						let result = await recsDuzenle?.call?.(this, { ..._e, tanimPart, gridPart, recs })
 						if (result !== undefined)
 							recs = result
@@ -353,6 +391,13 @@ class AccPanelGrid extends AccPanelDetay {
 				let parentParentParent = parent.parent()
 				let { boundRecs: recs } = gridPart
 				await veriYuklenince?.call(this, { ...e, ..._e, tanimPart, gridPart, recs })
+				delay(1).then(() => {
+					let { inst } = tanimPart
+					let args = { ...e, ..._e }
+					return inst.veriYuklendi
+						? inst.veriYuklendi(args)
+						: tanimPart?.veriYuklendi(args)
+				})
 				
 				/*let wait = 0, waitArtis = 10
 				let autoResize = () => {
@@ -381,9 +426,31 @@ class AccPanelGrid extends AccPanelDetay {
 				
 				gridPart._tazeleYapildimi = true
 			})
-			.onAfterRun(({ builder: { part: gridPart } }) => {
+			.onAfterRun(({ builder: { part: gridPart, layout, parentBuilder: { id2Builder } } }) => {
 				let { grid, gridWidget } = gridPart
 				extend(this, { gridPart, grid, gridWidget })
+			})
+
+		fbd_grid.addButton('fullScreen')
+			.addStyle_wh(50, 40)
+			.addCSS('absolute')
+			.addStyle(
+				`$elementCSS {
+					right: 10px; top: -5px;
+					min-width: unset !important;
+					min-height: unset !important;
+					margin: 0 !important; padding: 0 !important;
+					z-index: 1000 !important
+				}
+				$elementCSS > button {
+					width: var(--full) !important;
+					height: var(--full) !important
+				}
+				$elementCSS > button:hover:not(:active) { background-color: steelblue !important }`
+			)
+			.onClick(({ builder: fbd }) => {
+				let { parentBuilder: { parent: gridParent, layout: grid, part: gridPart } } = fbd
+				gridParent.toggleClass('fullScreen')
 			})
 		
 		return fbd_grid
@@ -396,34 +463,47 @@ class AccPanelGrid extends AccPanelDetay {
 	}
 
 	getGridOrtakArgs() {
+		let { userData: { noGroupTotals } = {} } = this
 		return {
 			rowsHeight: 26, columnsMenu: false, showGroupsHeader: false,
 			columnsReorder: false, selectionMode: 'multiplerowsextended',
 			autoShowLoadElement: false,
 			groupsRenderer: (text, group, expanded, groupInfo) => {
-				let { subItems = [] } = groupInfo ?? {}
-				subItems = subItems?.filter(r => !r.totalsrow)
-				let topBedel = topla(r => r.hasilat ?? r.bedel ?? r.netBedel ?? r.ciro, subItems)
-				return (
-					`<div class="grid-cell-group full-wh relative">` +
-						`<div class="aciklama float-left">${group}</div>` +
-						`<div class="bedel fs-100 bold royalblue float-right" style="margin-right: 35px">${bedelToString(topBedel)}</div>` +
+				let topBedel
+				if (!noGroupTotals) {
+					let { subItems = [] } = groupInfo ?? {}
+					subItems = subItems
+						?.filter(r => !(r.totalsrow || r._toplam))
+					topBedel = topla(
+						r => r.hasilat ?? r.bedel ?? r.netBedel ?? r.ciro,
+						subItems)
+				}
+				
+				return [
+					`<div class="grid-cell-group full-wh relative">`,
+						`<div class="aciklama float-left">${group}</div>`,
+						(
+							!noGroupTotals && topBedel
+								? `<div class="bedel fs-190 bold royalblue absolute" style="right: 70px">${bedelToString(topBedel)}</div>`
+								: null
+						),
 					`</div>`
-				)
+				].filter(Boolean).join('\n')
 			}
 		}
 	}
-	static gridCSSHandler(sender, rowIndex, belirtec, value, rec, prefix) {
-		let result = [belirtec]
-		if (rec._toplam)
-			result.push('_toplam')
-		return result.join(' ')
+	static gridCSSHandler({ colDef: cd, rowIndex: ri, belirtec: k, value: v, rec: r, result: res }) {
+		res ??= []
+		res.push(k)
+		if (r._toplam)
+			res.push('_toplam')
+		return res
 	}
 	async getGridData(e = {}) {
 		let { DefaultWSHostName_SkyServer: defHost } = config.class
 		let { tanimPart = {}, builder: fbd = {}, query, params } = e
 		let { id: gridId, grid, gridPart = this.gridPart ?? {}, class: { timeout } } = this
-		let { inst = tanimPart.inst ?? {}, acc = tanimPart.acc ?? {} } = e
+		let { inst = tanimPart.inst ?? {}, acc = tanimPart.acc ?? {}, recsDuzenle } = e
 		let { tabloKolonlari = fbd.tabloKolonlari ?? gridPart.tabloKolonlari } = e
 		let { layout: rootLayout } = tanimPart
 		let panelId = grid?.parents('.accordion.item').data('id')
@@ -434,7 +514,7 @@ class AccPanelGrid extends AccPanelDetay {
 		clearTimeout(tanimPart._timer_tazeleIndicatorClear)
 		rootLayout?.addClass('refreshing')
 		panelLayout?.removeClass('has-error')
-		this._promise_getGridData = defer()
+		tanimPart._promise_getGridData = defer()
 		try {
 			if (query?.sentDo) {
 				let e = { ...arguments[0], stm: query }
@@ -445,6 +525,7 @@ class AccPanelGrid extends AccPanelDetay {
 			}
 	
 			let recs = await query?.execSelect({ timeout, params }) ?? []
+			recs = await recsDuzenle?.call(this, { ...e, recs }) ?? recs
 			if (empty(recs))
 				return recs
 			
@@ -474,7 +555,7 @@ class AccPanelGrid extends AccPanelDetay {
 						keyFields = keys(cd.sabit)
 					
 					return keyFields
-						.map(k => String(r[k]))
+						.map(k => String(r[k] ?? 'NULL'))
 						.join('\t')
 				}
 
@@ -485,8 +566,21 @@ class AccPanelGrid extends AccPanelDetay {
 					)
 				}
 
+				let key2Rec = new Map()
+				;recs.forEach(bu => {
+					let k = getKey(bu, keyFields)
+					if (!key2Rec.has(k))
+						key2Rec.set(k, bu)
+					else {
+						let diger = key2Rec.get(k)
+						;keys(cd.toplam).forEach(b =>
+							diger[b] = Number(diger[b]) + Number(bu[b]))
+					}
+				})
+				recs = Array.from(key2Rec.values())
+
 				let e = { ...arguments[0], recs }
-				delay(50).then(() =>
+				delay(10).then(() =>
 					acc.render?.())
 				
 				return recs

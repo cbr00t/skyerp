@@ -1,6 +1,6 @@
 class DRapor_StokSatislar extends DRapor_TicariStok {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	// static get uygunmu() { return false }
+	static get uygunmu() { return false }
 	static get kategoriKod() { return 'SATIS' } static get kategoriAdi() { return 'Satışlar' }
 	static get kod() { return 'STSATIS' } static get aciklama() { return 'ESKİ Satışlar (<span class=royalblue>Stok</span>)' }
 	static get altRaporClassPrefix() { return 'DRapor_StokSatislar' } static get vioAdim() { return 'SA-RCF' }
@@ -16,7 +16,7 @@ class DRapor_StokSatislar_Main extends DRapor_Sevkiyat_Main {
 
 class DRapor_HizmetSatislar extends DRapor_TicariHizmet {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	// static get uygunmu() { return false }
+	static get uygunmu() { return false }
 	static get kategoriKod() { return DRapor_StokSatislar.kategoriKod }
 	static get kategoriAdi() { return DRapor_StokSatislar.kategoriAdi }
 	static get altRaporClassPrefix() { return 'DRapor_HizmetSatislar' }

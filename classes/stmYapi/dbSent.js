@@ -447,8 +447,8 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	x2CariBagla(e) { e = e ?? {}; let {kodClause} = e; this.fromIliski('carmst car', `${kodClause} = car.must`); return this }
 	fis2CariBagla(e) { e = e ?? {}; let mustSaha = (e.mustSaha ?? e.fisMustSaha) || 'must'; this.fromIliski('carmst car', `fis.${mustSaha} = car.must`); return this }
 	x2HizmetBagla(e) { let kodClause = e?.kodClause; this.fromIliski('hizmst hiz', `${kodClause} = hiz.kod`); return this }
-	fis2HizmetBagla(e) { return this.x2HizmetBagla({ ...e, kodClause: 'fis.hizmetkod' }) }
-	har2HizmetBagla(e) { return this.x2HizmetBagla({ ...e, kodClause: 'har.hizmetkod' }) }
+	fis2HizmetBagla(e = {}) { return this.x2HizmetBagla({ ...e, kodClause: e.kodClause || 'fis.hizmetkod' }) }
+	har2HizmetBagla(e = {}) { return this.x2HizmetBagla({ ...e, kodClause: e.kodClause || 'har.hizmetkod' }) }
 	x2DemBagla(e) { let kodClause = e?.kodClause; this.fromIliski('demmst dem', `${kodClause} = dem.kod`); return this }
 	fis2DemBagla(e) { return this.x2DemBagla({ ...e, kodClause: 'fis.demirbaskod' }) }
 	har2DemBagla(e) { return this.x2DemBagla({ ...e, kodClause: 'har.demirbaskod' }) }
@@ -634,10 +634,6 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 			alias: 'har', table: 'urunpaket varp',
 			on: ['har.stokkod = varp.urunkod', `varp.varsayilan <> ''`]
 		})
-		return this
-	}
-	har2HizmetBagla(e) {
-		this.fromIliski('hizmst hiz', 'har.hizmetkod = hiz.kod')
 		return this
 	}
 	har2DemirbasBagla(e) {

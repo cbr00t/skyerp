@@ -92,7 +92,7 @@ async function handleReq(req) {
 	let withCache = async () => {
 		let cachedResponse = await cache.match(req)
 		if (!cachedResponse)
-			throw { isError: true, rc: 'cacheNotFound' }
+			throw null
 		return cachedResponse
 	}
 	let withFetch = async () => {

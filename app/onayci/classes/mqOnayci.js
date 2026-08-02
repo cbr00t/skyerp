@@ -297,14 +297,14 @@ class MQOnayci extends MQCogul {
 			;{
 				// eksik tablolu db'leri listeden at
 				let dbListe = keys(dbSet)
-				let results = await promiseAllSet(
-					dbListe.map(db => app.sqlHasColumn(`${db}..webonay`, 'id')))
-				;dbListe.forEach((db, i) => {
-					let { status, value } = results[i]
-					let uygunmu = status == 'fulfilled' && value    // promise hata almadı ve result == true
-					if (!uygunmu)
+				for (let db of dbListe) {
+					let res = await app.setCurrentDBAndDo({
+						db,
+						block: () => app.sqlHasColumn(`${db}..webonay`, 'id')
+					})
+					if (!res)
 						delete dbSet[db]
-				})
+				}
 			}
 			return ({ kurallar, tip2Kurallar, tip2Param, dbSet })  // , kurallar, kuralKey2Kural
 		})()
@@ -470,10 +470,11 @@ class MQOnayci extends MQCogul {
 		
 		let recs = await stm.execSelect()
 		let { onayNo } = app
-		if (!onayNo) {
-			onayNo = app.onayNo = max(1, ...(recs?.map(_r => Number(_r.onayNo)) ?? []))
+		/*if (!onayNo) {
+			//onayNo = app.onayNo = max(1, ...(recs?.map(_r => Number(_r.onayNo)) ?? []))
+			onayNo = max(1, ...(recs?.map(_r => Number(_r.onayNo)) ?? []))
 			return await this._loadServerDataDogrudan(...arguments)
-		}
+		}*/
 		
 		if (onayNo) {
 			await this.unregisterNTFY(e)
@@ -956,7 +957,7 @@ class MQOnayci extends MQCogul {
 						}
 						
 						seqId = newGUID()
-						//await ntfy({ topic, seqId, priority, tags, title, message, icon, actions })
+						await ntfy({ topic, seqId, priority, tags, title, message, icon, actions })
 					}
 				}
 				

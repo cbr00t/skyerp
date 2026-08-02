@@ -65,24 +65,28 @@ class MQProforma extends MQGuid {
 				belirtec: 'content', text: 'İçerik', genislikCh: 60,
 				cellsRenderer: (cd, i, k, _v, h, jc, r) => {
 					let { dosyaAdi: v } = r
-					if (v) {
-						let url = this.getFileURL(v)
-						h = (
-							`<iframe
-								class="full-wh"
-								style="
-									border: none; margin: 0; padding: 0;
-									pointer-events: none;
-									${
-										config.colorScheme == 'dark'
-											? `; filter: invert(1) hue-rotate(180deg)`
-											: ''
-									}
-								"
-								src="data:text/html;,<html><body><img style='width: ${jc.width - 25}px' src='${url}'></img></body></html>"
-								onclick="${this.name}.izleIstendi({ gridPart: app.activeWndPart })"
-							></iframe>`
-						)
+					let url = v ? this.getFileURL(v) : null
+					if (url) {
+						let tokens = v.split('.')
+						let ext = tokens?.at(-1)?.toLowerCase()
+						let resimmi = !!fileExtSet_image[ext]
+						
+						h = resimmi
+							? `<iframe
+									class="full-wh"
+									style="
+										border: none; margin: 0; padding: 0;
+										pointer-events: none
+										${
+											config.colorScheme == 'dark'
+												? `; filter: invert(1) hue-rotate(180deg)`
+												: ''
+										}
+									"
+									src="data:text/html;,<html><body><img style='width: ${jc.width - 25}px' src='${url}'></img></body></html>"
+									onclick="${this.name}.izleIstendi({ gridPart: app.activeWndPart })"
+								></iframe>`
+							: `<iframe class="full-wh" style="border: none; margin: 0; padding: 0; background-size: contain" src="${url}"></iframe>`
 					}
 					return h
 				}

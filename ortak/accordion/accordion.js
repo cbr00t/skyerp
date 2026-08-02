@@ -226,7 +226,7 @@ class AccordionPart extends Part {
 		this._timer_triggerResize = setTimeout(() => {
 			try { $(window).trigger('resize') }
 			finally { this._timer_triggerResize }
-		}, 10)
+		}, 5)
 		this._lastPanelCount = panels.length
 		return this
 	}

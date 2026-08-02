@@ -36,7 +36,8 @@ class MQEkNotlar extends MQSayacliOrtak {
 			grupKod: new PInstStr('grupkod'), tip: new PInstTekSecim('tip', HatTezgah), hatKod: new PInstStr('hatkod'), tezgahKod: new PInstStr('tezgahkod'),
 			perKod: new PInstStr({ rowAttr: 'perkod', init: () => this.paramGlobals.sonPerKod }), notlar: new PInstStr('notlar')
 		});
-		for (let i = 1; i <= this.urlCount; i++) { pTanim[`url${i}`] = new PInstStr(`url${i}`) }
+		for (let i = 1; i <= this.urlCount; i++)
+			pTanim[`url${i}`] = new PInstStr(`url${i}`)
 	}
 	static rootFormBuilderDuzenle_listeEkrani(e) {
 		super.rootFormBuilderDuzenle_listeEkrani(e); let {rootBuilder: rfb} = e;
@@ -77,7 +78,11 @@ class MQEkNotlar extends MQSayacliOrtak {
 		}
 		
 	}
-	static standartGorunumListesiDuzenle(e) { super.standartGorunumListesiDuzenle(e); let {liste} = e, _liste = e.liste = liste.filter(colDef => !colDef?.startsWith('url')) }
+	static standartGorunumListesiDuzenle(e) {
+		super.standartGorunumListesiDuzenle(e)
+		e.liste = e.liste.filter(cd =>
+			!cd?.startsWith('url'))
+	}
 	static orjBaslikListesiDuzenle({ liste, alias = this.tableAlias }) {
 		super.orjBaslikListesiDuzenle(...arguments)
 		let { urlCount } = this
@@ -93,25 +98,29 @@ class MQEkNotlar extends MQSayacliOrtak {
 				filterable: false, sortable: false, groupable: false,
 				belirtec: `resim${i}`, text: `Dokuman Resim ${i}`, genislikCh: 20,
 				cellsRenderer: (cd, i, k, _v, h, jc, r) => {
-					i = Number(k.slice(k.length)) + 1
+					i = Number(k.slice(k.length - 1))
 					let url = r[`url${i}`]
-					if (url)
-						h = (
-							`<iframe
-								class="full-wh"
-								style="
-									border: none; margin: 0; padding: 0;
-									pointer-events: none
-									${
-										config.colorScheme == 'dark'
-											? `; filter: invert(1) hue-rotate(180deg)`
-											: ''
-									}
-								"
-								src="data:text/html;,<html><body><img style='width: ${jc.width - 25}px' src='${url}'></img></body></html>"
-								onclick="${this.name}.dokumanGosterIstendi({ gridPart: app.activeWndPart, focusURL: ${url} })"
-							></iframe>`
-						)
+					if (url) {
+						let tokens = url.split('.')
+						let ext = tokens?.at(-1)?.toLowerCase()
+						let resimmi = !!fileExtSet_image[ext]
+						
+						h = resimmi
+							? `<iframe
+									class="full-wh"
+									style="
+										border: none; margin: 0; padding: 0;
+										pointer-events: none
+										${
+											config.colorScheme == 'dark'
+												? `; filter: invert(1) hue-rotate(180deg)`
+												: ''
+										}
+									"
+									src="data:text/html;,<html><body><img style='width: ${jc.width - 25}px' src='${url}'></img></body></html>"
+									onclick="${this.name}.dokumanGosterIstendi({ gridPart: app.activeWndPart, focusURL: ${url} })"
+								></iframe>`
+							: `<iframe class="full-wh" style="border: none; margin: 0; padding: 0; background-size: contain" src="${url}"></iframe>`
 					
 						/*let tokens = v.split('.')
 						let ext = tokens?.at(-1)?.toLowerCase()
@@ -120,6 +129,8 @@ class MQEkNotlar extends MQSayacliOrtak {
 							? `<div class="full-wh" style="background-repeat: no-repeat; background-size: contain; background-image: url(${url})"/>`
 							: `<iframe class="full-wh" style="border: none; margin: 0; padding: 0; background-size: contain" src="${url}"></iframe>`
 						*/
+					}
+					
 					return h
 				}
 			}).noSql())
@@ -219,8 +230,8 @@ class MQEkNotlar extends MQSayacliOrtak {
 		form = tanimForm.addFormWithParent().yanYana().addStyle(e => `$elementCSS { margin-top: 10px }`);
 		for (let i = 1; i <= this.urlCount; i++) {
 			form.addTextInput(`url${i}`, `Doküman URL ${i}`).onAfterRun(e => {
-				let {builder} = e, {layout} = builder, label = layout.children('label');
-				let btn = $(`<button id="upload"/>`).jqxButton({ theme }); btn.prependTo(layout);
+				let { builder } = e, { layout } = builder, label = layout.children('label')
+				let btn = $(`<button id="upload"/>`).jqxButton({ theme }); btn.prependTo(layout)
 				btn.on('click', evt => this.dokumanYukleIstendi({ ...e, builder }))
 			}).addStyle(e => `
 				$elementCSS { --button-width: 45px; --button-margin-right: 10px; --button-right: calc(var(--button-width) + calc(--button-margin-right)) }
@@ -230,27 +241,30 @@ class MQEkNotlar extends MQSayacliOrtak {
 		}
 		form = tanimForm.addFormWithParent().altAlta().addStyle(e => `$elementCSS { margin-top: 10px }`)
 				.addStyle_fullWH(null, `calc(var(--full) - ${$(window).width() < 1000 ? 350 : 250}px)`);
-			form.addDiv('notlar', 'Notlar').addStyle_fullWH().onAfterRun(({ builder }) => {
-				let toolbar = [
-					 ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
-					 ['blockquote', 'code-block'],
-					 ['link', /*'image',*/ 'video', 'formula'],
-					 [{ 'header': 1 }, { 'header': 2 }],               // custom button values
-					 [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
-					 [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
-					 [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
-					 [{ 'direction': 'rtl' }],                         // text direction
-					 [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
-					 [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-					 [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
-					 [{ 'font': [] }],
-					 [{ 'align': [] }],
-					 ['clean']                                         // remove formatting button
-				];
-				let {id, altInst, input, etiket: placeholder} = builder; input.html(altInst[id]);
-				let part = builder.part = new Quill(input[0], { theme: 'snow', placeholder, modules: { toolbar } }); input.addClass('full-wh bg-white')
-				part.on('text-change', evt => altInst[id] = part.root.innerHTML)
-			})
+			form.addDiv('notlar', 'Notlar').addStyle_fullWH()
+				.onAfterRun(({ builder }) => {
+					let toolbar = [
+						 ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+						 ['blockquote', 'code-block'],
+						 ['link', /*'image',*/ 'video', 'formula'],
+						 [{ 'header': 1 }, { 'header': 2 }],               // custom button values
+						 [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
+						 [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
+						 [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+						 [{ 'direction': 'rtl' }],                         // text direction
+						 [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+						 [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+						 [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+						 [{ 'font': [] }],
+						 [{ 'align': [] }],
+						 ['clean']                                         // remove formatting button
+					]
+					let {id, altInst, input, etiket: placeholder} = builder; input.html(altInst[id])
+					let part = builder.part = new Quill(input[0], { theme: 'snow', placeholder, modules: { toolbar } })
+					input.addClass('full-wh bg-white')
+					part.on('text-change', evt =>
+						altInst[id] = part.root.innerHTML)
+				})
 	}
 	static gridVeriYuklendi(e) {
 		super.gridVeriYuklendi(e); let gridPart = e.gridPart ?? e.sender; if (!gridPart) { return }
@@ -282,9 +296,25 @@ class MQEkNotlar extends MQSayacliOrtak {
 	static dokumanGosterIstendi(e = {}) {
 		let islemAdi = 'Döküman Göster'
 		try {
-			let {builder, focusURL} = e, gridPart = e.gridPart ?? builder?.rootPart ?? e.sender ?? app.activeWndPart, recs = gridPart.selectedRecs, {urlCount} = this;
-			let urlListe = []; for (let rec of recs) { for (let i = 1; i <= urlCount; i++) { let value = rec[`url${i}`]; if (value) { urlListe.push(value.trim()) } } }
-			if (!urlListe.length) { return } if (focusURL) { urlListe.sort((a, b) => a == focusURL ? -1 : 0) }
+			let { builder, focusURL } = e
+			let gridPart = e.gridPart ?? builder?.rootPart ?? e.sender ?? app.activeWndPart
+			
+			let { selectedRecs: recs } = gridPart
+			let { urlCount } = this
+			let urlListe = []
+			for (let rec of recs) {
+				for (let i = 1; i <= urlCount; i++) {
+					let value = rec[`url${i}`]
+					if (value)
+						urlListe.push(value.trim())
+				}
+			}
+			if (empty(urlListe))
+				return
+				
+			if (focusURL)
+				urlListe.sort((a, b) => a == focusURL ? -1 : 0)
+				
 			new MESDokumanWindowPart({ urlListe }).run()
 		}
 		catch (ex) { hConfirm(getErrorText(ex), islemAdi); throw ex }
@@ -292,8 +322,9 @@ class MQEkNotlar extends MQSayacliOrtak {
 	static async dokumanYukleIstendi(e = {}) {
 		let PrefixURL = 'url', islemAdi = 'Döküman Yükle'
 		try {
-			let {builder} = e, gridPart = e.gridPart ?? builder?.rootPart ?? e.sender ?? app.activeWndPart;
-			let id = e.id ?? builder?.id
+			let { builder: fbd } = e
+			let gridPart = e.gridPart ?? fbd?.rootPart ?? e.sender ?? app.activeWndPart
+			let { id = fbd?.id } = e
 			let i = asInteger(e.seq ?? e.index ?? id?.slice(PrefixURL.length))
 			let key = `${PrefixURL}${i}`
 			let elm = $(`<input type="file" capture="environment" accept="image/*, application/pdf, video/*">`)
@@ -301,28 +332,35 @@ class MQEkNotlar extends MQSayacliOrtak {
 			elm.addClass('jqx-hidden')
 			elm.on('change', async evt => {
 				try {
-					let file = evt.target.files[0]; let fileName = file.name.replaceAll(' ', '_'), ext = fileName.split('.').slice(-1)[0] ?? ''
-					let resimId = ext ? fileName.slice(0, -(ext.length + 1)) : fileName, data = file ? new Uint8Array(await file.arrayBuffer()) : null
-					if (!data?.length) { return }
-					resimId = newGUID();
+					let file = evt.target.files[0]
+					let fileName = file.name.replaceAll(' ', '_')
+					let ext = fileName.split('.').slice(-1)[0] ?? ''
+					let resimId = ext ? fileName.slice(0, -(ext.length + 1)) : fileName
+					let data = file ? new Uint8Array(await file.arrayBuffer()) : null
+					if (empty(data))
+						return
+					
+					resimId = newGUID()
 					let urlBase = app.getWSUrlBase({ wsPath: 'vio-resim' })
 						.replace('https:', 'http:')
 						.replace(':8200', '')
 						.replace(':9200', '')
 						.replace(':80', '')
 						.replace(':443', '')
+					
 					let url = `${urlBase}/${[resimId, ext].join('.')}`
 					try { await ajaxPost({ url, data, contentType: 'application/octet-stream' }) }
 					catch (ex) {
-						console.error(ex);
-						let result = await app.wsResimDataKaydet({ resimId, ext, data });
+						console.error(ex)
+						let result = await app.wsResimDataKaydet({ resimId, ext, data })
 						if (!result?.result)
 							throw { isError: true, errorText: 'Resim Kayıt Sorunu' }
 					}
-					if (builder) {
-						let {altInst, input} = builder
+					
+					if (fbd) {
+						let { altInst, input } = fbd
 						/* let url = `${urlBase}/stokResim/?id=${resimId}&ext=${ext}`; */
-						builder.value = altInst[id] = url
+						fbd.value = altInst[id] = url
 						input?.focus()
 					}
 					gridPart?.tazeleDefer?.(e)

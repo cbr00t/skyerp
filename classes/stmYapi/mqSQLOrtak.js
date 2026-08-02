@@ -1,5 +1,12 @@
 class MQSQLOrtak extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get aggrFuncs() {
+		let { _aggrFuncs: res } = this
+		if (res == null)
+			res = this._aggrFuncs = ['SUM(', 'COUNT(', 'AVG(', 'STRING_AGG(']
+		return res
+	}
+	
 	constructor(e = {}) {
 		super(e)
 		extend(this, { prefix: e.prefix, postfix: e.postfix, params: e.params || null })
@@ -210,7 +217,9 @@ class MQSQLOrtak extends CObject {
 		return text
 	}
 	static asSumDeger(text) {
-		if (!text || text == 'NULL' || text == `''` || text == '0') { return text }
+		if (!text || text == 'NULL' || text == `''` || text == '0')
+			return text
+		
 		return `SUM(${this.sumOlmaksizin(text)})`
 	}
 	static asSUMDeger(text) { return this.asSumDeger(text) }

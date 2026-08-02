@@ -576,7 +576,8 @@ class MQFinansParam extends MQTicariParamBase {
 		paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 10px !important }`)
 		;{
 			let form = paramci.addFormWithParent()
-				form.addBool('karZararTabloMaliyettenBulunsun', 'Kar/Zarar Tablo Maliyetten Bulunsun')
+				form.addBool('kzTabloMaliyetten', 'Kar/Zarar Tablo Maliyetten Bulunsun')
+				form.addNumber('kzOndalikHane', 'Kar/Zarar % Ondalık Hane')
 				form.addBool('eldekiVarlikStokDegerlemesiYapilir', 'Eldeki Varlık Stok Değerlemesi Yapılır')
 				form.addBool('eldekiVarlikStokDegerlemesiKDVlidir', 'Eldeki Varlık Stok Değerlemesi KDVlidir')
 				form.addBool('finansIslemTipi', 'Finans İşlem Tipi')	

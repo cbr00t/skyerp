@@ -14,12 +14,12 @@ class CKodVeAdi extends CKod {
 	parantezliOzet(e) {
 		e = e || {}; if (!this.aciklama) { return super.parantezliOzet(e) }
 		if (!this.kod) { return this.aciklama }
-		return `(${e.styled ? '<b>' : ''}${this.kod}${e.styled ? '</b>' : ''}) ${this.aciklama}`
+		return `(${e.styled ? '<b class=teal>' : ''}${this.kod}${e.styled ? '</b>' : ''}) ${this.aciklama}`
 	}
 	cizgiliOzet(e) {
 		e = e || {}; if (!this.aciklama) { return super.cizgiliOzet(e) }
 		if (!this.kod) { return this.aciklama }
-		return `${e.styled ? '<b>' : ''}${this.kod}${e.styled ? '</b>' : ''}-${this.aciklama}`
+		return `${e.styled ? '<b class=teal>' : ''}${this.kod}${e.styled ? '</b>' : ''}-${this.aciklama}`
 	}
 	toString(e) { return this.parantezliOzet(e) }
 }

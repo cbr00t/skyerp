@@ -5,7 +5,7 @@ class DRapor_KarZararTablosu extends DRaporMQ {
 	static get kategoriAdi() { return 'Finansal Analiz' }
 	static get kod() { return 'KARZARAR' }
 	static get aciklama() { return 'Kar/Zarar Tablosu' }
-	static get uygunmu() { return config.dev }
+	static get uygunmu() { return true }
 	static get secimSinif() { return DonemselSecimler }
 	static get sadeceTanimmi() { return true }
 	static get kolonFiltreKullanilirmi() { return false }
@@ -51,7 +51,7 @@ class DRapor_KarZararTablosu extends DRaporMQ {
 	}
 	secimlerOlustur({ sender: tanimPart } = {}) {
 		let { zorunlu = {}, finans = {}, ticariGenel: { kullanim: ticGenel } = {} } = app.params
-		let { karZararTabloMaliyettenBulunsun: kzMaliyetten } = finans
+		let { kzTabloMaliyetten: kzMaliyetten } = finans
 		let { takipNo } = ticGenel
 		let { ozelIsaret } = zorunlu
 
@@ -93,92 +93,13 @@ class DRapor_KarZararTablosu extends DRaporMQ {
 		}
 	}
 
-	sentDuzenle_pifOrtak(e = {}) {
-		let { tanimPart, secimler: sec, sent, almSat, detTakipmi } = e
-		let { where: wh } = sent
-		let { params } = app
-		let { finans = {} } = params
-		let { bekSipVeIrs: { value: bekSipVeIrs } } = sec
-		let { kullanim: { takipNo } = {} } = params.ticariGenel ?? {}
-		let { sadeceStoklar: { value: sadeceStoklar } } = sec
-
-		this.sentDuzenle_fisOrtak(e)
-		
-		wh.add(new MQOrClause([
-			{ inDizi: ['F', 'P'], saha: 'fis.piftipi' },
-			( bekSipVeIrs ? new MQAndClause([
-				`fis.piftipi = 'I'`,
-				'i2f.kaysayac IS NULL'
-			]) : null )
-		].filter(Boolean)))
-		
-		if (almSat) {
-			wh.degerAta(almSat, 'fis.almsat')
-			if (almSat == 'T') {
-				let { karZararTabloMaliyettenBulunsun: kzMaliyetten } = finans
-				wh.notDegerAta(kzMaliyetten ? 'IH' : 'IN', 'fis.ayrimtipi')
-			}
-		}
-
-		if (takipNo) {
-			let cl_takipNo = (
-				detTakipmi
-					? 'har.takipno'
-					: `(case when fis.takiportakdir <> '' then fis.orttakipno else har.dettakipno end)`
-			)
-			sent
-				.fromIliski('takipmst tak', `${cl_takipNo} = tak.kod`)
-				.fromIliski('takipgrup tgrp', 'tak.grupkod = tgrp.kod')
-			wh
-				.basiSonu(sec.takipKod, cl_takipNo)
-				.ozellik(sec.takipAdi, 'tak.aciklama')
-				.basiSonu(sec.takipGrupKod, 'tak.grupkod')
-				.ozellik(sec.takipGrupAdi, 'tgrp.aciklama')
-		}
-
-		if (sadeceStoklar) {
-			wh
-				.basiSonu(sec.stokKod, 'har.stokkod')
-				.ozellik(sec.stokAdi, 'stk.aciklama')
-				.basiSonu(sec.stokGrupKod, 'stk.grupkod')
-				.ozellik(sec.stokGrupAdi, 'grp.aciklama')
-				.basiSonu(sec.stokAnaGrupKod, 'grp.anagrupkod')
-				.ozellik(sec.stokAnaGrupAdi, 'agrp.aciklama')
-				.basiSonu(sec.stokIstGrupKod, 'stk.sistgrupkod')
-				.ozellik(sec.stokIstGrupAdi, 'sigrp.aciklama')
-		}
-		
-		return this
-	}
-	sentDuzenle_fisOrtak(e = {}) {
-		let { tanimPart, secimler: sec, sent } = e
-		let { tarihBS } = sec, { where: wh } = sent
-
-		sent.fis2SubeBagla()
-		wh
-			.fisSilindiEkle()
-			.add(`fis.ozelisaret <> 'X'`)
-		if (tarihBS)
-			wh.basiSonu(tarihBS, 'fis.tarih')
-		wh
-			.basiSonu(sec.subeKod, 'fis.bizsubekod')
-			.ozellik(sec.subeAdi, 'sub.aciklama')
-		
-		return this
-	}
-	
-	stmSonIslemler({ stm }) {    // AccPanelGrid yapısı tarafından setQuery() sonrası otomatik çağrılır
-		;stm.forEach(sent => {
+	stmSonIslemler({ stm, uni }) {
+		uni ??= stm?.sent
+		for (let sent of uni) {
 			sent
 				.groupByOlustur()
-				.gereksizTablolariSil(['stk', 'grp'])
-		})
-		/*let { buDB, dbListe } = app
-		if (konsolideCikti && !empty(ekDBListe)) {
-			;stm.forEach(sent => {
-				let { from, where: wh, sahalar } = sent
-			})
-		}*/
+				.gereksizTablolariSil(['stk', 'hiz', 'dem', 'grp', 'ghak', 'fhdon'])    // ... dışında
+		}
 	}
 
 	static rootFormBuilderDuzenle_islemTuslari({ sender: tanimPart, fbd_islemTuslari: fbd }) {
@@ -326,12 +247,13 @@ class DRapor_KarZararTablosu extends DRaporMQ {
 		acc.onCollapse(_e => this.acc_onCollapse({ ...e, ..._e }))
 	}
 	acc_onExpand({ tanimPart, acc, id, item }) {
+		acc ??= tanimPart.acc
 		;{
 			let { _promises_data: promises } = tanimPart
 			;promises?.flat?.()?.forEach(p =>
 				p?.abort?.())
 			lastAjaxObj?.abort?.()
-			delete tanimPart._promises_data
+			// delete tanimPart._promises_data
 		}
 		delay(50).then(() => {
 			/*;{
@@ -346,6 +268,7 @@ class DRapor_KarZararTablosu extends DRaporMQ {
 			this.acc_onExpandCollapseOrtak({ ...arguments[0], expanded: true }))
 	}
 	acc_onCollapse({ tanimPart, acc, id, item }) {
+		acc ??= tanimPart.acc
 		delay(10).then(() => {
 			/*let digerId = (
 				id == 'satis' ? 'diger' :
@@ -359,6 +282,7 @@ class DRapor_KarZararTablosu extends DRaporMQ {
 		})
 	}
 	acc_onExpandCollapseOrtak({ tanimPart, acc, id, item, expanded }) {
+		acc ??= tanimPart.acc
 		let { activePanels, layout } = acc
 		layout[len(activePanels) == 1 ? 'addClass' : 'removeClass']('fullScreen')
 		;{
@@ -366,6 +290,33 @@ class DRapor_KarZararTablosu extends DRaporMQ {
 			if (elms.length)
 				elms.jqxGrid('refresh')
 		}
+	}
+	tanimPart_hizliBulIslemi({ sender: tanimPart, tokens }) {
+		super.tanimPart_hizliBulIslemi(...arguments)
+		let sender = tanimPart
+		let { acc: { layout } } = tanimPart
+		let elms = arrayFrom(layout.find('.grid.part'))
+		;elms.forEach(elm => {
+			let gridPart = $(elm).data('part')
+			if (gridPart)
+				gridPart.filtreTokens = tokens
+		})
+		this.tazeleIstendi(...arguments)
+		return false
+	}
+	async veriYuklendi(e) {
+		let lc = this.loadCount = (this.loadCount || 0) + 1
+		clearTimeout(this._timer_veriYuklendi)
+		this._timer_veriYuklendi = setTimeout(
+			async () => {
+				for (let i = 0; i < 3; i++) {
+					this.acc_onExpandCollapseOrtak(e)
+					await delay(30)
+				}
+				delete this.loadCount
+			},
+			50
+		)
 	}
 
 	async tazeleIstendi(e = {}) {
@@ -468,19 +419,5 @@ class DRapor_KarZararTablosu extends DRaporMQ {
 			}
 		}
 		return this
-	}
-
-	tanimPart_hizliBulIslemi({ sender: tanimPart, tokens }) {
-		super.tanimPart_hizliBulIslemi(...arguments)
-		let sender = tanimPart
-		let { acc: { layout } } = tanimPart
-		let elms = arrayFrom(layout.find('.grid.part'))
-		;elms.forEach(elm => {
-			let gridPart = $(elm).data('part')
-			if (gridPart)
-				gridPart.filtreTokens = tokens
-		})
-		this.tazeleIstendi(...arguments)
-		return false
 	}
 }
