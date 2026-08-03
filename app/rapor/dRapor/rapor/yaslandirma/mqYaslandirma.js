@@ -19,7 +19,8 @@ class MQYaslandirma extends DRaporMQ {
 
 	async onAfterRun({ gridPart }) {
 		await super.onAfterRun(...arguments)
-		gridPart.secimlerIstendi()
+		if (!(config.kiosk || this.isPanelItem))
+			gridPart.secimlerIstendi()
 	}
 	static secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments)
@@ -122,7 +123,7 @@ class MQYaslandirma extends DRaporMQ {
 		)
 	}
 	static async loadServerDataDogrudan({ gridPart, secimler: sec, wsArgs = {} }) {
-		if (!gridPart._triggered) {
+		if (!(config.kiosk || this.isPanelItem || gridPart._triggered)) {
 			gridPart._triggered = true
 			return []
 		}

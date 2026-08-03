@@ -275,6 +275,12 @@ class DMQPlasiyer extends DMQCari {
 		wh.add(`${alias}.kayittipi = 'X'`)
 	}
 }
+class DMQTeslimCari extends DMQCari {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'TESLIMCARI' }
+	static get sinifAdi() { return 'Teslim Cari' }
+	static get tableAlias() { return 'tcar' }
+}
 class DMQKasa extends DMQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Kasa' }
 	static get kodListeTipi() { return 'KASA' } static get table() { return 'kasmst' } static get tableAlias() { return 'kas' }

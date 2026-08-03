@@ -52,13 +52,17 @@ class TabSutAlimFis extends TabFis {
 	getYazmaIcinDetaylar(e) {
 		return this.detaylar.filter(_ => _.miktar)
 	}
-	async kaydetOncesiIslemler(e) {
-		await super.kaydetOncesiIslemler(e)
-		// let { tarih, mustKod: must, rotaID, posta, class: { table } } = this
-	}
 	async dataDuzgunmuDuzenle({ islem, eskiInst: eskiFis, parentPart, gridPart, result }) {
+		let e = arguments[0]
 		let { tarih, mustKod: must, rotaID, posta, class: { table /*, gonderimTSSaha*/ } } = this
 		tarih = tarih.clone().clearTime()
+		if (islem != 'sil') {
+			if (must) {
+				let { [must]: { satilamazfl } = {} } = await MQTabCari.getGloKod2Rec(mustKod) ?? {}
+				if (satilamazfl)
+					result.push('Bu müşteriye satış yapılamaz')
+			}
+		}
 		if (islem == 'yeni' || islem == 'kopya') {
 			let keyHV = extend(
 				this.class.varsayilanKeyHostVars(e),
@@ -83,6 +87,23 @@ class TabSutAlimFis extends TabFis {
 				result.push(`<b>Yer (Depo) [<span class=firebrick>${yerKod}</span>]</b> hatalıdır`)*/
 		}
 		return await super.dataDuzgunmuDuzenle(...arguments)
+	}
+	async kaydetOncesiIslemler(e) {
+		await super.kaydetOncesiIslemler(e)
+		// let { tarih, mustKod: must, rotaID, posta, class: { table } } = this
+	}
+	
+	async mustDegisti(e = {}) {
+		await super.mustDegisti(...arguments)
+		let { mustKod } = this
+		if (mustKod) {
+			let { [mustKod]: { satilamazfl } = {} } = await MQTabCari.getGloKod2Rec(mustKod) ?? {}
+			if (satilamazfl) {
+				wConfirm('Bu müşteriye satış yapılamaz. Belge kaydına izin verilmeyecektir')
+				if (e.islem)
+					e.islem = 'izle'
+			}
+		}
 	}
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments)

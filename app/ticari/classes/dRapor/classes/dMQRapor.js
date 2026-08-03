@@ -205,7 +205,7 @@ class DMQRapor extends DMQSayacliKA {
 			let changeHandler = ({ currentTarget: target, args = {} }) => {
 				let { type, owner = {} } = args
 				if (id.startsWith('kalanlar')) {
-					if (!type || type == 'none') {
+					if (type == 'none') {
 						clearTimeout(this._timer_kalanlarTazele)
 						this._timer_kalanlarTazele = setTimeout(() =>
 							updateKalanlarDS($(target)))

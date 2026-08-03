@@ -15,6 +15,9 @@ class DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main extends DRapor_Hareketci_Mai
 		let {toplam} = result, brmListe = keys(tip2BrmListe)
 		result.addGrupBasit('SHTIP', 'S/H Tip', 'shtiptext')
 		this.tabloYapiDuzenle_cari(e)
+		let { _table2ColDefs: cd = {} } = app
+		if (cd.sipfis?.teslimcarikod)
+			this.tabloYapiDuzenle_teslimCari(e)
 		this.tabloYapiDuzenle_sh(e)
 		result
 			.addGrupBasit('SEVKTARIHX', 'Sevk Tarih', 'sevktarihx')
@@ -161,7 +164,12 @@ class DRapor_Hareketci_AlimSatisOrtak_Main extends DRapor_Hareketci_AlimSatisVeS
 	static get raporClass() { return DRapor_Hareketci_AlimSatisOrtak }
 	static get maliyetKullanilirmi() { return true }
 	tabloYapiDuzenle({ result }) {
-		let e = arguments[0]; super.tabloYapiDuzenle(e)
+		let e = arguments[0]
+		super.tabloYapiDuzenle(e)
+
+		let { _table2ColDefs: cd = {} } = app
+		if (cd.piffis?.teslimcarikod)
+			this.tabloYapiDuzenle_teslimCari(e)
 		this.tabloYapiDuzenle_odemeGun(e)
 	}
 }

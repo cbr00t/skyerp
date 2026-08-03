@@ -117,7 +117,7 @@ class TabRotaListe extends MQMasterOrtak {
 			sent
 				.distinctYap()
 				// .leftJoin(alias, 'tabfis fis', `${alias}.mustKod = fis.must`)
-				.innerJoin(alias, 'carmst car', [`${alias}.mustKod = car.kod`, `car.calismadurumu <> ''`, `car.satilamazfl = ''`])
+				.innerJoin(alias, 'carmst car', [`${alias}.mustKod = car.kod`, `car.calismadurumu <> ''`])
 				//.innerJoin('car', 'caril il', 'car.ilkod = il.kod')
 			;{
 				let or = new MQOrClause()

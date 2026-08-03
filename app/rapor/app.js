@@ -47,6 +47,12 @@ class SkyRaporApp extends TicariApp {
 		await super.runDevam(e)
 		// await this.ilkIslemler(e)
 		await window.DRapor_Hareketci?.autoGenerateSubClasses(e)
+
+		this._table2ColDefs ??= {
+			piffis: await app.sqlGetColumns('piffis'),
+			sipfis: await app.sqlGetColumns('sipfis'),
+			stfis: await app.sqlGetColumns('stfis')
+		}
 	}
 	async afterRun(e) {
 		if (!(qs.tamEkranYok || qs.noFullScreen))

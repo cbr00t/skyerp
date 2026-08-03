@@ -58,7 +58,8 @@ class DRapor_KarZararTablosu extends DRaporMQ {
 		let sec = tanimPart.secimler = new DonemselSecimler()
 		;{
 			let { donem: { tekSecim: donem } = {} } = sec
-			donem?.buYil()
+			if (!qs.secimler)
+				donem?.buYil()
 		}
 
 		;{

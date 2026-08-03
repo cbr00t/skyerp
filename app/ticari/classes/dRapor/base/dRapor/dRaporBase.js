@@ -137,8 +137,8 @@ class DRaporMQ extends DRapor {
 		return result
 	}
 	tazele(e) { super.tazele(e) }
-	static listeEkrani_init(e) { return e.sender.inst.onInit(e) }
-	static listeEkrani_afterRun(e) { return e.sender.inst.onAfterRun(e) }
+	static listeEkrani_init(e) { return e?.sender?.inst?.onInit(e) }
+	static listeEkrani_afterRun(e) { return e?.sender?.inst?.onAfterRun(e) }
 }
 
 class DRaporOzel extends DRapor {

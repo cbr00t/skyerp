@@ -12,7 +12,8 @@ class MQTabCari extends MQKAOrtak {
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		extend(pTanim, {
-			aktifmi: new PInstTrue('calismadurumu'), satilamazmi: new PInstBool('satilamazfl'), konTipKod: new PInstStr('kontipkod'),
+			aktifmi: new PInstTrue('calismadurumu'),
+			satilamazmi: new PInstBool('satilamazfl'), konTipKod: new PInstStr('kontipkod'),
 			efatmi: new PInstBool('efaturakullanirmi'), yore: new PInstStr('yore'), posta: new PInstStr('posta'), 
 			tipKod: new PInstStr('tipkod'), bolgeKod: new PInstStr('bolgekod'), ilKod: new PInstStr('ilkod'), 
 			ulkeKod: new PInstStr('ulkekod'), sahismi: new PInstBool('sahismi'), 
@@ -193,7 +194,7 @@ class MQTabCari extends MQKAOrtak {
 				.cari2IlBagla({ alias })
 				.cari2UlkeBagla({ alias })
 				.cari2TipBagla({ alias })
-			sahalar.addWithAlias(alias, 'kayittipi', 'kosulgrupkod')
+			sahalar.addWithAlias(alias, 'satilamazfl', 'kayittipi', 'kosulgrupkod')
 		}
 	}
 	static loadServerData_queryDuzenle_son_bilgiYukle({ alias = this.tableAlias, stm, sent, sent: { where: wh, sahalar } }) {
@@ -203,8 +204,8 @@ class MQTabCari extends MQKAOrtak {
 	
 		let ortakSentDuzenle = e.ortakSentDuzenle = sent => {
 			wh.add(
-				`${alias}.silindi = ''`, `${alias}.calismadurumu <> ''`,
-				`${alias}.satilamazfl = ''`
+				`${alias}.silindi = ''`, `${alias}.calismadurumu <> ''`
+				// `${alias}.satilamazfl = ''`
 				// 'ctip.btabletkullanilir > 0'
 			)
 		}

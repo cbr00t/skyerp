@@ -1298,7 +1298,14 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		}
 		return this
 	}
-
+	tabloYapiDuzenle_teslimCari({ result }) {
+		result
+			.addKAPrefix('teslimcari')
+			.addGrupBasit('TESLIMCARI', 'Teslim Cari', 'teslimcari', DMQTeslimCari, ({ item }) =>
+				item.setSql_hv(), null, false)
+		return this
+	}
+	
 	tabloYapiDuzenle_baBedelBasit({ result }) {
 		result
 			.addToplamBasit_bedel('BORCBEDEL', 'Borç Bedel', 'borcbedel')

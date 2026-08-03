@@ -37,7 +37,7 @@ class MQTabPlasiyer extends MQKAOrtak {
 			else {
 				// Bilgi Yükle
 				let {session: { loginTipi, user } = {}} = config
-				{
+				;{
 					let match = `${alias}.${kodSaha}`
 					let replace = `${alias}.${onlineIdSaha}`
 					let {liste} = wh
@@ -46,10 +46,7 @@ class MQTabPlasiyer extends MQKAOrtak {
 							liste[i] = clause = clause.replaceAll(match, replace)
 					})
 				}
-				wh.add(
-					`${alias}.silindi = ''`, `${alias}.calismadurumu <> ''`,
-					`${alias}.satilamazfl = ''`
-				)
+				wh.add(`${alias}.silindi = ''`, `${alias}.calismadurumu <> ''`)
 				if (loginTipi == 'plasiyerLogin' && user)
 					wh.degerAta(user, `${alias}.${onlineIdSaha}`)
 				sahalar.add(
@@ -149,10 +146,7 @@ class MQTabMustahsil extends MQKAOrtak {
 							liste[i] = clause = clause.replaceAll(match, replace)
 					})
 				}
-				wh.add(
-					`${alias}.silindi = ''`, `${alias}.calismadurumu <> ''`,
-					`${alias}.satilamazfl = ''`
-				)
+				wh.add(`${alias}.silindi = ''`, `${alias}.calismadurumu <> ''`)
 				if (user && loginTipi == 'musteriLogin')
 					wh.degerAta(user, `${alias}.${onlineIdSaha}`)
 				sahalar.add(

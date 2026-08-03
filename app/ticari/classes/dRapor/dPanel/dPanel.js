@@ -596,7 +596,7 @@ class DPanel extends Part {
 						if (!code) {
 							delete id2Detay[id]
 							itemLayout.remove()
-							let {raporTanim: { detaylar }} = this
+							let { raporTanim: { detaylar } } = this
 							let ind = detaylar.findIndex(det => det.id == id)
 							if (ind > -1) {
 								detaylar.splice(ind, 1)

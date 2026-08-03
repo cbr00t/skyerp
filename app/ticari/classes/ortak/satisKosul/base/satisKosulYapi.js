@@ -115,8 +115,9 @@ class SatisKosulYapi extends MQCogul {
 			this.sqlExecNone(`DELETE FROM ${table}`)
 	}
 	static async offlineSaveToLocalTable(e = {}) {
-		let autoIncSet = asSet('sayac', 'kaysayac')
-		let pkSet = asSet(['rowid', 'id', ...keys(autoIncSet), 'kod', 'kodno', 'webrefid'])
+		// let autoIncSet = asSet('sayac', 'kaysayac')
+		let autoIncSet = {}
+		let pkSet = asSet('rowid', 'id', ...keys(autoIncSet), 'kod', 'kodno', 'webrefid')
 		let cnv = {}
 		; [106, 60, 62].forEach(_ => cnv[_] = 'REAL')
 		; [48, 52, 56, 127, 104].forEach(_ => cnv[_] = 'INTEGER')
@@ -128,7 +129,7 @@ class SatisKosulYapi extends MQCogul {
 			if (empty(colDefs))
 				continue
 			colDefs = values(colDefs)
-			let {length: len} = colDefs, pkList = []
+			let { length: len } = colDefs, pkList = []
 			queries.push(`CREATE TABLE IF NOT EXISTS ${table} (`)
 			colDefs.forEach((def, i) => {
 				let {name, xtype} = def

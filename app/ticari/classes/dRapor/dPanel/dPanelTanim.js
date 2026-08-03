@@ -7,6 +7,7 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 	static get tanimlanabilirmi() { return false } static get degistirilebilirmi() { return false }
 	static get tanimUISinif() { return ModelTanimPart }
 	static get kolonFiltreKullanilirmi() { return false }
+	static get logKullanilirmi() { return false }
 	static get emptyAciklama() { return '_Boş Dizayn' } static get defaultAciklama() { return '_Güncel Dizayn' }
 	static get localData() {
 		let {_localData: result} = this

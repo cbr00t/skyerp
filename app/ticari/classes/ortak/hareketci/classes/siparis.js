@@ -63,6 +63,11 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 			sent.x2CariBagla({ kodClause: hv?.refkod ?? 'fis.must' })
 		if (!from.aliasIcinTable('isl'))
 			sent.fis2StokIslemBagla()
+		;{
+			let { _table2ColDefs: cd = {} } = app
+			if (cd.piffis?.teslimcarikod)
+				sent.fromIliski('carmst tcar', 'fis.teslimcarikod = tcar.must')
+		}
 	}
     /** UNION sorgusu hazırlama – hareket tipleri için */
     uygunluk2UnionBilgiListeDuzenleDevam(e) {
@@ -139,12 +144,14 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 					sent[`${hizmetmi ? 'hizmet' : 'stok'}2IstGrupBagla`]()
 				})
 				.hvDuzenleIslemi(({ hv, sqlEmpty, sqlZero }) => {
+					let { _table2ColDefs: cd = {} } = app
 					extend(hv, {
 						oncelik: '1', ba: `'B'`, fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac',
 						kayittipi: `'AS'`, anaislemadi: hizmetmi ? `'Hizmet'` : `'Stok'`,
 						islemadi: (almSat == 'A' ? `'Alım'` : `'Satış'`),
-						bizsubekod: 'fis.bizsubekod',
-						ozelisaret: 'fis.ozelisaret', tarih: 'fis.tarih', fisnox: 'fis.fisnox',
+						bizsubekod: 'fis.bizsubekod',  ozelisaret: 'fis.ozelisaret',
+						plasiyerkod: 'fis.plasiyerkod', tarih: 'fis.tarih', fisnox: 'fis.fisnox',
+						teslimcarikod: ( cd.sipfis?.teslimcarikod ? `fis.teslimcarikod` : `${sqlEmpty} teslimcarikod` ),
 						refkod: 'fis.must', refadi: 'car.birunvan', dvkod: 'fis.dvkod', dvkur: 'fis.dvkur',
 						fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama',
 						brm: `${mstAlias}.brm`, brm2: (hizmetmi ? sqlEmpty : `${mstAlias}.brm2`),
@@ -199,10 +206,13 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 						wh.notInDizi(['ON', 'OG', 'RD'], 'fis.onaytipi')
 					})
 					.hvDuzenleIslemi(({ hv, sqlEmpty, sqlZero }) => {
+						let { _table2ColDefs: cd = {} } = app
 						extend(hv, {
 							oncelik: '2', ba: `'B'`, fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac',
 							kayittipi: `'TS'`, anaislemadi: `'Stok'`,
 							islemadi: `'Transfer Sipariş'`, bizsubekod: 'fis.bizsubekod',
+							plasiyerkod: 'fis.plasiyerkod',
+							teslimcarikod: ( cd.stfis?.teslimcarikod ? `fis.teslimcarikod` : `${sqlEmpty} teslimcarikod` ),
 							ozelisaret: 'fis.ozelisaret', tarih: 'fis.tarih', fisnox: 'fis.fisnox',
 							refkod: 'fis.irsmust', refadi: 'car.birunvan', dvkod: 'fis.dvkod', dvkur: 'fis.dvkur',
 							fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama',

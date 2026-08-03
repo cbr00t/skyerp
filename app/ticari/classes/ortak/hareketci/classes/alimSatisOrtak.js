@@ -55,6 +55,11 @@ class AlimSatisOrtakHareketci extends Hareketci {
 		sent
 			.fis2CariBagla()
 			.fis2StokIslemBagla()
+		;{
+			let { _table2ColDefs: cd = {} } = app
+			if (cd.piffis?.teslimcarikod)
+				sent.fromIliski('carmst tcar', 'fis.teslimcarikod = tcar.must')
+		}
 	}
     /** UNION sorgusu hazırlama – hareket tipleri için */
     uygunluk2UnionBilgiListeDuzenleDevam(e) {
@@ -92,7 +97,7 @@ class AlimSatisOrtakHareketci extends Hareketci {
 					let ayrimYapi = {
 						in: {},
 						notIn: { [ihracatIntacdanmi ? 'IH' : 'IN']: true }
-					};
+					}
 					if (shAyrimTipi?.secilen && !shAyrimTipi.birliktemi) {
 						if (ihracatmi) {
 							let inEk = ihracatIntacdanmi ? 'IN' : 'IH'
@@ -118,10 +123,13 @@ class AlimSatisOrtakHareketci extends Hareketci {
 					sent[`${hizmetmi ? 'hizmet' : 'stok'}2GrupBagla`]()
 					sent[`${hizmetmi ? 'hizmet' : 'stok'}2IstGrupBagla`]()
 				}).hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty, sqlZero }) => {
+					let { _table2ColDefs: cd = {} } = app
 					extend(hv, {
 						oncelik: '1', ba: `'B'`, fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac',
 						kayittipi: `'AS'`, anaislemadi: hizmetmi ? `'Hizmet'` : `'Stok'`,
 						islemadi: `'Alım/Satış'`, bizsubekod: 'fis.bizsubekod',
+						plasiyerkod: 'fis.plasiyerkod',
+						teslimcarikod: ( cd.piffis?.teslimcarikod ? `fis.teslimcarikod` : `${sqlEmpty} teslimcarikod` ),
 						ozelisaret: 'fis.ozelisaret', tarih: 'fis.tarih', fisnox: 'fis.fisnox',
 						refkod: 'fis.must', refadi: 'car.birunvan',
 						dvkod: 'fis.dvkod', dvkur: 'fis.dvkur',

@@ -49,7 +49,18 @@ class TabTSFis extends TabFis {
 			result.push(`<b>Yer (Depo) [<span class=firebrick>${yerKod}</span>]</b> hatalıdır`)
 		return await super.dataDuzgunmuDuzenle(...arguments)
 	}
-
+	async dataDuzgunmuDuzenle({ islem, eskiInst: eskiFis, parentPart, gridPart, result }) {
+		if (islem == 'yeni' || islem == 'kopya') {
+			let { mustKod } = this
+			if (mustKod) {
+				let { [mustKod]: { satilamazfl } = {} } = await MQTabCari.getGloKod2Rec(mustKod) ?? {}
+				if (satilamazfl)
+					result.push('Bu müşteriye satış yapılamaz')
+			}
+		}
+		return await super.dataDuzgunmuDuzenle(e)
+	}
+	
 	static async barkodOkundu({ tanimPart, barkodlar }) {
 		let e = arguments[0]
 		let barkodYapilar = barkodlar.filter(Boolean).map(barkod => {
@@ -109,17 +120,29 @@ class TabTSFis extends TabFis {
 			}
 		}
 	}
+	
+	async mustDegisti(e = {}) {
+		await super.mustDegisti(...arguments)
+		let { mustKod } = this
+		if (mustKod) {
+			let { [mustKod]: { satilamazfl } = {} } = await MQTabCari.getGloKod2Rec(mustKod) ?? {}
+			if (satilamazfl) {
+				wConfirm('Bu müşteriye satış yapılamaz. Belge kaydına izin verilmeyecektir')
+				if (e.islem)
+					e.islem = 'izle'
+			}
+		}
+	}
+	yerDegisti({ oldValue = this._prev.yerKod, value = this.yerKod }) {
+		this._prev.yerKod = value
+	}
+
 	tanimUI_gridVeriYuklenince({ tanimPart, gridPart }) {
 		if (!gridPart._gridVeriYuklenince_fixFlag && this.detaylar != gridPart.boundRecs) {
 			gridPart._gridVeriYuklenince_fixFlag = true
 			gridPart.tazele()
 		}
 	}
-	
-	yerDegisti({ oldValue = this._prev.yerKod, value = this.yerKod }) {
-		this._prev.yerKod = value
-	}
-
 	static async rootFormBuilderDuzenle_tablet(e) {
 		await super.rootFormBuilderDuzenle_tablet(e)
 		let {sender: tanimPart, inst, rootBuilder: rfb, kaForm, tanimFormBuilder: tanimForm, acc} = e
