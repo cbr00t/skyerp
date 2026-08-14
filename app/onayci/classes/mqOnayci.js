@@ -257,19 +257,24 @@ class MQOnayci extends MQCogul {
 				if (buAy == 1)
 					kisaYilSet[buKisaYil - 1] = true
 			}
-			let sent = new MQSent(), { where: wh, sahalar } = sent
-			sent
-				.fromAdd('ORTAK..firmabilgi fbil')
-				.innerJoin('fbil', 'ORTAK..firmatipbilgi ftip', 'fbil.id = ftip.firmaid')
-				.innerJoin('ftip', 'ORTAK..onaybildirim fis', 'ftip.id = fis.firmatipid')
-				.innerJoin('fis', 'ORTAK..islemonayci har', 'fis.id = har.fisid')
-			wh.degerAta(encUser, 'har.xuserkod')
-			sahalar.add(...[
-				'fis.id', 'fbil.firmaadi firmaAdi', 'ftip.tip',
-				`(case when COALESCE(fis.onayno, 0) = 0 then 1 else fis.onayno end) onayNo`,
-				'har.onaylimiti onayLimiti', `ftip.paramjson paramJSON`
-			])
-			let kurallar = await sent.execSelect()
+			
+			let kurallar = []
+			;{
+				let sent = new MQSent(), { where: wh, sahalar } = sent
+				sent
+					.fromAdd('ORTAK..firmabilgi fbil')
+					.innerJoin('fbil', 'ORTAK..firmatipbilgi ftip', 'fbil.id = ftip.firmaid')
+					.innerJoin('ftip', 'ORTAK..onaybildirim fis', 'ftip.id = fis.firmatipid')
+					.innerJoin('fis', 'ORTAK..islemonayci har', 'fis.id = har.fisid')
+				wh.degerAta(encUser, 'har.xuserkod')
+				sahalar.add(...[
+					'fis.id', 'fbil.firmaadi firmaAdi', 'ftip.tip',
+					`(case when COALESCE(fis.onayno, 0) = 0 then 1 else fis.onayno end) onayNo`,
+					'har.onaylimiti onayLimiti', `ftip.paramjson paramJSON`
+				])
+				kurallar = await sent.execSelect()
+			}
+			
 			let allDBNames = await app.wsDBListe()
 			let ignoreProgBelirtecSet = ['BR', 'MH', 'IS', 'AK']
 			allDBNames = allDBNames.filter(_ => 
@@ -279,7 +284,8 @@ class MQOnayci extends MQCogul {
 			for (let rec of kurallar) {
 				let { tip, firmaAdi, paramJSON: par } = rec
 				// kuralKey2Kural[this.getKey(rec)] = rec
-				;(tip2Kurallar[tip] ??= []).push(rec)
+				;(tip2Kurallar[tip] ??= [])
+					.push(rec)
 				if (par) {
 					try {
 						par = JSON.parse(par)
@@ -475,7 +481,6 @@ class MQOnayci extends MQCogul {
 			onayNo = max(1, ...(recs?.map(_r => Number(_r.onayNo)) ?? []))
 			return await this._loadServerDataDogrudan(...arguments)
 		}*/
-		
 		if (onayNo) {
 			await this.unregisterNTFY(e)
 			await this.registerNTFY(e)
@@ -486,9 +491,10 @@ class MQOnayci extends MQCogul {
 			if (tip == 'GeciciAlimEFat' && eIslTip != 'IR')
 				(db2GecAlimSayacListe[db] ??= []).push(sayac)
 		})
-		
+
+		let db2Sayac2RecDurum = {}
 		if (!empty(db2GecAlimSayacListe)) {
-			let db2Sayac2RecDurum = {}, promises = []
+			let promises = []
 			for (let [db, gecAlimSayacListe] of entries(db2GecAlimSayacListe)) {
 				let sent = new MQSent(), { where: wh, sahalar } = sent
 				sent
@@ -515,30 +521,30 @@ class MQOnayci extends MQCogul {
 			
 			if (!empty(promises))
 				await promiseAll(promises)
-			
-			if (!empty(db2Sayac2RecDurum)) {
-				;recs.forEach(rec => {
-					let { id, _db: db, tip, sayac, onayNo } = rec
-					let durum = db2Sayac2RecDurum[db]?.[sayac]
-					if (durum)
-						extend(rec, durum)
-					
-					let item = tip2Yapi[tip]
-					if (item) {
-						let { tipText } = item
-						if (onayNo) {
-							tipText += [
-								' ',
-								`<span class="etiket darkgray"> | </span>`,
-								`<span class="etiket gray">Onay: </span>`,
-								`<span class="veri bold orangered">${String(onayNo)}</span>`
-							].join('')
-						}
-						extend(rec, { tipText })
-					}
-				})
-			}
 		}
+
+		//if (!empty(db2Sayac2RecDurum)) {
+		;recs.forEach(rec => {
+			let { id, _db: db, tip, sayac, onayNo } = rec
+			let durum = db2Sayac2RecDurum[db]?.[sayac]
+			if (durum)
+				extend(rec, durum)
+			
+			let item = tip2Yapi[tip]
+			if (item) {
+				let { tipText } = item
+				if (onayNo) {
+					tipText += [
+						' ',
+						`<span class="etiket darkgray"> | </span>`,
+						`<span class="etiket gray">Onay: </span>`,
+						`<span class="veri bold orangered">${String(onayNo)}</span>`
+					].join('')
+				}
+				extend(rec, { tipText })
+			}
+		})
+		//}
 
 		let user2Adi = app.user2Adi ??= {}
 		;{
@@ -801,7 +807,9 @@ class MQOnayci extends MQCogul {
 				if (!rdlg)
 					return
 			}
+
 			
+			let { sonrakineOnayGitmesin } = inst
 			let key2Recs = {}
 			for (let rec of recs) {
 				let { _db, onayNo } = rec
@@ -826,27 +834,46 @@ class MQOnayci extends MQCogul {
 					toplu.add(
 						new MQIliskiliUpdate({
 							from: `${db}..webonay`,
-							where: [
-								{ inDizi: onayIdler, saha: 'id' }
-							],
+							where: { inDizi: onayIdler, saha: 'id' },
 							set: [
 								{ degerAta: onaymi ? 'O' : 'R', saha: `w${onayNo}onaydurum` },
 								{ degerAta: _now, saha: `w${onayNo}onayredts` },
 								{ degerAta: nedenText, saha: `w${onayNo}onayredtext` },
 								( proforma ? { degerAta: proId || null, saha: 'proformaid' } : null ),
-								( proforma && proId ? { degerAta: inst.sonrakineOnayGitmesin ? 'X' : '', saha: `w${onayNo}sonradurumu` } : null )
+								( proforma && proId ? { degerAta: sonrakineOnayGitmesin ? 'X' : '', saha: `w${onayNo}sonradurumu` } : null )
 							].filter(Boolean)
 						})
 					)
+					
+					let table2SubRecs = {}, table2Sayaclar = {}
+					;subRecs.forEach(r => {
+						let { _table: t, sayac } = r
+						;(table2SubRecs[t] ??= []).push(r)
+						;(table2Sayaclar[t] ??= {})[sayac] = true
+					})
+					
+					for (let [table, sayacSet] of entries(table2SubRecs)) {
+						let buSubRecs = table2SubRecs[table] ?? []
+						let onayMax = this.getOnayMax(...buSubRecs)
+						if (onayNo >= onayMax || (proforma && proId && sonrakineOnayGitmesin)) {
+							toplu.add(
+								new MQIliskiliUpdate({
+									from: `${db}..${table}`,
+									where: { inDizi: keys(sayacSet), saha: 'kaysayac' },
+									set: { degerAta: onaymi ? '' : 'RD', saha: 'wonay' }
+								})
+							)
+						}
+					}
 				}
 			}
 			if (toplu?.bosDegilmi) {
 				let topicSet = new Set()
-				let { onayMax } = app
 				let aktifOnayNo = Number(qs.onayNo) || 1
 				//if (!aktifOnayNo)
 				//	aktifOnayNo = max(1, ...recs.map(r => r.onayNo || 0))
-				
+
+				let onayMax = this.getOnayMax(...recs)
 				let onayBilgiSet = new Set()
 				if (onaymi && aktifOnayNo < onayMax) {
 					recs
@@ -1622,6 +1649,20 @@ class MQOnayci extends MQCogul {
 	static getKey({ tip, onayNo } = {}) {
 		return [tip, onayNo || 1].filter(_ => _).join('|')
 	}
+	static getOnayMax(...recs) {
+		let onayNolar = recs.map(rec => {
+			let { tip = rec._tip, db = rec._db } = rec ?? {}
+			let firmaAdi = db.slice(4)
+			
+			let { tip2Kurallar = {} } = app
+			let _onayNolar = tip2Kurallar[tip]
+				.filter(r => r.firmaAdi == firmaAdi)
+				.map(r => r.onayNo || 0)
+			return max(..._onayNolar)
+		})
+		return max(...onayNolar) || 0
+	}
+	
 	static getHTML({ rec }) {
 		let { dev } = config
 		let { user2Adi } = app
