@@ -76,7 +76,7 @@ class DRapor_KarZararTablosu extends DRaporMQ {
 				miktar2: new SecimBool({ grupKod, etiket: 'Miktar 2 Gösterilir' })
 			})
 			if (ozelIsaret)
-				sec.addSecim('kdvliBedel', new SecimBool({ grupKod, etiket: 'Kdvli Bedeller alınsın' }))
+				sec.secimEkle('kdvliBedel', new SecimBool({ grupKod, etiket: 'Kdvli Bedeller alınsın' }))
 		}
 		;{
 			sec

@@ -3,15 +3,19 @@ class MQFirewall extends MQKA {
 	static get kodListeTipi() { return 'FIREWALL' } static get sinifAdi() { return 'Firewall' }
 	static get kodKullanilirmi() { return false } static get kodSaha() { return 'name' }
 	static get adiSaha() { return 'name' } static get adiEtiket() { return 'Kural Adı' }
-	static get tumKolonlarGosterilirmi() { return true } static get defaultDirection() { return 'in' }
+	static get secimSinif() { return null }
+	static get tumKolonlarGosterilirmi() { return true }
+	static get kolonFiltreKullanilirmi() { return false }
+	static get defaultDirection() { return 'in' }
 	get name() { return this.aciklama } set name(value) { this.aciklama = value }
 
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments); delete pTanim.kod;
-		$.extend(pTanim, {
+		extend(pTanim, {
 			direction: new PInstTekSecim('direction', MQFirewall_Direction),
 			action: new PInstTekSecim('action', MQFirewall_Action),
-			enabled: new PInstTrue('enabled'), ip: new PInstStr('ip')
+			enabled: new PInstTrue('enabled'),
+			ip: new PInstStr('ip')
 		})
 	}
 	static secimlerDuzenle({ secimler: sec }) {
@@ -21,7 +25,7 @@ class MQFirewall extends MQKA {
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e)
 		let {sender, islem, inst, rootBuilder: rfb, tanimFormBuilder: tanimForm, kaForm} = e
-		$.extend(kaForm, {
+		extend(kaForm, {
 			builders: kaForm.builders.filter(({ id }) => id != 'aciklama'),
 			id2Builder: null
 		})
@@ -36,10 +40,10 @@ class MQFirewall extends MQKA {
 				).degisince(({ builder: { altInst: inst, rootPart: { parentPart }} }) => {
 					let {gridPart = parentPart} = parentPart
 					let {name} = inst, {boundRecs: recs} = gridPart
-					let rec = recs.find(_ => _.name == name)
+					let rec = recs.find(r => r.name == name)
 					if (rec) {
 						let {enabled, direction, action} = rec
-						$.extend(inst, { enabled, direction, action })
+						extend(inst, { enabled, direction, action })
 					}
 				});
 			kaForm.addCheckBox('enabled', 'Aktif?').readOnly()
@@ -65,16 +69,18 @@ class MQFirewall extends MQKA {
 	}
 	static ekCSSDuzenle({ dataField: belirtec, value, rec, result }) {
 		value = value?.toLowerCase?.();
-		if (rec.enabled === false) { result.push('bg-lightgray', 'iptal') }
+		if (rec.enabled === false)
+			result.push('bg-lightred-transparent', 'iptal')
+		
 		switch (belirtec) {
 			case 'action': {
-				result.push('bold');
+				result.push('bold')
 				/*if (value == 'deny') { result.push('firebrick') }
 				else if (value == 'allow') { result.push('lightgreen') }*/
 				break
 			}
 			case 'direction': {
-				result.push('bold');
+				result.push('bold')
 				/*if (value == 'inbound') { result.push('forestgreen') }
 				else if (value == 'outbound') { result.push('orangered') }*/
 				break
@@ -96,15 +102,22 @@ class MQFirewall extends MQKA {
 		)
 	}
 	static async loadServerDataDogrudan({ secimler }) {
-		let {value: name} = secimler.instAdi, {defaultDirection: direction} = this
-		let name2Rule = await app.wsFirewall_show({ direction, name })
+		//let { value: name } = secimler.instAdi
+		// let name2Rule = await app.wsFirewall_show({ direction, name })
+		let { defaultDirection: direction } = this
+		let name2Rule = await app.wsFirewall_show({ direction })
 		if (name2Rule == null)
 			return []
+		
 		let recs = []
 		for (let [name, rule] of entries(name2Rule)) {
-			let {enabled, ipList} = rule
-			if (!(enabled && ipList?.length))
+			let { enabled, ipList } = rule
+			if (empty(ipList))
 				continue
+			
+			// if (!(enabled && empty(ipList)))
+			//	continue
+			
 			for (let ip of ipList)
 				recs.push({ name, ...rule, ip })
 		}
@@ -113,22 +126,23 @@ class MQFirewall extends MQKA {
 			const Direction = 'inbound', Action = 'allow', Enabled = false;
 			let name1 = a.name.toLowerCase(), name2 = b.name.toLowerCase();
 			let cmpName = prefix => {
-				let {length: len} = prefix;
-				let t1 = name1.substr(0, len), t2 = name2.substr(0, len);
+				let  {length: len } = prefix
+				let t1 = name1.substr(0, len), t2 = name2.substr(0, len)
 				return (
 					( t1 == prefix && t2 != prefix ) ? -1 :
 					( t2 == prefix && t1 != prefix ) ? 1 :
 					0
 				)
-			};
+			}
 			let cmpValue = (key, match) => {
-				let t1 = a[key], t2 = b[key];
+				let t1 = a[key], t2 = b[key]
 				return (
 					( t1 == match && t2 != match ) ? 1 :
 					( t2 == match && t1 != match ) ? -1 :
 					0
 				)
-			};
+			}
+			
 			return (
 				cmpValue('enabled', Enabled) ||
 				cmpName(Prefix_Public) ||
@@ -138,30 +152,33 @@ class MQFirewall extends MQKA {
 				name1.localeCompare(name2) ||   /* name order */
 				cmpName(Prefix_RDPGuard)
 			)
-		});
+		})
+		
 		return recs
 	}
 	static orjBaslikListesi_argsDuzenle({ args }) {
 		super.orjBaslikListesi_argsDuzenle(...arguments);
-		$.extend(args, { groupsExpandedByDefault: true })
+		extend(args, { groupsExpandedByDefault: true })
 	}
 	static gridVeriYuklendi({ sender: gridPart }) {
-		super.gridVeriYuklendi(...arguments); let {grid} = gridPart;
+		super.gridVeriYuklendi(...arguments)
+		let { grid } = gridPart
 		grid.jqxGrid('groups', ['name'])
 	}
 	yeniTanimOncesiIslemler({ sender: { parentPart: gridPart } }) {
-		super.yeniTanimOncesiIslemler(...arguments);
+		super.yeniTanimOncesiIslemler(...arguments)
 		if (!this.name) {
-			let {selectedRec: rec} = gridPart;
+			let {selectedRec: rec} = gridPart
 			this.name = rec?.name
 		}
 	}
 	async uiKaydetOncesiIslemler({ islem, sender: tanimPart }) {
 		await super.uiKaydetOncesiIslemler(...arguments)
-		let {ip} = this
+		let { ip } = this
+		ip = ip?.trim()
 		if (!ip)
 			throw { isError: true, errorText: 'IP belirtilmelidir' }
-		ip = ip.trim()
+		
 		if (ip.at(-1) == '.') {
 			let count2Postfix = { 3: '0/24', 2: '0.0/16' }
 			let dotCount = ip.split('.').filter(Boolean).length
@@ -172,20 +189,22 @@ class MQFirewall extends MQKA {
 		this.ip = ip
 	}
 	yaz(e) {
-		let {aciklama: name, enabled, direction, action, ip} = this
+		let { aciklama: name, enabled, direction, action, ip } = this
 		direction = direction?.char ?? direction
 		action = action?.char ?? action
 		let data = { name, enabled, direction, action, add: [ip] }
-		showProgress(); return app.wsFirewall_update({ data })
+		showProgress()
+		return app.wsFirewall_update({ data })
 			.finally(() => hideProgress())
 	}
 	async degistir(eskiInst) {
-		await eskiInst.sil();
+		await eskiInst.sil()
 		return await this.yaz()
 	}
 	sil(e) {
-		let {aciklama: name, enabled, direction, action, ip} = this
-		direction = direction?.char ?? direction; action = action?.char ?? action
+		let { aciklama: name, enabled, direction, action, ip } = this
+		direction = direction?.char ?? direction
+		action = action?.char ?? action
 		let data = { name, enabled, direction, action, remove: [ip] }
 		showProgress()
 		return app.wsFirewall_update({ data })
@@ -194,8 +213,8 @@ class MQFirewall extends MQKA {
 	tekilOku({ _rec: rec }) { return rec }
 	keySetValues({ rec }) {
 		super.keySetValues(...arguments)
-		let {name: aciklama, ip} = rec
-		$.extend(this, { aciklama, ip })
+		let { name: aciklama, ip } = rec
+		extend(this, { aciklama, ip })
 	}
 }
 

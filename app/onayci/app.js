@@ -1,6 +1,6 @@
 class OnayciApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	get onayMax() { return 2 }
+	get onayMax() { return 3 }
 	get ntfyTopic() {
 		let { session: { user } = {} } = config
 		let { portalMustKod: must, ntfyEkId: id } = this
@@ -21,12 +21,12 @@ class OnayciApp extends TicariApp {
 		// extend(params, {  })
 	}
 	async ilkBilgileriBelirle(e) {
-		let res = this.portalMustKod = await this.wsGetMustKod()
+		let res = await this.portalMustBelirle()
 		for (let i = 0; i < 3; i++) {
 			if (res)
 				break
 			await delay(500)
-			res = this.portalMustKod = await this.wsGetMustKod()
+			res = this.portalMustBelirle()
 		}
 		if (!res)
 			return false

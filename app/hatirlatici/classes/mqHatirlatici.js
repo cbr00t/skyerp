@@ -207,9 +207,9 @@ class MQHatirlatici extends MQCogul {
 		wh.add(`DATEDIFF(DAY, CAST(GETDATE() AS DATE), CAST(htr.sontarih as DATE)) <= htr.hatirlatmagunu`)
 		sahalar
 			.addWithAlias(alias,
-				'id', 'xid orjBelgeId', 'kayittipi kayitTipi', 'sontarih sonTarih', 'hatirlatmagunu hatirlatmaGunu',
-				'kesinkullanicikod kesinUser', 'referans', 'xtipadi tipAdi',
-				'kapanisnotu kapanisNotu', 'kapanmatarihi kapanmaTarihi',
+				'id', 'xid orjBelgeId', 'kayittipi kayitTipi', 'sontarih sonTarih',
+				'hatirlatmagunu hatirlatmaGunu', 'kesinkullanicikod kesinUser', 'referans',
+				'xtipadi tipAdi', 'kapanisnotu kapanisNotu', 'kapanmatarihi kapanmaTarihi',
 				'yenilenmesuresi yenilenmeSuresi', 'suretipi sureTipi'
 			 )
 			.add(
@@ -236,6 +236,7 @@ class MQHatirlatici extends MQCogul {
 		this.stopServiceProc(e)
 		if (!delaySecs)
 			return null
+		
 		return this._timer_serviceProc = setTimeout(async (...rest) => {
 			let aborted = false
 			try { aborted = await this.serviceProc(e) === false }
@@ -466,12 +467,12 @@ class MQHatirlatici extends MQCogul {
 					}
 				}
 				let validate = ({ fbd_value: { input }, inst: { yeniTarih: v }}) => {
-					if (isInvalidDate(v) || v < min_v) {
+					/*if (isInvalidDate(v) || v < min_v) {
 						hConfirm(`<b class="royalblue">Bitiş Tarihi</b> dolu ve bugünden büyük bir değer olmalıdır`, islemAdi)
 						delay(200).then(() =>
 							fbd_yeniTarih?.input?.focus())
 						return false
-					}
+					}*/
 				}
 				
 				kapanisNotu = await jqxPrompt({
@@ -703,14 +704,18 @@ class MQHatirlatici extends MQCogul {
 		let { session: { user: buUser } } = config
 		let { kayitTipi, tipAdi, referans, kapandi, kapanisNotu, users, kesinUser } = rec
 
+		users = users?.filter(u => u != buUser)
 		let tipAdiText = tipAdi ? `<span class="violet">${tipAdi}</span>` : null
 		let tipRefStr = [tipAdiText, referans].filter(Boolean).join(' - ')
-		let usersText = kesinUser
-			? ''
-			: users
-				?.filter(u => u != buUser)
-				?.map(u => `+${user2Adi[u] || u}`)
-				?.join(', ')
+		let usersText = (
+			kesinUser ? '' :
+			[
+				users.slice(0, 1)
+					?.map(u => `+${user2Adi[u] || u}`)
+					?.join(', '),
+				( len(users > 1) ? `+ ${len(users) - 1}` : null )
+			].filter(Boolean).join(' ')
+		)
 		
 		return [
 			`<div class="flex-row full-width" style="gap: 0 10px">`,

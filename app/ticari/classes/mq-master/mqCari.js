@@ -5,8 +5,40 @@ class MQCari extends MQKA {
 	static get kodListeTipi() { return 'CAR' } static get ayrimTipKod() { return 'CRAYR' } static get ayrimTableAlias() { return 'cayr' }
 	static get ozelSahaTipKod() { return 'CAR' } static get zeminRenkDesteklermi() { return true } static get kayitTipi() { return '' }
 	get sahismi() { return this.vergi.sahismi } set sahismi(value) { return this.vergi.sahismi = value }
+	get unvan() {
+		let { unvan1, unvan2 } = this.genel
+		return [unvan1, unvan2].filter(Boolean).join(' ')
+	}
+	set unvan(v) {
+		let { genel } = this
+		let [ unvan1 = '', unvan2 = '' ] = uygunKelimeliParcalaDogrudan(v, 50)
+		extend(genel, { unvan1, unvan2 })
+	}
+	get adres() {
+		let { adres1, adres2 } = this.genel
+		return [adres1, adres2].filter(Boolean).join(' ')
+	}
+	set adres(v) {
+		let { genel } = this
+		let [ adres1 = '', adres2 = '' ] = uygunKelimeliParcalaDogrudan(v, 50)
+		extend(genel, { adres1, adres2 })
+	}
+	set vkn(value) { this.vergi.vkn = value }
 	get vkn() { return this.vergi.vkn } set vkn(value) { this.vergi.vkn = value }
 
+	constructor(e) {
+		e = { ...e }
+		super(e)
+		;{
+			e.unvan ??= e.aciklama
+			delete e.aciklama
+		 }
+		;['unvan', 'adres'].forEach(k => {
+			let v = e[k]
+			if (v != null)
+				this[k] = v
+		})
+	}
 	static altYapiDictDuzenle(e) {
 		super.altYapiDictDuzenle(e); let {liste} = e;
 		$.extend(liste, {
@@ -70,6 +102,7 @@ class MQCari extends MQKA {
 	ozelEntegratordenKontrolEt(e) {
 		return this.eIslem.ozelEntegratordenKontrolEt(e)
 	}
+	// turmob sorgu
 	async kimlikBilgiSorgula(e) {
 		let err = errorText =>
 			({ isError: true, errorText })
@@ -88,36 +121,33 @@ class MQCari extends MQKA {
 			values(r.AdresBilgileri)[0] ??
 			{}
 		)
+
+		const MaxLen_UnvanVeAdres = 50
 		let unvanTokens =uygunKelimeliParcalaBirlesik(
 			[r.Adi, r.Soyadi, r.Unvan]
 				.filter(Boolean)
 				.join(' '),
-			50, true)
+			MaxLen_UnvanVeAdres, true)
 		let adresTokens = uygunKelimeliParcalaBirlesik(
 			[adr.MahalleSemt, adr.Koy, adr.CaddeSokak]
 				.filter(Boolean)
 				.join(' '),
-			50, true)
+			MaxLen_UnvanVeAdres, true)
 		
 		let { vergi, genel, iletisim } = this
 		extend(vergi, {
-			tcKimlikNo: vergi.tcKimlikNo || r.TCKN,
-			vergiNo: vergi.vergiNo || r.VKN,
-			vergiDaire: vergi.vergiDaire || r.VergiDairesiAdi
+			tcKimlikNo: ( vergi.tcKimlikNo || r.TCKN )?.slice(0, 11) ?? '',
+			vergiNo: ( vergi.vergiNo || r.VKN )?.slice(0, 10) ?? '',
+			vergiDaire: ( vergi.vergiDaire || r.VergiDairesiAdi )?.slice(0, 20) ?? ''
 		})
 		extend(genel, {
-			unvan2: genel.unvan1 ? genel.unvan2 : ( unvanTokens[1] ?? '' ),
-			unvan1: genel.unvan1 || ( unvanTokens[0] ?? '' ),
-			ulkeKod: genel.ulkeKod || '052',
-			ilKod: genel.ilKod || adr.IlKodu,
-			yore: genel.yore || adr.IlceAdi,
-			adres2: genel.adres1 ? genel.adres2 : ( adresTokens[1] ?? '' ),
-			adres1: genel.adres1 || ( adresTokens[0] ?? '' )
-		})
-		extend(iletisim, {
-			tcKimlikNo: vergi.tcKimlikNo || r.TCKN,
-			vergiNo: vergi.vergiNo || r.VKN,
-			vergiDaire: vergi.vergiDaire || r.VergiDairesiAdi
+			unvan2: ( genel.unvan1 ? genel.unvan2 : unvanTokens[1] )?.slice(0, MaxLen_UnvanVeAdres) ?? '',
+			unvan1: ( genel.unvan1 || unvanTokens[0] )?.slice(0, MaxLen_UnvanVeAdres) ?? '',
+			ulkeKod: genel.ulkeKod?.slice(0, 3) || '052',
+			ilKod: ( genel.ilKod || adr.IlKodu )?.slice(0, 3) ?? '',
+			yore: ( genel.yore || adr.IlceAdi )?.slice(0, 20) ?? '',
+			adres2: ( genel.adres1 ? genel.adres2 : adresTokens[1] )?.slice(0, MaxLen_UnvanVeAdres) ?? '',
+			adres1: ( genel.adres1 || adresTokens[0] )?.slice(0, MaxLen_UnvanVeAdres) 
 		})
 	}
 }
@@ -591,7 +621,8 @@ class MQCari_Ticari extends MQCariAlt {
 		}
 	}
 	async kaydetSonrasiIslemler(e) {
-		let {tip2SatisBilgileri} = this, {kod: must} = this.inst
+		let { tip2SatisBilgileri = {} } = this
+		let { kod: must } = this.inst
 		let from = 'carisatis'
 		let toplu = new MQToplu()
 		for (let rec of values(tip2SatisBilgileri)) {
@@ -601,18 +632,25 @@ class MQCari_Ticari extends MQCariAlt {
 			let hv = { tavsiyeplasiyerkod, odemegunkodu, tahseklino }
 			toplu.add(new MQInsertOrUpdate({ from, keyHV, hv }))
 		}
-		if (toplu.bosDegilmi)
+		if (!empty(toplu.liste))
 			await app.sqlExecNone(toplu)
 		await this.kaydetSonrasiIslemler_rotaKaydet(e)
 	}
 	async kaydetSonrasiIslemler_rotaKaydet(e) {
-		let {tip2SatisBilgileri} = this, {kod: must} = this.inst, {gunKodlari, gun2Index} = MQSatisRota, plas2Eklenecek = {};
-		let rotaClause = [{ degerAta: must, saha: 'har.must' }, `fis.tipkod = 'T'`, `fis.sutalttip = ''`];
+		let { tip2SatisBilgileri = {} } = this
+		let { kod: must } = this.inst
+		let { gunKodlari, gun2Index } = MQSatisRota
+		let plas2Eklenecek = {}
+		let rotaClause = [
+			{ degerAta: must, saha: 'har.must' },
+			`fis.tipkod = 'T'`, `fis.sutalttip = ''`
+		]
 		for (let satRec of values(tip2SatisBilgileri)) {
-			let {plasiyerKod: plasKod} = satRec
+			let { plasiyerKod: plasKod } = satRec
 			plasKod = plasKod?.trimEnd()
 			if (!plasKod)
 				continue
+			
 			let eklenecek = plas2Eklenecek[plasKod] ??= {}
 			for (let gunKod of gunKodlari) {
 				if (gunKod && satRec[gunKod])
