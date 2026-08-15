@@ -17,7 +17,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 			{ id: 'eIslemIptal', handler: e => this.eIslemIptalIstendi(e) },
 			{ id: 'xmlKaldir', handler: e => this.xmlKaldirIstendi(e) }
 		);
-		$.extend(part.sagButonIdSet, asSet(['eIslemGonder', 'eIslemIzle', 'eIslemSorgu', 'eIslemXMLOlustur', 'eIslemIptal', 'xmlKaldir']))
+		extend(part.sagButonIdSet, asSet(['eIslemGonder', 'eIslemIzle', 'eIslemSorgu', 'eIslemXMLOlustur', 'eIslemIptal', 'xmlKaldir']))
 	}
 	get defaultTabloKolonlari() {
 		let getCSSDuzenleyici = e => {
@@ -30,36 +30,46 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 				if (efimzats) { result.push('imzali') }
 				if (efgonderimts) { result.push('gonderildi') }
 				if (efatuuid) { result.push('hasUUID') }
-				if (duzenleyici) { let _e = $.extend({}, e, { sender, rowIndex, belirtec, value, rec, result }); getFuncValue.call(this, duzenleyici, _e); result = _e.result }
+				if (duzenleyici) { let _e = extend({}, e, { sender, rowIndex, belirtec, value, rec, result }); getFuncValue.call(this, duzenleyici, _e); result = _e.result }
 				return result.join(' ')
 			})
 		};
 		return $.merge(super.defaultTabloKolonlari, [
-			new GridKolon({ belirtec: 'eIslTipText', text: 'e-İşlem', genislikCh: 9, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
-			new GridKolon({ belirtec: 'belgeTipText', text: 'Belge<br/>Tipi', filterType: 'checkedlist', genislikCh: 12, cellClassName: getCSSDuzenleyici() }),
-			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 9, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }).tipDate(),
+			new GridKolon({ belirtec: 'eIslTipText', text: 'e-İşlem', genislikCh: 11, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
+			new GridKolon({ belirtec: 'belgeTipText', text: 'Belge<br/>Tipi', filterType: 'checkedlist', genislikCh: 13, cellClassName: getCSSDuzenleyici() }),
+			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 11, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }).tipDate(),
 			new GridKolon({ belirtec: 'fisnox', text: 'Belge<br/>No', genislikCh: 18, cellClassName: getCSSDuzenleyici() }),
 			new GridKolon({ belirtec: 'akibetText', text: 'Akıbet', genislikCh: 12, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
 			new GridKolon({ belirtec: 'mustText', text: 'Müşteri', filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
-			new GridKolon({ belirtec: 'efUUIDText', text: 'UUID<br/>(ETTN)', genislikCh: 36, cellClassName: getCSSDuzenleyici() }),
-			new GridKolon({ belirtec: 'efimzats', text: 'XML Oluş.<br/>Zamanı', genislikCh: 13, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
-			new GridKolon({ belirtec: 'efgonderimts', text: 'Gönderim<br/>Zamanı', genislikCh: 13, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
-			new GridKolon({ belirtec: 'sonucbedel', text: 'Sonuç<br/>Bedel', genislikCh: 14, cellClassName: getCSSDuzenleyici() }).tipDecimal_bedel()
+			new GridKolon({ belirtec: 'efimzats', text: 'XML Oluş.<br/>Zamanı', genislikCh: 11, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
+			new GridKolon({ belirtec: 'efgonderimts', text: 'Gönderim<br/>Zamanı', genislikCh: 11, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
+			new GridKolon({ belirtec: 'sonucbedel', text: 'Sonuç<br/>Bedel', genislikCh: 17, cellClassName: getCSSDuzenleyici() }).tipDecimal_bedel(),
+			new GridKolon({ belirtec: 'dvKodText', text: 'Dv.', genislikCh: 5, cellClassName: getCSSDuzenleyici() }),
+			new GridKolon({ belirtec: 'efUUIDText', text: 'UUID<br/>(ETTN)', genislikCh: 34, cellClassName: getCSSDuzenleyici() })
 		])
 	}
 	loadServerData_veriDuzenle(e) {
-		super.loadServerData_veriDuzenle(e); let tSec_eIslTip = new EIslemTip(),  tSec_akibet = new EIslemOnayDurum(), {secimler: sec} = this, {recs} = e;
+		super.loadServerData_veriDuzenle(e)
+		let tSec_eIslTip = new EIslemTip()
+		let tSec_akibet = new EIslemOnayDurum()
+		let { secimler: sec } = this
+		let { recs } = e
 		for (let rec of recs) {
-			let efAyrimTipi = rec.efayrimtipi = rec.efayrimtipi || 'A',  efOnayDurumu = rec.efatonaydurumu;
-			$.extend(rec, {
-				eIslTipText: tSec_eIslTip.kaDict[efAyrimTipi]?.aciklama || efAyrimTipi, belgeTipText: sec.class.getBelgeTipText({ rec }),
-				akibetText: tSec_akibet.kaDict[efOnayDurumu]?.aciklama || efOnayDurumu, mustText: `(<b>${rec.mustkod}</b>) ${rec.birunvan}`,
-				efUUIDText: rec.efatuuid || rec.zorunluguidstr
+			let efAyrimTipi = rec.efayrimtipi ||= 'A'
+			let { efatonaydurumu: efOnayDurumu } = rec
+			extend(rec, {
+				eIslTipText: tSec_eIslTip.kaDict[efAyrimTipi]?.aciklama || efAyrimTipi,
+				belgeTipText: sec.class.getBelgeTipText({ rec }),
+				akibetText: tSec_akibet.kaDict[efOnayDurumu]?.aciklama || efOnayDurumu,
+				mustText: `(<b>${rec.mustkod}</b>) ${rec.birunvan}`,
+				efUUIDText: rec.efatuuid || rec.zorunluguidstr,
+				dvKodText: rec.dvkod || 'TL'
 			})
 		}
 	}
 	async eIslemGonderIstendi(e = {}) {
-		let {eConf} = this, islemAdi = 'e-İşlem Gönder'
+		let { eConf } = this
+		let islemAdi = 'e-İşlem Gönder'
 		let _e = await this.getSecilenSatirlar_mesajli({ islemAdi }) || {}
 		let {recs} = _e
 		if (!recs)
@@ -68,7 +78,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		if (ctrl)
 			await this.xmlKaldirIstendi({ ...e, recs })
 		try {
-			$.extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
+			extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
 			this.showProgress(_e)
 			await EYonetici.eIslemGonder(_e)
 		}
@@ -90,7 +100,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		if (ctrl)
 			await this.xmlKaldirIstendi({ ...e, silent: true, recs })
 		try {
-			$.extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
+			extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
 			this.showProgress(_e)
 			await EYonetici.eIslemIzle(_e)
 		}
@@ -111,7 +121,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		if (!recs)
 			return
 		try {
-			$.extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
+			extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
 			if (ctrl) {
 				islemAdi = _e.islemAdi = 'e-İşlem UUID Değiştir'
 				_e.araMesaj = `<span class="bold royalblue">${islemAdi}</span> işlemi`
@@ -159,7 +169,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		if (ctrl)
 			await this.xmlKaldirIstendi({ ...e, silent: true, recs })
 		try {
-			$.extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
+			extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
 			this.showProgress(_e)
 			await EYonetici.eIslemXMLOlustur(_e)
 		}
@@ -177,13 +187,10 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		let {recs} = _e
 		if (!recs)
 			return
-		let {event: { ctrlKey: ctrl } = {}} = e
-		if (ctrl)
-			await this.eIslemIptal({ ...e, recs })
 		try {
-			$.extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
+			extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
 			this.showProgress(_e)
-			await EYonetici.eIslemGonder(_e)
+			await EYonetici.eIslemIptal(_e)
 		}
 		catch (ex) {
 			_e.error = ex
@@ -197,12 +204,12 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		let islemAdi = 'e-İşlem XML Kaldır'
 		let {eConf} = this, {silent, recs} = e, _e = { ...e, sender: this }
 		if (!recs) {
-			$.extend(_e, await this.getSecilenSatirlar({ islemAdi, mesajli: !silent }) || {})
+			extend(_e, await this.getSecilenSatirlar({ islemAdi, mesajli: !silent }) || {})
 			recs = _e.recs
 		}
 		try {
 			let callback = silent ? null : new EIslemAkibet_Callback({ islemAdi })
-			$.extend(_e, { eConf, callback })
+			extend(_e, { eConf, callback })
 			this.showProgress(_e)
 			await EYonetici.xmlKaldir(_e)
 		}

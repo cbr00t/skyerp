@@ -20,6 +20,10 @@ class OnayciApp extends TicariApp {
 		super.paramsDuzenle(...arguments)
 		// extend(params, {  })
 	}
+	async ilkIslemler(e) {
+		await super.ilkIslemler(e)
+		// await this.tabloEksikleriTamamla(e)
+	}
 	async ilkBilgileriBelirle(e) {
 		let res = await this.portalMustBelirle()
 		for (let i = 0; i < 3; i++) {

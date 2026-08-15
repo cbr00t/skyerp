@@ -136,12 +136,12 @@ class GelenEIslemListePart extends EIslemListeBasePart {
 				return result.join(' ')
 			})
 		};
-		return $.merge(super.defaultTabloKolonlari, [
+		return smerge(super.defaultTabloKolonlari, [
 			new GridKolon({ belirtec: 'tamamlandimi', text: 'Tamam?', genislikCh: 8, cellClassName: getCSSDuzenleyici() }).tipBool(),
 			new GridKolon({ belirtec: 'yazdirildimi', text: 'Yazdır?', genislikCh: 8, cellClassName: getCSSDuzenleyici() }).tipBool(),
 			new GridKolon({ belirtec: 'kayitts', text: 'Kayıt<br/>Zamanı', genislikCh: 15, cellClassName: getCSSDuzenleyici() }),
 			new GridKolon({ belirtec: 'eIslTipText', text: 'e-İşlem', genislikCh: 9, cellClassName: getCSSDuzenleyici() }),
-			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 9, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }).tipDate(),
+			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 11, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }).tipDate(),
 			new GridKolon({ belirtec: 'fisnox', text: 'Belge<br/>No', genislikCh: 18, cellClassName: getCSSDuzenleyici() }),
 			new GridKolon({ belirtec: 'akibetText', text: 'Akıbet', genislikCh: 12, cellClassName: getCSSDuzenleyici() }),
 			new GridKolon({ belirtec: 'uuid', text: 'UUID<br/>(ETTN)', genislikCh: 36, cellClassName: getCSSDuzenleyici() }),

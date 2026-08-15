@@ -1,4 +1,4 @@
-class EIslMustahsil extends EIslemOrtak {
+class EIslMustahsil extends EIslGiden {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'MS' }
 	static get altBolum() { return 'EMustahsil' }
@@ -6,5 +6,4 @@ class EIslMustahsil extends EIslemOrtak {
 	static get kisaAdi() { return 'e-Müs' }
 	static get paramSelector() { return 'eMustahsil' }
 	static get xmlRootTag() { 'cac:??' }
-	get xsltBelirtec() { return 'EMustahsil' }
 }

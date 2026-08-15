@@ -1,6 +1,6 @@
 class EIslemTip extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get defaultChar() { return ' ' }
+	static get defaultChar() { return null }
 	get eFaturami() { return this.char == EIslFatura.tip } get eArsivmi() { return this.char == EIslArsiv.tip }
 	get eIrsaliyemi() { return this.char == EIslIrsaliye.tip } get eMustahsilmi() { return this.char == EIslMustahsil.tip }
 	kaListeDuzenle(e) {
@@ -23,7 +23,7 @@ class EIslFaturaAyrim extends TekSecim {
 }
 class EIslemOnayDurum extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get defaultChar() { return ' ' }
+	static get defaultChar() { return null }
 	get aliciyaUlastimi() { return this.char == '@' } onaymi() { return this.char == 'O' } get kabulmu() { return this.onaymi } get redmi() { return this.char == 'R' }
 	get iptalmi() { return this.char == 'C' } get hatami() { return this.char == 'X' } get beklemedemi() { return this.char == 'B' } get belirsizmi() { return this.char == ' ' }
 	kaListeDuzenle(e) {
