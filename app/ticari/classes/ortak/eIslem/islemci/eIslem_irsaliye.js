@@ -17,11 +17,16 @@ class EIslIrsaliye extends EIslTicariOrtak {
 	static eFisBaslikVeDetayStm_araSentDuzenle({ psTip, fisTable, harTable, uni, sent }) {
 		super.eFisBaslikVeDetayStm_araSentDuzenle(...arguments)
 		let { sqlEmpty } = Hareketci_UniBilgi.ortakArgs
-		let { isyeri: { unvan: isyUnvan = '', vknTckn: isyVknTckn } } = app.params
+		let { isyeri: { unvan: isyUnvan = '', vknTckn: isyVknTckn, yore: isyYore, ilAdi: isyIlAdi } } = app.params
 		let c = {
+			isyUnvan: isyUnvan.sqlServerDegeri(),
+			isyVknTckn: isyVknTckn.sqlServerDegeri(),
+			isyYore: isyYore.sqlServerDegeri(),
+			isyIlAdi: isyIlAdi.sqlServerDegeri(),
 			teslim(attr, cariClause, sevkClause) {
 				return `${new MQCase()
-					.when(`fis.xadreskod = ${sqlEmpty}`,cariClause)
+					.setClause('fis.xadreskod')
+					.when(sqlEmpty, cariClause)
 					.else(sevkClause)
 				} ${attr}`
 			},
@@ -32,7 +37,7 @@ class EIslIrsaliye extends EIslTicariOrtak {
 						soforAlinmaz
 							? sqlEmpty
 							: new MQCase()
-								.when(`fis.tasimasoforkod${ind} = ''`, sqlEmpty)
+								.when(`fis.tasimasoforkod${ind} = ${sqlEmpty}`, sqlEmpty)
 								.else(`sof${ind}.aciklama`)
 					)
 					.else(`tas${ind}.soforadi`)
@@ -45,7 +50,7 @@ class EIslIrsaliye extends EIslTicariOrtak {
 						soforAlinmaz
 							? sqlEmpty
 							: new MQCase()
-								.when(`fis.tasimasoforkod${ind} = ''`, sqlEmpty)
+								.when(`fis.tasimasoforkod${ind} = ${sqlEmpty}`, sqlEmpty)
 								.else(`sof${ind}.tckimlikno`)
 					)
 					.else(`tas${ind}.sofortckimlik`)
@@ -65,43 +70,101 @@ class EIslIrsaliye extends EIslTicariOrtak {
 			.leftJoin('fis', 'tasima tas2', 'fis.tasima2sayac = tas2.kaysayac')
 			.leftJoin('fis', 'tasima tas3', 'fis.tasima3sayac = tas3.kaysayac')
 		sahalar.add(...[
-			c.teslim('teslimAdres', 'car.biradres', 'sadr.biradres'),
-			c.teslim('teslimYore', 'car.yore', 'sadr.yore'),
-			c.teslim('teslimIlKod', 'cil.kod', 'sil.kod'),
-			c.teslim('teslimIlAdi', 'cil.aciklama', 'sil.aciklama'),
-			c.teslim('teslimPosta', 'car.posta', 'sadr.posta'),
-			`${new MQCase()
-				.when(
-					`fis.tasimasayac IS NULL`,
-					new MQCase()
-						.when(`fis.tasimaarackod = ${sqlEmpty}`, sqlEmpty)
-						.else('arc.plaka')
-				)
-				.else('tas1.aracplaka')} plaka`,
-			`${new MQCase()
-				.when(
-					`fis.tasimasayac IS NULL`,
-					new MQCase()
-						.when(`fis.tasimasoforkod = ${sqlEmpty}`,
-							  new MQCase()
-								.when(`fis.nakseklikod = ${sqlEmpty}`, isyUnvan.sqlServerDegeri())
-								.else('nak.aciklama')
-						 )
-						.else('sof1.aciklama')
-				)
-				.else('tas1.soforadi')} sofor1Adi`,
-			`${new MQCase()
-				.when(
-					`fis.tasimasayac IS NULL`,
-					new MQCase()
-						.when(`fis.tasimasoforkod = ${sqlEmpty}`, isyVknTckn.sqlServerDegeri())
-						.else('sof1.tckimlikno')
-				)
-				.else('tas1.sofortckimlik')} sofor1VknTckn`,
-			`${c.tasimaSoforAdi(2)} sofor2Adi`,
-			`${c.tasimaSoforTC(2)} sofor2VknTckn`,
-			`${c.tasimaSoforAdi(3, true)} sofor3Adi`,
-			`${c.tasimaSoforTC(3, true)} sofor3VknTckn`
+			...[
+				c.teslim('teslimAdres', 'car.biradres', 'sadr.biradres'),
+				c.teslim('teslimYore', 'car.yore', 'sadr.yore'),
+				c.teslim('teslimIlKod', 'cil.kod', 'sil.kod'),
+				c.teslim('teslimIlAdi', 'cil.aciklama', 'sil.aciklama'),
+				c.teslim('teslimPosta', 'car.posta', 'sadr.posta')
+			],
+			...[
+				`${new MQCase()
+					.when(
+						`fis.tasimasayac IS NULL`,
+						new MQCase()
+							.setClause('fis.tasimaarackod')
+							.when(sqlEmpty, sqlEmpty)
+							.else('arc.plaka')
+					)
+					.else('tas1.aracplaka')} plaka`,
+				`${new MQCase()
+					.when(
+						`fis.tasimasayac IS NULL`,
+						new MQCase()
+							.setClause('fis.tasimasoforkod')
+							.when(sqlEmpty,
+								new MQCase()
+								  .setClause('fis.nakseklikod')
+									.when(sqlEmpty, c.isyUnvan)
+									.else('nak.aciklama')
+							 )
+							.else('sof1.aciklama')
+					)
+					.else('tas1.soforadi')} sofor1Adi`,
+				`${new MQCase()
+					.when(
+						`fis.tasimasayac IS NULL`,
+						new MQCase()
+							.setClause('fis.tasimasoforkod')
+							.when(sqlEmpty, c.isyVknTckn)
+							.else('sof1.tckimlikno')
+					)
+					.else('tas1.sofortckimlik')} sofor1VknTckn`
+			],
+			...[
+				`${c.tasimaSoforAdi(2)} sofor2Adi`,
+				`${c.tasimaSoforTC(2)} sofor2VknTckn`,
+				`${c.tasimaSoforAdi(3, true)} sofor3Adi`,
+				`${c.tasimaSoforTC(3, true)} sofor3VknTckn`
+			],
+			...[
+				`${new MQCase()
+					.when(
+						new MQAndClause([`fis.tasimasayac IS NULL`, `fis.tasimasoforkod <> ${sqlEmpty}`]),
+						'sof1.tckimlikno'
+					)
+					.when(
+						new MQAndClause([`fis.tasimasayac IS NOT NULL`, `tas1.nakliyetipi IN ('', 'F')`]),
+						'tas1.sofortckimlik'
+					)
+					.when(
+						`fis.tasimasayac IS NOT NULL AND tas1.nakliyetipi = 'S'`,
+						'tas1.nakliyecivkn'
+					)
+				   .else(c.isyVknTckn)
+				} nakVknTckn`,
+				`${new MQCase()
+					.when(
+						new MQAndClause([`fis.tasimasayac IS NULL`, `fis.tasimasoforkod <> ${sqlEmpty}`]),
+						'sof1.aciklama'
+					)
+					.when(
+						new MQAndClause([`fis.tasimasayac IS NOT NULL`, `tas1.nakliyetipi IN ('', 'F')`]),
+						'tas1.soforadi'
+					)
+				   .when(
+						`fis.tasimasayac IS NOT NULL AND tas1.nakliyetipi = 'S'`,
+						'tas1.nakliyeciunvan'
+					)
+				   .else(c.isyUnvan)
+				} nakUnvan`
+			],
+			...[
+				`${new MQCase()
+				   .when(
+						`(fis.tasimasayac IS NULL OR tas1.nakliyetipi = 'B')`,
+						c.isyYore
+					)
+				   .else(sqlEmpty)
+				} nakYore`,
+				`${new MQCase()
+				   .when(
+						`(fis.tasimasayac IS NULL OR tas1.nakliyetipi = 'B')`,
+						c.isyIlAdi
+					)
+				   .else(sqlEmpty)
+				} nakIlAdi`
+			]
 		])
 	}
 	
@@ -130,10 +193,11 @@ class EIslIrsaliye extends EIslTicariOrtak {
 			<cbc:Title/>
 			<cbc:NationalityID>51100361164</cbc:NationalityID>
 			</cac:DriverPerson>*/
-		let { baslik, baslik: { rec }, class: { ihracatmi } } = this
-		let { sevkTarihStr, sevkSaatStr } = rec
+		let { baslik, class: { ihracatmi, defaultCountryName } } = this
+		let { sevkTarihStr, sevkSaatStr, rec } = baslik
 		let { teslimYore, teslimIlKod, teslimIlAdi, teslimPosta, teslimAdres, plaka } = rec
 		let { sofor1Adi, sofor1VknTckn, sofor2Adi, sofor2VknTckn, sofor3Adi, sofor3VknTckn } = rec
+		let { nakVknTckn, nakUnvan, nakYore, nakIlAdi } = rec
 		xw.writeElementBlock('cac:Shipment', null, () => {
 			xw
 				.writeElementString('cbc:ID', '')
@@ -164,43 +228,43 @@ class EIslIrsaliye extends EIslTicariOrtak {
 					}
 				})
 				.writeElementBlock('cac:Delivery', null, () => {
-					xw.writeElementBlock('cac:Delivery', null, () => {
-						xw
-							.writeElementBlock('cac:DeliveryAddress', null, () => {
-								xw
-									.writeElementString('cbc:Room', 0)
-									.writeElementString('cbc:StreetName', teslimAdres)
-									.writeElementString('cbc:BuildingName', '.')
-									.writeElementString('cbc:BuildingNumber ', 0)
-									.writeElementString('cbc:CitySubdivisionName', teslimYore)
-									.writeElementString('cbc:CityName', teslimIlAdi)
-									.writeElementString('cbc:PostalZone', normalizePostaKod(teslimPosta, teslimIlKod, ihracatmi))
-									.writeElementString('cbc:Region', '')
-									.writeElementBlock('cac:Country', null, () =>
-										xw.writeElementString('cbc:Name', '.'))
-							})
-							.writeElementBlock('cac:CarrierParty', null, () => {
-								xw
-									.writeElementBlock('cac:PartyIdentification', null, () =>
-										xw.writeElementString('cbc:ID', '.'), null, { schemeID: 'TCKN' })
-									.writeElementBlock('cac:PartyName', null, () =>
-										xw.writeElementString('cbc:Name', '.'))
-									.writeElementBlock('cac:PostalAddress', null, () =>
-										xw
-											.writeElementString('cbc:CitySubdivisionName', '.')
-											.writeElementString('cbc:CityName', '.')
-											.writeElementBlock('cac:Country', null, () =>
-												xw.writeElementString('cbc:Name', '.'))
-									)
-							})
-							xw.writeElementBlock('cac:Delivery', null, () => {
-								xw
-									.writeElementString('cac:ActualDespatchDate', sevkTarihStr)
-									.writeElementString('cac:ActualDespatchTime', sevkSaatStr)
-								
-							})
-						
-					})
+					xw
+						.writeElementBlock('cac:DeliveryAddress', null, () => {
+							xw
+								.writeElementString('cbc:Room', 0)
+								.writeElementString('cbc:StreetName', teslimAdres)
+								.writeElementString('cbc:BuildingName', '.')
+								.writeElementString('cbc:BuildingNumber ', 0)
+								.writeElementString('cbc:CitySubdivisionName', teslimYore)
+								.writeElementString('cbc:CityName', teslimIlAdi)
+								.writeElementString('cbc:PostalZone', normalizePostaKod(teslimPosta, teslimIlKod, ihracatmi))
+								.writeElementString('cbc:Region', '')
+								.writeElementBlock('cac:Country', null, () =>
+									xw.writeElementString('cbc:Name', defaultCountryName))
+						})
+						.writeElementBlock('cac:CarrierParty', null, () => {
+							//nakVknTckn, nakUnvan, nakYore, nakIlAdi
+							let sahismi = nakVknTckn.length == 11
+							let schemeID = sahismi ? 'TCKN' : 'VKN'
+							xw
+								.writeElementBlock('cac:PartyIdentification', null, () =>
+									xw.writeElementString('cbc:ID', nakVknTckn), null, { schemeID })
+								.writeElementBlock('cac:PartyName', null, () =>
+									xw.writeElementString('cbc:Name', nakUnvan))
+								.writeElementBlock('cac:PostalAddress', null, () =>
+									xw
+										.writeElementString('cbc:CitySubdivisionName', nakYore)
+										.writeElementString('cbc:CityName', nakIlAdi)
+										.writeElementBlock('cac:Country', null, () =>
+											xw.writeElementString('cbc:Name', defaultCountryName))
+								)
+						})
+						.writeElementBlock('cac:Despatch', null, () => {
+							xw
+								.writeElementString('cac:ActualDespatchDate', sevkTarihStr)
+								.writeElementString('cac:ActualDespatchTime', sevkSaatStr)
+							
+						})
 				})
 		})
 	}

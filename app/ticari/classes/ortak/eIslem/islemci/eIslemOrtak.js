@@ -52,6 +52,7 @@ class EIslemOrtak extends CObject {
     static get xmlTagPF_senderParty() { return 'AccountingSupplierParty' }
 	static get xmlTagPF_receiverParty() { return 'AccountingCustomerParty' }
 
+	static get defaultCountryName() { return 'Türkiye' }
 	get dovizlimi() { return this.baslik.dovizlimi }
 	get dvKod() { return this.baslik.dvKod } get dvKur() { return this.baslik.dvkur }
 	get bedelSelector() { return this.dovizlimi ? 'dv' : 'tl' } 
@@ -433,9 +434,9 @@ class EIslemOrtak extends CObject {
 	}
 	async xmlDuzenle_xsltOncesi(e) {
 		let { xw } = e, { params } = app
-		let { zorunlu, stokGenel: { miktar2 }, eIslem } = params
+		let { zorunlu, stokGenel: { kullanim: { miktar2 } }, eIslem } = params
 		let { kullanim, kural, goruntuOzelPunto } = eIslem
-		let { satirBarkod, miktar, satirIskBedeli, satirKdv, satirDigerVergi } = kullanim
+		let { satirBarkod, satirIskBedeli, satirKdv, satirDigerVergi } = kullanim
 		let { baslik, dvKod, dvKur, dovizlimi } = this
 		let { _profileID, _belgeTipKod, eYontem, sevkTarihStr, must: mustKod } = baslik
 		if (!_belgeTipKod)
@@ -466,7 +467,7 @@ class EIslemOrtak extends CObject {
 		if (goruntuOzelPunto)
 			await this.xmlDuzenleInternal_docRefParam({ xw, name: 'GENEL_PUNTO', value: goruntuOzelPunto })
 		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'SATIRDA_BARKOD', value: (satirBarkod && !eYontem?.barkodReferansKaldir) ?? false })
-		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'SATIRDA_MIKTAR2', value: (miktar2 && miktar.birliktemi) ?? false })
+		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'SATIRDA_MIKTAR2', value: (miktar2 && kural.miktar.birliktemi || kural.miktar.fiyataEsasmi) ?? false })
 		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'SATIRDA_ISKONTO_BEDELI', value: (satirIskBedeli && !kural.fiyat.netmi) ?? false })
 		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'SATIRDA_KDV', value: satirKdv ?? false })
 		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'SATIRDA_DIGER_VERGILER', value: satirDigerVergi ?? false })

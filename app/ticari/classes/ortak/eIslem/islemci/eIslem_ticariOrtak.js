@@ -766,12 +766,13 @@ class EIslTicariOrtak extends EIslGiden {
 	}
 	xmlDuzenle_detayDevam_item_additionalItemIds_miktar2({ xw, detay: det }) {
 		super.xmlDuzenle_detayDevam_item_additionalItemIds_miktar2(...arguments)
-		let { eMiktarYapi: { miktar2, brm: brm2 } = {} } = det
+		let { eMiktarYapi: { miktar2, brm2 } = {} } = det
 		if (!miktar2)
 			return
 		brm2 ||= det.brm2
-		this.xmlDuzenleInternal_detAdditionalIdent({ xw, schemeID: 'MIKTAR2GORUNUM', id: miktar2 })
-		this.xmlDuzenleInternal_detAdditionalIdent({ xw, schemeID: 'BRM2GORUNUM', id: brm2 })
+		let text = [numberToString(miktar2), brm2].filter(Boolean).join(' ')
+		this.xmlDuzenleInternal_detAdditionalIdent({ xw, schemeID: 'MIKTAR2GORUNUM', id: text })
+		//this.xmlDuzenleInternal_detAdditionalIdent({ xw, schemeID: 'BRM2GORUNUM', id: brm2 })
 	}
 	xmlDuzenle_detayDevam_item_additionalItemIds_netFiyat({ xw, detay: det }) {
 		super.xmlDuzenle_detayDevam_item_additionalItemIds_netFiyat(...arguments)

@@ -136,7 +136,7 @@ class GelenEIslemListePart extends EIslemListeBasePart {
 				return result.join(' ')
 			})
 		};
-		return smerge(super.defaultTabloKolonlari, [
+		return merge(super.defaultTabloKolonlari, [
 			new GridKolon({ belirtec: 'tamamlandimi', text: 'Tamam?', genislikCh: 8, cellClassName: getCSSDuzenleyici() }).tipBool(),
 			new GridKolon({ belirtec: 'yazdirildimi', text: 'Yazdır?', genislikCh: 8, cellClassName: getCSSDuzenleyici() }).tipBool(),
 			new GridKolon({ belirtec: 'kayitts', text: 'Kayıt<br/>Zamanı', genislikCh: 15, cellClassName: getCSSDuzenleyici() }),

@@ -51,8 +51,8 @@ class EIslKural_Aciklama extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return ' ' } get hepsiSatirAltindami() { return this.char == ' ' } get hepsiDiptemi() { return this.char == 'D' }
 	get satirIciUrunAdindami() { return this.char == 'Y' } get hemDipteHemSatirAltindami() { return this.char == 'H' }
-	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
 		kaListe.push(
 			new CKodVeAdi([' ', 'Hepsi Detayın Altında']),
 			new CKodVeAdi(['D', 'Hepsi Dipte']),
@@ -63,13 +63,13 @@ class EIslKural_Aciklama extends TekSecim {
 }
 class EIslKural_Miktar extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get defaultChar() { return '1' } get sadece1mi() { return this.char == '1' } get birliktemi() { return this.char == '12' } get fiyataEsasmi() { return this.char == 'F' }
-	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); const {kaListe} = e;
+	static get defaultChar() { return '1' }
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
 		kaListe.push(
-			new CKodVeAdi(['1', 'Sadece 1. Miktar']),
-			new CKodVeAdi(['12', '1. ve 2. Miktar']),
-			new CKodVeAdi(['F', 'Fiyata Esas Miktar'])
+			new CKodVeAdi(['1', 'Sadece 1. Miktar', 'sadece1mi']),
+			new CKodVeAdi(['12', '1. ve 2. Miktar', 'birliktemi']),
+			new CKodVeAdi(['F', 'Fiyata Esas Miktar', 'fiyataEsasmi'])
 		)
 	}
 }

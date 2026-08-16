@@ -12,9 +12,9 @@ class EIslBaslik extends EIslBaslikVeDetayOrtak {
 	get eIrsaliyemi() { return this.eIslTip == 'IR' } get eMustahsilmi() { return this.eIslTip == 'MS' }
 	get alimIademi() { return asBool(this.rec.alimiademi) } get subeKod() { return this.rec.bizsubekod }
 	get fisTipi() { return this.rec.fistipi }
-	get tarihStr() { return asReverseDateString(this.rec.tarih) }
-	get sevkTarihStr() { return asReverseDateString(this.rec.sevkTarih) }
-	get sevkSaatStr() { return timeToString(this.rec.sevkSaat) }
+	get tarihStr() { return asReverseDateString(asDate(this.rec.tarih)) }
+	get sevkTarihStr() { return asReverseDateString(asDate(this.rec.sevkTarih)) }
+	get sevkSaatStr() { return timeToString(asDate(this.rec.sevkSaat)) }
 	get istisnaKod() { return this._istisnaKod ?? this.rec.kdvistisnaturu }
 	set istisnaKod(v) { return this._istisnaKod = v }
 	get dvKod() {
@@ -145,29 +145,38 @@ class EIslDetay extends EIslBaslikVeDetayOrtak {
 	}
 	get revizeRefKod() { return this.rec.stokrefkod || this.kodGosterim }
 	get brutBedelYapi() {
-		let {brutbedel: tl, brutdvbedel: dv} = this.rec
+		let { brutbedel: tl, brutdvbedel: dv } = this.rec
 		return new TLVeDVBedel({ tl, dv })
 	}
 	get sonucBedelYapi() {
-		let {bedel: tl, dvbedel: dv} = this.rec
+		let { bedel: tl, dvbedel: dv } = this.rec
 		return new TLVeDVBedel({ tl, dv })
 	}
 	get eMiktarYapi() {
-		let {_eMiktarYapi: result, rec} = this
+		let { _eMiktarYapi: result, rec } = this
 		if (result == null) {
-			let {kural: { miktar: { fiyataEsasmi, birliktemi } = {} }} = app.params.eIslem
-			let {miktar: asilMiktar} = rec, miktar2, brm
-			if (birliktemi)
-				miktar2 = rec.miktar2
-			else if (fiyataEsasmi) {
-				let {fiyatveritipi: fiyatVeriTipi} = rec
-				asilMiktar = rec[fiyatVeriTipi == '2' ? 'miktar2' : fiyatVeriTipi == 'K' ? 'koli' : 'miktar']
+			let { kural: { miktar: { fiyataEsasmi, birliktemi } = {} } } = app.params.eIslem
+			let { miktar: asilMiktar, brm, miktar2, brm2 } = rec
+			if (fiyataEsasmi) {
+				let { fiyatveritipi: fiyatVeriTipi } = rec
+				asilMiktar = rec[
+					fiyatVeriTipi == '2' ? 'miktar2' :
+					fiyatVeriTipi == 'K' ? 'koli' :
+					'miktar'
+				]
+				
 				// paket için 'ulsKod' karşılığı yok
 				let brmAttr = rec[fiyatVeriTipi == '2' ? 'brm2' : null]
 				brm = brmAttr ? rec[brmAttr] : null
 			}
+			else if (!birliktemi)
+				miktar2 = brm2 = null
+			
 			// brm == null için 'brm' kullanılır 
-			result = { asilMiktar, miktar2: (birliktemi ? miktar2 : null), brm }
+			result = {
+				asilMiktar, brm,
+				miktar2, brm2
+			}
 			this._eMiktarYapi = result
 		}
 		return result
@@ -186,15 +195,24 @@ class EIslDetay extends EIslBaslikVeDetayOrtak {
 		return sonucBedelYapi[dovizlimi ? 'dv' : 'tl']
 	}
 	getEFiyatYapi(e) {
-		let result = this._eFiyatYapi;
+		let result = this._eFiyatYapi
 		if (result == null) {
-			let {kural} = app.params.eIslem, kural_fiyat = kural.fiyat, bedelPrefix = e.dovizlimi ? 'dv' : '', {rec} = this;
+			let { rec } = this
+			let { kural } = app.params.eIslem
+			let kural_fiyat = kural.fiyat
+			let bedelPrefix = e.dovizlimi ? 'dv' : ''
 			let asilFiyat = rec[`${bedelPrefix}fiyat`], netFiyat;
 			if (!kural_fiyat.brutmu) {
-				let fiyatVeriTipi = rec.fiyatveritipi, miktarAttr = fiyatVeriTipi == '2' ? 'miktar2' : fiyatVeriTipi == 'K' ? 'koli' : 'miktar';
-				let asilMiktar = rec[miktarAttr]; netFiyat = rec.bedel / (asilMiktar || 1)
+				let { fiyatveritipi: fiyatVeriTipi } = rec
+				let miktarAttr = fiyatVeriTipi == '2'
+					? 'miktar2'
+					: fiyatVeriTipi == 'K' ? 'koli' : 'miktar'
+				let asilMiktar = rec[miktarAttr]
+				netFiyat = rec.bedel / (asilMiktar || 1)
 			}
-			result = kural_fiyat.netmi ? { asilFiyat: netFiyat, netFiyat: null }  : { asilFiyat: asilFiyat, netFiyat };
+			result = kural_fiyat.netmi
+				? { asilFiyat: netFiyat, netFiyat: null }
+				: { asilFiyat: asilFiyat, netFiyat }
 			this._eFiyatYapi = result
 		}
 		return result

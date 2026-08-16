@@ -722,24 +722,33 @@ class EYonetici extends CObject {
 		}
 		e.uuid2Result = uuid2Result
 	}
-	async eIslemBekleyenleriGetir(e) {
-		e.eYonetici = this; let {eIslSinif} = this, {callback, secimler} = e, sender = e.sender ?? callback?.parentPart, efAyrimTipi = eIslSinif.tip, eConf = e.eConf ?? this.eConf, {eIslEkArgs} = eConf;
-		let tarihBS = secimler?.tarih || {}, uuid2Result = e.uuid2Result = e.uuid2Result || {}; let savedToken = this.class.getTempToken(efAyrimTipi)
-		let eIslemBlock = async (e) => {
+	async eIslemBekleyenleriGetir(e = {}) {
+		e.eYonetici = this
+		let { eIslSinif } = this
+		let { callback, secimler } = e
+		let sender = e.sender ?? callback?.parentPart
+		let efAyrimTipi = eIslSinif.tip
+		let eConf = e.eConf ?? this.eConf
+		let { eIslEkArgs } = eConf
+		let tarihBS = secimler?.tarih ?? {}
+		let uuid2Result = e.uuid2Result ??= {}
+		let savedToken = this.class.getTempToken(efAyrimTipi)
+		let eIslemBlock = async (...rest) => {
 			let oe = eConf.getValue('ozelEntegrator')
 			if (isObject(oe))
 				oe = oe.char
 			let _e = {
+				...rest,
 				eIslemci: efAyrimTipi, oe,
 				eIslemAPI: 'gelenBelgeleriGetir',
 				eLogin: toJSONStr(eConf.eLogin), eToken: savedToken || '', ekArgs: toJSONStr(eIslEkArgs),
 				args: { gelen: true, offset: 0, count: 5, tarihBS: { basi: dateToString(tarihBS.basi), sonu: dateToString(tarihBS.sonu) } }
 			}
-			let {argsDuzenleyici} = e
+			let { argsDuzenleyici } = e
 			if (argsDuzenleyici)
 				getFuncValue.call(this, argsDuzenleyici, { ...e, ..._e })
 			let result = await app.wsEIslemYap(_e)
-			if ($.isArray(result))
+			if (isArray(result))
 				result = result[0]
 			return result
 		}

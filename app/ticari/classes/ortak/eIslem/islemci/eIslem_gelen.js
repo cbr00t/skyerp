@@ -16,7 +16,7 @@ class EIslGelen extends EIslemOrtak {
 			if (sayaclar)
 				wh.inDizi(sayaclar, 'fis.kaysayac')
 			
-			let args = { ...e, psTip, table, uni, sent, where: wh }
+			let args = { ...e, psTip, sent, where: wh }
 			whereDuzenleyici?.call?.(this, args)
 			genelWHDuzenle?.call?.(this, args)
 		}
