@@ -3,7 +3,19 @@ class MQEIslemParam extends MQTicariParamBase {
 	static get paramKod() { return 'PTEFATP' } static get sinifAdi() { return 'e-İşlem Parametreleri' }
 	get tekSecimDonusum_receiver() { return this.kural }
 	static get defaultGoruntuOzelPunto() { return null }
-	get oeParam() { let {char} = this.ozelEntegrator || {}, selector = char; return (this.oe || {})[selector] }
+	get oeParam() {
+		let { char } = this.ozelEntegrator ?? {}
+		let selector = char
+		let oe = this.oe ??= {}
+		return oe[selector]
+	}
+	set oeParam(v) {
+		if (v == null || !isObject(v))
+			return
+		let { oeParam: res } = this
+		if (res != null)
+			extend(res, v)
+	}
 	get gonderimdeKisitKullanilirmi() { return this.kisit?.kullanilirmi }
 	get goruntuOzelPunto() { return this._goruntuOzelPunto || this.class.defaultGoruntuOzelPunto }
 	get faturaVadeEtiket() { return this._faturaVadeEtiket || 'Fatura Vadesi' }

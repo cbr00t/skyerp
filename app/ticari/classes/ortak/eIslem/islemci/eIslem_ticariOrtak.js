@@ -55,30 +55,32 @@ class EIslTicariOrtak extends EIslGiden {
 			uni.add(sent)
 		}
 	}
-    static getEFisBaslikVeDetayStm({ whereDuzenleyici: genelWhereDuzenleyici, ps2SayacListe, psTip2SayacListe } = {}) {
-		let e = arguments[0]
+    static getEFisBaslikVeDetayStm(e = {}) {
+		let { whereDuzenleyici: genelWhereDuzenleyici, ps2SayacListe = e.psTip2SayacListe } = e
 		let { eArsivmi } = this
-		ps2SayacListe ??= psTip2SayacListe
-		ps2SayacListe = getFuncValue.call(this, ps2SayacListe, e) ?? {}
+		if (isFunction(ps2SayacListe))
+			ps2SayacListe = ps2SayacListe.call(this, e)
+		
 		let uni = new MQUnionAll()
-		let fhBagla = ({ psTip, sayacListe, fisTable, harTable }) => {
+		let fhBagla = e.fhBagla = ({ psTip, sayacListe, fisTable, harTable }) => {
 			let mustIlClause = `(case when fis.degiskenvknox <> '' then dadr.ilkod else car.ilkod end)`
 			let sent = new MQSent(), { where: wh, sahalar } = sent
-			sent.fisHareket(fisTable, harTable, true)
-			sent.fis2TicCariBagla()
-			sent.fromIliski('degiskenadres dadr', 'fis.degiskenvknox = dadr.vknox')
-			sent.fromIliski('naksekli nak', 'fis.nakseklikod = nak.kod')
-			sent.fromIliski('carmst pls', 'fis.plasiyerkod = pls.must')
-			sent.fromIliski('caril cil', `${mustIlClause} = cil.kod`)
-			sent.fromIliski('ulke culk', 'car.ulkekod = culk.kod')
-			sent.leftJoin({ alias: 'fis', table: 'tahsilsekli tsek', iliski: [`fis.tahtipi = 'T'`, 'fis.martahsil = tsek.kodno'] })
-			sent.leftJoin({ alias: 'fis', table: 'pifbasekaciklama basack', iliski: 'fis.kaysayac = basack.fissayac' })
-			sent.leftJoin({ alias: 'fis', table: 'pifdipaciklama dipack', iliski: 'fis.kaysayac = dipack.fissayac' })
-			sent.fromIliski('vergihesap kver', 'har.kdvhesapkod = kver.kod')
-			sent.fromIliski('vergihesap tevver', 'har.dettevhesapkod = tevver.kod')
-			sent.fromIliski('vergihesap sver', 'har.stopajhesapkod = sver.kod')
-			sent.fisSilindiEkle()
+			sent
+				.fisHareket(fisTable, harTable, true)
+				.fis2TicCariBagla()
+				.fromIliski('degiskenadres dadr', 'fis.degiskenvknox = dadr.vknox')
+				.fromIliski('naksekli nak', 'fis.nakseklikod = nak.kod')
+				.fromIliski('carmst pls', 'fis.plasiyerkod = pls.must')
+				.fromIliski('caril cil', `${mustIlClause} = cil.kod`)
+				.fromIliski('ulke culk', 'car.ulkekod = culk.kod')
+				.leftJoin({ alias: 'fis', table: 'tahsilsekli tsek', iliski: [`fis.tahtipi = 'T'`, 'fis.martahsil = tsek.kodno'] })
+				.leftJoin({ alias: 'fis', table: 'pifbasekaciklama basack', iliski: 'fis.kaysayac = basack.fissayac' })
+				.leftJoin({ alias: 'fis', table: 'pifdipaciklama dipack', iliski: 'fis.kaysayac = dipack.fissayac' })
+				.fromIliski('vergihesap kver', 'har.kdvhesapkod = kver.kod')
+				.fromIliski('vergihesap tevver', 'har.dettevhesapkod = tevver.kod')
+				.fromIliski('vergihesap sver', 'har.stopajhesapkod = sver.kod')
 			wh
+				.fisSilindiEkle()
 				.inDizi(['E', 'A', 'IR', ''], 'fis.efayrimtipi')
 				.inDizi(sayacListe, 'fis.kaysayac')
 				.add(
@@ -93,7 +95,8 @@ class EIslTicariOrtak extends EIslGiden {
 				`${fisTable.sqlServerDegeri()} fisTable`,
 				`${harTable.sqlServerDegeri()} harTable`,
 				`fis.bizsubekod`, 'fis.kaysayac fissayac', 'fis.iade', 'fis.ayrimtipi', 'fis.fistipi', 'fis.efayrimtipi',
-				'fis.tarih', 'fis.fisnox', 'fis.ortalamavade', 'car.earsivbelgetipi', 'fis.kdvistisnaturu',
+				'fis.tarih', 'fis.fisnox', 'fis.sevktarihi sevkTarih', 'fis.sevksaati sevkSaat',
+				'fis.ortalamavade', 'car.earsivbelgetipi', 'fis.kdvistisnaturu',
 				`(case fis.ayrimtipi when 'IH' then 'IHRACAT' when 'IK' then 'IHRACKAYITLI' when 'FS' then 'FASON' when 'EM' then 'EMANET' when 'KN' then 'KONSINYE' else '' end) faturaozeltip`,
 				`(case when fis.almsat = 'A' and fis.iade = 'I' then '*' else '' end) alimiademi`,
 																						/* M: TEMEL ; T: TİCARİ ; K: KAMU */
@@ -146,8 +149,13 @@ class EIslTicariOrtak extends EIslGiden {
 				'har.ekaciklama', 'har.detkdvekvergitipi', 'har.detistisnakod', 'har.perkdv', 'kver.kdvorani', 'har.perstopaj', 'sver.stopajorani',
 				'har.dettevhesapkod', 'tevver.kdvtevoranx', 'tevver.kdvtevoranpay', 'tevver.tevislemturu', 'har.pertevkifat', 'har.satiriskonto', 'har.sonuciskoran'
 			])
-			if (genelWhereDuzenleyici?.call?.(this, { ..._e, psTip, fisTable, harTable, uni, sent, where: wh }) === false)
-				return null
+			let args = { ...e, psTip, sayacListe, fisTable, harTable, uni, sent, where: wh }
+			;{
+				if (this.eFisBaslikVeDetayStm_araSentDuzenle(args) === false)
+					return null
+				if (genelWhereDuzenleyici?.call?.(this, args) === false)
+					return null
+			}
 			uni.add(sent)
 			return sent
 		}
@@ -163,9 +171,9 @@ class EIslTicariOrtak extends EIslGiden {
 				'stk.brm', 'stk.brm2', 'stk.gtipkod', 'har.miktar2', 'har.koli', 'har.fiyatveritipi',
 				'mdet.refkod stokrefkod', 'mdet.refadi stokrefadi', 'otver.otvorani', 'har.perotv'
 			)
-			for (let {rowAttr} of HMRBilgi)
+			for (let { rowAttr } of HMRBilgi)
 				sahalar.add(`har.${rowAttr}`)
-			for (let {belirtec, rowAttr, rowAttr_bedel} of TicIskYapi.getIskIter())
+			for (let { belirtec, rowAttr, rowAttr_bedel } of TicIskYapi)
 				sahalar.add(`har.${rowAttr}`, `har.${rowAttr_bedel}`)
 			return this
 		}
@@ -178,7 +186,7 @@ class EIslTicariOrtak extends EIslGiden {
 			)
 			for (let {numerikmi, rowAttr} of HMRBilgi)
 				sahalar.add(`${numerikmi ? '0' : `''`} ${rowAttr}`)
-			for (let {belirtec, rowAttr, rowAttr_bedel} of TicIskYapi.getIskIter())
+			for (let {belirtec, rowAttr, rowAttr_bedel} of TicIskYapi)
 				sahalar.add(`har.${rowAttr}`, `har.${rowAttr_bedel}`)
 			return this
 		}
@@ -217,8 +225,10 @@ class EIslTicariOrtak extends EIslGiden {
 		let orderBy = ['tarih', 'pstip', 'fisnox', 'fissayac', 'seq']
 		if (empty(uni.liste))
 			return null
+		
 		return new MQStm({ sent: uni, orderBy })
 	}
+	static eFisBaslikVeDetayStm_araSentDuzenle({ psTip, fisTable, harTable, uni, sent, where: wh }) { }
 	static tipIcinFislerEkDuzenlemeYapDevam({ yukleIslemi, promises }) {
 		super.tipIcinFislerEkDuzenlemeYapDevam(...arguments)
 		promises.push(

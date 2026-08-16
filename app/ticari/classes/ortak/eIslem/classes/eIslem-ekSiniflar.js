@@ -12,6 +12,9 @@ class EIslBaslik extends EIslBaslikVeDetayOrtak {
 	get eIrsaliyemi() { return this.eIslTip == 'IR' } get eMustahsilmi() { return this.eIslTip == 'MS' }
 	get alimIademi() { return asBool(this.rec.alimiademi) } get subeKod() { return this.rec.bizsubekod }
 	get fisTipi() { return this.rec.fistipi }
+	get tarihStr() { return asReverseDateString(this.rec.tarih) }
+	get sevkTarihStr() { return asReverseDateString(this.rec.sevkTarih) }
+	get sevkSaatStr() { return timeToString(this.rec.sevkSaat) }
 	get istisnaKod() { return this._istisnaKod ?? this.rec.kdvistisnaturu }
 	set istisnaKod(v) { return this._istisnaKod = v }
 	get dvKod() {
@@ -435,11 +438,19 @@ class EIcmalSatirDiger extends EIcmalSatirOrtak {
 	static get tip() { return '' }
 }
 class EIslBaslik_AliciBilgi extends EIslBaslik {
-	get kod() { return this.rec.mustkod } get unvan() { return this.rec.unvan } get ulkeAdi() { return this.rec.ulkeadi } get ilAdi() { return this.rec.iladi }
-	get adres() { return this.rec.adres } get yore() { return this.rec.yore } get posta() { return this.rec.posta }
+	get kod() { return this.rec.mustkod }
+	get unvan() { return this.rec.unvan }
+	get ulkeAdi() { return this.rec.ulkeadi }
+	get ilKod() { return this.rec.ilkod }
+	get ilAdi() { return this.rec.iladi }
+	get adres() { return this.rec.adres }
+	get yore() { return this.rec.yore } get posta() { return this.rec.posta }
 	get tel1() { return this.rec.tel1 } get tel2() { return this.rec.tel2 } get tel3() { return this.rec.tel3 }
 	get eMail() { return this.rec.email } get fax() { return this.rec.fax }
-	get vknTckn() { return this.sahismi ? this.tckn : this.vkn } get sahismi() { return asBool(this.rec.sahismi) } get tckn() { return this.rec.tckn } get vkn() { return this.rec.vkn }
-	get vergiDairesi() { return this.rec.vergidairesi } get ticSicilNo() { return this.rec.ticsicilno } get mersisNo() { return this.rec.mersisno }
-	get gibAlias() { return this.rec.gibalias } get webURL() { return this.rec.webadresi }
+	get vknTckn() { return this.sahismi ? this.tckn : this.vkn }
+	get sahismi() { return asBool(this.rec.sahismi) } get tckn() { return this.rec.tckn } get vkn() { return this.rec.vkn }
+	get vergiDairesi() { return this.rec.vergidairesi }
+	get ticSicilNo() { return this.rec.ticsicilno } get mersisNo() { return this.rec.mersisno }
+	get gibAlias() { return this.rec.gibalias }
+	get webURL() { return this.rec.webadresi }
 }

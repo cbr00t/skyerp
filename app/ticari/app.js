@@ -23,7 +23,14 @@ class TicariApp extends App {
 			vergi: MQVergiParam.getInstance(), proforma: MQProformaParam.getInstance()
 		})
 	}
-	sabitTanimlarDuzenle(e = {}) { super.sabitTanimlarDuzenle(e); const {sabitTanimlar} = e; $.extend(sabitTanimlar, { vergi: this.wsSabitTanimlar_xml('EBYN-KDV-Kodlar') }) }
+	sabitTanimlarDuzenle(e = {}) {
+		super.sabitTanimlarDuzenle(e)
+		let { sabitTanimlar } = e
+		extend(sabitTanimlar, {
+			vergi: this.wsSabitTanimlar_xml('EBYN-KDV-Kodlar'),
+			satDef: this.wsSabitTanimlar_secIni_noDict('PSatDefault.txt')
+		})
+	}
 	static tumModulleriDuzenle({ liste }) {
 		super.tumModulleriDuzenle(...arguments)
 		liste.push(

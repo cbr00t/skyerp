@@ -94,7 +94,7 @@ class EIslemOrtak extends CObject {
 		let { anaTip2Sinif } = this
 		return (
 			gelenmi ? EIslGelen :
-			anaTip ? anaTip2Sinif[anaTip] ?? cls :
+			anaTip ? anaTip2Sinif[anaTip] :
 			EIslemOrtak
 		)
 	}
@@ -118,7 +118,7 @@ class EIslemOrtak extends CObject {
 		e.ps2SayacListe = ps2SayacListe ??= {}
 		let stm = this._getUUIDStm(e)
 		if (stm && genelStmDuzenle)
-			genelStmDuzenle.call(this, { ...e, psTip, table, stm })
+			genelStmDuzenle.call(this, { ...e, stm })
 		
 		return stm
 	}
@@ -692,7 +692,9 @@ class EIslemOrtak extends CObject {
 	}
 	xmlDuzenle_buyerCustomerParty(e) { }
 	xmlDuzenle_partyOrtak({ xw, source, signaturePartymi }) {
-		let { sahismi, unvan } = source
+		let { class: { ihracatmi } } = this
+		let { sahismi, tckn, vkn, unvan, yore, posta, ilKod, ilAdi, ulkeAdi, webURL } = source
+		let { vergiDairesi, adres, tel1, fax, eMail, ticSicilNo, mersisNo, adi, soyadi } = source
 		let writePartyIdent = (value, schemeID) => {
 			if (value) {
 				xw.writeElementBlock('cac:PartyIdentification', null, () =>
@@ -702,17 +704,16 @@ class EIslemOrtak extends CObject {
 		}
 		
 		if (!signaturePartymi) {
-			let { webURL: value } = source
-			if (value)
-				xw.writeElementString('cbc:WebsiteURI', value)
+			if (webURL)
+				xw.writeElementString('cbc:WebsiteURI', webURL)
 		}
 		if (sahismi)
-			writePartyIdent(source.tckn, 'TCKN')
+			writePartyIdent(tckn, 'TCKN')
 		else
-			writePartyIdent(source.vkn, 'VKN')
+			writePartyIdent(vkn, 'VKN')
 		
-		writePartyIdent(source.ticSicilNo, 'TICARETSICILNO')
-		writePartyIdent(source.mersisNo, 'MERSISNO')
+		writePartyIdent(ticSicilNo, 'TICARETSICILNO')
+		writePartyIdent(mersisNo, 'MERSISNO')
 
 		if (!signaturePartymi) {
 			xw.writeElementBlock('cac:PartyName', null, () =>
@@ -721,33 +722,32 @@ class EIslemOrtak extends CObject {
 		
 		xw.writeElementBlock('cac:PostalAddress', null, () => {
 			xw.writeElements({
-				'cbc:Room': 0, 'cbc:StreetName': source.adres || '.',
+				'cbc:Room': 0, 'cbc:StreetName': adres || '.',
 				'cbc:BuildingName': '.', 'cbc:BuildingNumber': 0,
-				'cbc:CitySubdivisionName': source.yore || '.',
-				'cbc:CityName': source.ilAdi || '.',
-				'cbc:PostalZone': source.posta || '00000',
+				'cbc:CitySubdivisionName': yore || '.',
+				'cbc:CityName': ilAdi || '.',
+				'cbc:PostalZone': normalizePostaKod(posta, ilKod, ihracatmi),
 				'cbc:Region': '.'
 			})
 			xw.writeElementBlock('cac:Country', null, () =>
-				xw.writeElementString('cbc:Name', source.ulkeAdi || 'Türkiye'))
+				xw.writeElementString('cbc:Name', ulkeAdi || 'Türkiye'))
 		})
 
 		if (!signaturePartymi) {
 			xw.writeElementBlock('cac:PartyTaxScheme', null, () =>
 				xw.writeElementBlock('cac:TaxScheme', null, () =>
-				xw.writeElementString('cbc:Name', source.vergiDairesi || '.'))
+				xw.writeElementString('cbc:Name', vergiDairesi || '.'))
 			)
 			xw.writeElementBlock('cac:Contact', null, () =>
 				xw.writeElements({
-					'cbc:Telephone': source.tel1,
-					'cbc:Telefax': source.fax,
-					'cbc:ElectronicMail': source.eMail
+					'cbc:Telephone': tel1,
+					'cbc:Telefax': fax,
+					'cbc:ElectronicMail': eMail
 				})
 			)
 			
 			if (sahismi && unvan) {
 				xw.writeElementBlock('cac:Person', null, () => {
-					let { adi, soyadi } = source
 					if (!adi) {
 						let tokens = unvan.split(' ');
 						adi = tokens.slice(0, -1).join(' ').trim()
@@ -918,7 +918,7 @@ class EIslemOrtak extends CObject {
 			aciklama = escapeXML(aciklama)
 		
 		aciklama ||= '.'
-		let tarihStr = tarih ? dateToString(tarih) : baslik.tarihStr
+		let { tarihStr } = baslik
 		xw.writeStartElement('cac:AdditionalDocumentReference')
 			xw.writeElementString('cbc:ID', id || '0')
 			xw.writeElementString('cbc:IssueDate', tarihStr)
