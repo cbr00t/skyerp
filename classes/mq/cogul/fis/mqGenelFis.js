@@ -47,12 +47,14 @@ class MQGenelFis extends MQOrtakFis {
 		let {tsnKullanilirmi} = this, {tsnForm, baslikForm} = e.builders
 		let tarihFormParent = tsnKullanilirmi ? tsnForm : baslikForm.builders[0]
 		tarihFormParent.addDateInput({ id: 'tarih', etiket: 'Tarih', placeHolder: 'Fiş Tarih' })
-			.etiketGosterim_normal().addStyle_wh({ width: '130px !important' })
+			.etiketGosterim_normal()
+			.addStyle_wh({ width: '130px !important' })
 		if (sube) {
 			tarihFormParent.addSimpleComboBox('subeKod')
 				.etiketGosterim_normal()
 				.addStyle_wh(300)
 				.setMFSinif(MQSube)
+				.addStyle(`$elementCSS { margin-top: 0 !important }`)
 		}
 	}
 	static rootFormBuilderDuzenle_numarator(e) {

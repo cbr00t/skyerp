@@ -62,6 +62,8 @@ class ButonlarPart extends Part {
 				btn.on('click', async evt => {
 					try { await eventHandler(evt) }
 					catch (ex) {
+						if (ex?.code == ex?.ABORT_ERR)
+							return
 						let errText = getErrorText(ex)
 						if (errText) {
 							cerr(ex)

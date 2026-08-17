@@ -734,12 +734,13 @@ class SevkiyatFis extends TicariFis {
 	}
 	async eBilgiIcinDetaylariYukle(e) {
 		await super.eBilgiIcinDetaylariYukle(e);
-		let {result} = e, eBilgi = this.eBilgi || {}, {rec} = eBilgi; if (!rec) { return this }
-		let alimGecFisSayac = rec.fissayac;
+		let {result} = e, eBilgi = this.eBilgi || {}, {rec} = eBilgi
+		if (!rec) { return this }
+		let alimGecFisSayac = rec.fissayac
 		let sent = new MQSent({ from: 'efgecicialfatdetay har', where: { degerAta: alimGecFisSayac, saha: 'har.fissayac' } });
 		sent.har2StokBagla(); sent.har2HizmetBagla(); sent.har2DemirbasBagla({ sahaAdi: 'demkod' });
 		sent.addWithAlias('har',
-			'seq', 'efbarkod', 'efstokkod', 'efstokadi', 'efmiktar', 'iskoranstr',
+			'seq', 'efbarkod', 'efstokkod', 'efstokadi', 'efmiktar', 'iskorantext',
 			'shtip', 'miktar', 'irskabuledilmeyen', 'irseksik', 'irsfazla',
 			'fiyat', 'kdvorani', 'otvorani', 'stopajorani', 'konaklamaorani', 'tevoranx', 'bedel',
 		);

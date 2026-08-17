@@ -216,8 +216,10 @@ class MQMustBilgi extends MQKAOrtak {
 			//let altForm = parentBuilder.addBaslik(id).setEtiket(etiket).addCSS('baslik').addStyle_fullWH();
 			if (ekIslemler.ilk)
 				getFuncValue.call(this, ekIslemler.ilk, { id, etiket, mfSinif, etiket, parentBuilder })
-			let prevFbd = parentBuilder.builders[parentBuilder.builders.length - 1], prevWidth = prevFbd?._width || 0
-			let fbd = parentBuilder.addGridliGosterici(id).addStyle_fullWH()
+			let prevFbd = parentBuilder.builders[parentBuilder.builders.length - 1]
+			let prevWidth = prevFbd?._width || 0
+			let fbd = parentBuilder.addGridliGosterici(id)
+				.addStyle_fullWH()
 				//.addCSS('dock-bottom')
 				.setMFSinif(mfSinif)
 				.widgetArgsDuzenleIslemi(({ sender, args, builder }) => {
@@ -232,20 +234,19 @@ class MQMustBilgi extends MQKAOrtak {
 					let _e = { ...e, mustKod }
 					return mfSinif.loadServerData(_e)
 				})
-			fbd
 				.addCSS('full-height-important')
 				.addStyle(
 					`$elementCSS:not(.full-width):not(.full-width-important) {
 						width: calc(var(--full) - ${prevWidth ? prevWidth + 10 : 0}px) !important
 					}`
 				)
-			fbd.onAfterRun(({ builder }) => {
-				if (mfSinif?.orjBaslikListesi_gridInit) {
-					let { part: gridPart } = builder
-					let { grid, gridWidget } = gridPart
-					mfSinif.orjBaslikListesi_gridInit({ ...e, sender: gridPart, gridPart, builder, mfSinif, grid, gridWidget })
-				}
-			})
+				.onAfterRun(({ builder }) => {
+					if (mfSinif?.orjBaslikListesi_gridInit) {
+						let { part: gridPart } = builder
+						let { grid, gridWidget } = gridPart
+						mfSinif.orjBaslikListesi_gridInit({ ...e, sender: gridPart, gridPart, builder, mfSinif, grid, gridWidget })
+					}
+				})
 			if (ekIslemler.son)
 				etFuncValue.call(this, ekIslemler.ilk, { id, etiket, mfSinif, etiket, parent, fbd })
 			return fbd
@@ -262,7 +263,9 @@ class MQMustBilgi extends MQKAOrtak {
 					rootPart.onResize()
 				}).addStyle(e => `$elementCSS { position: absolute; width: auto !important; height: auto !important; margin-top: -45px; z-index: 500 }`)
 				.addStyle(e => `$elementCSS > button { width: 45px !important; height: 45px !important }`);
-			let width = 400, subParentBuilder = parentBuilder.addFormWithParent().altAlta().addStyle_fullWH(width); subParentBuilder._width = width;
+			let width = 400
+			let subParentBuilder = parentBuilder.addFormWithParent().altAlta().addStyle_fullWH(width)
+			subParentBuilder._width = width
 			;{
 				let mfSinif = MQKapanmayanHesaplar_Yaslandirma
 				let { dataKey: id } = mfSinif

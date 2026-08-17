@@ -286,7 +286,21 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			if (mfSinif.gridDetaylimi) {
 				extend(args, {
 					selectionMode: 'checkbox', /* virtualMode: true, */ rowDetails: true,
-					rowDetailsTemplate: rowIndex => ({ rowdetails: `<div class="detay-grid-parent dock-bottom"><div class="detay-grid"/></div>`, rowdetailsheight: 350 }),
+					rowDetailsTemplate: rowIndex => ({
+						rowdetailsheight: 350,
+						rowdetails: (
+							`<div class="detay-grid-parent dock-bottom">
+								<div class="detay-grid"></div>
+							</div>`
+							/*`<div class="detay-grid-parent dock-bottom float-left" style="width: 59%">
+									<div class="detay-grid"></div>
+								</div>
+								<div class="dip-grid-parent dock-bottom float-left" style="width: 39.5%">
+									<div class="dip-grid"></div>
+								</div>`
+							*/
+						)
+					}),
 					initRowDetails: (rowIndex, _parent, grid, parentRec) => {
 						let parent = $(_parent).find('.detay-grid')
 						this.initRowDetails({ rowIndex, parent, parentRec })
@@ -324,7 +338,8 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			}
 		}
 		let detGridPart = e.detGridPart = new GridliGostericiPart({
-			parentPart: this, parentBuilder: this.builder,
+			parentPart: this,
+			parentBuilder: this.builder,
 			layout: parent,
 			argsDuzenle: ({ args }) => {
 				extend(args, {

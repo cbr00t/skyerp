@@ -866,21 +866,25 @@ class Ext_BedelVeDvBedel extends Ext_Bedel {
 class Ext_DvKur extends MQExt {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
-		super.pTanimDuzenle(...arguments);
+		super.pTanimDuzenle(...arguments)
 		extend(pTanim, { dvKur: new PInstNum('dvkur') })
 	}
 	static orjBaslikListesiDuzenle_son({ liste }) {
 		liste.push(new GridKolon({ belirtec: 'dvkur', text: 'Dv Kur', genislikCh: 13 }).tipDecimal_dvBedel())
+	}
+	hostVarsDuzenle({ hv }) {
+		super.hostVarsDuzenle(...arguments)
+		extend(hv, { dvkur: this.dvKur || 0 })
+	}
+	setValues({ rec }) {
+		super.setValues(...arguments)
 	}
 }
 class Ext_NDVade extends MQExt {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments )
-		extend(pTanim, {
-			ndVade: new PInstDate('nakdedonusumvade'),
-			dvKur: new PInstDate('dvkur')
-		})
+		extend(pTanim, { ndVade: new PInstDate('nakdedonusumvade') })
 	}
 	static orjBaslikListesiDuzenle_ara({ liste }) {
 		liste.push(new GridKolon({ belirtec: 'nakdedonusumvade', text: 'Nakde Dönüşüm Vade', genislikCh: 13 }).tipDate())

@@ -1,8 +1,8 @@
 class EFisDetay extends EFisBase {
 	get seq() { return this.dict.seq }
-	set seq(value) { this.dict.seq = value }
+	set seq(v) { this.dict.seq = v }
 	get shRefDet() { return this._shRefDet }
-	set shRefDet(value) { this._shRefDet = value }
+	set shRefDet(v) { this._shRefDet = v }
 	get barkod() {
 		return this.getXMLValue('barkod', e =>
 			e.xml.querySelector('Item > ManufacturersItemIdentification > ID')?.textContent)
@@ -22,35 +22,34 @@ class EFisDetay extends EFisBase {
 	}
 	get brm() {
 		return this.getXMLValue('brm', e => {
-			const intKod = e.xml.querySelector('InvoicedQuantity')?.getAttribute('unitCode');
+			let intKod = e.xml.querySelector('InvoicedQuantity')?.getAttribute('unitCode')
 			return intKod ? ((app.params.stokBirim.intKod2KA[intKod] || {}).kod || intKod) : null
 		})
 	}
 	get fiyat() {
-		return this.getXMLValue('fiyat', e =>
-			asFloat(e.xml.querySelector('Item > Price > PriceAmount')?.textContent)
+		return this.getXMLValue('fiyat', ({ xml }) =>
+			asFloat(xml.querySelector('Item > Price > PriceAmount')?.textContent)
 		)
 	}
 	get netBedel() {
-		return this.getXMLValue('netBedel', e =>
-			asFloat(e.xml.querySelector('LineExtensionAmount')?.textContent)
+		return this.getXMLValue('netBedel', ({ xml }) =>
+			asFloat(xml.querySelector('LineExtensionAmount')?.textContent)
 		)
 	}
 	get vergiler() {
-		return this.getXMLValue('vergiler', e => {
-			const {xml} = e;
-			const result = { normal: {}, tevfikat: {} };
-			const xsubTotals = xml.querySelectorAll('TaxTotal > TaxSubtotal');
-			for (const xsubTotal of xsubTotals) {
-				const typeCode = xsubTotal.querySelector('TaxCategory > TaxScheme > TaxTypeCode')?.textContent;
-				const oran = asFloat(xsubTotal.querySelector('Percent')?.textContent);
-				const vioTip = MQVergi.getETip2Belirtec(typeCode) || '?';
+		return this.getXMLValue('vergiler', ({ xml }) => {
+			let result = { normal: {}, tevfikat: {} };
+			let xsubTotals = xml.querySelectorAll('TaxTotal > TaxSubtotal')
+			for (let xsubTotal of xsubTotals) {
+				let typeCode = xsubTotal.querySelector('TaxCategory > TaxScheme > TaxTypeCode')?.textContent
+				let oran = asFloat(xsubTotal.querySelector('Percent')?.textContent);
+				let vioTip = MQVergi.getETip2Belirtec(typeCode) || '?';
 				result.normal[vioTip] = oran
 			}
-			const xtevSubTotals = xml.querySelectorAll('WithholdingTaxTotal > TaxSubtotal');
-			for (const xsubTotal of xtevSubTotals) {
-				const typeCode = xsubTotal.querySelector('TaxCategory > TaxScheme > TaxTypeCode')?.textContent;
-				const oran = asFloat(xsubTotal.querySelector('Percent')?.textContent);
+			let xtevSubTotals = xml.querySelectorAll('WithholdingTaxTotal > TaxSubtotal')
+			for (let xsubTotal of xtevSubTotals) {
+				let typeCode = xsubTotal.querySelector('TaxCategory > TaxScheme > TaxTypeCode')?.textContent
+				let oran = asFloat(xsubTotal.querySelector('Percent')?.textContent);
 				result.tevfikat[typeCode] = oran
 			}
 			return result
@@ -58,14 +57,14 @@ class EFisDetay extends EFisBase {
 	}
 	get iskOranListe() {
 		return this.getXMLValue('iskOranListe', e => {
-			const {xml} = e;
-			const result = [];
-			const xnodes = xml.querySelectorAll('AllowanceCharge');
-			for (const xnode of xnodes) {
-				const uygunmu = !asBool(xnode.querySelector('ChargeIndicator')?.textContent);	// =false
+			let {xml} = e;
+			let result = [];
+			let xnodes = xml.querySelectorAll('AllowanceCharge');
+			for (let xnode of xnodes) {
+				let uygunmu = !asBool(xnode.querySelector('ChargeIndicator')?.textContent);	// =false
 				if (!uygunmu)
 					continue
-				const oran = asFloat(xnode.querySelector('MultiplierFactorNumeric')?.textContent) * 100;
+				let oran = asFloat(xnode.querySelector('MultiplierFactorNumeric')?.textContent) * 100;
 				if (oran)
 					result.push(oran)
 			}
@@ -74,14 +73,14 @@ class EFisDetay extends EFisBase {
 	}
 	get artOranListe() {
 		return this.getXMLValue('artOranListe', e => {
-			const {xml} = e;
-			const result = [];
-			const xnodes = xml.querySelectorAll('AllowanceCharge');
-			for (const xnode of xnodes) {
-				const uygunmu = asBool(xnode.querySelector('ChargeIndicator')?.textContent);		// =true
+			let {xml} = e;
+			let result = [];
+			let xnodes = xml.querySelectorAll('AllowanceCharge');
+			for (let xnode of xnodes) {
+				let uygunmu = asBool(xnode.querySelector('ChargeIndicator')?.textContent);		// =true
 				if (!uygunmu)
 					continue
-				const oran = asFloat(xnode.querySelector('MultiplierFactorNumeric')?.textContent) * 100;
+				let oran = asFloat(xnode.querySelector('MultiplierFactorNumeric')?.textContent) * 100;
 				if (oran)
 					result.push(oran)
 			}
@@ -97,81 +96,82 @@ class EFisDetay extends EFisBase {
 			this.artOranListe.filter(x => !!x).join('+'))
 	}
 
-	constructor(e) {
-		e = e || {};
-		super(e);
-
-		$.extend(this, { seq: e.seq })
+	constructor(e = {}) {
+		super(e)
+		let { seq } = e
+		extend(this, { seq })
 	}
 
 	alimGeciciDetayHostVars(e) {
 		e = e || {};
-		const hv = {};
-		const {shRefDet} = this;
-		let shTipKod = '';
+		let hv = {};
+		let { shRefDet, vergiler } = this
+		let shTipKod = ''
 		if (shRefDet) {
-			let {shTip} = shRefDet;
-			switch (shTip.char) {
-				case 'hizmet': shTipKod = 'H'; break;
-				case 'demirbas': shTipKod = 'D'; break;
+			let { shTip } = shRefDet
+			shTip = shTip?.char ?? shTip
+			switch (shTip) {
+				case 'hizmet': shTipKod = 'H'; break
+				case 'demirbas': shTipKod = 'D'; break
 			}
 		}
 
-		let vergiler = this.vergiler || {};
-		for (const key of ['normal', 'tevfikat']) {
-			if (!vergiler[key])
-				vergiler[key] = {}
-		}
-		const tevTip = Object.keys(vergiler.tevfikat)[0] || '';						// 601 gibi
-		const tevOran = vergiler.tevfikat[tevTip] || '';
-		const tevOranx = tevOran ? `${tevOran / 10}/10` : '';
-
-		$.extend(hv, {
-			seq: this.seq, shtip: shTipKod,
-			efbarkod: this.barkod || '', efstokkod: this.eSHKod || '',
-			efstokadi: (this.eSHAdi || '').substr(0, 120),
-			efmiktar: this.miktar || 0, miktar: this.miktar || 0, fiyat: this.fiyat || 0, bedel: this.netBedel || 0,
-			iskoranstr: this.iskOranlarStr || '', artoranstr: this.artOranlarStr || '',
+		vergiler ??= {}
+		;['normal', 'tevfikat'].forEach(k => {
+			if (!vergiler[k])
+				vergiler[k] = {}
+		})
+		let tevTip = keys(vergiler.tevfikat)[0] || ''						// 601 gibi
+		let tevOran = vergiler.tevfikat[tevTip] || ''
+		let tevOranx = tevOran ? `${tevOran / 10}/10` : ''
+		
+		extend(hv, {
+			seq: this.seq,
+			shtip: shTipKod,
+			efbarkod: this.barkod || '',
+			efstokkod: this.eSHKod || '',
+			efstokadi: this.eSHAdi?.slice(0, 120) || '',
+			efmiktar: this.miktar || 0,
+			miktar: this.miktar || 0,
+			fiyat: this.fiyat || 0,
+			bedel: this.netBedel || 0,
+			iskorantext: this.iskOranlarStr || '',
+			artoranstr: this.artOranlarStr || '',
 			kdvorani: vergiler.normal[MQVergiKdv.belirtec] || 0,
 			otvorani: vergiler.normal[MQVergiOtv.belirtec] || 0,
 			stopajorani: vergiler.normal[MQVergiStopaj.belirtec] || 0,
 			konaklamaorani: vergiler.normal.konaklama || 0,
 			tevgibkod: tevTip, tevoranx: tevOranx
-		});
-		for (const key of MQEIslSHRefDetay.tumSHSahalar)
-			hv[key] = ''
+		})
+		;MQEIslSHRefDetay.tumSHSahalar.forEach(k =>
+			hv[k] = '')
+
 		if (shRefDet) {
-			let {shKod_rowAttr, shKod, shTip} = shRefDet;
+			let { shKod_rowAttr, shKod, shTip } = shRefDet
 			if (shKod_rowAttr && shKod)
 				hv[shKod_rowAttr] = shKod
 			switch (shTip.char) {
-				case 'hizmet': shTipKod = 'H'; break;
-				case 'demirbas': shTipKod = 'D'; break;
+				case 'hizmet': shTipKod = 'H'; break
+				case 'demirbas': shTipKod = 'D'; break
 			}
 		}
 		
 		return hv
 	}
-	setValues(e) {
-		super.setValues(e);
-		
-		const {rec} = e;
-		const {dict} = this
-		/*$.extend(dict, {
-		})*/
-	}
 
-	ekBilgileriBelirle(e) {
-		const {shRefFis} = e.eFis || {};
-		if (!shRefFis)
+	ekBilgileriBelirle({ shRefFis: ref, eFis } = {}) {
+		ref ??= eFis.shRefFis
+		if (!ref)
 			return this
 
-		const {eSHKod, barkod} = this;
-		const {tip2Deger2Detay} = shRefFis;
-		let shRefDet = tip2Deger2Detay.kod[eSHKod] ||
-							tip2Deger2Detay.barkod[barkod];
+		let { eSHKod, barkod } = this
+		let { tip2Deger2Detay } = ref
+		let shRefDet = (
+			tip2Deger2Detay.kod[eSHKod] ??
+			tip2Deger2Detay.barkod[barkod]
+		)
 		if (!shRefDet)
-			shRefDet = this.getUygunMustRefDetay({ rec: this, shRefFis: shRefFis })
+			shRefDet = this.getUygunMustRefDetay({ rec: this, shRefFis })
 		this.shRefDet = shRefDet
 		
 		if (eSHKod)
@@ -181,8 +181,8 @@ class EFisDetay extends EFisBase {
 		
 		return this
 	}
-	getUygunMustRefDetay(e) {
-		const {shRefFis} = e;
-		return shRefFis ? shRefFis.uygunDetay(e) : null
+	getUygunMustRefDetay(e = {}) {
+		let ref = e.shRefFis ?? e
+		return ref?.uygunDetay?.(e)
 	}
 }

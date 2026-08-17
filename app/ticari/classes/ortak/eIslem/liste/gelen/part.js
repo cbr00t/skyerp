@@ -16,27 +16,43 @@ class GelenEIslemListePart extends EIslemListeBasePart {
 		$.extend(part.sagButonIdSet, asSet(['bekleyenleriGetir', 'dosyadanYukle', 'ticariFiseDonustur', 'eIslemIzle', 'sil']))
 	}
 	gridArgsDuzenleDevam(e) {
-		super.gridArgsDuzenleDevam(e); const {args} = e;
-		$.extend(args, {
+		super.gridArgsDuzenleDevam(e)
+		let { args } = e
+		extend(args, {
 			rowDetails: true, rowDetailsTemplate: rowIndex => {
 				return {
 					rowdetailsheight: 233,
-					rowdetails: `<div class="parent full-wh" style="margin: 5px;"><div class="split full-wh"><div class="dipGrid-parent full-wh"/><div class="detayGrid-parent full-wh"/></div></div>`
+					rowdetails: (
+						`<div class="parent full-wh" style="margin: 5px;">
+							<div class="split full-wh">
+								<div class="dipGrid-parent full-wh"/>
+								<div class="detayGrid-parent full-wh"/>
+							</div>
+						</div>`
+					)
 				}
 			},
 			initRowDetails: (rowIndex, _parent, grid, parentRec) => { setTimeout(() => { const parent = $(_parent).children().eq(0); this.initRowDetails({ rowIndex, parent, parentRec }) }, 1) }
 		})
 	}
 	initRowDetails(e) {
-		const {grid} = this, {parent, parentRec} = e;
+		let { grid } = this, { parent, parentRec } = e
 		let form = new FormBuilder({
-			id: 'split', layout: parent.children('.split'),
+			id: 'split',
+			layout: parent.children('.split'),
 			afterRun: e => {
-				const {layout} = e.builder;
-				layout.jqxSplitter({ theme: theme, width: '100%', height: '100%', orientation: 'vertical', splitBarSize: 20, panels: [ { min: 300, size: 400 }, { min: '70%' } ] })
+				let { layout } = e.builder
+				layout.jqxSplitter({
+					theme, width: '100%', height: '100%',
+					orientation: 'vertical',
+					splitBarSize: 20,
+					panels: [ { min: 300, size: 400 }, { min: '70%' } ]
+				})
 			}
-		});
-		const rowsHeight = 28; form.addGridliGosterici({
+		})
+		
+		const rowsHeight = 28
+		form.addGridliGosterici({
 			id: 'dipGrid',
 			tabloKolonlari: e => {
 				const getCSSDuzenleyici = e => {
@@ -72,11 +88,16 @@ class GelenEIslemListePart extends EIslemListeBasePart {
 				numVeriEkle('KDV', rec.efkdv); numVeriEkle('Sonuç', rec.efsonuc, ['bg-lightcyan'])
 				return result
 			}
-		}).rowNumberOlmasin() .widgetArgsDuzenleIslemi(e => e.args.rowsHeight = rowsHeight) .addStyle_fullWH() .setParent(e => e.builder.parentBuilder.layout.find('.dipGrid-parent'));
+		})
+			.rowNumberOlmasin()
+			.widgetArgsDuzenleIslemi(({ args }) => args.rowsHeight = rowsHeight)
+			.addStyle_fullWH()
+			.setParent(({ builder: { parentBuilder: { layout }}}) =>
+				layout.find('.dipGrid-parent'))
 		
-		form.addGridliGosterici({
-			id: 'detayGrid',
-			tabloKolonlari: [
+		form.addGridliGosterici('detayGrid')
+			.setParent(({ builder: { parentBuilder: { layout } }}) => layout.find('.detayGrid-parent'))
+			.setTabloKolonlari([
 				new GridKolon({ belirtec: 'efstokadi', text: 'e-Fat Açıklama', minWidth: 300 }),
 				new GridKolon({
 					belirtec: 'efmiktar', text: 'Miktar', genislikCh: 10,
@@ -88,17 +109,24 @@ class GelenEIslemListePart extends EIslemListeBasePart {
 				new GridKolon({ belirtec: 'fiyat', text: 'Fiyat', genislikCh: 16 }).tipDecimal_fiyat(),
 				new GridKolon({ belirtec: 'kdvorani', text: 'KDV %', genislikCh: 6 }).tipNumerik(),
 				new GridKolon({ belirtec: 'tevoranx', text: 'Tev.%', genislikCh: 6 }),
-				new GridKolon({ belirtec: 'iskoranstr', text: 'İsk.%', genislikCh: 8 }),
+				new GridKolon({ belirtec: 'iskorantext', text: 'İsk.%', genislikCh: 8 }),
 				new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 18 }).tipDecimal_bedel(),
 				new GridKolon({ belirtec: 'shkod', text: 'Stok/Hizmet Kod', maxWidth: 200 }),
 				new GridKolon({ belirtec: 'shadi', text: 'Stok/Hizmet Adı' })
-			],
-			source: async e => {
-				const fisSayac = parentRec.fissayac;
-				let sent = new MQSent({ from: 'efgecicialfatdetay har', where: { degerAta: fisSayac, saha: 'har.fissayac' } });
-				sent.har2StokBagla(); sent.har2HizmetBagla(); sent.har2DemirbasBagla({ sahaAdi: 'demkod' });
+			])
+			.setSource(async e => {
+				let { fissayac: fisSayac } = parentRec
+				let sent = new MQSent(), { where: wh, sahalar } = sent
+				sent
+					.fromAdd('efgecicialfatdetay har')
+					.har2StokBagla()
+					.har2HizmetBagla()
+					.har2DemirbasBagla({ sahaAdi: 'demkod' })
+				wh.degerAta(fisSayac, 'har.fissayac')
 				sent.addWithAlias('har',
-					'seq', 'efbarkod', 'efstokkod', 'efstokadi', 'efmiktar', 'fiyat', 'bedel', 'kdvorani', 'iskoranstr', 'tevoranx');
+					'seq', 'efbarkod', 'efstokkod', 'efstokadi', 'efmiktar',
+					'fiyat', 'bedel', 'kdvorani', 'iskorantext', 'tevoranx'
+				)
 				sent.add(
 					`(case when har.tevgibkod = '0' then '' else har.tevgibkod end) tevgibkod`,
 					`(case har.shtip when 'H' then har.hizmetkod when 'D' then har.demkod else har.stokkod end) shkod`,
@@ -109,11 +137,12 @@ class GelenEIslemListePart extends EIslemListeBasePart {
 						else (case when har.efbirimtipi = '2' then stk.brm2 else stk.brm end)
 					 end) shbrm`,
 					`(har.irskabuledilmeyen + har.irseksik - har.irsfazla) efgecersizmiktar`
-				);
-				
+				)
 				return await app.sqlExecSelect(sent)
-			}
-		}).widgetArgsDuzenleIslemi(e => e.args.rowsHeight = rowsHeight) .addStyle_fullWH() .setParent(e => e.builder.parentBuilder.layout.find('.detayGrid-parent'));
+			})
+			.widgetArgsDuzenleIslemi(({ args }) =>
+				args.rowsHeight = rowsHeight)
+			.addStyle_fullWH()
 		// form.addTextInput().setParent(e => e.builder.parentBuilder.layout.find('.detayGrid-parent'));
 		form.run()
 	}

@@ -1,21 +1,68 @@
 class EFisBase extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	get eFis() { return this._eFis } set eFis(value) { this._eFis = value }
-	get eConf() { const {eFis} = this; (eFis == this ? this : eFis)?._eConf ?? null }
-	get xml() { return this.eFis?._xml } get dict() { return this._dict } /* get xroot() { return this.xml } */
+	static get deepCopyAlinmayacaklar() {
+		return [
+			...super.deepCopyAlinmayacaklar,
+			'_xml', '_dict'
+		]
+	}
+	get eFis() { return this._eFis }
+	set eFis(v) { this._eFis = v }
+	get eConf() {
+		let { _eConf: res } = this
+		if (res == null)
+			res = this._eConf = this.eFis?.eConf ?? MQEConf.instance
+		return res
+	}
+	set eConf(v) { this._eConf = v }
+	get xml() {
+		let { _xml: res } = this
+		if (res == null)
+			res = this._xml = this.eFis?.xml
+		return res
+	}
+	set xml(v) { this._xml = v }
+	get dict() { return this._dict }    // xml cache
+	set dict(v) { this._dict = v }
 
-	constructor(e) {
-		e = e || {}; super(e);
-		let {xml} = e; if (xml) { xml = xml.documentElement || xml }
-		$.extend(this, { _eFis: e.eFis, _eConf: e.eConf, _xml: xml, _dict: e.dict || {} })
+	constructor(e = {}) {
+		super(e)
+		let { eFis: _eFis, eConf: _eConf, xml: _xml = e._xml, dict: _dict = e._dict = {} } = e
+		_xml = _xml?.documentElement ?? _xml
+		extend(this, { _eFis, _eConf, _xml, _dict })
 	}
 	setValues(e) { }
-	getXMLValue(e, _getter) {
-		e = e || {}; const key = typeof e == 'object' ? e.key : e, {dict} = this;
-		let result = dict[key]; if (result !== undefined) { return result }
-		const getter = typeof e == 'object' ? e.getter : _getter, {xml} = this;
-		result = xml ? getFuncValue.call(this, getter, { xml: xml }) : undefined; if (result === undefined) { return result }
-		if (result != null && result.textContent) { result = result.textContent }
-		dict[key] = result; return result
+	getXMLValue(e = {}, _getter) {
+		let isObj = isObject(e)
+		let k = isObj ? e.key : e
+		let { dict, xml } = this
+		let res = dict[k]
+		if (res !== undefined) 
+			return res
+		
+		let getter = isObj ? e.getter : _getter
+		res = xml 
+			? getFuncValue.call(this, getter, { xml })
+			: undefined
+		if (res === undefined)
+			return res
+
+		res = res?.textContent ?? res
+		dict[k] = res
+		
+		return res
+	}
+	shallowCopy(e) {
+		let res = super.shallowCopy(e)
+		let { _xml } = this
+		extend(res, { _xml })
+		return res
+	}
+	deepCopy(e) {
+		let res = super.deepCopy(e)
+		let { _xml } = this
+		_xml = _xml?.cloneNode?.(true) ?? _xml
+		extend(res, { _xml })
+		return res
 	}
 }

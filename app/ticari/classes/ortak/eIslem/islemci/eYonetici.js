@@ -161,13 +161,37 @@ class EYonetici extends CObject {
 		e.uuid2Result = uuid2Result
 	}
 	async eIslemIzle(e) {
-		let gelenmi = asBool(e.gelen ?? e.gelenmi); if (!gelenmi) { e.internal = true; await this.eIslemXMLOlustur(e); delete e.internal }
-		let eIslAnaSinif = this.eIslSinif; extend(e, { ps2SayacListe: this.ps2SayacListe || (() => this.class.getPS2SayacListe(e)) });
-		let stm = eIslAnaSinif.getUUIDStm(e); for (let key of ['psTip2SayacListe', 'whereDuzenleyici']) { delete e[key] }
-		if (!stm) throw { isError: true, rc: 'bosUUIDStm', errorText: 'Filtre hatalı' }
-		let {sender, callback} = e, {eConf} = this, ps2Recs = {}, recs = await app.sqlExecSelect(stm);
-		for (let rec of recs) { let {pstip, uuid} = rec; if (uuid) { (ps2Recs[pstip] = ps2Recs[pstip] || []).push(rec) } }
-		let uuid2Result = e.uuid2Result = e.uuid2Result || {};
+		let gelenmi = asBool(e.gelen ?? e.gelenmi)
+		if (!gelenmi) {
+			e.internal = true
+			await this.eIslemXMLOlustur(e)
+			delete e.internal
+		}
+		let { eConf, eIslSinif: eIslAnaSinif } = this
+		if (!gelenmi) {
+			extend(e, {
+				ps2SayacListe: this.ps2SayacListe ?? (() => this.class.getPS2SayacListe(e))
+			})
+		}
+		let { recs } = e
+		if (!recs) {
+			let stm = eIslAnaSinif.getUUIDStm(e)
+			for (let key of ['psTip2SayacListe', 'whereDuzenleyici'])
+				delete e[key]
+			if (!stm)
+				throw { isError: true, rc: 'bosUUIDStm', errorText: 'Filtre hatalı' }
+			recs = await stm.execSelect()
+		}
+		
+		let { sender, callback } = e
+		let ps2Recs = {}
+		for (let rec of recs) {
+			let { pstip = 'P', uuid } = rec
+			if (uuid)
+				(ps2Recs[pstip] ??= []).push(rec)
+		}
+		
+		let uuid2Result = e.uuid2Result ??= {}
 		if (!empty(ps2Recs)) {
 			if (!window.XSLTProcessor) {
 				showProgress('XSLT İşleyicisi modülü yükleniyor...')
@@ -180,7 +204,8 @@ class EYonetici extends CObject {
 			for (let psTip in ps2Recs) {
 				let _recs = ps2Recs[psTip];
 				for (let rec of _recs) {
-					let {uuid} = rec, efAyrimTipi = rec.efayrimtipi || (gelenmi ? 'E' : 'A'), eIslSinif = EIslemOrtak.getClass({ tip: efAyrimTipi })
+					let {uuid} = rec, efAyrimTipi = rec.efayrimtipi || (gelenmi ? 'E' : 'A')
+					let eIslSinif = EIslemOrtak.getClass({ tip: efAyrimTipi, gelenmi })
 					let eIslAltBolum = eConf.getAnaBolumFor({ eIslSinif })
 					if (!eIslAltBolum)
 						throw { isError: true, rc: 'eIslAnaBolumBelirsiz', errorText: 'e-İşlem için Ana Bölüm belirlenemedi' }
@@ -766,7 +791,8 @@ class EYonetici extends CObject {
 		let uuids = e.uuids = subResults?.map(result => result.uuid )
 		if (count == null) { count = e.count = subResults?.length }
 		if (window.progressManager) progressManager.progressMax = (progressManager.progressMax || 0) + (count || 1)
-		let eIslAltBolum = eConf.getAnaBolumFor({ efAyrimTipi }); if (!eIslAltBolum) { throw { isError: true, rc: 'eIslAnaBolumBelirsiz', errorText: 'e-İşlem için Ana Bölüm belirlenemedi' } }
+		let eIslAltBolum = eConf.getAnaBolumFor({ efAyrimTipi })
+		if (!eIslAltBolum) { throw { isError: true, rc: 'eIslAnaBolumBelirsiz', errorText: 'e-İşlem için Ana Bölüm belirlenemedi' } }
 		let BlockSize = 10; let blockSubResults = [];
 		let kismiVeriIsleVeBosalt = async _e => {
 			try { e.subResults = blockSubResults; await this.bekleyenleriGetir_veriIsle(e) } catch (ex) { console.error('Alım e-İşlem Veri İşle', { BlockSize, blockSubResults, subResults }) }
@@ -774,22 +800,29 @@ class EYonetici extends CObject {
 			blockSubResults = [];
 		};
 		for (let subResult of subResults) {
-			let isError = false, errorText; let {uuid} = subResult, xmlDosyaAdi = subResult.xmlDosyaAdi || subResult.xmlFileName || `${uuid}.xml`; let xmlData = subResult.xmlData ?? subResult.xmlContent;
+			let isError = false, errorText
+			let {uuid} = subResult, xmlDosyaAdi = subResult.xmlDosyaAdi || subResult.xmlFileName || `${uuid}.xml`
+			let xmlData = subResult.xmlData ?? subResult.xmlContent
 			let xml, eFis;
 			try {
-				if (!xmlData) { let xmlDosya = `${parentDir || `${eIslAltBolum}\\ALINAN`}\\${xmlDosyaAdi}`; xmlData = await app.wsDownloadAsStream({ remoteFile: xmlDosya, localFile: xmlDosyaAdi }) }
-				xml = result.xml = $.parseXML(xmlData)?.documentElement; eFis = new EFis({ xml });
+				if (!xmlData) {
+					let xmlDosya = `${parentDir || `${eIslAltBolum}\\ALINAN`}\\${xmlDosyaAdi}`
+					xmlData = await app.wsDownloadAsStream({ remoteFile: xmlDosya, localFile: xmlDosyaAdi })
+				}
+				xml = result.xml = $.parseXML(xmlData)?.documentElement
+				eFis = new EFis({ xml })
 			}
 			catch (ex) { isError = true; errorText = getErrorText(ex); console.error(ex) }
 			extend(subResult, { islemZamani: now(), isError, errorText, uuid, eFis });
-			if (eFis) { let {eIslTip: efAyrimTipi} = eFis, {tarih, fisNox} = eFis; extend(subResult, { efAyrimTipi, tarih, fisNox }) }
+			if (eFis) { let {eIslTip: efAyrimTipi} = eFis, {tarih, fisNox} = eFis
+			extend(subResult, { efAyrimTipi, tarih, fisNox }) }
 			blockSubResults.push(subResult); uuid2Result[uuid] = subResult; seq++;
 			if (blockSubResults.length >= BlockSize) { await kismiVeriIsleVeBosalt(e) }
 		}
 		await kismiVeriIsleVeBosalt(e)
 	}
-	static async eIslemAlimXMLYukle(e) {
-		e = e || {}; let {xmlListe} = e;
+	static async eIslemAlimXMLYukle(e = {}) {
+		let {xmlListe} = e;
 		if (!xmlListe) {
 			let fhList = await showOpenFilePicker({
 				multiple: true, excludeAcceptAllOption: true,
@@ -813,14 +846,17 @@ class EYonetici extends CObject {
 		}
 		e.uuid2Result = uuid2Result
 	}
-	async eIslemAlimXMLYukle(e) {
-		let BlockSize = 10; e.eYonetici = this; let {eConf} = this, {eIslEkArgs} = eConf, {callback} = e;
+	async eIslemAlimXMLYukle(e = {}) {
+		let BlockSize = 10; e.eYonetici = this
+		let {eConf} = this, {eIslEkArgs} = eConf, {callback} = e
 		let xmlListe = e.xmlListe || [], count = e.count = xmlListe.length;
 		if (window.progressManager) { progressManager.progressMax = (progressManager.progressMax || 0) + (count || 1) }
 		let uuid2Result = e.uuid2Result = e.uuid2Result || {}; e.subResults = [];
 		let kismiVeriIsleVeBosalt = async e => {
-			let {subResults} = e; if (!subResults.length) { return }
-			try { await this.bekleyenleriGetir_veriIsle(e) } catch (ex) { console.error('Alım e-İşlem Veri İşle', { blockSize: BlockSize, subResults: extend({}, subResults) }) }
+			let { subResults } = e
+			if (!subResults.length) { return }
+			try { await this.bekleyenleriGetir_veriIsle(e) }
+			catch (ex) { console.error('Alım e-İşlem Veri İşle', { blockSize: BlockSize, subResults: extend({}, subResults) }) }
 			if (window.progressManager) { window.progressManager.progressStep(subResults.length) } if (callback) { getFuncValue.call(this, callback, e) }
 			e.subResults = []
 		};
@@ -835,8 +871,8 @@ class EYonetici extends CObject {
 		}
 		await kismiVeriIsleVeBosalt(e)
 	}
-	static async eIslemAlimTicariFiseDonustur(e) {
-		e = e || {}; let {eConf} = e, eYoneticiler = e.eYoneticiler = [new EYonetici({ eConf })];
+	static async eIslemAlimTicariFiseDonustur(e = {}) {
+		let {eConf} = e, eYoneticiler = e.eYoneticiler = [new EYonetici({ eConf })];
 		for (let eYonetici of eYoneticiler ?? []) { await eYonetici.eIslemAlimTicariFiseDonustur(e) }
 	}
 	async eIslemAlimTicariFiseDonustur(e) {
@@ -873,8 +909,10 @@ class EYonetici extends CObject {
 		for (let result of results) {
 			let {eFis} = result;
 			if (!eFis) {
-				let {xml} = result; if (!xml) { let {xmlContent} = result; if (xmlContent) { xml = result.xml = $.parseXML(xmlContent)?.documentElement } }
-				let {eIslSinif} = result; if (!eIslSinif) { let efAyrimTipi = result.efAyrimTipi || 'A'; eIslSinif = result.eIslSinif = EIslemOrtak.getClass(efAyrimTipi) }
+				let {xml} = result; if (!xml) { let {xmlContent} = result
+				if (xmlContent) { xml = result.xml = $.parseXML(xmlContent)?.documentElement } }
+				let {eIslSinif} = result
+				if (!eIslSinif) { let efAyrimTipi = result.efAyrimTipi || 'A'; eIslSinif = result.eIslSinif = EIslemOrtak.getClass(efAyrimTipi) }
 				eFis = result.eFis = new EFis({ eConf, eIslSinif, xml });
 			}
 			e.result = result; let _result = await this.bekleyenleriGetir_veriIsle_onKontrol(e);
@@ -1104,4 +1142,70 @@ try {
     }
 }
 catch (ex) { console.error(ex) }
+
+*/
+
+
+/*
+
+let bekleyenleriGetir = async ({ eConf, eIslSinif, tarihBS }) => {
+	let { tip: efAyrimTipi } = eIslSinif
+	eConf ??= MQEConf.instance
+	let subDir = eConf.getAnaBolumFor(efAyrimTipi)
+	let oe = eConf.getValue('ozelEntegrator')
+	if (isObject(oe))
+		oe = oe.char
+	
+	let eIslemAPI = 'gelenBelgeleriGetir'
+	let eIslemci = efAyrimTipi
+	let { eLogin, eIslEkArgs: ekArgs } = eConf
+	eLogin = toJSONStr(eLogin)
+	ekArgs = toJSONStr(ekArgs)
+	let args = {
+		gelen: true,
+		eskilerAlinsin: true,
+		xmlContentFlag: true,
+		tarihBS: {
+			basi: dateToString(tarihBS.basi),
+			sonu: dateToString(tarihBS.sonu)
+		}
+	}
+	let wsRes = await app.wsEIslemYap({ eIslemci, oe, eIslemAPI, eLogin, ekArgs, args })
+	if (isArray(wsRes))
+		wsRes = wsRes[0]
+	wsRes = wsRes?.results ?? []
+	
+	let res = []
+	for (let { uuid, xmlFileName: localFile, xmlContent } of wsRes) {
+		if (!xmlContent) {
+			let remoteFile = [subDir, 'ALINAN', localFile]
+				.join('/')
+				.replaceAll('\\', '/')
+			xmlContent = await app.wsDownloadAsStream({ remoteFile, localFile })
+		}
+		let xml = xmlContent ? $.parseXML(xmlContent)?.documentElement : null
+		if (xml)
+			res.push({ uuid, eFis: new EFis({ eIslSinif, eConf, xml }) })
+	}
+	
+	return res
+}
+
+
+let gelen = true
+let { instance: eConf } = MQEConf
+let res = await bekleyenleriGetir({
+	eConf,
+	eIslSinif: EIslFatura,
+	tarihBS: new CBasiSonu({ basi: today().addDays(-5), sonu: today() })
+})
+await EFis.topluEkBilgileriBelirle(res.map(r => r.eFis))
+for (let { eFis, uuid } of res) {
+	console.info(eFis, uuid)
+	let eYon = new EYonetici({ eConf, eIslSinif: EIslFatura })
+	await eYon.eIslemIzle({ gelen, recs: [eFis] })
+}
+res
+
+
 */
