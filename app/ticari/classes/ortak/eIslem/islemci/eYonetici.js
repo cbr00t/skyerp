@@ -90,7 +90,8 @@ class EYonetici extends CObject {
 				}
 			)
 		})
-		let stm = eIslAnaSinif.getUUIDStm(e); for (let key of ['psTip2SayacListe', 'sentDuzenleyici', 'whereDuzenleyici']) { delete e[key] }
+		let stm = eIslAnaSinif.getUUIDStm(e)
+		deleteKeys(e, 'psTip2SayacListe', 'sentDuzenleyici', 'whereDuzenleyici')
 		if (!stm)
 			throw { isError: true, rc: 'bosUUIDStm', errorText: 'Filtre hatalı' }
 		
@@ -102,51 +103,117 @@ class EYonetici extends CObject {
 			oe = oe.char
 		
 		const BlockSize = 20
-		let senderGIBAlias = eConf.getValue('gibAlias') ?? '', senderEIrsGIBAlias = eConf.getValue('eIrsGIBAlias') ?? '';
-		let recs = await app.sqlExecSelect(stm), ps2Recs = this.class.getPS2Recs({ recs }), uuid2Result = e.uuid2Result = e.uuid2Result || {};
+		// let senderGIBAlias = eConf.getValue('gibAlias') ?? ''
+		// let senderEIrsGIBAlias = eConf.getValue('eIrsGIBAlias') ?? ''
+		let recs = await app.sqlExecSelect(stm)
+		let ps2Recs = this.class.getPS2Recs({ recs })
+		let uuid2Result = e.uuid2Result = e.uuid2Result || {}
 		if (!empty(ps2Recs)) {
-			let eConf = e.eConf ?? this.eConf;
+			let eConf = e.eConf ?? this.eConf
 			for (let psTip in ps2Recs) {
-				let _recs = ps2Recs[psTip], eIslTip2Recs = {}, duzgunUUIDListe = [];
-				for (let rec of _recs) { let efAyrimTipi = rec.efayrimtipi || 'A'; (eIslTip2Recs[efAyrimTipi] = eIslTip2Recs[efAyrimTipi] || []).push(rec) }
+				let _recs = ps2Recs[psTip]
+				let eIslTip2Recs = {}
+				for (let rec of _recs) {
+					let efAyrimTipi = rec.efayrimtipi || 'A'
+					;(eIslTip2Recs[efAyrimTipi] ??= [])
+						.push(rec)
+				}
+
+				let duzgunUUIDListe = []
 				for (let efAyrimTipi in eIslTip2Recs) {
-					let _recs = eIslTip2Recs[efAyrimTipi] || []; if (!_recs.length) continue
-					let eIslSinif = EIslemOrtak.getClass({ tip: efAyrimTipi }), eIslAltBolum = eConf.getAnaBolumFor({ eIslSinif });
-					if (!eIslAltBolum) throw { isError: true, rc: 'eIslAnaBolumBelirsiz', errorText: 'e-İşlem için Ana Bölüm belirlenemedi' };
+					let _recs = eIslTip2Recs[efAyrimTipi]
+					if (empty(_recs))
+						continue
+					
+					let eIslSinif = EIslemOrtak.getClass({ tip: efAyrimTipi })
+					let eIslAltBolum = eConf.getAnaBolumFor({ eIslSinif })
+					if (!eIslAltBolum)
+						throw { isError: true, rc: 'eIslAnaBolumBelirsiz', errorText: 'e-İşlem için Ana Bölüm belirlenemedi' };
+					
 					let startIndex = 0
 					while (true) {
-						let subRecs = _recs.slice(startIndex, startIndex + BlockSize); startIndex += BlockSize; if (!subRecs.length) { break }
-						let savedToken = this.class.getTempToken(efAyrimTipi), subDuzgunUUIDListe = [];
+						let subRecs = _recs.slice(startIndex, startIndex + BlockSize)
+						startIndex += BlockSize
+						if (!subRecs.length)
+							break
+						
+						let savedToken = this.class.getTempToken(efAyrimTipi)
+						let subDuzgunUUIDListe = []
 						let results = await app.wsEIslemYap({
 							eIslemci: efAyrimTipi, oe,
-							eIslemAPI: 'belgeGonder', eLogin: toJSONStr(eConf.eLogin), eToken: savedToken || '',
-							ekArgs: toJSONStr(eIslEkArgs), args: subRecs.map(rec => {
-								let {uuid, seri} = rec, senaryoTipi = rec.efatsenaryotipi, eArsivGonderimTipi = rec.earsivbelgetipi || '';
-								let receiverVKN = rec.vkno, eMailStr = rec.revizeeislemmail;
-								let eMails = eMailStr ? eMailStr.split(';').filter(x => !!x?.trim() && x.length > 4 && x.includes('@') && x.includes('.')).map(x => x.trim()) : null;
-								let receiverGIBAlias = (efAyrimTipi == 'IR') ? (rec.eirsgibalias || rec.efatgibalias) : rec.efatgibalias, belgeNox = rec.fisnox;
-								return { uuid, seri, /*irsBaglantiVarmi,*/ senaryoTipi, receiverVKN, receiverGIBAlias, belgeNox, eMails }
+							eIslemAPI: 'belgeGonder',
+							eLogin: toJSONStr(eConf.eLogin),
+							eToken: savedToken || '',
+							ekArgs: toJSONStr(eIslEkArgs),
+							args: subRecs.map(rec => {
+								let { uuid, seri } = rec
+								let { efatsenaryotipi: senaryoTipi, fisnox: belgeNox, gibalias: receiverGIBAlias } = rec
+								let { vkno: receiverVKN } = rec
+								let { revizeeislemmail: eMailStr } = rec
+								let eMails = eMailStr
+									? eMailStr
+										.split(';')
+										.map(v => v?.trim())
+										.filter(v =>
+											v && v.length > 4 && v.includes('@') & v.includes('.'))
+									: null
+								
+								// let { earsivbelgetipi: eArsivGonderimTipi } = rec
+								//eArsivGonderimTipi ??= ''
+								
+								return {
+									uuid, seri, senaryoTipi,
+									receiverVKN, receiverGIBAlias,
+									belgeNox, eMails
+								}
 							})
 						});
 						if (results) {
 							for (let i = 0; i < subRecs.length; i++) {
-								let result = results[i]; if (!result) { continue }
-								let _rec = subRecs[i], {uuid} = _rec, isError = result.isError ?? !result.code, message = result.message ?? result.errorText;
-								extend(result, { islemZamani: now(), isError, message, rec: _rec, efAyrimTipi, xmlDosya: `${eIslAltBolum}\\${uuid}.xml` });
-								uuid2Result[uuid] = result; if (!isError) { duzgunUUIDListe.push(uuid); subDuzgunUUIDListe.push(uuid) }
-								if (!savedToken) { let {token} = result; if (token != null && savedToken != token) { savedToken = token; this.class.setTempToken(efAyrimTipi, token) } }
-								if (window.progressManager) { window.progressManager.progressStep() } if (callback) { getFuncValue.call(this, callback, e) }
+								let result = results[i]
+								if (!result)
+									continue
+								
+								let _rec = subRecs[i], { uuid } = _rec
+								let isError = result.isError ?? !result.code
+								let message = result.message ?? result.errorText
+								extend(result, {
+									islemZamani: now(), isError, message,
+									rec: _rec, efAyrimTipi,
+									xmlDosya: `${eIslAltBolum}\\${uuid}.xml`
+								})
+								uuid2Result[uuid] = result
+								if (!isError) {
+									duzgunUUIDListe.push(uuid)
+									subDuzgunUUIDListe.push(uuid)
+								}
+								if (!savedToken) {
+									let { token } = result
+									if (token != null && savedToken != token) {
+										savedToken = token
+										this.class.setTempToken(efAyrimTipi, token) }
+								}
+								window.progressManager?.progressStep?.()
+								if (callback)
+									getFuncValue.call(this, callback, e)
 							}
 						}
 						if (subDuzgunUUIDListe.length) {
-							let upd = new MQIliskiliUpdate({ from: this.class.getPS2Table(psTip), set: [`efgonderimts = getdate()`], where: [{ inDizi: subDuzgunUUIDListe, saha: 'efatuuid' }] });
-							await app.sqlExecNone(upd)
+							let upd = new MQIliskiliUpdate({
+								from: this.class.getPS2Table(psTip),
+								set: [`efgonderimts = getdate()`],
+								where: { inDizi: subDuzgunUUIDListe, saha: 'efatuuid' }
+							})
+							await upd.execute()
 						}
 					}
 				}
 			}
 		}
-		if (!e.internal) { if (sender && !sender.isDestroyed && sender.tazele) { sender.tazele() } }
+		if (!e.internal) {
+			if (sender && !sender.isDestroyed)
+				sender?.tazele?.()
+		}
 	}
 	static async eIslemIzle(e) {
 		let eYoneticiler = await this.getEYoneticiListe(e)
@@ -176,8 +243,7 @@ class EYonetici extends CObject {
 		let { recs } = e
 		if (!recs) {
 			let stm = eIslAnaSinif.getUUIDStm(e)
-			for (let key of ['psTip2SayacListe', 'whereDuzenleyici'])
-				delete e[key]
+			deleteKeys(e, 'psTip2SayacListe', 'whereDuzenleyici')
 			if (!stm)
 				throw { isError: true, rc: 'bosUUIDStm', errorText: 'Filtre hatalı' }
 			recs = await stm.execSelect()
@@ -186,9 +252,12 @@ class EYonetici extends CObject {
 		let { sender, callback } = e
 		let ps2Recs = {}
 		for (let rec of recs) {
-			let { pstip = 'P', uuid } = rec
-			if (uuid)
-				(ps2Recs[pstip] ??= []).push(rec)
+			let { pstip = 'P', uuid = rec.efatuuid ?? rec.efuuid } = rec
+			if (!uuid)
+				continue
+
+			rec.uuid ??= uuid
+			;(ps2Recs[pstip] ??= []).push(rec)
 		}
 		
 		let uuid2Result = e.uuid2Result ??= {}
@@ -489,13 +558,14 @@ class EYonetici extends CObject {
 						await app.sqlExecNone(upd)
 					}
 					try {
-						// let savedToken = this.class.getTempToken(efAyrimTipi);
+						// let savedToken = this.class.getTempToken(efAyrimTipi)
 						let oe = eConf.getValue('ozelEntegrator')
 						if (isObject(oe))
 							oe = oe.char
 						
 						let results = await app.wsEIslemYap({
-							eIslemci: efAyrimTipi, oe,
+							eIslemci: efAyrimTipi,
+							oe,
 							eIslemAPI: 'xmlKaldir',
 							/*eLogin: toJSONStr(eConf.eLogin), eToken: savedToken || '',*/ eToken: true,
 							ekArgs: toJSONStr(eIslEkArgs), args: _recs.map(rec => ({ uuid: rec.uuid }))
@@ -727,7 +797,7 @@ class EYonetici extends CObject {
 		let {sender, callback, recs} = e, fisSayacListe = recs.map(rec=>rec.fissayac), uuid2Result = e.uuid2Result = e.uuid2Result || {};
 		let del = new MQIliskiliDelete({
 			from: 'efgecicialfatfis',
-			where: { inDizi: fisSayacListe, saha: 'kaysayac ' }
+			where: { inDizi: fisSayacListe, saha: 'kaysayac' }
 		});
 		let isError = !(await app.sqlExecNone(del));
 		for (let rec of recs) {
@@ -747,6 +817,7 @@ class EYonetici extends CObject {
 		}
 		e.uuid2Result = uuid2Result
 	}
+
 	async eIslemBekleyenleriGetir(e = {}) {
 		e.eYonetici = this
 		let { eIslSinif } = this
@@ -903,78 +974,123 @@ class EYonetici extends CObject {
 		}
 		finally { if (wndProgress?.length) wndProgress.show() }
 	}
+
 	async bekleyenleriGetir_veriIsle(e) {
-		let {eConf} = this; console.debug('bekleyenleriGetir_veriIsle', e)
-		let results = e.subResults || e.results; if (!results) { let {subUUID2Results} = e; result = values(subUUID2Results) }
-		for (let result of results) {
-			let {eFis} = result;
+		let eYonetici = this
+		let { eConf } = this
+		let { subUUID2Results } = e
+		let { subResults: results = e.results ?? values(subUUID2Results) } = e
+		console.debug('bekleyenleriGetir_veriIsle', e)
+		for (let res of results) {
+			let { eFis } = res
 			if (!eFis) {
-				let {xml} = result; if (!xml) { let {xmlContent} = result
-				if (xmlContent) { xml = result.xml = $.parseXML(xmlContent)?.documentElement } }
-				let {eIslSinif} = result
-				if (!eIslSinif) { let efAyrimTipi = result.efAyrimTipi || 'A'; eIslSinif = result.eIslSinif = EIslemOrtak.getClass(efAyrimTipi) }
-				eFis = result.eFis = new EFis({ eConf, eIslSinif, xml });
+				let { xml, xmlContent } = res
+				if (!xml && xmlContent)
+					xml = res.xml = $.parseXML(xmlContent)?.documentElement
+				
+				let { eIslSinif } = res
+				if (!eIslSinif) {
+					let efAyrimTipi = res.efAyrimTipi || 'A'
+					eIslSinif = res.eIslSinif = EIslemOrtak.getClass(efAyrimTipi)
+				}
+				eFis = res.eFis = new EFis({ eConf, eIslSinif, xml })
 			}
-			e.result = result; let _result = await this.bekleyenleriGetir_veriIsle_onKontrol(e);
-			delete e.result; if (!_result) { continue }
-			extend(result, eFis); console.debug('..', eFis)
+			
+			if (!await this.bekleyenleriGetir_veriIsle_onKontrol({ ...e, res }))
+				continue
+			
+			extend(res, eFis)
+			console.debug('..', eFis)
 		}
-		await EFis.topluEkBilgileriBelirle({ eYonetici: this, liste: results.map(result=>result.eFis) });
-		let _e = extend({}, e, { results }); await this.bekleyenleriGetir_veriIsle_sonrasi(_e)
+		
+		await EFis.topluEkBilgileriBelirle({ eYonetici, liste: results.map(r => r.eFis) })
+		await this.bekleyenleriGetir_veriIsle_sonrasi({ ...e, results })
 	}
 	async bekleyenleriGetir_veriIsle_onKontrol(e) {
-		let {result} = e, {eFis} = result;
+		let { islemAdi = 'Gelen e-İşlem Belgesi' } = e
+		let { result } = e
+		let { eFis } = result
+		
 		// Alıcı VKN Kontrol
-		let isyeri_vknTckn = e._isyeri_vknTckn = coalesce(e._isyeri_vknTckn, ()=> app.params.isyeri.vergi.vknTckn);
-		let {aliciVKN} = eFis; let devamFlag = true;
+		let { aliciVKN } = eFis
+		let isyeri_vknTckn = e._isyeri_vknTckn ??= app.params.isyeri.vergi.vknTckn
+		let devamFlag = true
 		if (isyeri_vknTckn && aliciVKN != isyeri_vknTckn) {
-			devamFlag = e.rdlg_vkn;
+			devamFlag = e.rdlg_vkn
 			if (devamFlag === undefined) {
-				let rdlg, mesaj = (`<div>Alınan e-İşlem Belgesindeki <ul>` + `<li><u>Alıcı VKN bilgisi</u>: <b>${aliciVKN}</b></li>` + `<li><u>Bu İşyerine ait VKN</u>: <b>${isyeri_vknTckn}</b></li>` + `</ul> farklıdır.</div>` + `<div style="font-weight: bold; color: firebrick; margin-top: 5px; padding-left: 30px;">Yine de devam edilsin mi?</div>`);
-				try { rdlg = await ehConfirm(mesaj, e.islemAdi || `Gelen e-İşlem Belgesi`) } catch (ex) { console.error(ex) }
+				let rdlg
+				let mesaj = (
+					`<div>Alınan e-İşlem Belgesindeki <ul>` +
+					`<li><u>Alıcı VKN bilgisi</u>: <b>${aliciVKN}</b></li>` +
+					`<li><u>Bu İşyerine ait VKN</u>: <b>${isyeri_vknTckn}</b></li>` +
+					`</ul> farklıdır.</div>` +
+					`<div style="font-weight: bold; color: firebrick; margin-top: 5px; padding-left: 30px;">Yine de devam edilsin mi?</div>`
+				)
+				try { rdlg = await ehConfirm(mesaj, islemAdi) }
+				catch (ex) { console.error(ex) }
 				e.rdlg_vkn = devamFlag = rdlg
 			}
 		}
 		if (!devamFlag) {
-			extend(result, { isError: true, message: 'Farklı VKN nedeniyle işlem iptal edildi' });
-			console.warn('X.', eFis); return false
+			extend(result, { isError: true, message: 'Farklı VKN nedeniyle işlem iptal edildi' })
+			console.warn('X.', eFis)
+			return false
 		}
+		
 		// ...
-		let {gondericiVKN, fisNox, eIslSinif} = eFis, {eIrsaliyemi} = eIslSinif, fisNo_tsn = TicariSeriliNo.fromText(fisNox);
-		let uni = new MQUnionAll([new MQSent({
-			from: 'efgecicialfatfis', sahalar: [`'*' gecicimi`, 'effatnox fisnox'],
-			where: [{ degerAta: gondericiVKN, saha: 'vkno' }, { degerAta: fisNox, saha: 'effatnox' }, { degerAta: eIrsaliyemi ? 'IR' : '', saha: 'efbelge' }]
-		}), new MQSent({
-			from: 'piffis fis', sahalar: [`'' gecicimi`, 'fis.fisnox'],
-			fromIliskiler: [{ from: 'carmst car', iliski: 'fis.must = car.must' }],
-			where: [
-				new MQOrClause([ { degerAta: gondericiVKN, saha: 'car.vnumara' }, { degerAta: gondericiVKN, saha: 'car.tckimlikno' } ]),
-				{ ticariTSN: fisNo_tsn }, { degerAta: eIrsaliyemi ? 'I' : 'F', saha: 'fis.piftipi' }, { ticariGC: true }
+		let { gondericiVKN, fisNox, eIslSinif } = eFis
+		let { eIrsaliyemi } = eIslSinif
+		let fisNo_tsn = TicariSeriliNo.fromText(fisNox)
+		
+		let uni = new MQUnionAll([
+			new MQSent({
+				from: 'efgecicialfatfis', sahalar: [`'*' gecicimi`, 'effatnox fisnox'],
+				where: [{ degerAta: gondericiVKN, saha: 'vkno' }, { degerAta: fisNox, saha: 'effatnox' }, { degerAta: eIrsaliyemi ? 'IR' : '', saha: 'efbelge' }]
+			}),
+			new MQSent({
+				from: 'piffis fis', sahalar: [`'' gecicimi`, 'fis.fisnox'],
+				fromIliskiler: [{ from: 'carmst car', iliski: 'fis.must = car.must' }],
+				where: [
+					new MQOrClause([
+						{ degerAta: gondericiVKN, saha: 'car.vnumara' },
+						{ degerAta: gondericiVKN, saha: 'car.tckimlikno' }
+					]),
+					{ degerAta: eIrsaliyemi ? 'I' : 'F', saha: 'fis.piftipi' },
+					{ ticariTSN: fisNo_tsn },
+					{ ticariGC: true }
 			]
-		})]);
-		let stm = new MQStm({ sent: uni }), recs = await app.sqlExecSelect({ query: stm });
+			})
+		])
+		let stm = new MQStm({ sent: uni })
+		let recs = await stm.execSelect()
 		if (!empty(recs)) {
-			let rec = recs[0], gecicimi = asBool(rec.gecicimi);
-			extend(result, { isError: true, message: `${rec.fisnox} numaralı belge ${gecicimi ? 'Geçici Listede ' : ''}tekrarlanıyor` });;
-			console.debug('X.', eFis); return false
+			let rec = recs[0]
+			let gecicimi = asBool(rec.gecicimi)
+			extend(result, { isError: true, message: `${rec.fisnox} numaralı belge ${gecicimi ? 'Geçici Listede ' : ''}tekrarlanıyor` });
+			console.debug('X.', eFis)
+			return false
 		}
 		return true
 	}
 	async bekleyenleriGetir_veriIsle_sonrasi(e) {
-		let {results, sender} = e;
+		let { results, sender } = e
 		for (let result of results) {
-			if (result.isError) { continue }
-			let {eFis} = result, paramName_fisSayac = '@fisSayac', const_fisSayac = new MQSQLConst(paramName_fisSayac), fisTable = 'efgecicialfatfis', harTable = 'efgecicialfatdetay';
-			let basHV = eFis.alimGeciciBaslikHostVars(result), sipHVListe = [], irsHVListe = [];
-			let detHVListe = eFis.detaylar.map(det => extend({ fissayac: const_fisSayac }, det.alimGeciciDetayHostVars(result)));
-			for (let rec of eFis.siparisler || []) {
-				let {tsn, tarih} = rec;
-				sipHVListe.push({ fissayac: const_fisSayac, efsipnobilgi: tsn.asText, efsiptarih: tarih, sipseri: tsn.seri, sipnoyil: tsn.noyil, sipno: tsn.no })
-			}
-			for (let rec of eFis.irsaliyeler || []) {
-				let {tsn, tarih} = rec;
-				irsHVListe.push({ fissayac: const_fisSayac, efirsnobilgi: tsn.asText, efirstarih: tarih, irsseri: tsn.seri, irsnoyil: tsn.noyil, irsno: tsn.no })
-			}
+			if (result.isError)
+				continue
+			let { eFis } = result
+			let paramName_fisSayac = '@fisSayac'
+			let fissayac = new MQSQLConst(paramName_fisSayac)
+			let fisTable = 'efgecicialfatfis', harTable = 'efgecicialfatdetay'
+			let basHV = eFis.alimGeciciBaslikHostVars(result)
+			let sipHVListe = [], irsHVListe = []
+			let detHVListe = eFis.detaylar.map(det =>
+				({ fissayac, ...det.alimGeciciDetayHostVars(result) }))
+			
+			for (let { tsn, tarih } of eFis.siparisler ?? [])
+				sipHVListe.push({ fissayac, efsipnobilgi: tsn.asText, efsiptarih: tarih, sipseri: tsn.seri, sipnoyil: tsn.noyil, sipno: tsn.no })
+			for (let { tsn, tarih } of eFis.irsaliyeler ?? [])
+				irsHVListe.push({ fissayac, efirsnobilgi: tsn.asText, efirstarih: tarih, irsseri: tsn.seri, irsnoyil: tsn.noyil, irsno: tsn.no })
+			
 			let toplu = new MQToplu({
 				liste: [
 					new MQInsert({ table: fisTable, hv: basHV }),
@@ -982,8 +1098,12 @@ class EYonetici extends CObject {
 					new MQInsert({ table: harTable, hvListe: detHVListe }),
 					new MQInsert({ table: 'efgecicialfatsip', hvListe: sipHVListe }),
 					new MQInsert({ table: 'efgecicialfatirs', hvListe: irsHVListe })
-				], params: [{ name: paramName_fisSayac, type: 'int', direction: 'inputOutput', value: 0 }]
-			}).withDefTrn();
+				],
+				params: [
+					{ name: paramName_fisSayac, type: 'int', direction: 'inputOutput', value: 0 }
+				]
+			}).withDefTrn()
+			
 			let _result; try { _result = ((await app.sqlExecNoneWithResult({ query: toplu })) || {})[0] }
 			catch (ex) { extend(result, { isError: true, rc: 'sqlError', errorText: getErrorText(ex), error: ex }); console.error(ex) }
 			if (_result) { _result = (_result?.params || {})[paramName_fisSayac]; result.fisSayac = asInteger(_result?.value) || null }
@@ -991,17 +1111,17 @@ class EYonetici extends CObject {
 		/* debugger */
 		if (!e.internal) { if (sender && !sender.isDestroyed && sender.tazele) { sender.tazele() } }
 	}
-	static getPS2Table(e) { e = e || {}; let psTip = typeof e == 'object' ? (e.psTip || e.tip || e.ps) : e; return (psTip == 'S' ? 'sipfis' : 'piffis') }
+	static getPS2Table(e) {
+		let psTip = isObject(e) ? e.psTip ?? e.tip ?? e.ps : e
+		return (psTip == 'S' ? 'sipfis' : 'piffis')
+	}
 	static getEYoneticiListe(e) {
 		let { eYoneticiler, recs, gelen = e.gelenmi } = e
 		if (eYoneticiler)
 			return eYoneticiler
 		
-		if (!recs)
-			return null
-		
 		if (empty(recs))
-			return []
+			return recs ?? null
 		
 		let eIslAnaTip2PS2SayacListe = {}
 		for (let rec of recs) {
@@ -1027,25 +1147,56 @@ class EYonetici extends CObject {
 		}
 		return result
 	}
-	static getPS2Recs(e) {
-		e = e || {}; let recs = e.recs || e; if (!recs) { return null }
-		let result = {}; for (let rec of recs) { let psTip = rec.pstip ?? rec.psTip; (result[psTip] = result[psTip] || []).push(rec) } return result
+	static getPS2Recs(e = {}) {
+		let recs = e.recs || e
+		if (!recs)
+			return null
+		
+		let result = {}
+		for (let rec of recs) {
+			let psTip = rec.pstip ?? rec.psTip
+			;(result[psTip] ??= [])
+				.push(rec)
+		}
+		
+		return result
 	}
 	static getPS2SayacListe(e) {
-		e = e || {}; let recs = e.recs || e; if (!recs) { return null } let result = {};
-		for (let rec of recs) {
-			let psTip = rec.pstip ?? rec.psTip, sayac = rec.sayac || rec.fissayac || rec.fisSayac || rec.kaysayac || rec.kaySayac;
-			(result[psTip] = result[psTip] || []).push(sayac)
+		let recs = e?.recs ?? e
+		if (!recs)
+			return null
+		
+		let result = {}
+		for (let r of recs) {
+			let { psTip = r.pstip } = r
+			let { sayac = r.fissayac ?? r.fisSayac ?? r.kaysayac ?? r.kaySayac } = e
+			;(result[psTip] ??= [])
+				.push(sayac)
 		}
 		return result
 	}
-	static getTempToken(e) { e = e || {}; let eIslTip = typeof e == 'object' ? (e.eIslTip || e.tip || e.efAyrimTipi || e.efayrimtipi) : e; return this.eIslTip2Token[eIslTip] }
-	static setTempToken(e, _value) {
-		e = e || {}; let eIslTip = typeof e == 'object' ? (e.eIslTip || e.tip || e.efAyrimTipi || e.efayrimtipi) : e;
-		let value = typeof e == 'object' ? e.value ?? e.token : _value, {eIslTip2Token} = this; eIslTip2Token[eIslTip] = value;
-		let eIslTip2TokenResetTimer = this._eIslTip2TokenResetTimer = this._eIslTip2TokenResetTimer || {}; clearTimeout(eIslTip2TokenResetTimer[eIslTip]);
-		eIslTip2TokenResetTimer[eIslTip] = setTimeout(() => { try { delete eIslTip2Token[eIslTip] } finally { delete eIslTip2TokenResetTimer[eIslTip] } } , 10 * 60 * 1000); return this
+	static getTempToken(e = {}) {
+		let eIslTip = isObject(e) ? (e.eIslTip ?? e.tip ?? e.efAyrimTipi ?? e.efayrimtipi) : e
+		return this.eIslTip2Token[eIslTip]
 	}
+	static setTempToken(e = {}, _v) {
+		let isObj = isObject(e)
+		let eIslTip = isObj ? e.eIslTip ?? e.tip ?? e.efAyrimTipi ?? e.efayrimtipi : e
+		let v = isObj ? e.value ?? e.token : _v
+		
+		let { eIslTip2Token } = this
+		eIslTip2Token[eIslTip] = v
+		
+		let eIslTip2TokenResetTimer = this._eIslTip2TokenResetTimer ??= {}
+		clearTimeout(eIslTip2TokenResetTimer[eIslTip])
+		eIslTip2TokenResetTimer[eIslTip] = setTimeout(() => {
+			try { delete eIslTip2Token[eIslTip] }
+			finally { delete eIslTip2TokenResetTimer[eIslTip] }
+		} , 600_000)
+		
+		return this
+	}
+	
 	static async testShow(efayrimtipi = 'E', pstip = 'P', kaysayac = null, seri = null, fisno = null) {
 		// 0) bağlam
 		if (!kaysayac && fisno) {

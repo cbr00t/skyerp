@@ -33,7 +33,8 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 		extend(e, { donemBS }) /* e.donemBS = sec.tarihBSVeyaCariDonem; */
 		return super.loadServerData(e)
 	}
-	donemBagla({ donemBS, alias = 'fis', tarihSaha, tarihClause, sent }) {
+	donemBagla(e = {}) {
+		let { devir = e.devirmi, donemBS, alias = 'fis', tarihSaha, tarihClause, sent } = e
 		let { hareketmi, envantermi } = this.class
 		let { where: wh } = sent
 		let aliasVeNokta = alias ? `${alias}.` : ''
@@ -42,8 +43,11 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 			alias = aliasVeNokta = ''
 		tarihClause = tarihClause ?? (tarihSaha ? aliasVeNokta + tarihSaha : null)
 		if (donemBS && tarihClause.sqlDoluDegermi()) {
-			if (hareketmi || envantermi) {
-				let { sonu } = donemBS
+			if (devir && (hareketmi || envantermi)) {
+				let { basi: sonu } = donemBS
+				sonu = asDate(sonu)
+				if (!isInvalidDate(sonu))
+					sonu = sonu.clone().addDays(1).clearTime()
 				wh.basiSonu({ sonu }, tarihClause)
 			}
 			else

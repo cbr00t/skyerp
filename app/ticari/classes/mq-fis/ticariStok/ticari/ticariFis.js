@@ -597,7 +597,7 @@ class SiparisFis extends TicariFis {
 	static get onayliTipler() { return ['', 'BK', 'RV', 'OG'] }
 	static get yerKullanilirmi() { return false }
 	
-	constructor(e) {
+	constructor(e = {}) {
 		super(e)
 		this.noYil = 0
 		this.baslikTeslimTarihi = e.teslimTarihi || this.baslikTeslimTarihi

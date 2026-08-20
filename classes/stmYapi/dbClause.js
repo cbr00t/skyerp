@@ -485,11 +485,12 @@ class MQSubWhereClause extends MQClause {
 		return this
 	}
 	notBirKismi(e, _saha) { e = e.saha ? $.extend({}, e) : { liste: e, saha: _saha }; e.not = true; return this.birKismi(e) }
-	ticariGC(e, _fisAlias, _notFlag) {
-		e = e || {};
-		let alimmi = (e.alimmi ?? e.alim ?? e.girismi ?? e.giris ?? (e == true)) ?? false;
-		let fisAlias = ( e.fisAlias ?? e.alias ?? _fisAlias ) ?? 'fis';
-		let notFlag = e.not ?? _notFlag, aliasVeNokta = fisAlias ? `${fisAlias}.` : '';
+	ticariGC(e = {}, _fisAlias, _notFlag) {
+		let alimmi = ( isObject(e) ? (e.alimmi ?? e.alim ?? e.girismi ?? e.giris ?? (e == true)) : e ) ?? false
+		let fisAlias = ( e.fisAlias ?? e.alias ?? _fisAlias ) ?? 'fis'
+		let notFlag = e.not ?? _notFlag
+		let aliasVeNokta = fisAlias ? `${fisAlias}.` : ''
+		
 		this.add(new MQOrClause({
 			not: notFlag,
 			liste: [
@@ -505,20 +506,25 @@ class MQSubWhereClause extends MQClause {
 		}))
 		return this
 	}
-	notTicariGC(e, _fisAlias) {
-		e = e || {}; let args = ( isObject(e) ? [$.extend({}, e, { not: true })] : [e, _fisAlias, true] );
+	notTicariGC(e = {}, _fisAlias) {
+		let args = ( isObject(e) ? [{ ...e, not: true }] : [e, _fisAlias, true] )
 		return this.ticariGC(...args)
 	}
-	ticariTSN(e, _fisAlias, _noSahaAdi, _notFlag) {
-		e = e || {};
-		let tsn = ( e.deger ?? e.tsn ?? e ), fisAlias = ( e.fisAlias ?? e.alias ?? _fisAlias ) ?? 'fis';
-		let noSahaAdi = ( e.noSahaAdi ?? e.noSaha ?? _noSahaAdi ) || 'no', notFlag = e.not ?? _notFlag, aliasVeNokta = fisAlias ? `${fisAlias}.` : '';
-		if (tsn.seri != null) this.degerAta(tsn.seri, `${aliasVeNokta}seri`)
-		if (tsn.noYil != null) this.degerAta(tsn.noYil, `${aliasVeNokta}noyil`)
-		this.degerAta(tsn.no, `${aliasVeNokta}${noSahaAdi}`); return this
+	ticariTSN(e = {}, _fisAlias, _noSahaAdi, _notFlag) {
+		let tsn = ( e.deger ?? e.tsn ?? e ), fisAlias = ( e.fisAlias ?? e.alias ?? _fisAlias ) ?? 'fis'
+		let noSahaAdi = ( e.noSahaAdi ?? e.noSaha ?? _noSahaAdi ) || 'no'
+		let notFlag = e.not ?? _notFlag, aliasVeNokta = fisAlias ? `${fisAlias}.` : ''
+		let and = new MQAndClause()
+		if (tsn.seri != null)
+			and.degerAta(tsn.seri, `${aliasVeNokta}seri`)
+		if (tsn.noYil != null)
+			and.degerAta(tsn.noYil, `${aliasVeNokta}noyil`)
+		and.degerAta(tsn.no, `${aliasVeNokta}${noSahaAdi}`)
+		this.add(and)
+		return this
 	}
-	notTicariTSN(e, _fisAlias, _noSahaAdi) {
-		e = e || {}; let args = isObject(e) ? [$.extend({}, e, { not: true })] : [e, _fisAlias, _noSahaAdi, true];
+	notTicariTSN(e = {}, _fisAlias, _noSahaAdi) {
+		let args = isObject(e) ? [{ ...e, not: true }] : [e, _fisAlias, _noSahaAdi, true]
 		return this.ticariTSN(...args)
 	}
 	fromGridWSArgs(e) {

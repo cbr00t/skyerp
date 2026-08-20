@@ -661,7 +661,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		return this.secimlerPart
 	}
 	async yeniIstendi(e) {
-		let mfSinif = this.getMFSinif(e), {tanimOncesiEkIslemler, gridWidget} = this;
+		let mfSinif = this.getMFSinif(e), {tanimOncesiEkIslemler, gridWidget} = this
 		let {args} = this, {ozelTanimIslemi, table, tableAlias, aliasVeNokta} = mfSinif, inst;
 		let rowIndex = e?.rowIndex ?? gridWidget.getselectedrowindex(), rec = e?.rec ?? gridWidget.getrowdata(rowIndex);
 		let _e = { sender: this, listePart: this, islem: 'yeni', mfSinif, rec, rowIndex, args, table };

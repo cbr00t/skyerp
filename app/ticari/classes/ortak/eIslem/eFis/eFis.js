@@ -315,14 +315,16 @@ class EFis extends EFisBase {
 			tamamlandi: '',
 			efatconfkod: (this.eConf || {}).kod || '',
 			iade: (this.iademi ? 'I' : ''),
-			efbelge: geciciTip, efuuid: this.uuid,
+			efbelge: geciciTip,
+			efuuid: this.uuid,
 			vkno: this.gondericiVKN,
 			mustkod: this.gondericiMustKod || '',
 			efmustunvan: (this.gondericiUnvan || '').slice(0, 50),
 			efatsenaryotipi: this.senaryoTipi,
 			tarih: this.tarih, effatnox: fisNox,
 			seri: tsn.seri, noyil: tsn.noYil, no: tsn.no,
-			dvkod: this.dvKod || '', dvkur: this.dvKur,
+			dvkod: this.dvKod || '',
+			dvkur: this.dvKur,
 		// TL BEDEL
 			efbrut: getBedel(false, icmal.brutBedel),
 			efiskonto: getBedel(false, icmal.toplamIskonto),
@@ -347,34 +349,48 @@ class EFis extends EFisBase {
 		extend(this.dict, { fisNox, uuid })
 	}
 	static async topluEkBilgileriBelirle(e = {}) {
-		let liste = isArray(e) ? e : e.liste
+		let liste = isArray(e) ? e : e.liste ?? e.recs
 		let vkn2EFisListe = {}
 		;liste.forEach(eFis => {
 			let { gondericiVKN: vkn } = eFis
 			;(vkn2EFisListe[vkn] ??= [])
 				.push(eFis)
 		})
+		
 		let vknListe = keys(vkn2EFisListe)
 		let vkn2Must = await MQEIslVKNRef.getVKN2Must_yoksaOlustur({ vknListe }) ?? {}
 		for (let [vkn, mustKod] in entries(vkn2Must)) {
 			;vkn2EFisListe[vkn]?.forEach(eFis =>
 				eFis.gondericiMustKod = mustKod)
 		}
+		
 		return await promiseAll(liste.map(eFis =>
-			eFis.ekBilgileriBelirle(e)))
+			eFis.gerekirseEkBilgileriBelirle(e)))
+	}
+	async gerekirseEkBilgileriBelirle(e) {
+		if (!this._ekBilgilerBelirlendi)
+			return await this.ekBilgileriBelirle(e)
+		return this
 	}
 	async ekBilgileriBelirle(e) {
 		e = { ...e }
-		let { gondericiMustKod: mustKod } = this
+		let { gondericiVKN: vkn, gondericiMustKod: mustKod, detaylar } = this
+		if (!mustKod && vkn) {
+			let recs = values(await MQCari.getGloKod2Rec())
+			mustKod = recs.find(r => r.vkno == vkn)?.must
+		}
 		if (!mustKod)
 			return this
-		
+
+		this.gondericiMustKod = mustKod
 		let ref = this.shRefFis = await MQEIslSHRef.getMustKod2Inst({ mustKod })
 		if (ref) {
 			let _e = { ...e, eFis: this }
 			await promiseAll(detaylar.forEach(det =>
-				det.ekBilgileriBelirle(_e)))
+				det.gerekirseEkBilgileriBelirle(_e)))
 		}
+
+		this._ekBilgilerBelirlendi = true
 		return this
 	}
 	detaylarReset() {

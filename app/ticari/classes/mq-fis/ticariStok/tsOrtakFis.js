@@ -266,9 +266,7 @@ class TSOrtakFis extends MQTicariGenelFis {
 				.join('\n')
 		}
 	}
-	uiKaydetOncesiIslemler(e) {
-		super.uiKaydetOncesiIslemler(e)
-	}
+	uiKaydetOncesiIslemler(e) { super.uiKaydetOncesiIslemler(e) }
 	async kaydetOncesiIslemler(e = {}) {
 		await super.kaydetOncesiIslemler(e)
 		await MQStokIslem.getKod2OzelIsaret(e)
@@ -321,8 +319,12 @@ class TSOrtakFis extends MQTicariGenelFis {
 			await toplu.execNone()
 		}
 	}
-	async degistirSonrasiIslemler(e) {
-		await super.degistirSonrasiIslemler(e)
+	async degistirSonrasiIslemler(e) { await super.degistirSonrasiIslemler(e) }
+	hostVarsDuzenle({ hv }) {
+		super.hostVarsDuzenle(...arguments)
+		let { efAyrimTipi: efayrimtipi } = this
+		efayrimtipi = (isObject(efayrimtipi) ? efayrimtipi.char : efayrimtipi) || ''
+		extend(hv, { efayrimtipi })
 	}
 	async detaylariYukleSonrasi(e) {
 		e = e || {}; await super.detaylariYukleSonrasi(e);

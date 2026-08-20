@@ -55,7 +55,7 @@ class ButonlarPart extends Part {
 				let _e = { parentPart, sender, builder, userData, event: evt, button, id }
 				setButonEnabled(btn, false)
 				try { await getFuncValue.call(this, handler, _e) }
-				// catch (ex) { cerr(ex) }
+				catch (ex) { cerr(ex) }
 				finally { setTimeout(() => setButonEnabled(btn, true), 800) }
 			}
 			if (handler || id2Handler[id]) {

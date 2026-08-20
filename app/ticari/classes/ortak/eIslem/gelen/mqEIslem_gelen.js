@@ -46,6 +46,7 @@ class MQEIslem_Gelen extends MQCogul {
             })
             .whereBlockEkle(({ where: wh, secimler: sec }) => {
                 wh
+					.basiSonu(sec.tarihBS, 'fis.tarih')
                     .basiSonu(sec.seri, 'fis.seri')
                     .basiSonu(sec.fisNo, 'fis.fisno')
                     .ozellik(sec.fisNox, 'fis.effatnox')
@@ -77,6 +78,12 @@ class MQEIslem_Gelen extends MQCogul {
                 handler: _e =>
                     withErrCheck('e-İşlem İzle', _e, args =>
                         this.eIslemIzleIstendi(args))
+            },
+			{
+                id: 'sil',
+                handler: _e =>
+                    withErrCheck('e-İşlem SİL', _e, args =>
+                        this.eIslemKaldirIstendi(args))
             }
         ]
         
@@ -150,19 +157,20 @@ class MQEIslem_Gelen extends MQCogul {
             new GridKolon({ belirtec: 'eIslTipText', text: 'Belge Tipi', genislikCh: 8 }).noSql().checkedList(),
             ...MQCogul.getKAKolonlar(
                 new GridKolon({ belirtec: 'kayitTarih', text: 'Kayıt Tarih', genislikCh: 12 }).tipDate().noSql().checkedList(),
-                new GridKolon({ belirtec: 'kayitSaat', text: 'Kayıt Zamanı', genislikCh: 12 }).tipTime().noSql(),
+                new GridKolon({ belirtec: 'kayitSaat', text: 'K.Zmn', genislikCh: 9 }).tipTime().noSql().center(),
                 true    // auto-reverse in mini-device mode
             ),
             ...MQCogul.getKAKolonlar(
-                new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 12 }).tipDate().noSql().checkedList(),
+                new GridKolon({ belirtec: 'tarih', text: 'Belge Tarih', genislikCh: 13 }).tipDate().noSql().checkedList(),
                 new GridKolon({ belirtec: 'fisNox', text: 'Belge No', genislikCh: 23 }).noSql().checkedList(),
                 true    // auto-reverse in mini-device mode
             ),
-            ...MQCogul.getKAKolonlar(
+			new GridKolon({ belirtec: 'efMustUnvan', text: 'EF Gönderici Ünvan', genislikCh: 40 }).noSql().checkedList(),
+            /*...MQCogul.getKAKolonlar(
                 new GridKolon({ belirtec: 'efMustUnvan', text: 'EF Gönderici Ünvan', genislikCh: 40 }).noSql().checkedList(),
-                new GridKolon({ belirtec: 'akibetText', text: 'Akıbet', genislikCh: 15 }).noSql().checkedList(),
+                new GridKolon({ belirtec: 'akibetText', text: 'Akıbet', genislikCh: 10 }).noSql().checkedList(),
                 true
-            ),
+            ),*/
             new GridKolon({ belirtec: 'irsVar', text: 'İrs?', genislikCh: 5 }).noSql().checkedList().tipBool(),
             new GridKolon({ belirtec: 'sonucBedel', text: 'Sonuc Bedel', genislikCh: 23 }).noSql().tipDecimal_bedel().sum().input(),
             ...MQCogul.getKAKolonlar(
@@ -184,13 +192,13 @@ class MQEIslem_Gelen extends MQCogul {
         let ka = { akibet: EIslemOnayDurum.kaDict }
         ;recs.forEach(r => {
             let { eIslTip, kayitTS, akibet } = r
-            ;['tamamlandi', 'yazdirildi', 'bozuk', 'irsVar'].forEach(k =>
+			;['tamamlandi', 'yazdirildi', 'bozuk', 'irsVar'].forEach(k =>
                 r[k] = !!r[k])
             extend(r, {
                 eIslTipText: EIslemOrtak.getClass(eIslTip)?.kisaAdi ?? eIslTip,
                 kayitTarih: asDate(kayitTS)?.clone()?.clearTime(),
                 kayitSaat: timeToString(kayitTS),
-                akibetText: ka.akibet[akibet || ' ']?.aciklama ?? akibet
+                akibetText: akibet ? ka.akibet[akibet || ' ']?.aciklama : ''
             })
         })
         return recs
@@ -246,27 +254,38 @@ class MQEIslem_Gelen extends MQCogul {
     }
 
     static async bekleyenleriGetirIstendi({ sender: listePart } = {}) {
+		let islemAdi = 'e-İşlem Bekleyenleri Getir'
         let { tarihBS } = listePart.secimler
-
         let recsDuzenle = recs => {
-            debugger
+            // debugger
         }
-        
+		
         let tip2Res = {}
-        for (let eYon of this.getEYoneticiler({ listePart })) {
-            let { eIslTip: k } = eYon
-            tip2Res[k] = await eYon.bekleyenleriGetir({ tarihBS, recsDuzenle })
-        }
-        debugger
+		let pm = await showProgress('Gelen e-İşlem Belgeleri sorgulanıyor...', islemAdi)
+		try {
+	        for (let eYon of this.getEYoneticiler({ listePart })) {
+	            let { eIslTip: k } = eYon
+	            tip2Res[k] = await eYon.bekleyenleriGetirVeKaydet({ tarihBS, recsDuzenle })
+	        }
+			delay(10).then(() =>
+				listePart?.tazele?.())
+		}
+		finally {
+			pm?.progressEnd()
+			delay(20).then(() =>
+				hideProgress())
+		}
     }
     static async eIslemIzleIstendi({ sender: listePart } = {}) {
+		let islemAdi = 'e-İşlem İZLE'
         let { tip2EYonetici } = listePart
-        let tip2Recs = {}
+        let totalCount = 0, tip2Recs = {}
         for (let r of listePart.selectedRecs) {
             let { eIslTip: k } = r
             k ||= 'E'
             ;(tip2Recs[k] ??= [])
                 .push(r)
+			totalCount++
         }
         
         if (empty(tip2Recs))
@@ -274,17 +293,64 @@ class MQEIslem_Gelen extends MQCogul {
         
         let internal = true
         let tip2Res = {}
-        for (let [tip, recs] of entries(tip2Recs)) {
-            let eYon = tip2EYonetici[tip]
-            if (!eYon)
-                continue
+		let pm = await showProgress('Gelen e-İşlem Görüntüleri oluşturuluyor...', islemAdi)
+		try {
+			pm?.setProgressMax(totalCount)
+	        for (let [tip, recs] of entries(tip2Recs)) {
+	            let eYon = tip2EYonetici[tip]
+	            if (eYon) {
+		            let { url } = await eYon.eIslemIzle({ recs, internal }) ?? {}
+		            if (url) {
+		                openNewWindow(url)
+		                await delay(20)
+		            }
+				}
+				pm?.progressStep()
+	        }
+		}
+		finally {
+			pm?.progressEnd()
+			delay(20).then(() =>
+				hideProgress())
+		}
 
-            let { url } = await eYon.eIslemIzle({ recs, internal }) ?? {}
-            if (url) {
-                openNewWindow(url)
-                await delay(20)
-            }
+        return tip2Res
+    }
+	static async eIslemKaldirIstendi({ sender: listePart } = {}) {
+		let islemAdi = 'e-İşlem KALDIR'
+        let { tip2EYonetici } = listePart
+        let totalCount = 0, tip2Recs = {}
+        for (let r of listePart.selectedRecs) {
+            let { eIslTip: k } = r
+            k ||= 'E'
+            ;(tip2Recs[k] ??= [])
+                .push(r)
+			totalCount++
         }
+        
+        if (empty(tip2Recs))
+            throw { isError: true, errorText: 'Silinecek belgeler seçilmelidir' }
+        
+        let internal = true
+        let tip2Res = {}
+		let pm = await showProgress('Gelen e-İşlem Belgeleri siliniyor...', islemAdi)
+		try {
+			pm?.setProgressMax(totalCount)
+	        for (let [tip, recs] of entries(tip2Recs)) {
+	            let eYon = tip2EYonetici[tip]
+	            if (eYon)
+		            tip2Res[tip] = await eYon.eIslemKaldir({ recs, internal }) ?? {}
+				pm?.progressStep()
+	        }
+
+			delay(10).then(() =>
+				listePart?.tazele?.())
+		}
+		finally {
+			pm?.progressEnd()
+			delay(20).then(() =>
+				hideProgress())
+		}
 
         return tip2Res
     }

@@ -9,13 +9,45 @@ class EIslTicariOrtak extends EIslGiden {
 		let psTipVeYapilar = [
 			{
 				psTip: 'P', table: 'piffis',
-				whereDuzenleyici: ({ where: wh }) =>
-					wh.add(`fis.ayrimtipi <> 'IN'`)
+				whereDuzenleyici: ({ sent, sent: { sahalar }, where: wh }) => {
+					sent
+						.fis2TicCariBagla()
+						.fromIliski('degiskenadres dadr', 'fis.degiskenvknox = dadr.vknox')
+					wh.notDegerAta('IN', 'fis.ayrimtipi')
+					sahalar.add(
+						`(case
+							when fis.efayrimtipi = 'IR'
+								then
+									(case when fis.degiskenvknox <> ''
+										then dadr.efatgibalias
+										else dbo.emptycoalesce(car.eirsgibalias, car.efatgibalias)
+									end)
+								else
+									(case when fis.degiskenvknox <> ''
+										then dadr.efatgibalias
+										else car.efatgibalias
+									end)
+								end
+						 ) gibalias`
+					)
+				}
 			},
 			{
 				psTip: 'S', table: 'sipfis',
-				whereDuzenleyici: ({ where: wh }) =>
-					wh.add(`fis.ayrimtipi = 'EM'`, `fis.ozeltip = 'E'`)
+				whereDuzenleyici: ({ sent, sent: { sahalar }, where: wh }) => {
+					sent.fis2CariBagla()
+					wh
+						.degerAta('EM', 'fis.ayrimtipi')
+						.degerAta('E', 'fis.ozeltip')
+					sent.add(
+						`(
+							case when fis.efayrimtipi = 'IR'
+								then dbo.emptycoalesce(car.eirsgibalias, car.efatgibalias)
+								else car.efatgibalias
+							end
+						) gibalias`
+					)
+				}
 			}
 		]
 		
@@ -24,7 +56,7 @@ class EIslTicariOrtak extends EIslGiden {
 			let sent = new MQSent(), { where: wh, sahalar } = sent
 			sent
 				.fromAdd(`${table} fis`)
-				.fis2CariBagla()
+				.fis2TicCariBagla()
 			wh
 				.fisSilindiEkle()
 				.add(new MQOrClause([
@@ -140,7 +172,20 @@ class EIslTicariOrtak extends EIslGiden {
 				`(case when fis.degiskenvknox <> '' then dadr.vdaire else car.vdaire end) vergidairesi`,
 				`(case when fis.degiskenvknox <> '' then '' else car.ticaretsicilno end) ticsicilno`,
 				`(case when fis.degiskenvknox <> '' then '' else car.mersisno end) mersisno`,
-				`(case when fis.degiskenvknox <> '' then dadr.efatgibalias else car.efatgibalias end) gibalias`,
+				`(case
+					when fis.efayrimtipi = 'IR'
+						then
+							(case when fis.degiskenvknox <> ''
+								then dadr.efatgibalias
+								else dbo.emptycoalesce(car.eirsgibalias, car.efatgibalias)
+							end)
+						else
+							(case when fis.degiskenvknox <> ''
+								then dadr.efatgibalias
+								else car.efatgibalias
+							end)
+						end
+				 ) gibalias`,
 				`(case when fis.degiskenvknox <> '' then '' else car.webadresi end) webadresi`,
 				'pls.birunvan plasiyeradi', 'nak.aciklama naksekliadi', 'car.musrefkod', 'car.kondepomu',
 				`fis.tlacikhesap tlbakiye`, `fis.tloncekibakiye`, `fis.dvacikhesap dvbakiye`, `fis.dvoncekibakiye`,

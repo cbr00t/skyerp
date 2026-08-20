@@ -102,14 +102,12 @@ class EFisDetay extends EFisBase {
 		extend(this, { seq })
 	}
 
-	alimGeciciDetayHostVars(e) {
-		e = e || {};
-		let hv = {};
+	alimGeciciDetayHostVars(e = {}) {
 		let { shRefDet, vergiler } = this
 		let shTipKod = ''
 		if (shRefDet) {
 			let { shTip } = shRefDet
-			shTip = shTip?.char ?? shTip
+			shTip = ( isObject(shTip) ? shTip.char : shTip ) ?? ''
 			switch (shTip) {
 				case 'hizmet': shTipKod = 'H'; break
 				case 'demirbas': shTipKod = 'D'; break
@@ -117,14 +115,14 @@ class EFisDetay extends EFisBase {
 		}
 
 		vergiler ??= {}
-		;['normal', 'tevfikat'].forEach(k => {
-			if (!vergiler[k])
-				vergiler[k] = {}
-		})
+		;['normal', 'tevfikat'].forEach(k =>
+			vergiler[k] ??= {})
+		
 		let tevTip = keys(vergiler.tevfikat)[0] || ''						// 601 gibi
 		let tevOran = vergiler.tevfikat[tevTip] || ''
 		let tevOranx = tevOran ? `${tevOran / 10}/10` : ''
-		
+
+		let hv = {}
 		extend(hv, {
 			seq: this.seq,
 			shtip: shTipKod,
@@ -148,6 +146,7 @@ class EFisDetay extends EFisBase {
 
 		if (shRefDet) {
 			let { shKod_rowAttr, shKod, shTip } = shRefDet
+			shTip = ( isObject(shTip) ? shTip.char : shTip ) ?? ''
 			if (shKod_rowAttr && shKod)
 				hv[shKod_rowAttr] = shKod
 			switch (shTip.char) {
@@ -159,11 +158,17 @@ class EFisDetay extends EFisBase {
 		return hv
 	}
 
-	ekBilgileriBelirle({ shRefFis: ref, eFis } = {}) {
+	async gerekirseEkBilgileriBelirle(e) {
+		if (!this._ekBilgilerBelirlendi)
+			return await this.ekBilgileriBelirle(e)
+		return this
+	}
+	async ekBilgileriBelirle({ shRefFis: ref, eFis } = {}) {
 		ref ??= eFis.shRefFis
 		if (!ref)
 			return this
 
+		let rec = this
 		let { eSHKod, barkod } = this
 		let { tip2Deger2Detay } = ref
 		let shRefDet = (
@@ -171,13 +176,14 @@ class EFisDetay extends EFisBase {
 			tip2Deger2Detay.barkod[barkod]
 		)
 		if (!shRefDet)
-			shRefDet = this.getUygunMustRefDetay({ rec: this, shRefFis })
+			shRefDet = this.getUygunMustRefDetay({ rec, shRefFis })
 		this.shRefDet = shRefDet
 		
 		if (eSHKod)
 			tip2Deger2Detay.kod[eSHKod] = shRefDet
 		if (barkod)
 			tip2Deger2Detay.barkod[barkod] = shRefDet
+		this._ekBilgilerBelirlendi = true
 		
 		return this
 	}

@@ -6,51 +6,99 @@ class MQEConf extends MQKA {
 	static altYapiDictDuzenle(e) { super.altYapiDictDuzenle(e); const {liste} = e; $.extend(liste, { kisit: MQEConfAlt_Kisit }) }
 	static get kisitKeys() { return MQEConfAlt_Kisit.kisitKeys } static get kisitKeysSet() { return MQEConfAlt_Kisit.kisitKeysSet }
 	get eIslEkArgs() {
-		const result = {}, addIfNotEmpty = (selector, key) => { const value = this.getValue(selector); if (value) { result[key || selector] = value } };
-		addIfNotEmpty('testmi'); addIfNotEmpty('anaBolum', 'eIslAnaBolum'); addIfNotEmpty('gibAlias', 'senderGIBAlias');
-		addIfNotEmpty('eArsGIBAlias', 'senderEArsGIBAlias'); addIfNotEmpty('eIrsGIBAlias', 'senderEIrsGIBAlias'); addIfNotEmpty('eMusGIBAlias', 'senderEMusGIBAlias');
-		return result
+		let res = {}
+		let addIfNotEmpty = (selector, key) => {
+			let k = key || selector
+			let v = this.getValue(selector)
+			if (v)
+				res[k] = v
+		}
+		addIfNotEmpty('testmi')
+		addIfNotEmpty('anaBolum', 'eIslAnaBolum')
+		addIfNotEmpty('gibAlias', 'senderGIBAlias')
+		addIfNotEmpty('eArsGIBAlias', 'senderEArsGIBAlias')
+		addIfNotEmpty('eIrsGIBAlias', 'senderEIrsGIBAlias')
+		addIfNotEmpty('eMusGIBAlias', 'senderEMusGIBAlias')
+		return res
 	}
 	get eLogin() {
-		const result = {}, addIfNotEmpty = (selector, key) => { const value = this.getValue(selector); if (value) { result[key || selector] = value } };
-		addIfNotEmpty('wsUser', 'user'); addIfNotEmpty('wsPass', 'pass'); addIfNotEmpty('firmaKodu'); addIfNotEmpty('subeKodu');
-		return result
+		let res = {}
+		let addIfNotEmpty = (selector, key) => {
+			let k = key || selector
+			let v = this.getValue(selector)
+			if (v)
+				res[k] = v
+		}
+		addIfNotEmpty('wsUser', 'user')
+		addIfNotEmpty('wsPass', 'pass')
+		addIfNotEmpty('firmaKodu')
+		addIfNotEmpty('subeKodu')
+		return res
 	}
 	get kisitUyarlanmis() {
-		const {kisit} = this, paramKisit = app.params.eIslem.kisit, result = {}, keys = ['kullanilirmi', ...this.class.kisitKeys];
-		return kisit.kullanilirmi ? kisit : paramKisit.kullanilirmi ? paramKisit : {}
-		}
+		let { kisit, class: { kisitKeys } } = this
+		let { kisit: paramKisit } = app.params.eIslem ?? {}
+		
+		let result = {}
+		// let _keys = ['kullanilirmi', ...kisitKeys]
+		return (
+			kisit.kullanilirmi ? kisit :
+			paramKisit.kullanilirmi ? paramKisit :
+			{}
+		)
+	}
 
-	constructor(e) { e = e || {}; super(e); }
-	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e); const {pTanim} = e;
-		$.extend(pTanim, {
-			anaBolum: new PInstStr('efatanabolum'), ozelEntegrator: new PInstTekSecim('oetip', EOzelEntegrator),
-			wsUser: new PInstStr('wsuser'), wsPass: new PInstStr('wspass'), firmaKodu: new PInstStr('wsfirma'),
-			subeKodu: new PInstStr('wsbranch'), gibAlias: new PInstStr('gibalias'), eArsGIBAlias: new PInstStr('earsgibalias'),
-			eIrsGIBAlias: new PInstStr('eirsgibalias'), eMusGIBAlias: new PInstStr('emusgibalias')
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
+		extend(pTanim, {
+			anaBolum: new PInstStr('efatanabolum'),
+			ozelEntegrator: new PInstTekSecim('oetip', EOzelEntegrator),
+			wsUser: new PInstStr('wsuser'),
+			wsPass: new PInstStr('wspass'),
+			firmaKodu: new PInstStr('wsfirma'),
+			subeKodu: new PInstStr('wsbranch'),
+			gibAlias: new PInstStr('gibalias'),
+			eArsGIBAlias: new PInstStr('earsgibalias'),
+			eIrsGIBAlias: new PInstStr('eirsgibalias'),
+			eMusGIBAlias: new PInstStr('emusgibalias')
 		})
 	}
-	static rootFormBuilderDuzenle(e) {
-		e = e || {}; super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e);
-		let tabPage = e.tabPage_genel; tabPage.addTextInput('anaBolum', 'e-İşlem Ana Bölüm');
-		let form = tabPage.addFormWithParent().yanYana();
-			form.addModelKullan('ozelEntegrator', 'Özel Entegratör').dropDown().noMF().kodsuz().setSource(e => e.builder.altInst.ozelEntegrator.kaListe);
-			form.addTextInput('wsUser', 'WS Kullanıcı'); form.addTextInput('wsPass', 'WS Şifre');
-		form = tabPage.addFormWithParent().yanYana(); form.addTextInput('firmaKodu', 'WS Firma'); form.addTextInput('subeKodu', 'WS Branch/Şube');
-		form = tabPage.addFormWithParent().yanYana(); form.addTextInput('gibAlias', 'GIB Alias'); form.addTextInput('eArsGIBAlias', 'e-Arşiv GIB Alias');
-			form.addTextInput('eIrsGIBAlias', 'e-İrs. GIB Alias'); form.addTextInput('eMusGIBAlias', 'e-Müs. GIB Alias')
+	static rootFormBuilderDuzenle(e = {}) {
+		super.rootFormBuilderDuzenle(e)
+		this.formBuilder_addTabPanelWithGenelTab(e)
+		let tabPage = e.tabPage_genel
+		tabPage.addTextInput('anaBolum', 'e-İşlem Ana Bölüm')
+		let form = tabPage.addFormWithParent().yanYana()
+			form.addModelKullan('ozelEntegrator', 'Özel Entegratör')
+				.dropDown().noMF().kodsuz()
+				.setSource(({ builder: { altInst: { ozelEntegrator } } }) => ozelEntegrator.kaListe)
+			form.addTextInput('wsUser', 'WS Kullanıcı')
+			form.addTextInput('wsPass', 'WS Şifre')
+		form = tabPage.addFormWithParent().yanYana()
+			form.addTextInput('firmaKodu', 'WS Firma')
+			form.addTextInput('subeKodu', 'WS Branch/Şube')
+		form = tabPage.addFormWithParent().yanYana()
+			form.addTextInput('gibAlias', 'GIB Alias')
+			form.addTextInput('eArsGIBAlias', 'e-Arşiv GIB Alias')
+			form.addTextInput('eIrsGIBAlias', 'e-İrs. GIB Alias')
+			form.addTextInput('eMusGIBAlias', 'e-Müs. GIB Alias')
 	}
-	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const {liste} = e, {aliasVeNokta} = this;
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		let { aliasVeNokta } = this
 		liste.push(
 			new GridKolon({ belirtec: 'efatanabolum', text: 'Ana Bölüm' }),
-			new GridKolon({ belirtec: 'ozelEntegratorText', text: 'Özel Entegratör', genislikCh: 16, sql: EOzelEntegrator.getClause(`${aliasVeNokta}oetip`) }),
+			new GridKolon({
+				belirtec: 'ozelEntegratorText', text: 'Özel Entegratör', genislikCh: 16,
+				sql: EOzelEntegrator.getClause(`${aliasVeNokta}oetip`)
+			}),
 			new GridKolon({ belirtec: 'wsuser', text: 'WS Kullanıcı', genislikCh: 16 }),
 			new GridKolon({ belirtec: 'wsfirma', text: 'WS Firma', genislikCh: 10 }),
 			new GridKolon({ belirtec: 'wsbranch', text: 'WS Branch', genislikCh: 10 }),
-			new GridKolon({ belirtec: 'gibalias', text: 'GIB Alias' }), new GridKolon({ belirtec: 'earsgibalias', text: 'e-Arşiv GIB Alias' }),
-			new GridKolon({ belirtec: 'eirsgibalias', text: 'e-İrs. GIB Alias' }), new GridKolon({ belirtec: 'emusgibalias', text: 'e-Müstahsil GIB Alias' }),
+			new GridKolon({ belirtec: 'gibalias', text: 'GIB Alias' }),
+			new GridKolon({ belirtec: 'earsgibalias', text: 'e-Arşiv GIB Alias' }),
+			new GridKolon({ belirtec: 'eirsgibalias', text: 'e-İrs. GIB Alias' }),
+			new GridKolon({ belirtec: 'emusgibalias', text: 'e-Müstahsil GIB Alias' }),
 			new GridKolon({ belirtec: 'gonderimdekisitlama', text: 'Gönderimde Kısıt', genislikCh: 10 }).tipBool(),
 			new GridKolon({ belirtec: 'gkisfatura', text: 'Kst: Fatura', genislikCh: 13 }).tipBool(),
 			new GridKolon({ belirtec: 'gkisirsaliye', text: 'Kst: İrsaliye', genislikCh: 13 }).tipBool(),
@@ -58,13 +106,18 @@ class MQEConf extends MQKA {
 			new GridKolon({ belirtec: 'gkismusmakbuz', text: 'Kst: Müs. Makbuz', genislikCh: 13 }).tipBool()
 		)
 	}
-	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {sent} = e, {aliasVeNokta} = this;
-		sent.sahalar.add(`${aliasVeNokta}oetip`, `${aliasVeNokta}wspass`)
+	static loadServerData_queryDuzenle({ sent, sent: { sahalar } }) {
+		super.loadServerData_queryDuzenle(...arguments)
+		let { aliasVeNokta } = this
+		sahalar.add(`${aliasVeNokta}oetip`, `${aliasVeNokta}wspass`)
 	}
 	static yeniInstOlustur(e) {
-		const {islem} = e, {kod} = e.rec ?? (e.recs || [])[0];
-		if (!(islem == 'yeni' || islem == 'kopya')) { if (!kod) { throw { isError: true, errorText: 'Boş kayıt üzerinde işlem yapılamaz' } } }
+		let { islem, rec, recs } = e
+		let { kod } = rec ?? recs?.[0] ?? {}
+		if (!(islem == 'yeni' || islem == 'kopya')) {
+			if (!kod)
+				throw { isError: true, errorText: 'Boş kayıt üzerinde işlem yapılamaz' }
+		}
 		return super.yeniInstOlustur(e)
 	}
 	eIslListeSentDuzenle(e) { }

@@ -499,7 +499,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		let { hareketci: orj } = this
 		orj.sonIslemler(e)
 		let { with: _with } = stm
-		let {degerlemeDvKodListe: dvKodListe} = this
+		let { degerlemeDvKodListe: dvKodListe } = this
 		let dvKodSet = asSet(dvKodListe) ?? {}
 		let gecerliDvKodSet = {}, dvKodVarmi = false
 		for (let key in attrSet) {
