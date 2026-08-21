@@ -176,7 +176,7 @@ class EFisDetay extends EFisBase {
 			tip2Deger2Detay.barkod[barkod]
 		)
 		if (!shRefDet)
-			shRefDet = this.getUygunMustRefDetay({ rec, shRefFis })
+			shRefDet = this.getUygunMustRefDetay({ rec, shRefFis: ref })
 		this.shRefDet = shRefDet
 		
 		if (eSHKod)

@@ -88,7 +88,8 @@ class EFis extends EFisBase {
 	}
 	get belgeTipi() {
 		return this.getXMLValue('belgeTipi', ({ xml }) =>
-			xml.querySelector('InvoiceTypeCode') || e.xml.querySelector('DespatchAdviceTypeCode'))
+			xml.querySelector('InvoiceTypeCode') ||
+			xml.querySelector('DespatchAdviceTypeCode'))
 	}
 	get senaryoTipi() {
 		return this.getXMLValue('senaryoTipi', () => {
@@ -325,6 +326,7 @@ class EFis extends EFisBase {
 			seri: tsn.seri, noyil: tsn.noYil, no: tsn.no,
 			dvkod: this.dvKod || '',
 			dvkur: this.dvKur,
+			birsaliyevar: !empty(this.irsaliyeBilgileri),
 		// TL BEDEL
 			efbrut: getBedel(false, icmal.brutBedel),
 			efiskonto: getBedel(false, icmal.toplamIskonto),

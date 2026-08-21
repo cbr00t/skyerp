@@ -122,18 +122,26 @@ class MQEConf extends MQKA {
 	}
 	eIslListeSentDuzenle(e) { }
 	getAnaBolumFor(e = {}) {
-		e = typeof e == 'string' ? { eIslTip: e } : isClass(e) ? { eIslSinif: e } : e
-		let {eIslTip, eIslSinif} = e
+		e = (
+			isString(e) ? { eIslTip: e } :
+			isClass(e) ? { eIslSinif: e } :
+			e
+		)
+		let { eIslSinif, eIslTip = e.efAyrimTipi ?? e.efayrimtipi } = e
 		eIslTip ||= 'A'
+		
 		if (!eIslSinif && eIslTip != null)
 			eIslSinif = EIslemOrtak.getClass(eIslTip)
+		
 		let result = this.getValue('anaBolum')
 		if (!result)
 			return result
-		let {altBolum} = eIslSinif || {}
+		
+		let { altBolum } = eIslSinif ?? {}
 		altBolum = altBolum?.trim('\\')?.trim('/')
 		if (altBolum)
 			result += `\\${altBolum}`
+		
 		return result
 	}
 	getValue(e) {

@@ -2,6 +2,8 @@ class EYonetici_Gelen extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
     get eIslTip() { return this.eIslSinif?.tip }
     set eIslTip(v) { this.eIslSinif = EIslemOrtak.getClass(v) }
+    get efAyrimTipi() { return this.class.normalizeEFAyrimTipi(this.eIslTip) }
+    get eIrsmi() { return this.eIslSinif?.eIrsaliyemi }
 
     constructor(e = {}) {
         super(e)
@@ -46,11 +48,8 @@ class EYonetici_Gelen extends CObject {
             return null
 
         let gelen = true
-        let { eConf, eIslSinif, eIslTip } = this
-        if (!eIslTip)
-            eIslTip = 'E'
-        
-        let subDir = eConf.getAnaBolumFor(eIslTip)
+        let { eConf, eIslSinif, eIslTip, efAyrimTipi } = this
+        let subDir = eConf.getAnaBolumFor(efAyrimTipi)
         if (!subDir)
             throw { isError: true, errorText: 'e-İşlem Ana Bölüm belirlenemedi'}
 
@@ -70,8 +69,8 @@ class EYonetici_Gelen extends CObject {
             cmd.shell_lines())
         delay(500).then(() =>
             df.resolve())
+        
         let shellRes = await df.catch(() => {})
-
         return ({ eIslSinif, eIslTip, recs, queryRes, shellRes })
     }
     
@@ -81,14 +80,13 @@ class EYonetici_Gelen extends CObject {
     bekleyenleriGetir(e = {}) {
         return this._bekleyenleriGetir({ ...e, defsOnly: true })
     }
-    async _bekleyenleriGetir({ tarihBS, eskilerAlinsin, recsDuzenle, defsOnly } = {}) {
-        let { eConf, eIslSinif, eIslTip } = this
-        let efAyrimTipi = eIslTip
-        if (efAyrimTipi == 'E' || efAyrimTipi == 'A')
-            efAyrimTipi = ''
+    async _bekleyenleriGetir(e = {}) {
+        let { tarihBS, eskilerAlinsin, recsDuzenle, defsOnly, aliasKontrol } = e
+        let { eConf, eIslSinif, eIslTip, efAyrimTipi, eIrsmi } = this
+        let { eLogin, eIslEkArgs: ekArgs } = eConf
         
         let gelen = true, xmlContentFlag = true
-    	let subDir = eConf.getAnaBolumFor(efAyrimTipi)
+    	let subDir = eConf.getAnaBolumFor(eIslTip)
         if (!subDir)
             throw { isError: true, errorText: 'e-İşlem Ana Bölüm belirlenemedi'}
         
@@ -100,8 +98,6 @@ class EYonetici_Gelen extends CObject {
     	
     	let eIslemAPI = 'gelenBelgeleriGetir'
     	let eIslemci = eIslTip
-        let eLogin = toJSONStr(eConf.eLogin)
-        let ekArgs = toJSONStr(eConf.eIslEkArgs)
         eskilerAlinsin ??= true
 
         if (tarihBS) {
@@ -113,7 +109,13 @@ class EYonetici_Gelen extends CObject {
 
         let wsRes
         ;{
-        	let args = { gelen, eskilerAlinsin, xmlContentFlag, tarihBS }
+            let gibAlias = ''
+            if (aliasKontrol) {
+                gibAlias = eConf.getValue('gibAlias')
+                if (eIrsmi)
+                    gibAlias = eConf.getValue('eIrsGIBAlias') || gibAlias
+            }
+        	let args = { gelen, eskilerAlinsin, xmlContentFlag, tarihBS, gibAlias }
         	wsRes = await app.wsEIslemYap({ eIslemci, oe, eIslemAPI, eLogin, ekArgs, args })
         }
     	if (isArray(wsRes))
@@ -134,16 +136,13 @@ class EYonetici_Gelen extends CObject {
 
             let eFis = new EFis({ eIslSinif, eConf, xml })
             ;{
-                let { efAyrimTipi: v } = eFis
-                if (v == 'E' || v == 'A')
-                    v = ''
-
+                let v = this.class.normalizeEFAyrimTipi(eFis.efAyrimTipi)
                 if (v == efAyrimTipi)
                     recs.push(eFis)
             }
     	}
 
-        let _recs = recsDuzenle?.call?.(this, { ...arguments[0], efAyrimTipi, recs })
+        let _recs = await recsDuzenle?.call?.(this, { ...e, eYonetici: this, eConf, eIrsmi, efAyrimTipi, recs })
         recs = _recs ?? recs
         if (empty(recs))
             return null
@@ -151,7 +150,7 @@ class EYonetici_Gelen extends CObject {
         let uuid2Rec = fromEntries(
             recs.map(r => [r.uuid, r]))
 
-        let res = { efAyrimTipi, recs, uuid2Rec }
+        let res = { eIrsmi, eIslSinif, efAyrimTipi, recs, uuid2Rec }
         if (defsOnly) {
             await EFis.topluEkBilgileriBelirle(recs)
             return res
@@ -168,95 +167,74 @@ class EYonetici_Gelen extends CObject {
         let { recs, uuid2Rec, silent } = e
         if (empty(recs))
             return null
-        
-        await EFis.topluEkBilgileriBelirle(recs)
-        uuid2Rec ??= fromEntries(
-            recs.map(r => [r.uuid, r]))
 
+        let { efAyrimTipi, eIrsmi } = this
+        uuid2Rec ??= e.uuid2Rec = fromEntries(
+            recs.map(r => [r.uuid, r]))
+        
         let args = { ...e, recs, uuid2Rec }
         await this._kaydet_onKontrol(args)
         mergeInto(args, e, 'recs', 'uuid2Rec')
         
+        await EFis.topluEkBilgileriBelirle(recs)
         await this._geciciFisKaydet(args)
         mergeInto(args, e, 'recs', 'uuid2Rec')
 
-        return { recs, uuid2Rec, silent }
+        return { eIrsmi, efAyrimTipi, recs, uuid2Rec, silent }
     }
-    async _kaydet_onKontrol({ efAyrimTipi, recs, uuid2Rec, silent }) {
+    async _kaydet_onKontrol(e = {}) {
         let islemAdi = 'Alım Geçici e-İşlem'
         let alim = true
 
+        let { eConf, efAyrimTipi, eIrsmi } = this
+        let { recs, uuid2Rec, vknKontrol, /*aliasKontrol,*/ silent } = e
         let { vergi: { vknTckn: isyVKN } = {} } = app.params?.isyeri ?? {}
+        
         let warns = [], errors = []
-        for (let r of recs) {
-            let { aliciVKN: vkn } = r
-            if (vkn && vkn != isyVKN) {
-                warns.push([
-                    `<div>`,
-                        `<span>Alınan e-İşlem Belgesindeki</span>`,
-                        `<ul>`,
-                            `<li><u>Alıcı VKN bilgisi</u>: <b>${vkn}</b></li>`,
-                            `<li><u>Bu İşyerine ait VKN</u>: <b>${isyVKN}</b></li>`,
-                        `</ul>`,
-                        `<span>farklıdır.</span>`,
-                    `</div>`,
-                    `<div style="font-weight: bold; color: firebrick; margin-top: 5px; padding-left: 30px;">`,
-                        `Yine de devam edilsin mi?`,
-                    `</div>`
-                ].map('\n'))
-            }
-        }
-
-        /*;{
-            let duplUni = new MQUnionAll()
-            duplStm = new MQStm({ sent: duplUni })
-            
-            let uuidListe = keys(uuid2Rec)
-            let fisNoxListe = recs.map(r => r.fisNox)
-            ;{
-                let sent = new MQSent(), { where: wh, sahalar } = sent
-                sent.fromAdd('efgecicialfatfis fis')
-                wh
-                    .degerAta(efAyrimTipi, 'fis.efbelge')
-                    .add(new MQOrClause()
-                        //.add(new MQAndClause([]))
-                        .inDizi(keys(uuid2Rec), 'fis.efuuid')
-                        .inDizi(fisNoxListe, 'fis.effatnox')
-                    )
-                sahalar.add(`1 gecici`, 'fis.effatnox fisNox', 'fis.efuuid uuid')
-                duplUni.add(sent)
-            }
-            
-            ;{
-                let sent = new MQSent(), { where: wh, sahalar } = sent
-                sent
-                    .fromAdd('piffis fis')
-                    .fis2CariBagla()
-                wh
-                    .degerAta(pifTipi, 'fis.piftipi')
-                    .add(new MQOrClause()
-                        .inDizi(uuidListe, 'fis.efatuuid')
-                        .add(new MQAndClause()
-                            .ticariGC({ alim })
-                            .inDizi(fisNoxListe, 'fis.fisnox')
-                        )
-                    )
-                sahalar.add(`0 gecici`, 'fis.fisnox fisNox', 'fis.efatuuid uuid')
-                duplUni.add(sent)
-            }
-        }
-
-        let duplRecs = await duplStm.execSelect()
-        if (!empty(duplRecs)) {
+        if (vknKontrol) {
+            let vknListe = keys(asSet(
+                recs
+                    .map(r => r.vkn)
+                    .filter(Boolean)
+            ))
             warns.push(
-                ...duplRecs.map(({ gecici, fisNox }) =>
-                    `${fisNox} numaralı belge ${gecici ? 'Geçici Listede ' : ''}tekrarlandığı için alınmayacak`)
+                ...vknListe
+                    .filter(vkn => vkn != isyVKN)
+                    .map(vkn => [
+                        `<div>`,
+                            `<span>Alınan e-İşlem Belgesindeki</span>`,
+                            `<ul>`,
+                                `<li><u>Alıcı VKN bilgisi</u>: <b>${vkn}</b></li>`,
+                                `<li><u>Bu İşyerine ait VKN</u>: <b>${isyVKN}</b></li>`,
+                            `</ul>`,
+                            `<span>farklıdır.</span>`,
+                        `</div>`,
+                        `<div style="font-weight: bold; color: firebrick; margin-top: 5px; padding-left: 30px;">`,
+                            `Yine de devam edilsin mi?`,
+                        `</div>`
+                    ].map('\n'))
             )
-            deleteKeys(uuid2Rec, duplRecs.map(r => r.uuid))
-            recs = values(uuid2Rec)
-            extend(e, { recs, uuid2Rec })
-        }*/
+        }
+        
+        /*if (aliasKontrol) {
+            let targetGIBAlias = eConf.getValue('gibAlias')
+            if (eIrsmi)
+                targetGIBAlias = eConf.getValue('eIrsGIBAlias') || targetGIBAlias
+            
+            if (targetGIBAlias) {
+                let fltRecs = recs.filter(r =>
+                    r.gibAlias && r.gibAlias == targetGIBAlias)
+                if (fltRecs.length != recs.length) {
+                    recs = e.recs = fltRecs
+                    uuid2Rec = e.uuid2Rec = fromEntries(
+                        recs.map(r => [r.uuid, r]))
 
+                    if (empty(recs))
+                        errors.push(`GIB Alias eşleşen belge bulunamadı`)
+                }
+            }
+        }*/
+        
         ;{
             if (!(silent || empty(warns))) {
                 let rdlg = await ehConfirm(
@@ -266,15 +244,16 @@ class EYonetici_Gelen extends CObject {
                 if (!rdlg)
                     throw { isError: true, rc: 'userAbort' }
             }
+            
             if (!empty(errors))
                 throw { isError: true, errorText: getMergedText(null, errors) }
         }
         
         return this
     }
-    async _geciciFisKaydet({ efAyrimTipi, recs, uuid2Rec }) {
+    async _geciciFisKaydet({ recs, uuid2Rec }) {
         let alim = true
-        let eIrsmi = efAyrimTipi == 'IR'
+        let { efAyrimTipi, eIrsmi } = this
         let pifTipi = eIrsmi ? 'I' : 'F'
     
         let toplu = new MQToplu()
@@ -282,7 +261,7 @@ class EYonetici_Gelen extends CObject {
         ;{
             toplu.add(`DECLARE @fisSayac BIGINT`)
             for (let r of recs) {
-                let { uuid, fisNox, mustKod } = r
+                let { uuid, fisNox, gondericiVKN: vkn, mustKod } = r
                 toplu.add(
                     `IF NOT EXISTS (`,
                         new MQUnionAll([
@@ -293,8 +272,10 @@ class EYonetici_Gelen extends CObject {
                                     .degerAta(efAyrimTipi, 'fis.efbelge')
                                     .add(new MQOrClause()
                                         .degerAta(uuid, 'fis.efuuid')
-                                        .degerAta(fisNox, 'fis.effatnox')
-                                    )
+                                        .add(new MQAndClause()
+                                            .degerAta(vkn, 'fis.vkno')
+                                            .degerAta(fisNox, 'fis.effatnox')
+                                        ))
                             }),
                             new MQSent({
                                 from: 'piffis fis',
@@ -336,4 +317,11 @@ class EYonetici_Gelen extends CObject {
             return true
         })
     }
+
+    static normalizeEFAyrimTipi(v) {
+        return v == 'E' || v == 'A'
+            ? ''
+            : v
+    }
+    
 }

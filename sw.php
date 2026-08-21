@@ -91,8 +91,6 @@ async function handleReq(req) {
 	let cache = await caches.open(CACHE_NAME)
 	let withCache = async () => {
 		let cachedResponse = await cache.match(req)
-		if (!cachedResponse)
-			throw null
 		return cachedResponse
 	}
 	let withFetch = async () => {

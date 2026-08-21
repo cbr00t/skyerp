@@ -20,8 +20,9 @@ class MQEIslem_Gelen extends MQCogul {
         let tip2EYonetici = {}
         ;[EIslFatura, EIslIrsaliye].forEach(eIslSinif =>
             tip2EYonetici[eIslSinif.tip] = new EYonetici_Gelen({ eConf, eIslSinif }))
-        
-        extend(listePart, { eConf, tip2EYonetici })
+
+		let sorguFiltre = new this.BekSorguFiltre()
+        extend(listePart, { eConf, tip2EYonetici, sorguFiltre })
     }
     static listeEkrani_afterRun({ sender: listePart }) {
         super.listeEkrani_afterRun(...arguments)
@@ -69,9 +70,10 @@ class MQEIslem_Gelen extends MQCogul {
         let items = [
             {
                 id: 'bekleyenleriGetir',
-                handler: _e =>
+                handler: _e => void(
                     withErrCheck('Bekleyenleri Getir', _e, args =>
                         this.bekleyenleriGetirIstendi(args))
+				)
             },
             {
                 id: 'eIslemIzle',
@@ -252,10 +254,23 @@ class MQEIslem_Gelen extends MQCogul {
         groups ??= ['eIslTipText']
         liste.push(...groups)
     }
+	static orjBaslikListesi_satirCiftTiklandi({ sender } = {}) {
+		super.orjBaslikListesi_satirCiftTiklandi(...arguments)
+		// let { row: rec = e.event?.args ?? {}
+		this.eIslemIzleIstendi({ sender })
+	}
 
     static async bekleyenleriGetirIstendi({ sender: listePart } = {}) {
 		let islemAdi = 'e-İşlem Bekleyenleri Getir'
-        let { tarihBS } = listePart.secimler
+
+		let { sorguFiltre: wsSec } = listePart
+		await promise(tamamIslemi => {
+			let parentPart = listePart
+			let mfSinif = this
+			wsSec.duzenlemeEkraniAc({ parentPart, mfSinif, tamamIslemi })
+		})
+		
+		let { tarihBS, vknKontrol: { value: vknKontrol }, aliasKontrol: { value: aliasKontrol } } = wsSec
         let recsDuzenle = recs => {
             // debugger
         }
@@ -265,7 +280,10 @@ class MQEIslem_Gelen extends MQCogul {
 		try {
 	        for (let eYon of this.getEYoneticiler({ listePart })) {
 	            let { eIslTip: k } = eYon
-	            tip2Res[k] = await eYon.bekleyenleriGetirVeKaydet({ tarihBS, recsDuzenle })
+	            tip2Res[k] = await eYon.bekleyenleriGetirVeKaydet({
+					tarihBS, recsDuzenle,
+					aliasKontrol, vknKontrol
+				})
 	        }
 			delay(10).then(() =>
 				listePart?.tazele?.())
@@ -283,8 +301,7 @@ class MQEIslem_Gelen extends MQCogul {
         for (let r of listePart.selectedRecs) {
             let { eIslTip: k } = r
             k ||= 'E'
-            ;(tip2Recs[k] ??= [])
-                .push(r)
+            ;(tip2Recs[k] ??= []).push(r)
 			totalCount++
         }
         
@@ -323,17 +340,29 @@ class MQEIslem_Gelen extends MQCogul {
         for (let r of listePart.selectedRecs) {
             let { eIslTip: k } = r
             k ||= 'E'
-            ;(tip2Recs[k] ??= [])
-                .push(r)
+            ;(tip2Recs[k] ??= []).push(r)
 			totalCount++
         }
         
         if (empty(tip2Recs))
             throw { isError: true, errorText: 'Silinecek belgeler seçilmelidir' }
-        
+
+		try {
+			let rdlg = await ehConfirm(
+				(
+					`<p><b class="royalblue">${totalCount} adet</b> Gelen e-İşlem Belgesi <u class="bold red">SİLİNECEKTİR</u></p>` +
+					`<p>Devam edilsin mi?</p>`
+				),
+				islemAdi
+			)
+			if (!rdlg)
+				return
+		}
+		catch (ex) { return }
+		
         let internal = true
         let tip2Res = {}
-		let pm = await showProgress('Gelen e-İşlem Belgeleri siliniyor...', islemAdi)
+		let pm = await showProgress(`<b class="royalblue">${totalCount} adet</b> Gelen e-İşlem Belgesi <u class="red">SİLİNİYOR</u>...`, islemAdi)
 		try {
 			pm?.setProgressMax(totalCount)
 	        for (let [tip, recs] of entries(tip2Recs)) {
@@ -343,6 +372,8 @@ class MQEIslem_Gelen extends MQCogul {
 				pm?.progressStep()
 	        }
 
+			let { gridWidget: w } = listePart ?? {}
+			w?.clearselection()
 			delay(10).then(() =>
 				listePart?.tazele?.())
 		}
