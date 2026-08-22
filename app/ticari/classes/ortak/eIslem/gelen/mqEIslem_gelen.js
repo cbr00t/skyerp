@@ -21,7 +21,7 @@ class MQEIslem_Gelen extends MQCogul {
         ;[EIslFatura, EIslIrsaliye].forEach(eIslSinif =>
             tip2EYonetici[eIslSinif.tip] = new EYonetici_Gelen({ eConf, eIslSinif }))
 
-		let sorguFiltre = new this.BekSorguFiltre()
+		let sorguFiltre = new MQEIslem_Gelen_BekSorguFiltre()
         extend(listePart, { eConf, tip2EYonetici, sorguFiltre })
     }
     static listeEkrani_afterRun({ sender: listePart }) {
@@ -70,9 +70,17 @@ class MQEIslem_Gelen extends MQCogul {
         let items = [
             {
                 id: 'bekleyenleriGetir',
+				text: '📶',
                 handler: _e => void(
                     withErrCheck('Bekleyenleri Getir', _e, args =>
                         this.bekleyenleriGetirIstendi(args))
+				)
+            },
+			{
+                id: 'ticariyeAktar',
+				handler: _e => void(
+                    withErrCheck('Ticariye Aktar', _e, args =>
+                        this.ticariyeAktarIstendi(args))
 				)
             },
             {
@@ -167,16 +175,16 @@ class MQEIslem_Gelen extends MQCogul {
                 new GridKolon({ belirtec: 'fisNox', text: 'Belge No', genislikCh: 23 }).noSql().checkedList(),
                 true    // auto-reverse in mini-device mode
             ),
-			new GridKolon({ belirtec: 'efMustUnvan', text: 'EF Gönderici Ünvan', genislikCh: 40 }).noSql().checkedList(),
-            /*...MQCogul.getKAKolonlar(
-                new GridKolon({ belirtec: 'efMustUnvan', text: 'EF Gönderici Ünvan', genislikCh: 40 }).noSql().checkedList(),
-                new GridKolon({ belirtec: 'akibetText', text: 'Akıbet', genislikCh: 10 }).noSql().checkedList(),
-                true
-            ),*/
+			new GridKolon({ belirtec: 'gondericiUnvan', text: 'EF Gönderici Ünvan', genislikCh: 40 }).noSql().checkedList(),
+            ...MQCogul.getKAKolonlar(
+                new GridKolon({ belirtec: 'gondericiUnvan', text: 'EF Gönderici Ünvan', genislikCh: 40 }).noSql().checkedList(),
+                new GridKolon({ belirtec: 'gondericiVKN', text: 'Gönderici VKN', genislikCh: 11 }).noSql().checkedList(),
+                false
+            ),
             new GridKolon({ belirtec: 'irsVar', text: 'İrs?', genislikCh: 5 }).noSql().checkedList().tipBool(),
             new GridKolon({ belirtec: 'sonucBedel', text: 'Sonuc Bedel', genislikCh: 23 }).noSql().tipDecimal_bedel().sum().input(),
             ...MQCogul.getKAKolonlar(
-                new GridKolon({ belirtec: 'vioMustKod', text: 'Vio Cari', genislikCh: 18 }).noSql().checkedList(),
+                new GridKolon({ belirtec: 'gondericiMustKod', text: 'Vio Cari', genislikCh: 18 }).noSql().checkedList(),
                 new GridKolon({ belirtec: 'vioMustUnvan', text: 'Vio Cari Ünvan', genislikCh: 40 }).noSql().checkedList(),
                 false
             ),
@@ -220,8 +228,9 @@ class MQEIslem_Gelen extends MQCogul {
             sahalar
                 .addWithAlias('fis',
                     'kayitts kayitTS', 'efuuid uuid', 'tarih', 'seri', 'noyil noYil', 'onaydurumu akibet',
-                    'effatnox fisNox', 'mustkod vioMustKod', 'efmustunvan efMustUnvan', 'efsonuc sonucBedel',
-                    'tamamlandi', 'yazdirildimi yazdirildi', 'bozukmu bozuk', 'birsaliyevar irsVar'
+                    'effatnox fisNox', 'mustkod gondericiMustKod', 'efmustunvan gondericiUnvan', 'vkno gondericiVKN',
+					'efsonuc sonucBedel', 'tamamlandi', 'yazdirildimi yazdirildi',
+					'bozukmu bozuk', 'birsaliyevar irsVar', 'bizsubekod subeKod', 'degadreskod degAdresKod'
                 )
                 .add(
                     `(CASE WHEN fis.efbelge = '' THEN 'E' ELSE fis.efbelge END) eIslTip`,
@@ -281,6 +290,47 @@ class MQEIslem_Gelen extends MQCogul {
 	        for (let eYon of this.getEYoneticiler({ listePart })) {
 	            let { eIslTip: k } = eYon
 	            tip2Res[k] = await eYon.bekleyenleriGetirVeKaydet({
+					tarihBS, recsDuzenle,
+					aliasKontrol, vknKontrol
+				})
+	        }
+			delay(10).then(() =>
+				listePart?.tazele?.())
+		}
+		finally {
+			pm?.progressEnd()
+			delay(20).then(() =>
+				hideProgress())
+		}
+    }
+	static async ticariyeAktarIstendi({ sender: listePart } = {}) {
+		let islemAdi = 'e-İşlem Ticariye Aktar'
+		let { eConf, selectedRec: rec } = listePart
+		if (!rec) {
+			hConfirm('Bir satır seçilmelidir', islemAdi)
+			return
+		}
+
+		let pr = defer()
+		let inst = new MQEIslem_Gelen_EkBilgiUI()
+			.setParentPart(listePart)
+			.setEConf(eConf)
+			.setRec(rec)
+			.setTamamIslemi(res =>
+				void(pr.resolve(res)))
+			//.rfbEkDuzenle( ({ sender: { content } }) =>
+			//	content.addButton('ok', 'OK'))
+		await inst.run()
+		
+		let res = await pr
+		debugger
+		
+        let tip2Res = {}
+		let pm = await showProgress('...', islemAdi)
+		try {
+	        for (let eYon of this.getEYoneticiler({ listePart })) {
+	            let { eIslTip: k } = eYon
+	            tip2Res[k] = await eYon.ticariyeAktar({
 					tarihBS, recsDuzenle,
 					aliasKontrol, vknKontrol
 				})

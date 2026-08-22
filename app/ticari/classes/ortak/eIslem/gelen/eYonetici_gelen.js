@@ -323,5 +323,7 @@ class EYonetici_Gelen extends CObject {
             ? ''
             : v
     }
-    
+    static eIrsmi(v) {
+        return this.normalizeEFAyrimTipi(v) == 'IR'
+    }
 }

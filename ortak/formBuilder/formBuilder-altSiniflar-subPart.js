@@ -838,8 +838,14 @@ class FBuilder_Button extends FBuilder_InputOrtak {
 			input.jqxButton(_e.args); input.on('click', evt => this.signalClick($.extend({}, e, { builder: this, input: input, event: evt })))
 		}
 		styles.push(
-			`$elementCSS > input { font-weight: bold; font-size: 85%; min-width: 60px; padding-left: 30px; padding-right: 30px }
-			 $elementCSS > input.jqx-fill-state-normal { color: #999 }`
+			`$elementCSS { backdrop-filter: brightness(0.93) !important; border-radius: 10px }
+			 body.dark-theme $elementCSS { backdrop-filter: brightness(0.96) !important }
+			 $elementCSS > input {
+				font-weight: bold;
+				font-size: 85%; min-width: 60px;
+				padding-left: 30px; padding-right: 30px
+			}
+			 $elementCSS > input.jqx-fill-state-normal { color: #777 }`
 		)
 	}
 	postBuild(e) {
