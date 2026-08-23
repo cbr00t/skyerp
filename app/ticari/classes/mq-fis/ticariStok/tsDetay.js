@@ -298,41 +298,61 @@ class TSSHDDetay extends TSDetay {
 		if (fis?.class?.ticarimi) {
 			let {vergiBelirtecler} = TicariFis;
 			for (let belirtec of vergiBelirtecler) {
-				if (this[`${belirtec}Kod`] && this[`${belirtec}Orani`] == null) { this.vergileriHesapla(e) }
+				if (this[`${belirtec}Kod`] && this[`${belirtec}Orani`] == null)
+					this.vergileriHesapla(e)
 			}
 		}
 	}
 	eBilgiSetValues_ilk(e) {
-		super.eBilgiSetValues_ilk(e); let rec = this.eBilgi, gecerliMiktar = ((rec.efmiktar ?? rec.miktar) - rec.irsgecersiz) || 1;
+		super.eBilgiSetValues_ilk(e)
+		let { eBilgi: rec } = this
+		let gecerliMiktar = ((rec.efmiktar ?? rec.miktar) - rec.irsgecersiz) || 1
 		// fiyat verilmeyen hizmet gibi yerlerde
-		let {fiyat, bedel} = rec; if (!fiyat && bedel && ((gecerliMiktar || 0) <= 1)) { fiyat = bedel }
-		$.extend(this, {
+		let { fiyat, bedel } = rec
+		if (!fiyat && bedel && ((gecerliMiktar || 0) <= 1))
+			fiyat = bedel
+		
+		extend(this, {
 			shKod: rec.shkod, shAdi: rec.shadi, miktar: gecerliMiktar, brm: rec.shbrm,
 			fiyat, veriFiyat: fiyat, kdvKod: rec.kdvKod || '', orjkdvKod: rec.shkdvhesapkod
-		}); this.miktar2Hesapla(e); this.uiSatirBedelHesapla(e)
+		})
+		this.miktar2Hesapla(e)
+		this.uiSatirBedelHesapla(e)
 	}
-	eBilgiSetValues_son(e) { super.eBilgiSetValues_son(e); this.bedelHesapla({ ticarimi: true }) }
-	getYerKod(e) { e = e || {}; let {fis} = e; return fis?.yerOrtakmi ? fis.yerKod : this.yerKod }
+	eBilgiSetValues_son(e) {
+		super.eBilgiSetValues_son(e)
+		this.bedelHesapla({ ticarimi: true })
+	}
+	getYerKod({ fis } = {}) {
+		return fis?.yerOrtakmi ? fis.yerKod : this.yerKod
+	}
 	uiSatirBedelHesaplaDevam(e) {
-		super.uiSatirBedelHesaplaDevam(e); let {gridWidget, fis, rowIndex} = e;
-		let ticarimi = e.ticarimi ?? (fis?.class?.ticarimi ?? false); this.bedelHesapla(e);
-		if (ticarimi) { this.vergileriHesapla(e) }
-		if (gridWidget) {
-			gridWidget.setcellvalue(rowIndex, 'brutBedel', this.brutBedel);
-			gridWidget.setcellvalue(rowIndex, 'netBedel', this.netBedel)
+		super.uiSatirBedelHesaplaDevam(e)
+		let { gridWidget: w, fis, rowIndex } = e
+		let ticarimi = e.ticarimi ?? (fis?.class?.ticarimi ?? false)
+		this.bedelHesapla(e)
+		if (ticarimi)
+			this.vergileriHesapla(e)
+		if (w) {
+			w.setcellvalue(rowIndex, 'brutBedel', this.brutBedel)
+			w.setcellvalue(rowIndex, 'netBedel', this.netBedel)
 		}
 	}
 	miktar2Hesapla(e) { }
 	bedelHesapla(e) {
-		let brutBedel = this.brutBedel = roundToBedelFra(asFloat(this.miktar) * asFloat(this.fiyat));
+		let brutBedel = this.brutBedel =
+			roundToBedelFra(asFloat(this.miktar) * asFloat(this.fiyat))
 		return this.netBedelHesapla(e)
 	}
-	netBedelHesapla(e) {
-		e = e || {}; this.iskBedelYapiReset();
-		let {fis} = e, {brutBedel} = this, netBedel = brutBedel;
-		let ticarimi = e.ticarimi ?? fis?.class?.ticarimi ?? false;
-		if (ticarimi) { netBedel -= this.iskBedelToplam }
-		return this.netBedel = netBedel
+	netBedelHesapla({ fis, ticarimi } = {}) {
+		this.iskBedelYapiReset();
+		let { brutBedel } = this
+		let netBedel = brutBedel
+		ticarimi ??= fis?.class?.ticarimi ?? false
+		if (ticarimi)
+			netBedel -= this.iskBedelToplam
+		this.netBedel = netBedel
+		return netBedel
 	}
 	async vergileriHesapla(e) {
 		let {netBedel} = this, {vergiBelirtecler} = TicariFis, {fiyatKDVlidir} = app.params?.fiyatVeIsk ?? {};

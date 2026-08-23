@@ -3,21 +3,41 @@ class EAlimTicariyeDonusturucu extends CObject {
 	constructor(e) {
 		e = e || {}; super(e);
 		const eYonetici = this.eYonetici = e.eYonetici || {};
-		$.extend(this, { eConf: e.eConf ?? eYonetici.eConf ?? MQEConf.instance, eIslSinif: e.eIslSinif ?? eYonetici.eIslSinif, rec: e.rec, eFis: e.eFis, title: 'Alım Fişi İçeri Alımı' })
+		extend(this, {
+			eConf: e.eConf ?? eYonetici.eConf ?? MQEConf.instance,
+			eIslSinif: e.eIslSinif ?? eYonetici.eIslSinif,
+			rec: e.rec,
+			eFis: e.eFis,
+			title: 'Alım Fişi İçeri Alımı'
+		})
 	}
 	async fisGirisiYap(e) {
-		const {rec} = this, {result} = e, irsaliyemi = (rec.efayrimtipi ?? rec.efbelge) == 'IR', ayrimTipi = (rec.ayrimtipi || '').trim(), iademi = !!rec.iade;
-		const fisSinif = FisAyrimTipiBasit.gelenFisSinifFor({ irsaliyemi, iademi, ayrimTipi });
-		if (!fisSinif) { $.extend(result, { isError: true, message: 'Fiş Sınıfı belirlenemedi' }); return result }
-		const efDonusumler = await this.getEFDonusumBilgileri(), yerRec = await MQStokYer.getVarsayilanYerRec();
-		rec.noYil = rec.noYil ?? app.params.zorunlu.cariYil; rec.fisNo = rec.no; delete rec.no;
-		const eBilgi = { rec, efDonusumler, yerRec, gridKontrolcuSinif: EIslAlimGridKontrolcu };
-		const fis = new fisSinif({ eBilgi }); await fis?.eBilgiIcinDetaylariYukle(e); let promise_fis = new $.Deferred();
+		let { rec } = this, { result } = e
+		let irsaliyemi = (rec.efayrimtipi ?? rec.efbelge) == 'IR'
+		let ayrimTipi = (rec.ayrimtipi || '').trim(), iademi = !!rec.iade
+		let fisSinif = FisAyrimTipiBasit.gelenFisSinifFor({ irsaliyemi, iademi, ayrimTipi })
+		if (!fisSinif) {
+			extend(result, { isError: true, message: 'Fiş Sınıfı belirlenemedi' })
+			return result
+		}
+		let efDonusumler = await this.getEFDonusumBilgileri()
+		let yerRec = await MQStokYer.getVarsayilanYerRec()
+		rec.noYil ??= app.params.zorunlu.cariYil
+		rec.fisNo = rec.no
+		delete rec.no
+		
+		let eBilgi = { rec, efDonusumler, yerRec, gridKontrolcuSinif: EIslAlimGridKontrolcu }
+		let fis = new fisSinif({ eBilgi })
+		await fis?.eBilgiIcinDetaylariYukle(e)
+		
+		let promise_fis = new $.Deferred()
 		await fis.tanimla({
 			islem: 'yeni',
 			kaydedince: e => { result.message = 'Fiş kaydedildi'; promise_fis.resolve(true); fis._kaydedildimi = true },
 			kapaninca: e => { if (!fis._kaydedildimi) { $.extend(result, { isError: true, message: 'İşlem iptal edildi' }); promise_fis.resolve(false) } }
-		}); await promise_fis; return result
+		})
+		await promise_fis
+		return result
 	}
 	async belgeKontrol(e) {
 		const {rec} = e, irsaliyemi = rec.efbelge == 'IR';
@@ -28,7 +48,8 @@ class EAlimTicariyeDonusturucu extends CObject {
 				{ degerAta: rec.mustkod, saha: 'must' }, { ticariGC: true, fisAlias: '' }			/* 'ayrimtipi' kontrol edilmez */
 			]
 		});
-		const ayrimTipi = await app.sqlExecTekilDeger(sent); return { varmi: ayrimTipi != null, ayrimTipi }
+		const ayrimTipi = await app.sqlExecTekilDeger(sent)
+		return { varmi: ayrimTipi != null, ayrimTipi }
 	}
 	async getEFDonusumBilgileri() {
 		const {rec} = this, fisSayac = rec.fissayac;
@@ -171,7 +192,7 @@ class EAlimTicariyeDonusturucu extends CObject {
 				catch (ex) { console.error(ex) }
 			}
 		}
-		const inst = new MQCari(); inst.alimEIslIcinSetValues($.extend({}, e, { rec, eFis }));
+		const inst = new MQCari(); inst.__old__alimEIslIcinSetValues($.extend({}, e, { rec, eFis }));
 		wnd.addClass('jqx-hidden'); $('body').removeClass('bg-modal');
 		MQCari.tanimla({
 			islem: 'yeni', inst,

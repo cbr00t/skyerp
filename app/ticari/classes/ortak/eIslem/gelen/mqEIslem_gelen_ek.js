@@ -25,8 +25,7 @@ class MQEIslem_Gelen_EkBilgiUI extends SimplePart {
 
     constructor(e = {}) {
         super(e)
-        let { eConf, rec, tamamIslemi } = e
-        extend(this, { eConf, rec, tamamIslemi })
+        mergeInto(e, this, 'eConf', 'rec', 'musteriBelirlemi', 'tamamIslemi')
     }
     run(e) {
         let { rec } = this
@@ -37,7 +36,7 @@ class MQEIslem_Gelen_EkBilgiUI extends SimplePart {
     
     rfbDuzenle(e) {
         super.rfbDuzenle(e)
-		let { islemTuslari, content } = this
+		let { musteriBelirlemi, islemTuslari, content } = this
         let { style, tools: t } = this.ekBilgi_styleAndTools
         let altInst = () =>
             this.rec
@@ -56,13 +55,16 @@ class MQEIslem_Gelen_EkBilgiUI extends SimplePart {
         ;{
             content.addForm('_baslikBilgi')
                 .setLayout(() => {
-                    let { rec } = this
+                    let { rec, title: adimText } = this
                     let { tarih, fisNox, eIslTip, gondericiUnvan: unvan, gondericiVKN: vkn } = rec ?? {}
                     let eIrsmi = EYonetici_Gelen.eIrsmi(eIslTip)
                     let tarihStr = asDateAndToKisaString(tarih)
                     
                     return $([
                         `<div class="full-wh">`,
+                            `<div class="parent flex-row full-width">`,
+                                t.div(adimText, `fs-140 bold ${musteriBelirlemi ? 'blue' : 'orangered'}`, `margin: -10px 0 20px 0; padding-bottom: 10px; border-bottom: 2px solid #ccc`),
+                            `</div>`,
                             `<div class="parent flex-row full-width">`,
                                 t.ka('tarih', 'Tarih:', tarihStr),
                                 t.ka('fisNox', 'Fiş No:', fisNox),
@@ -171,7 +173,7 @@ class MQEIslem_Gelen_EkBilgiUI extends SimplePart {
                 .onClick(_e => this.yeniDegAdrIstendi({ ...e, ..._e }))
                 .addStyle(`$elementCSS > button { background-color: #9ea0a7 !important }`)
         }
-        ;{
+        if (!musteriBelirlemi) {
             let form = content.addFormWithParent()
                 .yanYana(2)
                 .addStyle_wh(width)
@@ -204,7 +206,7 @@ class MQEIslem_Gelen_EkBilgiUI extends SimplePart {
                     })
             }
             
-            ;{
+            if (!musteriBelirlemi) {
                 form.addSelect('fisTipi')
                     .setEtiket('Ticari Fiş')
                     .setSource([
@@ -297,7 +299,7 @@ class MQEIslem_Gelen_EkBilgiUI extends SimplePart {
                 sent.fromAdd('carmst')
                 wh
                     .degerAta(vkn, `(case when sahismi = '' then vnumara else tckimlikno end)`)
-                    .add(`silindi <> ''`)
+                    .add(`silindi = ''`)
                 sahalar.add(
                     `3 oncelik`, `'' kayitTipi`,
                     'must mustKod'
@@ -333,7 +335,7 @@ class MQEIslem_Gelen_EkBilgiUI extends SimplePart {
                 wh.degerAta(subeKod, 'bizsubekod')
                 sahalar.add('pesincarikod pesinCarikod')
             }
-            let { pesinCarikod } = await sent.execTekilDeger()
+            let pesinCarikod = await sent.execTekilDeger()
             if (!pesinCarikod) {
                 errors.push(`<b>${subeKod || '-Merkez-'}</b> kodlu Şube için Alım Şube Parametresi <b>Peşin Cari Kodu</b> girilmelidir`)
                 return
@@ -346,36 +348,81 @@ class MQEIslem_Gelen_EkBilgiUI extends SimplePart {
         if (oncelik > 1)
             await this.efVergi2CariGuncelle({ vkn, mustKod, degAdresKod })
 
+        let res = { gondericiMustKod: mustKod, degAdresKod }
         extend(rec, res)
-        ddMustKod.val(mustKod)
+        if (ddMustKod.val() != mustKod)
+            ddMustKod?.val(mustKod)
 
-        return { gondericiMustKod: mustKod, degAdresKod }
+        return res
     }
     async yeniCariIstendi(e) {
         let islemAdi = 'Yeni Cari Tanımla'
         let { rec } = this
-        let { gondericiMustKod: mustKod, vkn } = rec ?? {}
+        let { gondericiVKN: vkn, gondericiMustKod: mustKod, gondericiUnvan: unvan } = rec ?? {}
+        if (!vkn)
+            throw { isError: true, errorText: 'VKN belirlenemedi' }
+        
         if (await this.vknIcinArastir(e)) {
             hConfirm(`<b class="royalblue">${vkn}</b> VKN için kayıt zaten var`, islemAdi)
             return false
         }
 
-        let eFis = await this.uuid2EFisBelirle(e)
+        let eFis = await this.uuid2EFisBelirle(e) ?? {}
+        vkn = eFis.gondericiVKN || vkn
+        unvan = eFis.gondericiUnvan || unvan || ''
+        let { gondericiAdresYapi: adresYapi = {}, gondericiIletisimYapi: iletisimYapi = {} } = eFis
+        let { adres, gondericiVergiDairesi: vergiDaire } = eFis
+        let { ilKod, ilAdi, yore = '', posta = '' } = adresYapi
+        let { tel: tel1 = '', faks: fax = '', eMail = '' } = iletisimYapi
+        if (!ilKod) {
+            let a2k = await MQCariIl.getGloAdi2KodListe() ?? {}
+            let ilAdiUpper = ilAdi.toLocaleUpperCase('tr-TR').trim()
+            ilKod = adresYapi.ilKod = (
+                a2k[ilAdi] ??
+                a2k[ilAdiUpper] ??
+                []
+            )[0].trim() ?? ''
+        }
+        
         let gibAliasYapi = await this.getVKN2GIBAliasYapi(e) ?? {}
-        for (let [k, v] of entries(gibAliasYapi))
-            gibAliasYapi[k] ??= ''
-
         let { E: eFatGIBAlias, IR: eIrsGIBAlias } = gibAliasYapi
         
-        let inst = new MQCari()
+        let inst = new MQCari({ kod: vkn, unvan })
+        extend(inst, { vkn, ashismi: vkn.length == 11 })
+        if (eFis) {
+            let eFaturaKullanirmi = true
+            let senaryoTipi = 'T'                                                       // TICARIFATURA
+            extend(inst, { adres })
+            extend(inst.adresYapi, { yore, posta, ilKod })
+            extend(inst.iletisim, { tel1, fax, eMail })
+            extend(inst.vergi, { vergiDaire })
+            extend(inst.eIslem, { eFaturaKullanirmi, senaryoTipi })
+        }
+        ;{
+            let { eIslem } = inst
+            if (eFatGIBAlias)
+                eIslem.eFatGIBAlias = eFatGIBAlias
+            if (eIrsGIBAlias)
+                eIslem.eIrsGIBAlias = eIrsGIBAlias
+        }
+        
         // ...
         await inst.tanimla({
             kaydedince: ({ inst }) => {
-                let { ddMustKod } = this
+                let { ddMustKod, elmMustBilgi: layout } = this
                 let { kod: mustKod, vkn } = inst
                 this.efVergi2CariGuncelle({ vkn, mustKod })
-                rec.gondericiMustKod = mustKod
+                extend(rec, {
+                    gondericiMustKod: mustKod,
+                    degAdresKod: ''
+                })
                 ddMustKod?.val(mustKod)
+                if (layout) {
+                    this.getMustHTML(rec).then(elm => {
+                        layout.empty()
+                        elm?.appendTo(layout)
+                    })
+                }
             }
         })
 
@@ -540,4 +587,6 @@ class MQEIslem_Gelen_EkBilgiUI extends SimplePart {
     setRec(v) { this.rec = v; return this }
     setEConf(v) { this.eConf = v; return this }
     setTamamIslemi(v) { this.tamamIslemi = v; return this }
+    tip_ticariAktar() { this.musteriBelirlemi = false; return this }
+    tip_musteriBelirle() { this.musteriBelirlemi = true; return this }
 }

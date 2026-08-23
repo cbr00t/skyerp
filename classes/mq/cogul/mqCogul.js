@@ -159,11 +159,12 @@ class MQCogul extends MQYapi {
 		if (rootBuilder)
 			rootBuilder.noAutoInitLayout()
 		// let _e = $.extend({}, e, { mfSinif: this, inst: e.inst, rootBuilder, tanimFormBuilder });
-		let {mfSinif: _mfSinif, inst} = e
+		let { mfSinif: _mfSinif, inst } = e
 		let mfSinif = _mfSinif ?? this
-		$.extend(e, { mfSinif, inst, rootBuilder, tanimFormBuilder })
+		extend(e, { mfSinif, inst, rootBuilder, tanimFormBuilder })
 		await this.rootFormBuilderDuzenle(e)
 		await this.rootFormBuilderDuzenleSonrasi(e)
+		await inst.rootFormBuilderDuzenle_ek?.(e)
 		rootBuilder = e.rootBuilder
 		e.mfSinif = _mfSinif
 		return rootBuilder
@@ -1283,6 +1284,8 @@ class MQCogul extends MQYapi {
 		}
 		return results
 	}
+
+	rootFormBuilderDuzenle_ekIslem(v) { this.rootFormBuilderDuzenle_ek = v; return this }
 }
 
 

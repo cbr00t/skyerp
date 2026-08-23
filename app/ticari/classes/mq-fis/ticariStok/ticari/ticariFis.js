@@ -36,13 +36,13 @@ class TicariFis extends TSOrtakFis {
 		let sent = new MQSent({ from: 'carmst', where: { degerAta: mustKod, saha: this.mustSaha }, sahalar: ['kendidetaykod'] })
 		return await app.sqlExecTekilDeger(sent)?.trimEnd()
 	}
-	async getMustKonKendiDetayKod(e) { e = e || {}; return this.getMustKonKendiDetayKod($.extend({}, e, { mustKod: this.mustKod })) }
+	async getMustKonKendiDetayKod(e) { e = e || {}; return this.getMustKonKendiDetayKod(extend({}, e, { mustKod: this.mustKod })) }
 	static async getMusKarsiRefKod(e) {
 		e = e || {}; let {mustKod} = e; if (!mustKod) { return null }
 		let sent = new MQSent({ from: 'carmst', where: { degerAta: mustKod, saha: this.mustSaha }, sahalar: ['musrefkod'] })
 		return await app.sqlExecTekilDeger(sent)?.trimEnd()
 	}
-	async getMusKarsiRefKod(e) { e = e || {}; return this.getMusKarsiRefKod($.extend({}, e, { mustKod: this.mustKod })) }
+	async getMusKarsiRefKod(e) { e = e || {}; return this.getMusKarsiRefKod(extend({}, e, { mustKod: this.mustKod })) }
 	static async kdvKod2RecGlobalOlustur(e) {
 		let kaListe = [ new CKodVeAdi({ kod: '', aciklama: '' }) ];
 		let kdvKod2Rec = await MQVergi.getKdvBilgileri({ fisSinif: this })
@@ -109,7 +109,7 @@ class TicariFis extends TSOrtakFis {
 				}
 			})
 			.addStyle_wh(300)
-
+		
 		tsnForm.addSimpleComboBox('istisnaKod', 'İstisna Kodu', 'İstisna Kodu')
 			.etiketGosterim_yok()
 			.noMF()
@@ -297,12 +297,12 @@ class TicariFis extends TSOrtakFis {
 		let {FY} = kosulYapilar ?? {}; if (FY) {
 			let duzDetaylar = detaylar.filter(det => det.stokmu && !det.promosyonmu && !det.fiyat);
 			let stokKodSet = asSet(duzDetaylar.map(det => det.shKod));
-			if (!$.isEmptyObject(stokKodSet)) {
+			if (!empty(stokKodSet)) {
 				let kod2KosulResult = (await SatisKosul_Fiyat.getAltKosulYapilar(Object.keys(stokKodSet), kosulYapilar?.FY, mustKod)) ?? {};
-				let {fiyat} = kosulResult ?? {}; if (fiyat) { $.extend(det, { fiyat, ozelFiyatVarmi: true }) }
+				let {fiyat} = kosulResult ?? {}; if (fiyat) { extend(det, { fiyat, ozelFiyatVarmi: true }) }
 				for (let det of duzDetaylar) {
 					let {fiyat} = kod2KosulResult[det.shKod] ?? {};
-					if (fiyat) { $.extend(det, { fiyat }) }
+					if (fiyat) { extend(det, { fiyat }) }
 				}
 			}
 		}
@@ -458,10 +458,10 @@ class TicariFis extends TSOrtakFis {
 		}
 		if (dipSatir_sonuc) {
 			let {bedelYapi: sonucBedelYapi} = dipSatir_sonuc, {eDipBosHostVars: hv_vergiDahil} = dipSatir_sonuc, {eDipBosHostVars: hv_odenecek} = dipSatir_sonuc;
-			$.extend(hv_vergiDahil, {
+			extend(hv_vergiDahil, {
 				anatip: 'DP', alttip: 'VD', xadi: 'Vergi Dahil Bedel',
 				bedel: roundToBedelFra(sonucBedelYapi.tl + vergiDahilIcinEklenecek.tl), dvbedel: roundToBedelFra(sonucBedelYapi.dv + vergiDahilIcinEklenecek.dv) })
-			$.extend(hv_odenecek, {
+			extend(hv_odenecek, {
 				anatip: 'DP', alttip: 'OD', xadi: 'Ödenecek Bedel',
 				bedel: roundToBedelFra(sonucBedelYapi.tl - odenecekIcinDusulecek.tl), dvbedel: roundToBedelFra(sonucBedelYapi.dv - odenecekIcinDusulecek.dv) })
 			for (let hv of [hv_vergiDahil, hv_odenecek]) {
@@ -540,7 +540,7 @@ class TicariFis extends TSOrtakFis {
 			if (!vergiKullanim.ekVergi && det.ekVergiYapi && !det.ekVergiYapi.bosmu) { vergiKullanim.ekVergi = true; vergiKullanimSayi++ }
 			if (vergiKullanimSayi == 3) { break }
 		}
-		if (!$.isEmptyObject(vergiKullanim)) {
+		if (!empty(vergiKullanim)) {
 			let {sender} = e, {belirtec2Kolon} = sender, gridWidget = e.gridWidget ?? sender.gridWidget;
 			let kolonGoster = e => { let colDef = e.colDef || (belirtec2Kolon[e.belirtec]); if (colDef) { colDef.visible(); gridWidget.showcolumn(colDef.belirtec) } };
 			if (vergiKullanim.otv) { kolonGoster({ belirtec: 'otvBelirtec' }) }
@@ -556,7 +556,7 @@ class TicariFis extends TSOrtakFis {
 			let result = new SatisKosulYapi({ kapsam });
 			return await result.yukle() ? result : null
 		})();
-		$.extend(this, { kosulYapilar }); return this
+		extend(this, { kosulYapilar }); return this
 	}
 	async fisBakiyeDurumuGerekirseAyarla(e) {
 		if (!this.class.cikisGibimi)
@@ -580,7 +580,7 @@ class TicariFis extends TSOrtakFis {
 				}
 			}
 		}
-		$.extend(this, musteriOncekiBakiyeDurumu)
+		extend(this, musteriOncekiBakiyeDurumu)
 	}
 }
 class SiparisFis extends TicariFis {
@@ -605,7 +605,7 @@ class SiparisFis extends TicariFis {
 			this.teslimOrtakdir = true
 	}
 	static pTanimDuzenle({ pTanim }) {
-		super.pTanimDuzenle(...arguments); $.extend(pTanim, {
+		super.pTanimDuzenle(...arguments); extend(pTanim, {
 			teslimOrtakdir: new PInstBitBool('bteslimortakdir'),
 			baslikTeslimTarihi: new PInstDate('basteslimtarihi')
 		})
@@ -640,7 +640,7 @@ class AlimSiparisFis extends SiparisFis {
 
 class SevkiyatFis extends TicariFis {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	get gridKontrolcuSinif() { return this.eBilgi?.gridKontrolcuSinif || super.gridKontrolcuSinif }
+	get gridKontrolcuSinif() { return this.eBilgi?.gridKontrolcuSinif ?? super.gridKontrolcuSinif }
 	static get table() { return 'piffis' } static get baslikOzelAciklamaTablo() { return 'pifbasekaciklama' } static get dipSerbestAciklamaTablo() { return 'pifdipaciklama' }
 	static get dipEkBilgiTablo() { return 'pifdipekbilgi' } static get pifTipi() { return null } static get iade() { return '' } static get fisEkAyrim() { return '' }
 	get bakiyeciler() {
@@ -724,73 +724,127 @@ class SevkiyatFis extends TicariFis {
 		extend(hv, { oncelik, sevktarihi: sevkTarih || null, sevksaati: sevkSaat || null })
 	}
 	eBilgiIcinYukle(e) {
-		super.eBilgiIcinYukle(e); let eBilgi = this.eBilgi || {};
-		let {rec} = eBilgi; if (!rec) { return this } let yerRec = eBilgi.yerRec || {};
-		$.extend(this, {
-			tarih: asDate(rec.tarih), seri: rec.seri, noYil: asInteger(rec.noyil), fisNo: asInteger(rec.fisNo),
-			mustKod: rec.mustkod, yerKod: yerRec.kod || this.yerKod, subeKod: yerRec.bizsubekod || this.subeKod
-		});
+		super.eBilgiIcinYukle(e)
+		let eBilgi = this.eBilgi ?? {}
+		let { rec } = eBilgi
+		if (!rec)
+			return this
+		
+		let yerRec = eBilgi.yerRec ?? {}
+		extend(this, {
+			tarih: asDate(rec.tarih), seri: rec.seri,
+			noYil: asInteger(rec.noyil), fisNo: asInteger(rec.fisNo),
+			mustKod: rec.mustkod, yerKod: yerRec.kod || this.yerKod,
+			subeKod: yerRec.bizsubekod || this.subeKod
+		})
+		
 		return this
 	}
-	async eBilgiIcinDetaylariYukle(e) {
-		await super.eBilgiIcinDetaylariYukle(e);
-		let {result} = e, eBilgi = this.eBilgi || {}, {rec} = eBilgi
-		if (!rec) { return this }
-		let alimGecFisSayac = rec.fissayac
-		let sent = new MQSent({ from: 'efgecicialfatdetay har', where: { degerAta: alimGecFisSayac, saha: 'har.fissayac' } });
-		sent.har2StokBagla(); sent.har2HizmetBagla(); sent.har2DemirbasBagla({ sahaAdi: 'demkod' });
-		sent.addWithAlias('har',
-			'seq', 'efbarkod', 'efstokkod', 'efstokadi', 'efmiktar', 'iskorantext',
-			'shtip', 'miktar', 'irskabuledilmeyen', 'irseksik', 'irsfazla',
-			'fiyat', 'kdvorani', 'otvorani', 'stopajorani', 'konaklamaorani', 'tevoranx', 'bedel',
-		);
-		sent.add(
-			`(case har.shtip when 'H' then har.hizmetkod when 'D' then har.demkod else har.stokkod end) shkod`,
-			`(case har.shtip when 'H' then hiz.aciklama when 'D' then dem.aciklama else stk.aciklama end) shadi`,
-			`(case har.shtip when 'H' then hiz.brm when 'D' then dem.brm else stk.brm end) shbrm`,
-			`(case har.shtip when  '' then stk.brm2 else '' end) shbrm2`,
-			`(case har.shtip when  '' then stk.brmorani else 0 end) shbrmorani`,
-			`(case har.shtip when 'H' then (case hiz.kkegtipi when '3' then 30 when '1' then 100 else 0 end) else 0 end) kkegyuzde`,
-			`(har.irskabuledilmeyen + har.irseksik - har.irsfazla) irsgecersiz`,
-			`(case har.shtip when 'H' then hiz.adidegisir when 'D' then '' else stk.adidegisir end) shadidegiskenmi`,
-			`(case har.shtip when 'H' then hiz.gidkdvdegiskenmi when 'D' then '' else stk.almkdvdegiskenmi end) shkdvdegiskenmi`,
-			`(case har.shtip when 'H' then hiz.gidkdvhesapkod when 'D' then dem.almkdvhesapkod else stk.almkdvhesapkod end) shkdvhesapkod`,
-			`(case har.shtip when  '' then stk.almotvhesapkod else '' end) shotvhesapkod`,
-			`(case har.shtip when 'H' then hiz.gidstopajhesapkod else '' end) shstopajhesapkod`,
-			`(case har.shtip when 'H' then hiz.gidkonaklamahesapkod else '' end) shkonaklamahesapkod`
-		);
-		let stm = new MQStm({ sent: sent, orderBy: ['seq'] });
+	async eBilgiIcinDetaylariYukle(e = {}) {
+		await super.eBilgiIcinDetaylariYukle(e)
+		let { eBilgi = this.eBilgi ?? {} } = e
+		let { rec = eBilgi?.rec } = e
+		if (!rec)
+			return this
+		
+		let { result } = e
+		let { fissayac: sayac = rec.fisSayac ?? rec.sayac } = rec
+		let sent = new MQSent(), { where: wh, sahalar } = sent
+		sent
+			.fromAdd('efgecicialfatdetay har')
+			.har2StokBagla()
+			.har2HizmetBagla()
+			.har2DemirbasBagla({ sahaAdi: 'demkod' })
+		wh.degerAta(sayac, 'har.fissayac')
+		sahalar
+			.addWithAlias('har',
+				'seq', 'efbarkod', 'efstokkod', 'efstokadi', 'efmiktar', 'iskorantext',
+				'shtip', 'miktar', 'irskabuledilmeyen', 'irseksik', 'irsfazla',
+				'fiyat', 'kdvorani', 'otvorani', 'stopajorani', 'konaklamaorani',
+				'tevoranx', 'bedel'
+			)
+			.add(...[
+				`(case har.shtip when 'H' then har.hizmetkod when 'D' then har.demkod else har.stokkod end) shkod`,
+				`(case har.shtip when 'H' then hiz.aciklama when 'D' then dem.aciklama else stk.aciklama end) shadi`,
+				`(case har.shtip when 'H' then hiz.brm when 'D' then dem.brm else stk.brm end) shbrm`,
+				`(case har.shtip when  '' then stk.brm2 else '' end) shbrm2`,
+				`(case har.shtip when  '' then stk.brmorani else 0 end) shbrmorani`,
+				`(case har.shtip when 'H' then (case hiz.kkegtipi when '3' then 30 when '1' then 100 else 0 end) else 0 end) kkegyuzde`,
+				`(har.irskabuledilmeyen + har.irseksik - har.irsfazla) irsgecersiz`,
+				`(case har.shtip when 'H' then hiz.adidegisir when 'D' then '' else stk.adidegisir end) shadidegiskenmi`,
+				`(case har.shtip when 'H' then hiz.gidkdvdegiskenmi when 'D' then '' else stk.almkdvdegiskenmi end) shkdvdegiskenmi`,
+				`(case har.shtip when 'H' then hiz.gidkdvhesapkod when 'D' then dem.almkdvhesapkod else stk.almkdvhesapkod end) shkdvhesapkod`,
+				`(case har.shtip when  '' then stk.almotvhesapkod else '' end) shotvhesapkod`,
+				`(case har.shtip when 'H' then hiz.gidstopajhesapkod else '' end) shstopajhesapkod`,
+				`(case har.shtip when 'H' then hiz.gidkonaklamahesapkod else '' end) shkonaklamahesapkod`
+			])
+		let stm = new MQStm({ sent, orderBy: ['seq'] })
+		
 		let tip2Vergi = {
-			kdv: { oran2Kod: {}, get sinif() { return MQVergiKdv } },
-			otv: { oran2Kod: {}, get sinif() { return MQVergiOtv } },
-			stopaj: { oran2Kod: {}, get sinif() { return MQVergiStopaj } },
-			konaklama: { oran2Kod: {}, get sinif() { return MQVergiKonaklama } }
-		};
-		let detRecs = await app.sqlExecSelect(stm), errors = [];
+			kdv: { oran2Kod: {}, sinif: MQVergiKdv },
+			otv: { oran2Kod: {}, sinif: MQVergiOtv },
+			stopaj: { oran2Kod: {}, sinif: MQVergiStopaj },
+			konaklama: { oran2Kod: {}, sinif: MQVergiKonaklama }
+		}
+		
+		let errors = []
+		let detRecs = await stm.execSelect()
 		for (let detRec of detRecs) {
 			for (let tip in tip2Vergi) {
-				let ba = tip == 'stopaj' ? 'A' : 'B', yapi = tip2Vergi[tip], {sinif} = yapi;
-				let oran = detRec[`${tip}orani`]; if (!oran) { continue }
-				if (yapi.oran2Kod[oran] === undefined) {
-					let oran2KodSet = (await sinif.oran2KodSet({ ba })) || {};
-					let kodSet = oran2KodSet[oran] || {}, kod = Object.keys(kodSet)[0] ?? null; yapi.oran2Kod[oran] = kod;
-					if (kod == null) { errors.push(`${tip}: %${oran}`) }
+				let ba = tip == 'stopaj' ? 'A' : 'B'
+				let { oran2Kod, sinif } = tip2Vergi[tip] ?? {}
+				let oran = detRec[`${tip}orani`]
+				if (!oran)
+					continue
+				
+				if (oran2Kod[oran] === undefined) {
+					let oran2KodSet = (await sinif.oran2KodSet({ ba })) ?? {}
+					let kodSet = oran2KodSet[oran] ?? {}
+					let k = keys(kodSet)[0] ?? null
+					oran2Kod[oran] = k
+					if (k == null)
+						errors.push(`${tip}: %${oran}`)
 				}
-				detRec[`${tip}Kod`] = yapi.oran2Kod[oran]
+				detRec[`${tip}Kod`] = oran2Kod[oran]
 			}
 		}
-		if (!$.isEmptyObject(errors)) {
-			if (result) { $.extend(result, { isError: true, message: 'Bazı Vergi Kodları hatalıdır', detail: `<ul class="flex-row firebrick">${errors.map(text => `<li class="bold">${text}</li>`)}</ul>` }) }
+		
+		if (result && !empty(errors)) {
+			extend(result, {
+				isError: true,
+				message: 'Bazı Vergi Kodları hatalıdır',
+				detail: `<ul class="flex-row firebrick">${
+					errors.map(v =>
+						`<li class="bold">${v}</li>`)
+				}</ul>`
+			})
 			return this
 		}
-		this.detaylarReset(); let {detaylar} = this;
-		let shTip2DetSinif = { '': TSStokDetay, 'H': TSHizmetDetay, 'D': TSDemirbasDetay }; e.fis = this;
-		for (let detRec of detRecs) {
-			let detSinif = shTip2DetSinif[detRec.shtip.trimEnd()]; if (!detSinif) { continue }
-			let det = new detSinif({ seq: detRec.seq, eBilgi: detRec });
-			await det.eBilgiSetValues(e); detaylar.push(det)
+		
+		this.detaylarReset()
+		let { detaylar } = this
+		let shTip2DetSinif = {
+			'': TSStokDetay,
+			'H': TSHizmetDetay,
+			'D': TSDemirbasDetay
 		}
-		if (detaylar.find(det => det.eBilgi.bedel != det.netBedel)) { this.hesapSekli.fiyatYap() }
+		
+		e.fis = this
+		for (let detRec of detRecs) {
+			let { shtip: tip, seq } = detRec
+			let detSinif = shTip2DetSinif[tip.trimEnd()]
+			if (!detSinif)
+				continue
+			
+			let det = new detSinif({ seq, eBilgi: detRec })
+			await det.eBilgiSetValues(e)
+			detaylar.push(det)
+		}
+
+		let { hesapSekli } = this
+		if (detaylar.some(d => d.eBilgi.bedel != d.netBedel))
+			hesapSekli.fiyatYap()
+		
 		return this
 	}
 	stokBakiyeSqlEkDuzenle_pifStok(e) { e.table = 'pifstok'; return this.stokBakiyeSqlEkDuzenle_pifXStok(e) }

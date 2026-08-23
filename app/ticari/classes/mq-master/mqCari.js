@@ -79,7 +79,7 @@ class MQCari extends MQKA {
 		kolonGrup.degisince(async e => { let rec = await e.rec; if (rec) { e.setCellValue({ belirtec: 'yore', value: rec.yore || '' }) } });
 		return kolonGrup
 	}
-	alimEIslIcinSetValues(e) {
+	__old__alimEIslIcinSetValues(e) {
 		let {rec} = e, eFis = e.eFis || {}, efAyrimTipi = (eFis.eIslTip ?? rec.efayrimtipi) || 'A', vkn = eFis.gondericiVKN || rec.vkno; /* {xml} = eFis; */
 		let adresYapi = eFis?.aliciAdresYapi, iletisimYapi = eFis?.aliciIletisimYapi;
 		let value = eFis?.aliciUnvan || rec.efmustunvan; let unvanParts = (value ? uygunKelimeliParcala(value.trim(), 40, true) : null) ?? [];
@@ -97,7 +97,7 @@ class MQCari extends MQKA {
 			yore: adresYapi?.yore || '', posta: adresYapi?.posta
 		})
 		extend(iletisim, { tel1: iletisimYapi?.tel || '', fax: iletisimYapi?.faks, eMail: iletisimYapi?.eMail });
-		this.forAltYapiKeysDo('alimEIslIcinSetValues', e); return this
+		this.forAltYapiKeysDo('__old__alimEIslIcinSetValues', e); return this
 	}
 	ozelEntegratordenKontrolEt(e) {
 		return this.eIslem.ozelEntegratordenKontrolEt(e)
@@ -153,7 +153,7 @@ class MQCari extends MQKA {
 }
 class MQCariAlt extends MQAlt {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	alimEIslIcinSetValues(e) { return this }
+	__old__alimEIslIcinSetValues(e) { return this }
 }
 class MQCari_Genel extends MQCariAlt {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -288,11 +288,19 @@ class MQCari_Genel extends MQCariAlt {
 }
 class MQCari_Iletisim extends MQCariAlt {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	get tel() { return this.tel1 } set tel(v) { this.tel1 = v }
+	get faks() { return this.fax } set faks(v) { this.fax = v }
+	
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); let {pTanim} = e;
-		$.extend(pTanim, {
-			tel1: new PInstStr('tel1'), tel2: new PInstStr('tel2'), tel3: new PInstStr('tel3'), fax: new PInstStr('fax'),
-			webAdres: new PInstStr('webadresi'), eArsiv: new PInstStr('emailearsiv'), eMail: new PInstStr('email')
+		extend(pTanim, {
+			tel1: new PInstStr('tel1'),
+			tel2: new PInstStr('tel2'),
+			tel3: new PInstStr('tel3'),
+			fax: new PInstStr('fax'),
+			webAdres: new PInstStr('webadresi'),
+			eArsiv: new PInstStr('emailearsiv'),
+			eMail: new PInstStr('email')
 		})
 	}
 	static rootFormBuilderDuzenle(e) {

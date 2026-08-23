@@ -16,6 +16,12 @@
 	background-color: transparent
 }
 
+.part .islemTuslari #musteriBelirle { }
+.part .islemTuslari #musteriBelirle.jqx-fill-state-normal {
+	filter: brightness(.5);
+	background-color: transparent
+}
+
 .part .islemTuslari #eIslemIzle {
 	background-image: url(../../../../../../../images/izle.png);
 	background-size: 40px !important;

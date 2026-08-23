@@ -339,18 +339,23 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 
 class EIslAlimGridKontrolcu extends TicariGridKontrolcu {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	tabloKolonlariDuzenle(e) {
-		super.tabloKolonlariDuzenle(e);
-		let {fis} = this, ekTabloKolonlari = [
+	tabloKolonlariDuzenle({ tabloKolonlari: liste }) {
+		super.tabloKolonlariDuzenle(...arguments)
+		let { fis } = this
+		let items = [
 			new GridKolon({ belirtec: 'eSHText', text: 'EF Stok', genislikCh: 40 }).readOnly(),
 			new GridKolon({ belirtec: 'eIskOranText', text: 'EF İsk%', genislikCh: 8 }).readOnly(),
 			new GridKolon({ belirtec: 'eMiktar', text: 'EF Miktar', genislikCh: 8 }).readOnly().tipDecimal(),
 			new GridKolon({ belirtec: 'eBedel', text: 'EF Bedel', genislikCh: 13 }).readOnly().tipDecimal_bedel(),
 			new GridKolon({ belirtec: 'ayirac1', text: ' ', minWidth: 1, width: 20, cellClassName: 'ayirac' }).readOnly()
-		];
-		let {tabloKolonlari} = e; for (let colDef of tabloKolonlari) { colDef.serbestBirak() }
-		let index_tipColDef = tabloKolonlari.findIndex(colDef => colDef.belirtec == 'tip');
-		if (index_tipColDef) { tabloKolonlari.splice(index_tipColDef, 0, ...ekTabloKolonlari) }
-		else { tabloKolonlari.unshift(...ekTabloKolonlari) }
+		]
+		;liste.forEach(cd =>
+			cd.serbestBirak())
+
+		let ind = liste.findIndex(cd => cd.belirtec == 'tip')
+		if (ind)
+			liste.splice(ind, 0, ...items)
+		else
+			liste.unshift(...items)
 	}
 }

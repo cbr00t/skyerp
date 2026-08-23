@@ -1,7 +1,8 @@
 class MQDetayli extends MQSayacli {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get detaylimi() { return true } static get detayliMastermi() { return false }
-	static get gridKontrolcuSinif() { return null } get gridKontrolcuSinif() { return this.class.gridKontrolcuSinif }
+	static get gridKontrolcuSinif() { return null }
+	get gridKontrolcuSinif() { return this.class.gridKontrolcuSinif }
 	static get offlineDirect() { return !(this.detayliMastermi || this.guidmi) }
 	static get seviyeAcKapatKullanilirmi() { return false }
 	static get detaySiniflar() {
@@ -47,10 +48,11 @@ class MQDetayli extends MQSayacli {
 			let subBuilder = new FormBuilder({ id: `baslikForm${i + 1}` }).yanYana().setLayout(e => e.builder.rootPart.baslikFormlar[i])
 			templateBuilder.id2Builder.baslikForm.add(subBuilder)
 		}
-		let tsnFormBuilder = templateBuilder.id2Builder.tsnForm, baslikFormBuilder = templateBuilder.id2Builder.baslikForm;
-		baslikFormBuilder.builders[0].altAlta();
-		baslikFormBuilder.builders[1].yanYana();
-		baslikFormBuilder.builders[2].yanYana(2);
+		let tsnFormBuilder = templateBuilder.id2Builder.tsnForm
+		let baslikFormBuilder = templateBuilder.id2Builder.baslikForm
+		baslikFormBuilder.builders[0].altAlta()
+		baslikFormBuilder.builders[1].yanYana()
+		baslikFormBuilder.builders[2].yanYana(2)
 		let rootBuilder = new RootFormBuilder().add(templateBuilder);
 		let fis = e.fis ?? e.inst, inst = fis, _e = $.extend({}, e, {
 			sender, fis, inst, fismi: true, /*etiketGosterim: 'none',*/
@@ -58,9 +60,12 @@ class MQDetayli extends MQSayacli {
 				root: rootBuilder, template: templateBuilder, tsnForm: tsnFormBuilder, baslikForm: baslikFormBuilder,
 				gridIslemTuslari: templateBuilder.id2Builder.gridIslemTuslari
 			}
-		});
-		await this.rootFormBuilderDuzenle(_e); await this.rootFormBuilderDuzenleSonrasi(_e);
-		if (_e.root) { rootBuilder = _e.root }
+		})
+		await this.rootFormBuilderDuzenle(_e)
+		await this.rootFormBuilderDuzenleSonrasi(_e)
+		await fis.rootFormBuilderDuzenle_ek?.(_e)
+		if (_e.root)
+			rootBuilder = _e.root
 		return rootBuilder
 	}
 	static rootFormBuilderDuzenle(e) {
@@ -562,7 +567,7 @@ class MQDetayliMaster extends MQDetayli {
 	}
 	static async rootFormBuilderDuzenle_grid_loadServerData(e) {
 		let {builder} = e, {rootPart, inst} = builder, {part: gridPart} = builder, {kontrolcu} = gridPart, {gridDetaySinif} = inst.class;
-		let _e = { ...e, fis: inst, inst, recs: [] }; for (let i = 0; i < Math.max(inst.detaylar?.length ?? 0, 1); i++) { _e.recs.push(this.newRec({ sinif: gridDetaySinif })) }
+		let _e = { ...e, fis: inst, inst, recs: [] }; for (let i = 0; i < max(inst.detaylar?.length ?? 0, 1); i++) { _e.recs.push(this.newRec({ sinif: gridDetaySinif })) }
 		let result = await kontrolcu?.fis2Grid(_e); if (result != true) { if (result?.errorText) { hConfirm(`<div class="red">${_result.errorText}</div>`) } return false }
 		return _e.recs
 	}

@@ -105,6 +105,17 @@ class TSOrtakFis extends MQTicariGenelFis {
 				fbd.oldValue = value
 			})
 
+		tsnForm.addModelKullan('hesapSekli', 'Hesap Şekli')
+			.setPlaceholder('Hesap Şekli')
+			.dropDown().noMF()
+			.kodsuz().bosKodAlinmaz().bosKodEklenmez()
+			.setSource(FisHesapSekli.kaListe)
+			.degisince(_e => {
+				let { builder: fbd, builder: { altInst: inst, parentBuilder: { id2Builder } } } = _e
+				inst?.hesapSekliDegisti({ ..._e, ...e })
+			})
+			.addStyle_wh(300)
+
 		if (yerKullanilirmi) {
 			baslikForm.builders[2].addCheckBox('yerOrtakmi', 'Yer Ortakdır')
 				.degisince(e => {
@@ -444,6 +455,7 @@ class TSOrtakFis extends MQTicariGenelFis {
 		
 		return numEF == efAyrimTipi
 	}
+	efAyrimTipiDegisti(e) { }
 	async islKodDegisti(e = {}) {
 		let { sender: tanimPart, ozelIsaret = this.ozelIsaret, eskiOzelIsaret } = e
 		if ((eskiOzelIsaret == '*') != (ozelIsaret == '*'))
@@ -454,7 +466,16 @@ class TSOrtakFis extends MQTicariGenelFis {
 		let { kontrolcu = tanimPart?.kontrolcu } = e
 		await kontrolcu?.islKodIsaretDegisti?.(e)
 	}
-	efAyrimTipiDegisti(e) { }
+	hesapSekliDegisti({ sender: tanimPart }) {
+		let { hesapSekli } = this
+		if (hesapSekli?.char == this._prev_hesapSekli)
+			return
+		
+		let { grid, gridWidget: w } = tanimPart
+		debugger
+
+		this._prev_hesapSekli = hesapSekli?.char
+	}
 	takipNoDegisti(e) { }
 	yerOrtakmiDegisti(e) { }
 	static getDonusumYapi(e) {

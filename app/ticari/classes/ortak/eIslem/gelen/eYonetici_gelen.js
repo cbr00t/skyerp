@@ -318,12 +318,32 @@ class EYonetici_Gelen extends CObject {
         })
     }
 
-    static normalizeEFAyrimTipi(v) {
-        return v == 'E' || v == 'A'
-            ? ''
-            : v
-    }
-    static eIrsmi(v) {
-        return this.normalizeEFAyrimTipi(v) == 'IR'
-    }
+    static async getEFDonusum(e = {}) {
+        let fisSayac = isObject(e) ? e.fisSayac ?? e.fissayac ?? e.sayac : e
+        let uni = new MQUnionAll()
+        ;{
+            let sent = new MQSent(), { where: wh, sahalar } = sent
+            sent.fromAdd('efgecicialfatirs')
+            wh.degerAta(fisSayac, 'fissayac')
+            sahalar.add(`'I' tip`, 'efirsnobilgi sibilgi fisNox')
+        }
+        ;{
+            let sent = new MQSent(), { where: wh, sahalar } = sent
+            sent.fromAdd('efgecicialfatsip')
+            wh.degerAta(fisSayac, 'fissayac')
+            sahalar.add(`'S' tip`, 'efsipnobilgi fisNox')
+        }
+		let stm = new MQStm({ sent: uni, orderBy: ['tip', 'fisNox'] })
+        
+        let res = { siparisler: [], irsaliyeler: [] }
+        for (let { tip, fisNox } of await stm.execSelect()) {
+            let k = tip == 'S' ? 'siparisler' : 'irsaliyeler'
+            ;(res[k] ??= []).push(fisNox)
+        }
+
+        return res
+	}
+    static normalizeEFAyrimTipi(v) { return v == 'E' || v == 'A' ? '' : v }
+    static normalizeEFAyrimTipi_giden(v) { return !v || v == 'A' ? 'E' : v }
+    static eIrsmi(v) { return this.normalizeEFAyrimTipi(v) == 'IR' }
 }
