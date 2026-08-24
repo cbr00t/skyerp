@@ -47,26 +47,47 @@ class TSGridKontrolcu extends GridKontrolcu {
 			for (let {sahalar} of stm) { sahalar.add(`${aliasVeNokta}adidegisir adiDegisirmi`) }
 		});
 		let {tabloKolonlari} = e; tabloKolonlari.push(
-			shKolonGrup, new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 13, cellValueChanged: e => setTimeout(() => this.miktarFiyatDegisti(e), 10) }).tipDecimal().zorunlu(),
-			new GridKolon({ belirtec: 'fiyat', text: 'Fiyat', genislikCh: 18, cellValueChanged: e => setTimeout(() => this.miktarFiyatDegisti(e), 10) }).tipDecimal_fiyat()
+			shKolonGrup,
+			new GridKolon({
+				belirtec: 'miktar', text: 'Miktar', genislikCh: 13,
+				cellValueChanged: e =>
+					setTimeout(() => this.miktarFiyatDegisti(e), 10)
+			}).tipDecimal().zorunlu(),
+			new GridKolon({
+				belirtec: 'fiyat', text: 'Fiyat', genislikCh: 18,
+				cellValueChanged: e =>
+					setTimeout(() => this.miktarFiyatDegisti(e), 10)
+			}).tipDecimal_fiyat()
 		);
 		this.tabloKolonlariDuzenle_fiyat_netBedel_arasi(e)
-		tabloKolonlari.push(new GridKolon({ belirtec: 'netBedel', text: 'Net Bedel', genislikCh: 18 }).tipDecimal_bedel().readOnly());
+		tabloKolonlari.push(
+			new GridKolon({
+				belirtec: 'netBedel', text: 'Net Bedel', genislikCh: 18,
+				cellValueChanged: e =>
+					setTimeout(() => this.miktarFiyatDegisti(e), 10)
+			}).tipDecimal_bedel().readOnly()
+		)
 		for (let item of HMRBilgi.hmrIter()) {
-			let colDefOrArray = item.asGridKolon();
+			let colDefOrArray = item.asGridKolon()
 			if (colDefOrArray) {
-				if ($.isArray(colDefOrArray)) { tabloKolonlari.push(...colDefOrArray) }
-				else { tabloKolonlari.push(colDefOrArray) }
+				if (isArray(colDefOrArray))
+					tabloKolonlari.push(...colDefOrArray)
+				else
+					tabloKolonlari.push(colDefOrArray)
 			}
 		}
-		tabloKolonlari.push(new GridKolon({ belirtec: 'detAciklama', text: 'Açıklama', genislikCh: 40 }))
+		tabloKolonlari.push(
+			new GridKolon({ belirtec: 'detAciklama', text: 'Açıklama', genislikCh: 40 })
+		)
 	}
-	tabloKolonlariDuzenle_fiyat_netBedel_arasi(e) {
-		let {fis} = this;
+	tabloKolonlariDuzenle_fiyat_netBedel_arasi({ tabloKolonlari: liste }) {
+		let { fis } = this
 		if (!fis.class.siparismi) {
-			let {kullanim} = app.params.ticariGenel, {yerOrtakmi, takipOrtakmi} = fis, {tabloKolonlari} = e;
-			tabloKolonlari.push(...MQStokYer.getGridKolonlar({ hidden: !!yerOrtakmi, belirtec: 'yer' /*, kodAttr: `${belirtec}Kod`, adiAttr: `${belirtec}Adi`*/ }));
-			if (kullanim.takipNo) { tabloKolonlari.push(...MQTakipNo.getGridKolonlar({ hidden: !!takipOrtakmi, belirtec: 'takip', kodAttr: 'takipNo', adiAttr: 'takipAdi' })) }
+			let { kullanim: { takipNo } = {} } = app.params.ticariGenel ?? {}
+			let { yerOrtakmi, takipOrtakmi } = fis
+			liste.push(...MQStokYer.getGridKolonlar({ hidden: !!yerOrtakmi, belirtec: 'yer' }))
+			if (takipNo)
+				liste.push(...MQTakipNo.getGridKolonlar({ hidden: !!takipOrtakmi, belirtec: 'takip', kodAttr: 'takipNo', adiAttr: 'takipAdi' }))
 		}
 	}
 	geriYuklemeIcinUygunmu(e) {
@@ -84,7 +105,10 @@ class TSGridKontrolcu extends GridKontrolcu {
 	miktarFiyatDegisti(e) {
 		let { fis = {} } = this
 		let { hesapSekli } = fis
-		let { args } = e
+		let { args = {} } = e
+		if (args.oldvalue == args.newvalue)
+			return
+		
 		hesapSekli = hesapSekli?.char ?? hesapSekli
 		let sonucBelirtec = (
 			hesapSekli == 'F' ? 'fiyat' :
@@ -97,8 +121,10 @@ class TSGridKontrolcu extends GridKontrolcu {
 			this.satirBedelHesapla(e)
 	}
 	satirBedelHesapla(e = {}) {			/* Ticari seviyede farklı hesap yapılır */
-		let { sender: gridPart, args } = e
-		let { rowIndex = args.rowindex, uid = args.uid, belirtec = args.datafield } = e
+		let { sender: gridPart, args = {} } = e
+		let rowIndex = e.rowIndex ?? args.rowindex
+		let uid = e.uid ?? args.uid
+		let belirtec = e.belirtec ?? args.datafield
 		let { gridWidget, fis } = this
 		let { detay: det = e.rec } = e
 		det ??= uid == null

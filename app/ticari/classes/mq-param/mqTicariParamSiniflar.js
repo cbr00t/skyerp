@@ -342,9 +342,9 @@ class MQFiyatVeIskontoParam extends MQTicariParamBase {
 			sabitIskOranMax: iskOranMax.sabit || 0,
 			kampanyaIskOranMax: iskOranMax.kampanya || 0,
 			kademeliIskOranMax: iskOranMax.kademeli || 0,
-			sabitEtiketListe: etkDict.sabit ?? [],
-			kampanyaEtiketListe: etkDict.kampanya ?? [],
-			kademeliEtiketListe: etkDict.kademeli ?? []
+			sabitEtiketListe: etkDict.sabit ?? {},
+			kampanyaEtiketListe: etkDict.kampanya ?? {},
+			kademeliEtiketListe: etkDict.kademeli ?? {}
 		})
 	}
 	paramSetValues({ rec } = {}) {
@@ -356,12 +356,13 @@ class MQFiyatVeIskontoParam extends MQTicariParamBase {
 		let iskEtiketci = e => {
 			let pf = isObject(e) ? e.prefix : e
 			let k = `${pf}EtiketListe`
+			let arr = rec[k] ?? []
+			if (!isPlainObject(arr))
+				arr = values(arr)
+			
 			let res = {}
-			let liste = rec[k]
-			if (liste) {
-				for (let i = 0; i < liste.length; i++)
-					res[i + 1] = liste[i]
-			}
+			arr?.forEach((v, i) =>
+				res[i + 1] = v)
 			return res
 		}
 		this.iskEtiketDict = {
