@@ -8,6 +8,7 @@ class TicNumaratorPart extends NumaratorPart {
 		let seriNoForm = layout.find('.seriVeNo')
 		let txtNoYil = this.txtNoYil = seriNoForm.find('#noYil')
 		if (fis.class.noYilKullanilirmi) {
+			txtNoYil.val(fis.noYil)
 			txtNoYil.on('keyup', ({ currentTarget: target }) =>
 				target.value = asInteger(target.value) || null)
 			txtNoYil.on('contextmenu', ({ currentTarget: target }) => {

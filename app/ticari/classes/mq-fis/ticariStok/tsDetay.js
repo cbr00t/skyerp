@@ -328,20 +328,57 @@ class TSSHDDetay extends TSDetay {
 	}
 	uiSatirBedelHesaplaDevam(e) {
 		super.uiSatirBedelHesaplaDevam(e)
-		let { gridWidget: w, fis, rowIndex } = e
-		let ticarimi = e.ticarimi ?? (fis?.class?.ticarimi ?? false)
+		let { gridPart: tanimPart, gridWidget: w, fis = {}, rowIndex } = e
+		let { ticarimi = fis.class?.ticarimi ?? false } = e
+		let { hesapSekli } = fis
+
+		if (hesapSekli != null && !isObject(hesapSekli))
+			hesapSekli = new FisHesapSekli(hesapSekli)
+		
+		let brutBedel = Number(this.netBedel)
+		if (hesapSekli?.fiyatmi || hesapSekli?.miktarmi) {
+			let { belirtec2Kolon: b2c = {} } = tanimPart ?? {}
+			let { params: { zorunlu = {} } } = app
+			let fiyatFra = zorunlu.fiyatFra ?? 6
+			
+			if (ticarimi) {
+				let { iskYapi } = this
+				let carpan = 1
+				for (let key of iskYapi?.class?.iskKeys ?? [])
+				for (let oran of iskYapi[key] ?? [])
+					oran = Number(oran)
+					carpan *= (100 - oran) / 100
+				
+				if (carpan)
+					brutBedel /= carpan
+			}
+			if (hesapSekli.fiyatmi) {
+				let miktar = Number(this.miktar)
+				let fra = b2c.fiyat?.tip?.fra ?? fiyatFra
+				this.fiyat = miktar ? roundToFra(brutBedel / miktar, fra) : 0
+			}
+			else {
+				let fiyat = Number(this.fiyat)
+				let fra = b2c.miktar?.tip?.fra ?? 3
+				this.miktar = fiyat ? roundToFra(brutBedel / fiyat, fra) : 0
+				this.miktar2Hesapla(e)
+			}
+		}
+		
 		this.bedelHesapla(e)
 		if (ticarimi)
 			this.vergileriHesapla(e)
+		
 		if (w) {
-			w.setcellvalue(rowIndex, 'brutBedel', this.brutBedel)
-			w.setcellvalue(rowIndex, 'netBedel', this.netBedel)
+			let netBedel = Number(this.netBedel)
+			w.setcellvalue(rowIndex, 'brutBedel', brutBedel)
+			w.setcellvalue(rowIndex, 'netBedel', netBedel)
 		}
 	}
 	miktar2Hesapla(e) { }
 	bedelHesapla(e) {
 		let brutBedel = this.brutBedel =
-			roundToBedelFra(asFloat(this.miktar) * asFloat(this.fiyat))
+			roundToBedelFra(Number(this.miktar) * Number(this.fiyat))
 		return this.netBedelHesapla(e)
 	}
 	netBedelHesapla({ fis, ticarimi } = {}) {

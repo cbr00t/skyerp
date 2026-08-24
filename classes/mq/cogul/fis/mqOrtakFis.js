@@ -7,7 +7,8 @@ class MQOrtakFis extends MQDetayli {
 	static get tsnKullanilirmi() { return true }
 	static get numaratorGosterilirmi() { return true }
 	static get offlineFis() { return true }
-	get numYapi() { return this.class.numYapi } get fisNox() { return this.tsn?.asText() }
+	get numYapi() { return this.class.numYapi }
+	get fisNox() { return this.tsn?.asText }
 	get dipIslemci() {
 		let { _dipIslemci: result } = this
 		if (result === undefined) {
@@ -38,8 +39,13 @@ class MQOrtakFis extends MQDetayli {
 	}
 	
 	constructor(e = {}) {
-		super(e); if (e.isCopy) { return }
-		let {noSaha} = this.class; if (noSaha) { this.fisNo = e.no ?? e.fisNo ?? this.no }
+		super(e)
+		if (e.isCopy)
+			return
+		
+		let { noSaha } = this.class
+		if (noSaha) 
+			this.fisNo = e.no ?? e.fisNo ?? this.no
 	}
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e, {noSaha} = this;

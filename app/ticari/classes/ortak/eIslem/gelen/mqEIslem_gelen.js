@@ -232,7 +232,7 @@ class MQEIslem_Gelen extends MQCogul {
         ;{
             sent
                 .fromAdd('efgecicialfatfis fis')
-                .x2CariBagla({ kodClause: 'fis.mustkod' })
+                .x2CariBagla({ kodClause: 'fis.mustkod', leftJoin: 'fis' })
             sahalar
                 .addWithAlias('fis',
                     'kaysayac sayac', 'kayitts kayitTS', 'efuuid uuid', 'tarih', 'seri', 'noyil noYil',
@@ -443,8 +443,9 @@ class MQEIslem_Gelen extends MQCogul {
 		listePart?.tazele?.()
 		
 	}
-	static async ticariyeAktarIstendi({ sender: listePart } = {}) {
+	static async ticariyeAktarIstendi(e = {}) {
 		let islemAdi = 'e-İşlem Ticariye Aktar'
+		let { sender: listePart } = e
 		let { eConf, selectedRec: rec } = listePart
 		function err(errorText) {
 			throw { isError: true, errorText }
@@ -473,7 +474,14 @@ class MQEIslem_Gelen extends MQCogul {
 		if (!rec)
 			return
 		
-		let { efbelge: efBelge, ayrimtipi: ayrimTipi, iade: iademi } = rec
+		let { efbelge: efBelge, ayrimtipi: ayrimTipi, iade: iademi, fisTipi } = rec
+		let alimmi = true
+		if (fisTipi != null) {
+			fisTipi = fisTipi?.char ?? fisTipi
+			alimmi = !fisTipi
+			iademi = fisTipi == 'I'
+		}
+		
 		let eIslTip = EYonetici_Gelen.normalizeEFAyrimTipi_giden(efBelge)
 		let irsaliyemi = eIslTip == 'IR'
 		let fisSinif = FisAyrimTipiBasit.gelenFisSinifFor({ irsaliyemi, iademi, ayrimTipi })
@@ -484,12 +492,12 @@ class MQEIslem_Gelen extends MQCogul {
 		let { cariYil } = zorunlu
 		
 		let gridKontrolcuSinif = EIslAlimGridKontrolcu
-		let efDonusumler = EYonetici_Gelen.getEFDonusum(rec)
+		let efDonusumler = await EYonetici_Gelen.getEFDonusum(rec)
 		let yerRec = await MQStokYer.getVarsayilanYerRec() ?? {}
 		
-		let { fisNox, gondericiMustKod: mustKod, subeKod, yerKod } = rec
+		let { tarih, fisNox, gondericiMustKod: mustKod, subeKod, yerKod } = rec
 		let tsn = TicariSeriliNo.fromText(fisNox)
-		let { tarih, seri, noYil, no: fisNo } = tsn
+		let { seri, noYil, no: fisNo } = tsn
 		tarih = asDate(tarih)
 		fisNo ||= cariYil
 		subeKod = yerRec.bizsubekod || subeKod
@@ -497,12 +505,14 @@ class MQEIslem_Gelen extends MQCogul {
 
 		let eBilgi = { rec, efDonusumler, gridKontrolcuSinif }
 		let fis = new fisSinif({
+			eBilgi,
 			tarih, seri, noYil, fisNo,
-			subeKod, mustKod, yerKod,
-			eBilgi
+			subeKod, mustKod, yerKod
 		})
-		
+		fis.efAyrimTipi.char = irsaliyemi ? 'IR' : 'E'
 		await fis.eBilgiIcinDetaylariYukle(e)
+		await fis.disFisGiris_ekIslemler(e)
+		
 		fis.rootFormBuilderDuzenle_ekIslem(_e => {
 			let { builders: b } = _e
 			let { baslikForm: { builders: formlar } } = b
@@ -533,70 +543,35 @@ class MQEIslem_Gelen extends MQCogul {
 		})
 		
 		pr = defer()
-		;{
-			let { part } = await fis.tanimla({
-				islem: 'yeni',
-				kaydedince: _e => {
-					pr.resolve({ ...e, ..._e })
-					fis._kaydedildimi = true
-				},
-				kapaninca: _e => 
-					pr.resolve(null)
-			}) ?? {}
-		}
-		return await pr
+		await fis.tanimla({
+			islem: 'yeni',
+			kaydedince: _e =>
+				pr.resolve({ ...e, ..._e }),
+			kapaninca: _e => 
+				pr.resolve(null)
+		})
+		
+		res = await pr
+		await this.ticariyeAktarIstendi_kaydetSonrasi({ ...e, res, rec, fis })
 
+		return res
 		
-			
-
-		/*eBilgiIcinYukle(e) {
-			super.eBilgiIcinYukle(e)
-			let eBilgi = this.eBilgi ?? {}
-			let { rec } = eBilgi
-			if (!rec)
-				return this
-			
-			let yerRec = eBilgi.yerRec ?? {}
-			extend(this, {
-				tarih: asDate(rec.tarih), seri: rec.seri,
-				noYil: asInteger(rec.noyil), fisNo: asInteger(rec.fisNo),
-				mustKod: rec.mustkod, yerKod: yerRec.kod || this.yerKod,
-				subeKod: yerRec.bizsubekod || this.subeKod
-			})
-			
-			return this
-		}*/
-		
-		
-		/*async fisGirisiYap(e) {
-			let { rec } = this, { result } = e
-			let irsaliyemi = (rec.efayrimtipi ?? rec.efbelge) == 'IR'
-			let ayrimTipi = (rec.ayrimtipi || '').trim(), iademi = !!rec.iade
-			let fisSinif = FisAyrimTipiBasit.gelenFisSinifFor({ irsaliyemi, iademi, ayrimTipi })
-			if (!fisSinif) {
-				extend(result, { isError: true, message: 'Fiş Sınıfı belirlenemedi' })
-				return result
-			}
-			let efDonusumler = await this.getEFDonusumBilgileri()
-			let yerRec = await MQStokYer.getVarsayilanYerRec()
-			rec.noYil ??= app.params.zorunlu.cariYil
-			rec.fisNo = rec.no
-			delete rec.no
-			
-			let eBilgi = { rec, efDonusumler, yerRec, gridKontrolcuSinif: EIslAlimGridKontrolcu }
-			let fis = new fisSinif({ eBilgi })
-			await fis.eBilgiIcinDetaylariYukle(e)
-			
-			let promise_fis = new $.Deferred()
-			await fis.tanimla({
-				islem: 'yeni',
-				kaydedince: e => { result.message = 'Fiş kaydedildi'; promise_fis.resolve(true); fis._kaydedildimi = true },
-				kapaninca: e => { if (!fis._kaydedildimi) { $.extend(result, { isError: true, message: 'İşlem iptal edildi' }); promise_fis.resolve(false) } }
-			})
-			await promise_fis
-			return result
-		}*/
     }
+	static async ticariyeAktarIstendi_kaydetSonrasi({ sender: listePart, rec, fis } = {}) {
+		fis._kaydedildimi = true
+		
+		let { uuid } = rec ?? {}
+		if (!uuid)
+			return
+
+		let upd = new MQIliskiliUpdate(), { where: wh, set } = upd
+		upd.fromAdd('efgecicialfatfis')
+		wh.degerAta(uuid, 'efuuid')
+		set.degerAta('*', 'tamamlandi')
+		await upd.execute()
+
+		listePart?.tazele()
+	}
 
     static getEYoneticiler(e = {}) {
         let { tip2EYonetici, listePart = e.gridPart ?? e.sender } = e

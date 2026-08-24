@@ -6,7 +6,14 @@ class NumaratorPart extends Part {
 	get yeniVeyaKopyami() { return this.islem == 'yeni' || this.islem == 'kopya' }
 	get degistirVeyaSilmi() { return this.islem == 'degistir' || this.islem == 'sil' }
 	get numarator() { return this.fis?.numarator }
-	get otoNummu() { return !this.fis?.no && (this.numarator?.tip || this.numarator?.kod) && !this.fis?.class?.otoNumKullanilmazmi }
+	get otoNummu() {
+		let { fis = {}, numarator = {} } = this
+		let { fisNo = fis.no, class: { otoNumKullanilmazmi: otoNumYok } } = fis
+		let { tip: numTip, kod: numKod } = numarator
+		return !otoNumYok || fisNo || !(numTip || numKod)
+			? false
+			: true
+	}
 	
 	constructor({ islem, fis, secince } = {}) {
 		super(...arguments)

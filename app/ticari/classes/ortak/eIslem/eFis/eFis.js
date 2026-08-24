@@ -300,14 +300,14 @@ class EFis extends EFisBase {
 	constructor(e = {}) {
 		super(e)
 		let { eConf, efAyrimTipi, eIslSinif: _eIslSinif, detaylar: _detaylar, icmal: _icmal } = e
-		efAyrimTipi ||= 'A'
+		efAyrimTipi = EYonetici_Gelen.normalizeEFAyrimTipi(efAyrimTipi)
 		if (!_eIslSinif && efAyrimTipi != null)
-			_eIslSinif = EIslemOrtak.getClass(efAyrimTipi)
+			_eIslSinif = EIslemOrtak.getClass(efAyrimTipi || 'A')
 		extend(this, { eConf, _eIslSinif, efAyrimTipi, _detaylar, _icmal })
 	}
 	alimGeciciBaslikHostVars(e = {}) {
-		let { fisNox, icmal, dovizlimi, eIslTip } = this
-		let geciciTip = (eIslTip == 'E' || eIslTip == 'A') ? '' : eIslTip
+		let { fisNox, icmal, dovizlimi } = this
+		let geciciTip = EYonetici_Gelen.normalizeEFAyrimTipi(this.eIslTip)
 		let tsn = TicariSeriliNo.fromText(fisNox)
 		let getBedel = (_dovizlimi, valueOrBlock) =>
 			_dovizlimi == dovizlimi ? getFuncValue.call(this, valueOrBlock, e) : 0
@@ -345,7 +345,7 @@ class EFis extends EFisBase {
 		super.setValues(...arguments)
 		let { efAyrimTipi = rec.efayrimtipi, fisNox = rec.fisnox, uuid = rec.efatuuid } = rec
 		if (efAyrimTipi != null) {
-			efAyrimTipi ||= 'A'
+			efAyrimTipi = EYonetici_Gelen.normalizeEFAyrimTipi(efAyrimTipi) || 'A'
 			this._eIslSinif = EIslemOrtak.getClass(efAyrimTipi)
 		}
 		extend(this.dict, { fisNox, uuid })

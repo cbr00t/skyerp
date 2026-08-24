@@ -180,12 +180,12 @@ class TicariApp extends App {
 			}),
 			new FRMenuCascade({
 				mne: 'A', text: 'Alım', items: [
-					new FRMenuChoice({ mne: 'EI', text: '<span class="green bold">Gelen e-İşlem Listesi</span>', block: e => GelenEIslemListePart.listele(e) }),
-					( dev ? new FRMenuChoice({
-						mne: 'EG',
-						text: '<span class="green bold">Gelen e-İşlem Listesi (MQ)</span>',
+					// new FRMenuChoice({ mne: 'EI', text: '<span class="green bold">Gelen e-İşlem Listesi</span>', block: e => GelenEIslemListePart.listele(e) }),
+					new FRMenuChoice({
+						mne: 'EI',
+						text: '<span class="green bold">Gelen e-İşlem Listesi</span>',
 						block: e => MQEIslem_Gelen.listeEkraniAc(e)
-					}) : null ),
+					}),
 					new FRMenuChoice({ mne: 'AF', text: 'Alım Fatura Listesi', block: e => AlimFaturaFis.listeEkraniAc(e) }),
 					new FRMenuChoice({ mne: 'AI', text: 'Alım İrsaliye Listesi', block: e => AlimIrsaliyeFis.listeEkraniAc(e) }),
 					new FRMenuChoice({ mne: 'AS', text: 'Alım Sipariş Listesi', block: e => AlimSiparisFis.listeEkraniAc(e) }),

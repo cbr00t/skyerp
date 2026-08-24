@@ -853,17 +853,17 @@ class MQOnayci extends MQCogul {
 					}
 					toplu.add(upd)
 					
-					let table2SubRecs = {}, table2Sayaclar = {}
+					let table2SubRecs = {}
 					;subRecs.forEach(r => {
-						let { _table: t, sayac } = r
+						let { _table: t } = r
 						;(table2SubRecs[t] ??= []).push(r)
-						;(table2Sayaclar[t] ??= {})[sayac] = true
+						//;(table2Sayaclar[t] ??= {})[sayac] = true
 					})
 					
-					for (let [table, sayacSet] of entries(table2SubRecs)) {
-						let buSubRecs = table2SubRecs[table] ?? []
+					for (let [table, buSubRecs] of entries(table2SubRecs)) {
 						let onayMax = this.getOnayMax(...buSubRecs)
 						if (onayNo >= onayMax || (proforma && proId && sonrakineOnayGitmesin)) {
+							let sayaclar = buSubRecs.map(r => r.sayac)
 							toplu.add(
 								new MQIliskiliUpdate({
 									from: `${db}..${table}`,

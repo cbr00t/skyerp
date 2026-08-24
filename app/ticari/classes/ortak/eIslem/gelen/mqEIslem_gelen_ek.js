@@ -333,10 +333,10 @@ class MQEIslem_Gelen_EkBilgiUI extends SimplePart {
                 sent = new MQSent(), { where: wh, sahalar } = sent
                 sent.fromAdd('elterparam')
                 wh.degerAta(subeKod, 'bizsubekod')
-                sahalar.add('pesincarikod pesinCarikod')
+                sahalar.add('pesincarikod pesinCariKod')
             }
-            let pesinCarikod = await sent.execTekilDeger()
-            if (!pesinCarikod) {
+            let pesinCariKod = await sent.execTekilDeger()
+            if (!pesinCariKod) {
                 errors.push(`<b>${subeKod || '-Merkez-'}</b> kodlu Şube için Alım Şube Parametresi <b>Peşin Cari Kodu</b> girilmelidir`)
                 return
             }
@@ -372,8 +372,13 @@ class MQEIslem_Gelen_EkBilgiUI extends SimplePart {
         unvan = eFis.gondericiUnvan || unvan || ''
         let { gondericiAdresYapi: adresYapi = {}, gondericiIletisimYapi: iletisimYapi = {} } = eFis
         let { adres, gondericiVergiDairesi: vergiDaire } = eFis
-        let { ilKod, ilAdi, yore = '', posta = '' } = adresYapi
-        let { tel: tel1 = '', faks: fax = '', eMail = '' } = iletisimYapi
+        for (let obj of [adresYapi, iletisimYapi])
+        for (let [k, v] of entries(obj)) {
+            if (v == null)
+                obj[k] = ''
+        }
+        let { ilKod, ilAdi, yore, posta } = adresYapi
+        let { tel: tel1, faks: fax, eMail } = iletisimYapi
         if (!ilKod) {
             let a2k = await MQCariIl.getGloAdi2KodListe() ?? {}
             let ilAdiUpper = ilAdi.toLocaleUpperCase('tr-TR').trim()
@@ -384,7 +389,7 @@ class MQEIslem_Gelen_EkBilgiUI extends SimplePart {
             )[0].trim() ?? ''
         }
         
-        let gibAliasYapi = await this.getVKN2GIBAliasYapi(e) ?? {}
+        let gibAliasYapi = await this.getVKN2GIBAliasYapi(vkn) ?? {}
         let { E: eFatGIBAlias, IR: eIrsGIBAlias } = gibAliasYapi
         
         let inst = new MQCari({ kod: vkn, unvan })
@@ -491,7 +496,8 @@ class MQEIslem_Gelen_EkBilgiUI extends SimplePart {
         let ins = new MQInsert({ table, hv })
         return await ins.execute()
     }
-    async getVKN2GIBAliasYapi({ vkn } = {}) {
+    async getVKN2GIBAliasYapi(e = {}) {
+        let vkn = isObject(e) ? e.vkn : e
         if (!vkn)
             return null
 
@@ -547,6 +553,7 @@ class MQEIslem_Gelen_EkBilgiUI extends SimplePart {
         extend(rec, { eFis })
         return eFis
     }
+
     async getMustHTML({ gondericiMustKod: mustKod, degAdresKod } = {}) {
         if (!(mustKod || degAdresKod))
             return null

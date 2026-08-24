@@ -1,5 +1,6 @@
 class TekSecim extends CIO {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get tekSecimmi() { return true } get tekSecimmi() { return this.class.tekSecimmi }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get tekSecimmi() { return true } get tekSecimmi() { return this.class.tekSecimmi }
 	static get defaultChar() { return null } get coklumu() { return $.isArray(this.char) }
 	static get kaListe() { return this.instance.kaListe } static get kaDict() { return this.instance.kaDict }
 	static get kodListe() { return this.instance.kodListe } static get adiListe() { return this.instance.adiListe }

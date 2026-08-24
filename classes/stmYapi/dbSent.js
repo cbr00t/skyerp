@@ -444,7 +444,14 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		this.leftJoin(alias, 'kategoridetay kdet', `${kodClause} = kdet.kaysayac`);
 		return this
 	}
-	x2CariBagla(e) { e = e ?? {}; let {kodClause} = e; this.fromIliski('carmst car', `${kodClause} = car.must`); return this }
+	x2CariBagla(e = {}, _leftJoinAlias) {
+		let { kodClause, leftJoin: leftJoinAlias = e.leftJoinAlias ?? _leftJoinAlias } = e
+		if (leftJoinAlias)
+			this.leftJoin(leftJoinAlias, 'carmst car', `${kodClause} = car.must`)
+		else
+			this.fromIliski('carmst car', `${kodClause} = car.must`)
+		return this
+	}
 	fis2CariBagla(e) { e = e ?? {}; let mustSaha = (e.mustSaha ?? e.fisMustSaha) || 'must'; this.fromIliski('carmst car', `fis.${mustSaha} = car.must`); return this }
 	x2HizmetBagla(e) { let kodClause = e?.kodClause; this.fromIliski('hizmst hiz', `${kodClause} = hiz.kod`); return this }
 	fis2HizmetBagla(e = {}) { return this.x2HizmetBagla({ ...e, kodClause: e.kodClause || 'fis.hizmetkod' }) }

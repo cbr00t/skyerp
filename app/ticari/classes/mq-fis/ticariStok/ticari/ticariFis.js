@@ -31,18 +31,38 @@ class TicariFis extends TSOrtakFis {
 	static get sevkTSKullanilirmi() { return true }
 	get fisTopIslBedel() { let toplam = 0; let {detaylar} = this; for (let det of detaylar) { toplam += (det.iskBedelToplam || 0) } return toplam }
 	get ekVergiVarmi() { let {detaylar} = this; for (let det of detaylar) { if (det.ekVergiYapi && !det.bosmu) { return true } } return false }
-	static async getMustKonKendiDetayKod(e) {
-		e = e || {}; let {mustKod} = e; if (!mustKod) { return null }
-		let sent = new MQSent({ from: 'carmst', where: { degerAta: mustKod, saha: this.mustSaha }, sahalar: ['kendidetaykod'] })
-		return await app.sqlExecTekilDeger(sent)?.trimEnd()
+	static async getMustKonKendiDetayKod({ mustKod } = {}) {
+		if (!mustKod)
+			return null
+		
+		let { mustSaha } = this
+		let sent = new MQSent(), { where: wh, sahalar } = sent
+		sent.fromAdd('carmst')
+		wh.degerAta(mustKod, mustSaha)
+		sahalar.add('kendidetaykod')
+		
+		return await sent.execTekilDeger()?.trimEnd()
 	}
-	async getMustKonKendiDetayKod(e) { e = e || {}; return this.getMustKonKendiDetayKod(extend({}, e, { mustKod: this.mustKod })) }
-	static async getMusKarsiRefKod(e) {
-		e = e || {}; let {mustKod} = e; if (!mustKod) { return null }
-		let sent = new MQSent({ from: 'carmst', where: { degerAta: mustKod, saha: this.mustSaha }, sahalar: ['musrefkod'] })
-		return await app.sqlExecTekilDeger(sent)?.trimEnd()
+	async getMustKonKendiDetayKod(e = {}) {
+		let { mustKod = this.mustKod } = e
+		return this.class.getMustKonKendiDetayKod({ mustKod })
 	}
-	async getMusKarsiRefKod(e) { e = e || {}; return this.getMusKarsiRefKod(extend({}, e, { mustKod: this.mustKod })) }
+	static async getMusKarsiRefKod({ mustKod } = {}) {
+		if (!mustKod)
+			return null
+
+		let { mustSaha } = this
+		let sent = new MQSent(), { where: wh, sahalar } = sent
+		sent.fromAdd('carmst')
+		wh.degerAta(mustKod, mustSaha)
+		sahalar.add('musrefkod')
+		
+		return await sent.execTekilDeger()?.trimEnd()
+	}
+	async getMusKarsiRefKod(e = {}) {
+		let { mustKod = this.mustKod } = e
+		return this.class.getMusKarsiRefKod({ mustKod })
+	}
 	static async kdvKod2RecGlobalOlustur(e) {
 		let kaListe = [ new CKodVeAdi({ kod: '', aciklama: '' }) ];
 		let kdvKod2Rec = await MQVergi.getKdvBilgileri({ fisSinif: this })
@@ -655,9 +675,10 @@ class SevkiyatFis extends TicariFis {
 	constructor(e = {}) {
 		super(e)
 		this.yerKod ||= 'A'
-		let eBilgi = this.eBilgi = e.eBilgi
+		this.eBilgi = e.eBilgi
+		/*let eBilgi = this.eBilgi = e.eBilgi
 		if (eBilgi)
-			this.eBilgiIcinYukle(e)
+			this.eBilgiIcinYukle(e)*/
 	}
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)

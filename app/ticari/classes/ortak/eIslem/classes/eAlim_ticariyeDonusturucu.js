@@ -1,7 +1,7 @@
 class EAlimTicariyeDonusturucu extends CObject {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	constructor(e) {
-		e = e || {}; super(e);
+	constructor(e = {}) {
+		super(e)
 		const eYonetici = this.eYonetici = e.eYonetici || {};
 		extend(this, {
 			eConf: e.eConf ?? eYonetici.eConf ?? MQEConf.instance,

@@ -1,5 +1,6 @@
 class SeriVeNo extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get asText() { return this.toString() }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	get asText() { return this.toString() }
 	constructor(e, _no) {
 		e = e || {}; super(e);
 		this.seri = (typeof e == 'object' ? e.seri : e) || '';

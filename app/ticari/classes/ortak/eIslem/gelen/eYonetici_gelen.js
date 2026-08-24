@@ -212,7 +212,7 @@ class EYonetici_Gelen extends CObject {
                         `<div style="font-weight: bold; color: firebrick; margin-top: 5px; padding-left: 30px;">`,
                             `Yine de devam edilsin mi?`,
                         `</div>`
-                    ].map('\n'))
+                    ].join('\n'))
             )
         }
         
@@ -325,13 +325,15 @@ class EYonetici_Gelen extends CObject {
             let sent = new MQSent(), { where: wh, sahalar } = sent
             sent.fromAdd('efgecicialfatirs')
             wh.degerAta(fisSayac, 'fissayac')
-            sahalar.add(`'I' tip`, 'efirsnobilgi sibilgi fisNox')
+            sahalar.add(`'I' tip`, 'efirsnobilgi fisNox')
+            uni.add(sent)
         }
         ;{
             let sent = new MQSent(), { where: wh, sahalar } = sent
             sent.fromAdd('efgecicialfatsip')
             wh.degerAta(fisSayac, 'fissayac')
             sahalar.add(`'S' tip`, 'efsipnobilgi fisNox')
+            uni.add(sent)
         }
 		let stm = new MQStm({ sent: uni, orderBy: ['tip', 'fisNox'] })
         

@@ -280,6 +280,12 @@ class TSOrtakFis extends MQTicariGenelFis {
 	uiKaydetOncesiIslemler(e) { super.uiKaydetOncesiIslemler(e) }
 	async kaydetOncesiIslemler(e = {}) {
 		await super.kaydetOncesiIslemler(e)
+		let { fisNo, numarator: num } = this
+		let { sender = e.parentPart } = e
+		let numPart = sender?.numaratorPart ?? sender?.parentPart?.numaratorPart
+		if (!(fisNo || numPart?.otoNummu))
+			throw { isError: true, errorText: '<b>Belge No</b> belirtilmelidir'}
+		
 		await MQStokIslem.getKod2OzelIsaret(e)
 		;{
 			let degistimi = false
@@ -350,6 +356,9 @@ class TSOrtakFis extends MQTicariGenelFis {
 	async satisKosulYapiOlustur(e) { return this }
 	uiSatirBedelHesaplaSonrasi(e) { }
 	async cariDegisti(e = {}) {
+		await this.disFisGiris_ekIslemler(e)
+	}
+	async disFisGiris_ekIslemler(e = {}) {
 		await this.efatDurumBelirle(e)
 		await this.cariIcinNumaratorBelirle(e)
 		await this.satisKosulYapiOlustur(e)

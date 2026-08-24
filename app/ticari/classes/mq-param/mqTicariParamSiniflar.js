@@ -332,6 +332,21 @@ class MQFiyatVeIskontoParam extends MQTicariParamBase {
 		form.addNumber('fiyatSayi', 'Fiyat Sayısı'); form.addNumber('iskFra', 'İskonto Ondalık')
 		form = paramci.addKullanim().addGrup('Kullanım').addFormWithParent(); form.addBool('kademeliIskonto', 'Kademeli İskonto')
 	}
+	paramHostVarsDuzenle({ hv = {} }) {
+		super.paramHostVarsDuzenle(...arguments)
+		let { iskSayi = {}, iskOranMax = {}, iskEtiketDict: etkDict } = this
+		extend(hv, {
+			sabitIskSayi: iskSayi.sabit || 0,
+			kampanyaIskSayi: iskSayi.kampanya || 0,
+			kademeliIskSayi: iskSayi.kademeli || 0,
+			sabitIskOranMax: iskOranMax.sabit || 0,
+			kampanyaIskOranMax: iskOranMax.kampanya || 0,
+			kademeliIskOranMax: iskOranMax.kademeli || 0,
+			sabitEtiketListe: etkDict.sabit ?? [],
+			kampanyaEtiketListe: etkDict.kampanya ?? [],
+			kademeliEtiketListe: etkDict.kademeli ?? []
+		})
+	}
 	paramSetValues({ rec } = {}) {
 		super.paramSetValues(...arguments)
 		extend(this, {
@@ -339,7 +354,7 @@ class MQFiyatVeIskontoParam extends MQTicariParamBase {
 			iskOranMax: { sabit: rec.sabitIskOranMax || 0, kampanya: rec.kampanyaIskOranMax || 0, kademeli: rec.kademeliIskOranMax || 0 }
 		})
 		let iskEtiketci = e => {
-			let prefix = typeof e == 'object' ? e.prefix : e
+			let prefix = isObject(e) ? e.prefix : e
 			let key = `${prefix}EtiketListe`
 			let result = {}, liste = rec[key]
 			if (liste) {
