@@ -1,7 +1,14 @@
 (function() {
 extend(DRapor_KarZararTablosu.prototype, {
 	getPanels(e = {}) {
+		let { zoom = 1 } = getViewportInfo() ?? {}
 		let { innerHeight: maxH } = window
+		maxH /= zoom
+		if (zoom < 1)
+			maxH -= 50 + (zoom * 10)
+		else if (zoom > 1)
+			maxH += 50 + ((1 - zoom) * 10)
+		
 		let { params } = app
 		let { finans: { kzTabloMaliyetten: kzMaliyetten } } = params
 		
@@ -9,7 +16,7 @@ extend(DRapor_KarZararTablosu.prototype, {
 			main: new AccPanel()
 				.setTitle(kzMaliyetten ? 'Satışlar' : 'Satışlar ve Alımlar')
 				.setExpanded()
-				.setHeight(maxH * .45)
+				.setHeight(maxH * .40)
 				.add(...[
 					new AccPanelGrid()
 						.setId('satis')
@@ -219,7 +226,7 @@ extend(DRapor_KarZararTablosu.prototype, {
 			diger: new AccPanel()
 				.setTitle('Diğer')
 				.setExpanded()
-				.setHeight(maxH * .35)
+				.setHeight(maxH * 0.4)
 				.add(...[
 					new AccPanelGrid()
 						.setId('gelir')
@@ -403,12 +410,13 @@ extend(DRapor_KarZararTablosu.prototype, {
 
 							// diğer veriler hazır
 							let toplam = {}
+							let sonucToplam = 0
 							;{
 								let kosul = r =>
 									!(r._toplammi ?? r._toplamSatirimi)
 								
 								let toplamEkle
-								toplamEkle = (r, k, neg, text) => {
+								toplamEkle = (r, k, neg, sonucaEsas, text) => {
 									let v = kosul(r) ? Number(r[k]) : null
 									if (v == null)
 										return
@@ -420,34 +428,39 @@ extend(DRapor_KarZararTablosu.prototype, {
 									}
 									
 									let t = toplam[text] ??= { neg, aciklama, bedel: 0 }
-									if (v)
+									if (v) {
 										t.bedel += v
+										if (sonucaEsas)
+											sonucToplam += v
+									}
 								}
 
 								let { satis: satislar, alim: alimlar, gelir: gelirler, gider: giderler } = data
 								;{
 									;satislar.forEach(r => {
-										toplamEkle(r, 'brutBedel', false, `Brüt Bedel`)
-										toplamEkle(r, 'topIsk', true, `İskonto`)
-										toplamEkle(r, 'ciro', false, `Ciro`)
+										toplamEkle(r, 'brutBedel', false, false, `Brüt Bedel`)
+										toplamEkle(r, 'topIsk', true, false, `İskonto`)
+										toplamEkle(r, 'ciro', false, true, `Ciro`)
 										if (!alimlar)
-											toplamEkle(r, 'maliyet', true, `Maliyet`)
+											toplamEkle(r, 'maliyet', true, true, `Maliyet`)
 									})
 									if (alimlar) {
-										;toplam['Alımlar'] = {
-											neg: true, aciklama: `Alımlar (-)`,
-											bedel: -topla(r => r.ciro || 0, alimlar.filter(kosul))
-										}
+										let bedel = -topla(r => r.ciro || 0, alimlar.filter(kosul))
+										;toplam['Alımlar'] = { neg: true, aciklama: `Alımlar (-)`, bedel }
+										sonucToplam += bedel
 									}
-									toplam[`Diğer Gelirler`] = {
-										neg: false, aciklama: `Diğer Gelirler`,
-										bedel: topla(r => r.bedel || 0, gelirler.filter(kosul))
+									;{
+										let bedel = topla(r => r.bedel || 0, gelirler.filter(kosul))
+										toplam[`Diğer Gelirler`] = { neg: false, aciklama: `Diğer Gelirler`, bedel }
+										sonucToplam += bedel
 									}
-									toplam[`Diğer Giderler`] = {
-										neg: true, aciklama: `Diğer Giderler (-)`,
-										bedel: -topla(r => r.bedel || 0, giderler.filter(kosul))
+									;{
+										let bedel = -topla(r => r.bedel || 0, giderler.filter(kosul))
+										toplam[`Diğer Giderler`] = { neg: true, aciklama: `Diğer Giderler (-)`, bedel }
+										sonucToplam += bedel
 									}
 								}
+								sonucToplam = roundToBedelFra(sonucToplam)
 
 								for (let [k, t] of entries(toplam)) {
 									let { bedel: v } = t
@@ -456,12 +469,10 @@ extend(DRapor_KarZararTablosu.prototype, {
 								}
 
 								;{
-									let r = {
-										neg: false, _sonucmu: true,
-										bedel: roundToBedelFra(topla(r => r.bedel, values(toplam)))
-									}
-									r.aciklama = `NET ${r.bedel < 0 ? 'ZARAR' : 'KAR'}`
-									toplam[r.aciklama] = r
+									let bedel = sonucToplam
+									let aciklama = `NET ${sonucToplam < 0 ? 'ZARAR' : 'KAR'}`
+									let r = { neg: false, _sonucmu: true, aciklama, bedel }
+									toplam[aciklama] = r
 								}
 							}
 							
