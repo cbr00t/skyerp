@@ -268,15 +268,34 @@ class MQKA extends MQKod {
 				if (kod)
 					sent.where.degerAta(kod, `${aliasVeNokta}${kodSaha}`)
 				if (value) {
-					let parts = value ? value.split(' ') : null
-					if (!empty(parts)) {
-						for (let part of parts) {
-							part = part?.trim()?.toLocaleUpperCase()
-							if (part) {
-								let or = new MQOrClause([ { like: `%${part}%`, saha: `${aliasVeNokta}${kodSaha}` }, { like: `%${part}%`, saha: `UPPER(${aliasVeNokta}${adiSaha})` } ]);
-								sent.where.add(or)
+					let tokens = value ? value.split(' ') : null
+					if (!empty(tokens)) {
+						let and = new MQAndClause()
+						for (let t of tokens) {
+							let or = new MQOrClause()
+							for (let saha of [kodSaha, adiSaha].filter(Boolean)) {
+								let cl = aliasVeNokta + saha
+								let cl_upper = cl.match(/UPPER()/i)
+									? cl
+									: `UPPER(${cl})`
+								
+								// t = t?.trim()?.toLocaleUpperCase()
+								if (t != null)
+									t = String(t).trim()
+								if (!t)
+									continue
+
+								or.add(new MQOrClause([
+									{ like: `%${t}%`, saha: cl },
+									{ like: `%${t?.toUpperCase()}%`, saha: cl_upper },
+									{ like: `%${t?.toLocaleUpperCase()}%`, saha: cl_upper }
+								]))
 							}
+							if (!empty(or.liste))
+								and.add(or)
 						}
+						if (!empty(and.liste))
+							sent.where.add(and)
 					}
 				}
 

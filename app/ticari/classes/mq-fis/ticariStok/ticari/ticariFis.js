@@ -863,8 +863,14 @@ class SevkiyatFis extends TicariFis {
 		}
 
 		let { hesapSekli } = this
-		if (detaylar.some(d => d.eBilgi.bedel != d.netBedel))
+		if (detaylar.some(d => d.eBilgi?.bedel != d.netBedel)) {
 			hesapSekli.fiyatYap()
+			;detaylar.forEach(det => {
+				let { bedel } = det.eBilgi ?? {}
+				if (bedel != null)
+					det.netBedel = Number(bedel)
+			})
+		}
 		
 		return this
 	}

@@ -334,7 +334,7 @@ class MQFiyatVeIskontoParam extends MQTicariParamBase {
 	}
 	paramHostVarsDuzenle({ hv = {} }) {
 		super.paramHostVarsDuzenle(...arguments)
-		let { iskSayi = {}, iskOranMax = {}, iskEtiketDict: etkDict } = this
+		let { iskSayi = {}, iskOranMax = {}, iskEtiketDict: etkDict = {} } = this
 		extend(hv, {
 			sabitIskSayi: iskSayi.sabit || 0,
 			kampanyaIskSayi: iskSayi.kampanya || 0,
@@ -354,16 +354,17 @@ class MQFiyatVeIskontoParam extends MQTicariParamBase {
 			iskOranMax: { sabit: rec.sabitIskOranMax || 0, kampanya: rec.kampanyaIskOranMax || 0, kademeli: rec.kademeliIskOranMax || 0 }
 		})
 		let iskEtiketci = e => {
-			let prefix = isObject(e) ? e.prefix : e
-			let key = `${prefix}EtiketListe`
-			let result = {}, liste = rec[key]
+			let pf = isObject(e) ? e.prefix : e
+			let k = `${pf}EtiketListe`
+			let res = {}
+			let liste = rec[k]
 			if (liste) {
 				for (let i = 0; i < liste.length; i++)
-					result[i + 1] = liste[i]
+					res[i + 1] = liste[i]
 			}
-			return result
+			return res
 		}
-		let iskEtiketDict = this.iskEtiketDict = {
+		this.iskEtiketDict = {
 			sabit: iskEtiketci('sabit'),
 			kampanya: iskEtiketci('kampanya'),
 			kademeli: iskEtiketci('kademeli')

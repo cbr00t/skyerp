@@ -136,7 +136,7 @@ class EYonetici_Gelen extends CObject {
 
             let eFis = new EFis({ eIslSinif, eConf, xml })
             ;{
-                let v = this.class.normalizeEFAyrimTipi(eFis.efAyrimTipi)
+                let v = this.class.normalizeEFAyrimTipi(eFis.eIslTip)
                 if (v == efAyrimTipi)
                     recs.push(eFis)
             }

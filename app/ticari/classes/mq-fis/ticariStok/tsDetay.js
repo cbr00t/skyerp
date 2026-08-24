@@ -335,7 +335,8 @@ class TSSHDDetay extends TSDetay {
 		if (hesapSekli != null && !isObject(hesapSekli))
 			hesapSekli = new FisHesapSekli(hesapSekli)
 		
-		let brutBedel = Number(this.netBedel)
+		let netBedel = Number(this.netBedel)
+		let brutBedel = netBedel
 		if (hesapSekli?.fiyatmi || hesapSekli?.miktarmi) {
 			let { belirtec2Kolon: b2c = {} } = tanimPart ?? {}
 			let { params: { zorunlu = {} } } = app
@@ -345,9 +346,10 @@ class TSSHDDetay extends TSDetay {
 				let { iskYapi } = this
 				let carpan = 1
 				for (let key of iskYapi?.class?.iskKeys ?? [])
-				for (let oran of iskYapi[key] ?? [])
+				for (let oran of iskYapi[key] ?? []) {
 					oran = Number(oran)
 					carpan *= (100 - oran) / 100
+				}
 				
 				if (carpan)
 					brutBedel /= carpan
@@ -363,16 +365,27 @@ class TSSHDDetay extends TSDetay {
 				this.miktar = fiyat ? roundToFra(brutBedel / fiyat, fra) : 0
 				this.miktar2Hesapla(e)
 			}
+
+			this.brutBedel = roundToBedelFra(brutBedel)
+			this.netBedelHesapla(e)
+			
+			// Fiyat/Miktar hesap modunda girilen bedel esas değerdir.
+			this.netBedel = netBedel
 		}
+		else
+			this.bedelHesapla(e)
 		
-		this.bedelHesapla(e)
 		if (ticarimi)
 			this.vergileriHesapla(e)
 		
 		if (w) {
-			let netBedel = Number(this.netBedel)
-			w.setcellvalue(rowIndex, 'brutBedel', brutBedel)
-			w.setcellvalue(rowIndex, 'netBedel', netBedel)
+			if (hesapSekli?.fiyatmi)
+				w.setcellvalue(rowIndex, 'fiyat', this.fiyat)
+			else if (hesapSekli?.miktarmi)
+				w.setcellvalue(rowIndex, 'miktar', this.miktar)
+		
+			// w.setcellvalue(rowIndex, 'brutBedel', Number(this.brutBedel))    // 'brutBedel' kolonu grid kontrolcüde yok
+			w.setcellvalue(rowIndex, 'netBedel', Number(this.netBedel))
 		}
 	}
 	miktar2Hesapla(e) { }
@@ -382,7 +395,7 @@ class TSSHDDetay extends TSDetay {
 		return this.netBedelHesapla(e)
 	}
 	netBedelHesapla({ fis, ticarimi } = {}) {
-		this.iskBedelYapiReset();
+		this.iskBedelYapiReset()
 		let { brutBedel } = this
 		let netBedel = brutBedel
 		ticarimi ??= fis?.class?.ticarimi ?? false

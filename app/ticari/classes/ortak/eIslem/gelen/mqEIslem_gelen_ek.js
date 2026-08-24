@@ -386,14 +386,14 @@ class MQEIslem_Gelen_EkBilgiUI extends SimplePart {
                 a2k[ilAdi] ??
                 a2k[ilAdiUpper] ??
                 []
-            )[0].trim() ?? ''
+            )?.[0]?.trim() ?? ''
         }
         
         let gibAliasYapi = await this.getVKN2GIBAliasYapi(vkn) ?? {}
         let { E: eFatGIBAlias, IR: eIrsGIBAlias } = gibAliasYapi
         
         let inst = new MQCari({ kod: vkn, unvan })
-        extend(inst, { vkn, ashismi: vkn.length == 11 })
+        extend(inst, { vkn, sahismi: vkn.length == 11 })
         if (eFis) {
             let eFaturaKullanirmi = true
             let senaryoTipi = 'T'                                                       // TICARIFATURA
@@ -416,7 +416,7 @@ class MQEIslem_Gelen_EkBilgiUI extends SimplePart {
             kaydedince: ({ inst }) => {
                 let { ddMustKod, elmMustBilgi: layout } = this
                 let { kod: mustKod, vkn } = inst
-                this.efVergi2CariGuncelle({ vkn, mustKod })
+                this.efVergi2CariGuncelle({ vkn, mustKod })                             // ** bilerek await edilmedi. bu işlem bu sürecin akışını ilgilendirmiyor ve boşuna beklemesin
                 extend(rec, {
                     gondericiMustKod: mustKod,
                     degAdresKod: ''

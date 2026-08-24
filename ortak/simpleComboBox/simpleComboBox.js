@@ -197,14 +197,23 @@ class SimpleComboBoxPart extends Part {
 			input.autocomplete({
 				delay, minLength,
 				source: (async ({ term } = {}, callback) => {
-					let tokens = term?.split(' ').map(_ => _.trim()).filter(_ => !!_)
+					let tokens = term
+						?.split(' ')
+						?.map(_ => _.trim())
+						?.filter(Boolean) ?? []
+					
 					let recs = await this._onSourceReq({ layout, input, term, tokens })
 					if (!recs)
 						return
+					
 					if (maxRows != null && maxRows > -1 && recs.length > maxRows)
 						recs = recs.slice(0, maxRows)
+					
 					// let result = recs.map(rec => rec[adiSaha] || rec[kodSaha]).sort()
-					let result = recs.map(rec => ({ value: rec[kodSaha], label: rec[adiSaha] }))
+					let result = recs.map(rec => ({
+						value: rec[kodSaha],
+						label: rec[adiSaha]
+					}))
 					function getSortText(item) {
 						let value = isObject(item)
 							? item.label ?? item.value
@@ -212,10 +221,12 @@ class SimpleComboBoxPart extends Part {
 						return value?.toString() ?? ''
 					}
 					result.sort((a, b) =>
-						getSortText(a).localeCompare(getSortText(b), culture, {
-							numeric: true,
-							sensitivity: 'base'
-						})
+						getSortText(a).localeCompare(
+							getSortText(b), culture, {
+								numeric: true,
+								sensitivity: 'base'
+							}
+						)
 					)
 					callback(result)
 				}),
@@ -521,6 +532,7 @@ class SimpleComboBoxPart extends Part {
 		}
 		if (!source)
 			return null
+		
 		if (!isFunction(source))
 			return source
 		

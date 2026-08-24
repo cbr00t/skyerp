@@ -867,7 +867,7 @@ class MQOnayci extends MQCogul {
 							toplu.add(
 								new MQIliskiliUpdate({
 									from: `${db}..${table}`,
-									where: { inDizi: keys(sayacSet), saha: 'kaysayac' },
+									where: { inDizi: sayaclar, saha: 'kaysayac' },
 									set: { degerAta: onaymi ? '' : 'RD', saha: 'wonay' }
 								})
 							)

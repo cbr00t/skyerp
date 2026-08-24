@@ -238,7 +238,8 @@ class MQEIslem_Gelen extends MQCogul {
                     'kaysayac sayac', 'kayitts kayitTS', 'efuuid uuid', 'tarih', 'seri', 'noyil noYil',
                     'effatnox fisNox', 'mustkod gondericiMustKod', 'efmustunvan gondericiUnvan', 'vkno gondericiVKN',
 					'efsonuc sonucBedel', 'tamamlandi', 'yazdirildimi yazdirildi', 'bozukmu bozuk', 'birsaliyevar irsVar',
-					'bizsubekod subeKod', 'degadreskod degAdresKod', 'onaydurumu akibet'
+					'bizsubekod subeKod', 'degadreskod degAdresKod', 'onaydurumu akibet',
+					'ayrimtipi ayrimTipi', 'iade'
                 )
                 .add(
                     `(CASE WHEN fis.efbelge = '' THEN 'E' ELSE fis.efbelge END) eIslTip`,
@@ -279,7 +280,6 @@ class MQEIslem_Gelen extends MQCogul {
 
     static async bekleyenleriGetirIstendi({ sender: listePart } = {}) {
 		let islemAdi = 'e-İşlem Bekleyenleri Getir'
-
 		let { sorguFiltre: wsSec } = listePart
 		await promise(tamamIslemi => {
 			let parentPart = listePart
@@ -474,7 +474,7 @@ class MQEIslem_Gelen extends MQCogul {
 		if (!rec)
 			return
 		
-		let { efbelge: efBelge, ayrimtipi: ayrimTipi, iade: iademi, fisTipi } = rec
+		let { eIslTip: efBelge, ayrimTipi, iade: iademi, fisTipi } = rec
 		let alimmi = true
 		if (fisTipi != null) {
 			fisTipi = fisTipi?.char ?? fisTipi
@@ -490,6 +490,7 @@ class MQEIslem_Gelen extends MQCogul {
 
 		let { params: { zorunlu } } = app
 		let { cariYil } = zorunlu
+		cariYil ||= today().yil
 		
 		let gridKontrolcuSinif = EIslAlimGridKontrolcu
 		let efDonusumler = await EYonetici_Gelen.getEFDonusum(rec)
@@ -499,7 +500,7 @@ class MQEIslem_Gelen extends MQCogul {
 		let tsn = TicariSeriliNo.fromText(fisNox)
 		let { seri, noYil, no: fisNo } = tsn
 		tarih = asDate(tarih)
-		fisNo ||= cariYil
+		noYil ||= cariYil
 		subeKod = yerRec.bizsubekod || subeKod
 		yerKod = yerRec.kod || yerKod
 
@@ -509,9 +510,10 @@ class MQEIslem_Gelen extends MQCogul {
 			tarih, seri, noYil, fisNo,
 			subeKod, mustKod, yerKod
 		})
-		fis.efAyrimTipi.char = irsaliyemi ? 'IR' : 'E'
+		
 		await fis.eBilgiIcinDetaylariYukle(e)
 		await fis.disFisGiris_ekIslemler(e)
+		fis.efAyrimTipi.char = irsaliyemi ? 'IR' : 'E'
 		
 		fis.rootFormBuilderDuzenle_ekIslem(_e => {
 			let { builders: b } = _e
@@ -552,8 +554,10 @@ class MQEIslem_Gelen extends MQCogul {
 		})
 		
 		res = await pr
+		if (!res)
+			return null
+		
 		await this.ticariyeAktarIstendi_kaydetSonrasi({ ...e, res, rec, fis })
-
 		return res
 		
     }

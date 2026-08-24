@@ -18,12 +18,25 @@ class TSGridKontrolcu extends GridKontrolcu {
 		})
 	}
 	gridVeriYuklendi(e) {
-		super.gridVeriYuklendi(e); let {sender: gridPart, gridWidget} = e; gridPart.grid.css('opacity', 0);
-		setTimeout(() => {
-			let detaylar = gridWidget.getboundrows();
-			for (let i = 0; i < detaylar.length; i++) { let det = detaylar[i]; if (!!det.altAciklama) { gridWidget.showrowdetails(i) } }
-			setTimeout(() => gridPart.grid.css('opacity', 'unset'), 1)
-		}, 200)
+		super.gridVeriYuklendi(e)
+		let { fis } = this
+		let { sender: gridPart } = e
+		let { grid = gridPart.grid, gridWidget: w = gridPart.gridWidget } = gridPart 
+		grid.css('opacity', 0)
+		delay(200).then(() => {
+			let detaylar = w.getboundrows()
+			for (let i = 0; i < detaylar.length; i++) {
+				let det = detaylar[i]
+				if (!!det.altAciklama)
+					w.showrowdetails(i)
+			}
+			fis?.hesapSekliDegisti?.({
+				sender: gridPart, gridPart,
+				kontrolcu: this, force: true
+			})
+			delay(1).then(() =>
+				grid.css('opacity', 'unset'))
+		})
 	}
 	tabloKolonlariDuzenle(e) {
 		super.tabloKolonlariDuzenle(e); let shKolonGrup = MQStok.getGridKolonGrup_brmli({
@@ -37,7 +50,7 @@ class TSGridKontrolcu extends GridKontrolcu {
 			shKolonGrup, new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 13, cellValueChanged: e => setTimeout(() => this.miktarFiyatDegisti(e), 10) }).tipDecimal().zorunlu(),
 			new GridKolon({ belirtec: 'fiyat', text: 'Fiyat', genislikCh: 18, cellValueChanged: e => setTimeout(() => this.miktarFiyatDegisti(e), 10) }).tipDecimal_fiyat()
 		);
-		this.tabloKolonlariDuzenle_fiyat_netBedel_arasi(e);
+		this.tabloKolonlariDuzenle_fiyat_netBedel_arasi(e)
 		tabloKolonlari.push(new GridKolon({ belirtec: 'netBedel', text: 'Net Bedel', genislikCh: 18 }).tipDecimal_bedel().readOnly());
 		for (let item of HMRBilgi.hmrIter()) {
 			let colDefOrArray = item.asGridKolon();
@@ -68,11 +81,31 @@ class TSGridKontrolcu extends GridKontrolcu {
 		}
 		return super.geriYuklemeIcinUygunmu(e)
 	}
-	miktarFiyatDegisti(e) { this.satirBedelHesapla(e) }
-	satirBedelHesapla(e) {			/* Ticari seviyede farklı hesap yapılır */
-		let args = e.args || {}, {uid} = args, rowIndex = args.rowindex, {gridWidget, fis} = this;
-		let det = e.detay || e.rec || (uid == null ? gridWidget.getrowdata(rowIndex) : gridWidget.getrowdatabyid(uid));
-		let _e = { ...e, fis, gridWidget, uid, rowIndex, belirtec: args.datafield }; det?.uiSatirBedelHesapla(_e)
+	miktarFiyatDegisti(e) {
+		let { fis = {} } = this
+		let { hesapSekli } = fis
+		let { args } = e
+		hesapSekli = hesapSekli?.char ?? hesapSekli
+		let sonucBelirtec = (
+			hesapSekli == 'F' ? 'fiyat' :
+			hesapSekli == 'M' ? 'miktar' :
+			'netBedel'
+		)
+	
+		let { belirtec = args?.datafield } = e
+		if (belirtec != sonucBelirtec)
+			this.satirBedelHesapla(e)
+	}
+	satirBedelHesapla(e = {}) {			/* Ticari seviyede farklı hesap yapılır */
+		let { sender: gridPart, args } = e
+		let { rowIndex = args.rowindex, uid = args.uid, belirtec = args.datafield } = e
+		let { gridWidget, fis } = this
+		let { detay: det = e.rec } = e
+		det ??= uid == null
+			? gridWidget.getrowdata(rowIndex)
+			: gridWidget.getrowdatabyid(uid)
+		let _e = { ...e, fis, gridPart, gridWidget, uid, rowIndex, belirtec }
+		det?.uiSatirBedelHesapla(_e)
 	}
 	yerOrtakmiDegisti(e) { let grupBelirtec = 'yer'; return this.xOrtakmiDegisti({ ...e, grupBelirtec }) }
 	takipOrtakmiDegisti(e) { let grupBelirtec = 'takip'; return this.xOrtakmiDegisti({ ...e, grupBelirtec }) }

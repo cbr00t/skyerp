@@ -475,15 +475,66 @@ class TSOrtakFis extends MQTicariGenelFis {
 		let { kontrolcu = tanimPart?.kontrolcu } = e
 		await kontrolcu?.islKodIsaretDegisti?.(e)
 	}
-	hesapSekliDegisti({ sender: tanimPart }) {
+	hesapSekliDegisti(e = {}) {
 		let { hesapSekli } = this
-		if (hesapSekli?.char == this._prev_hesapSekli)
-			return
-		
-		let { grid, gridWidget: w } = tanimPart
-		debugger
-
-		this._prev_hesapSekli = hesapSekli?.char
+		let hesapSekliKod = hesapSekli?.char ?? hesapSekli ?? ''
+		let tanimPart = e.tanimPart ?? e.gridPart ?? e.sender ?? e.builder?.rootPart
+		tanimPart = tanimPart?.gridPart ?? tanimPart
+	
+		let { gridWidget: w = tanimPart?.gridWidget, force } = e
+		if (!w)
+			return this
+	
+		let sonucBelirtec = (
+			hesapSekliKod == 'F' ? 'fiyat' :
+			hesapSekliKod == 'M' ? 'miktar' :
+			'netBedel'
+		)
+	
+		// Hesaplanan kolon kilitli, diğer iki kolon kullanıcı girişine açık
+		let { belirtec2Kolon = {} } = tanimPart
+		for (let belirtec of ['miktar', 'fiyat', 'netBedel']) {
+			let editable = belirtec != sonucBelirtec
+			let colDef = belirtec2Kolon[belirtec]
+			if (colDef)
+				colDef.isEditable = editable
+			w.setcolumnproperty(belirtec, 'editable', editable)
+		}
+	
+		let { _prev_hesapSekli: prev } = this
+		this._prev_hesapSekli = hesapSekliKod
+		if (!force && hesapSekliKod == prev)
+			return this
+	
+		w.beginupdate()
+		try {
+			let detaylar = w.getboundrows() ?? []
+			for (let i = 0; i < detaylar.length; i++) {
+				let det = detaylar[i]
+				if (!det?.shdDetaymi)
+					continue
+				
+				let rowIndex = det.boundindex ?? i
+				let _e = {
+					...e, sender: tanimPart, fis: this,
+					gridPart: tanimPart, gridWidget: w,
+					detay: det, hesapSekliDegisimi: true,
+					args: { rowindex: rowIndex }
+				}
+				
+				let { kontrolcu = tanimPart?.kontrolcu } = e
+				if (kontrolcu)
+					kontrolcu.satirBedelHesapla(_e)
+				else
+					det.uiSatirBedelHesapla?.(_e)
+			}
+		}
+		finally { w.endupdate(false) }
+	
+		delay(10).then(() =>
+			tanimPart?.dipTazele?.())
+	
+		return this
 	}
 	takipNoDegisti(e) { }
 	yerOrtakmiDegisti(e) { }

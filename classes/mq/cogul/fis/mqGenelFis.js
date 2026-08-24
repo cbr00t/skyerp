@@ -158,7 +158,8 @@ class MQGenelFis extends MQOrtakFis {
 			hv.ozelisaret = this.ozelIsaret
 		hv[subeKodSaha] = this.subeKod || '';
 		hv[tarihSaha] = (tarih ? asDate(tarih) : null)
-		hv.noyil = this.noYil ?? ( app.params.zorunlu?.cariYil || today().yil )
+		if (noYilKullanilirmi)
+			hv.noyil = this.noYil ?? ( app.params.zorunlu?.cariYil || today().yil )
 	}
 	setValues({ rec }) {
 		super.setValues(...arguments);
