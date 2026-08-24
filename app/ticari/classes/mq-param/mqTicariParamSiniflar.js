@@ -357,12 +357,12 @@ class MQFiyatVeIskontoParam extends MQTicariParamBase {
 			let pf = isObject(e) ? e.prefix : e
 			let k = `${pf}EtiketListe`
 			let arr = rec[k] ?? []
-			if (!isPlainObject(arr))
-				arr = values(arr)
+			arr = isPlainObject(arr) ? values(arr) : makeArray(arr)
 			
 			let res = {}
-			arr?.forEach((v, i) =>
-				res[i + 1] = v)
+			arr.forEach((v, i) =>
+			    res[i + 1] = v)
+			
 			return res
 		}
 		this.iskEtiketDict = {
