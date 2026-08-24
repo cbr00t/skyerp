@@ -339,8 +339,11 @@ class MQOnayci extends MQCogul {
 					else
 						wh.degerAta('', `ony.w${i}onaydurum`)
 					
-					if (!ilkmi)
-						wh.degerAta('O', `ony.w${i - 1}onaydurum`)
+					if (!ilkmi) {
+						wh
+							.degerAta('O', `ony.w${i - 1}onaydurum`)
+							.notDegerAta('X', `ony.w${i - 1}sonradurumu`)
+					}
 				}
 				;{
 					let cl = {
@@ -831,19 +834,24 @@ class MQOnayci extends MQCogul {
 				let [ db, onayNo ] = key.split(delimWS)
 				onayNo = asInteger(onayNo)
 				for (let [ proId, onayIdler ] of entries(proKey2OnayIdler)) {
-					toplu.add(
-						new MQIliskiliUpdate({
-							from: `${db}..webonay`,
-							where: { inDizi: onayIdler, saha: 'id' },
-							set: [
-								{ degerAta: onaymi ? 'O' : 'R', saha: `w${onayNo}onaydurum` },
-								{ degerAta: _now, saha: `w${onayNo}onayredts` },
-								{ degerAta: nedenText, saha: `w${onayNo}onayredtext` },
-								( proforma ? { degerAta: proId || null, saha: 'proformaid' } : null ),
-								( proforma && proId ? { degerAta: sonrakineOnayGitmesin ? 'X' : '', saha: `w${onayNo}sonradurumu` } : null )
-							].filter(Boolean)
-						})
-					)
+					let { onayMax } = app
+					let upd = new MQIliskiliUpdate({
+						from: `${db}..webonay`,
+						where: { inDizi: onayIdler, saha: 'id' },
+						set: [
+							{ degerAta: onaymi ? 'O' : 'R', saha: `w${onayNo}onaydurum` },
+							{ degerAta: _now, saha: `w${onayNo}onayredts` },
+							{ degerAta: nedenText, saha: `w${onayNo}onayredtext` },
+							( proforma ? { degerAta: proId || null, saha: 'proformaid' } : null ),
+							( proforma && proId ? { degerAta: sonrakineOnayGitmesin ? 'X' : '', saha: `w${onayNo}sonradurumu` } : null )
+						].filter(Boolean)
+					})
+					if (proforma && proId && sonrakineOnayGitmesin && onayNo < onayMax - 1) {
+						let { set } = upd
+						for (let i = onayNo + 1; i <= onayMax - 1; i++)
+							set.degerAta('X', `w${i}sonradurumu`)
+					}
+					toplu.add(upd)
 					
 					let table2SubRecs = {}, table2Sayaclar = {}
 					;subRecs.forEach(r => {
@@ -875,7 +883,7 @@ class MQOnayci extends MQCogul {
 
 				let onayMax = this.getOnayMax(...recs)
 				let onayBilgiSet = new Set()
-				if (onaymi && aktifOnayNo < onayMax) {
+				if (!sonrakineOnayGitmesin && onaymi && aktifOnayNo < onayMax) {
 					recs
 						.filter(r => r.sonraUser)
 						.forEach(r =>
