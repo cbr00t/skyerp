@@ -8,9 +8,9 @@ class NumaratorPart extends Part {
 	get numarator() { return this.fis?.numarator }
 	get otoNummu() {
 		let { fis = {}, numarator = {} } = this
-		let { fisNo = fis.no, class: { otoNumKullanilmazmi: otoNumYok } } = fis
+		let { fisNo = fis.fisNo ?? fis.no, class: { otoNumKullanilmazmi: otoNumYok } } = fis
 		let { tip: numTip, kod: numKod } = numarator
-		return !otoNumYok || fisNo || !(numTip || numKod)
+		return otoNumYok || fisNo || !(numTip || numKod)
 			? false
 			: true
 	}
@@ -119,7 +119,8 @@ class NumaratorPart extends Part {
 	otoNumGoster(e = {}) {
 		let { seri, noYil, sonNo } = e
 		let { fis, yeniVeyaKopyami, txtNoYil, txtSeri, txtFisNo, fisNo_orjPlaceHolder } = this
-		extend(fis, { seri, noYil, fisNo: sonNo })
+		extend(fis, { seri, noYil })
+		// fis.fisNo = sonNo
 		if (seri != null)
 			txtSeri.val(seri || '')
 		if (txtNoYil?.length)

@@ -585,21 +585,39 @@ class SablonluSiparisFisTemplate extends CObject {
 			$.extend(det, { onceMiktar, onceMiktarBilgi })
 		}
 	}
-	static getYazmaIcinDetaylar({ fis }) { return fis.detaylar.filter(det => !!det.miktar) }
-	static async kaydetOncesiIslemler({ islem, fis }) {
-		if (islem == 'sil') { return }
-		let {detaylar} = fis, bosmu = true
+	static getYazmaIcinDetaylar({ fis }) {
+		let { detaylar } = fis
+		detaylar ??= []
+		return detaylar.filter(det => det.miktar)
+	}
+	static async kaydetOncesiIslemler(e = {}) {
+		let { islem, fis } = e
+		if (islem == 'sil')
+			return
+		
+		let { detaylar } = fis
+		detaylar ??= []
+		let bosmu = true
 		for (let det of detaylar) {
-			let {miktar} = det; if (!miktar) { continue }
-			let {fiyat, netBedel: bedel} = det; bosmu = false
+			let { miktar } = det
+			if (!miktar)
+				continue
+			
+			let { fiyat, netBedel: bedel } = det
+			bosmu = false
+			
 			if (fiyat && !bedel) {
-				await det.bedelHesapla?.({ fis }); bedel = det.netBedel
-				if (!bedel) { throw { isError: true, rc: 'fiyatBedelSorunu', errorText: 'Bazı ürünlerin Fiyati var ama Bedeli belirsiz' } }
+				await det.bedelHesapla?.({ ...e, fis })
+				bedel = det.netBedel
+				if (!bedel)
+					throw { isError: true, rc: 'fiyatBedelSorunu', errorText: 'Bazı ürünlerin Fiyati var ama Bedeli belirsiz' }
 			}
 		}
-		if (bosmu) { throw { isError: true, rc: 'emptyRecs', errorText: 'Sipariş boş olamaz' } }
-		await this.stokIslemBelirle(...arguments)
-		await this.dagitimIcinEkBilgileriBelirle(...arguments)
+		if (bosmu)
+			throw { isError: true, rc: 'emptyRecs', errorText: 'Sipariş boş olamaz' }
+		
+		await this.stokIslemBelirle(e)
+		await this.dagitimIcinEkBilgileriBelirle(e)
 	}
 	static async kaydetVeyaSilmeSonrasiIslemler({ islem, fis, trn } = {}) {
 		/*islem = (islem ?? 'y')[0].toUpperCase();
