@@ -446,7 +446,7 @@ class TSOrtakFis extends MQTicariGenelFis {
 			return null
 		
 		let { sayac, tip, seri, class: { table, sayacSaha } } = num
-		efAyrimTipi = ( efAyrimTipi?.char ?? efAyrimTipi )?.trim() ?? ''
+		efAyrimTipi = ( isString(efAyrimTipi) ? efAyrimTipi : efAyrimTipi?.char )?.trim() ?? ''
 
 		let numEF
 		;{

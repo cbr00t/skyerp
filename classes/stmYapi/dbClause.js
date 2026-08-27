@@ -407,8 +407,9 @@ class MQSubWhereClause extends MQClause {
 	}
 	notOperand() { return this.operand(...arguments).asNot() }
 	basiSonu(e, _saha) {
-		e = e?.saha ? e : { deger: e, saha: _saha };
-		let {saha, deger: bs, deger: { birKismimi, disindakilermi = e.disindakiler } = {}} = e
+		e = e?.saha ? e : { deger: e, saha: _saha }
+		let { saha, deger: bs, deger } = e
+		let { birKismimi, disindakilermi = e.disindakiler } = deger ?? {}
 		birKismimi = bs?.birKismimi ?? birKismimi
 		disindakilermi = bs?.disindakilermi ?? bs?.disindakiler ?? disindakilermi
 		let isNot = isObject(e) && asBool(e.not ?? disindakilermi)

@@ -26,4 +26,4 @@
 .simpleComboBox.part > button#liste:hover { opacity: .7 }
 .simpleComboBox.part > button#liste:active { opacity: 1 }
 
-* > .simpleComboBox.part:has(label:not(.jqx-hidden)) { margin-top: 30px }
+* > .simpleComboBox.part:has(label:not(.jqx-hidden):not(.basic-hidden)) { margin-top: 30px }

@@ -150,7 +150,75 @@ class MQCari extends MQKA {
 			adres1: ( genel.adres1 || adresTokens[0] )?.slice(0, MaxLen_UnvanVeAdres) 
 		})
 	}
+
+	static async gloVKN2Recs(e = {}) {
+        let vknListe = makeArray(this.getVKNFromRec(e))
+        let { globals } = this
+        let cache = globals.vkn2Recs ??= {}
+        let k = empty(vknListe) ? '' : vknListe.join(delimWS)
+        return cache[k] ??= await this.vkn2Recs(e)
+    }
+    static async vkn2Recs(e = {}) {
+        let vknListe = makeArray(this.getVKNFromRec(e))
+        let { table } = this
+		let kodClause = this.getVKNClause()
+        let sent = new MQSent(), { where: wh, sahalar } = sent
+        sent.fromAdd(table)
+        wh.add(`${kodClause} <> ''`)
+        if (!empty(vknListe))
+            wh.inDizi(vknListe, kodClause)
+        sahalar.add(`${kodClause} vkn`, '*')
+        
+        let recs = await sent.execSelect()
+        return fromEntries(
+            recs.map(r => [r.vkn, r]))
+    }
+    static async gloVKN2Rec(e = {}) {
+        let vkn = this.getVKNFromRec(e)
+        if (!vkn)
+            return null
+        
+        let { globals } = this
+        let cache = globals.vkn2Rec ??= {}
+        return cache[vkn] ??= await this.vkn2Rec(e)
+    }
+    static async vkn2Rec(e = {}) {
+        let vkn = this.getVKNFromRec(e)
+        if (!vkn)
+            return null
+        let args = { ...(isObject(e) ? { ...e } : {}), vkn }
+        let recs = values(await this.vkn2Recs(args))
+        return recs?.[0]
+    }
+    static async gloVKN2Inst(e = {}) {
+        let vkn = this.getVKNFromRec(e)
+        if (!vkn)
+            return null
+        
+        let { globals } = this
+        let cache = globals.vkn2Inst ??= {}
+        return cache[vkn] ??= await this.vkn2Inst(e)
+    }
+    static async vkn2Inst(e = {}) {
+        let rec = await this.vkn2Rec(e)
+        if (rec == null)
+            return null
+
+        let res = new this()
+        res.setValues({ rec })
+
+        return res
+    }
+    static getVKNFromRec(e = {}) {
+        return ( isObject(e) ? e.vkn ?? e.vkno ?? e.vknox : e )
+    }
+	static getVKNClause(e = {}) {
+		let alias = ( isObject(e) ? e.alias : e )
+		let aliasVeNokta = alias ? `${alias}.` : ''
+		return `(case when ${aliasVeNokta}sahismi = '' then ${aliasVeNokta}vnumara else ${aliasVeNokta}tckimlikno end)`
+	}
 }
+
 class MQCariAlt extends MQAlt {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	__old__alimEIslIcinSetValues(e) { return this }

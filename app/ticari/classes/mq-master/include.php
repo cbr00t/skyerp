@@ -33,6 +33,7 @@
 <script src="<?=$_partRoot?>/mqCariBolge.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqCariTip.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqCariIstGrup.js?<?=$appVersion?>"></script>
+<script src="<?=$_partRoot?>/mqDegAdres.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqCari.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqPlasiyer.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqSevkAdres.js?<?=$appVersion?>"></script>

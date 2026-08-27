@@ -1249,6 +1249,9 @@ class FBuilder_AccordionPart extends FBuilder_DivOrtak {
 
 class FBuilder_SimpleComboBox extends FBuilder_TextInput {
     static { window[this.name] = this; this._key2Class[this.name] = this }
+	get placeHolder() { return this.placeholder }
+	set placeHolder(v) { this.placeholder = v }
+	
 	constructor(e) {
         super(e)
 		let {

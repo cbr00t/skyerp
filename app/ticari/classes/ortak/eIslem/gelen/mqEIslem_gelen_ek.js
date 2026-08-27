@@ -328,14 +328,7 @@ class MQEIslem_Gelen_EkBilgiUI extends SimplePart {
 
         let degAdresKod = ''
         if (kayitTipi == 'D') {        // Değişken Adres
-            let sent
-            ;{
-                sent = new MQSent(), { where: wh, sahalar } = sent
-                sent.fromAdd('elterparam')
-                wh.degerAta(subeKod, 'bizsubekod')
-                sahalar.add('pesincarikod pesinCariKod')
-            }
-            let pesinCariKod = await sent.execTekilDeger()
+            let pesinCariKod = await this.gloSube2PesinCariKod(subeKod)
             if (!pesinCariKod) {
                 errors.push(`<b>${subeKod || '-Merkez-'}</b> kodlu Şube için Alım Şube Parametresi <b>Peşin Cari Kodu</b> girilmelidir`)
                 return
@@ -396,12 +389,13 @@ class MQEIslem_Gelen_EkBilgiUI extends SimplePart {
         extend(inst, { vkn, sahismi: vkn.length == 11 })
         if (eFis) {
             let eFaturaKullanirmi = true
-            let senaryoTipi = 'T'                                                       // TICARIFATURA
+            let senaryoTipi = 'T'                                                       // 'T': TICARIFATURA
+            let eArsivBelgeTipi = 'E'                                                   // '': Kağıt | 'E': Elektronik
             extend(inst, { adres })
             extend(inst.adresYapi, { yore, posta, ilKod })
             extend(inst.iletisim, { tel1, fax, eMail })
             extend(inst.vergi, { vergiDaire })
-            extend(inst.eIslem, { eFaturaKullanirmi, senaryoTipi })
+            extend(inst.eIslem, { eFaturaKullanirmi, senaryoTipi, eArsivBelgeTipi })
         }
         ;{
             let { eIslem } = inst
@@ -411,7 +405,6 @@ class MQEIslem_Gelen_EkBilgiUI extends SimplePart {
                 eIslem.eIrsGIBAlias = eIrsGIBAlias
         }
         
-        // ...
         await inst.tanimla({
             kaydedince: ({ inst }) => {
                 let { ddMustKod, elmMustBilgi: layout } = this
@@ -458,13 +451,63 @@ class MQEIslem_Gelen_EkBilgiUI extends SimplePart {
     async yeniDegAdrIstendi(e) {
         let islemAdi = 'Yeni Değişken Adres Tanımla'
         let { rec } = this
-        let { gondericiMustKod: mustKod, vkn } = rec ?? {}
+        let { gondericiVKN: vkn, gondericiUnvan: unvan, subeKod = '' } = rec ?? {}
         if (await this.vknIcinArastir(e)) {
             hConfirm(`<b class="royalblue">${vkn}</b> VKN için kayıt zaten var`, islemAdi)
             return false
         }
 
-        let eFis = await this.uuid2EFisBelirle(e)
+        let eFis = await this.uuid2EFisBelirle(e) ?? {}
+        vkn = eFis.gondericiVKN || vkn
+        unvan = eFis.gondericiUnvan || unvan || ''
+        let { gondericiAdresYapi: adresYapi = {}, gondericiIletisimYapi: iletisimYapi = {} } = eFis
+        let { adres, gondericiVergiDairesi: vergiDaire } = eFis
+        for (let obj of [adresYapi, iletisimYapi])
+        for (let [k, v] of entries(obj)) {
+            if (v == null)
+                obj[k] = ''
+        }
+        let { ilKod, ilAdi, yore, posta } = adresYapi
+        let { tel: tel1, faks: fax, eMail } = iletisimYapi
+        if (!ilKod) {
+            let a2k = await MQCariIl.getGloAdi2KodListe() ?? {}
+            let ilAdiUpper = ilAdi.toLocaleUpperCase('tr-TR').trim()
+            ilKod = adresYapi.ilKod = (
+                a2k[ilAdi] ??
+                a2k[ilAdiUpper] ??
+                []
+            )?.[0]?.trim() ?? ''
+        }
+        
+        let gibAliasYapi = await this.getVKN2GIBAliasYapi(vkn) ?? {}
+        let { E: eFatGIBAlias = '' } = gibAliasYapi
+        
+        let inst = new MQDegAdres({ vkn, unvan })
+        extend(inst, { sahismi: vkn.length == 11 })
+        if (eFis)
+            extend(inst, { vergiDaire, yore, ilKod, posta, eMail, adres, eFatGIBAlias })
+
+        let pesinCariKod = await this.gloSube2PesinCariKod(subeKod)
+        if (!pesinCariKod) {
+            hConfirm(`<b>${subeKod || '-Merkez-'}</b> kodlu Şube için Alım Şube Parametresi <b>Peşin Cari Kodu</b> girilmelidir`, islemAdi)
+            return false
+        }
+        
+        await inst.tanimla({
+            kaydedince: ({ inst }) => {
+                let { ddMustKod, elmMustBilgi: layout } = this
+                let { kod: degAdresKod } = inst
+                this.efVergi2CariGuncelle({ vkn, degAdresKod })                             // ** bilerek await edilmedi. bu işlem bu sürecin akışını ilgilendirmiyor ve boşuna beklemesin
+                extend(rec, { gondericiMustKod: pesinCariKod, degAdresKod })
+                ddMustKod?.val(gondericiMustKod)
+                if (layout) {
+                    this.getMustHTML(rec).then(elm => {
+                        layout.empty()
+                        elm?.appendTo(layout)
+                    })
+                }
+            }
+        })
 
         return true
         
@@ -552,6 +595,19 @@ class MQEIslem_Gelen_EkBilgiUI extends SimplePart {
         
         extend(rec, { eFis })
         return eFis
+    }
+    async gloSube2PesinCariKod(e = {}) {
+        let subeKod = ( isObject(e) ? e.subeKod : e )?.trimEnd() ?? ''
+        let cache = this.class._sube2PesinCariKod ??= {}
+        return cache[subeKod] ??= await this.sube2PesinCariKod(e)
+    }
+    async sube2PesinCariKod(e = {}) {
+        let subeKod = ( isObject(e) ? e.subeKod : e )?.trimEnd() ?? ''
+        let sent = new MQSent(), { where: wh, sahalar } = sent
+        sent.fromAdd('elterparam')
+        wh.degerAta(subeKod, 'bizsubekod')
+        sahalar.add('pesincarikod pesinCariKod')
+        return await sent.execTekilDeger()
     }
 
     async getMustHTML({ gondericiMustKod: mustKod, degAdresKod } = {}) {

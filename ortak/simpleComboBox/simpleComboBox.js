@@ -18,6 +18,8 @@ class SimpleComboBoxPart extends Part {
 	set kodSaha(value) { this._kodSaha = value || null }
 	get adiSaha() { return this._adiSaha ?? MQKA.adiSaha }
 	set adiSaha(value) { this._adiSaha = value || null }
+	get placeHolder() { return this.placeholder }
+	set placeHolder(v) { this.placeholder = v }
 	get item() {
 		let { kodSaha, _item: item } = this
 		if (!isObject(item))

@@ -191,7 +191,7 @@ class EIslKural_IhrSatirTekCift extends TekSecim {
 
 class EArsiv_BelgeTipi extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get defaultChar() { return '' }
+	static get defaultChar() { return 'E' }
 	get kagitmi() { return this.char == '' }
 	get elektronikmi() { return this.char == 'E' }
 	

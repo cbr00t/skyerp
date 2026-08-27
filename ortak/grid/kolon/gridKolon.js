@@ -4,13 +4,18 @@ class GridKolon extends GridKolonVeGrupOrtak {
 		'cellClassName', 'renderer', 'rendered', 'cellsRenderer', 'createEditor', 'initEditor', 'getEditorValue', 'destroyEditor',
 		'cellValueChanging', 'createFilterPanel', 'createFilterWidget', 'cellBeginEdit', 'cellEndEdit', 'validation', 'aggregatesRenderer',
 		'satirEklendi', 'satirDGuncellendi', 'satirSilinecek', 'satirSilindi', 'rowCountDegisti', 'satirTiklandi', 'satirCiftTiklandi'
-	];
+	]
 	static globalEventNames = [
 		'cellValueChanged', 'cellSelect', 'cellUnselect', 'handleKeyboardNavigation', 'filter', 'sort',
 		'rowClick', 'rowDoubleClick', 'cellClick', 'groupsChanged', 'bindingComplete'
-	];
-	static deferredEventNames = asSet(['cellValueChanged']);
+	]
+	static deferredEventNames = asSet(['cellValueChanged'])
 
+	static from(belirtec, text, genislikCh, sql, ...args) {
+		let e = { belirtec, text, genislikCh, sql, ...args }
+		return new this(e)
+	}
+	
 	readFrom_ara(e) {
 		if (!super.readFrom_ara(e))
 			return false
