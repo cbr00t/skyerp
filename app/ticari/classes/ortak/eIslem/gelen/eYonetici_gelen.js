@@ -194,7 +194,7 @@ class EYonetici_Gelen extends CObject {
         if (vknKontrol) {
             let vknListe = keys(asSet(
                 recs
-                    .map(r => r.vkn)
+                    .map(r => r.aliciVKN || r.vkn)
                     .filter(Boolean)
             ))
             warns.push(
@@ -258,10 +258,19 @@ class EYonetici_Gelen extends CObject {
     
         let toplu = new MQToplu()
         let fissayac = '@fisSayac'.sqlConst()
+        let _preQueriesAdded = false
         ;{
-            toplu.add(`DECLARE @fisSayac BIGINT`)
             for (let r of recs) {
                 let { uuid, fisNox, gondericiVKN: vkn, mustKod } = r
+                let basHV = r.alimGeciciBaslikHostVars()
+                if (!basHV)
+                    continue
+
+                if (!_preQueriesAdded) {
+                    toplu.add(`DECLARE @fisSayac BIGINT`)
+                    _preQueriesAdded = true
+                }
+                
                 toplu.add(
                     `IF NOT EXISTS (`,
                         new MQUnionAll([
@@ -295,7 +304,7 @@ class EYonetici_Gelen extends CObject {
                     `) BEGIN`,
                         new MQQueryInsert({
                             table: 'efgecicialfatfis',
-                            hv: r.alimGeciciBaslikHostVars()
+                            hv: basHV
                         }),
     
                         `SET @fisSayac = CONVERT(BIGINT, SCOPE_IDENTITY())`,

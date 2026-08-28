@@ -306,24 +306,30 @@ class EFis extends EFisBase {
 		extend(this, { eConf, _eIslSinif, efAyrimTipi, _detaylar, _icmal })
 	}
 	alimGeciciBaslikHostVars(e = {}) {
-		let { fisNox, icmal, dovizlimi } = this
+		let { eConf, fisNox, icmal, dovizlimi, uuid } = this
+		uuid = uuid.toLowerCase()
 		let geciciTip = EYonetici_Gelen.normalizeEFAyrimTipi(this.eIslTip)
 		let tsn = TicariSeriliNo.fromText(fisNox)
+		if (!tsn)
+			return null
+		
 		let getBedel = (_dovizlimi, valueOrBlock) =>
 			_dovizlimi == dovizlimi ? getFuncValue.call(this, valueOrBlock, e) : 0
 		
 		let hv = {
 			tamamlandi: '',
-			efatconfkod: (this.eConf || {}).kod || '',
+			efatconfkod: eConf?.kod || '',
 			iade: (this.iademi ? 'I' : ''),
 			efbelge: geciciTip,
-			efuuid: this.uuid,
+			efuuid: uuid,
 			vkno: this.gondericiVKN,
 			mustkod: this.gondericiMustKod || '',
 			efmustunvan: (this.gondericiUnvan || '').slice(0, 50),
 			efatsenaryotipi: this.senaryoTipi,
 			tarih: this.tarih, effatnox: fisNox,
-			seri: tsn.seri, noyil: tsn.noYil, no: tsn.no,
+			seri: tsn.seri,
+			noyil: tsn.noYil,
+			no: tsn.no,
 			dvkod: this.dvKod || '',
 			dvkur: this.dvKur,
 			birsaliyevar: !empty(this.irsaliyeBilgileri),

@@ -16,9 +16,9 @@ class EFisBase extends CObject {
 	}
 	set eConf(v) { this._eConf = v }
 	get xml() {
-		let { _xml: res } = this
-		if (res == null)
-			res = this._xml = this.eFis?.xml
+		let { _xml: res, eFis } = this
+		if (res == null) 
+			res = this._xml = eFis === this ? null : eFis?.xml
 		return res
 	}
 	set xml(v) { this._xml = v }

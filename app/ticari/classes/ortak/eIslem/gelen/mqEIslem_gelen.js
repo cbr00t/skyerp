@@ -64,7 +64,12 @@ class MQEIslem_Gelen extends MQCogul {
         
         let withErrCheck = async (islemAdi, args, block) => {
             try { await block?.({ ...e, ...args }) }
-            catch (ex) { cerr(ex); hConfirm(getErrorText(ex), islemAdi) }
+            catch (ex) {
+				cerr(ex)
+				let msg = getErrorText(ex)
+				if (msg)
+					hConfirm(msg, islemAdi)
+			}
         }
         
         let items = [
@@ -74,6 +79,14 @@ class MQEIslem_Gelen extends MQCogul {
                 handler: _e => void(
                     withErrCheck('Bekleyenleri Getir', _e, args =>
                         this.bekleyenleriGetirIstendi(args))
+				)
+            },
+			{
+                id: 'xmlYukle',
+				text: 'XML',
+                handler: _e => void(
+                    withErrCheck('XML Yükle', _e, args =>
+                        this.xmlYukleIstendi(args))
 				)
             },
 			{
@@ -304,6 +317,114 @@ class MQEIslem_Gelen extends MQCogul {
 					aliasKontrol, vknKontrol
 				})
 	        }
+			delay(10).then(() =>
+				listePart?.tazele?.())
+		}
+		finally {
+			pm?.progressEnd()
+			delay(20).then(() =>
+				hideProgress())
+		}
+    }
+	static async xmlYukleIstendi({ sender: listePart } = {}) {
+		let islemAdi = 'e-İşlem XML Yükle'
+		let { eConf, sorguFiltre: wsSec, tip2EYonetici: tip2EYon } = listePart
+		let { value: vknKontrol } = wsSec.vknKontrol
+		let { value: aliasKontrol } = wsSec.aliasKontrol
+
+		let tip2SubDir = fromEntries(
+			keys(tip2EYon)
+				.map(tip => [tip, eConf.getAnaBolumFor(tip)])
+				.filter(([tip, v]) => v)
+		)
+        if (empty(tip2SubDir))
+            throw { isError: true, errorText: 'e-İşlem Ana Bölüm belirlenemedi'}
+
+		let coklu = true, capture = false, type = 'text', accept = ['text/xml']
+		let recs = await openFile({ coklu, capture, type, accept }) ?? []
+
+        let tip2Res = {}
+		let pm = await showProgress('XML İçerikleri işleniyor...', islemAdi)
+		try {
+			recs = recs.filter(r => r.data)
+			if (empty(recs))
+				return null
+
+			pm?.setProgressMax(recs.length * 8)
+			for (let r of recs) {
+				let { data } = r
+				let xml
+				try { xml = r.xml = data ? $.parseXML(data)?.documentElement : null }
+				catch (ex) { cerr(ex) }
+				if (!xml)
+					continue
+
+				let eFis = r.eFis = new EFis({ eConf, xml })
+				pm?.progressStep(2)
+				
+				let { uuid, eIslTip: tip } = eFis
+				if (!uuid) {
+					pm?.progressStep()
+					continue
+				}
+				
+				tip = EYonetici_Gelen.normalizeEFAyrimTipi(tip) || 'E'
+				let { recs: _recs } = (tip2Res[tip] ??= { recs: [] })
+				_recs.push(r)
+				// uuid2Rec[uuid] = r
+				
+				pm?.progressStep()
+			}
+
+			let baseArgs = { ...e, vknKontrol: true }
+			let uploadList = []
+			for (let [tip, { recs }] of entries(tip2Res)) {
+				let subDir = tip2SubDir[tip]
+				if (subDir) {
+					;recs
+						.filter(({ data, eFis }) =>
+							data && eFis)
+						.forEach(({ data, eFis }) => {
+							let { uuid } = eFis
+							let name = [subDir, 'ALINAN', `${uuid}.xml`]
+								.join('/')
+								.replaceAll('\\', '/')
+							data = Base64.encode(data)
+							uploadList.push({ name, data })
+						})
+				}
+			}
+
+			if (!empty(uploadList)) {
+				let pr = app.wsMultiUpload({ data: uploadList })
+				let timer
+				(pr.always ?? pr.finally)(() => {
+					clearTimeout(timer)
+					pm.progressStep(3 * uploadList.length)
+				})
+
+				// XML Dosyası sadece İzleme işlemi için gerekli.
+				//   İçeri alım sürecinde zorunlu değil
+				timer = setTimeout(() => pr.resolve(), 2_000)
+				await pr
+			}
+
+			for (let [tip, res] of entries(tip2Res)) {
+				let eYon = tip2EYon[tip]
+				if (!eYon) {
+					pm.progressStep(5)
+					continue
+				}
+				
+				let { recs } = res
+				let eFisler = recs.map(r => r.eFis)
+				let args = { ...baseArgs, recs: eFisler }
+				await eYon.geciciFisKaydet(args)
+				
+				mergeInto(args, res, 'recs', 'uuid2Rec')
+				pm.progressStep(2)
+			}
+			
 			delay(10).then(() =>
 				listePart?.tazele?.())
 		}

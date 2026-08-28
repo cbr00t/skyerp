@@ -82,15 +82,26 @@ class MQOrtakFis extends MQDetayli {
 	static orjBaslikListesiDuzenle_son(e) { this.forAltYapiClassesDo('orjBaslikListesiDuzenle_son', e) }
 	fisBaslikOlusturucularDuzenle(e) { }
 	dipOlustur(e) {
-		let result = null, {dipKullanilirmi} = this.class;
-		if (dipKullanilirmi) { const {dipSinif} = this.class, fis = this; if (dipSinif) { result = this.dipIslemci = new dipSinif({ fis }) } }
-		return result
+		let res = null
+		let { dipKullanilirmi, dipSinif } = this.class
+		if (dipKullanilirmi && dipSinif)
+			res = this.dipIslemci = new dipSinif({ fis: this })
+		return res
 	}
-	getDipGridSatirlari(e) { e.liste = []; this.dipGridSatirlariDuzenle(e); return e.liste }
+	getDipGridSatirlari(e) {
+		e.liste = []
+		this.dipGridSatirlariDuzenle(e)
+		return e.liste
+	}
 	dipGridSatirlariDuzenle(e) { }
 	kopyaIcinDuzenle(e) {
-		super.kopyaIcinDuzenle(e); this.fisNo = 0;
-		for (const det of this.detaylar) { det.donusumBilgileriniSil(e) }
+		super.kopyaIcinDuzenle(e)
+		this.fisNo = 0
+		
+		let { detaylar } = this
+		detaylar.forEach(det =>
+			det.donusumBilgileriniSil(e))
+		
 		this.donusumBilgileriniSil(e)
 	}
 	async disKaydetIslemi(e = {}) {
@@ -110,8 +121,13 @@ class MQOrtakFis extends MQDetayli {
 					await num.kaydet(e)
 				this.numarator = num
 			}
-			else
-				await num.yukle(e)
+			else if (!await num.yukle(e)) {
+				throw {
+					isError: true,
+					rc: 'numaratorYuklenemedi',
+					errorText: 'Belge için uygun numaratör bulunamadı'
+				}
+			}
 			
 			let { seri, noYil } = num
 			fisNo = (await num.kesinlestir(e)).sonNo

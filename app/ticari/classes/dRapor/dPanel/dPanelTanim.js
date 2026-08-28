@@ -199,7 +199,7 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 	}
 	static async importIstendi({ sender: gridPart }) {
 		try {
-			let {data: recs} = await openFile({ coklu: false, capture: false, type: wsDataType, accept: wsContentType })
+			let { data: recs } = await openFile({ coklu: false, capture: false, type: wsDataType, accept: wsContentType })
 			recs ??= []
 			let count = 0, {length: total} = recs
 			showProgress(`<b>${total}</b> kayıt içeri alınıyor...`, null, true)
