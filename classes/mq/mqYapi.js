@@ -185,7 +185,9 @@ class MQYapi extends CIO {
 	}
 	kopyaIcinDuzenle(e) { }
 	async varmi(e) {
-		let result = await this.varmiDogrudan(e); if (!result) { return false } /* kod değeri varsa içeriksel kontrol yapılacak */
+		let result = await this.varmiDogrudan(e)
+		if (!result)
+			return false
 		return result
 	}
 	async varmiDogrudan(e) {

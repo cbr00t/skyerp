@@ -94,6 +94,7 @@ class MQOrtakFis extends MQDetayli {
 		this.donusumBilgileriniSil(e)
 	}
 	async disKaydetIslemi(e = {}) {
+		await this.disFisGiris_ekIslemler?.(e)
 		let { numarator: num, fisNo, class: { noSaha } } = this
 		let hedefSeri = e.seri ?? this.seri
 		if (!num) {
@@ -126,7 +127,9 @@ class MQOrtakFis extends MQDetayli {
 			if (result === false)
 				return false
 			
-			if (num && !num.serbestmi && fisNo) {
+			if (num && !num.serbestmi) {
+				if (!fisNo)
+					fisNo = this.fisNo = (await num.kesinlestir(e)).sonNo
 				while (await this.varmi(e))
 					fisNo = this.fisNo = (await num.kesinlestir(e)).sonNo
 			}

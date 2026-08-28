@@ -649,12 +649,15 @@ class SiparisFis extends TicariFis {
 }
 class SatisSiparisFis extends SiparisFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kodListeTipi() { return 'PSATSIP' } static get numTipKod() { return 'TS' } static get almSat() { return 'T' }
+	static get kodListeTipi() { return 'PSATSIP' }
+	static get numTipKod() { return 'TS' }
+	static get almSat() { return 'T' }
 	static get sevkFisSinif() { return SatisIrsaliyeFis }
 }
 class AlimSiparisFis extends SiparisFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kodListeTipi() { return 'PALMSIP' } static get numTipKod() { return 'AS' } static get almSat() { return 'A' }
+	static get kodListeTipi() { return 'PALMSIP' }
+	static get numTipKod() { return 'AS' } static get almSat() { return 'A' }
 	static get sevkFisSinif() { return AlimIrsaliyeFis }
 }
 
@@ -1090,6 +1093,7 @@ class IrsaliyeFis extends SevkiyatFis {
 class SatisIrsaliyeFis extends IrsaliyeFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'PSATIRS' }
+	static get numTipKod() { return 'TI' }
 	static get almSat() { return 'T' }
 }
 class SatisIadeIrsaliyeFis extends SatisIrsaliyeFis {

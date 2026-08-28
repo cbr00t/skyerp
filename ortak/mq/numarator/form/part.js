@@ -9,10 +9,12 @@ class NumaratorPart extends Part {
 	get otoNummu() {
 		let { fis = {}, numarator = {} } = this
 		let { fisNo = fis.fisNo ?? fis.no, class: { otoNumKullanilmazmi: otoNumYok } } = fis
-		let { tip: numTip, kod: numKod } = numarator
-		return otoNumYok || fisNo || !(numTip || numKod)
-			? false
-			: true
+		let { tip: numTip, kod: numKod, serbestmi } = numarator
+		if (otoNumYok || !(numTip || numKod))
+			return false
+		if (serbestmi != null)
+			return !serbestmi
+		return !fisNo
 	}
 	
 	constructor({ islem, fis, secince } = {}) {

@@ -18,7 +18,7 @@ class Promosyon extends SatisKosul {
 	static get detayTables() { return { stok: null, grup: 'proozelgrup' } }
 	static get detayMustTable() { return 'protekmust' }
 	static yukle_queryDuzenle(e = {}) {
-		if (!config.dev) {
+		if (true || !config.dev) {
 			e.stm = null
 			return
 		}

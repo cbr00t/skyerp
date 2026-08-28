@@ -412,7 +412,8 @@ class TSOrtakFis extends MQTicariGenelFis {
 		
 		let { efAyrimTipi, numarator: num } = this
 		let { tip, seri, class: { table, sayacSaha } } = num
-		efAyrimTipi = ( efAyrimTipi?.char ?? efAyrimTipi )?.trim() || 'A'
+		efAyrimTipi = ( isObject(efAyrimTipi) ? efAyrimTipi.char : efAyrimTipi )?.trim?.() || 'A'
+		
 		let sayac
 		;{
 			let sent = new MQSent({ table }), { where: wh, sahalar } = sent
