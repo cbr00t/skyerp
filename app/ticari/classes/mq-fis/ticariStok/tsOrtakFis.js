@@ -2,19 +2,28 @@ class TSOrtakFis extends MQTicariGenelFis {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get detaySinif() { return super.detaySinif } static get aciklamaKullanilirmi() { return true }
 	static detaySiniflarDuzenle(e) { super.detaySiniflarDuzenle(e); e.liste.push(TSStokDetay, TSAciklamaDetay) }
-	static get aciklamaDetaySinif() { return TSAciklamaDetay } static get gridKontrolcuSinif() { return TSGridKontrolcu }
+	static get aciklamaDetaySinif() { return TSAciklamaDetay }
+	static get gridKontrolcuSinif() { return TSGridKontrolcu }
 	static get baslikOzelAciklamaTablo() { return null }
-	static get dipSerbestAciklamaTablo() { return null } static get dipEkBilgiTablo() { return null }
-	static get stokmu() { return false } static get ticarimi() { return false }
+	static get dipSerbestAciklamaTablo() { return null }
+	static get dipEkBilgiTablo() { return null }
+	static get stokmu() { return false }
+	static get ticarimi() { return false }
 	static get tsnKullanilirmi() { return true }
-	static get numTipKod() { return null } static get islTipKod() { return null } static get varsayilanIslKod() { return null }
-	static get oncelik() { return 0 } static get cikisGibimi() { return false } static get girisGibimi() { return false }
-	static get iademi() { return this.iade == 'I' } static get numYapi() { return new MQTicNumarator({ tip: this.numTipKod }) }
+	static get numTipKod() { return null }
+	static get islTipKod() { return null }
+	static get varsayilanIslKod() { return null }
+	static get oncelik() { return 0 }
+	static get cikisGibimi() { return false }
+	static get girisGibimi() { return false }
+	static get iademi() { return this.iade == 'I' }
+	static get numYapi() { return new MQTicNumarator({ tip: this.numTipKod }) }
 	static get mustSaha() { return null }
 	get eIslemSinif() { return EIslemOrtak.getClass({ tip: this.efAyrimTipi })}
 	static get sonStokKullanilirmi() { return true }
 	static get yerKullanilirmi() { return true }
-	get kosulYapilar() { return this._kosulYapilar } set kosulYapilar(value) { this._kosulYapilar = value }
+	get kosulYapilar() { return this._kosulYapilar }
+	set kosulYapilar(value) { this._kosulYapilar = value }
 
 	static getUISplitHeight(e) { return 300 }
 	static pTanimDuzenle(e) {
@@ -24,6 +33,7 @@ class TSOrtakFis extends MQTicariGenelFis {
 			islKod: new PInstStr({ rowAttr: 'islkod', init: e => this.varsayilanIslKod }),
 			hesapSekli: new PInstTekSecim('hesapsekli', FisHesapSekli),
 			efAyrimTipi: new PInstTekSecim('efayrimtipi', EIslemTip),
+			uuid: new PInstStr('efatuuid'),
 			baslikAciklama: new PInstStr('cariaciklama'),
 			fisEkBilgi: new PInstStr()
 		})
@@ -200,9 +210,12 @@ class TSOrtakFis extends MQTicariGenelFis {
 			})
 		].filter(x => !!x))
 	}
-	static orjBaslikListesiDuzenle_son(e) {
-		super.orjBaslikListesiDuzenle_son(e); const {liste} = e;
-		liste.push( new GridKolon({ belirtec: 'cariaciklama', text: 'Fiş Açıklama', genislikCh: 40 }) )
+	static orjBaslikListesiDuzenle_son({ liste }) {
+		super.orjBaslikListesiDuzenle_son(...arguments)
+		liste.push(
+			gridKolon('efatuuid', 'UUID (ETTN)', 46),
+			gridKolon('cariaciklama', 'Fiş Açıklama', 40)
+		)
 	}
 	static async raporKategorileriDuzenle_baslik(e) {
 		await super.raporKategorileriDuzenle_baslik(e); const {kullanim} = app.params.ticariGenel;

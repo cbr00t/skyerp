@@ -125,6 +125,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				BL: { kod: 'CRBOL', belirtec: 'bolge', text: 'Bölge' },
 				CI: { kod: 'CISTGRP', belirtec: 'cistgrup', text: 'Cari İst. Grup' },
 				PL: { kod: 'PLASIYER', belirtec: 'plasiyer', text: 'Plasiyer' },
+				TP: { kod: 'TAVSIYEPLASIYER', belirtec: 'tavsiyeplasiyer', text: 'Tavsiye Plasiyer (Cari)' },
 				PR: { kod: 'PER', belirtec: 'per', text: 'Personel' },
 				DG: { kod: 'DEPOGRUP', belirtec: 'yergrup', text: 'Yer Grup' },
 				DP: { kod: 'DEPO', belirtec: 'yer', text: 'Yer' },
@@ -966,17 +967,43 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return this
 	}
 	tabloYapiDuzenle_plasiyer({ result }) {
-		result.addKAPrefix('plasiyer').addGrupBasit('PLASIYER', 'Plasiyer', 'plasiyer', DMQPlasiyer);
+		result
+			.addKAPrefix('plasiyer', 'tavsiyeplasiyer')
+			.addGrupBasit('PLASIYER', 'Plasiyer', 'plasiyer', DMQPlasiyer)
+			.addGrupBasit('TAVSIYEPLASIYER', 'Tavsiye Plasiyer', 'tavsiyeplasiyer', DMQPlasiyer)
 		return this
 	}
-	loadServerData_queryDuzenle_plasiyer({ stm, sent, attrSet, kodClause }) {
-		if (!kodClause) { return this } sent = sent ?? stm.sent; let {where: wh, sahalar} = sent;
-		if (attrSet.PLASIYER) { sent.fromIliski('carmst pls', `${kodClause} = pls.must`) }
+	loadServerData_queryDuzenle_plasiyer(e = {}) {
+		let { stm, sent, attrSet, kodClause } = e
+		if (!kodClause)
+			return this
+		
+		sent ??= stm.sent
+		let { from, where: wh, sahalar } = sent
+		if (attrSet.PLASIYER)
+			sent.fromIliski('carmst pls', `${kodClause} = pls.must`)
+		if (attrSet.TAVSIYEPLASIYER) {
+			if (from.aliasIcinTable('car')) {
+				sent
+					.leftJoin('car', 'carisatis csat', 'car.must = csat.must')
+					.leftJoin('csat', 'carmst tpls', 'csat.tavsiyeplasiyerkod = tpls.must')
+			}
+			else
+				delete attrSet.TAVSIYEPLASIYER
+		}
+		
 		for (let key in attrSet) {
 			switch (key) {
-				case 'PLASIYER':
-					sahalar.add(`${kodClause} plasiyerkod`, 'pls.birunvan plasiyeradi'); wh.icerikKisitDuzenle_plasiyer({ ...arguments[0], saha: kodClause });
+				case 'PLASIYER': {
+					sahalar.add(`${kodClause} plasiyerkod`, 'pls.birunvan plasiyeradi')
+					wh.icerikKisitDuzenle_plasiyer({ ...e, saha: kodClause })
 					break
+				}
+				case 'TAVSIYEPLASIYER': {
+					sahalar.add(`csat.tavsiyeplasiyerkod tavsiyeplasiyerkod`, 'tpls.birunvan tavsiyeplasiyeradi')
+					wh.icerikKisitDuzenle_plasiyer({ ...e, saha: 'csat.tavsiyeplasiyerkod' })
+					break
+				}
 			}
 		}
 		return this
@@ -1314,15 +1341,18 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	}
 	tabloYapiDuzenle_baBedel({ result }) {
 		this.tabloYapiDuzenle_baBedelBasit(...arguments)
-		result
-			.addToplamBasit_bedel('ISARETLIBEDEL', 'B-A Bakiye', 'isaretlibedel')
-			.addToplamBasit_bedel('ISARETLIBEDEL_KDVDAHIL', 'B-A Bakiye (+KDV)', 'isaretlibedelkdvdahil', null, null, ({ item }) => {
-				item.setFormul(
-					['ISARETLIBEDEL', 'TOPKDV'],
-					({ rec: { isaretlibedel: bedel, topkdv: kdv } }) =>
-						roundToBedelFra( (bedel || 0) + (kdv || 0) )
-				)
-			})
+		result.addToplamBasit_bedel('ISARETLIBEDEL', 'B-A Bakiye', 'isaretlibedel')
+		return this
+	}
+	tabloYapiDuzenle_baBedel_kdvDahil({ result }) {
+		this.tabloYapiDuzenle_baBedelBasit(...arguments)
+		result.addToplamBasit_bedel('ISARETLIBEDEL_KDVDAHIL', 'B-A Bakiye (+KDV)', 'isaretlibedelkdvdahil', null, null, ({ item }) => {
+			item.setFormul(
+				['ISARETLIBEDEL', 'TOPKDV'],
+				({ rec: { isaretlibedel: bedel, topkdv: kdv } }) =>
+					roundToBedelFra( (bedel || 0) + (kdv || 0) )
+			)
+		})
 		return this
 	}
 	loadServerData_queryDuzenle_baBedel({ stm, sent, attrSet, baClause, bedelClause }) {

@@ -31,7 +31,7 @@ class MQEIslem_Gelen extends MQCogul {
         super.secimlerDuzenle(...arguments)
 
         let { donem: { tekSecim: donem } } = sec
-        donem.buAy()
+        donem.buYil()
 
         let grupKod = 'donemVeTarih'
         sec
@@ -73,9 +73,10 @@ class MQEIslem_Gelen extends MQCogul {
         }
         
         let items = [
-            {
+			{
                 id: 'bekleyenleriGetir',
 				text: '📶',
+				toolTip: 'Bekleyenleri Getir',
                 handler: _e => void(
                     withErrCheck('Bekleyenleri Getir', _e, args =>
                         this.bekleyenleriGetirIstendi(args))
@@ -84,14 +85,23 @@ class MQEIslem_Gelen extends MQCogul {
 			{
                 id: 'xmlYukle',
 				text: 'XML',
+				toolTip: 'XML Dosyadan Yükle',
                 handler: _e => void(
                     withErrCheck('XML Yükle', _e, args =>
                         this.xmlYukleIstendi(args))
 				)
             },
 			{
+                id: 'eIslemIzle',
+				toolTip: 'e-İşlem İZLE',
+                handler: _e =>
+                    withErrCheck('e-İşlem İzle', _e, args =>
+                        this.eIslemIzleIstendi(args))
+            },
+			{
                 id: 'musteriBelirle',
 				text: '🧑‍💼✓',
+				toolTip: 'Müşteri Belirle',
 				handler: _e => void(
                     withErrCheck('Müşteri Belirle', _e, args =>
                         this.musteriBelirleIstendi(args))
@@ -99,19 +109,15 @@ class MQEIslem_Gelen extends MQCogul {
             },
 			{
                 id: 'ticariyeAktar',
+				toolTip: 'Ticariye Aktar',
 				handler: _e => void(
                     withErrCheck('Ticariye Aktar', _e, args =>
                         this.ticariyeAktarIstendi(args))
 				)
             },
-            {
-                id: 'eIslemIzle',
-                handler: _e =>
-                    withErrCheck('e-İşlem İzle', _e, args =>
-                        this.eIslemIzleIstendi(args))
-            },
 			{
                 id: 'sil',
+				toolTip: 'e-İşlem SİL',
                 handler: _e =>
                     withErrCheck('e-İşlem SİL', _e, args =>
                         this.eIslemKaldirIstendi(args))
@@ -124,13 +130,37 @@ class MQEIslem_Gelen extends MQCogul {
     static rootFormBuilderDuzenle_islemTuslari({ sender: listePart, fbd_islemTuslari: fbd }) {
 		super.rootFormBuilderDuzenle_islemTuslari(...arguments)
     }
-    static orjBaslikListesi_argsDuzenle({ sender: listePart, args }) {
-        super.orjBaslikListesi_argsDuzenle(...arguments)
+    static orjBaslikListesi_argsDuzenle(e = {}) {
+        super.orjBaslikListesi_argsDuzenle(e)
+		let { sender: listePart, args } = e
         extend(args, {
             rowsHeight: 60, groupsExpandedByDefault: true,
             showStatusBar: true, showAggregates: true
             // showGroupAggregates: true
         })
+		;{
+			let w = { dip: 300, margin: .5 }
+			w.detay = `calc(var(--full) - ${w.dip}px)`
+			
+			extend(args, {
+				rowDetailsTemplate: i => ({
+					rowdetailsheight: 350,
+					rowdetails: (
+						`<div class="dip-grid-parent dock-bottom float-left" style="width: ${w.dip - w.margin}px">
+							<div class="dip-grid"></div>
+						</div>
+						<div class="detay-grid-parent dock-bottom float-left" style="width: ${w.detay}">
+							<div class="detay-grid"></div>
+						</div>`
+					)
+				}),
+				initRowDetails: (rowIndex, parent, grid, parentRec) => {
+					parent = $(parent)
+					promise(() => this.initRowDetails_dip({ ...e, rowIndex, parentRec, parent: parent.find('.dip-grid') }) )
+					promise(() => listePart.initRowDetails({ ...e, rowIndex, parentRec, parent: parent.find('.detay-grid') }))
+				}
+			})
+		}
     }
     static ekCSSDuzenle({ dataField: k, value: v, rec: r, result: res }) {
 		super.ekCSSDuzenle(...arguments)
@@ -184,32 +214,32 @@ class MQEIslem_Gelen extends MQCogul {
     static orjBaslikListesiDuzenle({ sender: listePart, liste }) {
         super.orjBaslikListesiDuzenle(...arguments)
         liste.push(...[
-            new GridKolon({ belirtec: 'tamamlandi', text: 'Tamam?', genislikCh: 5 }).noSql().checkedList().tipBool(),
-            new GridKolon({ belirtec: 'yazdirildi', text: 'Yazdır?', genislikCh: 5 }).noSql().checkedList().tipBool(),
-            new GridKolon({ belirtec: 'eIslTipText', text: 'Belge Tipi', genislikCh: 8 }).noSql().checkedList(),
+			gridKolon('tamamlandi', 'Tamam?', 5).noSql().checkedList().tipBool(),
+			gridKolon('yazdirildi', 'Yazdır?', 5).noSql().checkedList().tipBool(),
+			gridKolon('eIslTipText', 'Belge Tipi', 8).noSql().checkedList(),
             ...MQCogul.getKAKolonlar(
-                new GridKolon({ belirtec: 'kayitTarih', text: 'Kayıt Tarih', genislikCh: 12 }).tipDate().noSql().checkedList(),
-                new GridKolon({ belirtec: 'kayitSaat', text: 'K.Zmn', genislikCh: 9 }).tipTime().noSql().center(),
+                gridKolon('kayitTarih', 'Kayıt Tarih', 12).date().noSql().checkedList(),
+                gridKolon('kayitSaat', 'K.Zmn', 9).noSql().time().center(),
                 true    // auto-reverse in mini-device mode
             ),
             ...MQCogul.getKAKolonlar(
-                new GridKolon({ belirtec: 'tarih', text: 'Belge Tarih', genislikCh: 13 }).tipDate().noSql().checkedList(),
-                new GridKolon({ belirtec: 'fisNox', text: 'Belge No', genislikCh: 23 }).noSql().checkedList(),
+                gridKolon('tarih', 'Belge Tarih', 13).noSql().checkedList().date(),
+                gridKolon('fisNox', 'Belge No', 23).noSql().checkedList(),
                 true    // auto-reverse in mini-device mode
             ),
             ...MQCogul.getKAKolonlar(
-                new GridKolon({ belirtec: 'gondericiUnvan', text: 'EF Gönderici Ünvan', genislikCh: 40 }).noSql().checkedList(),
-                new GridKolon({ belirtec: 'gondericiVKN', text: 'Gönderici VKN', genislikCh: 11 }).noSql().checkedList(),
+                gridKolon('gondericiUnvan', 'EF Gönderici Ünvan', 40).noSql().checkedList(),
+                gridKolon('gondericiVKN', 'Gönderici VKN', 11).noSql().checkedList(),
                 false
             ),
-            new GridKolon({ belirtec: 'irsVar', text: 'İrs?', genislikCh: 5 }).noSql().checkedList().tipBool(),
-            new GridKolon({ belirtec: 'sonucBedel', text: 'Sonuc Bedel', genislikCh: 23 }).noSql().tipDecimal_bedel().sum().input(),
+            gridKolon('irsVar', 'İrs?', 5).noSql().checkedList().tipBool(),
+            gridKolon('sonucBedel', 'Sonuc Bedel', 23).noSql().bedel().sum().input(),
             ...MQCogul.getKAKolonlar(
-                new GridKolon({ belirtec: 'gondericiMustKod', text: 'Vio Cari', genislikCh: 18 }).noSql().checkedList(),
-                new GridKolon({ belirtec: 'vioMustUnvan', text: 'Vio Cari Ünvan', genislikCh: 40 }).noSql().checkedList(),
+                gridKolon('gondericiMustKod', 'Vio Cari', 18).noSql().checkedList(),
+                gridKolon('vioMustUnvan', 'Vio Cari Ünvan', 40).noSql().checkedList(),
                 false
             ),
-            new GridKolon({ belirtec: 'uuid', text: 'UUID (ETTN)', genislikCh: 42 }).noSql().checkedList()
+            gridKolon('uuid', 'UUID (ETTN)', 42).noSql().checkedList()
         ])
     }
     static async loadServerDataDogrudan({ sender: listePart, wsArgs, secimler: sec }) {
@@ -233,8 +263,6 @@ class MQEIslem_Gelen extends MQCogul {
             })
         })
         return recs
-        
-        // return []
     }
     static loadServerData_queryDuzenle({ sender: listePart, stm, sent, secimler: sec }) {
         super.loadServerData_queryDuzenle(...arguments)
@@ -258,6 +286,13 @@ class MQEIslem_Gelen extends MQCogul {
                     `(CASE WHEN fis.efbelge = '' THEN 'E' ELSE fis.efbelge END) eIslTip`,
                     'car.birunvan vioMustUnvan'
                 )
+			for (let mid of ['', 'Dv']) {
+				;['Brut', 'Iskonto', 'Kdv', 'Otv', 'Stopaj', 'Sonuc'].forEach(pf => {
+					let ik = `ef${mid}${pf}`
+					let rk = ik.toLowerCase()
+					sahalar.add(`fis.${rk} ${ik}`)
+				})
+			}
         }
         orderBy.liste = ['eIslTip', 'kayitTS DESC', 'fisNox']
 
@@ -291,6 +326,214 @@ class MQEIslem_Gelen extends MQCogul {
 		this.eIslemIzleIstendi({ sender })
 	}
 
+	static orjBaslikListesi_argsDuzenle_detaylar({ sender: listePart, args }) {
+        super.orjBaslikListesi_argsDuzenle_detaylar(...arguments)
+        extend(args, {
+            rowsHeight: 50, groupsExpandedByDefault: true,
+			showGroupsHeader: false, showStatusBar: true, showAggregates: true
+            // showGroupAggregates: true
+        })
+    }
+	static orjBaslikListesiDuzenle_detaylar({ sender: listePart, liste }) {
+        super.orjBaslikListesiDuzenle_detaylar(...arguments)
+        liste.push(...[
+			gridKolon('shTipText', 'Tip', 8).noSql().checkedList(),
+			...this.getKAKolonlar(
+				gridKolon('eSHKod', 'EF Stok Kod', 16).noSql().checkedList(),
+				gridKolon('eSHAdi', 'EF Stok Adı', 45).noSql().checkedList()
+			),
+			gridKolon('miktar', 'Miktar', 9).noSql().checkedList().dec(),
+			...this.getKAKolonlar(
+				gridKolon('fiyat', 'Fiyat', 17).noSql().input().fiyat(),
+				gridKolon('bedel', 'Bedel', 17).noSql().input().bedel()
+			),
+			gridKolon('iskOranlarStr', 'İsk %', 10).noSql().input(),
+			...this.getKAKolonlar(
+				gridKolon('shKod', 'VIO Stok Kod', 16).noSql().checkedList(),
+				gridKolon('shAdi', 'VIO Stok Adı', 30).noSql().checkedList()
+			),
+			gridKolon('detaciklama', 'Açıklama', 50).noSql().input(),
+			gridKolon('bozuk', 'Bzk?', 5).noSql().checkedList().bool()
+        ])
+    }
+    static async loadServerData_detaylar(e = {}) {
+		let { sender: listePart, wsArgs, secimler: sec } = e
+		let stm = e.stm = new MQStm()
+		e.sent = stm.sent
+		this.loadServerData_detaylar_queryDuzenle(e)
+		stm = e.stm
+		if (!stm)
+			return []
+		return await stm.execSelect()
+    }
+	static loadServerData_detaylar_queryDuzenle({ sender: listePart, stm, sent, secimler: sec, parentRec }) {
+        super.loadServerData_detaylar_queryDuzenle(...arguments)
+        sent.sahalarVeGroupByVeHavingReset()
+		let { sayac: fisSayac } = parentRec
+        let { where: wh, sahalar } = sent
+        let { orderBy } = stm
+        ;{
+			let cl = {
+				shTipText: new MQCase()
+					.setClause('har.shtip')
+					.when(`'H'`, `'Hiz.'`)
+					.when(`'D'`, `'Dem.'`)
+					.else(`'Stk.'`),
+				shKod: new MQCase()
+					.setClause('har.shtip')
+					.when(`'H'`, 'har.hizmetkod')
+					.when(`'D'`, 'har.demkod')
+					.else('har.stokkod'),
+				shAdi: new MQCase()
+					.setClause('har.shtip')
+					.when(`'H'`, 'hiz.aciklama')
+					.when(`'D'`, 'dem.aciklama')
+					.else('stk.aciklama')
+			}
+            sent
+                .fromAdd('efgecicialfatdetay har')
+                .innerJoin('har', 'stkmst stk', 'har.stokkod = stk.kod')
+                .innerJoin('har', 'hizmst hiz', 'har.hizmetkod = hiz.kod')
+                .innerJoin('har', 'demmst dem', 'har.demkod = dem.kod')
+			if (fisSayac)
+				wh.degerAta(fisSayac, 'fissayac')
+            sahalar
+                .addWithAlias('har',
+                    'kaysayac sayac', 'fissayac fisSayac', 'seq', 'bozukmu bozuk',
+					'efbarkod barkod', 'efstokkod eSHKod', 'efstokadi eSHAdi',
+					'shtip tip', 'miktar', 'fiyat', 'bedel',
+					'kdvorani kdvOrani', 'iskoranstr iskOranlarStr',
+					'alimanlasmadurumu alimAnlasma', 'detaciklama detAciklama'
+                )
+				.add(
+					`${cl.shTipText} shTipText`,
+					`${cl.shKod} shKod`,
+					`${cl.shAdi} shAdi`
+				)
+        }
+        orderBy.liste = ['fisSayac', 'seq DESC']
+
+		/*
+			id, kaysayac, fisid, fissayac, seq, bozukmu,
+			efbarkod, efstokkod, efstokadi, efmiktar, efbirimtipi, efiskonto
+			shtip, stokkod, hizmetkod, demkod, kdetaysayac,
+			kdvorani, konaklamaorani, otvorani, stopajorani, tevoranx
+			miktar, fiyat, bedel, iskoranstr, iskorantext, artoranstr,
+			irseksik, irsfazla, irskabuledilmeyen,
+			alimanlasmadurumu, detaciklama
+		*/
+	}
+
+	static initRowDetails_dip(e = {}) {
+		let { sender: listePart, parent: grid, parentRec, rowIndex } = e
+		let rfb = new RootFormBuilder()
+		rfb.addGridliGosterici('dip-grid')
+			.setLayout(grid)
+			.rowNumberOlmasin()
+			.notAdaptive()
+			.noAnimate()
+			.widgetArgsDuzenleIslemi(({ args }) => {
+				extend(args, {
+					rowsHeight: 35, columnsMenu: false, filterable: false, groupable: false,
+					showStatusBar: false, showAggregates: false, showGroupsHeader: false
+				})
+			})
+			.setTabloKolonlari(
+				[
+					gridKolon('etiket', 'Açıklama', 14).noSql().input(),
+					gridKolon('veri', 'Bedel', 15).noSql().input().bedel()
+				].map(cd =>
+					cd.setCellClassName((...args) =>
+						this.getCellClassName_dip(...args))
+				)
+			)
+			.setSource(_e =>
+				this.loadServerData_dip({ ...e, ..._e }))
+			.veriYukleninceIslemi(_e =>
+				this.gridVeriYuklendi_dip({ ...e, ..._e }))
+			.addStyle_fullWH()
+			.addStyle(`$elementCSS [role = row] > div { font-size: 80% !important }`)
+		rfb.run()
+	}
+	static getCellClassName_dip(cd, i, k, v, r) {
+		let res = [k]
+		let tip = r?.tip ?? ''
+		switch (tip) {
+			case '_sep': {
+				res.push('whitesmoke', 'bg-whitesmoke')
+				break
+			}
+			case 'sonuc': {
+				res.push('fs-115 bold')
+				break
+			}
+		}
+		if (k == 'veri') {
+			switch (tip) {
+				case 'sonuc': {
+					res.push('bg-lightgreen')
+					break
+				}
+			}
+		}
+		return res
+			.filter(Boolean)
+			.join(' ')
+	}
+	static loadServerData_dip({ sender: gridPart, parentRec: pr } = {}) {
+		if (!pr)
+			return []
+
+		let k2Def = {
+			brut: { etiket: 'BRÜT', zorunlu: true },
+			iskonto: { etiket: 'İSKONTO' },
+			kdv: { etiket: 'KDV' },
+			otv: { etiket: 'ÖTV' },
+			stopaj: { etiket: 'STOPAJ' },
+			sonuc: { etiket: 'SONUÇ', zorunlu: true },
+		}
+
+		let grp2Rec = {}
+		for (let mid of ['', 'Dv']) {
+			let g = mid.toLowerCase() || 'tl'
+			let r = grp2Rec[g] = {}
+			;['Brut', 'Iskonto', 'Kdv', 'Otv', 'Stopaj', 'Sonuc'].forEach(pf => {
+				let ik = pf.toLowerCase()
+				let rk = `ef${mid}${pf}`
+				let v = Number(pr[rk])
+				if (v)
+					r[ik] = v
+			})
+		}
+
+		let recs = []
+		function add(grup, tip, etiket, veri, zorunlu) {
+			if (!(zorunlu || veri))
+				return null
+
+			etiket ||= k2Etk[tip]
+			let r = { grup, tip, etiket, veri }
+			recs.push(r)
+			return r
+		}
+		;['dv', 'tl'].forEach((g, i) => {
+			let r = grp2Rec[g]
+			if (empty(r))
+				return true    // continue
+
+			if (Number(i) > 0 && !empty(recs))
+				add(null, '_sep', ' ', null, true)    // separator
+				
+			for (let [k, bedel] of entries(r)) {
+				let { etiket, zorunlu } = k2Def[k] ?? {}
+				add(g, k, etiket, bedel, zorunlu)
+			}
+		})
+		
+		return recs
+	}
+	static gridVeriYuklendi_dip({ sender: gridPart } = {}) {}
+	
     static async bekleyenleriGetirIstendi({ sender: listePart } = {}) {
 		let islemAdi = 'e-İşlem Bekleyenleri Getir'
 		let { sorguFiltre: wsSec } = listePart
@@ -568,11 +811,66 @@ class MQEIslem_Gelen extends MQCogul {
 		let islemAdi = 'e-İşlem Ticariye Aktar'
 		let { sender: listePart } = e
 		let { eConf, selectedRec: rec } = listePart
+		let { zorunlu: { cariYil } } = app.params
+		cariYil ||= today().yil
 		function err(errorText) {
 			throw { isError: true, errorText }
 		}
 		if (!rec)
 			err('Bir satır seçilmelidir')
+
+		let { uuid, fisNox } = rec
+		if (!uuid)
+			err('Bu belge için UUID değeri belirsizdir')
+
+		let yerRec = await MQStokYer.getVarsayilanYerRec() ?? {}
+		let { sayac, subeKod, yerKod, gondericiMustKod: mustKod, tarih, eIslTip: efBelge } = rec
+		let tsn = ( fisNox ? TicariSeriliNo.fromText(fisNox) : null ) ?? {}
+		let { seri, noYil, no: fisNo } = tsn
+		if (!fisNo)
+			err('Bu belge için Belge No değeri belirsizdir')
+
+		let eIslTip = EYonetici_Gelen.normalizeEFAyrimTipi_giden(efBelge)
+		let irsaliyemi = eIslTip == 'IR'
+		
+		subeKod = yerRec.bizsubekod || subeKod || ''
+		yerKod = yerRec.kod || yerKod || 'A'
+		tarih = asDate(tarih)
+		seri ||= ''
+		noYil ||= cariYil
+		
+		;{
+			let uni = new MQUnionAll()
+			;['piffis', 'stfis'].forEach(table => {
+				let sent = new MQSent(), { where: wh, sahalar } = sent
+				sent.fromAdd(table)
+				wh.add(
+					new MQOrClause()
+						.degerAta(uuid, 'efatuuid')
+						.add(new MQAndClause()
+							.degerAta(subeKod, 'bizsubekod')
+							.degerAta(seri, 'seri')
+							.degerAta(noYil, 'noyil')
+							.degerAta(fisNo, 'no')
+						)
+				)
+				if (table == 'piffis') {
+					wh
+						.degerAta(irsaliyemi ? 'I' : 'F', 'piftipi')
+						.add(new MQOrClause()
+							.add(new MQAndClause([`almsat = 'A'`, `iade = ''`]))
+							.add(new MQAndClause([`almsat = 'T'`, `iade = 'I'`]))
+						)
+				}
+				sahalar.add('1')
+				uni.add(sent)
+			})
+			let _recs = await uni.execSelect()
+			if (!empty(_recs)) {
+				this.ticariyeAktarIstendi_kaydetSonrasi({ sender: listePart, rec, uuid })    // tamamlandı işareti yoksa koy, sonucu beklemeye gerek yok
+				err('Bu belge zaten ticariye aktarılmış')
+			}
+		}
 
 		let pr = defer()
 		let inst = new MQEIslem_Gelen_EkBilgiUI()
@@ -580,8 +878,11 @@ class MQEIslem_Gelen extends MQCogul {
 			.setParentPart(listePart)
 			.setEConf(eConf)
 			.setRec(rec)
-			.setTamamIslemi(res =>
-				void(pr.resolve(res)))
+			.setTamamIslemi(res => {
+				if (!mustKod)
+					err('Müşteri belirtilmelidir')
+				void(pr.resolve(res))
+			})
 		await inst.run()
 		
 		;{
@@ -594,8 +895,12 @@ class MQEIslem_Gelen extends MQCogul {
 		rec = res?.rec
 		if (!rec)
 			return
+
+		mustKod = rec.gondericiMustKod ?? mustKod
+		if (!mustKod)
+			err('Müşteri belirtilmelidir')
 		
-		let { eIslTip: efBelge, ayrimTipi, iade: iademi, fisTipi } = rec
+		let { ayrimTipi, iade: iademi, fisTipi } = rec
 		let alimmi = true
 		if (fisTipi != null) {
 			fisTipi = fisTipi?.char ?? fisTipi
@@ -603,33 +908,19 @@ class MQEIslem_Gelen extends MQCogul {
 			iademi = fisTipi == 'I'
 		}
 		
-		let eIslTip = EYonetici_Gelen.normalizeEFAyrimTipi_giden(efBelge)
-		let irsaliyemi = eIslTip == 'IR'
 		let fisSinif = FisAyrimTipiBasit.gelenFisSinifFor({ irsaliyemi, iademi, ayrimTipi })
 		if (!fisSinif)
 			err('Fiş Sınıfı belirlenemedi')
 
-		let { params: { zorunlu } } = app
-		let { cariYil } = zorunlu
-		cariYil ||= today().yil
-		
 		let gridKontrolcuSinif = EIslAlimGridKontrolcu
 		let efDonusumler = await EYonetici_Gelen.getEFDonusum(rec)
-		let yerRec = await MQStokYer.getVarsayilanYerRec() ?? {}
-		
-		let { tarih, fisNox, gondericiMustKod: mustKod, subeKod, yerKod } = rec
-		let tsn = TicariSeriliNo.fromText(fisNox)
-		let { seri, noYil, no: fisNo } = tsn
-		tarih = asDate(tarih)
-		noYil ||= cariYil
-		subeKod = yerRec.bizsubekod || subeKod
-		yerKod = yerRec.kod || yerKod
 
 		let eBilgi = { rec, efDonusumler, gridKontrolcuSinif }
 		let fis = new fisSinif({
 			eBilgi,
 			tarih, seri, noYil, fisNo,
-			subeKod, mustKod, yerKod
+			subeKod, mustKod, yerKod,
+			uuid
 		})
 		
 		await fis.eBilgiIcinDetaylariYukle(e)
@@ -682,10 +973,11 @@ class MQEIslem_Gelen extends MQCogul {
 		return res
 		
     }
-	static async ticariyeAktarIstendi_kaydetSonrasi({ sender: listePart, rec, fis } = {}) {
-		fis._kaydedildimi = true
-		
-		let { uuid } = rec ?? {}
+	static async ticariyeAktarIstendi_kaydetSonrasi({ sender: listePart, rec, uuid, fis } = {}) {
+		if (fis)
+			fis._kaydedildimi = true
+
+		uuid ||= rec?.uuid
 		if (!uuid)
 			return
 

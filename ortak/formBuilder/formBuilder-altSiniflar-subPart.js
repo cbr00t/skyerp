@@ -824,18 +824,28 @@ class FBuilder_RadioButton extends FBuilder_OptionBase {
 class FBuilder_Button extends FBuilder_InputOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get inputTagName() { return 'button' }
-	constructor(e) {
-		e = e || {}; super(e);
-		$.extend(this, { disabled: e.disabled ?? false, onClickEvent: e.onClick || e.onClickEvent || e.handler });
-		if (e.etiketGosterim == null) { this.etiketGosterim_yok() }
+	constructor(e = {}) {
+		super(e)
+		extend(this, { disabled: e.disabled ?? false, onClickEvent: e.onClick || e.onClickEvent || e.handler });
+		if (e.etiketGosterim == null)
+			this.etiketGosterim_yok()
 	}
 	buildDevam(e) {
-		let {value} = this; super.buildDevam(e);
-		let {input, styles} = this; if (input?.length) {
-			input.prop('id', this.id); input.html(value);
-			let {widgetArgsDuzenle} = this;
-			let _e = $.extend({}, e, { args: { theme, width: '100%', height: '100%', disabled: this.disabled } }); if (widgetArgsDuzenle) { getFuncValue.call(this, widgetArgsDuzenle, _e); }
-			input.jqxButton(_e.args); input.on('click', evt => this.signalClick($.extend({}, e, { builder: this, input: input, event: evt })))
+		let { value } = this
+		super.buildDevam(e)
+		let { id, input, styles, widgetArgsDuzenle, etiket, placeHolder } = this
+		if (input?.length) {
+			input.prop('id', id)
+			input.html(value)
+
+			let toolTip = placeHolder || etiket || id
+			let args = { theme, width: '100%', height: '100%', disabled: this.disabled }
+			let _e = { ...e, args }
+			widgetArgsDuzenle?.call?.(this, _e)
+			input.jqxButton(_e.args)
+			input.attr('title', toolTip)
+			input.on('click', evt =>
+				this.signalClick({ ..._e, builder: this, input: input, event: evt }))
 		}
 		styles.push(
 			`$elementCSS { backdrop-filter: brightness(0.93) !important; border-radius: 10px }

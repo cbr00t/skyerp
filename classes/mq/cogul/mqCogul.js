@@ -29,7 +29,7 @@ class MQCogul extends MQYapi {
 	static get gereksizTablolariSilYapilirmi() { return true }
 	static get islemTuslari_sagButonlar_ekMarginX() { return isMiniDevice() ? 0 : 15 }
 	static get orjBaslik_gridRenderDelayMS() { return null }
-	static get defaultOrjBaslik_gridRenderDelayMS() { return 200 }
+	static get defaultOrjBaslik_gridRenderDelayMS() { return 500 }
 	static get orjBaslikListesi_panelGrupAttrListe() { let _e = { liste: [] }; this.orjBaslikListesi_panelGrupAttrListeDuzenle(_e); return _e.liste }
 	static get orjBaslikListesi_panelUstSeviyeAttrListe() { let _e = { liste: [] }; this.orjBaslikListesi_panelUstSeviyeAttrListeDuzenle(_e); return _e.liste }
 	static get orjBaslikListesi_defaultRowsHeight() { return null } static get orjBaslikListesi_maxColCount() { return 5 }
@@ -829,21 +829,73 @@ class MQCogul extends MQYapi {
 	async yeniTanimOncesiIslemler(e) { await super.yeniTanimOncesiIslemler(e); await this.forAltYapiKeysDoAsync('yeniTanimOncesiIslemler', e) }
 	async yukleSonrasiIslemler(e) { await super.yukleSonrasiIslemler(e); await this.forAltYapiKeysDoAsync('yukleSonrasiIslemler', e) }
 	async yeniTanimOncesiVeyaYukleSonrasiIslemler(e) { await super.yeniTanimOncesiVeyaYukleSonrasiIslemler(e); await this.forAltYapiKeysDoAsync('yeniTanimOncesiVeyaYukleSonrasiIslemler', e) }
-	async uiGirisOncesiIslemler(e) { await this.forAltYapiKeysDoAsync('uiGirisOncesiIslemler', e) }
+	async uiGirisOncesiIslemler(e) {
+		let { class: cls } = this
+		if (!cls._colDefs) {
+			let { table } = cls
+			if (table)
+				cls._colDefs = await app.sqlGetColumns(table)
+		}
+		await this.forAltYapiKeysDoAsync('uiGirisOncesiIslemler', e)
+	}
 	async uiGirisSonrasiIslemler(e) { await this.forAltYapiKeysDoAsync('uiGirisSonrasiIslemler', e) }
 	async uiKaydetOncesiIslemler(e) {
 		await this.forAltYapiKeysDoAsync('uiKaydetOncesiIslemler', e);
-		let result = await this.dataDuzgunmu(e);
+		let result = await this.dataDuzgunmu(e)
 		if (!(result == null || result == true)) {
 			if (typeof result != 'object') {
-				result = { isError: false, errorText: (typeof result == 'boolean' ? null : result?.toString()) };
+				result = { isError: false, errorText: (typeof result == 'boolean' ? null : result?.toString()) }
 				throw result
 			}
 		}
 	}
 	async dataDuzgunmu(e) {
-		let results = (await this.forAltYapiKeysDoAsync('dataDuzgunmu', e))?.flat()?.filter(x => !!x);
-		return results?.length ? `<ul>${results.map(x => `<li>${x}</li>`).join(CrLf)}</ul>` : null
+		let res = (await this.forAltYapiKeysDoAsync('dataDuzgunmu', e))
+			?.flat()
+			?.filter(Boolean) ?? []
+
+		let { kod, class: { _colDefs: colDefs, kodKullanilirmi, guidmi, kodSaha, kodEtiket, adiSaha, sinifAdi } } = this
+		if (kodKullanilirmi && !guidmi && !kod?.trimEnd()) {
+			kodEtiket ||= 'Kod'
+			res.push(`<b class=royalblue>${kodEtiket}</b> değeri boş olamaz`)
+		}
+			
+		if (!empty(colDefs)) {
+			let ra2PInst = fromEntries(
+				values(this._p ?? {})
+					.filter(p => p.rowAttr)
+					.map(p => [p.rowAttr, p])
+			)
+			
+			let hv = this.hostVars(e)
+			for (let [k, v] of entries(hv)) {
+				if (!(v && isString(v)))
+					continue
+				
+				let _len = colDefs[k]?.length
+				if (_len < 1 || v.length <= _len)
+					continue
+
+				let p = ra2PInst[k]
+				if (p && !(p.class == PInst || p instanceof PInstStr))
+					continue
+					
+				let etk = (
+					k == kodSaha || k == adiSaha
+						? `${sinifAdi} ${k[0].toUpperCase()}${k.slice(1)}`
+						: p?.sinif?.sinifAdi || k
+				)
+				res.push(
+					`<b class=royalblue>${etk}</b> saha uzunluğu(<b class=firebrick>${v.length} karakter</b>) hatalıdır. ` +
+					`En fazla <b class=forestgreen>${_len} karakter</b> olabilir`
+				)
+			}
+		}
+		
+		if (empty(res))
+			return null
+		
+		return `<ul>${res.map(x => `<li>${x}</li>`).join(CrLf)}</ul>`
 	}
 	async kaydetVeyaSilmeOncesiIslemler(e = {}) {
 		this.class.globalleriSil(e)

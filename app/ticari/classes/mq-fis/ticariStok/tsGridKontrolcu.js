@@ -120,7 +120,7 @@ class TSGridKontrolcu extends GridKontrolcu {
 		if (belirtec != sonucBelirtec)
 			this.satirBedelHesapla(e)
 	}
-	satirBedelHesapla(e = {}) {			/* Ticari seviyede farklı hesap yapılır */
+	satirBedelHesapla(e = {}) {			// Ticari seviyede farklı hesap yapılır
 		let { sender: gridPart, args = {} } = e
 		let rowIndex = e.rowIndex ?? args.rowindex
 		let uid = e.uid ?? args.uid

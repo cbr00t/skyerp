@@ -13,6 +13,20 @@ class DMQRapor extends DMQSayacliKA {
 	static get idSaha() { return this.sayacSaha }
 	static get sayacSaha() { return 'id' }
 	static get logKullanilirmi() { return false }
+	static get yerel() {
+		return app.params.yerel ??= new MQYerelParam()
+	}
+	static get raporGlobals() {
+		return this.yerel.tip2DRaporGlobals ??= {}
+	}
+	get baseKey() { return this.raporKod }
+	get raporGlobals() {
+		let { baseKey: k } = this
+		if (!k)
+			return null
+		let { raporGlobals: g } = this.class
+		return g[k] ??= {}
+	}
 	get raporKod() {
 		let { _raporKod: res } = this
 		if (res === undefined)
@@ -68,7 +82,7 @@ class DMQRapor extends DMQSayacliKA {
 		return inst
 	}
 	setDefault(e = {}) {
-		let {yerel} = app.params ?? {}
+		let { yerel } = app.params ?? {}
 		let tip2SonDRaporRec = yerel.tip2SonDRaporRec = yerel.tip2SonDRaporRec || {}
 		let {rapor} = e, raporKod = this.class.getRaporKod(rapor)
 		let hv = raporKod ? this.hostVars(e) : null
@@ -364,23 +378,43 @@ class DMQRapor extends DMQSayacliKA {
 			inst.rapor = rapor
 		return inst
 	}
-	async dataDuzgunmu(e) { await super.dataDuzgunmu(e); return await this.dataDuzgunmuDevam(e) }
+	async dataDuzgunmu(e) {
+		await super.dataDuzgunmu(e)
+		return await this.dataDuzgunmuDevam(e)
+	}
 	dataDuzgunmuDevam(e) {
-		let {rapor} = this, {tabloYapi} = rapor, {toplam} = tabloYapi, {grup, icerik, kullanim} = this
-		let {yatayAnaliz} = kullanim
-		let normalIcerikVarmi = false, toplanabilirVarmi = false, grupUygunmu = true;
-		for (let key in grup) { if (toplam[key]) { grupUygunmu = false; break } }
-		for (let key in icerik) {
-			if (toplam[key]) { toplanabilirVarmi = true } else { normalIcerikVarmi = true }
-			if (toplanabilirVarmi && normalIcerikVarmi) { break}
+		let { rapor } = this, { tabloYapi } = rapor
+		let { toplam } = tabloYapi, { grup, icerik, kullanim } = this
+		let { yatayAnaliz } = kullanim
+		let normalIcerikVarmi = false, toplanabilirVarmi = false, grupUygunmu = true
+		for (let key in grup) {
+			if (toplam[key]) {
+				grupUygunmu = false
+				break
+			}
 		}
-		if (!grupUygunmu) { throw { isError: true, errorText: 'Toplanabilir Sahalar, Gruplama kısmına eklenemez' } }
-		if (!(toplanabilirVarmi && normalIcerikVarmi)) { throw { isError: true, errorText: 'En az birer Toplanabilir ve Normal saha olmalıdır' } }
+		for (let key in icerik) {
+			if (toplam[key])
+				toplanabilirVarmi = true
+			else
+				normalIcerikVarmi = true
+			
+			if (toplanabilirVarmi && normalIcerikVarmi)
+				break
+		}
+			
+		if (!grupUygunmu)
+			throw { isError: true, errorText: 'Toplanabilir Sahalar, Gruplama kısmına eklenemez' }
+		if (!(toplanabilirVarmi && normalIcerikVarmi))
+			throw { isError: true, errorText: 'En az birer Toplanabilir ve Normal saha olmalıdır' }
+			
 		if (yatayAnaliz) {
-			let {grup} = this, {kod, text} = DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz] ?? {}
+			let { grup } = this
+			let { kod, text } = DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz] ?? {}
 			if (kod && grup[kod])
 				throw { isError: true, errorText: `<b>${text} Çapraz Analiz</b> işaretli iken <b class="royalblue">${kod}</b> <span class="firebrick">kolonu eklenemez</span>` }
 		}
+		
 		return this
 	}
 	async tamamSonrasiIslemlar(e = {}) {
@@ -398,6 +432,35 @@ class DMQRapor extends DMQSayacliKA {
 		/*await super.sil(e)
 		return await super.yaz(e)*/
 	}
+	getTanimGlobals(e) {
+		let { raporGlobals: g } = this
+		if (g == null)
+			return null
+		
+		let k = this.getKey(e)
+		if (k == null)
+			return null
+		
+		return g[k] ??= {}
+	}
+	saveGlobals() {
+		let { yerel } = this.class
+		yerel.kaydet()
+		return this
+	}
+	getKey(e, raporKodDahil) {
+		let hv = this.alternateKeyHostVars(e)
+		if (empty(hv))
+			return null
+
+		delete hv.xuserkod
+		if (!raporKodDahil)
+			delete hv.raportip
+		
+		return values(hv)
+			.map(String)
+			.join(delimWS)
+	}
 	importIcinVarmi(e = {}) {
 		let { keyHV: hv } = e
 		hv ??= this.keyHostVars(hv)
@@ -406,12 +469,14 @@ class DMQRapor extends DMQSayacliKA {
 		return super.importIcinVarmi(e)
 	}
 	kayitSayisi(e = {}) {
-		let { aciklama, sayacSaha } = this
+		let { raporKod, aciklama, sayacSaha } = this
 		let { keyHV: hv } = e
 		if (aciklama) {
 			hv ??= this.keyHostVars(e)
-			hv.aciklama = aciklama
 			delete hv[sayacSaha]
+			if (raporKod)
+				hv.raportip = raporKod
+			hv.aciklama = aciklama
 			e.keyHV = hv
 		}
 		return super.kayitSayisi(e)

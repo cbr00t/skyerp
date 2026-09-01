@@ -152,14 +152,15 @@ class GridPart extends Part {
 			showGroupsHeader: false, groupIndentWidth: 25, groupsHeaderHeight: 33, groupsExpandedByDefault: false,
 			// showStatusBar: false, showAggregates: false, showGroupAggregates: false,
 			enableBrowserSelection: false, selectionMode: 'multiplecellsextended',
-			pageable: false, pagermode: 'advanced', adaptive: undefined, virtualMode: false, updatedelay: 0,
+			pageable: false, pagermode: 'advanced',
+			adaptive: undefined, virtualMode: false,
 			// enableToolTips: true,
-			scrollbarsize: 13, scrollMode: 'logical',		/* default | logical | deferred */
-			renderGridRows: ({ data = {} }) => {
-				let recs = data?.records ?? data
-				return recs
-				/* return recs.slice(e.startindex, e.startindex + e.endindex) */
-			},
+			scrollbarsize: 13,
+			updatedelay: 1,
+			scrollMode: 'default',		// default | logical | deferred
+			renderGridRows: ({ data = {} }) =>
+				data?.records ?? data,
+				// return recs.slice(e.startindex, e.startindex + e.endindex)
 			groupColumnRenderer: text =>
 				`<div style="padding: 5px 10px; float: left;">${text}</div>`,
 			groupsRenderer: (text, group, expanded, groupInfo) =>
@@ -232,11 +233,12 @@ class GridPart extends Part {
 			args.adaptive = !(notAdaptiveFlag || args.editable || mini)
 		let firstCol = args.columns?.[0], secondCol = args.columns?.[1]
 		if (firstCol && args.scrollMode == 'deferred' && empty(args.deferredDataFields)) {
-			/* args.scrollMode = 'deferred'; */ let deferredDataFields = args.deferredDataFields = [firstCol.dataField || firstCol.datafield]
+			//args.scrollMode = 'deferred'
+			let deferredDataFields = args.deferredDataFields = [firstCol.dataField || firstCol.datafield]
 			if (secondCol)
 				deferredDataFields.push(secondCol.dataField ?? secondCol.datafield)
 		}
-		{
+		;{
 			if (firstCol && !micro)
 				firstCol.pinned = true
 			if (!this.rowNumberOlmasinFlag && secondCol)
@@ -898,7 +900,8 @@ class GridPart extends Part {
 	showColumn(belirtec) { let {gridWidget} = this; gridWidget.showcolumn(belirtec); return this }
 	hideColumn(belirtec) { let {gridWidget} = this; gridWidget.hidecolumn(belirtec); return this }
 	focus(e) { this.gridWidget.focus(); return this }
-	sabit() { this.sabitFlag = true; return this } sabitDegil() { this.sabitFlag = false; return this }
+	sabit() { this.sabitFlag = true; return this }
+	sabitDegil() { this.sabitFlag = false; return this }
 	rowNumberOlsun() { this.rowNumberOlmasinFlag = false; return this } rowNumberOlmasin() { this.rowNumberOlmasinFlag = true; return this }
 	adaptive() { return this.notAdaptiveFlag = false; return this } notAdaptive() { return this.notAdaptiveFlag = true; return this }
 	animate() { this.noAnimateFlag = false; return this } noAnimate() { this.noAnimateFlag = true; return this }
@@ -940,12 +943,17 @@ class GridPart extends Part {
 		}
 	}
 	gridRendered(e) {
-		let {gridRenderedBlock} = this; if (gridRenderedBlock) { getFuncValue.call(this, gridRenderedBlock, e) }
-		let kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridRendered) { kontrolcu.gridRendered(e) }
+		let { gridRenderedBlock } = this
+		if (gridRenderedBlock)
+			getFuncValue.call(this, gridRenderedBlock, e)
+		
+		let kontrolcu = this.getKontrolcu(e)
+		kontrolcu?.gridRendered?.(e)
 		// this.gridWidget.table.jqxSortable({ theme: theme, items: `> div` })
 	}
-	gridContextMenuIstendi(e) {
-		e = e || {}; let evt = e.event, {gridContextMenuIstendiBlock} = this;
+	gridContextMenuIstendi(e = {}) {
+		let { event: evt } = e
+		let { gridContextMenuIstendiBlock } = this
 		if (gridContextMenuIstendiBlock) { let result = getFuncValue.call(this, gridContextMenuIstendiBlock, e); if (result === false) { return } }
 		let kontrolcu = this.getKontrolcu(e); if (kontrolcu?.gridContextMenuIstendi) { let result = kontrolcu.gridContextMenuIstendi(e); if (result === false) { return } }
 		this.gridContextMenuIstendi_defaultAction(e)

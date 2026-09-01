@@ -54,7 +54,16 @@
 }
 .jqx-grid .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header > * > *:first-child > * {
 }
-.jqx-grid.jqx-grid-metro .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header { font-size: 150% }
+.jqx-grid.jqx-grid-metro .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header {
+	font-size: 150%
+}
+.jqx-grid .jqx-grid-column-header > div {
+	--width: 5px;
+	max-width: calc(var(--full) - var(--width) + 1px) !important;
+	box-shadow: 1px 0 5px 1px blue;
+	box-sizing: border-box;
+	/*border-right: var(--width) solid blue !important*/
+}
 .jqx-grid div[role=row] .jqx-grid-cell-selected { color: unset; background: #0d366333; border: none }
 .gridKolonVeGrupOrtak.list-item { line-height: 150% }
 .gridKolonVeGrupOrtak.list-item .kod { font-weight: bold; width: 23% }

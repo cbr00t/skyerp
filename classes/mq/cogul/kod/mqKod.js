@@ -265,8 +265,11 @@ class MQKA extends MQKod {
 					from: tableAndAlias, where: [`${aliasVeNokta}${kodSaha} <> ${MQSQLOrtak.sqlDegeri(emptyKodValue)}`],
 					sahalar: [`${aliasVeNokta}${kodSaha} ${kodAttr}`, `${aliasVeNokta}${adiSaha} ${adiAttr}` ]
 				})
+				
 				if (kod)
 					sent.where.degerAta(kod, `${aliasVeNokta}${kodSaha}`)
+
+				value = value?.trimEnd() ?? value
 				if (value) {
 					let tokens = value ? value.split(' ') : null
 					if (!empty(tokens)) {

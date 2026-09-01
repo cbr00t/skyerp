@@ -170,7 +170,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			colDef.userData = { toplammi: true }
 			{
 				let {text} = colDef
-				text = colDef.text = `<div class="forestgreen" style="border: 1px solid forestgreen; padding: 10px">Top.${text}</div>`
+				text = colDef.text = `<div class="forestgreen" style="width: calc(var(--full) - 30px); height: 25px; border: 1px solid forestgreen; padding: 2px 10px">Top.${text}</div>`
 			}
 			colDefs.push(colDef)
 			if (yatayAnalizVarmi) {

@@ -4,11 +4,14 @@ class MQYerelParam extends MQYerelParamTicari {
 	constructor(e) { e = e || {}; super(e); for (let key of ['tip2SonRaporTanim']) { this[key] = this[key] || {} } }
 	paramSetValues(e) { super.paramSetValues(e); for (let key of ['tip2SonRaporTanim']) { this[key] = this[key] || {} } }*/
 }
+
 class MQParam_DRapor extends MQParam {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get sinifAdi() { return 'Rapor Parametreleri' } static get paramKod() { return 'DRAPOR' }
+	static get sinifAdi() { return 'Rapor Parametreleri' }
+	static get paramKod() { return 'DRAPOR' }
 	get ekDBListe() { return this.konsolideCikti ? this._ekDBListe : null }
 	set ekDBListe(value) { this._ekDBListe = value }
+	
 	static paramYapiDuzenle({ paramci }) {
 		let e = arguments[0]; super.paramYapiDuzenle(e)
 		paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 10px !important }`)

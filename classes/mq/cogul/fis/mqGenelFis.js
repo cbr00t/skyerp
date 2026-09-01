@@ -58,41 +58,83 @@ class MQGenelFis extends MQOrtakFis {
 		}
 	}
 	static rootFormBuilderDuzenle_numarator(e) {
-		let { tsnKullanilirmi } = this
-		let { tsnForm } = e.builders
+		let { tsnKullanilirmi, numYapi } = this
+		let { root: rfb, tsnForm } = e.builders
 		tsnForm.yanYana()
 		if (!tsnKullanilirmi)
 			return
 		
-		tsnForm.addForm('numarator')
-			.setLayout(({ builder: fbd }) => {
-				let { parentParent, inst: fis } = fbd
-				let { fisGirisLayoutSelector: selector } = fis.numarator?.class ?? {}
-				let layout = selector ? parentParent.find(selector) : null;
-				return layout?.length ? layout : fbd.parent
-			})
-			.onInit(({ builder: fbd }) => {
-				let { rootPart, inst: fis, layout, parent } = fbd
-				let { numarator } = fis
-				if (!numarator)
-					return
-				
-				let { islem } = rootPart
-				let part = numarator.class.partLayoutDuzenle({ ...e, islem, fis, layout })
-				fbd.part = rootPart.numaratorPart = part
-				if (fis.class.numaratorGosterilirmi) {
-					$(`<label class="_etiket" style="color: #ccc; min-width: 150px; width: 100%; height: 15px;">Seri-No</label>`).prependTo(layout);
-					layout.removeClass('jqx-hidden basic-hidden'); parent.removeClass('jqx-hidden basic-hidden');
-					let { txtNoYil } = part
-					if (txtNoYil?.length) {
-						if (fis.class.satismi == fis.class.iademi) { txtNoYil.removeAttr('readonly') }
-						else { txtNoYil.attr('readonly', ''); txtNoYil.addClass('readOnly') }
+		rfb.onAfterRun(({ builder: rfb }) => {
+			let { inst: fis } = rfb
+			if (fis.eBilgi) {
+				let { layout } = tsnForm
+				delay(100).then(() => {
+					layout.find('input').attr('readonly', '')
+					layout.find('.jqx-button').jqxButton('disabled', true)
+					layout.find('.hasDatepicker').attr('disabled', '')
+				})
+			}
+		})
+
+		if (numYapi?.tip || numYapi?.kod) {
+			tsnForm.addForm('numarator')
+				.setLayout(({ builder: fbd }) => {
+					let { parentParent, inst: fis } = fbd
+					let { fisGirisLayoutSelector: selector } = fis.numarator?.class ?? {}
+					let layout = selector ? parentParent.find(selector) : null;
+					return layout?.length ? layout : fbd.parent
+				})
+				.onInit(({ builder: fbd }) => {
+					let { rootPart, inst: fis, layout, parent } = fbd
+					let { numarator, class: { numaratorGosterilirmi } } = fis
+					if (!numarator)
+						return
+					
+					let { islem } = rootPart
+					let part = numarator.class.partLayoutDuzenle({ ...e, islem, fis, layout })
+					fbd.part = rootPart.numaratorPart = part
+					if (numaratorGosterilirmi) {
+						$(`<label class="_etiket" style="color: #ccc; min-width: 150px; width: 100%; height: 15px;">Seri-No</label>`).prependTo(layout)
+						layout.removeClass('jqx-hidden basic-hidden')
+						parent.removeClass('jqx-hidden basic-hidden')
+						let { txtNoYil } = part
+						if (txtNoYil?.length) {
+							if (fis.class.satismi == fis.class.iademi)
+								txtNoYil.removeAttr('readonly')
+							else {
+								txtNoYil.attr('readonly', '')
+								txtNoYil.addClass('readOnly')
+							}
+						}
 					}
-				}
-				//let { txtFisNo } = part
-				t//xtFisNo.on('change', evt )
+					//let { txtFisNo } = part
+					//xtFisNo.on('change', evt )
+				})
+				.addStyle_wh({ width: '450px !important' })
+		}
+		else {
+			/*let { noYilKullanilirmi } = this
+			this.seri ||= numYapi?.seri || ''
+			if (noYilKullanilirmi)
+				this.noYil ||= numYapi?.noYil || ( app.params.zorunlu?.cariYil || today().yil )
+			this.fisNo ||= numYapi?.sonNo || this.fisNo*/
+			
+			tsnForm.onInit(({ builder: fbd }) => {
+				let { rootPart, inst: fis, layout, parent } = fbd
+				let { class: { numaratorGosterilirmi } } = fis
+				layout.removeClass('jqx-hidden basic-hidden')
 			})
-			.addStyle_wh({ width: '450px !important' })
+			tsnForm.addTextInput('seri', 'Seri')
+				.addStyle_wh(60)
+				.setMaxLength(3)
+			tsnForm.addNumberInput('noYil', 'No Yıl')
+				.setMin(0).setMax(today().yil + 5)
+				.addStyle_wh(70)
+			tsnForm.addNumberInput('fisNo', 'Belge No')
+				.setMin(0).setMax(1_000_000_000)
+				.addStyle_wh(180)
+				.addStyle(`$elementCSS { margin-right: 20px !important }`)
+		}
 	}
 	static standartGorunumListesiDuzenle({ liste }) {
 		liste.push(this.subeKodSaha, this.tarihSaha, this.seriSaha);
@@ -170,9 +212,20 @@ class MQGenelFis extends MQOrtakFis {
 		if (noYilKullanilirmi)
 			this.noYil = rec.noyil
 	}
-	uiDuzenle_fisGiris(e) {
-		super.uiDuzenle_fisGiris(e);
-		if (this.class.ozelIsaretDesteklenirmi) { this.ozelIsaretDegisti(e) }
+	uiDuzenle_fisGiris({ islem } = {}) {
+		super.uiDuzenle_fisGiris(...arguments)
+		let { class: { ozelIsaretDesteklenirmi, noYilKullanilirmi } } = this
+		
+		if (ozelIsaretDesteklenirmi)
+			this.ozelIsaretDegisti(...arguments)
+
+		if (islem == 'yeni' || islem == 'kopya') {
+			let { numarator: num } = this
+			this.seri ||= num?.seri || ''
+			if (noYilKullanilirmi && !this.noYil)
+				this.noYil = num?.noYil || ( app.params.zorunlu?.cariYil || today().yil )
+			this.fisNo ||= num?.sonNo || this.fisNo
+		}
 	}
 	numaratorDegisti({ sender, parentPart }) {
 	}

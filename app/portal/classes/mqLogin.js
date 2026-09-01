@@ -311,7 +311,6 @@ class MQLogin_Musteri extends MQLogin {
 		super.loadServerData_queryDuzenle(...arguments)
 		let { tableAlias: alias } = this
 		//basit ||= tekilOku
-		
 		sent
 			.innerJoin(alias, `${MQLogin_Bayi.table} bay`, `${alias}.bayikod = bay.kod`)
 			.innerJoin('bay', `${MQVPAnaBayi.table} abay`, 'bay.anabayikod = abay.kod')

@@ -166,7 +166,7 @@ class EIslemOrtak extends CObject {
 				let { pstip: psTip, fissayac: sayac } = rec
 				_e.detaylar = sev.detaylar
 				
-				let sayac2EFis = _e.sayac2EFis = ps2Sayac2EFis[psTip] ?? values(ps2Sayac2EFis)[0]
+				let sayac2EFis = _e.sayac2EFis = ps2Sayac2EFis[psTip] ??= values(ps2Sayac2EFis)?.[0] ?? {}
 				let eFis = sayac2EFis[sayac]
 				if (!eFis)
 					eFis = values(sayac2EFis)[0]
@@ -178,7 +178,7 @@ class EIslemOrtak extends CObject {
 		}
 		await this.tipIcinFislerEkDuzenlemeYapDevam(e)
 		if (promises?.length)
-			await Promise.all(promises)
+			await promiseAll(promises)
 	}
 	static tipIcinFislerEkDuzenlemeYapDevam({ yukleIslemi, promises }) {
 		promises.push(

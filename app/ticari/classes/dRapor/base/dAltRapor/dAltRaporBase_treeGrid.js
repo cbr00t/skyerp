@@ -10,7 +10,8 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		return isMiniDevice() ?  '55%' : '70%'
 	}
 	get height() { return 'var(--full)' }
-	get tazeleHideProgress_waitMS() { return 50 } get tazeleHideProgress_minCount() { return 1 }
+	get tazeleHideProgress_waitMS() { return 100 }
+	get tazeleHideProgress_minCount() { return 1 }
 	get sabitRaporTanim() {
 		let {_sabitRaporTanim: result} = this
 		if (result == null) {
@@ -23,8 +24,9 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	}
 
 	constructor(e = {}) {
-		super(e); let {gridVeriYuklendi_ek} = e
-		$.extend(this, { gridVeriYuklendi_ek })
+		super(e)
+		let { gridVeriYuklendi_ek } = e
+		extend(this, { gridVeriYuklendi_ek })
 	}
 	/*subFormBuilderDuzenle(e) { super.subFormBuilderDuzenle(e); let {rfb} = e; rfb.addCSS('no-overflow') }*/
 	onBuildEk(e) {
@@ -36,29 +38,51 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		this.fbd_grid = parentBuilder.addForm('grid')
 			.setLayout(({ builder: { id }}) => $(`<div class="${id} part"/>`))
 			.onAfterRun(async e => {
-				let {builder: fbd_grid, builder: { rootPart, layout }} = e
+				let { builder: fbd_grid, builder: { rootPart, layout } } = e
 				rootPart?.kapaninca?.(() =>
 					this._notify?.close?.())
-				let gridPart = this.gridPart = fbd_grid.part = {}, grid = gridPart.grid = layout
-				$.extend(gridPart, {
+				let gridPart = this.gridPart = fbd_grid.part = {}
+				let grid = gridPart.grid = layout
+				extend(gridPart, {
 					tazele: e => { delete this._promise_wait; this.tazele(e) },
 					hizliBulIslemi: e => { delete this._promise_wait; this.hizliBulIslemi(e) }
 				})
+				
 				await this.onGridInit(e)
-				let _e = { ...e, liste: [] }; this.tabloKolonlariDuzenle(_e); this.tabloKolonlariDuzenle_ozel?.(_e)
-				let colDefs = this.tabloKolonlari = _e.liste || [], columns = noAutoColumns ? [] : colDefs.flatMap(colDef => colDef.jqxColumns), source = []
-				let localization = localizationObj, width = '99.7%', height = `calc(var(--full) - ${isPanelItem ? 0 : 10}px)`
+				
+				let _e = { ...e, liste: [] }
+				this.tabloKolonlariDuzenle(_e)
+				this.tabloKolonlariDuzenle_ozel?.(_e)
+				
+				let colDefs = this.tabloKolonlari = _e.liste ?? []
+				let columns = noAutoColumns ? [] : colDefs.flatMap(colDef => colDef.jqxColumns)
+				let source = []
+				let localization = localizationObj
+				let width = '99.7%', height = `calc(var(--full) - ${isPanelItem ? 0 : -15}px)`
 				let autoRowHeight = true, autoShowLoadElement = true, altRows = true
+				let sortable = true, filterable = false
+				let selectionMode = 'multiplecellsextended'
 				let filterMode = 'advanced'		/* default | simple | advanced */
 				let showAggregates = true, showSubAggregates = false
-				let columnsResize = true, columnsReorder = false, sortable = true, filterable = false
-				let columnsHeight = isPanelItem ? 38 : 45, aggregatesHeight = isPanelItem ? 18 : 30
+				let columnsResize = true, columnsReorder = false
+				let columnsHeight = isPanelItem ? 38 : 45
+				let aggregatesHeight = 30
+				// let aggregatesHeight = isPanelItem ? 25 : 30
+				
 				let args = {
-					theme, localization, width, height, autoRowHeight, autoShowLoadElement, altRows, filterMode, showAggregates, showSubAggregates,
-					columnsHeight, aggregatesHeight, columnsResize, columnsReorder, sortable, filterable, columns, source
+					theme, localization, width, height, autoRowHeight,
+					autoShowLoadElement, altRows, showAggregates, showSubAggregates,
+					filterMode, selectionMode,
+					columnsHeight, aggregatesHeight, columnsResize,
+					columnsReorder, sortable, filterable, columns, source
 				}
-				_e = { ...e, args }; this.gridArgsDuzenle(_e); this.gridArgsDuzenle_ozel?.(_e)
-				args = _e.args; grid.jqxTreeGrid(args); gridPart.gridWidget = grid.jqxTreeGrid('getInstance')
+				_e = { ...e, args }
+				this.gridArgsDuzenle(_e)
+				this.gridArgsDuzenle_ozel?.(_e)
+				
+				args = _e.args; grid.jqxTreeGrid(args)
+				gridPart.gridWidget = grid.jqxTreeGrid('getInstance')
+				
 				grid.on('rowExpand', event => this.gridRowExpanded({ ...e, event }))
 				grid.on('rowCollapse', event => this.gridRowCollapsed({ ...e, event }))
 				grid.on('rowSelect', event => {
@@ -72,26 +96,38 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		if (this.class.mainmi) { fbd.addCSS('_main') }
 	}
 	tabloKolonlariDuzenle(e) { }
-	sabitRaporTanimDuzenle(e) { } sabitRaporTanimDuzenle_son(e) { }
+	sabitRaporTanimDuzenle(e) { }
+	sabitRaporTanimDuzenle_son(e) { }
 	gridArgsDuzenle({ args }) {
-		 $.extend(args, {
+		 extend(args, {
 			showSubAggregates: false, /*showStatusBar: true, showGroupAggregates: true, compact: true*/
 			exportSettings: {
-				columnsHeader: true, hiddenColumns: false, collapsedRecords: true, recordsInView: true, fileName: null,
-				characterSet: 'utf-8', serverURL: app.getWSUrl({ api: 'echo', args: { stream: true, type: 'application/octet-stream' } })
+				columnsHeader: true,
+				hiddenColumns: false,
+				/*statusBarHeight: 40,*/
+				collapsedRecords: true,
+				recordsInView: true,
+				fileName: null,
+				characterSet: 'utf-8',
+				serverURL: app.getWSUrl({ api: 'echo', args: { stream: true, type: 'application/octet-stream' } })
 			}
 		})
 	}
 	async onGridInit(e) {
-		let {sabitmi} = this, {raporTanimSinif} = this.class
+		let { rapor, sabitmi, gridPart, class: { raporTanimSinif } } = this
+		let { grid } = gridPart
 		let _e = { ...e, rapor: this }
-		this.rapor?.signal('beforeInit', _e)
+		rapor?.signal('beforeInit', _e)
 		let raporTanim = this.raporTanim = sabitmi
 			? this.sabitRaporTanim
-			: await this.rapor?.signal('raporTanim', _e) ?? await raporTanimSinif?.getDefault?.(_e)
+			: await rapor?.signal('raporTanim', _e) ?? await raporTanimSinif?.getDefault?.(_e)
 		if (raporTanim)
 			raporTanim.rapor = this
-		await this.rapor?.signal('init', _e)
+		
+		await rapor?.signal('init', _e)
+		//debugger
+		grid.on('columnResized', evt =>
+			this.gridColumnResized({ ...e, event: evt }))
 	}
 	async onGridRun(e) {
 		let { rapor, raporTanim, isPanelItem, class: { otoTazeleYapilirmi } } = this
@@ -150,6 +186,67 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		let {gridPart} = this, {gridWidget, expandedRowsSet} = gridPart, {args} = e.event, {level, uid} = args.row || {};
 		if (uid != null) { gridWidget[expandedRowsSet[`${level}-${uid}`] ? 'collapseRow' : 'expandRow'](uid) }
 	}
+	gridColumnResized(e) {
+		this.gridColWidthSakla(e)
+	}
+	gridColWidthSakla(e = {}) {
+		let { event: { args } } = e
+		let { owner: w, dataField: targetKey } = args
+		// args: { dataField, oldWidth, newWidth }
+
+		let { raporTanim: tan, gridPart } = this
+		w ??= gridPart.gridWidget
+		let bw = w?.base ?? w
+		
+		let g = tan?.getTanimGlobals()
+		if (!g)
+			return
+
+		let res = g.colInfos ??= {}
+		let { columns: { records: jqxCols } } = bw
+		function getKey(c) { return c.dataField ?? c.datafield }
+		if (targetKey)
+			jqxCols = jqxCols.filter(c => getKey(c) == targetKey)
+		
+		let changed = false
+		for (let c of jqxCols) {
+			let k = getKey(c)
+			let { width } = c
+			let ci = res[k] ??= {}
+			if (ci.width != width) {
+				ci.width = width
+				changed = true
+			}
+		}
+
+		if (changed)
+			tan.saveGlobals()
+	}
+	gridColWidthDuzenle( { defs } = {} ) {
+		let { raporTanim: tan, gridPart: { gridWidget: w } = {} } = this
+		let g = tan?.getTanimGlobals()
+		if (!g)
+			return
+
+		defs ??= w?.base?.columns?.records
+		if (empty(defs))
+			return
+		
+		let { colInfos } = g
+		if (!colInfos)
+			return
+		
+		for (let c of defs) {
+			let { dataField: k = c.datafield } = c
+			if (!k)
+				continue
+
+			let { width } = colInfos[k] ?? {}
+			if (width)
+				c.width = width
+		}
+		
+	}
 	async tazele(e = {}) {
 		if (await this._promise_wait == true)
 			return
@@ -207,7 +304,16 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		this.tazele(e)
 	}
 	gridVeriYuklendi(e) {
-		let {gridPart} = this, {grid, gridWidget} = gridPart, {boundRecs, recs} = e; gridPart.expandedRowsSet = {}
+		let { gridPart } = this
+		let { grid, gridWidget } = gridPart
+		let { boundRecs, recs } = e
+		gridPart.expandedRowsSet = {}
+		deferExec(
+			'dRapor-treeGrid-veriYuklendi',
+			() =>
+				$(document).trigger('resize'),
+			1_000
+		)
 		this.gridVeriYuklendi_ek?.(e)
 		/* if (boundRecs?.length) { gridWidget.expandRow(0) } */
 	}
@@ -779,7 +885,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 					globalThis.progressManager?.setProgressValue(0)
 				}, 1000)
 			}
-			await this.tazeleOncesi(e); globalThis.progressManager?.progressStep(1)
+			await this.tazeleOncesi(e)
+			globalThis.progressManager?.progressStep(1)
 			let {gridPart, raporTanim = {}} = this
 			let {degistimi, kullanim} = raporTanim, {yatayAnaliz} = kullanim ?? {}
 			let {grid, gridWidget, gridWidget: { base }} = gridPart
@@ -926,7 +1033,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			}
 			globalThis.progressManager?.progressStep(1)
 			try {
-				let jqxCols = colDefs.flatMap(colDef => colDef.jqxColumns)
+				let jqxCols = colDefs.flatMap(cd => cd.jqxColumns)
+				await this.gridColWidthDuzenle({ ...e, defs: jqxCols })
 				grid.jqxTreeGrid('columns', jqxCols)
 			}
 			catch (ex) { cerr(ex) }
@@ -1157,7 +1265,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			}
 			let sayac = null, {encUser} = config.session
 			raporTanim = raporTanim.deepCopy()
-			$.extend(raporTanim, { sayac, encUser })
+			extend(raporTanim, { sayac, encUser })
 			let degistirmi = await raporTanim.varmi()
 			let islem = degistirmi ? 'degistir' : 'kopya'
 			let _e = { islem }
@@ -1168,13 +1276,9 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				wnd_raporTanim.jqxWindow('expand')
 				if (!rdlg)
 					return
-				await raporTanim.kaydet(_e)
-				this.raporTanim = raporTanim
 			}
-			else {
-				await raporTanim.kaydet(_e)
-				this.raporTanim = raporTanim
-			}
+			await raporTanim.kaydet(_e)
+			this.raporTanim = raporTanim
 			if (raporTanim.favorimi != raporTanim._favorimi)
 				app.anaMenuOlustur()
 			this.restartWndRaporTanim(e)

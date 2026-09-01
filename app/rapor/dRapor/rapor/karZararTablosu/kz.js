@@ -8,6 +8,7 @@ class DRapor_KarZararTablosu extends DRaporMQ {
 	static get uygunmu() { return true }
 	static get secimSinif() { return DonemselSecimler }
 	static get sadeceTanimmi() { return true }
+	static get ozelmi() { return true }    // Panel Raporda kullanılmaz
 	static get kolonFiltreKullanilirmi() { return false }
 	static get bulFormKullanilirmi() { return true }
 	static get otoTazele_minDk() { return config.dev ? .05 : .1 }

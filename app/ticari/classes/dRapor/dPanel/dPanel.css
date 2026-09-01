@@ -45,8 +45,9 @@ body.dark-theme .dPanel.part > .islemTuslari #genelSecimler.jqx-fill-state-norma
 	height: calc(var(--full) - var(--label-height) - 1px) !important
 }
 .dPanel.part #items .item .formBuilder-element:has(#fullScreen) {
-	min-width: unset !important; width: 70px !important; height: 35px !important;
-	top: 1px !important; right: 80px !important; filter: brightness(0) !important
+	min-width: unset !important;
+	width: 70px !important; height: 35px !important;
+	top: 1px !important; right: 80px !important
 }
 .dPanel.part .items > .item:has(.hasFocus) { border: 3px solid forestgreen !important }
 .dPanel.part .items ._loading { opacity: .01 !important; width: 5000px !important; height: 5000px !important }
@@ -79,13 +80,17 @@ body.dark-theme .dPanel.part #items .item.hasFocus .formBuilder-element:has(#ful
 	background-color: red !important; right: 13px !important
 }
 .dPanel.part #items .item .formBuilder-element:has(#close) {
-	min-width: unset !important; width: 45px !important; height: 30px !important; padding: 10px !important;
-	border-radius: 80px !important; z-index: 1000 !important
+	min-width: unset !important; width: 45px !important; height: 30px !important;
+	padding: 10px !important; border-radius: 80px !important; z-index: 1000 !important
 }
-.dPanel.part #items .item .formBuilder-element #close { width: 250% !important; height: 250% !important; background-color: transparent !important }
+.dPanel.part #items .item .formBuilder-element #close {
+	width: 250% !important; height: 250% !important
+	/*background-color: transparent !important*/
+}
 .dPanel.part .items .item > .item-sortable button#close,
-		.dPanel.part #items .item .formBuilder-element:has(#close) {
-	position: absolute !important; top: 2px !important; right: 13px; padding: 13px;
+.dPanel.part #items .item .formBuilder-element:has(#close) {
+	position: absolute !important; top: 2px !important;
+	right: 13px; padding: 13px;
 	background-size: 10px !important; opacity: .8 !important;
 	background-image: url(../../../../../images/close.png) !important
 }
@@ -96,13 +101,16 @@ body.dark-theme .dPanel.part #items .item.hasFocus .formBuilder-element:has(#ful
 body.dark-theme .dPanel.part .items .item-sortable > button#close { filter: invert(1) hue-rotate(180deg) !important }
 
 .dPanel.part .items .item > .item-sortable button#fullScreen {
-	position: absolute !important; top: 1px !important; right: 70px; padding: 13px;
+	position: absolute !important; top: 1px !important;
+	right: 70px; padding: 13px;
 	width: 20px !important; height: 3px !important;
-	background-color: white !important; background-size: 20px !important; opacity: .8 !important;
+	opacity: .8 !important;
+	background-color: white !important;
+	background-size: 20px !important;
 	background-image: url(../../../../../images/tamEkranAc.png) !important
 }
 .dPanel.part .items .item.hasFocus > .item-sortable button#fullScreen { background-color: transparent !important }
-.dPanel.part .items .item > .item-sortable button#fullScreen:hover {  opacity: 1 !important; box-shadow: 0 0 3px 2px lightgreen !important }
+.dPanel.part .items .item > .item-sortable button#fullScreen:hover { opacity: 1 !important; box-shadow: 0 0 3px 2px lightgreen !important }
 .dPanel.part .items .item > .item-sortable button#fullScreen:active { opacity: 1 !important; box-shadow: 0 0 3px 2px forestgreen !important }
 body.dark-theme .dPanel.part .items .chart.part *,
 	body.dark-theme .dPanel.part .items .item iframe { filter: invert(1) hue-rotate(180deg) !important }

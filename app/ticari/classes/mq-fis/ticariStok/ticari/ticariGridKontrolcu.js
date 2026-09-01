@@ -1,12 +1,19 @@
 class TicariGridKontrolcu extends TSGridKontrolcu {
     static { window[this.name] = this; this._key2Class[this.name] = this }
+	gridArgsDuzenle({ sender: gridPart, args }) {
+		super.gridArgsDuzenle(...arguments)
+		let { inst = gridPart?.fis } = gridPart ?? {}
+		if (inst.eBilgi || inst._sabitGiris)
+			gridPart?.sabit()
+	}
 	tabloKolonlariDuzenle(e) {
 		let { tabloKolonlari } = e
 		tabloKolonlari.push(
 			new GridKolon({ belirtec: 'tip', text: ' ', genislikCh: 13 }).noSql()
 				.tipButton(({ rec: { _tipText: v }  }) =>
 					v || 'Stok')
-				.alignCenter().sabitle()
+				.alignCenter()
+				.sabitle()
 				.onClick((e = {}) => {
 					e = e.args ?? e
 					let { originalEvent: { target = {} } = {} } = e
@@ -48,35 +55,53 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 		let { fis } = this
 		let shColDef = tabloKolonlari.find(colDef => colDef.belirtec == 'sh')
 		let { kaKolonu } = shColDef
+		
 		let savedEditorHandlers = {}
 		for (let selector of ['createEditor', 'initEditor', 'getEditorValue'])
 			savedEditorHandlers[selector] = kaKolonu[selector]
+		
 		extend(kaKolonu, {
 			satirEklendi: e => { }, satirSilinecek: e => { }, satirSilindi: e => { },
 			createEditor: (colDef, rowIndex, value, parent, cellText, cellWidth, cellHeight) => {
-				let {gridWidget} = colDef.gridPart, detaySinif = gridWidget.getrowdata(rowIndex)?.class;
+				let { gridWidget } = colDef.gridPart
+				let detaySinif = gridWidget.getrowdata(rowIndex)?.class
 				if (detaySinif?.aciklamami) {
-					let editor = $(`<input type="textbox" class="editor full-wh"></input>`); editor.jqxInput({ theme }); editor.appendTo(parent);
-					setTimeout(() => editor.focus(), 10); return
+					let editor = $(`<input type="textbox" class="editor full-wh"></input>`)
+					editor.jqxInput({ theme })
+					editor.appendTo(parent)
+					setTimeout(() => editor.focus(), 10)
+					return
 				}
-				let handler = savedEditorHandlers.createEditor;
-				if (handler) { getFuncValue.call(this, handler, colDef, rowIndex, value, parent, cellText, cellWidth, cellHeight) }
+				
+				let { createEditor: handler } = savedEditorHandlers
+				if (handler)
+					getFuncValue.call(this, handler, colDef, rowIndex, value, parent, cellText, cellWidth, cellHeight)
 			},
 			initEditor: (colDef, rowIndex, value, parent, cellText, pressedChar) => {
 				let {gridWidget} = colDef.gridPart, detaySinif = gridWidget.getrowdata(rowIndex)?.class;
-				if (detaySinif?.aciklamami) { let editor = parent.children('.editor'); editor.val(value); setTimeout(() => editor.focus(), 10); return }
-				let handler = savedEditorHandlers.initEditor;
-				if (handler) { getFuncValue.call(this, handler, colDef, rowIndex, value, parent, cellText, pressedChar) }
+				if (detaySinif?.aciklamami) {
+					let editor = parent.children('.editor')
+					editor.val(value); setTimeout(() => editor.focus(), 10)
+					return
+				}
+				let { initEditor: handler } = savedEditorHandlers
+				if (handler)
+					getFuncValue.call(this, handler, colDef, rowIndex, value, parent, cellText, pressedChar)
 			},
 			getEditorValue: (colDef, rowIndex, value, parent) => {
 				let { gridWidget } = colDef.gridPart
 				let detaySinif = gridWidget?.getrowdata(rowIndex)?.class
-				if (detaySinif?.aciklamami) { return parent.children('.editor').val() }
-				let result = value, handler = savedEditorHandlers.getEditorValue;
-				if (handler) { result = getFuncValue.call(this, handler, colDef, rowIndex, value, parent) }
+				if (detaySinif?.aciklamami)
+					return parent.children('.editor').val()
+				
+				let result = value
+				let { getEditorValue: handler } = savedEditorHandlers
+				if (handler)
+					result = getFuncValue.call(this, handler, colDef, rowIndex, value, parent)
 				return result
 			}
-		});
+		})
+		
 		/*shColDef.kaKolonu.rendererEk = (colDef, text, align, width, html, gridPart, renderBlock) => renderBlock.call(this, gridPart.belirtec2Kolon.sh.mfSinif.sinifAdi);*/
 		shColDef.tabloKolonlari.push(
 			new GridKolon({
@@ -290,7 +315,7 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 					}))
 				}
 	
-				let _e = { ...e, detay: det, args: { rowindex: ri } }
+				let _e = { ...e, detay: det, args: { rowindex: ri }, vergiIcinDuzenle: true }
 				delete _e.rec
 				this.satirBedelHesapla(_e)
 			}
@@ -329,12 +354,13 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 		if (!det)
 			det = uid == null ? w.getrowdata(rowIndex) : w.getrowdatabyid(uid)
 		
-		let degerler = { eski: det.dipHesabaEsasDegerler }
+		//let degerler = { eski: det.dipHesabaEsasDegerler }
 		super.satirBedelHesapla(e)
-		degerler.yeni = det.dipHesabaEsasDegerler
+		//degerler.yeni = det.dipHesabaEsasDegerler
 
 		let { dipIslemci } = fis
-		dipIslemci?.satirDegisimIcinHesapla?.({ detay: det, degerler })
+		dipIslemci?.topluHesapla(e)
+		//dipIslemci?.satirDegisimIcinHesapla?.({ detay: det, degerler })
 	}
 }
 

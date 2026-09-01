@@ -83,7 +83,7 @@ button, .jqx-button {
 	/* box-shadow: 0 0 2px 0 #ececec;*/
 	outline: none !important;
 	background-repeat: no-repeat !important;
-	background-size: 22px 22px !important
+	background-size: 22px
 }
 
 button, button:active, .jqx-button.jqx-fill-state-normal, .jqx-button.jqx-fill-state-hover, .jqx-button.jqx-fill-state-pressed {
@@ -124,7 +124,7 @@ button#sec, button#tamam {
 
 #logout {
 	background-image: url(../../images/logout.png);
-	background-size: cover !important
+	background-size: cover
 }
 
 #logout.jqx-fill-state-normal {
@@ -159,7 +159,7 @@ body.dark-theme #fullScreen {
 
 #sec, #tamam {
 	background-image: url(../../images/tamam.png) !important;
-	background-size: 32px !important
+	background-size: 32px
 }
 
 #sec.jqx-fill-state-normal, #tamam.jqx-fill-state-normal, #tazele.jqx-fill-state-normal {
@@ -175,12 +175,12 @@ body.dark-theme #fullScreen {
 
 button#kaydet {
 	background-image: url(../../images/kaydet.png) !important;
-	background-size: 32px !important
+	background-size: 32px
 }
 
 button#yukle {
 	background-image: url(../../images/download.png) !important;
-	background-size: 32px !important
+	background-size: 32px
 }
 
 button#temizle {
@@ -231,7 +231,7 @@ button#temizle {
 
 #izle {
 	background-image: url(../../images/izle.png) !important;
-	background-size: auto !important
+	background-size: auto
 }
 
 #sil {
@@ -304,30 +304,30 @@ button#secimler {
 
 #raporEkrana {
 	background-image: url(../../images/rapor_ekrana.png);
-	background-size: 32px 32px !important
+	background-size: 32px 32px
 }
 
 #raporDizayn {
 	background-image: url(../../images/degistir.png);
-	background-size: 32px 32px !important
+	background-size: 32px 32px
 }
 
 #konumBelirle {
 	background-color: transparent;
 	background-image: url(../../images/power_on.png);
-	background-size: 48px !important
+	background-size: 48px
 }
 
 #konumGoster {
 	background-color: transparent;
 	background-image: url(../../images/map.png);
-	background-size: 48px !important
+	background-size: 48px
 }
 
 button#upload {
 	background-color: transparent;
 	background-image: url(../../images/yukari.png);
-	background-size: 48px !important
+	background-size: 48px
 }
 
 button#dropDownMenu {

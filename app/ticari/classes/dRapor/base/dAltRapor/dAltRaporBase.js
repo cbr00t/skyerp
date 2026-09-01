@@ -12,7 +12,9 @@ class DAltRapor extends DRapor {
 			result = `${result} &nbsp;[<b class="bold royalblue">${raporAdi}</b>]`
 		return result
 	}
-	get isPanelItem() { return this.rapor?.isPanelItem } get width() { return null } get height() { return null }
+	get isPanelItem() { return this.rapor?.isPanelItem }
+	get width() { return null }
+	get height() { return null }
 	constructor(e) {
 		e = e || {}; super(e);
 		$.extend(this, {

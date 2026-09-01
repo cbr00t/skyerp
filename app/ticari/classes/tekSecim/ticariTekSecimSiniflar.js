@@ -72,7 +72,7 @@ class TicariFisTipi extends FisTipiUst {
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)
 		let { alimmi, satismi, iademi } = this
-		let { vergi: { sutIslem, stopajliIslem: stopajli } } = app.params
+		let { vergi: { sutIslem, stopajliIslem: stopajli } = {} } = app.params
 		let sutVeyaStopaj = sutIslem || stopajli
 		let satisIademi = satismi && iademi
 		let alimIademi = alimmi && iademi

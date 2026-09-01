@@ -39,7 +39,7 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
    }
 	static get uygunRaporlar() {
 		return values(this.kod2Sinif).filter(cls =>
-			cls.uygunmu && cls.dRapormu && !(cls.araSeviyemi || cls.dAltRapormu || cls.dPanelmi))
+			cls.uygunmu && cls.dRapormu && !(cls.araSeviyemi || cls.dAltRapormu || cls.dPanelmi || cls.ozelmi))
 	}
 	static get uygunRaporlarKAListe() {
 		return this.uygunRaporlar.map(cls =>
@@ -524,9 +524,9 @@ class DGrupluPanelRapor extends DPanelRapor {
 		let { class: { sabitmi } } = this
 		liste.push(...[
 			(sabitmi ? null : { id: 'raporTanim', text: 'Rapor Tanım', handler: _e => this.main.raporTanimIstendi({ ...e, ..._e }) }),
-			{ id: 'secimler', text: '', handler: _e => this.main.secimlerIstendi({ ...e, ..._e }) },
-			{ id: 'seviyeAc', text: 'Seviye Aç', handler: _e => this.seviyeAcIstendi({ ...e, ..._e }) },
-			{ id: 'seviyeKapat', text: 'Seviye Kapat', handler: _e => this.seviyeKapatIstendi({ ...e, ..._e }) },
+			{ id: 'secimler', handler: _e => this.main.secimlerIstendi({ ...e, ..._e }) },
+			{ id: 'seviyeAc', handler: _e => this.seviyeAcIstendi({ ...e, ..._e }) },
+			{ id: 'seviyeKapat', handler: _e => this.seviyeKapatIstendi({ ...e, ..._e }) },
 			{ id: 'excel', text: '', handler: _e => this.exportExcelIstendi({ ...e, ..._e }) },
 			/*{ id: 'pdf', text: '', handler: _e => this.exportPDFIstendi({ ...e, ..._e }) },*/
 			{ id: 'html', text: '', handler: _e => this.exportHTMLIstendi({ ...e, ..._e }) },

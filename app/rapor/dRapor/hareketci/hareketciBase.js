@@ -203,6 +203,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		}
 		result.addGrupBasit('ANAISLEM', 'Ana İşlem', 'anaislemadi')
 		result.addGrupBasit('ISL', 'İşlem', 'isl', (muhasebemi ? DMQMuhIslem : DMQStokIslem))
+		
 		if (ticarimi) {
 			this.tabloYapiDuzenle_plasiyer(e)
 			this.tabloYapiDuzenle_takip(e)
@@ -225,6 +226,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 			
 			this.tabloYapiDuzenle_baBedel(e)
 			this.tabloYapiDuzenle_baBakiye(e)
+			this.tabloYapiDuzenle_baBedel_kdvDahil(e)
 			this.tabloYapiDuzenle_dovizli_baBedel(e)
 			this.tabloYapiDuzenle_dovizli_baBakiye(e)
 			if (!totalmi)

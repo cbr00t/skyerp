@@ -85,7 +85,7 @@ class MQYapi extends CIO {
 			let result = await this.varmi(_e)
 			delete _e.keyHV
 			if (result)
-				throw { isError: true, rc: 'duplicateRecord', errorText: 'Kayıt tekrarlanıyor' }
+				throw { isError: true, errorText: 'Kayıt tekrarlanıyor' }
 		}
 		await this.yeniOncesiIslemler(e)
 		let hv = this.hostVars(e)

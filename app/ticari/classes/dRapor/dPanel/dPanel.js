@@ -193,8 +193,8 @@ class DPanel extends Part {
 			(sabitmi ? null : { id: 'raporTanim', text: 'Rapor Tanım', handler: _e => this.raporTanimIstendi({ ...e, ..._e }) }),
 			{ id: 'genelSecimler', text: '', handler: _e => this.genelSecimlerIstendi({ ...e, ..._e }) },
 			{ id: 'secimler', text: '', handler: _e => this.secimlerIstendi({ ...e, ..._e }) },
-			{ id: 'seviyeAc', text: 'Seviye Aç', handler: _e => this.seviyeAcIstendi({ ...e, ..._e }) },
-			{ id: 'seviyeKapat', text: 'Seviye Kapat', handler: _e => this.seviyeKapatIstendi({ ...e, ..._e }) },
+			{ id: 'seviyeAc', handler: _e => this.seviyeAcIstendi({ ...e, ..._e }) },
+			{ id: 'seviyeKapat', handler: _e => this.seviyeKapatIstendi({ ...e, ..._e }) },
 			{ id: 'excel', text: '', handler: _e => this.exportExcelIstendi({ ...e, ..._e }) },
 			/*{ id: 'pdf', text: '', handler: _e => this.exportPDFIstendi({ ...e, ..._e }) },*/
 			{ id: 'html', text: '', handler: _e => this.exportHTMLIstendi({ ...e, ..._e }) },
@@ -293,11 +293,13 @@ class DPanel extends Part {
 		setTimeout(() => this._inTazeleProc = false, 1_000)
 	}
 	add(...coll) {
-		let {id2Detay, _rendered} = this, { kod2Sinif } = DRapor
+		let { id2Detay, _rendered: wasRendered } = this
+		let { kod2Sinif } = DRapor
 		for (let det of coll) {
 			if (det == null)
 				continue
-			if ($.isArray(det)) {
+			
+			if (isArray(det)) {
 				this.add(...det)
 				continue 
 			}
@@ -321,21 +323,37 @@ class DPanel extends Part {
 			extend(det, { id, panel: this })
 			id2Detay[id] = det
 		}
-		if (_rendered)
-			this.panelleriOlustur()
+		
+		//if (this._rendered)
+		//	this.panelleriOlustur()
+
+		if (wasRendered)
+			this.fullRender_defer()
+		
 		return this
 	}
 	remove(...coll) {
-		let {id2Detay, _rendered} = this
+		let { _rendered, id2Detay } = this
 		for (let det of coll) {
-			if (det == null) { continue }
-			if ($.isArray(det)) { this.remove(...det); continue } 
+			if (det == null)
+				continue
+			if (isArray(det)) {
+				this.remove(...det)
+				continue 
+			}
 			if (!id2Detay[det.id])
 				det = values(id2Detay).find(_det => det.detay == _det || det.rapor?.detay == _det)
-			if (det == null) { continue }
+			
+			if (det == null)
+				continue
+
 			delete id2Detay[det.id]
 		}
-		if (_rendered) { this.panelleriOlustur() }
+		
+		//if (this._rendered)
+		//	this.panelleriOlustur()
+
+		this.fullRender_defer()
 	}
 	clear() {
 		this.id2Detay = {}
@@ -346,6 +364,23 @@ class DPanel extends Part {
 	render(e) {
 		this.id2Detay = this._rendered = null
 		return this.panelleriOlustur_batch(e)
+	}
+	fullRender_defer() {
+		deferExec('dPanel_fullRender', e => this.fullRender(e), 200, e)
+		return this
+	}
+	async fullRender(e = {}) {
+		await showProgress()
+		try {
+			await this.saveLayout(e)
+			if (await this.raporTanim.yukle())
+				await this.render(e)
+		}
+		finally {
+			delay(2_000).then(() =>
+				hideProgress())
+		}
+		return this
 	}
 	async loadLayout({ noTitleUpdate } = {}) {
 		await this.raporTanim?._promise
@@ -699,7 +734,7 @@ class DPanel extends Part {
 			// promises.push(promise)
 		}
 		if (promises.length)
-			await Promise.allSettled(promises)
+			await promiseAllSet(promises)
 		setTimeout(async () => {																// Rapor yapıları için bug-fix
 			let detaylar = values(this.id2Detay), promises = []
 			for (let {tip: { rapormu } = {}, raporTip: { chartmi }, inst} of detaylar) {
@@ -722,11 +757,12 @@ class DPanel extends Part {
 				}))
 			}
 			if (promises.length)
-				await Promise.allSettled(promises)
+				await promiseAllSet(promises)
 		}, LoadingLockWaitMS)
+		
 		let subItems = items.find(itemSelector)
 		subItems.eq(0).addClass(focusSelector)
-		{
+		;{
 			let handler = ({ currentTarget: target }) => {
 				let item = $(target)
 				item.parents('.items').find('.item').removeClass(focusSelector)
@@ -786,15 +822,22 @@ class DPanel extends Part {
 				}
 			})
 		}, 10)
+		
 		if (!batch) {
 			let {title} = this
 			this.saveLayout(e)
 			this.updateWndTitle(`${title} &nbsp;[<span class="bold forestgreen">${DPanelTanim.defaultAciklama}</span>]`)
 		}
 		this._rendered = this._previouslyRendered = true
+
+		delay(1).then(() =>
+			$(document).trigger('resize'))
+		
 		hideProgress()
 	}
-	panelleriOlustur_batch(e) { return this.panelleriOlustur(({ ...e, batch: true })) }
+	panelleriOlustur_batch(e) {
+		return this.panelleriOlustur(({ ...e, batch: true }))
+	}
 	hizliBulIslemi(e) {
 		let {bulPart} = e; clearTimeout(this._timer_hizliBulIslemi_ozel); this._timer_hizliBulIslemi_ozel = setTimeout(() => {
 			try {
@@ -1199,11 +1242,12 @@ class DPanel extends Part {
 					break
 				case 'degistir':
 					extend(eDet, det)
-					let { id } = eDet, { raporTanim } = this
+					// let { id } = eDet, { raporTanim } = this
 					// await this.render({ ...e, noTitleUpdate: true })
-					await this.saveLayout(e)
+					this.fullRender_defer()
+					/*await this.saveLayout(e)
 					if (await raporTanim.yukle())
-						await this.render(e)
+						await this.render(e)*/
 					break
 			}
 			return det
