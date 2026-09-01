@@ -54,6 +54,7 @@ class AlimSatisOrtakHareketci extends Hareketci {
 		// ... diğerleri stok/hizmet durumuna göre 'uniDuzenle_stokHizmet()' kısmında bağlanıyor
 		sent
 			.fis2CariBagla()
+			.leftJoin('car', 'carisatis csat',['car.must = csat.must', `csat.satistipkod = ''`])
 			.fis2StokIslemBagla()
 		;{
 			let { _table2ColDefs: cd = {} } = app
@@ -128,7 +129,8 @@ class AlimSatisOrtakHareketci extends Hareketci {
 						oncelik: '1', ba: `'B'`, fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac',
 						kayittipi: `'AS'`, anaislemadi: hizmetmi ? `'Hizmet'` : `'Stok'`,
 						islemadi: `'Alım/Satış'`, bizsubekod: 'fis.bizsubekod',
-						plasiyerkod: 'fis.plasiyerkod',
+						plasiyerkod: 'dbo.emptycoalesce(fis.plasiyerkod, csat.tavsiyeplasiyerkod)',
+						// plasiyerkod: 'dbo.emptycoalesce(fis.plasiyerkod, csat.tavsiyeplasiyerkod)',
 						teslimcarikod: ( cd.piffis?.teslimcarikod ? `fis.teslimcarikod` : `${sqlEmpty} teslimcarikod` ),
 						ozelisaret: 'fis.ozelisaret', tarih: 'fis.tarih', fisnox: 'fis.fisnox',
 						refkod: 'fis.must', refadi: 'car.birunvan',
@@ -154,14 +156,14 @@ class AlimSatisOrtakHareketci extends Hareketci {
 			stok$hizmet: [
 				getUniBilgi(false),         // stok
 				getUniBilgi(true)           // hizmet
-			].filter(x => !!x)
+			].filter(Boolean)
 		})
         return this
     }
 	static maliTablo_secimlerYapiDuzenle({ tip2SecimMFYapi, result }) {
 		super.maliTablo_secimlerYapiDuzenle(...arguments)
 		for (let cls of [StokHareketci, HizmetHareketci]) {
-			let {kisaKod: tip} = cls
+			let { kisaKod: tip } = cls
 			let e = { ...arguments[0], result: [] }
 			cls.maliTablo_secimlerYapiDuzenle(e)
 			tip2SecimMFYapi[tip] = e.result

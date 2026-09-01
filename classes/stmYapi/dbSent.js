@@ -515,7 +515,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 		this.leftJoin({ alias, table: 'carmemo cmem', on: `${aliasVeNokta}must = cmem.must` });
 		this.fromIliski('carmst kon', `(case ${aliasVeNokta}konsolidemusterikod = '' then ${aliasVeNokta}must else ${aliasVeNokta}konsolidemusterikod end) = kon.must`); this.zincirEkle(['car', 'kon']);
 		this.fromIliski('carmst bfrm', `(case ${aliasVeNokta}bformkonkod = '' then ${aliasVeNokta}must else ${aliasVeNokta}bformkonkod end) = bfrm.must`); this.zincirEkle(['car', 'bfrm']);
-		this.leftJoin({ alias, table: 'carisatis csat', on: [`${aliasVeNokta}must = csat.must`, `csat.satistipkod = ''`] });
+		this.leftJoin({ alias, table: 'carisatis csat', on: [`${aliasVeNokta}must = csat.must`, `csat.satistipkod = ''`] })
 		this.leftJoin({ alias: 'csat', table: 'tahsilsekli ctsek', on: 'csat.tahseklino = ctsek.kodno' });
 		this.fromIliski('banmst cban', `${aliasVeNokta}bankakod = cban.kod`);
 		return this

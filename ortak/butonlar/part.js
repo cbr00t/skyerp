@@ -41,12 +41,14 @@ class ButonlarPart extends Part {
 		}
 		let subParent = this.sol = $(`<div class="sol"/>`), subParent_sag = this.sag = $(`<div class="sag"/>`), sagButonIdSet = this.sagButonIdSet || {}, {ekSagButonIdSet} = this;
 		for (let item of liste) {
-			let {id, text, args} = item, btn = $(`<button id="${id}">${text || ''}</button>`);
+			let { id, toolTip, text, args } = item
+			toolTip ||= text || id
+			let btn = $(`<button id="${id}" title="${toolTip}">${text || ''}</button>`)
 			let sagmi = (sagButonIdSet && sagButonIdSet[id]) || (ekSagButonIdSet && ekSagButonIdSet[id])
 			let _subParent = sagmi ? subParent_sag : subParent
 			let _prependFlag = prepend; btn[_prependFlag ? 'prependTo' : 'appendTo'](_subParent)
-			btn.jqxButton($.extend({ theme }, args || {}))
-			let {handler} = item
+			btn.jqxButton({ theme, ...args})
+			let { handler } = item
 			if (handler)
 				btn.data('handler', handler)
 			let eventHandler = async (evt, handler) => {
@@ -55,7 +57,12 @@ class ButonlarPart extends Part {
 				let _e = { parentPart, sender, builder, userData, event: evt, button, id }
 				setButonEnabled(btn, false)
 				try { await getFuncValue.call(this, handler, _e) }
-				catch (ex) { cerr(ex) }
+				catch (ex) {
+					let msg = getErrorText(ex)
+					cerr(ex)
+					if (msg)
+						hConfirm(msg)
+				}
 				finally { setTimeout(() => setButonEnabled(btn, true), 800) }
 			}
 			if (handler || id2Handler[id]) {
@@ -81,12 +88,12 @@ class ButonlarPart extends Part {
 	}
 	static templatesOlustur({ result }) {
 		extend(result, {
-			tazeleVazgecSec(e) { return ['tazele', { id: 'sec', args: { template: 'success' } }, 'vazgec'] },
+			tazeleVazgecSec(e) { return ['tazele', { id: 'sec', toolTip: 'Seç', args: { template: 'success' } }, 'vazgec'] },
 			tazeleVazgec(e) { return ['tazele', 'vazgec'] },
-			tamamVazgec(e) { return [{ id: 'tamam', args: { template: 'success' } }, 'vazgec'] },
-			tamam(e) { return [{ id: 'tamam', args: { template: 'success' } }] },
+			tamamVazgec(e) { return [{ id: 'tamam', toolTip: 'Tamam', args: { template: 'success' } }, 'vazgec'] },
+			tamam(e) { return [{ id: 'tamam', toolTip: 'Tamam', args: { template: 'success' } }] },
 			vazgec(e) { return ['vazgec'] },
-			yazdirVazgec(e) { return [{ id: 'yazdir', args: { template: 'success' } }, 'vazgec'] }
+			yazdirVazgec(e) { return [{ id: 'yazdir', toolTip: 'Yazdır', args: { template: 'success' } }, 'vazgec'] }
 		})
 	}
 }

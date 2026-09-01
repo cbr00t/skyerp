@@ -210,7 +210,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 		let {fis, kontrolcu, sabitFlag} = this, {gridDetaySinif} = fis.class, _e = extend({}, e, { fis });
 		_e.recs = []; for (let i = 0; i < fis.detaylar.length + (sabitFlag ? 0 : 1); i++) { _e.recs.push(this.newRec({ sinif: gridDetaySinif })) }
 		// if (!this.yenimi) {
-		let _result = await kontrolcu.fis2Grid(_e);
+		let _result = await kontrolcu.fis2Grid(_e)
 		if (_result != true) { if (_result?.errorText) { hConfirm(`<div class="red">${_result.errorText}</div>`) } return false }
 		//}
 		return _e.recs

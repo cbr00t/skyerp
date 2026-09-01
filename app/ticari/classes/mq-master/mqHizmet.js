@@ -308,14 +308,14 @@ class MQHizmet extends MQKA {
 			new GridKolon({ belirtec: 'muhhesapkkeg', text: 'Muhkkeg Hesap Kod', genislikCh: 5})
 		)
 	}
-	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e)
-		let {aliasVeNokta, kodSaha} = this, {sent} = e, {where: wh} = sent
-		sent.fromIliski(`hizgrup hizgrp`, `${aliasVeNokta}grupkod = hizgrp.kod`);
-		sent.fromIliski(`hizistgrup hizigrp`, `${aliasVeNokta}histgrupkod = hizigrp.kod`);
-		sent.fromIliski(`kategori kat`, `${aliasVeNokta}kategorikod = kat.kod`);
-		wh.icerikKisitDuzenle_hizmet({ saha: aliasVeNokta + kodSaha });
-		sent.sahalar.add(`${aliasVeNokta}tip`)
+	static loadServerData_queryDuzenle({ sent }) {
+		super.loadServerData_queryDuzenle(...arguments )
+		let { aliasVeNokta, kodSaha } = this, { where: wh, sahalar } = sent
+		sent.fromIliski(`hizgrup hizgrp`, `${aliasVeNokta}grupkod = hizgrp.kod`)
+		sent.fromIliski(`hizistgrup hizigrp`, `${aliasVeNokta}histgrupkod = hizigrp.kod`)
+		sent.fromIliski(`kategori kat`, `${aliasVeNokta}kategorikod = kat.kod`)
+		wh.icerikKisitDuzenle_hizmet({ saha: aliasVeNokta + kodSaha })
+		sahalar.add(`${aliasVeNokta}tip`)
 	}
 	static getGridKolonGrup_kategorili(e) {
 		let kolonGrup = this.getGridKolonGrup(e)

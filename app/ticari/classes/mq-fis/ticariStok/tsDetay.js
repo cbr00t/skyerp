@@ -328,13 +328,18 @@ class TSSHDDetay extends TSDetay {
 	}
 	uiSatirBedelHesaplaDevam(e) {
 		super.uiSatirBedelHesaplaDevam(e)
-		let { gridPart: tanimPart, gridWidget: w, fis = {}, rowIndex } = e
+		let { gridPart: tanimPart, gridWidget: w, fis = {}, rowIndex, force } = e
 		let { ticarimi = fis.class?.ticarimi ?? false } = e
-		let { hesapSekli } = fis
+		let { hesapSekli, eBilgi } = fis
+		let { shKod } = this
+		let eDonusummu = !!eBilgi
 
+		if (!shKod || force)
+			return
+		
 		if (hesapSekli != null && !isObject(hesapSekli))
 			hesapSekli = new FisHesapSekli(hesapSekli)
-		
+
 		let netBedel = Number(this.netBedel)
 		let brutBedel = netBedel
 		if (hesapSekli?.fiyatmi || hesapSekli?.miktarmi) {

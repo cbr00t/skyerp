@@ -124,8 +124,8 @@ body.dark-theme #windows.skyTabs.part > .tabs > .tabPage:not(:hover):not(.select
 	width: var(--tabs-toggle-button-width) !important;
 	height: var(--tabs-toggle-button-height) !important;
 	background-image: url(../../images/yukari.png);
-	background-size: 48px !important;
-	filter: contrast(0);
+	background-size: 64px !important;
+	filter: contrast(1);
 	border: none;
 	z-index: 1051 !important
 }

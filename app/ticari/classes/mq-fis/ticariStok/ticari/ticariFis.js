@@ -433,10 +433,15 @@ class TicariFis extends TSOrtakFis {
 		if (fisEkAyrim != null) { hv.fisekayrim = fisEkAyrim }
 		if (ozelTip != null) { hv.ozeltip = ozelTip }
 	}
+	alternateKeyHostVarsDuzenle({ hv }) {
+		super.alternateKeyHostVarsDuzenle(...arguments)
+		let { mustKod, class: { mustSaha, cikisGibimi } } = this
+		if (!cikisGibimi && mustSaha)
+			hv[mustSaha] = mustKod
+	}
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments)
-		if (!hv.ticmust)
-			hv.ticmust = hv.must
+		hv.ticmust = hv.must
 		this.dipIslemci?.ticariFisHostVarsDuzenle(...arguments)
 
 		let { otoSablonSayac, class: { _colDefs: cd = {} } } = this
@@ -759,8 +764,10 @@ class SevkiyatFis extends TicariFis {
 			tarih: asDate(rec.tarih), seri: rec.seri,
 			noYil: asInteger(rec.noyil), fisNo: asInteger(rec.fisNo),
 			mustKod: rec.mustkod, yerKod: yerRec.kod || this.yerKod,
-			subeKod: yerRec.bizsubekod || this.subeKod
+			subeKod: yerRec.bizsubekod || this.subeKod,
+			uuid: rec.uuid
 		})
+		this.efAyrimTipi = 'E'
 		
 		return this
 	}
@@ -866,14 +873,13 @@ class SevkiyatFis extends TicariFis {
 		}
 
 		let { hesapSekli } = this
-		if (detaylar.some(d => d.eBilgi?.bedel != d.netBedel)) {
+		;detaylar.forEach(det => {
+			let { bedel } = det.eBilgi ?? {}
+			if (bedel != null)
+				det.brutBedel = det.netBedel = Number(bedel)
+		})
+		if (detaylar.some(d => d.eBilgi?.bedel != d.netBedel))
 			hesapSekli.fiyatYap()
-			;detaylar.forEach(det => {
-				let { bedel } = det.eBilgi ?? {}
-				if (bedel != null)
-					det.netBedel = Number(bedel)
-			})
-		}
 		
 		return this
 	}

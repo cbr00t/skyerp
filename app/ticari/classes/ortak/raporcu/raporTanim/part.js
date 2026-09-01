@@ -18,20 +18,31 @@ class RaporTanimPart extends Part {
 		if (islem) { const islemText = islem[0].toUpperCase() + islem.slice(1); this.title += ` &nbsp;[<span class="window-title-ek">${islemText}</span>]` }
 	}
 	async init(e) { e = e || {}; await super.init(e); /*this.hideBasic();*/ const {layout} = this; layout.find('main').addClass('animate-wnd-content-slow') }
-	runDevam(e) {
-		e = e || {}; super.runDevam(e); const {layout, raporcu} = this;
+	runDevam(e = {}) {
+		super.runDevam(e); const {layout, raporcu} = this;
 		if (raporcu) raporcu._promise_wait = raporcu.kategorileriOlustur()
 		const header = this.header = layout.find('header'), content = this.content = layout.find('main');
 		$.extend(this, { islemTuslari: header.find('#islemTuslari'), subHeader: content.find('.sub-header'), splitMain: content.find('.split-main') });
 		this.initIslemTuslari(e); this.initSplit(e); this.initLayout(e)
 	}
 	afterRun(e) {
-		super.afterRun(e); /*setTimeout(() => this.show(), 100);*/
-		setTimeout(async () => { await this.initFormBuilder(e); this.formGenelEventleriBagla(e); if (this.yeniVeyaKopyami) this.yeniTanimOncesiIslemler(e) /*this.show()*/ }, 0)
+		super.afterRun(e)
+		setTimeout(async () => {
+			await this.initFormBuilder(e)
+			this.formGenelEventleriBagla(e)
+			if (this.yeniVeyaKopyami)
+				this.yeniTanimOncesiIslemler(e)
+		}, 0)
 	}
-	destroyPart(e) { e = e || {}; for (const builder of this.getBuilders(e)) { e.builder = builder; if (builder.destroyPart) builder.destroyPart(e) } super.destroyPart(e) }
+	destroyPart(e = {}) {
+		for (let fbd of this.getBuilders(e)) {
+			e.builder = fbd
+			fbd?.destroyPart?.(e)
+		}
+		super.destroyPart(e)
+	}
 	async initFormBuilder(e) {
-		let {builder} = this; const {inst} = this;
+		let {builder} = this; const {inst} = this
 		if (!builder && inst) { const _e = { sender: this }; builder = (await inst.getRootFormBuilder(_e)) ?? (await inst.getFormBuilders(_e)) } if ($.isEmptyObject(builder)) return
 		const {layout} = this, subBuilders = builder.isFormBuilder ? [builder] : builder, id2Builder = this.id2Builder = {};
 		for (const key in subBuilders) {

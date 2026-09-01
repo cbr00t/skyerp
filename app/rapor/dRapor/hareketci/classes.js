@@ -7,6 +7,7 @@ class DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main extends DRapor_Hareketci_Mai
 	tabloYapiDuzenle({ result }) {
 		let e = arguments[0]
 		super.tabloYapiDuzenle(e)
+		let { _table2ColDefs: cd = {} } = app
 		let { maliyetKullanilirmi } = this.class
 		let { brmDict } = app.params.stokBirim ?? {}
 		let { isAdmin, rol } = config.session ?? {}
@@ -15,7 +16,7 @@ class DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main extends DRapor_Hareketci_Mai
 		let {toplam} = result, brmListe = keys(tip2BrmListe)
 		result.addGrupBasit('SHTIP', 'S/H Tip', 'shtiptext')
 		this.tabloYapiDuzenle_cari(e)
-		let { _table2ColDefs: cd = {} } = app
+		this.tabloYapiDuzenle_plasiyer(e)
 		if (cd.sipfis?.teslimcarikod)
 			this.tabloYapiDuzenle_teslimCari(e)
 		this.tabloYapiDuzenle_sh(e)
@@ -106,6 +107,7 @@ class DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main extends DRapor_Hareketci_Mai
 		/* if (keys(attrSet).find(key => (key.startsWith('GIRIS_') || key.startsWith('CIKIS_')))) { attrSet.GC = true } */
 		this.loadServerData_queryDuzenle_sh({ ...e, kodClause: hvDegeri('shkod') })
 		this.loadServerData_queryDuzenle_cari({ ...e, kodClause: hvDegeri('must') })
+		this.loadServerData_queryDuzenle_plasiyer({ ...e, kodClause: hvDegeri('plasiyerkod') })
 		this.loadServerData_queryDuzenle_takip({ ...e, kodClause: hvDegeri('takipno') })
 		/*this.loadServerData_queryDuzenle_gc({ ...e, tip: 'MIKTAR', clause: hvDegeri('miktar'), gcClause, tarihClause })
 		this.loadServerData_queryDuzenle_gc({ ...e, tip: 'MIKTAR2', clause: hvDegeri('miktar2'), gcClause, tarihClause })

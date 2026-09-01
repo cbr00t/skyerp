@@ -2,13 +2,20 @@ class GridliGirisPart extends GridPart {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get wndClassNames() { return ['gridliGiris', ...super.wndClassNames] }
 	static get noFullHeightFlag() { return true } /* static get defaultAsyncFlag() { return false } */
-	constructor(e) { super(e); e = e || {}; this.noEmptyRowFlag = asBool(e.noEmptyRow ?? e.noEmptyRowFlag) }
+
+	constructor(e = {}) {
+		super(e)
+		this.noEmptyRowFlag = asBool(e.noEmptyRow ?? e.noEmptyRowFlag)
+	}
 	gridArgsDuzenleDevam(e) {
-		super.gridArgsDuzenleDevam(...arguments); let {args} = e;
-		$.extend(args, { editable: args.editable ?? true, autoshowcolumnsmenubutton: true });
+		super.gridArgsDuzenleDevam(...arguments)
+		let { args } = e
+		extend(args, { editable: args.editable ?? true, autoshowcolumnsmenubutton: true })
 		if (!this.gridInitFlag) {
-			const kontrolcu = this.getKontrolcu(...arguments), tabloKolonlari = e.tabloKolonlari = e.tabloKolonlari || [];
+			let kontrolcu = this.getKontrolcu(...arguments)
+			let tabloKolonlari = e.tabloKolonlari ?? []
 			if (kontrolcu) {
+				// kontrolcu.gridArgsDuzenle(e)
 				let _tabloKolonlari = getFuncValue(kontrolcu.tabloKolonlari) || [];
 				tabloKolonlari.push(..._tabloKolonlari)
 			}

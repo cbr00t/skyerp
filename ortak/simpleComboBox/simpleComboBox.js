@@ -124,8 +124,8 @@ class SimpleComboBoxPart extends Part {
 			disabled: _disabled, events, queue, queueDelay
 		} = e
 		autoClearFlag ??= false; kodsuzmu ??= false
-		delay ??= 500; maxRows ??= 10;
-		minLength ??= 1; queueDelay ??= 250
+		delay ??= 500; maxRows ??= 20
+		minLength ??= 1; queueDelay ??= 150
 		_disabled ??= false
 		events ??= {}
 		if (!noQueue)

@@ -88,6 +88,7 @@ class EIslTicariOrtak extends EIslGiden {
 		}
 	}
     static getEFisBaslikVeDetayStm(e = {}) {
+		e.psTip2SayacListe ??= {}
 		let { whereDuzenleyici: genelWhereDuzenleyici, ps2SayacListe = e.psTip2SayacListe } = e
 		let { eArsivmi } = this
 		if (isFunction(ps2SayacListe))

@@ -64,27 +64,36 @@ class GridKolon extends GridKolonVeGrupOrtak {
 			}
 		}
 		this.cellsRenderer = (colDef, rowIndex, belirtec, value, html, jqxCol, rec, result) => {
-			if (typeof html == 'object' && 'expanded' in html && 'level' in html) {    /* treeGrid callback */
+			if (typeof html == 'object' && 'expanded' in html && 'level' in html) {    // treeGrid callback
 				result = jqxCol; jqxCol = null;
 				html = `<div class="full-wh">${result}`
 			}
-			if (result === undefined) { result = html }
-			let type = 'cellsRenderer', {gridPart} = colDef, {inst} = gridPart || {}
+			
+			if (result === undefined)
+				result = html
+			
+			let type = 'cellsRenderer', { gridPart } = colDef
+			let { inst } = gridPart ?? {}
 			let mfSinif = gridPart?.mfSinif ?? inst?.class
 			clearTimeout(this._timer_rendered)
+			
 			if (gridPart) {
-				let delayMS = gridPart.renderDelayMS ?? mfSinif?.orjBaslik_gridRenderDelayMS ?? MQCogul.defaultOrjBaslik_gridRenderDelayMS;
-				let {_timestamp_gridRendered} = gridPart; /*if (!_timestamp_gridRendered || (now() - _timestamp_gridRendered) >= 10)*/
+				let delayMS = gridPart.renderDelayMS ?? mfSinif?.orjBaslik_gridRenderDelayMS ?? MQCogul.defaultOrjBaslik_gridRenderDelayMS
+				let { _timestamp_gridRendered } = gridPart
+				//if (!_timestamp_gridRendered || (now() - _timestamp_gridRendered) >= 10)
 				if (gridPart?.gridRendered) {
-					_timestamp_gridRendered = gridPart._timestamp_gridRendered = now();
+					_timestamp_gridRendered = gridPart._timestamp_gridRendered = now()
 					this._timer_rendered = setTimeout(() =>
 						gridPart.gridRendered({ type, gridPart, mfSinif, inst, colDef, rec, rowIndex, belirtec, value, html }),
-						delayMS)
+						delayMS
+					)
 				}
 			}
+			
 			html = typeof result == 'string' ? result : html
 			if (savedCellsRenderer)
 				result = savedCellsRenderer.call(this, colDef, rowIndex, belirtec, value, html, jqxCol, rec, result)
+			
 			return result
 		};
 		if (!this.cellClassName) {

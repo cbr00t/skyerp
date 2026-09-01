@@ -33,7 +33,8 @@ class TarihUIPart extends Part {
 			}
 		});
 		let {argsDuzenleBlock} = this; if (argsDuzenleBlock) getFuncValue.call(this, argsDuzenleBlock, _e)
-		let input = layout.datepicker(_e.args); input.datepicker($.datepicker.regional['tr']);
+		let input = layout.datepicker(_e.args)
+		input.datepicker($.datepicker.regional['tr'])
 		if (!this.autoComplete) { input.attr('autocomplete', 'off') }
 		input.on('change', evt => {
 			let elm = $(evt.target), {value} = elm[0]
@@ -43,7 +44,7 @@ class TarihUIPart extends Part {
 				elm.data('lastValue', value)
 			this.onChange({ event: evt })
 		});
-		input.on('focus', evt => evt.target.select());
+		input.on('focus', evt => evt.target.select())
 		input.on('blur', evt => {
 			let elm = $(evt.target), value = tarihDegerDuzenlenmis(elm.val() /*, () => elm.data('lastValue')*/)
 			if (value) { evt.preventDefault(); elm.val(value || '') }

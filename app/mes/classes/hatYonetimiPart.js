@@ -435,7 +435,7 @@ class HatYonetimiPart extends Part {
 				elm = parent.find(`.${key}-parent`); if (elm.length) { elm[value || typeof value == 'number' ? 'removeClass' : 'addClass']('jqx-hidden') }
 			}
 		};
-		let {kritikDurNedenKodSet} = app.params.mes
+		let { kritikDurNedenKodSet } = app.params?.mes
 		for (let sev of values(hat2Sev)) {
 			let {hatKod, grupStyle, detaylar} = sev, itemHat = divListe.find(`.hat.item[data-id = "${hatKod}"]`); if (!itemHat?.length) { continue }
 			setHTMLValues(itemHat, sev, 'hatKod', 'hatAdi');
