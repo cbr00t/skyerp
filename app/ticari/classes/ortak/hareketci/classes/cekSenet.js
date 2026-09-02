@@ -3,12 +3,6 @@ class CSHareketci extends Hareketci {
 	static get oncelik() { return 48 } static get kisaKod() { return 'CS' }
 	static get kod() { return 'cekSenet' }
 	static get aciklama() { return 'Çek-Senet Portföy' }
-
-	constructor(e = {}) {
-		super(e)
-		let { trfCikismi = e.trfCikis ?? true } = e
-		extend(this, { trfCikismi })
-	}
 	static get ortakHVYapilar() {
 		let { _ortakHVYapilar: result } = this
 		if (result == null) {
@@ -26,6 +20,16 @@ class CSHareketci extends Hareketci {
 			result = this._ortakUniDuzenleyiciler = e.result
 		}
 		return result
+	}
+
+	constructor(e = {}) {
+		super(e)
+		let { trfCikismi = e.trfCikis ?? true } = e
+		extend(this, { trfCikismi })
+	}
+	static icerikSabit2DefDuzenle({ liste }) {
+		super.icerikSabit2DefDuzenle(...arguments)
+		liste.push(gridKolon('vade', 'Vade', 13).checkedList().date())
 	}
 	/*static altTipYapilarDuzenle({ result }) {
 		extend(result, {

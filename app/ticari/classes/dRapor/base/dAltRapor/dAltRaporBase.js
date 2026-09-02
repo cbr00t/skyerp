@@ -15,9 +15,10 @@ class DAltRapor extends DRapor {
 	get isPanelItem() { return this.rapor?.isPanelItem }
 	get width() { return null }
 	get height() { return null }
-	constructor(e) {
-		e = e || {}; super(e);
-		$.extend(this, {
+	
+	constructor(e = {}) {
+		super(e)
+		extend(this, {
 			rapor: e.rapor, parentBuilder: e.parentBuilder, acilinca: e.acilinca,
 			secimler: e.secimler, secimlerDuzenleBlock: e.secimlerDuzenleBlock ?? e.secimlerDuzenle
 		})

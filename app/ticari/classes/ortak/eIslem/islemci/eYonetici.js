@@ -271,9 +271,10 @@ class EYonetici extends CObject {
 			let divContainer = $(`<div/>`)[0]
 			let eDocCount = 0
 			for (let psTip in ps2Recs) {
-				let _recs = ps2Recs[psTip];
+				let _recs = ps2Recs[psTip]
 				for (let rec of _recs) {
-					let {uuid} = rec, efAyrimTipi = rec.efayrimtipi || (gelenmi ? 'E' : 'A')
+					let { uuid } = rec
+					let efAyrimTipi = ( rec.efayrimtipi ?? rec.eIslTip ) || (gelenmi ? 'E' : 'A')
 					let eIslSinif = EIslemOrtak.getClass({ tip: efAyrimTipi, gelenmi })
 					let eIslAltBolum = eConf.getAnaBolumFor({ eIslSinif })
 					if (!eIslAltBolum)

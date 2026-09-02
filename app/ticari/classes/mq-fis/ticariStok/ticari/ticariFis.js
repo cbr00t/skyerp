@@ -789,7 +789,7 @@ class SevkiyatFis extends TicariFis {
 		wh.degerAta(sayac, 'har.fissayac')
 		sahalar
 			.addWithAlias('har',
-				'seq', 'efbarkod', 'efstokkod', 'efstokadi', 'efmiktar', 'iskorantext',
+				'seq', 'efbarkod', 'efstokkod', 'efstokadi', 'efmiktar', 'iskoranstr',
 				'shtip', 'miktar', 'irskabuledilmeyen', 'irseksik', 'irsfazla',
 				'fiyat', 'kdvorani', 'otvorani', 'stopajorani', 'konaklamaorani',
 				'tevoranx', 'bedel'

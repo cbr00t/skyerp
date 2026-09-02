@@ -289,6 +289,10 @@ class SkyRaporApp extends TicariApp {
 						new FRMenuChoice({ mne: 'DRAPOR', text: 'Rapor Genel', block: e => params.dRapor.tanimla(e) }),
 						new FRMenuChoice({ mne: 'FINANS', text: 'Finans', block: e => params.finans.tanimla(e) })
 					]
+				}),
+				new FRMenuChoice({
+					mne: 'IMPORTDEFS', text: 'Varsayılan Raporları Yükle',
+					block: e => DMQRapor.importDefsIstendi(e)
 				})
 			)
 		}

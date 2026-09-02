@@ -2,7 +2,8 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get partName() { return 'dRapor' } get partName() { return this.class.partName }
 	static get anaTip() { return null } static get sinifAdi() { return this.aciklama }
 	static get kategoriKod() { return null } static get kod() { return null }
-	static get aciklama() { return null } static get detaylimi() { return false }
+	static get aciklama() { return null }
+	static get detaylimi() { return false }
 	static get uygunmu() { return true }
 	get uygunmu() { return this.class.uygunmu }
 	static get araSeviyemi() { return false }

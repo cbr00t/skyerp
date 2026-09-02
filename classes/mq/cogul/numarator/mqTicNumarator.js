@@ -1,10 +1,15 @@
 class MQTicNumarator extends MQNumarator {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get numaratorPartSinif() { return TicNumaratorPart } static get fisGirisLayoutSelector() { return '.ticNumarator' }
-	static get kodListeTipi() { return 'TICNUM' }  static get sinifAdi() { return 'Ticari Numaratör' }
-	static get table() { return 'tnumara' } static get idSaha() { return this.sayacSaha }
-	static get sayacSaha() { return 'sayac' } static get kodSaha() { return 'belirtec' }
-	get belirtec() { return this.kod } set belirtec(value) { return this.kod = value }
+	static get numaratorPartSinif() { return TicNumaratorPart }
+	static get fisGirisLayoutSelector() { return '.ticNumarator' }
+	static get kodListeTipi() { return 'TICNUM' }
+	static get sinifAdi() { return 'Ticari Numaratör' }
+	static get table() { return 'tnumara' }
+	static get idSaha() { return this.sayacSaha }
+	static get sayacSaha() { return 'sayac' }
+	static get kodSaha() { return 'belirtec' }
+	get belirtec() { return this.kod }
+	set belirtec(value) { return this.kod = value }
 
 	constructor({ belirtec } = {}) {
 		super(...arguments)
@@ -137,10 +142,11 @@ class MQTicNumarator extends MQNumarator {
 	}
 	hostVarsDuzenle({ hv, offlineBuildQuery, offlineRequest, offlineMode }) {
 		super.hostVarsDuzenle(...arguments)
+		hv.belgetipi ??= ''
 	}
 	keySetValues({ rec }) {
 		super.superKeySetValues(...arguments)
-		let {tip: value} = rec
+		let { tip: value } = rec
 		if (value != null)
 			this.tip = value
 	}

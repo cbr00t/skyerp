@@ -403,7 +403,8 @@ class MQEIslem_Gelen extends MQCogul {
 					'efbarkod barkod', 'efstokkod eSHKod', 'efstokadi eSHAdi',
 					'shtip tip', 'miktar', 'fiyat', 'bedel',
 					'kdvorani kdvOrani', 'iskoranstr iskOranlarStr',
-					'alimanlasmadurumu alimAnlasma', 'detaciklama detAciklama'
+					'detaciklama detAciklama'
+					// 'alimanlasmadurumu alimAnlasma'
                 )
 				.add(
 					`${cl.shTipText} shTipText`,
@@ -418,7 +419,7 @@ class MQEIslem_Gelen extends MQCogul {
 			efbarkod, efstokkod, efstokadi, efmiktar, efbirimtipi, efiskonto
 			shtip, stokkod, hizmetkod, demkod, kdetaysayac,
 			kdvorani, konaklamaorani, otvorani, stopajorani, tevoranx
-			miktar, fiyat, bedel, iskoranstr, iskorantext, artoranstr,
+			miktar, fiyat, bedel, iskoranstr, artoranstr,
 			irseksik, irsfazla, irskabuledilmeyen,
 			alimanlasmadurumu, detaciklama
 		*/

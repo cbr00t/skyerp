@@ -33,8 +33,9 @@ class MQHareketKarti extends DMQCogul {
 		super.orjBaslikListesi_argsDuzenle(...arguments)
 		//gridPart.tekil()
 		extend(args, {
-			showStatusBar: true, showAggregates: true, showGroupAggregates: true
-			// selectionMode: 'multiplerowsextended', rowsHeight: 48
+			showStatusBar: true, showAggregates: true, showGroupAggregates: true,
+			selectionmode: 'multiplecellsextended'
+			// rowsHeight: 48
 		})
 	}
 	static orjBaslikListesi_groupsDuzenle({ liste }) {

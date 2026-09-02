@@ -183,10 +183,10 @@ class Hareketci extends CObject {
 	static icerikSabit2DefDuzenle({ liste }) {
 		liste.push(...[
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 13 }).checkedList().date(),
-			new GridKolon({ belirtec: 'fisnox', text: 'Belge No', genislikCh: 18 }).input(),
-			new GridKolon({ belirtec: 'isladi', text: 'İşlem', genislikCh: 30 }).checkedList(),
-			new GridKolon({ belirtec: 'refkod', text: 'Referans', genislikCh: 18 }).checkedList(),
-			new GridKolon({ belirtec: 'refadi', text: 'Ref. Adı', genislikCh: 40 }).checkedList()
+			new GridKolon({ belirtec: 'fisnox', text: 'Belge No', genislikCh: 21 }).input(),
+			new GridKolon({ belirtec: 'isladi', text: 'İşlem', genislikCh: 20 }).checkedList(),
+			new GridKolon({ belirtec: 'refkod', text: 'Referans', genislikCh: 20 }).checkedList(),
+			new GridKolon({ belirtec: 'refadi', text: 'Ref. Adı', genislikCh: 45 }).checkedList()
 		])
 	}
 	static mstYapiDuzenle(e) { }

@@ -573,7 +573,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	async hareketKartiGoster({ rec: parentRec, uid } = {}) {
 		let e = { ...arguments[0] }
 		let rapor = this
-		let { gridPart } = this
+		let { gridPart, secimler } = this
 		let { grid, gridWidget: { base: w } } = gridPart
 		parentRec ??= w.rowsByKey[uid] ?? w.getSelection()[0]
 		if (!parentRec?.leaf)
@@ -584,12 +584,13 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		let { icerikSabit2Def: sabit2CD } = harSinif
 		let { attrSet = raporTanim.attrSet } = e
 		let kaSet = asSet(tabloYapi.kaPrefixes)
-		
-		extend(e, {
-			attrSet: attrSet = {
-				...attrSet,
-				...asSet('TARIH', 'REF', 'ISL', 'FISNOX')
-			},
+
+		attrSet = {
+			...attrSet,
+			...asSet('TARIH', 'REF', 'ISL', 'FISNOX', 'VADE')
+		}
+		;extend(e, {
+			attrSet,
 			genelSon_ilkIslem({ stm, toplamColDefs }) {
 				let cdYapi = { sabit: {}, toplam: {} }
 				let keyYapi = { sabit: {}, toplam: {} }

@@ -800,9 +800,10 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		}
 	}
 	async exportIstendi(e = {}) {
+		let islemAdi = e.islemAdi = 'Dışarı Aktar'
 		let { gridWidget, selectedRecs } = this
 		if (!selectedRecs?.length) {
-			wConfirm('Dışa aktarılacak satırlar seçilmelidir', ' ')
+			wConfirm('Dışa aktarılacak satırlar seçilmelidir', islemAdi)
 			return false
 		}
 		
@@ -815,15 +816,15 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			if (inst == null) { return null }
 			await inst.keySetValues({ rec })
 			if (!await inst.yukle({ ...e, rec: null, _rec: rec })) {
-				let mesaj = 'Seçilen satır için bilgi yüklenemedi';
-				throw { isError: true, rc: 'instBelirle', errorText: mesaj }
+				let errorText = 'Seçilen satır için bilgi yüklenemedi';
+				throw { isError: true, rc: 'instBelirle', errorText }
 			}
 			return inst
 		}))
 		
 		liste = liste.filter(Boolean)
 		if (empty(liste)) {
-			wConfirm('Dışa aktarılacak uygun satır belirlenemedi', ' ')
+			wConfirm('Dışa aktarılacak uygun satır belirlenemedi', islemAdi)
 			return false
 		}
 
@@ -905,6 +906,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 	}
 	importDefsIstendi(e) {
 		e = { ...e }
+		let { silent } = e
 		let islemAdi = e.islemAdi = 'Varsayılan Tanımları Yükle'
 		let mfSinif = this.getMFSinif(e)
 		if (!mfSinif)
@@ -935,7 +937,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 				}
 			}
 
-			if (empty(recs)) {
+			if (!silent && empty(recs)) {
 				wConfirm(
 					`<b class="darkgray">${key}</b> - <b class="royalblue">${aciklama}</b> için <u class="bold firebrick">Varsayılan Tanım</u> bulunamadı`,
 					islemAdi
@@ -943,7 +945,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 				return false
 			}
 
-			;{
+			if (!silent) {
 				let rdlg = await ehConfirm(
 					`<b class="forestgreen">${recs.length}</b> varsayılan tanım için Eksik <b class="firebrick">Varsayılan Tanımlar oluşturulacak</b>, devam edilsin mi?`,
 					islemAdi
@@ -958,7 +960,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 				return res
 
 			let { counts = {}, errors = [] } = e
-			if (counts.ok || counts.fail || counts.duplicate) {
+			if (!silent && (counts.ok || counts.fail || counts.duplicate)) {
 				delay(5).then(() =>
 					this.tazele())
 				
@@ -983,16 +985,19 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		})()
 	}
 	async import(e = {}) {
-		let { recs, trnId, all = false, islemAdi = 'İçeri Al' } = e
+		let { islemAdi = 'İçeri Al' } = e
+		let { silent, recs, trnId, all = false } = e
+		let { offlineMode = e.isOfflineMode ?? e.offline ?? this.isOfflineMode } = e
 		let { gridWidget } = this
 		let mfSinif = this.getMFSinif(e)
-
+		let args = { offlineMode, trnId }
 		let instListe = (
 			empty(recs) ? [] :
-			await mfSinif.importAll({ ...e, recs })
+			await mfSinif.importAll({ ...args, recs })
 		).filter(Boolean)
 		if (empty(instListe)) {
-			hConfirm('İçeri alınacak uygun veri bulunamadı', islemAdi)
+			if (!silent)
+				hConfirm('İçeri alınacak uygun veri bulunamadı', islemAdi)
 			return false
 		}
 
@@ -1007,8 +1012,12 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			try {
 				isOk = (
 					all
-						? await inst.kaydet({ trnId })
-						: ( await inst.importIcinVarmi({ trnId }) ? null : await inst.yaz({ trnId }) )
+						? await inst.kaydet(args)
+						: (
+							await inst.importIcinVarmi(args)
+							   ? null                                // duplicate
+							   : await inst.yaz(args)
+						  )
 				)
 			}
 			catch (ex) {

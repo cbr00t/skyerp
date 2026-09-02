@@ -38,7 +38,7 @@ class DMQRapor extends DMQSayacliKA {
 	get attrSet() { let result = {}; for (let selector of ['grup', 'icerik']) { extend(result, asSet(keys(this[selector]))) } return result }
 	get grupListe() { return keys(this.grup || {}) } set grupListe(value) { return this.grup = asSet(value || []) }
 	get icerikListe() { return keys(this.icerik || {}) } set icerikListe(value) { return this.icerik = asSet(value || []) }
-	get secilenVarmi() { return !!(keys(this.grup).length || keys(this.icerik).length) }
+	get secilenVarmi() { return !(empty(this.grup) && empty(this.icerik) ) }
 	get yatayAnaliz() { return this.kullanim?.yatayAnaliz }
 	set yatayAnaliz(value) { return (this.kullanim ??= {}).yatayAnaliz = value }
 	get filtreKaydedilirmi() { return this.kullanim?.filtreKaydedilirmi }
@@ -95,8 +95,11 @@ class DMQRapor extends DMQSayacliKA {
 	getExportDefName(e = {}) {
 		let { parentPart = e.sender } = e
 		let { rapor = parentPart?.rapor } = e
-		let { aciklama = rapor?.class?.aciklama } = rapor ?? {}
-		return aciklama
+		let { rapor: asilRapor, aciklama = rapor?.class?.aciklama } = rapor ?? {}
+		let { kod: raporTip } = asilRapor?.class ?? {}
+		return [raporTip, aciklama]
+			.filter(Boolean)
+			.join(' - ')
 	}
 	static rootFormBuilderDuzenle(e = {}) {
 		super.rootFormBuilderDuzenle(e)
@@ -461,12 +464,179 @@ class DMQRapor extends DMQSayacliKA {
 			.map(String)
 			.join(delimWS)
 	}
-	importIcinVarmi(e = {}) {
+	static importDefsIstendi(e = {}) {
+		let silent = false, noConfirm = false, noProgress = false
+		return this.importDefs({ silent, noConfirm, noProgress, ...e })
+	}
+	static async importDefs(e = {}) {
+		let islemAdi = 'Varsayılan Raporları Yükle'
+		let { silent, noConfirm, noProgress, recs = makeArray(e.rec) } = e
+		noConfirm ??= !!silent
+		
+		let pm
+		if (!noProgress) {
+			pm = showProgress(`Varsayılan Raporlar belirleniyor...`, islemAdi, true)
+			pm.setAbortBlock(() => { throw { rc: 'userAbort' } })
+		}
+
+		try {
+			if (empty(recs)) {
+				let { dataKey } = app
+				let { DefaultWSHostName_SkyServer: host } = config.class
+				let port = 2095
+				let fsPath = `/mnt/web-data/${dataKey}/defs/toplu/`
+				let mask = '*.json'
+				let apiUrl = `https://${host}:${port}/~/api/get_file_list?search=${mask}&uri=${encodeURI(fsPath)}`
+				
+				try {
+					const MinFileSize = 50, BlockSize = 5
+					let promises = []
+					let files = []
+					await fetch(apiUrl, { cache: 'no-cache', xhr: { credentials: 'omit' } })
+						.then(r => between(r.status, 200, 201) ? r.json() : null)
+						.then(r => files = r?.list ?? [])
+
+					files = files.filter(({ s }) => Number(s) >= MinFileSize)
+					pm?.setProgressMax(files.length * 2)
+					
+					for (let file of files) {
+						let { n } = file
+						promises.push(
+							fetch(`https://${host}:${port}${fsPath}${n}`, { cache: 'no-cache' })
+								.then(r => r.json())
+								.then(_recs => recs.push(...makeArray(_recs)))
+								.finally(() => pm?.progressStep())
+						)
+						if (promises.length >= BlockSize) {
+							await promiseAllSet(promises)
+							promises = []
+						}
+					}
+					await promiseAllSet(promises)
+				}
+				catch (ex) {
+					cerr(ex)
+					if (!silent)
+						wConfirm(`Varsayılan Rapor Tanımları belirlenemedi: [${getErrorText(ex)}]`, islemAdi)
+				}
+			}
+			
+			let tip2State = {}
+			;recs
+				?.filter(r => r?.raportip)
+				?.forEach(r => {
+					let { recs } = (tip2State[r.raportip] ??= { recs: [] })
+					recs.push(r)
+				})
+			if (empty(tip2State))
+				return []
+
+			let c = { total: 0, ok: 0, skipped: 0, failed: 0 }
+			values(tip2State).forEach(({ recs }) =>
+				c.total += recs?.length || 0)
+			pm.progressStep((pm.progressValue || 0) + (c * 3) + 3)
+
+			if (!c.total) {
+				if (!silent)
+					wConfirm(`Yüklenecek Varsayılan Rapor bulunamadı`, islemAdi)
+				return false
+			}
+
+			if (!noConfirm) {
+				let msg = [
+					`<b class="royalblue">${c.total} adet</b> <b class="orangered">Varsayılan Rapor Tanımı yüklenecek</b>`,
+					`Devam edilsin mi?`
+				].map(v => `<p>${v}</p>`).join('\n')
+				let res
+				try { res = await ehConfirm(msg, islemAdi) }
+				catch (ex) { }
+				if (!res)
+					return false
+			}
+			
+			DRapor.uygunRaporlar.forEach(cls => {
+				let { kod: tip } = cls
+				let st = tip ? tip2State[tip] : null
+				if (st)
+					st.rapor = new cls()
+			})
+	
+			;{
+				let res = [], promises = []
+				for (let [tip, { rapor, recs }] of entries(tip2State)) {
+					promises.push(promise(async () => {
+						let defs = await this.importAll({ ...e, rapor, recs })
+						pm?.progressStep(recs?.length)
+						for (let d of defs) {
+							try {
+								let varmi = await d.importIcinVarmi()
+								if (varmi) {
+									c.skipped++
+									continue
+								}
+
+								let ok = await d.yaz()
+								c[ok ? 'ok' : 'failed']++
+
+								if (ok)
+									res.push(d)
+							}
+							finally { pm?.progressStep(2) }
+						}
+					}))
+				}
+				await promiseAll(promises)
+
+				let output = []
+				if (!silent) {
+					if (c.ok)
+						output.push(`<li class="forestgreen"><b class="royalblue">${c.ok} adet</b> Rapor Tanımı yüklendi</li>`)
+					if (c.skipped)
+						output.push(`<li class="darkorange"><b class="royalblue">${c.skipped} adet</b> Rapor Tanımı <u>ZATEN VAR</u></li>`)
+					if (c.fail) {
+						output.push(`<li class="red"><b class="royalblue">${c.fail} adet</b> Rapor Tanımı yüklene<u>ME</u>di</li>`)
+						if (errors.length) {
+							output.push(`<ul style="margin-top: 5px">`)
+							output.push(errors.map(err => `<li class="gray">${getErrorText(err) || err}</li>`))
+							output.push(`</ul>`)
+						}
+					}
+				}
+
+				if (!empty(output)) {
+					let msg = `<ul>${output.join('')}</ul>`
+					window[c.fail ? 'hConfirm' : 'eConfirm'](msg, islemAdi)
+				}
+				
+				return res
+			}
+		}
+		finally {
+			pm?.progressEnd()
+			if (!noProgress)
+				delay(5).then(hideProgress)
+		}
+	}
+	static importFrom(e = {}) {
+		let { rapor } = e
+		let res = super.importFrom(e)
+		if (!res)
+			return res
+
+		if (rapor !== undefined)
+			res.rapor = rapor
+
+		return res
+	}
+	async importIcinVarmi(e = {}) {
 		let { keyHV: hv } = e
-		hv ??= this.keyHostVars(hv)
+		// hv ??= this.keyHostVars(e)
+		hv ??= this.alternateKeyHostVars(e)
 		delete hv.xuserkod
 		e.keyHV = hv
-		return super.importIcinVarmi(e)
+		
+		let res = await super.importIcinVarmi(e)
+		return res
 	}
 	kayitSayisi(e = {}) {
 		let { raporKod, aciklama, sayacSaha } = this
@@ -484,9 +654,9 @@ class DMQRapor extends DMQSayacliKA {
 	alternateKeyHostVarsDuzenle(e) {
 		super.alternateKeyHostVarsDuzenle(e)
 		let { islem, hv, parentPart = app.activeWndPart } = e
-		let { sayac, encUser, raporKod, aciklama, class: { sayacSaha, adiSaha } } = this
-		let { rapor = {} } = parentPart
-		raporKod ||= rapor.rapor?.class?.kod ?? rapor.class?.kod
+		let { sayac, encUser, rapor, raporKod, aciklama, class: { sayacSaha, adiSaha } } = this
+		rapor ??= parentPart?.rapor
+		raporKod ||= rapor?.rapor?.class?.kod ?? rapor?.class?.kod
 		// if (!raporKod) { debugger }
 		extend(hv, { raportip: raporKod, xuserkod: encUser })
 		hv[adiSaha] = aciklama
@@ -539,9 +709,23 @@ class DMQRapor extends DMQSayacliKA {
 	}
 	setValues({ rec }) {
 		super.setValues(...arguments)
-		let getListe = value =>
-			value ? asSet(value.split(delimWS)
-						.filter(Boolean).map(x => x.trim())) : {}
+		
+		function getListe(v) {
+			if (!(v && isString(v))) {
+				return (
+					isArray(v) ? asSet(v) :
+					v ?? {}
+				)
+			}
+			
+			return asSet(
+				v
+					?.split(delimWS)
+					?.map(t => String(t).trim())
+					?.filter(Boolean)
+			)
+		}
+		
 		let kullanim
 		try {
 			let { kullanim: v } = rec
@@ -550,15 +734,19 @@ class DMQRapor extends DMQSayacliKA {
 			}
 		}
 		catch (ex) { cerr(ex) }
+		
 		kullanim ??= {}
 		kullanim.filtreKaydedilirmi ??= false
+		
 		extend(this, {
 			encUser: rec.xuserkod || '',
 			grup: getListe(rec.grupbelirtecler),
 			icerik: getListe(rec.icerikbelirtecler),
-			ozetMax: rec.ilkxsayi, favorimi: asBool(rec.bfavori),
+			ozetMax: rec.ilkxsayi || 0,
+			favorimi: asBoolQ(rec.bfavori) ?? false,
 			kullanim
 		})
+		
 		let { secimler, filtreKaydedilirmi } = this
 		if (secimler && filtreKaydedilirmi) {
 			let { secimlerstr: data } = rec

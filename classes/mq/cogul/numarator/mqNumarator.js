@@ -1,9 +1,12 @@
 class MQNumarator extends MQKA {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, 'fis'] }
-	static get numaratorPartSinif() { return NumaratorPart } static get fisGirisLayoutSelector() { return '.numarator' }
+	static get numaratorPartSinif() { return NumaratorPart }
+	static get fisGirisLayoutSelector() { return '.numarator' }
 	static get kodListeTipi() { return 'NUMARATOR' } static get sinifAdi() { return 'Numaratör' }
-	static get sayacSaha() { return 'sayac' } static get table() { return 'numarator' } static get tableAlias() { return 'num' }
+	static get table() { return 'numarator' }
+	static get tableAlias() { return 'num' }
+	static get sayacSaha() { return 'sayac' }
 	static get offlineDirect() { return true } static get gonderildiDesteklenirmi() { return true }
 
 	constructor(e = {}) {

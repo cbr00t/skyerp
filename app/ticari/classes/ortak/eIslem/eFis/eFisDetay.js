@@ -133,7 +133,7 @@ class EFisDetay extends EFisBase {
 			miktar: this.miktar || 0,
 			fiyat: this.fiyat || 0,
 			bedel: this.netBedel || 0,
-			iskorantext: this.iskOranlarStr || '',
+			iskoranstr: this.iskOranlarStr || '',
 			artoranstr: this.artOranlarStr || '',
 			kdvorani: vergiler.normal[MQVergiKdv.belirtec] || 0,
 			otvorani: vergiler.normal[MQVergiOtv.belirtec] || 0,

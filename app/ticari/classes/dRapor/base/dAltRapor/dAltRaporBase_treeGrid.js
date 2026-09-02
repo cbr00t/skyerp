@@ -182,9 +182,12 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	gridRowExpanded(e) { let {gridPart} = this, {level, uid} = e.event.args.row || {}; gridPart.expandedRowsSet[`${level}-${uid}`] = true }
 	gridRowCollapsed(e) { let {gridPart} = this, {level, uid} = e.event.args.row || {}; gridPart.expandedRowsSet[`${level}-${uid}`] = false }
 	gridSatirTiklandi(e) { }
-	gridSatirCiftTiklandi(e) { 
-		let {gridPart} = this, {gridWidget, expandedRowsSet} = gridPart, {args} = e.event, {level, uid} = args.row || {};
-		if (uid != null) { gridWidget[expandedRowsSet[`${level}-${uid}`] ? 'collapseRow' : 'expandRow'](uid) }
+	gridSatirCiftTiklandi({ event: { args }}) { 
+		let { gridPart}  = this
+		let { gridWidget, expandedRowsSet } = gridPart
+		let { level, uid } = args?.row ?? {}
+		if (uid != null)
+			gridWidget[expandedRowsSet[`${level}-${uid}`] ? 'collapseRow' : 'expandRow'](uid)
 	}
 	gridColumnResized(e) {
 		this.gridColWidthSakla(e)
@@ -996,7 +999,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				colDefs[0] = colDef
 				colDef.minWidth = Math.max(colDef.minWidth ?? 0, 150)
 				colDef.text = [
-					...(keys(grup).map(kod =>
+					...((keys(grup) ?? []).map(kod =>
 						`<span class="royalblue">${tabloYapi.grup[kod]?.colDefs[0]?.text || ''}</span>`) || []),
 					colDef.text
 				].join(' + ')
