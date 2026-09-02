@@ -492,7 +492,7 @@ class DMQRapor extends DMQSayacliKA {
 					const MinFileSize = 50, BlockSize = 5
 					let promises = []
 					let files = []
-					await fetch(apiUrl, { cache: 'no-cache', xhr: { credentials: 'omit' } })
+					await fetch(apiUrl, { cache: 'no-cache', credentials: 'omit' })
 						.then(r => between(r.status, 200, 201) ? r.json() : null)
 						.then(r => files = r?.list ?? [])
 
@@ -502,7 +502,7 @@ class DMQRapor extends DMQSayacliKA {
 					for (let file of files) {
 						let { n } = file
 						promises.push(
-							fetch(`https://${host}:${port}${fsPath}${n}`, { cache: 'no-cache' })
+							fetch(`https://${host}:${port}${fsPath}${n}`, { cache: 'no-cache', credentials: 'omit' })
 								.then(r => r.json())
 								.then(_recs => recs.push(...makeArray(_recs)))
 								.finally(() => pm?.progressStep())
@@ -534,7 +534,9 @@ class DMQRapor extends DMQSayacliKA {
 			let c = { total: 0, ok: 0, skipped: 0, failed: 0 }
 			values(tip2State).forEach(({ recs }) =>
 				c.total += recs?.length || 0)
-			pm.progressStep((pm.progressValue || 0) + (c * 3) + 3)
+
+			if (pm)
+				pm.progressMax = (pm.progressMax || 0) + (c.total * 3) + 3
 
 			if (!c.total) {
 				if (!silent)
@@ -562,10 +564,17 @@ class DMQRapor extends DMQSayacliKA {
 			})
 	
 			;{
-				let res = [], promises = []
+				let res = [], promises = [], errors = []
 				for (let [tip, { rapor, recs }] of entries(tip2State)) {
 					promises.push(promise(async () => {
-						let defs = await this.importAll({ ...e, rapor, recs })
+						let defs = []
+						try { defs = await this.importAll({ ...e, rapor, recs }) ?? [] }
+						catch(ex) {
+							cerr(ex)
+							errors.push(ex)
+							c.failed += recs?.length || 0
+						}
+						
 						pm?.progressStep(recs?.length)
 						for (let d of defs) {
 							try {
@@ -581,6 +590,11 @@ class DMQRapor extends DMQSayacliKA {
 								if (ok)
 									res.push(d)
 							}
+							catch(ex) {
+								cerr(ex)
+								errors.push(ex)
+								c.failed++
+							}
 							finally { pm?.progressStep(2) }
 						}
 					}))
@@ -593,11 +607,15 @@ class DMQRapor extends DMQSayacliKA {
 						output.push(`<li class="forestgreen"><b class="royalblue">${c.ok} adet</b> Rapor Tanımı yüklendi</li>`)
 					if (c.skipped)
 						output.push(`<li class="darkorange"><b class="royalblue">${c.skipped} adet</b> Rapor Tanımı <u>ZATEN VAR</u></li>`)
-					if (c.fail) {
-						output.push(`<li class="red"><b class="royalblue">${c.fail} adet</b> Rapor Tanımı yüklene<u>ME</u>di</li>`)
+					if (c.failed) {
+						output.push(`<li class="red"><b class="royalblue">${c.failed} adet</b> Rapor Tanımı yüklene<u>ME</u>di</li>`)
 						if (errors.length) {
 							output.push(`<ul style="margin-top: 5px">`)
-							output.push(errors.map(err => `<li class="gray">${getErrorText(err) || err}</li>`))
+							output.push(
+								errors
+									.map(err => `<li class="gray">${getErrorText(err) || err}</li>`)
+									.join('\n')
+							)
 							output.push(`</ul>`)
 						}
 					}
@@ -605,7 +623,7 @@ class DMQRapor extends DMQSayacliKA {
 
 				if (!empty(output)) {
 					let msg = `<ul>${output.join('')}</ul>`
-					window[c.fail ? 'hConfirm' : 'eConfirm'](msg, islemAdi)
+					window[c.failed ? 'hConfirm' : 'eConfirm'](msg, islemAdi)
 				}
 				
 				return res

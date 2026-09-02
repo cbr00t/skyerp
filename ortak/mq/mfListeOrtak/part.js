@@ -894,7 +894,11 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 						output.push(`<li class="red"><b class="royalblue">${counts.fail} adet</b> kayıt yüklene<u>ME</u>di</li>`)
 						if (errors.length) {
 							output.push(`<ul style="margin-top: 5px">`)
-							output.push(errors.map(err => `<li class="gray">${getErrorText(err) || err}</li>`))
+							output.push(
+								errors
+									.map(err => `<li class="gray">${getErrorText(err) || err}</li>`)
+									.join('\n')
+							)
 							output.push(`</ul>`)
 						}
 					}
