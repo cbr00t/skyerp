@@ -464,14 +464,20 @@ class DMQRapor extends DMQSayacliKA {
 			.map(String)
 			.join(delimWS)
 	}
-	static importDefsIstendi(e = {}) {
+	static importMyDefsIstendi(e = {}) {
 		let silent = false, noConfirm = false, noProgress = false
-		return this.importDefs({ silent, noConfirm, noProgress, ...e })
+		return this.importDefs({ silent, noConfirm, noProgress, my: true, ...e })
+	}
+	static importGlobDefsIstendi(e = {}) {
+		let silent = false, noConfirm = false, noProgress = false
+		return this.importDefs({ silent, noConfirm, noProgress, my: false, ...e })
 	}
 	static async importDefs(e = {}) {
 		let islemAdi = 'Varsayılan Raporları Yükle'
-		let { silent, noConfirm, noProgress, recs = makeArray(e.rec) } = e
+		let mustKod = await app.wsGetMustKod()
+		let { silent, noConfirm, noProgress, my, recs = makeArray(e.rec) } = e
 		noConfirm ??= !!silent
+		my ??= false
 		
 		let pm
 		if (!noProgress) {
@@ -483,22 +489,28 @@ class DMQRapor extends DMQSayacliKA {
 			if (empty(recs)) {
 				let { dataKey } = app
 				let { DefaultWSHostName_SkyServer: host } = config.class
+				let mid = my ? `musteri/${mustKod}` : 'genel/toplu'
 				let port = 2095
-				let fsPath = `/mnt/web-data/${dataKey}/defs/toplu/`
+				let fsPath = `/mnt/web-data/${dataKey}/defs/${mid}/`
 				let mask = '*.json'
 				let apiUrl = `https://${host}:${port}/~/api/get_file_list?search=${mask}&uri=${encodeURI(fsPath)}`
 				
 				try {
 					const MinFileSize = 50, BlockSize = 5
-					let promises = []
 					let files = []
 					await fetch(apiUrl, { cache: 'no-cache', credentials: 'omit' })
 						.then(r => between(r.status, 200, 201) ? r.json() : null)
 						.then(r => files = r?.list ?? [])
+						.catch(ex => {
+							if (ex.status == 404)
+								return []
+							throw ex
+						})
 
 					files = files.filter(({ s }) => Number(s) >= MinFileSize)
 					pm?.setProgressMax(files.length * 2)
-					
+
+					let promises = []
 					for (let file of files) {
 						let { n } = file
 						promises.push(
@@ -517,7 +529,14 @@ class DMQRapor extends DMQSayacliKA {
 				catch (ex) {
 					cerr(ex)
 					if (!silent)
-						wConfirm(`Varsayılan Rapor Tanımları belirlenemedi: [${getErrorText(ex)}]`, islemAdi)
+						hConfirm(`Varsayılan Rapor Tanımları belirlenemedi: [${getErrorText(ex)}]`, islemAdi)
+					return null
+				}
+
+				if (empty(recs)) {
+					if (!silent)
+						hConfirm(`${my ? 'Size ait ' : ''}Varsayılan Rapor Tanımı bulunamadı`, islemAdi)
+					return null
 				}
 			}
 			
@@ -540,8 +559,8 @@ class DMQRapor extends DMQSayacliKA {
 
 			if (!c.total) {
 				if (!silent)
-					wConfirm(`Yüklenecek Varsayılan Rapor bulunamadı`, islemAdi)
-				return false
+					hConfirm(`Yüklenecek Varsayılan Rapor bulunamadı`, islemAdi)
+				return null
 			}
 
 			if (!noConfirm) {
@@ -553,7 +572,7 @@ class DMQRapor extends DMQSayacliKA {
 				try { res = await ehConfirm(msg, islemAdi) }
 				catch (ex) { }
 				if (!res)
-					return false
+					return null
 			}
 			
 			DRapor.uygunRaporlar.forEach(cls => {

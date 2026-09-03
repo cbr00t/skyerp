@@ -38,7 +38,7 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 		for (let key of ['fisaciklama', 'detaciklama'])
 			hv[key] = sqlEmpty
 		// for (let key of ['dvbedel']) { hv[key] = sqlZero }
-		$.extend(hv, {
+		extend(hv, {
 			aciklama: ({ hv }) => {
                 let withCoalesce = clause => (clause?.sqlDoluDegermi ?? false) ? `COALESCE(${clause}, '')` : sqlEmpty
                 let {fisaciklama: fisAciklama, detaciklama: detAciklama} = hv
@@ -61,6 +61,8 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 		// ... diğerleri stok/hizmet durumuna göre 'uniDuzenle_stokHizmet()' kısmında bağlanıyor
 		if (!from.aliasIcinTable('car'))
 			sent.x2CariBagla({ kodClause: hv?.refkod ?? 'fis.must' })
+		//if (!from.aliasIcinTable('csat'))
+		//	sent.leftJoin('car', 'carisatis csat',['car.must = csat.must', `csat.satistipkod = ''`])
 		if (!from.aliasIcinTable('isl'))
 			sent.fis2StokIslemBagla()
 		;{
@@ -85,6 +87,11 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 		let { det = {} } = maliTablo, { shStokHizmet, shAyrimTipi } = det ?? {}
 		shStokHizmet ??= {}; shAyrimTipi ??= {}
 		let { ihracatmi } = shAyrimTipi
+
+		let normalSipmi = empty(uygunluk) || (uygunluk.stok || uygunluk.hizmet)
+		if (!normalSipmi)
+			return
+		
 		// let ekUygunluk = this.ekUygunluk ?? {
 		let ekUygunluk = {
 			stokmu: e.stokmu ?? (shStokHizmet?.stokmu || shStokHizmet?.birliktemi) ?? true,
@@ -93,6 +100,7 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 		/* let veriTipi_kaListe = veriTipi?.kaListe?.filter(({ ekBilgi: _ }) =>
 			_.sentUygunluk?.call(this, { ...e, maliTablo, det, hesapTipi, veriTipi })) */
 		let getUniBilgi = hizmetmi => {
+			let { _table2ColDefs: cd = {} } = app
 			let stokmu = !hizmetmi
 			if (uygunluk) {
 				if (stokmu && !uygunluk.stok)
@@ -110,7 +118,10 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 			return new Hareketci_UniBilgi()
 				.sentDuzenleIslemi(({ sent, sent: { where: wh, sahalar } }) => {
 					let harTable = hizmetmi ? 'siphizmet' : 'sipstok'
-					sent.fisHareket('sipfis', harTable)
+					sent
+						.fisHareket('sipfis', harTable)
+						.x2CariBagla({ kodClause: cd.sipfis?.teslimcarikod ? 'fis.teslimcarikod' : 'fis.must' })    // !! uniOrtakSonIslem'den önce çağırılmalı
+						.leftJoin('car', 'carisatis csat',['car.must = csat.must', `csat.satistipkod = ''`])
 					wh.fisSilindiEkle()
 					wh.add(`fis.ozeltip = ''`)
 					wh.notInDizi(['ON', 'OG', 'RD'], 'fis.onaytipi')
@@ -144,13 +155,13 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 					sent[`${hizmetmi ? 'hizmet' : 'stok'}2IstGrupBagla`]()
 				})
 				.hvDuzenleIslemi(({ hv, sqlEmpty, sqlZero }) => {
-					let { _table2ColDefs: cd = {} } = app
 					extend(hv, {
 						oncelik: '1', ba: `'B'`, fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac',
 						kayittipi: `'AS'`, anaislemadi: hizmetmi ? `'Hizmet'` : `'Stok'`,
 						islemadi: (almSat == 'A' ? `'Alım'` : `'Satış'`),
 						bizsubekod: 'fis.bizsubekod',  ozelisaret: 'fis.ozelisaret',
-						plasiyerkod: 'fis.plasiyerkod', tarih: 'fis.tarih', fisnox: 'fis.fisnox',
+						plasiyerkod: 'fis.plasiyerkod', tavsiyeplasiyerkod: 'csat.tavsiyeplasiyerkod',
+						tarih: 'fis.tarih', fisnox: 'fis.fisnox',
 						teslimcarikod: ( cd.sipfis?.teslimcarikod ? `fis.teslimcarikod` : `${sqlEmpty} teslimcarikod` ),
 						refkod: 'fis.must', refadi: 'car.birunvan', dvkod: 'fis.dvkod', dvkur: 'fis.dvkur',
 						fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama',
@@ -183,6 +194,11 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 		let { det = {} } = maliTablo, { shStokHizmet, shAyrimTipi } = det ?? {}
 		shStokHizmet ??= {}; shAyrimTipi ??= {}
 		let { ihracatmi } = shAyrimTipi
+		
+		let trfSipmi = empty(uygunluk) || uygunluk.trfSip
+		if (!trfSipmi)
+			return
+		
 		let ekUygunluk = {
 			stokmu: e.stokmu ?? (shStokHizmet?.stokmu || shStokHizmet?.birliktemi) ?? true,
 			hizmetmi: e.hizmetmi ?? (shStokHizmet?.hizmetmi || shStokHizmet?.birliktemi) ?? true
@@ -198,6 +214,8 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 					.sentDuzenleIslemi(({ sent, sent: { where: wh, sahalar } }) => {
 						sent
 							.fisHareket('stfis', 'ststok')
+							.x2CariBagla({ kodClause: 'fis.irsmust' })    // !! uniOrtakSonIslem'den önce çağırılmalı
+							.leftJoin('car', 'carisatis csat', ['car.must = csat.must', `csat.satistipkod = ''`])
 							.har2StokBagla()
 							.stok2GrupBagla()
 							.stok2IstGrupBagla()
@@ -211,7 +229,7 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 							oncelik: '2', ba: `'B'`, fissayac: 'fis.kaysayac', kaysayac: 'har.kaysayac',
 							kayittipi: `'TS'`, anaislemadi: `'Stok'`,
 							islemadi: `'Transfer Sipariş'`, bizsubekod: 'fis.bizsubekod',
-							plasiyerkod: 'fis.plasiyerkod',
+							plasiyerkod: 'fis.plasiyerkod', tavsiyeplasiyerkod: 'csat.tavsiyeplasiyerkod',
 							teslimcarikod: ( cd.stfis?.teslimcarikod ? `fis.teslimcarikod` : `${sqlEmpty} teslimcarikod` ),
 							ozelisaret: 'fis.ozelisaret', tarih: 'fis.tarih', fisnox: 'fis.fisnox',
 							refkod: 'fis.irsmust', refadi: 'car.birunvan', dvkod: 'fis.dvkod', dvkur: 'fis.dvkur',

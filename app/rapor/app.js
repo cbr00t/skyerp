@@ -178,7 +178,8 @@ class SkyRaporApp extends TicariApp {
 		let { noMenuFlag, mainRaporBase } = this
 		if (noMenuFlag)
 			return new FRMenu()
-		
+
+		let { dev } = config
 		let { isAdmin } = config.session ?? {}
 		let { kod2Sinif } = mainRaporBase
 		let kategoriKod2MenuItems = {}
@@ -291,10 +292,18 @@ class SkyRaporApp extends TicariApp {
 					]
 				}),
 				new FRMenuChoice({
-					mne: 'IMPORTDEFS', text: 'Varsayılan Raporları Yükle',
-					block: e => DMQRapor.importDefsIstendi(e)
+					mne: 'IMPORT_MYDEFS', text: `Varsayılan <b class="royalblue">Raporlarımı</b> Yükle`,
+					block: e => DMQRapor.importMyDefsIstendi(e)
 				})
 			)
+			if (dev) {
+				items.push(
+					new FRMenuChoice({
+						mne: 'IMPORT_GLOBDEFS', text: `<b class="forestgreen">Genel</b> Varsayılan Raporları Yükle`,
+						block: e => DMQRapor.importGlobDefsIstendi(e)
+					})
+				)
+			}
 		}
 
 		/*;{

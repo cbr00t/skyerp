@@ -264,7 +264,7 @@ class DRapor_Hareketci_AlimSatisSipOrtak_Main extends DRapor_Hareketci_AlimSatis
 			}
 		}
 	}
-	loadServerData_queryDuzenle_hrkStm_sonIslemler({ attrSet, secimler }) {
+	loadServerData_queryDuzenle_hrkStm_sonIslemler({ attrSet, secimler, stm }) {
 		let e = arguments[0]
 		super.loadServerData_queryDuzenle_hrkStm_sonIslemler(e)
 		let { tip: { value: tip } } = secimler
@@ -289,12 +289,12 @@ class DRapor_Hareketci_AlimSatisSipOrtak_Main extends DRapor_Hareketci_AlimSatis
 		if (isArray(shTip))
 			shTip = asSet(shTip)
 		
-		let {with: _with} = stm
+		let { with: _with } = stm
 		let withEkle = hizmetmi => {
 			let sh = hizmetmi ? 'hizmet' : 'stok'
 			let harTable = `sip${sh}`, donTable = `sip2if${sh}`
 			let pifHarTable = `pif${sh}`
-			let sent = new MQSent(), {where: wh, sahalar} = sent
+			let sent = new MQSent(), { where: wh, sahalar, groupBy } = sent
 			sent
 				.fisHareket('sipfis', harTable)
 				.leftJoin('har', `${donTable} don`, 'har.kaysayac = don.sipharsayac')
@@ -323,12 +323,13 @@ class DRapor_Hareketci_AlimSatisSipOrtak_Main extends DRapor_Hareketci_AlimSatis
 			withEkle(true)
 		}
 		let mc = { miktar: 'har.miktar', sevk: `COALESCE(sdon.sevkmiktar, 0)` }
-		extend(mc, { kalan: `${mc.miktar} - ${mc.sevk}` })
+		extend(mc, { kalan: `(${mc.miktar} - ${mc.sevk})` })
 		uni ??= stm.sent
 		for (let sent of uni) {
-			let {from, where: wh} = sent
+			let { from, where: wh, groupBy } = sent
 			let hizmetmi = from.aliasIcinTable('har').deger == 'siphizmet'
-			let sh = hizmetmi ? 'hizmet' : 'stok', prefix = hizmetmi ? 'h' : 's'
+			let sh = hizmetmi ? 'hizmet' : 'stok'
+			let prefix = hizmetmi ? 'h' : 's'
 			/*if (shTip) {
 				if (hizmetmi && !shTip.hizmet)
 					continue
