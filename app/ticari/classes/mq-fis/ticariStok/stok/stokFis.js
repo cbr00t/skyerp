@@ -100,8 +100,14 @@ class StokFis extends TSOrtakFis {
 		super.varsayilanKeyHostVarsDuzenle(...arguments)
 		extend(hv, {
 			gctipi: this.gcTipi, ozeltip: this.ozelTip,
-			fisekayrim: this.fisEkAyrim, oncelik: this.oncelik
+			fisekayrim: this.fisEkAyrim
+			// oncelik: this.oncelik
 		})
+	}
+	hostVarsDuzenle({ hv }) {
+		let { class: { oncelik } } = this
+		super.hostVarsDuzenle(...arguments)
+		extend(hv, { oncelik })
 	}
 }
 
