@@ -142,8 +142,8 @@ class MQOrtakFis extends MQDetayli {
 			let result = await this.disKaydetOncesi_trn(e)
 			if (result === false)
 				return false
-			
-			if (num && !num.serbestmi) {
+
+			if ((num?.tip || num?.kod) && !num.serbestmi) {
 				if (!fisNo)
 					fisNo = this.fisNo = (await num.kesinlestir(e)).sonNo
 				while (await this.varmi(e))

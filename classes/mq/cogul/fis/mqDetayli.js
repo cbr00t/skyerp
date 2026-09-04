@@ -354,27 +354,34 @@ class MQDetayli extends MQSayacli {
 	async kaydetOncesiIslemler(e = {}) {
 		await super.kaydetOncesiIslemler(e)
 		let { islem = 'yeni', trnId } = e
-		let { detaylar, class: { guidmi } } = this
+		let { numarator: num, detaylar, class: { guidmi } } = this
 		for (let det of detaylar)
 			await det?.kaydetOncesiIslemler(e)
 
-		if (!guidmi && (islem == 'yeni' || islem == 'kopya')) {
-			let keyHV = this.alternateKeyHostVars(e)
-			let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode
-			let _e = { offlineMode, trnId, islem }
-			if (!empty(keyHV)) {
-				extend(_e, { keyHV })
-				let result = await this.varmi(_e)
-				delete _e.keyHV
-				if (result) {
-					let errorText = getMergedText(
-						'<div class="bold firebrick" style="margin-bottom: -15px">Bu Belge zaten kayıtlı:</div>', (
-						entries(keyHV)
-							.filter(([k, v]) => v)
-							.map(([k, v]) => `${k} = <b class="royalblue">${v}</b>`)
+		;{
+			let kontrolEdilirmi = !guidmi && (islem == 'yeni' || islem == 'kopya')
+			kontrolEdilirmi &&= (
+				!(num?.tip || num?.kod) ||
+				num.serbestmi
+			)
+			if (kontrolEdilirmi) {
+				let keyHV = this.alternateKeyHostVars(e)
+				let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode
+				let _e = { offlineMode, trnId, islem }
+				if (!empty(keyHV)) {
+					extend(_e, { keyHV })
+					let result = await this.varmi(_e)
+					delete _e.keyHV
+					if (result) {
+						let errorText = getMergedText(
+							'<div class="bold firebrick" style="margin-bottom: -15px">Bu Belge zaten kayıtlı:</div>', (
+							entries(keyHV)
+								.filter(([k, v]) => v)
+								.map(([k, v]) => `${k} = <b class="royalblue">${v}</b>`)
+							)
 						)
-					)
-					throw { isError: true, errorText }
+						throw { isError: true, errorText }
+					}
 				}
 			}
 		}

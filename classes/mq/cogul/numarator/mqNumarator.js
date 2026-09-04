@@ -112,7 +112,7 @@ class MQNumarator extends MQKA {
 		let { isOfflineMode } = MQCogul
 		let { class: { table: numTable } } = this
 		let { fis = e.inst ?? this.fis } = e
-		let { id, class: { table: fisTable } } = fis
+		let { id, class: { table: fisTable, kodListeTipi: fisAdimKod } } = fis
 	
 		if (isOfflineMode) {
 			if (!await this.varmi(e))
@@ -167,7 +167,11 @@ class MQNumarator extends MQKA {
 				fis.fisNo++
 				if (this.sonNo < fis.fisNo) {
 					this.sonNo = fis.fisNo
-					await this.kaydet(e)
+					deferExec(
+						`${fisAdimKod}-fisNum-kesinlestir`,
+						e => this.kaydet(e),
+						1_000, e
+					)
 				}
 			}
 		}

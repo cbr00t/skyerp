@@ -474,7 +474,6 @@ class DMQRapor extends DMQSayacliKA {
 	}
 	static async importDefs(e = {}) {
 		let islemAdi = 'Varsayılan Raporları Yükle'
-		let mustKod = await app.wsGetMustKod()
 		let { silent, noConfirm, noProgress, my, recs = makeArray(e.rec) } = e
 		noConfirm ??= !!silent
 		my ??= false
@@ -489,6 +488,7 @@ class DMQRapor extends DMQSayacliKA {
 			if (empty(recs)) {
 				let { dataKey } = app
 				let { DefaultWSHostName_SkyServer: host } = config.class
+				let mustKod = my ? await app.wsGetMustKod() : null    // 'my' değilse belirlemeye gerek yok
 				let mid = my ? `musteri/${mustKod}` : 'genel/toplu'
 				let port = 2095
 				let fsPath = `/mnt/web-data/${dataKey}/defs/${mid}/`
