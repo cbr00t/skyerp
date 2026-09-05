@@ -464,21 +464,30 @@ class DMQRapor extends DMQSayacliKA {
 			.map(String)
 			.join(delimWS)
 	}
-	static importMyDefsIstendi(e = {}) {
+	static importMyDefsFromLocal(e = {}) {
 		let silent = false, noConfirm = false, noProgress = false
-		return this.importDefs({ silent, noConfirm, noProgress, my: true, ...e })
+		return this.importDefs({ silent, noConfirm, noProgress, my: true, local: true, ...e })
 	}
-	static importGlobDefsIstendi(e = {}) {
+	static importMyDefsFromCloud(e = {}) {
 		let silent = false, noConfirm = false, noProgress = false
-		return this.importDefs({ silent, noConfirm, noProgress, my: false, ...e })
+		return this.importDefs({ silent, noConfirm, noProgress, my: true, local: false, ...e })
+	}
+	static importGlobDefsFromCloud(e = {}) {
+		let silent = false, noConfirm = false, noProgress = false
+		return this.importDefs({ silent, noConfirm, noProgress, my: false, local: false, ...e })
 	}
 	static async importDefs(e = {}) {
 		let islemAdi = 'Varsayılan Raporları Yükle'
-		let { silent, noConfirm, noProgress, my, recs = makeArray(e.rec) } = e
+		let { silent, noConfirm, noProgress, my, local, recs = makeArray(e.rec) } = e
+		let pm
 		noConfirm ??= !!silent
 		my ??= false
+		local ??= false
+
+		let dh
+		try { dh = local && empty(recs) ? await showDirectoryPicker({ mode: 'read' }) : null }
+		catch (ex) { return null }
 		
-		let pm
 		if (!noProgress) {
 			pm = showProgress(`Varsayılan Raporlar belirleniyor...`, islemAdi, true)
 			pm.setAbortBlock(() => { throw { rc: 'userAbort' } })
@@ -486,45 +495,61 @@ class DMQRapor extends DMQSayacliKA {
 
 		try {
 			if (empty(recs)) {
-				let { dataKey } = app
-				let { DefaultWSHostName_SkyServer: host } = config.class
-				let mustKod = my ? await app.wsGetMustKod() : null    // 'my' değilse belirlemeye gerek yok
-				let mid = my ? `musteri/${mustKod}` : 'genel/toplu'
-				let port = 2095
-				let fsPath = `/mnt/web-data/${dataKey}/defs/${mid}/`
-				let mask = '*.json'
-				let apiUrl = `https://${host}:${port}/~/api/get_file_list?search=${mask}&uri=${encodeURI(fsPath)}`
-				
+				recs ??= []
 				try {
-					const MinFileSize = 50, BlockSize = 5
-					let files = []
-					await fetch(apiUrl, { cache: 'no-cache', credentials: 'omit' })
-						.then(r => between(r.status, 200, 201) ? r.json() : null)
-						.then(r => files = r?.list ?? [])
-						.catch(ex => {
-							if (ex.status == 404)
-								return []
-							throw ex
-						})
-
-					files = files.filter(({ s }) => Number(s) >= MinFileSize)
-					pm?.setProgressMax(files.length * 2)
-
-					let promises = []
-					for (let file of files) {
-						let { n } = file
-						promises.push(
-							fetch(`https://${host}:${port}${fsPath}${n}`, { cache: 'no-cache', credentials: 'omit' })
-								.then(r => r.json())
-								.then(_recs => recs.push(...makeArray(_recs)))
-								.finally(() => pm?.progressStep())
-						)
-						if (promises.length >= BlockSize) {
-							await promiseAllSet(promises)
-							promises = []
+					if (local) {
+						for await (let { file: f } of enumDirsRecurWFile({ dh, mask: '*.json' })) {
+							let text = await f.text()
+							if (!text.trim())
+								continue
+				
+							try {
+								let arr = makeArray(JSON.parse(text))
+								if (!empty(arr))
+									recs.push(...arr)
+							}
+							catch (ex) { cerr(ex) }
 						}
 					}
-					await promiseAllSet(promises)
+					else {    // cloud
+						const MinFileSize = 50, BlockSize = 5
+						let { dataKey } = app
+						let { DefaultWSHostName_SkyServer: host } = config.class
+						let mustKod = my ? await app.wsGetMustKod() : null    // 'my' değilse belirlemeye gerek yok
+						let mid = my ? `musteri/${mustKod}` : 'genel/toplu'
+						let port = 2095
+						let fsPath = `/mnt/web-data/${dataKey}/defs/${mid}/`
+						let mask = '*.json'
+						let apiUrl = `https://${host}:${port}/~/api/get_file_list?search=${mask}&uri=${encodeURI(fsPath)}`
+						let files = []
+						await fetch(apiUrl, { cache: 'no-cache', credentials: 'omit' })
+							.then(r => between(r.status, 200, 201) ? r.json() : null)
+							.then(r => files = r?.list ?? [])
+							.catch(ex => {
+								if (ex.status == 404)
+									return []
+								throw ex
+							})
+	
+						files = files.filter(({ s }) => Number(s) >= MinFileSize)
+						pm?.setProgressMax(files.length * 2)
+	
+						let promises = []
+						for (let f of files) {
+							let { n } = f
+							promises.push(
+								fetch(`https://${host}:${port}${fsPath}${n}`, { cache: 'no-cache', credentials: 'omit' })
+									.then(r => r.json())
+									.then(_recs => recs.push(...makeArray(_recs)))
+									.finally(() => pm?.progressStep())
+							)
+							if (promises.length >= BlockSize) {
+								await promiseAllSet(promises)
+								promises = []
+							}
+						}
+						await promiseAllSet(promises)
+					}
 				}
 				catch (ex) {
 					cerr(ex)
@@ -581,6 +606,15 @@ class DMQRapor extends DMQSayacliKA {
 				if (st)
 					st.rapor = new cls()
 			})
+
+			;keys(tip2State)
+				.filter(k => !tip2State[k].rapor)
+				.forEach(k => {
+					let st = tip2State[k]
+					let { recs } = st ?? {}
+					delete tip2State[k]
+					c.failed += recs?.length || 0
+				})
 	
 			;{
 				let res = [], promises = [], errors = []
@@ -692,6 +726,7 @@ class DMQRapor extends DMQSayacliKA {
 		super.alternateKeyHostVarsDuzenle(e)
 		let { islem, hv, parentPart = app.activeWndPart } = e
 		let { sayac, encUser, rapor, raporKod, aciklama, class: { sayacSaha, adiSaha } } = this
+		let { isAdmin } = config.session ?? {}
 		rapor ??= parentPart?.rapor
 		raporKod ||= rapor?.rapor?.class?.kod ?? rapor?.class?.kod
 		// if (!raporKod) { debugger }
@@ -699,15 +734,14 @@ class DMQRapor extends DMQSayacliKA {
 		hv[adiSaha] = aciklama
 
 		switch (islem) {
-			case 'degistir': {
+			case 'degistir':
+			case 'sil': {
 				if (sayac) {
 					hv[sayacSaha] = sayac
 					deleteKeys(hv, 'aciklama', 'xuserkod')
 				}
-				break
-			}
-			case 'sil': {
-				delete hv.xuserkod
+				if (isAdmin)
+					delete hv.xuserkod
 				break
 			}
 			default: {

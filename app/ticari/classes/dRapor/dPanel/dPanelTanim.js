@@ -8,7 +8,8 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 	static get tanimUISinif() { return ModelTanimPart }
 	static get kolonFiltreKullanilirmi() { return false }
 	static get logKullanilirmi() { return false }
-	static get emptyAciklama() { return '_Boş Dizayn' } static get defaultAciklama() { return '_Güncel Dizayn' }
+	static get emptyAciklama() { return '_Boş Dizayn' }
+	static get defaultAciklama() { return '_Güncel Dizayn' }
 	static get localData() {
 		let {_localData: result} = this
 		if (result == null) {
@@ -41,18 +42,25 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 		return await inst.getDefault(e) ? inst : null
 	}
 	async getDefault(e) {
-		let {class: cls, class: { localData: d }} = this
+		let { class: cls, class: { localData: d } } = this
 		await d?._promise
-		let aciklama = '', {id} = await d?.get('_current') ?? {}
+		/*let { id } = await d?.get('_current') ?? {}
+		this.setAciklamaDefault()
 		extend(this, { id, aciklama })
 		if (id)
+			await this.yukle(e)*/
+		this.setAciklamaDefault()
+		let { id } = await this.tekilOku() ?? {}
+		if (id) {
+			this.id = id
 			await this.yukle(e)
+		}
 		await cls.createEmptyIfNot(e)
 		return this                                                       /* yükleyemezsen de mevcut olanı dön */
 	}
 	async setDefault(e) {
-		await this.kaydet(e)
 		await this.setDefaultBasit(e)
+		await this.kaydet(e)
 		return this
 	}
 	async setDefaultBasit(e) {
@@ -61,9 +69,9 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 		let cur = await d?.get('_current') ?? {}
 		let id = this.id ||= (cur.id || newGUID())
 		this.user = this.encUser = ''
-		if (!this.aciklama)
-			this.setAciklamaDefault()
-		let {aciklama} = this
+		//if (!this.aciklama)
+		this.setAciklamaDefault()
+		let { aciklama } = this
 		extend(cur, { id, aciklama })
 		await d?.set('_current', cur)
 		d?.kaydetDefer()
@@ -290,6 +298,7 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 	setAciklamaEmpty() { return this.setAciklama(this.class.emptyAciklama) }
 	setAciklamaDefault() { return this.setAciklama(this.class.defaultAciklama) }
 }
+
 class DPanelTanim_Local extends DPanelTanim {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static async loadServerDataDogrudan() {

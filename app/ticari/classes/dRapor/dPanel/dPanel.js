@@ -52,7 +52,7 @@ class DPanel extends Part {
 
 	constructor({ id2Detay, secimler } = {}) {
 		let e = arguments[0]; super(e)
-		let {raporTanim, class: { aciklama }} = this
+		let  {raporTanim, class: { aciklama: adimText } } = this
 		raporTanim ??= this.raporTanim = new DPanelTanim().noId()
 		raporTanim._promise = raporTanim.getDefault()
 			.then(inst => raporTanim = this.raporTanim = inst)
@@ -61,7 +61,7 @@ class DPanel extends Part {
 			this.secimlerDuzenle(_e)
 			secimler = _e.secimler
 		}
-		let {title = `<b class="royalblue">${aciklama}</b>`} = this
+		let {title = `<b class="royalblue">${adimText}</b>`} = this
 		extend(this, { title, raporTanim, id2Detay, secimler })
 	}
 	static getClass(e) {

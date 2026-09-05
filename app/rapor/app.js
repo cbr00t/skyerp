@@ -286,24 +286,42 @@ class SkyRaporApp extends TicariApp {
 			let { params } = this
 			items.push(
 				new FRMenuCascade({
-					mne: 'PARAM', text: 'Parametreler', items: [
+					mne: 'PARAM', text: 'Parametreler',
+					items: [
 						new FRMenuChoice({ mne: 'DRAPOR', text: 'Rapor Genel', block: e => params.dRapor.tanimla(e) }),
 						new FRMenuChoice({ mne: 'FINANS', text: 'Finans', block: e => params.finans.tanimla(e) })
 					]
 				}),
-				new FRMenuChoice({
-					mne: 'IMPORT_MYDEFS', text: `Varsayılan <b class="royalblue">Raporlarımı</b> Yükle`,
-					block: e => DMQRapor.importMyDefsIstendi(e)
+				new FRMenuCascade({
+					mne: 'DEFS', text: 'Varsayılanlar',
+					items: [
+						new FRMenuChoice({
+							mne: 'MY_LOCAL',
+							text: (
+								`<b class="royalblue">Raporlarımı</b> Yükle <br>` +
+								`<span class="gray">(<b class="forestgreen">YEREL</b>)</span>`
+							),
+							block: e => DMQRapor.importMyDefsFromLocal(e)
+						}),
+						new FRMenuChoice({
+							mne: 'MY_CLOUD',
+							text: (
+								`<b class="forestgreen">Raporlarımı</b> Yükle <br>` +
+								`<span class="gray">(<b class="royalblue">SKY CLOUD</b>)</span>`
+							),
+							block: e => DMQRapor.importMyDefsFromCloud(e)
+						}),
+						( dev ? new FRMenuChoice({
+							mne: 'GLOB_CLOUD',
+							text: (
+								`<b class="orangered">Genel Varsyılanları</b> Yükle <br>` +
+								`<span class="gray">(<b class="royalblue">SKY CLOUD</b>)</span>`
+							),
+							block: e => DMQRapor.importGlobDefsFromCloud(e)
+						}) : null ),
+					].filter(Boolean)
 				})
 			)
-			if (dev) {
-				items.push(
-					new FRMenuChoice({
-						mne: 'IMPORT_GLOBDEFS', text: `<b class="forestgreen">Genel</b> Varsayılan Raporları Yükle`,
-						block: e => DMQRapor.importGlobDefsIstendi(e)
-					})
-				)
-			}
 		}
 
 		/*;{

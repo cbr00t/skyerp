@@ -1207,7 +1207,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			.addStyle_fullWH(null, `calc(var(--full) - (var(--islemTuslariHeight) + var(--ustHeight) + var(--ustEkHeight)))`)
 		
 		this.wnd_raporTanim = wnd = createJQXWindow({
-			title, args: {
+			title,
+			args: {
 				isModal: false, closeButtonAction: 'close',
 				position: { left: $(window).width() / 3.5, top: -10 },
 				width: Math.max(800, Math.min(630, $(window).width() - 100)),
