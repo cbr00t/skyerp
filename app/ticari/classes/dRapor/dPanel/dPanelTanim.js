@@ -2,14 +2,14 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, 'panel', 'rapor', 'inst', 'part'] }
 	static get kodListeTipi() { return 'DPANEL' } static get sinifAdi() { return 'Panel Rapor' }
+	static get kod() { return this.kodListeTipi } static get aciklama() { return this.sinifAdi }
 	static get table() { return 'wpanelrapor' } static get tableAlias() { return 'pnl' }
 	static get detaySinif() { return DPanelDetay } static get gridKontrolcuSinif() { return DPanelGridci }
 	static get tanimlanabilirmi() { return false } static get degistirilebilirmi() { return false }
 	static get tanimUISinif() { return ModelTanimPart }
-	static get kolonFiltreKullanilirmi() { return false }
-	static get logKullanilirmi() { return false }
-	static get emptyAciklama() { return '_Boş Dizayn' }
-	static get defaultAciklama() { return '_Güncel Dizayn' }
+	static get kolonFiltreKullanilirmi() { return false } static get logKullanilirmi() { return false }
+	static get emptyAciklama() { return '_Boş Dizayn' } static get defaultAciklama() { return '_Güncel Dizayn' }
+	static get ozelImportmu() { return true }
 	static get localData() {
 		let {_localData: result} = this
 		if (result == null) {
@@ -205,6 +205,22 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 		super.setValues(...arguments); let {userkod: user = ''} = rec
 		extend(this, { user })
 	}
+
+	exportDataDuzenle(e) {
+		super.exportDataDuzenle(e)
+		this.exportDataDuzenleOrtak(e)
+	}
+	inExp_hostVarsDuzenle(e) {
+		super.inExp_hostVarsDuzenle(e)
+		let { hv } = e    // !! once super() !!
+		this.exportDataDuzenleOrtak({ ...e, result: hv })
+	}
+	exportDataDuzenleOrtak({ result: res, parentPart }) {
+		super.exportDataDuzenle(...arguments)
+		let { kod: raportip } = this.class
+		extend(res, { raportip })
+	}
+	
 	static async importIstendi({ sender: gridPart }) {
 		try {
 			let { data: recs } = await openFile({ coklu: false, capture: false, type: wsDataType, accept: wsContentType })

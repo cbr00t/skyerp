@@ -782,7 +782,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			}
 		}*/
 		if (config.dev)
-			console.info({ sevListe, recs })
+			console.debug({ sevListe, recs })
 		return sevListe ?? recs
 	}
 	ozetBilgiRecsOlustur(e) {

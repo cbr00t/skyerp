@@ -600,7 +600,8 @@ class DMQRapor extends DMQSayacliKA {
 					return null
 			}
 			
-			DRapor.uygunRaporlar.forEach(cls => {
+			let classes = [DPanelTanim, SBTablo, ...DRapor.uygunRaporlar]
+			;classes.forEach(cls => {
 				let { kod: tip } = cls
 				let st = tip ? tip2State[tip] : null
 				if (st)
@@ -621,7 +622,12 @@ class DMQRapor extends DMQSayacliKA {
 				for (let [tip, { rapor, recs }] of entries(tip2State)) {
 					promises.push(promise(async () => {
 						let defs = []
-						try { defs = await this.importAll({ ...e, rapor, recs }) ?? [] }
+						try {
+							let { class: rapCls } = rapor ?? {}
+							let { ozelImportmu } = rapCls ?? {}
+							let args = { ...e, rapor, recs }
+							defs = await ( ozelImportmu ? rapCls.importAll(args) : this.importAll(args) ) ?? []
+						}
 						catch(ex) {
 							cerr(ex)
 							errors.push(ex)

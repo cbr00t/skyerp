@@ -1,13 +1,16 @@
 class SBTablo extends MQDetayliGUIDVeAdi {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get sabitTablomu() { return true }
 	static get kodListeTipi() { return 'SBTABLO' } static get sinifAdi() { return 'Mali Tablo' }
+	static get kod() { return this.kodListeTipi } static get aciklama() { return this.sinifAdi }
 	static get table() { return 'sbtablo' } static get tableAlias() { return 'fis' }
 	static get detaySinif() { return SBTabloDetay } static get gridKontrolcuSinif() { return SBTabloGridci }
 	static get kolonFiltreKullanilirmi() { return false } static get raporKullanilirmi() { return false }
 	static get tumKolonlarGosterilirmi() { return true } static get inExpKullanilirmi() { return true }
 	static get logKullanilirmi() { return false }
+	static get ozelImportmu() { return true }
 	static get gridHeight_bosluk() { return 90 } static get _repeatButton_delayMS() { return 100 }
 	get yatayAnalizVarmi() { return !!this.yatayAnaliz?.char }
+
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
 		extend(pTanim, {
@@ -201,6 +204,22 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 		hv.aciklama = hv.aciklama ?? ''
 	}
 	setValues({ rec }) { super.setValues(...arguments) }
+
+	exportDataDuzenle(e) {
+		super.exportDataDuzenle(e)
+		this.exportDataDuzenleOrtak(e)
+	}
+	inExp_hostVarsDuzenle(e) {
+		super.inExp_hostVarsDuzenle(e)
+		let { hv } = e    // !! once super() !!
+		this.exportDataDuzenleOrtak({ ...e, result: hv })
+	}
+	exportDataDuzenleOrtak({ result: res, parentPart }) {
+		super.exportDataDuzenle(...arguments)
+		let { kod: raportip } = this.class
+		extend(res, { raportip })
+	}
+	
 	static getRaporKod(e) {
 		e = e ?? {}; let kod = typeof e == 'object' ? 
 			(e.raporKod ?? e.raporkod ?? e.raporTip ?? e.raportip ?? e.kod ?? e.tip ??
@@ -1322,7 +1341,7 @@ class SBTabloGridci extends GridKontrolcu {
 			.addStyle(`$elementCSS { margin: 30px 0 0 20px }`)
 			.onClick(({ builder: fbd }) => {
 				let {parentBuilder} = fbd.parentBuilder; showCSSFlag = !showCSSFlag;
-				parentBuilder.layout.toggleClass('expanded');
+				parentBuilder.layout.toggleClass('expanded')
 				for (let _fbd of parentBuilder) { _fbd.updateVisible() }
 			});
 		
