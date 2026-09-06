@@ -8,21 +8,24 @@ class DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main extends DRapor_Hareketci_Mai
 		let e = arguments[0]
 		super.tabloYapiDuzenle(e)
 		let { _table2ColDefs: cd = {} } = app
-		let { maliyetKullanilirmi } = this.class
+		let { siparismi, maliyetKullanilirmi } = this.class
 		let { brmDict } = app.params.stokBirim ?? {}
 		let { isAdmin, rol } = config.session ?? {}
 		let maliyetGorurmu = isAdmin || !rol?.ozelRolVarmi('XMALYT')
 		let { tip2BrmListe } = MQStokGenelParam
-		let {toplam} = result, brmListe = keys(tip2BrmListe)
+		let { toplam } = result
+		let brmListe = keys(tip2BrmListe)
 		result.addGrupBasit('SHTIP', 'S/H Tip', 'shtiptext')
 		this.tabloYapiDuzenle_cari(e)
 		this.tabloYapiDuzenle_plasiyer(e)
 		if (cd.sipfis?.teslimcarikod)
 			this.tabloYapiDuzenle_teslimCari(e)
 		this.tabloYapiDuzenle_sh(e)
+		let pf_sevk = siparismi ? 'Teslim' : 'Sevk'
 		result
-			.addGrupBasit('SEVKTARIHX', 'Sevk Tarih', 'sevktarihx')
-			.addGrupBasit('SEVKNOX', 'Sevk No', 'sevknox', null, null, ({ colDef }) => colDef.alignRight())
+			.addGrupBasit('SEVKTARIH', `${pf_sevk} Tarih`, 'sevktarihi', null, null, ({ item, colDef: cd }) => { cd.date(); item.setSql_hv() })
+			.addGrupBasit('SEVKSAAT', `${pf_sevk} Saati`, 'sevksaati', null, null, ({ item, colDef: cd }) => { cd.time(); item.setSql_hv() })
+			.addGrupBasit('SEVKNOX', 'Sevk No', 'sevknox', null, null, ({ item, colDef: cd }) => { item.setSql_hv(); cd.alignRight() })
 			.addToplamBasit('MIKTAR', 'Miktar', 'miktar', null, 10, null)
 			.addToplamBasit('MIKTAR2', '2. Miktar', 'miktar2', null, 10, null)
 			.addToplamBasit('MIKTAR', 'Miktar', 'miktar')
@@ -31,6 +34,7 @@ class DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main extends DRapor_Hareketci_Mai
 			let fra = brmDict[tip]
 			result.addToplamBasit(`MIKTAR${tip}`, `Miktar (${tip})`, `miktar${tip}`, null, 10, ({ colDef }) => colDef.tipDecimal(fra))
 		}
+		this.tabloYapiDuzenle_baBedel_kdvDahil(e)
 		if (maliyetKullanilirmi && maliyetGorurmu) {
 			let { uretimMalMuh } = app.params.uretim?.kullanim ?? {}
 			result
@@ -159,12 +163,15 @@ class DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main extends DRapor_Hareketci_Mai
 
 class DRapor_Hareketci_AlimSatisOrtak extends DRapor_Hareketci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get vioAdim() { return null } static get araSeviyemi() { return this == DRapor_Hareketci_AlimSatisOrtak }
+	static get vioAdim() { return null }
+	static get araSeviyemi() { return this == DRapor_Hareketci_AlimSatisOrtak }
 }
 class DRapor_Hareketci_AlimSatisOrtak_Main extends DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Hareketci_AlimSatisOrtak }
+	static get almSatmi() { return true }
 	static get maliyetKullanilirmi() { return true }
+	
 	tabloYapiDuzenle({ result }) {
 		let e = arguments[0]
 		super.tabloYapiDuzenle(e)
@@ -201,6 +208,8 @@ class DRapor_Hareketci_AlimSatisSipOrtak extends DRapor_Hareketci {
 class DRapor_Hareketci_AlimSatisSipOrtak_Main extends DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Hareketci_AlimSatisSipOrtak }
+	static get siparismi() { return true }
+	
 	secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments)
 		{
@@ -225,6 +234,8 @@ class DRapor_Hareketci_AlimSatisSipOrtak_Main extends DRapor_Hareketci_AlimSatis
 	tabloYapiDuzenle({ result }) {
 		super.tabloYapiDuzenle(...arguments)
 		result
+			.addGrupBasit('VADE', 'Vade', 'vade', null, null, ({ item }) => item.setSql_hv())
+			// .addGrupBasit('SEVKTARIH', 'Sevk Tarihi', 'sevktarihi', null, null, ({ item }) => item.setSql_hv())
 			.addToplamBasit('SEVKMIKTAR', 'Sevk Miktar', 'sevkmiktar')
 			.addToplamBasit('SEVKMIKTAR2', 'Sevk Miktar 2', 'sevkmiktar2')
 			.addToplamBasit('KALANMIKTAR', 'Kalan Miktar', 'kalanmiktar')
@@ -248,7 +259,7 @@ class DRapor_Hareketci_AlimSatisSipOrtak_Main extends DRapor_Hareketci_AlimSatis
 		mc.kalan = `(${mc.miktar} - ${mc.sevk})`
 		for (let key in attrSet) {
 			switch (key) {
-				case 'SEVKTARIHX': sahalar.add(`sdon.sevktarihx`); break
+				case 'SEVKTARIH': sahalar.add(`sdon.sevktarihx sevktarihi`); break
 				case 'SEVKNOX': sahalar.add(`sdon.sevknox`); break
 				case 'MIKTAR': sahalar.add(`SUM(${mc.miktar}) miktar`); break
 				case 'MIKTAR2': sahalar.add(`SUM(${mc.miktar2}) miktar2`); break
@@ -274,7 +285,7 @@ class DRapor_Hareketci_AlimSatisSipOrtak_Main extends DRapor_Hareketci_AlimSatis
 			return*/
 		
 		let sevkMiktarBedelKeys = ['SEVKMIKTAR', 'SEVKMIKTAR2', 'KALANMIKTAR', 'KALANMIKTAR2', 'SEVKBEDEL', 'KALANBEDEL']
-		let sevkBelgeKeys = ['SEVKTARIHX', 'SEVKNOX']
+		let sevkBelgeKeys = ['SEVKTARIH', 'SEVKNOX']
 		let gereksinim = e.gereksinim = {
 			miktarBedel: sevkMiktarBedelKeys.some(key => attrSet[key]),
 			belge: sevkBelgeKeys.some(key => attrSet[key])
@@ -356,7 +367,7 @@ class DRapor_Hareketci_AlimSatisSipOrtak_Main extends DRapor_Hareketci_AlimSatis
 		if (almSat)
 			wh.degerAta(almSat, 'fis.almsat')
 		sahalar.add('har.kaysayac harsayac', 'SUM(don.busevkmiktar) sevkmiktar')
-		if (attrSet.SEVKTARIHX || attrSet.SEVKNOX) {
+		if (attrSet.SEVKTARIH || attrSet.SEVKNOX) {
 			sent
 				.leftJoin('don', 'pifstok dhar', 'don.ifharsayac = dhar.kaysayac')
 				.leftJoin('dhar', 'piffis dfis', 'dhar.fissayac = dfis.kaysayac')
@@ -607,6 +618,7 @@ class DRapor_Hareketci_BankaOrtak_Main extends DRapor_Hareketci_Main {
 		result.addKAPrefix('banhesap', 'banka')
 			.addGrupBasit('BANKAHESAP', 'Banka Hesap', 'banhesap', DMQBankaHesap)
 			.addGrupBasit('BANKA', 'Banka', 'banka', DMQBanka, null, ({ item }) => item.secimKullanilmaz())
+			.addGrupBasit('VADE', 'Vade', 'vade', null, null, ({ item }) => item.setSql_hv())
 		super.tabloYapiDuzenle(...arguments)
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
@@ -1420,8 +1432,10 @@ class DRapor_Hareketci_Muhasebe_Main extends DRapor_Hareketci_Main {
 	loadServerData_queryDuzenle_hrkSent(e) {
 		super.loadServerData_queryDuzenle_hrkSent(e)
 		let { hvDegeri: val } = e
-		let baClause = val('ba'), bedelClause = val('bedel')
-		this.loadServerData_queryDuzenle_baBedel({ ...e, baClause, bedelClause })
+		let baClause = val('ba')
+		let bedelClause = val('bedel')
+		let dvBedelClause = val('dvbedel')
+		this.loadServerData_queryDuzenle_baBedel({ ...e, baClause, bedelClause, dvBedelClause })
 	}
 	loadServerData_queryDuzenle_hrkStm_sonIslemler(e) {
 		super.loadServerData_queryDuzenle_hrkStm_sonIslemler(e)

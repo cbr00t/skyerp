@@ -3,10 +3,14 @@ class BankaAkreditifHareketci extends BankaOrtakHareketci {
 	static get kod() { return 'akreditif' } static get aciklama() { return 'Banka Akreditif' }
 	static get uygunmu() { return app?.params?.bankaGenel?.kullanim?.akreditif }
 
-	static altTipYapilarDuzenle({ def }) { super.altTipYapilarDuzenle(...arguments); def.ortak() }
+	static altTipYapilarDuzenle({ def }) {
+		super.altTipYapilarDuzenle(...arguments)
+		def.ortak()
+	}
     /* Hareket tiplerini (işlem türlerini) belirleyen seçim listesi */
     static hareketTipSecim_kaListeDuzenle({ kaListe }) {
-        super.hareketTipSecim_kaListeDuzenle(arguments); kaListe.push(...[
+        super.hareketTipSecim_kaListeDuzenle(arguments)
+		kaListe.push(...[
 			new CKodVeAdi(['akrAcilis', 'Akreditif Açılışı']),
 			new CKodVeAdi(['akrKapanis', 'Akreditif Kapanışı'])
 		])
@@ -20,19 +24,21 @@ class BankaAkreditifHareketci extends BankaOrtakHareketci {
     }
     /** UNION sorgusu hazırlama – hareket tipleri için */
     uygunluk2UnionBilgiListeDuzenleDevam(e) {
-        super.uygunluk2UnionBilgiListeDuzenleDevam(e);
-        this.uniDuzenle_akrAcilis(e).uniDuzenle_akrKapanis(e)
+        super.uygunluk2UnionBilgiListeDuzenleDevam(e)
+		if (this.class.uygunmu)
+			this.uniDuzenle_akrAcilis(e).uniDuzenle_akrKapanis(e)
     }
     /** (Akreditif kaydı) için UNION */
     uniDuzenle_akrAcilis({ uygunluk, liste }) {
-		const kodClause = 'akr.banhesapkod'; $.extend(liste, {
+		const kodClause = 'akr.banhesapkod'
+		extend(liste, {
             akrAcilis: [
                 new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					const {where: wh} = sent; sent.fromAdd('akreditif akr')
 						.fromIliski('carmst car', 'akr.must = car.must')
 						.x2BankaHesapBagla({ kodClause })
                 }).hvDuzenleIslemi(({ hv }) => {
-                    $.extend(hv, {
+                    extend(hv, {
 						bizsubekod: 'akr.bizsubekod', ozelisaret: 'bhes.ozelisaret', 
 						kaysayac: 'akr.kaysayac', kayittipi: `'AKR'`, islemadi: `'Akreditif Açılması'`,
 						banhesapkod: kodClause, oncelik: '5', ba: `'A'`,

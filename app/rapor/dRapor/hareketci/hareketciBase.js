@@ -226,7 +226,6 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 			
 			this.tabloYapiDuzenle_baBedel(e)
 			this.tabloYapiDuzenle_baBakiye(e)
-			this.tabloYapiDuzenle_baBedel_kdvDahil(e)
 			this.tabloYapiDuzenle_dovizli_baBedel(e)
 			this.tabloYapiDuzenle_dovizli_baBakiye(e)
 			if (!totalmi)
@@ -309,7 +308,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		e.alias ??= 'hrk'
 		super.loadServerData_queryDuzenle(e)
 		let { stm, attrSet, hareketci } = e
-		let { raporTanim } = this
+		let { raporTanim, class: mainClass } = this
 		let { yatayAnaliz } = raporTanim.kullanim ?? {}
 		
 		hareketci ??= this.hareketci
@@ -328,7 +327,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		extend(e, { hareketci, hrkDefHV })
 		
 		if (yatayAnaliz)
-			attrSet[DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod] = true
+			attrSet[mainClass.yatayTip2Bilgi[yatayAnaliz]?.kod] = true
 		
 		let uni = e.uni = stm.sent = new MQUnionAll()
 		let calcUygunluk = this.calcUygunluk = uygunlukVarmi ? {} : null
@@ -355,6 +354,8 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 			unionBilgiListe = unionBilgiListe
 				.map(item => getFuncValue.call(this, item, e))
 				.filter(Boolean)
+			if (empty(unionBilgiListe))
+				continue
 			
 			for (let uniBilgi of unionBilgiListe) {
 				let { sent, hv: hrkHV } = uniBilgi
@@ -379,6 +380,10 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 				uniBilgiYapi.push({ sender, uniBilgi, sent, defHV: hrkDefHV })
 			}
 		}
+
+		if (empty(stm.with.liste) && empty(stm.sent.liste))
+			return false
+		
 		harYapi.ilkStm = stm.deepCopy()
 		return this.loadServerData_queryDuzenle_ek(e)
 	}
@@ -408,8 +413,10 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		this.loadServerData_queryDuzenle_takip({ ...e, kodClause: hvDegeri('takipno') })
 		this.loadServerData_queryDuzenle_plasiyer({ ...e, kodClause: hvDegeri('plasiyerkod') })
 		
-		let baClause = hvDegeri('ba'), bedelClause = hvDegeri('bedel').sumOlmaksizin()
-		this.loadServerData_queryDuzenle_baBedel({ ...e, baClause, bedelClause })
+		let baClause = hvDegeri('ba')
+		let bedelClause = hvDegeri('bedel').sumOlmaksizin()
+		let dvBedelClause = hvDegeri('dvbedel').sumOlmaksizin()
+		this.loadServerData_queryDuzenle_baBedel({ ...e, baClause, bedelClause, dvBedelClause })
 	
 		;{
 			let alias = MQAliasliYapi.getDegerAliasListe(tarihClause)?.at(-1)

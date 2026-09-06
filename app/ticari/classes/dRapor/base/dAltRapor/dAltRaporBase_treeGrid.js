@@ -642,17 +642,21 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 	}
 	loadServerData_recsDuzenle_seviyelendir(e) {
 		super.loadServerData_recsDuzenle_seviyelendir(e)
-		let {gridPart, tabloYapi, raporTanim /*, recsDvKodSet*/} = this, {gridWidget} = gridPart
-		let {grup, icerik} = raporTanim, {kullanim} = raporTanim, {yatayAnaliz} = kullanim
+		let { gridPart, tabloYapi, raporTanim /*, recsDvKodSet*/ } = this
+		let { gridWidget } = gridPart
+		let { grup, icerik } = raporTanim
+		let { kullanim } = raporTanim
+		let { yatayAnaliz } = kullanim
 		let attrSet = raporTanim._ozelAttrSet ?? raporTanim.attrSet
 		let belirtec2ColDef = [], grupColAttrListe = [], _sumAttrListe = [], _avgAttrListe = []
 		for (let kod in grup) {
-			let item = tabloYapi.grup[kod];
-			let {colDefs} = item ?? {}
+			let item = tabloYapi.grup[kod]
+			let { colDefs } = item ?? {}
 			if (!colDefs)
 				continue
+			
 			for (let colDef of colDefs) {
-				let {belirtec} = colDef
+				let { belirtec } = colDef
 				belirtec2ColDef[belirtec] = colDef
 				grupColAttrListe.push(belirtec)
 			}
@@ -689,6 +693,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			if (item.ustSeviyeUygulanirmi)
 				ustSeviyeFormuller.push(item)
 		}
+		
 		let { recs } = e
 		if (recs) {
 			let _recs = recs
@@ -703,6 +708,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			}
 			e.recs = recs
 		}
+		
 		let gtTip2AttrListe = { sabit: [], toplam: [] }
 		if (recs) {
 			for (let colDef of values(belirtec2ColDef) /*.filter(colDef => colDef.belirtec != yatayBelirtec)*/) {
@@ -711,14 +717,14 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				gtTip2AttrListe[selector].push(colDef.belirtec)
 			}
 		}
-		let { konsolideVarmi } = this
+		let { konsolideVarmi, class: mainClass } = this
 		if (recs && yatayAnaliz) {
-			let yatayBelirtec = tabloYapi.grup[DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod]?.colDefs?.[0]?.belirtec
+			let yatayBelirtec = tabloYapi.grup[mainClass.yatayTip2Bilgi[yatayAnaliz]?.kod]?.colDefs?.[0]?.belirtec
 			if (yatayBelirtec) {
 				/*let orj_toplamAttrSet = asSet(gtTip2AttrListe.toplam)
 				let toplamAttrListe = jqxCols.map(({ datafield }) => datafield).filter(belirtec => orj_toplamAttrSet[belirtec.split('_')[0]]);*/
 				let item = grupVeToplam[yatayBelirtec] ?? grupVeToplam[yatayBelirtec.toUpperCase()]
-				let {kodsuzmu} = item || {}
+				let { kodsuzmu } = item || {}
 				for (let rec of recs)
 					this.fixKA(rec, yatayBelirtec, kodsuzmu)
 				let source = recs, attrGruplari = [gtTip2AttrListe.sabit.filter(x => x != yatayBelirtec)]
@@ -863,7 +869,9 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		super.tazeleOncesi(e)
 		let { rapor: { isPanelItem }, parentBuilder: { rootBuilder } = {} } = this
 		let { fbd_grid, tabloYapi, raporTanim, raporTanim: { secilenVarmi } = {} } = this
-		rootBuilder?.layout?.find('.islemTuslari > div button#tabloTanimlari')[secilenVarmi ? 'removeClass' : 'addClass']('anim-tabloTanimlari-highlight')
+		rootBuilder?.layout?.find('.islemTuslari > div button#tabloTanimlari')
+			[secilenVarmi ? 'removeClass' : 'addClass']('anim-tabloTanimlari-highlight')
+		
 		if (!(isPanelItem || secilenVarmi)) {
 			if (!this._tabloTanimGosterildiFlag)
 				this.raporTanimIstendi(e)
@@ -875,7 +883,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		// await new $.Deferred(p => setTimeout(() => p.resolve(), 300))
 		if (await this._promise_wait == true)
 			return
-		let {tazeleHideProgress_minCount, rapor: { isPanelItem, part }} = this
+		
+		let {tazeleHideProgress_minCount, rapor: { isPanelItem, part }, class: mainClass } = this
 		if (part?.isDestroyed)
 			return
 		let e = arguments[0] ?? {}
@@ -907,7 +916,8 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 			let colDefs = [
 				..._colDefs.filter(colDef => !colDef?.userData?.kod),
 				..._colDefs.filter(colDef => colDef?.userData?.kod)
-			].filter(x => !!x);
+			].filter(Boolean)
+			
 			let gtTip2ColDefs = { sabit: [], toplam: [] }
 			for (let colDef of colDefs) {
 				let { kod } = colDef.userData ?? {}
@@ -917,19 +927,22 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 				if (toplammi && !colDef?.aggregates && !kod.includes('BAKIYE'))
 					colDef.aggregates = ['sum']
 			}
+			
 			if (!empty(colDefs)) {
 				let colDef = colDefs.findLast(_ => tabloYapi.toplam[_.userData?.kod])
 				if (colDef)
 					colDef.userData.son = true
 			}
+			
 			globalThis.progressManager?.progressStep(1)
 			if (yatayAnaliz) {
-				let _attrSet = asSet([DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz]?.kod].filter(x => !!x))
+				let { yatayTip2Bilgi } = mainClass
+				let _attrSet = asSet([yatayTip2Bilgi[yatayAnaliz]?.kod].filter(Boolean))
 				if (empty(_attrSet))
 					yatayAnaliz = kullanim.yatayAnaliz = null
 				else {
 					globalThis.progressManager?.setProgressMax((globalThis.progressManager?.progressMax || 0) + 5)
-					let { belirtec } = DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz] ?? {}
+					let { belirtec } = yatayTip2Bilgi[yatayAnaliz] ?? {}
 					let tumYatayAttrSet = e.tumYatayAttrSet = {}
 					let { secimler: sec = this.secimler, donemBS } = e
 					donemBS ||= sec?.tarihBS
@@ -941,10 +954,10 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 						if (value === undefined) {
 							let kod = (rec[`${belirtec}kod`] ?? rec[belirtec])
 							let aciklama = rec[`${belirtec}adi`]
-							if (typeof kod == 'string')
+							if (isString(kod))
 								kod = kod.trimEnd()
-							if (typeof adi == 'string')
-								adi = adi.trimEnd()
+							if (isString(aciklama))
+								aciklama = aciklama.trimEnd()
 							if (!(kod == null && aciklama == null)) {
 								this.fixKA(rec, belirtec)
 								value = rec[belirtec]
@@ -953,6 +966,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 						if (value)
 							liste[value] = true
 					} 
+					
 					liste = keys(liste)
 					if (!(keys(_attrSet).length == 1 && _attrSet.DB)) {
 						// Yatay Analiz, VT liste çekme için veri sort edilmez 
@@ -960,6 +974,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 						// liste.sort().reverse()
 					}
 					liste.unshift('TOPLAM')
+					
 					colDefs = [...gtTip2ColDefs.sabit]
 					let toplamColDefs = gtTip2ColDefs.toplam
 					for (let yatayText of liste) {

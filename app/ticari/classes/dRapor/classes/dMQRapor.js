@@ -106,7 +106,7 @@ class DMQRapor extends DMQSayacliKA {
 		let { inst, rootBuilder: rfb, tanimFormBuilder: tanimForm } = e
 		let kaForm = tanimForm.builders.find(fbd => fbd.id == 'kaForm')
 		let { id2Builder: { aciklama: fbd_aciklama } } = kaForm
-		let { rapor, rapor: { tabloYapi }, ozetMax, kullanim } = inst
+		let { rapor, rapor: { tabloYapi, class: mainClass }, ozetMax, kullanim } = inst
 		let { kaListe, grupVeToplam } = tabloYapi
 		let kaDict = fromEntries(kaListe.map(ka => [ka.kod, ka]))
 		let tumAttrSet = asSet(keys(kaDict))
@@ -149,7 +149,7 @@ class DMQRapor extends DMQSayacliKA {
 				.listedenSecilemez()
 				.setSource(e => {
 					let result = [ new CKodVeAdi(['', '']) ]
-					for (let [kod, {text: aciklama}] of entries(DRapor_AraSeviye_Main.yatayTip2Bilgi))
+					for (let [kod, { text: aciklama }] of entries(mainClass.yatayTip2Bilgi))
 						result.push(new CKodVeAdi({ kod, aciklama }))
 					return result
 				})
@@ -386,7 +386,7 @@ class DMQRapor extends DMQSayacliKA {
 		return await this.dataDuzgunmuDevam(e)
 	}
 	dataDuzgunmuDevam(e) {
-		let { rapor } = this, { tabloYapi } = rapor
+		let { rapor } = this, { tabloYapi, class: mainClass } = rapor
 		let { toplam } = tabloYapi, { grup, icerik, kullanim } = this
 		let { yatayAnaliz } = kullanim
 		let normalIcerikVarmi = false, toplanabilirVarmi = false, grupUygunmu = true
@@ -413,7 +413,7 @@ class DMQRapor extends DMQSayacliKA {
 			
 		if (yatayAnaliz) {
 			let { grup } = this
-			let { kod, text } = DRapor_AraSeviye_Main.yatayTip2Bilgi[yatayAnaliz] ?? {}
+			let { kod, text } = mainClass.yatayTip2Bilgi[yatayAnaliz] ?? {}
 			if (kod && grup[kod])
 				throw { isError: true, errorText: `<b>${text} Çapraz Analiz</b> işaretli iken <b class="royalblue">${kod}</b> <span class="firebrick">kolonu eklenemez</span>` }
 		}

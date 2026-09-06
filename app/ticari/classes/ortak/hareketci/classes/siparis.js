@@ -65,6 +65,7 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 		//	sent.leftJoin('car', 'carisatis csat',['car.must = csat.must', `csat.satistipkod = ''`])
 		if (!from.aliasIcinTable('isl'))
 			sent.fis2StokIslemBagla()
+		sent.stok2MarkaBagla()
 		;{
 			let { _table2ColDefs: cd = {} } = app
 			if (cd.piffis?.teslimcarikod)
@@ -163,6 +164,7 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 						plasiyerkod: 'fis.plasiyerkod', tavsiyeplasiyerkod: 'csat.tavsiyeplasiyerkod',
 						tarih: 'fis.tarih', fisnox: 'fis.fisnox',
 						teslimcarikod: ( cd.sipfis?.teslimcarikod ? `fis.teslimcarikod` : `${sqlEmpty} teslimcarikod` ),
+						vade: 'fis.ortalamavade',
 						refkod: 'fis.must', refadi: 'car.birunvan', dvkod: 'fis.dvkod', dvkur: 'fis.dvkur',
 						fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama',
 						brm: `${mstAlias}.brm`, brm2: (hizmetmi ? sqlEmpty : `${mstAlias}.brm2`),

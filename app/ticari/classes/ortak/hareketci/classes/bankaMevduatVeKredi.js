@@ -90,7 +90,7 @@ class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
 						islemadi: `(case fis.fistipi when 'KB' then dbo.batext(fis.ba, 'Bankadan Çekilen', 'Bankaya Yatan') when 'YT' then 'Yatırım' when 'YG' then 'Yatırım Geri Dönüş' when 'HH' then hiz.aciklama else '' end)`,
 						anaislemadi: `(case fis.fistipi when 'KB' then 'Yatan/Çekilen' when 'YT' then 'Yatırım' when 'YG' then 'Yatırım Geri Dönüş' when 'HH' then 'Banka Hizmet' else '' end)`,
 						detaciklama: `(case when fis.fistipi in ('KB', 'YT', 'YG') then har.aciklama when fis.fistipi = 'HH' then dbo.hizmetack(har.belgetarih, har.belgeseri, har.belgeno, har.aciklama) else '' end)`,
-						dvkur: 'har.dvkur',
+						vade: 'har.vade', dvkur: 'har.dvkur',
 						bedel: `(case when fis.fistipi IN ('YT', 'YG') then har.brutbedel else (har.bedel - har.kredifaiz) end)`,
 						dvbedel: `(case when fis.fistipi IN ('YT', 'YG') then har.dvbrutbedel else (har.dvbedel - har.kredidvfaiz) end)`,
 						kdetay: 'kdet.kdetay', takipno: 'har.takipno', tarih: 'coalesce(har.belgetarih, fis.tarih)',

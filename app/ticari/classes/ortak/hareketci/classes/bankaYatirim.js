@@ -37,14 +37,14 @@ class BankaYatirimHareketci extends BankaOrtakHareketci {
     }
     uniDuzenle_devir({ uygunluk, liste }) {
 		// ileride yapılacak
-       /* $.extend(liste, {
+       /* extend(liste, {
             devir: [
                 new Hareketci_UniBilgi()
 					.sentDuzenleIslemi(({ sent, sent: { where: wh } }) => {
 	                    sent.fisHareket('findevirfis', 'findevirhar')
 	                    wh.fisSilindiEkle().add(`fis.fistipi = 'BH'`)
 	                }).hvDuzenleIslemi(({ hv }) => {
-	                    $.extend(hv, {
+	                    extend(hv, {
 	                        kaysayac: 'har.kaysayac', kayittipi: `'BNDEV'`, banhesapkod: 'har.banhesapkod',
 	                        oncelik: '0', ba: 'fis.ba', islemadi: `'Devir'`, anaislemadi: `'Devir'`,
 	                        detaciklama: 'har.aciklama', takipno: '', dvkur: 'har.dvkur', bedel: 'har.bedel', dvbedel: 'har.dvbedel'
@@ -55,7 +55,7 @@ class BankaYatirimHareketci extends BankaOrtakHareketci {
         return this
     }
     uniDuzenle_yatirimVeGeriDonus({ uygunluk, liste }) {
-        $.extend(liste, {
+        extend(liste, {
             yatirim$geriDonus: [
 				new Hareketci_UniBilgi()
 					.sentDuzenleIslemi(({ sent, sent: { where: wh } }) => {
@@ -71,7 +71,7 @@ class BankaYatirimHareketci extends BankaOrtakHareketci {
 						wh.fisSilindiEkle().inDizi(tipListe, 'fis.fistipi')
 					}).hvDuzenleIslemi(({ hv }) => {
 						let degerlemeSql = `ROUND(har.revizeyatirimmiktar * har.revizedegerlemexfiyat, 2)`
-						$.extend(hv, {
+						extend(hv, {
 							kaysayac: 'har.kaysayac', banhesapkod: 'har.yatirimhesapkod',
 							kayittipi: `(case fis.fistipi when 'YG' then 'YATG' else 'YAT' end)`,
 							oncelik: `(case fis.fistipi when 'YG' then 10 else 120 end)`,
@@ -79,6 +79,7 @@ class BankaYatirimHareketci extends BankaOrtakHareketci {
 							islemadi: `(case fis.fistipi when 'YG' then 'Yatırım Dönüş' else 'Yatırım' end)`,
 							anaislemadi: `(case fis.fistipi when 'YG' then 'Yatırım Dönüş' else 'Yatırım' end)`,
 							refkod: 'har.yatirimtipkod', refadi: 'ytip.aciklama', dvkur: 'har.dvkur',
+							vade: 'har.vade',
 							miktar: 'har.miktar',
 							/*bedel: `(case fis.fistipi when 'YG' then har.bedel + har.kredifaiz - har.stopaj else har.bedel end)`,
 							dvbedel: `(case fis.fistipi when 'YG' then har.dvbedel + har.kredidvfaiz else har.dvbedel end)`,*/

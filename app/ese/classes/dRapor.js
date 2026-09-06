@@ -7,8 +7,9 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_ESETest }
 	static get table() { return 'esetest' } static get detayVeyaGrupTable() { return null } get tazeleYapilirmi() { return true }
 	onInit(e) {
-		super.onInit(e); let {yatayTip2Bilgi} = DRapor_AraSeviye_Main;
-		$.extend(yatayTip2Bilgi, {
+		super.onInit(e)
+		let { yatayTip2Bilgi } = DRapor_AraSeviye_Main
+		extend(yatayTip2Bilgi, {
 			YG: { kod: 'YASGRUP', belirtec: 'yasgrup', text: 'Yaş Grubu' },
 			YS: { kod: 'AKTIFYAS', belirtec: 'aktifyas', text: 'Aktif Yaş' },
 			CN: { kod: 'CINSIYET', belirtec: 'cinsiyet', text: 'Cinsiyet' },

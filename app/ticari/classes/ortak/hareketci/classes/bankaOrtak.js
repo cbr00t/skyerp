@@ -14,15 +14,18 @@ class BankaOrtakHareketci extends Hareketci {
 	}
 	static varsayilanHVDuzenle_ortak({ hv }) {
 		super.varsayilanHVDuzenle_ortak(...arguments);
-		$.extend(hv, { finanalizkullanilmaz: 'bhes.finanalizkullanilmaz' })
+		extend(hv, { finanalizkullanilmaz: 'bhes.finanalizkullanilmaz' })
 	}
 	static varsayilanHVDuzenle({ hv }) {
 		super.varsayilanHVDuzenle(...arguments)
-		$.extend(hv, { dvkod: 'bhes.dvtipi' })
+		extend(hv, {
+			dvkod: 'bhes.dvtipi',
+			vade: ({ hv }) => hv.ndvade
+		})
 	}
 	static maliTablo_secimlerYapiDuzenle({ result }) {
 		super.maliTablo_secimlerYapiDuzenle(...arguments)
-		$.extend(result, { sube: DMQSube, subeGrup: DMQSubeGrup, mst: DMQBankaHesap, grup: DMQBankaHesapGrup, banka: DMQBanka })
+		extend(result, { sube: DMQSube, subeGrup: DMQSubeGrup, mst: DMQBankaHesap, grup: DMQBankaHesapGrup, banka: DMQBanka })
 	}
 	static maliTablo_secimlerSentDuzenle({ detSecimler: detSec, sent, sent: { from, where: wh }, hv, mstClause }) {
 		super.maliTablo_secimlerSentDuzenle(...arguments)

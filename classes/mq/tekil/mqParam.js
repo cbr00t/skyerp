@@ -162,15 +162,20 @@ class MQParam extends MQTekil {
 		}
 		super.keyHostVarsDuzenle(e)
 	}
-	hostVarsDuzenle({ islem, hv }) {
-		let {class: { paramKod: kod }} = this
-		kod ??= ''; super.hostVarsDuzenle(e)
-		let _hv = this.paramHostVars({ ...arguments[0] })
+	hostVarsDuzenle(e = {}) {
+		let { class: { paramKod: kod } } = this
+		let { islem, hv } = e
+		kod ??= ''
+		
+		super.hostVarsDuzenle(e)
+		let _hv = this.paramHostVars({ ...e })
 		if (!_hv)
 			return
+		
 		let sonskyts = now()
 		let jsonstr = toJSONStr(_hv)
 		extend(hv, { kod, sonskyts, jsonstr })
+		
 		if (islem == 'yeni')
 			hv.tanim = ''
 	}

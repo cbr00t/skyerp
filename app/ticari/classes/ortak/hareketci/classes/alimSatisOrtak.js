@@ -56,6 +56,7 @@ class AlimSatisOrtakHareketci extends Hareketci {
 			.fis2CariBagla()
 			.leftJoin('car', 'carisatis csat',['car.must = csat.must', `csat.satistipkod = ''`])
 			.fis2StokIslemBagla()
+			.stok2MarkaBagla()
 		;{
 			let { _table2ColDefs: cd = {} } = app
 			if (cd.piffis?.teslimcarikod)
@@ -136,8 +137,8 @@ class AlimSatisOrtakHareketci extends Hareketci {
 						// plasiyerkod: 'dbo.emptycoalesce(fis.plasiyerkod, csat.tavsiyeplasiyerkod)',
 						teslimcarikod: ( cd.piffis?.teslimcarikod ? `fis.teslimcarikod` : `${sqlEmpty} teslimcarikod` ),
 						ozelisaret: 'fis.ozelisaret', tarih: 'fis.tarih', fisnox: 'fis.fisnox',
-						refkod: 'fis.must', refadi: 'car.birunvan',
-						dvkod: 'fis.dvkod', dvkur: 'fis.dvkur',
+						sevktarihi: 'fis.sevktarihi', sevksaat: 'fis.sevksaat',
+						refkod: 'fis.must', refadi: 'car.birunvan', dvkod: 'fis.dvkod', dvkur: 'fis.dvkur',
 						fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama',
 						brm: `${mstAlias}.brm`, brm2: (hizmetmi ? sqlEmpty : `${mstAlias}.brm2`),
 						brmorani: (hizmetmi ? sqlZero : 'har.brmorani'),

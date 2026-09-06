@@ -36,7 +36,7 @@ class DRapor_StokSiparisler_Main extends DRapor_Donemsel_Main {
 		this.tabloYapiDuzenle_stok(e)
 		this.tabloYapiDuzenle_takip(e)
 		result
-			.addGrupBasit('SEVKTARIHX', 'Sevk Tarih', 'sevktarihx')
+			.addGrupBasit('SEVKTARIH', 'Sevk Tarih', 'sevktarih')
 			.addGrupBasit('SEVKNOX', 'Sevk No', 'sevknox', null, null, ({ colDef }) => colDef.alignRight())
 			.addToplamBasit('MIKTAR', 'Miktar', 'miktar')
 			.addToplamBasit('MIKTAR2', 'Miktar 2', 'miktar2')
@@ -76,7 +76,7 @@ class DRapor_StokSiparisler_Main extends DRapor_Donemsel_Main {
 					.leftJoin('don', 'pifstok dhar', 'don.ifharsayac = dhar.kaysayac')
 					.leftJoin('dhar', 'piffis dfis', 'dhar.fissayac = dfis.kaysayac')
 				sahalar.add(
-					`STRING_AGG(CONVERT(VARCHAR(10), dfis.tarih, 104), '\n') sevktarihx`,
+					`STRING_AGG(CONVERT(VARCHAR(10), dfis.tarih, 104), '\n') sevktarih`,
 					`STRING_AGG(dfis.fisnox, '\n') sevknox`
 				)
 			}
@@ -110,7 +110,7 @@ class DRapor_StokSiparisler_Main extends DRapor_Donemsel_Main {
 			this.loadServerData_queryDuzenle_takip({ ...e, sent, kodClause: `(case when fis.takiportakdir = '' then har.dettakipno else fis.orttakipno end)` })
 			for (let key in attrSet) {
 				switch (key) {
-					case 'SEVKTARIHX': sahalar.add(`sdon.sevktarihx`); break
+					case 'SEVKTARIH': sahalar.add(`sdon.sevktarih`); break
 					case 'SEVKNOX': sahalar.add(`sdon.sevknox`); break
 					case 'MIKTAR': sahalar.add(`SUM(${mc.miktar}) miktar`); break
 					case 'MIKTAR2': sahalar.add(`SUM(${mc.miktar2}) miktar2`); break
