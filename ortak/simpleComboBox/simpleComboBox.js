@@ -238,6 +238,7 @@ class SimpleComboBoxPart extends Part {
 				})
 			})
 		}, 100)
+		
 		if (source || listSource || mfSinif) {
 			let btnListe = layout.children('button#liste')
 			if (!btnListe?.length)
@@ -248,14 +249,19 @@ class SimpleComboBoxPart extends Part {
 		}
 		this.disabled = disabled    // init event trigger
 		this._initialized = true
-		setTimeout(() => {
-			let { kodSaha, noInitCommitFlag: noInitCommit } = this
-			this.onResize(e)
-			let value = input.val()
-			this.item = { [kodSaha]: value }
-			if (value && !noInitCommit)
-				this._onChange({ type: 'init', layout, input, value })
-		})
+		
+		deferExec(
+			'simpleComboBox_onInit',
+			e => {
+				let { kodSaha, noInitCommitFlag: noInitCommit } = this
+				this.onResize(e)
+				let value = input.val()
+				this.item = { [kodSaha]: value }
+				if (value && !noInitCommit)
+					this._onChange({ type: 'init', layout, input, value })
+			},
+			10, e
+		)
 	}
 	destroyPart(e) {
 		this.clear()

@@ -43,7 +43,63 @@ class PosOrtakFis extends BankaOrtakFis {
 		super.hostVarsDuzenle(...arguments)
 		deleteKeys(hv, 'toplambedel', 'toplamdvbedel')
 	}
+	tarihDegisti(e) {
+		super.tarihDegisti(e)
+		this.topluHesapla(e)
+	}
+
+	async topluHesapla(e = {}) {
+		await this.topluHesapla_ndVade(e)
+	}
+	async topluHesapla_ndVade({ sender: tanimPart } = {}) {
+		let { tarih, detaylar, class: { krediKartimi } } = this
+		tarih = asDate(tarih)
+		if (isInvalidDate(tarih))
+			return this
+
+		let kod2DetListe = {}
+		;detaylar
+			.filter(d => d.posKosulKod)
+			.forEach(d => 
+				(kod2DetListe[d.posKosulKod] ??= [])
+					 .push(d)
+			)
+		
+		let { gridWidget: w } = tanimPart ?? {}
+		function setCellValue(r, i, k, v) {
+			if (w)
+				w.setcellvalue(i, k, v)
+			else
+				r[k] = v
+		}
+
+		w?.beginupdate()
+		try {
+			let sent = new MQSent(), { where: wh, sahalar } = sent
+			;{
+				sent.fromAdd('poskosul')
+				wh.inDizi(keys(kod2DetListe), 'kod')
+				sahalar.add('kod', 'ilknakdedonusumgunu nakDonGun', 'odhesapkesimgunu hesKesGun')
+			}
+			for (let { kod, nakDonGun, hesKesGun } of await sent.execSelect()) {
+				let ndVade = krediKartimi ? null : tarih.clone().addDays(nakDonGun)
+				if (krediKartimi) {
+					hesKesGun ||= 1
+					ndVade = tarih.clone()
+					if (hesKesGun < tarih.gun)
+						ndVade.addMonths(1)
+					ndVade.setDate(hesKesGun)
+				}
+
+				;kod2DetListe[kod]?.forEach(r =>
+					setCellValue(r, r.boundindex, 'ndVade', ndVade))
+			}
+		}
+		finally { w?.endupdate(false) }
+		return this
+	}
 }
+
 class PosOrtakDetay extends BankaOrtakDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'posilkhar' }
@@ -55,11 +111,13 @@ class PosOrtakDetay extends BankaOrtakDetay {
 		super.extYapilarDuzenle(...arguments)
 	}
 }
+
 class PosOrtakGridci extends BankaOrtakGridci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get posHesapSinif() { return MQPosHesap }
-	tabloKolonlariDuzenle_ilk(e) {
-		const {tabloKolonlari} = e;
+	
+	tabloKolonlariDuzenle_ilk(e = {}) {
+		let { tabloKolonlari } = e
 		tabloKolonlari.push(
 			...this.class.posHesapSinif.getGridKolonlar({
 				belirtec: 'posKosul', gridKolonGrupcu: 'getGridKolonGrup_bankaHesapli',
@@ -69,11 +127,11 @@ class PosOrtakGridci extends BankaOrtakGridci {
 					if (isInvalidDate(tarih))
 						return
 					
-					let sent = new MQSent({
-						from: 'poskosul',
-						where: { degerAta: kod, saha: 'kod' },
-						sahalar: ['ilknakdedonusumgunu nakDonGun', 'odhesapkesimgunu hesKesGun']
-					})
+					let sent = new MQSent(), { where: wh, sahalar } = sent
+					sent.fromAdd('poskosul')
+					wh.degerAta(kod, 'kod')
+					sahalar.add('ilknakdedonusumgunu nakDonGun', 'odhesapkesimgunu hesKesGun')
+					
 					let { nakDonGun, hesKesGun } = await sent.execTekil()
 					let ndVade = krediKartimi ? null : tarih.clone().addDays(nakDonGun)
 					if (krediKartimi) {
@@ -83,6 +141,7 @@ class PosOrtakGridci extends BankaOrtakGridci {
 							ndVade.addMonths(1)
 						ndVade.setDate(hesKesGun)
 					}
+					
 					setCellValue({ belirtec: 'ndVade', value: ndVade })
 				}
 			}),
@@ -91,24 +150,24 @@ class PosOrtakGridci extends BankaOrtakGridci {
 			...MQTakipNo.getGridKolonlar({ belirtec: 'takip' }),
 			new GridKolon({ belirtec: 'ndVade', text: 'Nakde Dönüşüm Vade', genislikCh: 13 }).tipDate(),
 			new GridKolon({ belirtec: 'vade', text: 'Vade', genislikCh: 13 }).tipDate()
-		);
-		super.tabloKolonlariDuzenle_ilk(e);
+		)
+		super.tabloKolonlariDuzenle_ilk(e)
 	}
 	tabloKolonlariDuzenle_son(e) {
-		const {tabloKolonlari} = e;
+		let { tabloKolonlari } = e
 		tabloKolonlari.push(
 			new GridKolon({ belirtec: 'dvBedel', text: 'Dv Bedel', genislikCh: 13 }).tipDecimal_dvBedel(),
 			new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 13 }).tipDecimal_bedel()
 		);
 		super.tabloKolonlariDuzenle_son(e)
 	}
-	gridContextMenuIstendi(e) {
-		e = e || {};
-		const evt = e.event, target = $(evt?.currentTarget), gridWidget = target?.jqxGrid('getInstance');
-		const cell = gridWidget.getselectedcell() || {}; const rowIndex = cell.rowindex, belirtec = cell.datafield;
-		const bedelSaha = e.bedelSaha || 'bedel';
+	gridContextMenuIstendi(e = {}) {
+		let evt = e.event, target = $(evt?.currentTarget), gridWidget = target?.jqxGrid('getInstance')
+		let cell = gridWidget.getselectedcell() ?? {}
+		let rowIndex = cell.rowindex, belirtec = cell.datafield
+		let bedelSaha = e.bedelSaha || 'bedel'
 		if (belirtec == bedelSaha || belirtec == 'dvBedel') {
-			$.extend(e, { gridPart: e.gridPart ?? e.sender, gridWidget, rowIndex, belirtec });
+			extend(e, { gridPart: e.gridPart ?? e.sender, gridWidget, rowIndex, belirtec })
 			this.class.taksitlendirIstendi(e);
 			return false
 		}
@@ -116,48 +175,49 @@ class PosOrtakGridci extends BankaOrtakGridci {
 	}
 	static async taksitlendirIstendi(e) {
 		e = e || {};
-		const bedelSaha = e.bedelSaha || 'bedel';
-		const gridPart = e.gridPart ?? e.sender ?? e.parentPart;
-		const gridWidget = e.gridWidget ?? gridPart?.gridWidget;
-		const cell = e.cell ?? gridWidget.getselectedcell();
-		const rowIndex = e.rowIndex ?? e.rowindex ?? e.row ?? cell?.rowindex;
+		let bedelSaha = e.bedelSaha || 'bedel';
+		let gridPart = e.gridPart ?? e.sender ?? e.parentPart;
+		let gridWidget = e.gridWidget ?? gridPart?.gridWidget;
+		let cell = e.cell ?? gridWidget.getselectedcell();
+		let rowIndex = e.rowIndex ?? e.rowindex ?? e.row ?? cell?.rowindex;
 		let belirtec = e.belirtec ?? e.dataField ?? e.datafield ?? cell?.datafield ?? bedelSaha;
 		if (belirtec == 'bedel' && bedelSaha != belirtec)
 			belirtec = bedelSaha
 		let det = e.detay ?? e.rec ?? e.gridRec ?? gridWidget.getrowdata(rowIndex);
 		if (!det)
 			return
-		const bedel = (det[belirtec] || 0).valueOf();
-		const inst = new this.posHesapSinif({ kod: det.posKosulKod });
+		let bedel = (det[belirtec] || 0).valueOf();
+		let inst = new this.posHesapSinif({ kod: det.posKosulKod });
 		await inst.yukle();
-		const {promise} = inst.taksitlendiriciUIGoster({ bedelSaha, taksitci: new Taksitci({ bedel: bedel, taksitSayisi: 1, ilkTaksit: 0 }) }) || {};
-		const result = await promise, taksitler = result?.taksitler;
+		let {promise} = inst.taksitlendiriciUIGoster({ bedelSaha, taksitci: new Taksitci({ bedel: bedel, taksitSayisi: 1, ilkTaksit: 0 }) }) || {};
+		let result = await promise, taksitler = result?.taksitler;
 		if ($.isEmptyObject(taksitler))
 			return
 
 		gridWidget.beginupdate();
 		let offset = 0;
-		const changedGridRecs = e.changedGridRecs = [];
-		for (const rec of taksitler) {
-			const {vade, taksit} = rec; const ndVade = rec.nakdeDonusumVade;
-			const _det = offset ? ($.isPlainObject(det) ? new gridPart.fis.detaySinif(det) : det.deepCopy()) : det;
-			$.extend(_det, { vade, ndVade });
+		let changedGridRecs = e.changedGridRecs = [];
+		for (let rec of taksitler) {
+			let {vade, taksit} = rec; let ndVade = rec.nakdeDonusumVade;
+			let _det = offset ? ($.isPlainObject(det) ? new gridPart.fis.detaySinif(det) : det.deepCopy()) : det;
+			extend(_det, { vade, ndVade });
 			_det[belirtec] = taksit;
 			if (_det != det) {
-				for (const key of ['uid', 'uniqueid', 'okunanHarSayac', 'eskiSeq', 'seq'])
+				for (let key of ['uid', 'uniqueid', 'okunanHarSayac', 'eskiSeq', 'seq'])
 					_det[key] = undefined
 				gridWidget.addrow(null, _det, rowIndex + offset)
 			}
-			changedGridRecs.push(_det);
+			changedGridRecs.push(_det)
 			offset++
 		}
 		gridWidget.endupdate(false)
 	}
 	async taksitlendirIstendi(e) {
-		e = e || {}; const bedelSaha = e.bedelSaha = e.bedelSaha || 'bedel';
+		e = e || {}; let bedelSaha = e.bedelSaha = e.bedelSaha || 'bedel';
 		await PosOrtakGridci.taksitlendirIstendi(e)
 	}
 }
+
 
 class PosKrediKartiOrtakFis extends PosOrtakFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -190,7 +250,7 @@ class PosTahsilFis extends PosKrediKartiOrtakFis {
 class PosTahsilDetay extends PosKrediKartiOrtakDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static extYapilarDuzenle(e) {
-		const {liste} = e;
+		let {liste} = e;
 		liste.push(Ext_PosHesap);
 		super.extYapilarDuzenle(e)
 	}
@@ -213,7 +273,7 @@ class KrediKartiIleOdemeFis extends PosKrediKartiOrtakFis {
 class KrediKartiIleOdemeDetay extends PosKrediKartiOrtakDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static extYapilarDuzenle(e) {
-		const {liste} = e;
+		let {liste} = e;
 		liste.push(Ext_KrediKartiHesap);
 		super.extYapilarDuzenle(e)
 	}

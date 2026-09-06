@@ -1,22 +1,36 @@
 class MQGenelFis extends MQOrtakFis {
-	static get listeUISinif() { return FisListePart } static get tanimUISinif() { return FisGirisPart } static get subeKodSaha() { return 'bizsubekod' }
-	static get tarihSaha() { return 'tarih' } static get seriSaha() { return 'seri' } static get ozelIsaretDesteklenirmi() { return true } static get noYilKullanilirmi() { return false }
-	get yildizlimi() { return this.ozelIsaret == '*' } get kayitIcinOzelIsaretlimi() { return this.yildizlimi }
-	get tsn() { return new TicariSeriliNo(this) } set tsn(value) { $.extend(this, { seri: value?.seri || '', noYil: value?.noYil || 0, no: value?.no || 0 }) }
-	constructor(e) {
-		e = e || {}; super(e);
-		if (e.isCopy) { return }
-		let {numYapi} = this.class
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get listeUISinif() { return FisListePart }
+	static get tanimUISinif() { return FisGirisPart }
+	static get subeKodSaha() { return 'bizsubekod' }
+	static get tarihSaha() { return 'tarih' }
+	static get seriSaha() { return 'seri' }
+	static get ozelIsaretDesteklenirmi() { return true }
+	static get noYilKullanilirmi() { return false }
+	get yildizlimi() { return this.ozelIsaret == '*' }
+	get kayitIcinOzelIsaretlimi() { return this.yildizlimi }
+	get tsn() { return new TicariSeriliNo(this) }
+	set tsn(value) { extend(this, { seri: value?.seri || '', noYil: value?.noYil || 0, no: value?.no || 0 }) }
+	
+	constructor(e = {}) {
+		super(e)
+		if (e.isCopy)
+			return
+		
+		let { numYapi } = this.class
 		if (numYapi) {
 			let num = this.numarator = numYapi.deepCopy()
 			num.fis = this
 		}
 	}
-	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e); let {pTanim} = e;
-		$.extend(pTanim, {
-			ozelIsaret: new PInstStr(), subeKod: new PInstStr(),
-			tarih: new PInstDateToday(), seri: new PInstStr(), noYil: new PInstNum()
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
+		extend(pTanim, {
+			ozelIsaret: new PInstStr(),
+			subeKod: new PInstStr(),
+			tarih: new PInstDateToday(),
+			seri: new PInstStr(),
+			noYil: new PInstNum()
 		})
 	}
 	static secimlerDuzenle({ secimler }) {
@@ -28,9 +42,9 @@ class MQGenelFis extends MQOrtakFis {
 			seri: new SecimString({ etiket: 'Seri' }),
 			noYil: new SecimInteger({ etiket: 'No Yıl'}),
 			fisNo: new SecimInteger({ etiket: 'Belge No' })
-		});
+		})
 		secimler.whereBlockEkle(e => {
-			let {aliasVeNokta} = this, {where, secimler} = e;
+			let { aliasVeNokta } = this, { where, secimler } = e
 			where.birKismi(secimler.ozelIsaret, `${aliasVeNokta}ozelisaret`);
 			where.basiSonu(secimler.sube, `${aliasVeNokta}${this.subeKodSaha}`);
 			where.basiSonu(secimler.seri, `${aliasVeNokta}${this.seriSaha}`);
@@ -44,10 +58,14 @@ class MQGenelFis extends MQOrtakFis {
 		super.rootFormBuilderDuzenle(e)
 		let { sube } = app.params.zorunlu
 		this.rootFormBuilderDuzenle_numarator(e)
-		let {tsnKullanilirmi} = this, {tsnForm, baslikForm} = e.builders
+		let { tsnKullanilirmi } = this, { tsnForm, baslikForm } = e.builders
 		let tarihFormParent = tsnKullanilirmi ? tsnForm : baslikForm.builders[0]
 		tarihFormParent.addDateInput({ id: 'tarih', etiket: 'Tarih', placeHolder: 'Fiş Tarih' })
 			.etiketGosterim_normal()
+			.degisince(({ builder: fbd, ...rest }) => {
+				let { inst, value } = fbd
+				inst.tarihDegisti({ builder: fbd, ...rest, ...e, value })
+			})
 			.addStyle_wh({ width: '130px !important' })
 		if (sube) {
 			tarihFormParent.addSimpleComboBox('subeKod')
@@ -177,11 +195,11 @@ class MQGenelFis extends MQOrtakFis {
 	}
 	static logRecDonusturucuDuzenle({ result }) {
 		super.logRecDonusturucuDuzenle(...arguments);
-		$.extend(result, { bizsubekod: 'xbizsubekod', tarih: 'xtarih', seri: 'xseri' })
+		extend(result, { bizsubekod: 'xbizsubekod', tarih: 'xtarih', seri: 'xseri' })
 	}
 	logHVDuzenle({ hv }) {
 		super.logHVDuzenle(...arguments);
-		$.extend(hv, { xbizsubekod: this.subeKod || '', xtarih: this.tarih, xseri: this.seri || '' })
+		extend(hv, { xbizsubekod: this.subeKod || '', xtarih: this.tarih, xseri: this.seri || '' })
 	}
 	alternateKeyHostVarsDuzenle({ hv }) {
 		super.alternateKeyHostVarsDuzenle(...arguments)
@@ -227,11 +245,11 @@ class MQGenelFis extends MQOrtakFis {
 			this.fisNo ||= num?.sonNo || this.fisNo
 		}
 	}
-	numaratorDegisti({ sender, parentPart }) {
-	}
+	numaratorDegisti({ sender, parentPart }) { }
 	ozelIsaretDegisti({ sender, parentPart }) {
 		let { layout } = sender ?? parentPart
 		let { ozelIsaret } = this
 		layout.attr('data-ozelisaret', ozelIsaret || '')
 	}
+	tarihDegisti(e) { }
 }
