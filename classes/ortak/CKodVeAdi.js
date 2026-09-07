@@ -30,6 +30,13 @@ class CKodAdiVeEkBilgi extends CKodVeAdi {
 		if ($.isArray(e)) { this.ekBilgi = e[3] } else { if (e.ekBilgi !== undefined) { this.ekBilgi = e.ekBilgi } }
 	}
 }
+class CKodAdiVeGrup extends CKodAdiVeEkBilgi {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	constructor(e = {}) {
+		super(e)
+		this.group = isArray(e) ? e[4] : e.group
+	}
+}
 class CKodAdiVeDetaylar extends CKodAdiVeEkBilgi {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get detaylar() { return this.ekBilgi } set detaylar(value) { return this.ekBilgi = value }

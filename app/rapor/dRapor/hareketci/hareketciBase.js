@@ -309,7 +309,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		super.loadServerData_queryDuzenle(e)
 		let { stm, attrSet, hareketci } = e
 		let { raporTanim, class: mainClass } = this
-		let { yatayAnaliz } = raporTanim.kullanim ?? {}
+		let { yatayBilgi } = raporTanim
 		
 		hareketci ??= this.hareketci
 		hareketci.reset()
@@ -326,8 +326,10 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		let { varsayilanHV: hrkDefHV } = hareketci.class
 		extend(e, { hareketci, hrkDefHV })
 		
-		if (yatayAnaliz)
-			attrSet[mainClass.yatayTip2Bilgi[yatayAnaliz]?.kod] = true
+		if (yatayBilgi) {
+			let { kod } = yatayBilgi
+			attrSet[kod] = true
+		}
 		
 		let uni = e.uni = stm.sent = new MQUnionAll()
 		let calcUygunluk = this.calcUygunluk = uygunlukVarmi ? {} : null
@@ -376,6 +378,11 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 				// let sahaSayisi = sent?.sahalar?.liste?.length ?? 0; if (!sahaSayisi) { continue }
 				// if (config.dev && selectorStr.includes('perakende') /* && sahaSayisi != 30 */) { debugger }
 				sent.groupByOlustur().gereksizTablolariSil()
+
+				let { sahalar } = sent
+				if (empty(sahalar.liste))
+					continue
+				
 				uni.add(sent)
 				uniBilgiYapi.push({ sender, uniBilgi, sent, defHV: hrkDefHV })
 			}

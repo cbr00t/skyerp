@@ -398,6 +398,7 @@ class EIslemOrtak extends CObject {
 	async xmlDuzenle_detaylarOncesi(e) {
 		await this.xmlDuzenle_lineCountNumeric(e)
 		await this.xmlDuzenle_docRefs(e)
+		await this.xmlDuzenle_docRefs_sonOncesi(e)
 		await this.xmlDuzenle_docRefs_son(e)
 		await this.xmlDuzenle_signatureParty(e)
 		await this.xmlDuzenle_supplierParty(e)
@@ -485,6 +486,7 @@ class EIslemOrtak extends CObject {
 		await this.xmlDuzenleInternal_logoBilgileri(e)
 	}
 	async xmlDuzenle_docRefs_ara({ xw }) { }
+	async xmlDuzenle_docRefs_sonOncesi({ xw }) { }
 	async xmlDuzenle_docRefs_son({ xw }) { }
 	async xmlDuzenleInternal_logoBilgileri({ xw }) {
 		let { params: { eIslem = {} } } = app

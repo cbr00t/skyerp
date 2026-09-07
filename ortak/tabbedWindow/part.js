@@ -79,7 +79,7 @@ class TabbedWindowPart extends Part {
 		elmTabPage.children('button#kapat')
 			.jqxButton({ theme, width: 40, height: 30 })
 			.on('click', evt => {
-				let part = $(evt.currentTarget).parents('.tabPage').data('part');
+				let part = $(evt.currentTarget).parents('.tabPage').data('part')
 				if (part) {
 					let { canDestroy } = part.asilPart ?? part
 					part[canDestroy ? 'close' : 'hide']()

@@ -191,20 +191,37 @@ class GridPart extends Part {
 						let {_tazele_lastAction: action} = this
 						let result = await this.loadServerData({ ...e, wsArgs, source, callback, action })
 						if (result) {
-							if ($.isArray(result)) { result = { totalrecords: result.length, records: result } } result = result ?? { totalrecords: 0, records: [] };
-							if (typeof result == 'object' && result.records && !result.totalrecords) { result.totalrecords = result.records.length }
-							if (typeof result != 'object') { return }
+							if (isArray(result))
+								result = { totalrecords: result.length, records: result }
+							
+							result = result ?? { totalrecords: 0, records: [] }
+							if (typeof result == 'object' && result.records && !result.totalrecords)
+								result.totalrecords = result.records.length
+							if (typeof result != 'object')
+								return
+							
 							if (result.records?.length) {
-								let fields = source.datafields = [], ilkRec = result.records?.[0]
+								let hasGroup = 'group' in result.records?.[0] ?? {}
+								if (hasGroup) {
+									result.records = result.records
+										.map(r => {
+											r = r.shallowCopy?.() ?? { ...r }
+											delete r.group
+											return r
+										})
+								}
+								
+								let fields = source.datafields = []
+								let ilkRec = result.records?.[0]
 								if (ilkRec) {
 									for (let name of Reflect.ownKeys(ilkRec)) {
-										let value = ilkRec[name];
-										let type = value == null || typeof value == 'object' ? 'string' : typeof value;
+										let value = ilkRec[name]
+										let type = value == null || isObject(value) ? 'string' : typeof value
 										fields.push({ name, type })
 									}
 								}
 							}
-							setTimeout(() => {
+							;setTimeout(() => {
 								try { callback(result) }
 								catch (ex) {
 									console.error(ex)

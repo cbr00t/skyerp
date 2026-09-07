@@ -43,6 +43,7 @@ class DMQRapor extends DMQSayacliKA {
 	set yatayAnaliz(value) { return (this.kullanim ??= {}).yatayAnaliz = value }
 	get filtreKaydedilirmi() { return this.kullanim?.filtreKaydedilirmi }
 	set filtreKaydedilirmi(value) { return (this.kullanim ??= {}).filtreKaydedilirmi = value }
+	get yatayBilgi() { return this.getYatayBilgi(this.yatayAnaliz) }
 
 	constructor(e = {}) {
 		super(e)
@@ -101,6 +102,11 @@ class DMQRapor extends DMQSayacliKA {
 			.filter(Boolean)
 			.join(' - ')
 	}
+	getYatayBilgi(k) {
+		let { rapor: { class: mainClass } = {} } = this
+		let { yatayTip2Bilgi: d } = mainClass ?? {}
+		return d?.[k]
+	}
 	static rootFormBuilderDuzenle(e = {}) {
 		super.rootFormBuilderDuzenle(e)
 		let { inst, rootBuilder: rfb, tanimFormBuilder: tanimForm } = e
@@ -145,12 +151,12 @@ class DMQRapor extends DMQSayacliKA {
 			form.addModelKullan('yatayAnaliz', 'Çapraz')
 				.addStyle_wh(200).addCSS('relative')
 				.setInst(null).dropDown().noMF()
-				.kodsuz()
-				.listedenSecilemez()
+				.kodsuz().bosKodEklenmez()
+				//.listedenSecilemez()
 				.setSource(e => {
-					let result = [ new CKodVeAdi(['', '']) ]
-					for (let [kod, { text: aciklama }] of entries(mainClass.yatayTip2Bilgi))
-						result.push(new CKodVeAdi({ kod, aciklama }))
+					let result = [ new CKodAdiVeGrup({ kod: '', aciklama: `<span class=gray>- Yok -</span>`, group: ' ' }) ]
+					for (let [kod, { kod: _, text: aciklama, group, ...rest }] of entries(mainClass.yatayTip2Bilgi))
+						result.push(new CKodAdiVeGrup({ kod, aciklama, group, ekBilgi: rest }))
 					return result
 				})
 				.setValue(kullanim.yatayAnaliz)

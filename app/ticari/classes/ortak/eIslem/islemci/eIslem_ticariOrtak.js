@@ -460,11 +460,12 @@ class EIslTicariOrtak extends EIslGiden {
 		await super.xmlDuzenle_docRefs_ilk(...arguments)
 	}
 	async xmlDuzenle_docRefs_ara({ xw }) {
-		let { eYontem, faturaOzelTipText } = this.baslik
 		await super.xmlDuzenle_docRefs_ara(...arguments)
+		let { faturaOzelTipText } = this.baslik
 		await this.xmlDuzenleInternal_docRefBaslikEkSaha({ xw, name: 'Fatura Ek Tipi', value: faturaOzelTipText })
 	}
 	async xmlDuzenle_docRefs_sonOncesi({ xw }) {
+		await super.xmlDuzenle_docRefs_sonOncesi(...arguments)
 		let { params } = app
 		let { oncekiIrsTSNListe, eArsivBelgeTipBelirtec: eArsiv_belirtec, ortalamavade: ortVade } = this.baslik
 		let { diger: { sutOnayKodu, tapdkNox } } = params.isyeri

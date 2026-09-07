@@ -162,11 +162,164 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			ND: { kod: 'NEDEN', belirtec: 'neden', text: 'Neden' }
 			//HG: { kod: 'GRUP', belirtec: 'grup', text: 'Har. Ana Tip' }
 		})*/
+		let { totalmi } = this
+		if (totalmi) {
+			let group = 'Dönem'
+			let belirtec = 'yatay'
+
+			function getRec({ pfKod, pfAdi, pfRes, update }) {
+				return {
+					group, belirtec,
+					kod: `DNM_BUONCE_${pfKod}`,
+					text: `Bu ve Önceki ${pfAdi}`,
+					ozelmi: true, donemmi: true,
+					noSort: true, toplamYok: true,
+					getYatayDegerler() {
+						let pfRes = pfAdi.toLocaleUpperCase()
+						return ['BU', 'ÖNCEKİ']
+							.map(pre => `${pre} ${pfRes}`)
+					},
+					duzenle(e = {}) {
+						let { tarihClause, alias, tarihSaha, tarihBS: ref } = e
+						let { stm, sent, recs, rec } = e
+						let { yatayKey: yk = belirtec, tarihKey: tk = 'tarih' } = e
+						if (!stm && sent)
+							stm = new MQStm({ sent })
+
+						if (!recs && rec)
+							recs = [rec]
+
+						let _today = today()
+						ref = e.tarihBS ??= new CBasiSonu({
+							basi: today().clone().yilBasi(),
+							sonu: today().clone()
+						})
+						
+						let diger = ref.shallowCopy()
+						;entries(diger).forEach(([k, v]) =>
+							diger[k] = v.clone())
+						
+						if (update) {
+							let args = { ...e, diger }
+							update.call(this, args)
+							diger = args.diger
+						}
+
+						let range = new CBasiSonu({
+							basi: new Date(min(ref.basi, diger.basi)),
+							sonu: new Date(max(ref.sonu, diger.sonu))
+						})
+
+						if (stm) {
+							let { orderBy } = stm
+							for (let sent of stm) {
+								let { where: wh } = sent
+								if (wh) {
+									if (!tarihClause && tarihSaha)
+										tarihClause = [alias, tarihSaha].filter(Boolean).join('.')
+									if (tarihClause === undefined) {
+										let { alias2Deger: hv } = sent
+										tarihClause = hv.tarih
+									}
+									
+									if (tarihClause)
+										wh.basiSonu(range, tarihClause)
+								}
+							}
+						}
+						
+						if (!empty(recs)) {
+							let vals = this.getYatayDegerler()
+							;recs.forEach(r => {
+								let yatay = ''
+								let v = asDate(r[tk])
+								if (!isInvalidDate(v)) {
+									let digermi = diger.uygunmu(v)
+									yatay = r[yk] = vals[digermi ? 1 : 0]
+								}
+								if (yatay)
+									r[yk] = yatay
+							})
+						}
+					}
+				}
+			}
+
+			let items = [
+				getRec({
+					pfKod: 'YIL', pfAdi: 'Yıl',
+					update: ({ diger: bs }) => void(
+						entries(bs).forEach(([k, v]) =>
+							v.addYears(-1))
+					)
+				}),
+				getRec({
+					pfKod: 'AY', pfAdi: 'Ay',
+					update: ({ diger: bs }) => void(
+						entries(bs).forEach(([k, v]) =>
+							v.addMonths(-1))
+					)
+				}),
+				getRec({
+					pfKod: 'AY2', pfAdi: '2 Ay',
+					update: ({ diger: bs }) => void(
+						entries(bs).forEach(([k, v]) =>
+							v.addMonths(-2))
+					)
+				}),
+				getRec({
+					pfKod: 'AY3', pfAdi: '3 Ay',
+					update: ({ diger: bs }) => void(
+						entries(bs).forEach(([k, v]) =>
+							v.addMonths(-3))
+					)
+				}),
+				getRec({
+					pfKod: 'HAFTA', pfAdi: 'Hafta',
+					update: ({ diger: bs }) => void(
+						entries(bs).forEach(([k, v]) =>
+							v.addWeeks(-1))
+					)
+				}),
+				getRec({
+					pfKod: 'HAFTA2', pfAdi: '2 Hafta',
+					update: ({ diger: bs }) => void(
+						entries(bs).forEach(([k, v]) =>
+							v.addWeeks(-2))
+					)
+				}),
+				getRec({
+					pfKod: 'GUN5', pfAdi: '5 Gün',
+					update: ({ diger: bs }) => void(
+						entries(bs).forEach(([k, v]) =>
+							v.addDays(-5))
+					)
+				}),
+				getRec({
+					pfKod: 'DUN', pfAdi: 'Gün',
+					update: ({ diger: bs }) => void(
+						entries(bs).forEach(([k, v]) =>
+							v.dun())
+					)
+				})
+			]
+			
+			;items.forEach((r, i) =>
+				res[`D${i + 1}`] = r)
+		}
 		
-		if (this.konsolideVarmi)
-			res.DB = { kod: 'DB', belirtec: 'db', text: 'Veritabanı' }
+		if (this.konsolideVarmi) {
+			res.DB = {
+				group: 'Özel',
+				kod: 'DB', belirtec: 'db',
+				text: 'Veritabanı',
+				ozelmi: true, dbmi: true,
+				noSort: true, toplamYok: true
+			}
+		}
 		
 		;{
+			let group = 'Rapor Sahaları'
 			let { instance: inst } = this
 			let { tabloYapi: { grup: defs } = {} } = inst ?? {}
 			//let { tabloYapi: { grupVeToplam: defs } = {} } = inst ?? {}
@@ -178,7 +331,9 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				
 				let existsSet = asSet(values(res).map(r => r.kod))
 				let seq = 10
-				for (let [kod, { ka: { aciklama: text }, colDefs: [cd] }] of entries(defs)) {
+				for (let [kod, def] of entries(defs)) {
+					let { ka, colDefs: [ cd ] } = def
+					let { aciklama: text } = ka
 					if (existsSet[kod])
 						continue
 
@@ -191,14 +346,14 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 					seq++
 					
 					let { belirtec } = cd
-					res[k] = { kod, belirtec, text }
+					res[k] = { group, kod, belirtec, text }
 				}
 			}
 		}
 
 		;{
 			let sorted = entries(res)
-			sorted.sort(([,a], [,b]) => 
+			sorted.sort(( [, a], [, b] ) => 
 				a.text.localeCompare(
 					b.text, 'tr',
 					{ sensitivity: 'base', numeric: true }
@@ -316,7 +471,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		let e = arguments[0]
 		super.tabloYapiDuzenle_son(e)
 		this.tabloYapiDuzenle_son_ozel?.(e)
-		let {iniYapilar} = this
+		let { iniYapilar } = this
 		for (let {kaPrefixes, items} of iniYapilar ?? []) {
 			if (!empty(kaPrefixes))
 				result.addKAPrefix(...kaPrefixes)
@@ -366,18 +521,55 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		return recs
 	}
 	super_loadServerDataInternal(e) { return super.loadServerDataInternal(e) }
+	
 	async loadServerData_ilk(e) {
-		let {attrSet, yatayAnaliz} = e
-		if (yatayAnaliz && keys(attrSet).length == 1 && attrSet.DB) {
-			let {session} = config, {dbName: buDBName} = session, {ekDBListe} = app.params?.dRapor ?? {}, alias_db = 'db';
-			let {secimler: sec} = this, {value: filtreDBListe} = sec.db ?? {}
+		let { attrSet, yatayAnaliz: yatayAnalizmi } = e
+		let tekilKeymi = keys(attrSet).length == 1
+		let { raporTanim } = this
+		let { yatayBilgi, _ozelAttrSet } = raporTanim
+		let { kod: yatayKod, dbmi, donemmi } = yatayBilgi ?? {}
+		
+		if (yatayAnalizmi && dbmi) {
+			let alias_db = 'db'
+			let { session } = config, { dbName: buDBName } = session
+			let { ekDBListe } = app.params?.dRapor ?? {}
+			let { secimler: sec } = this
+			let { value: filtreDBListe } = sec.db ?? {}
 			let filtreDBSet = filtreDBListe?.length ? asSet(filtreDBListe) : null
 			let result = filtreDBListe?.length ? filtreDBListe : [buDBName, ...(ekDBListe ?? [])]
 			let getDBText = db => db == buDBName ? `(<span class=forestgreen>${db}</span>)` : db
 			return result.map(db => ({ db: getDBText(db) }))
 		}
+		
+		if (donemmi) {
+			attrSet.TARIH = true
+			if (yatayAnalizmi)
+				delete attrSet[yatayKod]
+		}
 	}
-	loadServerData_son(e) { }
+	async loadServerData_son(e) { }
+	async loadServerData_sonrasi(e) {
+		await super.loadServerData_sonrasi(e)
+		let { yatayAnaliz: yatayAnalizmi, recs } = e
+		let rapor = this, { tabloYapi, raporTanim } = this
+		let { _ozelAttrSet: attrSet = raporTanim.attrSet, yatayBilgi } = raporTanim
+		if (yatayAnalizmi) {
+			let { belirtec: k } = yatayBilgi
+			let vals = yatayBilgi.getYatayDegerler?.()
+			return vals?.map(v => ({ [k]: v }))
+		}
+		
+		if (yatayBilgi?.donemmi) {
+			let { TARIH: { colDefs: [{ belirtec: tarihKey }]} } = tabloYapi.grup
+			if (yatayBilgi.duzenle) {
+				let args = { rapor, tabloYapi, raporTanim, attrSet, tarihKey, recs }
+				yatayBilgi.duzenle(args)
+				recs = e.recs = this.lastRecs = args.recs
+			}
+			delete attrSet.TARIH
+		}
+	}
+	
 	gridVeriYuklendi({ rootPart }) {
 		super.gridVeriYuklendi(...arguments)
 		let {rfb_items} = this.rapor, {main} = rfb_items.id2Builder
@@ -400,13 +592,15 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			elmEkBilgi.html(ozetBilgiHTML)
 	}
 	loadServerData_queryDuzenle_tekil(e = {}) {
-		let {internal} = e
+		let { internal } = e
 		if (this.loadServerData_queryDuzenle(e) === false)
 			return false
+		
 		if (!internal) {
 			if (this.loadServerData_queryDuzenle_filtreBaglantiYap(e) === false)
 				return false
 		}
+		
 		if (this.loadServerData_queryDuzenle_son(e) === false)
 			return false
 	}
@@ -520,19 +714,25 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			}
 		}
 	}
-	loadServerData_queryDuzenle_filtreBaglantiYap({ stm, attrSet: orjAttrSet }) {
-		let e = arguments[0], {secimler, tabloYapi} = this
-		let internal = true, attrSet = { ...orjAttrSet }
+	loadServerData_queryDuzenle_filtreBaglantiYap(e = {}) {
+		let { stm, attrSet: orjAttrSet } = e
+		let { secimler, tabloYapi, raporTanim = {} } = this
+		let { yatayBilgi } = raporTanim
+		
+		let internal = true
+		let attrSet = { ...orjAttrSet }
 		for (let [key, item] of entries(tabloYapi.grup)) {
-			let {kaYapimi} = item
+			let { kaYapimi } = item
 			if (!kaYapimi || item.secimKullanilmazFlag === false || item.formulmu)
 				continue
+			
 			let sec_kod = secimler[key]
 			let sec_adi = secimler[`${key}Adi`]
 			let {mfSinif} = sec_kod ?? {}
 			if ((mfSinif?.mqCogulmu || mfSinif?.tekSecimmi) && !(sec_kod?.bosmu && sec_adi?.bosmu))
 				attrSet[key] = true
 		}
+		
 		if (keys(attrSet).length == keys(orjAttrSet).length)    // yeni birşey eklenmedi
 			return
 		
@@ -749,9 +949,17 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		}*/
 	}
 	
-	donemBagla({ donemBS, tarihSaha, sent }) {
-		if (donemBS) {
-			let  {where: wh } = sent, { basi, sonu } = donemBS
+	donemBagla(e = {}) {
+		let { donemBS: tarihBS, tarihSaha, sent, attrSet } = e
+		let rapor = this, { tabloYapi, raporTanim } = this
+		let { yatayBilgi } = raporTanim
+		if (yatayBilgi?.duzenle) {
+			let args = { rapor, tabloYapi, raporTanim, attrSet, tarihBS, sent, tarihSaha }
+			yatayBilgi.duzenle(args)
+			e.donemBS = args.tarihBS
+		}
+		else if (tarihBS) {
+			let { where: wh } = sent
 			wh.basiSonu(donemBS, tarihSaha)
 		}
 		return this

@@ -313,7 +313,12 @@ input[type = text]::placeholder,
 }
 
 
-body:not(.no-wnd) > .app-titlebar {
-	display: none
-}
+/*body:not(.no-wnd) > .app-titlebar { display: none }
+body:not(.no-wnd):has(.fisGiris.part) > .app-titlebar,
+body:not(.no-wnd):has(.modelTanim.part) > .app-titlebar { display: none }*/
+
+body:not(.no-wnd) > .app-titlebar { opacity: .5 }
+body:not(.no-wnd) > .app-titlebar .db-name { top: 5px; right: 60px }
+body:not(.no-wnd) > .app-titlebar :not(.db-name) { display: none }
+
 

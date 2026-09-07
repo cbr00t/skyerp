@@ -68,7 +68,8 @@ class CBasiSonu extends CObject {
 		})
 	}
 	uygunmu(e) {
-		let value = e?.value ?? e, {basi, sonu} = this
+		let value = e?.value ?? e
+		let { basi, sonu } = this
 		if (isDate(value)) {
 			let bs = { basi, sonu }
 			for (let [k, v] of entries(bs)) {
@@ -76,9 +77,13 @@ class CBasiSonu extends CObject {
 				if (v && !isDate(v))
 					bs[k] = v = asDate(v)
 			}
-			basi = bs.basi; sonu = bs.sonu
+			basi = bs.basi
+			sonu = bs.sonu
 		}
-		return empty(value) ? true : (!basi || basi <= value) && (!sonu || sonu >= value)
+		return (
+			empty(value) ? true :
+			(!basi || basi <= value) && (!sonu || sonu >= value)
+		)
 	}
 	toString(e) { return this.kisaText }
 	*iter({ reverse } = {}) {
