@@ -93,8 +93,9 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get hareketcimi() { return true } 
 	static get hareketciSinif() { return this.raporClass?.hareketciSinif } static get secimWhereBaglanirmi() { return false }
-	static get totalmi() { return this.raporClass.totalmi } static get hareketmi() { return this.raporClass.hareketmi }
-	static get envantermi() { return this.raporClass.envantermi }
+	static get totalmi() { return this.raporClass?.totalmi ?? true }
+	static get hareketmi() { return this.raporClass?.hareketmi ?? false }
+	static get envantermi() { return this.raporClass?.envantermi ?? false }
 	static get ticarimi() { return false }
 
 	async onGridInit(e) {

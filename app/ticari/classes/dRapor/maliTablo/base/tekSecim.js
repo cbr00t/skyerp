@@ -10,17 +10,90 @@ class SBTabloYatayAnaliz extends TekSecim {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return ' ' }
 	kaListeDuzenle({ kaListe }) {
-		let takipNo_ortakClause = `(case when fis.takiportakdir > '' then fis.orttakipno else har.dettakipno end)`;
-		super.kaListeDuzenle(...arguments); kaListe.push(
-			new CKodAdiVeEkBilgi(['DB', 'Veritabanı', 'dbmi', {}]),
+		let { konsolideCikti: konsolide, ekDBListe } = app.params.dRapor ?? {}
+		let takipNo_ortakClause = `(case when fis.takiportakdir > '' then fis.orttakipno else har.dettakipno end)`
+		
+		super.kaListeDuzenle(...arguments)
+		function addDonem({ kod, aciklama, question, duzenle, defRef }) {
+			return new CKodAdiVeEkBilgi([
+				kod, aciklama, question,
+				new class extends SBTabloYatayAnaliz_EkBilgi {
+					// hvKA = new CKodVeAdi(['', ''])
+					zorunluKodAttrListe = ['tarih']
+					ozelmi = true; donemmi = true
+					sentDuzenle({ secimler, donemBS: ref, hv, sent }) {
+						super.sentDuzenle(...arguments)
+						;{
+							let { zorunluKodAttr: tarihSaha } = this
+							let cl = hv[tarihSaha] || `fis.${tarihSaha}`
+							
+							ref ||= secimler.tarihBS ?? getFuncValue.call(this, defRef, ...arguments) ?? {}
+							let { basi: b, sonu: s } = ref
+							if (isInvalidDate(b) ||isInvalidDate(s))
+								throw { errorText: `(<b class="royalblue">Dönem veya Tarih Aralık</b>) belirtilmelidir` }
+	
+							let range
+							;{
+								let { basi: b, sonu: s } = ref
+								let args = { bs: new CBasiSonu({ basi: b.clone(), sonu: s.clone() }) }
+								duzenle?.call(this, args)
+								
+								let diger = args.bs
+								range = new CBasiSonu({
+									basi: new Date(min(ref.basi, diger.basi)),
+									sonu: new Date(max(ref.sonu, diger.sonu))
+								})
+							}
+	
+							for (let { where: wh, sahalar } of sent) {
+								wh.basiSonu(range, cl)
+								
+								sahalar.add(
+									`${new MQCase()
+										.when(
+											new MQAndClause().basiSonu(ref, cl),
+											`'BU DÖNEM'`
+										)
+										.else(`'ÖNCEKİ DÖNEM'`)
+									 } yatay`
+								)
+							}
+						}
+					}
+				}
+			])
+		}
+		kaListe.push(...[
+			addDonem({
+				kod: 'DONEM',
+				aciklama: 'Bu ve Önceki Dönem',
+				question: 'donemmi',
+				duzenle: ({ bs }) => {
+					let { basi: b, sonu: s } = bs
+					let days = (s - b) / Date_OneDayNum
+					b.addDays(-days)
+				}
+			}),
+			addDonem({
+				kod: 'DNYIL',
+				aciklama: 'Bu ve Önceki Yıl',
+				question: 'donemYilmi',
+				defRef: () =>
+					new CBasiSonu({ basi: today().yilBasi(), sonu: today() }),
+				duzenle: ({ bs: { basi: b } }) =>
+					b.addYears(-1)
+			}),
+			( konsolide ? new CKodAdiVeEkBilgi(['DB', 'Veritabanı', 'dbmi', {}]) : null ),
 			new CKodAdiVeEkBilgi(['SUBE', 'Şube', 'subemi', new class extends SBTabloYatayAnaliz_EkBilgi {
 				hvKA = new CKodVeAdi(['bizsubekod', 'subeadi'])
 				sentDuzenle({ kodClause, hv, sent, sent: { from, sahalar, where: wh } }) {
 					super.sentDuzenle(...arguments)
 					/* kodAttr için sent'e clause eklenmiş olarak gelecek */
-					let {kodAttr} = this, yatayAlias = 'sub'
+					let { kodAttr } = this
+					let yatayAlias = 'sub'
 					kodClause ||= `fis.${kodAttr}`
-					if (!from.aliasIcinTable(yatayAlias)) { sent.x2SubeBagla({ kodClause }) }
+					if (!from.aliasIcinTable(yatayAlias))
+						sent.x2SubeBagla({ kodClause })
 					sahalar.add('sub.aciklama yatay')
 				}
 			}]),
@@ -29,14 +102,17 @@ class SBTabloYatayAnaliz extends TekSecim {
 				zorunluKodAttrListe = ['bizsubekod']
 				sentDuzenle({ hv, sent, sent: { from, sahalar, where: wh } }) {
 					super.sentDuzenle(...arguments)
-					{
-						let {zorunluKodAttr} = this, yatayAlias = 'sub'
+					;{
+						let { zorunluKodAttr } = this
+						let yatayAlias = 'sub'
 						let kodClause = hv[zorunluKodAttr] || `fis.${zorunluKodAttr}`
-						if (!from.aliasIcinTable(yatayAlias)) { sent.x2SubeBagla({ kodClause }) }
+						if (!from.aliasIcinTable(yatayAlias))
+							sent.x2SubeBagla({ kodClause })
 					}
-					{
+					;{
 						let yatayAlias = 'igrp'
-						if (!from.aliasIcinTable(yatayAlias)) { sent.sube2GrupBagla() }
+						if (!from.aliasIcinTable(yatayAlias))
+							sent.sube2GrupBagla()
 						sahalar.add('igrp.aciklama yatay')
 					}
 				}
@@ -163,7 +239,7 @@ class SBTabloYatayAnaliz extends TekSecim {
 					sahalar.add('bhes.aciklama yatay')
 				}
 			}])
-		)
+		].filter(Boolean))
 	}
 }
 

@@ -151,10 +151,12 @@ class DMQRapor extends DMQSayacliKA {
 			form.addModelKullan('yatayAnaliz', 'Çapraz')
 				.addStyle_wh(200).addCSS('relative')
 				.setInst(null).dropDown().noMF()
-				.kodsuz().bosKodEklenmez()
+				.kodsuz()
+				.bosKodEklenmez()
+				.bosKodAlinmaz()
 				//.listedenSecilemez()
 				.setSource(e => {
-					let result = [ new CKodAdiVeGrup({ kod: '', aciklama: `<span class=gray>- Yok -</span>`, group: ' ' }) ]
+					let result = [ new CKodAdiVeGrup({ kod: '', aciklama: `<b class=orangered>YOK</b>`, group: '--------------' }) ]
 					for (let [kod, { kod: _, text: aciklama, group, ...rest }] of entries(mainClass.yatayTip2Bilgi))
 						result.push(new CKodAdiVeGrup({ kod, aciklama, group, ekBilgi: rest }))
 					return result

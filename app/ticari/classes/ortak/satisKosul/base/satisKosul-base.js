@@ -60,7 +60,7 @@ class SatisKosul extends CKodVeAdi {
 		stm = _e.stm; sent = null
 		if (stm?.bosmu ?? true)
 			return null
-		let recs = await MQCogul.sqlExecSelect({ offlineMode, query: stm })
+		let recs = await stm.execSelect({ offlineMode })
 		let uygunmu = false, result = []
 		for (let rec of recs) {
 			let inst = new this(e)
@@ -74,7 +74,7 @@ class SatisKosul extends CKodVeAdi {
 					from: `${detayMustTable} mus`, sahalar: 'COUNT(*) sayi',
 					where: [{ degerAta: sayac, saha: fisSayacSaha }, { degerAta: mustKod, saha: 'mus.must' }]
 				}).distinctYap()
-				uygunmu = !!asInteger(await MQCogul.sqlExecTekilDeger({ ...e, query: sent }))
+				uygunmu = !!asInteger(await sent.execTekilDeger({ ...e }))
 			}
 			if (uygunmu) {
 				let mustRec = inst.mustRec = e.mustRec ?? await this.getMust2Rec(mustKod)
@@ -109,7 +109,7 @@ class SatisKosul extends CKodVeAdi {
 		if (stm?.bosmu ?? true)
 			return null
 		
-		let recs = await MQCogul.sqlExecSelect({ offlineMode, query: stm })
+		let recs = await stm.execSelect({ offlineMode })
 		let uygunmu = false
 		for (let rec of recs) {
 			this.setValues({ rec })
@@ -192,74 +192,84 @@ class SatisKosul extends CKodVeAdi {
 	async getAltKosullar(e = {}) {
 		if (!isObject(e) || isArray(e))
 			e = { kodListe: makeArray(e) }
-		let {offlineMode} = e
+		
+		let { offlineMode } = e
 		let _satisKosul = this, {kapsam, kod, mustKod, iskontoYokmu, promosyonYokmu} = this
 		//let stokKodListe = $.makeArray(typeof e == 'object' && !$.isArray(e) ? e.stokKodListe ?? e.kodListe : e)
 		//if ($.isEmptyObject(stokKodListe)) { return {} }
+		let globCache = this.class._cache ??= {}
 		let cache = _satisKosul._altKosullar ??= {}
 		let anah = toJSONStr({ ...e, kod, kapsam, mustKod })
 		return cache[anah] ??= await (async () => {
-			let _ = cache['_stokGrupTablo'] ??= await (async () => {
+			let _ = globCache['_stokGrupTablo'] ??= await (async () => {
 				let result = { grup2StokKodSet: {}, stok2GrupKod: {} }
-				{	/* Stoklar için Grup Kodlarını belirle */
+				;{	/* Stoklar için Grup Kodlarını belirle */
 					let sent = new MQSent({
 						from: 'stkmst stk', sahalar: ['stk.kod stokKod', 'stk.grupkod grupKod'],
 						where: [/*{ inDizi: stokKodListe, saha: 'stk.kod' },*/ `stk.grupkod > ''`]
 					})
-					for (let {stokKod, grupKod} of await MQCogul.sqlExecSelect({ offlineMode, query: sent })) {
+					for (let {stokKod, grupKod} of await sent.execSelect({ offlineMode })) {
 						if (!grupKod)
 							continue
 						result.stok2GrupKod[stokKod] = grupKod
-						; (result.grup2StokKodSet[grupKod] ??= {})[stokKod] = true
+						;(result.grup2StokKodSet[grupKod] ??= {})[stokKod] = true
 					}
 				}
 				return result
 			})()
-			let {stok2GrupKod, grup2StokKodSet} = _, result = {}
-			{	/* Stok Gruplar için Alt Koşulları belirle (init values - öncelik #2) */
-				let stm = new MQStm(), {sent} = stm, kodListe = keys(grup2StokKodSet)
-				let _e = { ...e, kodListe, stm, sent, grupmu: true };
-				if (this.getAltKosullar_queryDuzenle(_e) !== false) {
-					stm = _e.stm; sent = _e.sent
-					let sevRecs = seviyelendir({
-						attrListe: ['xKod'],
-						source: await MQCogul.sqlExecSelect({ offlineMode, query: stm })
-					})
-					let detTip = 'G'
-					for (let {detaylar} of sevRecs)
-					for (let _rec of detaylar) {
-						let {xKod: grupKod} = _rec
-						if (!grupKod)		 		 		 		 		 		 		 		 		 		 	  /* sent.where koşulundan dolayı normalde boş grupKod gelmemesi gerekir, sadece önlem */
-							continue
-						let stokKodSet = grup2StokKodSet[grupKod]
-						if (empty(stokKodSet))																			  /* grupKod'a ait stokKod liste boş ise işlem yapma. normalde bu dict values içeriğinin boş gelmemesi bekleniyor */
-							continue
-						$.extend(_rec, { _satisKosul, detTip, iskontoYokmu, promosyonYokmu })							  /* ortak değerleri orijinal _rec içine ata */
-						for (let xKod in stokKodSet)																	  /* grupKod'a ait her 'stokKod' için kopya kayıt ile result'a eklenti yap */
-							result[xKod] = { ..._rec, xKod }
+			
+			let { stok2GrupKod, grup2StokKodSet } = _
+			let result = {}
+			await promiseAll([
+				promise(async () => {
+					/* Stok Gruplar için Alt Koşulları belirle (init values - öncelik #2) */
+					let stm = new MQStm(), {sent} = stm, kodListe = keys(grup2StokKodSet)
+					let _e = { ...e, kodListe, stm, sent, grupmu: true };
+					if (this.getAltKosullar_queryDuzenle(_e) !== false) {
+						stm = _e.stm
+						sent = _e.sent
+						let sevRecs = seviyelendir({
+							attrListe: ['xKod'],
+							source: await stm.execSelect({ offlineMode })
+						})
+						let detTip = 'G'
+						for (let {detaylar} of sevRecs)
+						for (let _rec of detaylar) {
+							let {xKod: grupKod} = _rec
+							if (!grupKod)		 		 		 		 		 		 		 		 		 		 	  /* sent.where koşulundan dolayı normalde boş grupKod gelmemesi gerekir, sadece önlem */
+								continue
+							let stokKodSet = grup2StokKodSet[grupKod]
+							if (empty(stokKodSet))																			  /* grupKod'a ait stokKod liste boş ise işlem yapma. normalde bu dict values içeriğinin boş gelmemesi bekleniyor */
+								continue
+							extend(_rec, { _satisKosul, detTip, iskontoYokmu, promosyonYokmu })							  /* ortak değerleri orijinal _rec içine ata */
+							for (let xKod in stokKodSet)																	  /* grupKod'a ait her 'stokKod' için kopya kayıt ile result'a eklenti yap */
+								result[xKod] = { ..._rec, xKod }
+						}
 					}
-				}
-			}
-			{	/* Stoklar için Alt Koşulları belirle (with override - öncelik #1) */
-				let stm = new MQStm(), {sent} = stm  /*, kodListe = stokKodListe;*/
-				let _e = { ...e, /*kodListe,*/ stm, sent, grupmu: false }
-				if (this.getAltKosullar_queryDuzenle(_e) !== false) {
-					stm = _e.stm; sent = _e.sent
-					let sevRecs = seviyelendir({
-						attrListe: ['xKod'],
-						source: await MQCogul.sqlExecSelect({ offlineMode, query: stm })
-					})
-					let detTip = 'S'
-					for (let {detaylar} of sevRecs)
-					for (let rec of detaylar) {
-						let {xKod} = rec																				  /* stokKod boş ise işlem yapma. normalde boş gelmemesi bekleniyor */
-						if (!xKod)
-							continue
-						$.extend(rec, { _satisKosul, detTip, iskontoYokmu, promosyonYokmu })							  /* ortak değerleri ata */
-						result[xKod] = rec																				  /* result'a eklenti yap */
+				}),
+				promise(async () => {
+					/* Stoklar için Alt Koşulları belirle (with override - öncelik #1) */
+					let stm = new MQStm(), {sent} = stm  /*, kodListe = stokKodListe;*/
+					let _e = { ...e, /*kodListe,*/ stm, sent, grupmu: false }
+					if (this.getAltKosullar_queryDuzenle(_e) !== false) {
+						stm = _e.stm; sent = _e.sent
+						let sevRecs = seviyelendir({
+							attrListe: ['xKod'],
+							source: await stm.execSelect({ offlineMode })
+						})
+						let detTip = 'S'
+						for (let {detaylar} of sevRecs)
+						for (let rec of detaylar) {
+							let {xKod} = rec																				  /* stokKod boş ise işlem yapma. normalde boş gelmemesi bekleniyor */
+							if (!xKod)
+								continue
+							extend(rec, { _satisKosul, detTip, iskontoYokmu, promosyonYokmu })							  /* ortak değerleri ata */
+							result[xKod] = rec																				  /* result'a eklenti yap */
+						}
 					}
-				}
-			}
+				})
+			])
+			
 			return result
 		})()
 	}

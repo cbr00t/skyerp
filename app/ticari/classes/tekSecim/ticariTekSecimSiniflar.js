@@ -723,21 +723,23 @@ class DonemSecim extends TekSecim {
 	buAy() { this.char = 'AY'; return this } gecenAy() { this.char = 'GA'; return this }
 	buCeyrekDonem() { this.char = 'BC'; return this } oncekiCeyrekDonem() { this.char = 'OC'; return this }
 	buYil() { this.char = 'BY'; return this }
-	getBasiSonu(kod) {
-		let _today = today(), {ay, yil} = _today, basi;
+	getBasiSonu(kod, ref) {
+		ref ??= today()
+		let { ay, yil } = ref
+		let basi
 		switch (kod) {
-			case 'B': return new CBasiSonu({ basi: _today.clone(), sonu: _today.clone() })
-			case 'D': return new CBasiSonu({ basi: _today.clone().dun(), sonu: _today.clone().dun() })
-			case 'HF': return new CBasiSonu({ basi: _today.clone().haftaBasi(), sonu: _today.clone().haftaSonu() })
-			case 'AY': return new CBasiSonu({ basi: _today.clone().ayBasi(), sonu: _today.clone().aySonu() })
-			case 'GA': return new CBasiSonu({ basi: _today.clone().ayBasi().addMonths(-1), sonu: _today.clone().ayBasi().addDays(-1) })
+			case 'B': return new CBasiSonu({ basi: ref.clone(), sonu: ref.clone() })
+			case 'D': return new CBasiSonu({ basi: ref.clone().dun(), sonu: ref.clone().dun() })
+			case 'HF': return new CBasiSonu({ basi: ref.clone().haftaBasi(), sonu: ref.clone().haftaSonu() })
+			case 'AY': return new CBasiSonu({ basi: ref.clone().ayBasi(), sonu: ref.clone().aySonu() })
+			case 'GA': return new CBasiSonu({ basi: ref.clone().ayBasi().addMonths(-1), sonu: ref.clone().ayBasi().addDays(-1) })
 			case 'BC':
 				let ceyrekNo = ((ay - 1) % 3) + 1; basi = new Date(yil, ((ceyrekNo - 1) * 3) + 1, 1);
 				return new CBasiSonu({ basi, sonu: basi.clone().addMonths(2).aySonu() })
 			case 'OC':
 				let oncekiCeyrekNo = (ay - 1) % 3; basi = oncekiCeyrekNo ? new Date(yil, ((oncekiCeyrekNo - 1) * 3) + 1, 1) : new Date(yil - 1, 9, 1);
 				return new CBasiSonu({ basi, sonu: basi.clone().addMonths(2).aySonu() })
-			case 'BY': return new CBasiSonu({ basi: _today.clone().yilBasi(), sonu: _today.clone().yilSonu() })
+			case 'BY': return new CBasiSonu({ basi: ref.clone().yilBasi(), sonu: ref.clone().yilSonu() })
 		}
 		return null
 	}

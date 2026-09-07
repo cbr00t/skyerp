@@ -375,13 +375,14 @@ class Secimler extends CIO {
 class DonemselSecimler extends Secimler {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get tarihBS() {
-		let {donem, tarihAralik} = this, {tarihAralikmi, basiSonu: bs} = donem?.tekSecim ?? {}
+		let { donem, tarihAralik } = this
+		let { tarihAralikmi, basiSonu: bs } = donem?.tekSecim ?? {}
 		if (tarihAralikmi)
 			bs = new CBasiSonu(tarihAralik)
 		if (bs) {
-			for (let [key, value] of Object.entries(bs)) {
-				if (value && typeof value == 'string')
-					bs[key] = value = asDate(value)
+			for (let [k, v] of entries(bs)) {
+				if (v && isString(v))
+					bs[k] = v = asDate(v)
 			}
 		}
 		return bs

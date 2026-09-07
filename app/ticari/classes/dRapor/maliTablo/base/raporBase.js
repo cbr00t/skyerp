@@ -144,8 +144,9 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 				result.push('level-' + level.toString())
 			
 			if (toplammi && yatayAnalizVarmi) {
-				let {userData: { yatayToplammi } = {}} = colDef
-				if (yatayToplammi) { result.push('yatayToplam') }
+				let { userData: { yatayToplammi } = {} } = colDef
+				if (yatayToplammi)
+					result.push('yatayToplam')
 			}
 			
 			let _e = { raporTanim, colDefs, colDef, rowIndex, belirtec, value, rec, result }
@@ -165,16 +166,23 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			new GridKolon({ belirtec: 'aciklama', text: 'Açıklama', genislikCh: 50 }),
 			...values(tabloYapi.grup).map(e => e.colDefs).flat()
 		);
-		for (let {colDefs: [orjColDef]} of values(tabloYapi.toplam)) {
-			let colDef = orjColDef.deepCopy()
-			colDef.userData = { toplammi: true }
-			{
-				let {text} = colDef
-				text = colDef.text = `<div class="forestgreen" style="width: calc(var(--full) - 30px); height: 25px; border: 1px solid forestgreen; padding: 2px 10px">Top.${text}</div>`
+		for (let { colDefs: [orjColDef] } of values(tabloYapi.toplam)) {
+			if (!yatayAnaliz?.ekBilgi?.donemmi) {
+				let colDef = orjColDef.deepCopy()
+				let { text } = colDef
+				colDef.userData = { toplammi: true }
+				text = colDef.text = (
+					`<div class="forestgreen"
+						style="width: calc(var(--full) - 30px); height: 25px;
+							   border: 1px solid forestgreen; padding: 2px 10px
+						">Top.${text}</div>`
+				)
+				if (yatayAnalizVarmi)
+					colDef.userData.yatayToplammi = true
+				colDefs.push(colDef)
 			}
-			colDefs.push(colDef)
+			
 			if (yatayAnalizVarmi) {
-				colDef.userData.yatayToplammi = true
 				for (let yatay in yatayDegerSet) {
 					let _colDef = orjColDef.deepCopy()
 					_colDef.userData = { yatayDegermi: true }
@@ -184,15 +192,16 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 				}
 			}
 		}
-		for (let colDef of colDefs)
-			extend(colDef, { cellClassName, cellsRenderer })
+		;colDefs.forEach(cd =>
+			extend(cd, { cellClassName, cellsRenderer }))
 	}
 	async loadServerData(e) {
-		let {session: { dbName: aktifDB } = {}} = config
-		let {dRapor: { konsolideCikti, ekDBListe} = {}} = app.params
+		let { session: { dbName: aktifDB } = {} } = config
+		let { dRapor: { konsolideCikti, ekDBListe} = {} } = app.params
 		ekDBListe = konsolideCikti && aktifDB && ekDBListe?.length
-				? ekDBListe.filter(x => x != aktifDB) : null
+				? ekDBListe.filter(v => v != aktifDB) : null
 		extend(e, { konsolideCikti, ekDBListe, aktifDB })
+		
 		let sevRecs = await this.loadServerDataDevam(e)
 		return sevRecs
 	}
@@ -237,6 +246,10 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			let tumDBNameSet = asSet([ aktifDB, ...(ekDBListe ?? []) ])
 			filtreDBSet = asSet(filtreDBListe.filter(_ => tumDBNameSet[_]))
 		}
+		
+		if (yatayAnaliz?.ekBilgi?.donemmi)
+			donemBS = null
+		
 		let _e = { ...e, rapor, raporTanim, secimler, donemBS, detaylar, yatayAnalizVarmi, yatayAnaliz, filtreDBListe }
 		//for (let key of ['altSeviyeToplamimi', 'satirlarToplamimi'])
 		//	formulYapilari[key] = []
@@ -289,6 +302,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 				for (let db of ekDBListe ?? []) {
 					if (filtreDBSet && !filtreDBSet[db])
 						continue
+					
 					let uni = orjUni.deepCopy()
 					for (let { from, sahalar } of uni) {
 						for (let aMQAliasliYapi of from) {
@@ -303,6 +317,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 						if (detayli && yatayAlias != 'db')
 							sahalar.add(`'<span class=royalblue>${db}</span>' db`)
 					}
+					
 					sonucUni.addAll(uni)
 				}
 			}
@@ -610,7 +625,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			yatayDegerler = [aktifDB, ...(ekDBListe ?? [])]    // ekDBListe içinden (aktifDB) değeri ayıklanmış olarak gelir
 			yatayDegerSet = asSet(yatayDegerler)
 		}
-		if (!yatayDBmi && !empty(yatayDegerSet))
+		else if (!empty(yatayDegerSet))
 			yatayDegerler = keys(yatayDegerSet).sort()
 
 		;[e, this].forEach(t =>

@@ -114,29 +114,45 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 			let prefetchData = this.prefetchData ??= {}
 			let anah = toJSONStr({ tarih: dateToString(tarih), mustKod })
 			prefetchData[anah] ??= (async () => {
-				let MinCalcCount = 2, calculated = 0
-				let promises = [], curPromise
+				const MinCalcWaitCount = 5, BlockSize = 3
+				let promises = []
+				let calculated = 0
+				let _promises = [], curPromise
 				for (let parentRec of recs) {
-					let {kaysayac: sablonSayac, klFirmaKod, koliYuvarlanirmi} = parentRec;
+					let { kaysayac: sablonSayac, klFirmaKod, koliYuvarlanirmi } = parentRec
 					koliYuvarlanirmi = asBool(koliYuvarlanirmi)
-					curPromise = (async () => {
+					curPromise = promise(async () => {
 						await this.loadServerData_detaylar({ ...e, parentRec })
 						let fisSinif = await this.fisSinifBelirle({ ...e, sablonSayac, mustKod })
-						if (!fisSinif) { return }
-						let _e = { ...e }; delete _e.rec
+						if (!fisSinif)
+							return
+						
+						let _e = { ...e }
+						delete _e.rec
+						
 						let fis = new fisSinif({ sablonSayac, tarih, subeKod, mustKod, klFirmaKod, koliYuvarlanirmi })
 						await fis.sablonYukleVeBirlestir(_e)
 						await fis.yeniTanimOncesiIslemler(_e)
 						calculated++
 						return ({ rec: parentRec, fisSinif, fis })
-					})()
+					})
 					promises.push(curPromise)
-					if (calculated < MinCalcCount && curPromise) {
+					_promises.push(curPromise)
+					
+					if (calculated < MinCalcWaitCount && curPromise) {
 						try { await curPromise }
 						catch (ex) { console.error('prefetch', ex) }
+						_promises = []
+					}
+					if (calculated % (BlockSize + 1) == BlockSize) {
+						await promiseAllSet(promises)
+						if (!empty(_promises))
+							await promiseAllSet(_promises)
+						_promises = []
+						await delay(100)
 					}
 				}
-				return Promise.allSettled(promises)
+				return promiseAllSet(promises)
 			})()
 		}
 		return recs
@@ -332,7 +348,10 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 				}
 			// let dumpData = toJSONStr(data)
 			{
-				let wRFB = new RootFormBuilder('snapshot').asWindow('Önizleme').addCSS('part');
+				let wRFB = new RootFormBuilder('snapshot').asWindow('Önizleme')
+					.addCSS('part')
+					.addStyle_fullWH()
+				
 				let headerHeight = 70, gridPart
 				wRFB.addIslemTuslari('islemTuslari').addStyle_fullWH(null, headerHeight)
 					.setTip('tazeleVazgec').setEkSagButonlar('yazdir', 'html', 'excel')

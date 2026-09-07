@@ -35,6 +35,8 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 	}
 	donemBagla(e = {}) {
 		let { devir = e.devirmi, donemBS: tarihBS, alias = 'fis', tarihSaha, tarihClause, sent } = e
+		let { secimler = this.secimler } = e
+		let { donem: { tekSecim: donem } = {} } = secimler
 		let { raporTanim, class: { hareketmi, envantermi } } = this
 		let { yatayBilgi } = raporTanim
 		let { where: wh } = sent
@@ -45,7 +47,7 @@ class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
 		tarihClause = tarihClause ?? (tarihSaha ? aliasVeNokta + tarihSaha : null)
 
 		if (yatayBilgi?.duzenle) {
-			let args = { tarihBS, tarihClause, sent }
+			let args = { secimler, donem, tarihBS, tarihClause, sent }
 			yatayBilgi.duzenle(args)
 			tarihBS = args.tarihBS
 		}

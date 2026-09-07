@@ -107,14 +107,20 @@ class FisGirisPart extends GridliGirisWindowPart {
 		let _e = { ...e, sender, mfSinif: fis.class, fis, islem, layout, islemTuslari, subeForm, baslikFormlar, gridIslemTuslari };
 		let promises = [fis.uiGirisOncesiIslemler(_e)];
 		if (this.yeniVeyaKopyami) {
-			promises.push(fis.yeniTanimOncesiIslemler(_e)); let css = 'opacity-0'; layout.addClass(css);
-			Promise.all(promises).then(() =>
-				this.tazele(_e)).finally(() => setTimeout(() => layout.removeClass(css), 1))
+			promises.push(fis.yeniTanimOncesiIslemler(_e))
+			
+			let css = 'opacity-0'
+			layout.addClass(css)
+			promiseAll(promises)
+				.then(() => this.tazele(_e))
+				.finally(() => setTimeout(() => layout.removeClass(css), 1))
 		}
 	}
-	afterRun(e) {
-		e = e ?? {}; try {
-			super.afterRun(e); if (app.activePart != this) { app._activePartStack.pop() }
+	afterRun(e = {}) {
+		try {
+			super.afterRun(e)
+			if (app.activePart != this)
+				app._activePartStack.pop()
 			let sender = this, {fis, islem, layout, header, tsnForm, subeForm, islemTuslari, baslikFormlar, gridIslemTuslari, splitGridVeIslemTuslari} = this;
 			let _e = { ...e, sender, fis, islem, layout, islemTuslari, subeForm, baslikFormlar, gridIslemTuslari };
 			setTimeout(async () => {

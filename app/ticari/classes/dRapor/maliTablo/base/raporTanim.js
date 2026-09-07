@@ -530,7 +530,7 @@ class SBTabloDetay extends MQDetay {
 				}
 				let { where: wh, sahalar } = sent
 				let donemBSVarmi = e.donemBSVarmi = donemBS?.bosDegilmi ?? false
-				if (donemBSVarmi) {
+				if (donemBSVarmi && !yatayAnaliz?.ekBilgi?.donemmi) {
 					let tarihBS = e.tarihBS = donemBS.deepCopy()
 					if (donemTipi) {
 						tarihBS.basi = null
@@ -573,7 +573,7 @@ class SBTabloDetay extends MQDetay {
 					/*let kodClause = hv[kodAttr]
 					e.yatayAlias = hareketcimi && kodClause ? MQAliasliYapi.getDegerAlias(kodClause) : null*/
 					e.kodClause = hv[kodAttr]
-					ekBilgi.sentDuzenle?.(e)
+					ekBilgi.sentDuzenle?.({ ...e, yatayAnalizmi: true })
 				}
 				genelSentDuzenle?.call(this, e)
 				sent.groupByOlustur().gereksizTablolariSil()

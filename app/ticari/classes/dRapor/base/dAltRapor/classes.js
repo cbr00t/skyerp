@@ -8,9 +8,10 @@ class DAltRapor_PanelRec extends CObject {
 	toplamYapiOlustur(e) { }
 	formulEval(e) { }
 }
+
 class DAltRapor_PanelRec_Donemsel extends DAltRapor_PanelRec {
 	static { window[this.name] = this; this._key2Class[this.name] = this } 
-get donemRecmi() { return true }
+	get donemRecmi() { return true }
 	get yatay2Detay() {
 		let { _yatay2Detay: result } = this
 		if (result === undefined) {
@@ -23,7 +24,19 @@ get donemRecmi() { return true }
 					;toplamAttrListe.forEach(k =>
 						toplamRec[k] = 0)
 				}
-				result[rec[yatayBelirtec]] = rec
+				
+				//result[rec[yatayBelirtec]] = rec
+				;{
+					let yatay = rec[yatayBelirtec]
+					let hedef = result[yatay]
+					if (hedef) {
+					    toplamAttrListe.forEach(k =>
+					        hedef[k] = (hedef[k] || 0) + (rec[k] || 0))
+					}
+					else
+					    result[yatay] = { ...rec }
+				}
+				
 				;toplamAttrListe.forEach(k => {
 					if (k != 'TOPLAM')
 						toplamRec[k] += (rec[k] || 0)
@@ -34,6 +47,7 @@ get donemRecmi() { return true }
 		}
 		return result
 	}
+	
 	constructor(e = {}) {
 		super(e)
 		extend(this, {

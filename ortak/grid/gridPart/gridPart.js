@@ -7,8 +7,15 @@ class GridPart extends Part {
 	get asyncFlag() { return this.async == null ? this.class.defaultAsyncFlag : this.async } get cacheFlag() { return this.cache == null ? this.class.defaultCacheFlag : this.cache }
 	get gridRecOzelkeys() { return ['uid', 'uniqueid', 'visibleindex', 'boundindex'] } get defaultGridIDBelirtec() { return undefined }
 	get defaultSabitFlag() { return null } get boundRecs() { let {gridWidget} = this; return gridWidget ? gridWidget.getboundrows() : null }
-	get columns() { let {grid} = this; return grid?.length ? grid.jqxGrid('columns') : null }
-	set columns(jqxCols) { let {grid} = this; if (jqxCols && grid?.length) { grid.jqxGrid('columns', jqxCols) } }
+	get columns() { 
+		let { grid } = this
+		return grid?.jqxGrid('columns') ?? null
+	}
+	set columns(jqxCols) {
+		let { grid } = this
+		if (jqxCols && grid?.length)
+			grid.jqxGrid('columns', jqxCols)
+	}
 	get groups() { let {grid} = this; return grid?.length ? grid.jqxGrid('groups') : null }
 	set groups(value) { let {grid} = this; if (grid?.length) { grid.jqxGrid('groups', value || null) } }
 	get recs() { let {gridWidget} = this; return gridWidget ? gridWidget.getrows() : null }
@@ -307,7 +314,10 @@ class GridPart extends Part {
 		let {globalEventNames} = GridKolon;
 		for (let key of globalEventNames) {
 			grid.on(key.toLowerCase(), evt => {
-				let evtArgs = evt.args, belirtec = evtArgs?.datafield, colDef = this.belirtec2Kolon[belirtec]; if (!colDef) return
+				let evtArgs = evt.args, belirtec = evtArgs?.datafield
+				let colDef = this.belirtec2Kolon[belirtec]
+				if (!colDef)
+					return
 				let func; let {builder, gridWidget} = this, inst = this.inst ?? this.fis ?? builder?.altInst, rowIndex = evtArgs.rowindex;
 				let _e = {
 					sender: this, gridWidget, builder, inst, event: evt, args: evtArgs, belirtec, rowIndex,
@@ -876,14 +886,18 @@ class GridPart extends Part {
 		let { tabloKolonlari = e.liste ?? (isArray(e) ? e : null) } = e
 		tabloKolonlari ??= this.duzKolonTanimlari
 		deleteKeys(this,
-			'_listeBasliklari', '_standartGorunumListesi', '_orjBaslikListesi', 'belirtec2Kolon', 'tabloKolonlari', 'duzKolonTanimlari')
+			'_listeBasliklari', '_standartGorunumListesi', '_orjBaslikListesi',
+			'belirtec2Kolon', 'tabloKolonlari', 'duzKolonTanimlari'
+		)
 		let jqxCols = []
-		let _e = { ...e, belirtec2Kolon: {}, duzKolonTanimlari: [] }
+		let _e = { belirtec2Kolon: {}, duzKolonTanimlari: [] }
 		tabloKolonlari = tabloKolonlari?.filter(cd => cd.belirtec) ?? []
 		for (let cd of tabloKolonlari) {
 			cd.gridPart = this
 			jqxCols.push(...(cd.jqxColumns?.filter(Boolean) ?? []))
-			cd.belirtec2KolonDuzenle(_e)
+			let args = { ...e, ..._e }
+			cd.belirtec2KolonDuzenle(args)
+			mergeInto(args, _e, 'belirtec2Kolon', 'duzKolonTanimlari')
 		}
 		extend(this, _e)
 		// let gridContent = this.grid; gridContent.addClass('fade-inout'); setTimeout(() => gridContent.removeClass('fade-inout'), 1000); 

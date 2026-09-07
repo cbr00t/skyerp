@@ -230,8 +230,9 @@ class MQGenelFis extends MQOrtakFis {
 		if (noYilKullanilirmi)
 			this.noYil = rec.noyil
 	}
-	uiDuzenle_fisGiris({ islem } = {}) {
+	uiDuzenle_fisGiris({ sender: tanimPart, islem } = {}) {
 		super.uiDuzenle_fisGiris(...arguments)
+		let { numaratorPart: numPart } = tanimPart ?? {}
 		let { class: { ozelIsaretDesteklenirmi, noYilKullanilirmi } } = this
 		
 		if (ozelIsaretDesteklenirmi)
@@ -239,10 +240,11 @@ class MQGenelFis extends MQOrtakFis {
 
 		if (islem == 'yeni' || islem == 'kopya') {
 			let { numarator: num } = this
+			num.serbestmi = this.fisNo || !(num?.tip || num?.kod)
 			this.seri ||= num?.seri || ''
 			if (noYilKullanilirmi && !this.noYil)
 				this.noYil = num?.noYil || ( app.params.zorunlu?.cariYil || today().yil )
-			this.fisNo ||= num?.sonNo || this.fisNo
+			//this.fisNo ||= num?.sonNo || this.fisNo
 		}
 	}
 	numaratorDegisti({ sender, parentPart }) { }
