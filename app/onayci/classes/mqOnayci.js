@@ -175,8 +175,8 @@ class MQOnayci extends MQCogul {
 		let { gelenProformaIslemleri: proformaKullanilir } = alim.kullanim
 		let { anaBolum: proformaAnaBolum } = proforma
 		let items = [
-			{ id: 'onay', text: ' ONAY ', handler: _e => this.onayRedIstendi({ ..._e, ...e, state: true }) },
-			{ id: 'red', text: ' RED ', handler: _e => this.onayRedIstendi({ ..._e, ...e, state: false }) },
+			{ id: 'onay', text: ' ✅ ', handler: _e => this.onayRedIstendi({ ..._e, ...e, state: true }) },
+			{ id: 'red', text: ' ❌ ', handler: _e => this.onayRedIstendi({ ..._e, ...e, state: false }) },
 			{ id: 'izle', handler: _e => this.izleIstendi({ ..._e, ...e }) },
 			{ id: 'anlasmaGoster', handler: _e => this.anlasmaGosterIstendi({ ..._e, ...e }) },
 			( proformaKullanilir && proformaAnaBolum ? { id: 'proformaGoster', text: 'PRFM', handler: _e => this.proformalariGosterIstendi({ ..._e, ...e }) } : null )
@@ -732,14 +732,21 @@ class MQOnayci extends MQCogul {
 			}
 			let aktarilmamisIrsaliyeSayi = recs.filter(_ => _.irsNox && !_.irsVarmi).length
 			if (aktarilmamisIrsaliyeSayi) {
-				let rdlg = await ehConfirm(
-					(
-						`<b class=firebrick>${aktarilmamisIrsaliyeSayi}</b> adet belgenin İrsaliye bağlantısı, Alım İrsaliye kısmında yok.<br/><br/>` +
-						`Yine de devam edilsin mi?`
-					), styledIslemAdi
-				)
-				if (!rdlg)
+				try {
+					let rdlg = await ehConfirm(
+						(
+							`<b class=firebrick>${aktarilmamisIrsaliyeSayi}</b> adet belgenin İrsaliye bağlantısı, Alım İrsaliye kısmında yok.<br/><br/>` +
+							`Yine de devam edilsin mi?`
+						), styledIslemAdi
+					)
+					if (!rdlg)
+						return
+				}
+				catch (ex) {
+					if (ex.rc != 'userClose')
+						throw ex
 					return
+				}
 			}
 			
 			/*let {
@@ -1107,7 +1114,6 @@ class MQOnayci extends MQCogul {
 				
 				let geciciEFatmi = tip == 'GeciciAlimEFat'
 				if (!anlasmami && geciciEFatmi) {
-					
 					let { uuid, eIslTip } = rec
 					if (!uuid)
 						continue
@@ -1236,9 +1242,7 @@ class MQOnayci extends MQCogul {
 						errors.push(errorText)
 					}
 				}
-				
 				else {
-					
 					let { tip, tipText, _db: db, sayac, fisNox, _text: headerHTML, colDefs, source } = rec
 					colDefs ??= e.colDefs
 					source ??= e.source
@@ -1456,7 +1460,7 @@ class MQOnayci extends MQCogul {
 								 $elementCSS > * { position: relative !important; min-width: unset !important; width: unset !important; height: var(--full) !important }
 								 $elementCSS button { width: 50px !important }`
 							)
-						form.addRadioButton('belgeAnlasmaToggle')
+						/*form.addRadioButton('belgeAnlasmaToggle')
 							.etiketGosterim_yok()
 							.setSource([
 								{ kod: 'B', aciklama: 'Belge' }
@@ -1467,20 +1471,42 @@ class MQOnayci extends MQCogul {
 							.degisince(({ value }) => {
 								temps.belgeAnlasma = value
 								gridPart?.tazele()
-							})
-						form.addButton('tazele')
-							.onClick(() =>
-								gridPart.tazele())
-						form.addButton('vazgec')
-							.onClick(({ builder: { rootPart } }) =>
-								rootPart.close())
+							})*/
+
+						/*{ id: 'onay', text: ' ONAY ', handler: _e => this.onayRedIstendi({ ..._e, ...e, state: true }) },
+						{ id: 'red', text: ' RED ', handler: _e => this.onayRedIstendi({ ..._e, ...e, state: false }) },*/
+						;{
+							form.addButton('onay', '✅')
+								.addStyle_wh(60, 50)
+								.addCSS('fs-160')
+								.addStyle(`$elementCSS { padding-left: 15px; margin-right: 20px }`)
+								.setPlaceHolder('Onay')
+								.onClick(_e =>
+									this.onayRedIstendi({ ..._e, ...e, state: true }))
+							form.addButton('red', '❌')
+								.addStyle_wh(60, 50)
+								.addCSS('fs-160')
+								.addStyle(`$elementCSS { padding-left: 15px; margin-right: 30px }`)
+								.setPlaceHolder('RED')
+								.onClick(_e =>
+									this.onayRedIstendi({ ..._e, ...e, state: false }))
+							
+							form.addButton('tazele')
+								.onClick(() =>
+									gridPart.tazele())
+							form.addButton('vazgec')
+								.onClick(({ builder: { rootPart } }) =>
+									rootPart.close())
+						}
 					}
 					;{
-						rfb.addForm('header').setLayout(({ builder: { parent }}) =>
-							$(`<div class="full-width fs-110 bold" style="padding: 5px 10px; min-height: 60px; max-height: 90px; overflow-y: auto !important">` +
+						rfb.addForm('header').setLayout(({ builder: { parent }}) => $(
+							`<div
+									class="full-width fs-110 bold"
+									style="padding: 5px 10px; min-height: 60px; max-height: 90px; overflow-y: auto !important">` +
 								headerHTML +
-							`</div>`)
-						)
+							`</div>`
+						))
 					}
 					;{
 						rfb.addGridliGosterici('grid')

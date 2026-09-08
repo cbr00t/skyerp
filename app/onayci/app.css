@@ -2,10 +2,27 @@
 .MQOnayci.masterListe.part .header .islemTuslari { --width-sag: 550px !important }
 .MQOnayci.masterListe.part .header .islemTuslari button#onay,
 	.masterListe.part .header .islemTuslari button#red { width: 70px }
-.MQOnayci.masterListe.part .header .islemTuslari button#onay.jqx-fill-state-normal { background: limegreen }
-.MQOnayci.masterListe.part .header .islemTuslari button#red.jqx-fill-state-normal { background: indianred }
 .MQOnayci.masterListe.part .header .islemTuslari button#red { margin-left: 3px }
 .MQOnayci.masterListe.part .header .islemTuslari button#eIslemIzle { margin-left: 15px; margin-right: 8px }
+
+/*.MQOnayci.masterListe.part .header .islemTuslari button#onay.jqx-fill-state-normal { background: limegreen }
+.MQOnayci.masterListe.part .header .islemTuslari button#red.jqx-fill-state-normal { background: indianred }*/
+.MQOnayci.masterListe.part .header .islemTuslari button#onay,
+.MQOnayci.masterListe.part .header .islemTuslari button#red {
+	font-size: 160%;
+	margin-right: 10px
+}
+.MQOnayci.masterListe.part .header .islemTuslari button#onay.jqx-fill-state-normal,
+.MQOnayci.masterListe.part .header .islemTuslari button#red.jqx-fill-state-normal {
+	background-color: #eee !important;
+	box-shadow: 0 0 3px 1px #333
+}
+.MQOnayci.masterListe.part .header .islemTuslari button#onay:not(.jqx-fill-state-normal),
+.MQOnayci.masterListe.part .header .islemTuslari button#red:not(.jqx-fill-state-normal) {
+	box-shadow: 0 0 5px 1px royalblue;
+	filter: saturate(1.4)
+}
+
 .MQOnayci.masterListe.part .jqx-grid [role = row] > div > div { font-size: 90% !important; padding-top: 3px !important }
 .MQOnayci.masterListe.part .jqx-grid [role = row] > div > div,
 	.MQOnayci.masterListe.part .jqx-grid [role = row] > div > div > div { line-height: 23px !important }
