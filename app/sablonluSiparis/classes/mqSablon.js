@@ -107,13 +107,16 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 		])
 	}
 	static async loadServerData(e = {}) {
-		let recs = await super.loadServerData(e); let {offlineMode: offline} = app
-		let {sender: gridPart = {}} = e, {tarih, subeKod, mustKod} = gridPart
-		if (!offline && recs && tarih && mustKod) {
+		let recs = await super.loadServerData(e)
+		let { offlineMode: offline } = app
+		let { sender: gridPart = {} } = e
+		let { tarih, subeKod, mustKod } = gridPart
+		
+		/*if (!offline && recs && tarih && mustKod) {
 			subeKod ??= config.session?.subeKod
 			let prefetchData = this.prefetchData ??= {}
 			let anah = toJSONStr({ tarih: dateToString(tarih), mustKod })
-			prefetchData[anah] ??= (async () => {
+			prefetchData[anah] ??= delay(1_000).then(promise(async () => {
 				const MinCalcWaitCount = 5, BlockSize = 3
 				let promises = []
 				let calculated = 0
@@ -152,9 +155,10 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 						await delay(100)
 					}
 				}
-				return promiseAllSet(promises)
-			})()
-		}
+				return await promiseAllSet(promises)
+			}))
+		}*/
+		
 		return recs
 	}
 	static async loadServerData_queryDuzenle({ basit, basitmi, gridPart, sender, stm, sent }) {

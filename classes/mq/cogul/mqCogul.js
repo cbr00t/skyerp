@@ -879,6 +879,9 @@ class MQCogul extends MQYapi {
 				let p = ra2PInst[k]
 				if (p && !(p.class == PInst || p instanceof PInstStr))
 					continue
+
+				if (k.endsWith('tarih') || k.endsWith('zaman') || k.endsWith('ts'))
+					continue
 					
 				let etk = (
 					k == kodSaha || k == adiSaha

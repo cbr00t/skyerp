@@ -122,12 +122,17 @@ class MQYaslandirma extends DRaporMQ {
 			)
 		)
 	}
+	static async loadServerData(e = {}) {
+		showProgress()
+		try { return await super.loadServerData(e) }
+		finally { delay(100).then(hideProgress) }
+	}
 	static async loadServerDataDogrudan({ gridPart, secimler: sec, wsArgs = {} }) {
 		if (!(config.kiosk || this.isPanelItem || gridPart._triggered)) {
 			gridPart._triggered = true
 			return []
 		}
-
+		
 		let { bakiyesizleriGoster: { value: bakiyesizleriGoster } } = sec
 		let { sadecePlasiyereBagliOlanlar: { value: sadecePlasiyereBagliOlanlar } } = sec
 		let { smTipi } = sec

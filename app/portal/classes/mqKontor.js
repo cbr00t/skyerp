@@ -559,7 +559,8 @@ class MQKontor extends MQDetayliMaster {
 			 ({ close }) =>
 				 e.abortFlag = true,
 			 undefined, false
-		).progressNoValue()
+		)
+		pm?.progressNoValue()
 		pm?.setProgressMax((kRecs.length * 3) + 3)
 		pm?.setProgressValue(0); pm?.progressStep(3); abortCheck?.()
 		if (!kRecs.length) {

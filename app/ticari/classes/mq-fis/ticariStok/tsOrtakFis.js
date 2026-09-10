@@ -426,6 +426,7 @@ class TSOrtakFis extends MQTicariGenelFis {
 		let { efAyrimTipi, numarator: num } = this
 		let { tip, seri, class: { table, sayacSaha } } = num
 		efAyrimTipi = ( isObject(efAyrimTipi) ? efAyrimTipi.char : efAyrimTipi )?.trim?.() || 'A'
+		//seri = num.seri ||= this.seri
 		
 		let sayac
 		;{
@@ -460,6 +461,7 @@ class TSOrtakFis extends MQTicariGenelFis {
 			return null
 		
 		let { sayac, tip, seri, class: { table, sayacSaha } } = num
+		seri = num.seri ||= this.seri
 		efAyrimTipi = ( isString(efAyrimTipi) ? efAyrimTipi : efAyrimTipi?.char )?.trim() ?? ''
 
 		let numEF

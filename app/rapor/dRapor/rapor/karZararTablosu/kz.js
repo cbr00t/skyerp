@@ -37,6 +37,7 @@ class DRapor_KarZararTablosu extends DRaporMQ {
 		let { acc } = tanimPart
 		acc.layout.addClass('together')
 		delay(100).then(async () => {
+			showProgress()
 			await this.acc_onExpand({ ...arguments[0], acc })
 			this.acc_onCollapse({ ...arguments[0], acc })
 		})
@@ -316,18 +317,23 @@ class DRapor_KarZararTablosu extends DRaporMQ {
 					await delay(30)
 				}
 				delete this.loadCount
+				if (lc >= 2)
+					delay(100).then(hideProgress)
 			},
 			50
 		)
 	}
 
 	async tazeleIstendi(e = {}) {
-		let { tanimPart = e.sender ?? {} } = e
+		let { tanimPart = e.sender ?? {}, action } = e
 		let { acc = tanimPart.acc ?? {} } = tanimPart
 		let { item } = acc.activePanel ?? {}
 		let layout = item?.contentLayout ?? acc.layout
-		await tanimPart._promise_tazele
 
+		if (action != 'otoTazele' || !tanimPart._tazeleYapildimi)
+			showProgress()
+		
+		await tanimPart._promise_tazele
 		extend(tanimPart, { _lastErrors: [] })
 		let { panels } = this
 		for (let item of values(panels))
@@ -335,7 +341,9 @@ class DRapor_KarZararTablosu extends DRaporMQ {
 		
 		acc?.render()
 		tanimPart._promise_tazele = delay(3_000)
+		tanimPart._tazeleYapildimi = true
 	}
+	
 	otoTazele_startTimer(e) {
 		let { class: { otoTazele_minDk } } = this
 		let { tanimPart = e.sender } = e

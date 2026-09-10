@@ -252,7 +252,7 @@ class AccPanelDetay extends CKodVeAdi {
 
 class AccPanelGrid extends AccPanelDetay {
 	static get defGridWidth() { return 430 }
-	static get timeout() { return DRapor_PratikSatis.timeout }
+	static get timeout() { return 20_000 }
 	static get deepCopyAlinmayacaklar() {
 		return [
 			...super.deepCopyAlinmayacaklar,
@@ -484,7 +484,7 @@ class AccPanelGrid extends AccPanelDetay {
 						`<div class="aciklama float-left">${group}</div>`,
 						(
 							!noGroupTotals && topBedel
-								? `<div class="bedel fs-190 bold royalblue absolute" style="right: 70px">${bedelToString(topBedel)}</div>`
+								? `<div class="bedel fs-100 bold royalblue absolute" style="right: 70px">${bedelToString(topBedel)}</div>`
 								: null
 						),
 					`</div>`
@@ -523,6 +523,8 @@ class AccPanelGrid extends AccPanelDetay {
 				query = e.query = e.stm
 				params = e.params = e.params
 			}
+
+			await delay(250 + floor(random() * 1_000))
 	
 			let recs = await query?.execSelect({ timeout, params }) ?? []
 			recs = await recsDuzenle?.call(this, { ...e, recs }) ?? recs

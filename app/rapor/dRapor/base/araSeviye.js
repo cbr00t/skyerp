@@ -92,9 +92,9 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 	static get donemselIslemlermi() { return false } static get eldekiVarliklarmi() { return false } static get nakitAkismi() { return false }
 	get finansalAnalizmi() { return this.class.finansalAnalizmi } get donemselIslemlermi() { return this.class.donemselIslemlermi }
 	get eldekiVarliklarmi() { return this.class.eldekiVarliklarmi } get nakitAkismi() { return this.class.nakitAkismi }
-	get dvKod2Rec() { return this.rapor.dvKod2Rec }
-	get degerlemeDvKod2Rec() { return this.rapor?.degerlemeDvKod2Rec }
-	get dovizKAListe() { return this.rapor.dovizKAListe }
+	get dvKod2Rec() { return this.rapor?.dvKod2Rec ?? {} }
+	get degerlemeDvKod2Rec() { return this.rapor?.degerlemeDvKod2Rec ?? {} }
+	get dovizKAListe() { return this.rapor?.dovizKAListe ?? [] }
 	get dvKodListe() { return this.rapor?.dvKodListe }
 	get degerlemeDovizKAListe() { return this.rapor?.degerlemeDovizKAListe }
 	get degerlemeDvKodListe() { return this.rapor?.degerlemeDvKodListe }
@@ -278,8 +278,10 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				}),
 				getRec({
 					kod: 'DNYIL', pfAdi: 'Yıl',
-					update: ({ diger: { basi: b } }) =>
+					update: ({ diger: { basi: b, sonu: s } }) => {
 						b.addYears(-1)
+						s.addYears(-1)
+					}
 				})
 			]
 			;items.forEach((r, i) =>

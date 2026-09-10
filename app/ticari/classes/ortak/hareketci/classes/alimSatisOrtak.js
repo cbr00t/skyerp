@@ -54,6 +54,7 @@ class AlimSatisOrtakHareketci extends Hareketci {
 		// ... diğerleri stok/hizmet durumuna göre 'uniDuzenle_stokHizmet()' kısmında bağlanıyor
 		sent
 			.fis2CariBagla()
+			.cari2TipBagla()
 			.leftJoin('car', 'carisatis csat',['car.must = csat.must', `csat.satistipkod = ''`])
 			.fis2StokIslemBagla()
 			.stok2MarkaBagla()
@@ -70,9 +71,9 @@ class AlimSatisOrtakHareketci extends Hareketci {
     }
     /** (Ticari Stok/Hizmet) için UNION */
     uniDuzenle_stokHizmet(e) {
-		let {uygunluk, liste} = e, {maliTablo = {}, class: { almSat }} = this
-		let {dRapor: { ihracatIntacdanmi } = {}} = app.params
-		let {det, det: { hesapTipi, veriTipi, shStokHizmet = {}, shIade, shAyrimTipi, shAyrimTipi: { ihracatmi } = {} } = {}} = maliTablo
+		let { uygunluk, liste } = e, { maliTablo = {}, class: { almSat } } = this
+		let { dRapor: { ihracatIntacdanmi } = {} } = app.params
+		let { det, det: { hesapTipi, veriTipi, shStokHizmet = {}, shIade, shAyrimTipi, shAyrimTipi: { ihracatmi } = {} } = {} } = maliTablo
 		let ekUygunluk = this.ekUygunluk ?? {
 			stokmu: e.stokmu ?? (shStokHizmet?.stokmu || shStokHizmet?.birliktemi) ?? true,
 			hizmetmi: e.hizmetmi ?? (shStokHizmet?.hizmetmi || shStokHizmet?.birliktemi) ?? true
