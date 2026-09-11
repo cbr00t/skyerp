@@ -142,7 +142,7 @@ class MQOnayci extends MQCogul {
 					gridPart.tazele()
 				})
 				.addCSS('float-right')
-				.addStyle_fullWH(150)
+				.addStyle_fullWH(110)
 			fbd.run()
 		}
 
@@ -175,11 +175,11 @@ class MQOnayci extends MQCogul {
 		let { gelenProformaIslemleri: proformaKullanilir } = alim.kullanim
 		let { anaBolum: proformaAnaBolum } = proforma
 		let items = [
-			{ id: 'onay', text: ' ✅ ', handler: _e => this.onayRedIstendi({ ..._e, ...e, state: true }) },
-			{ id: 'red', text: ' ❌ ', handler: _e => this.onayRedIstendi({ ..._e, ...e, state: false }) },
-			{ id: 'izle', handler: _e => this.izleIstendi({ ..._e, ...e }) },
-			{ id: 'anlasmaGoster', handler: _e => this.anlasmaGosterIstendi({ ..._e, ...e }) },
-			( proformaKullanilir && proformaAnaBolum ? { id: 'proformaGoster', text: 'PRFM', handler: _e => this.proformalariGosterIstendi({ ..._e, ...e }) } : null )
+			{ id: 'onay', text: ' ✅ ', toolTip: 'ONAY', handler: _e => this.onayRedIstendi({ ..._e, ...e, state: true }) },
+			{ id: 'izle', toolTip: 'Belge/e-İşlem İZLE', handler: _e => this.izleIstendi({ ..._e, ...e }) },
+			{ id: 'belgeDetayiGoster', text: ' 🔎 ' , toolTip: 'Belge Detayı Göster', handler: _e => this.belgeDetayiGosterIstendi({ ..._e, ...e }) },
+			( proformaKullanilir && proformaAnaBolum ? { id: 'proformaGoster', text: 'PRFM', toolTip: 'Proforma Göster', handler: _e => this.proformalariGosterIstendi({ ..._e, ...e }) } : null ),
+			{ id: 'red', text: ' 🚫 ', toolTip: 'RED', handler: _e => this.onayRedIstendi({ ..._e, ...e, state: false }) }
 		].filter(Boolean)
 		liste.push(...items)
 		extend(sagSet, asSet(items.map(_ => _.id)))
@@ -250,7 +250,7 @@ class MQOnayci extends MQCogul {
 
 		let _cache = /*this._cache ??=*/ await (async () => {
 			// let kurallar = [], kuralKey2Kural = {}
-			let kisaYilSet = {}, tip2Kurallar = {}, tip2Param = {}, dbSet = {}
+			let kisaYilSet = {}, tip2Kurallar = {}, firmaParam = {}, dbSet = {}
 			;{
 				let { onayYili } = app.params?.ortak ?? {}
 				kisaYilSet[onayYili || buKisaYil] = true
@@ -270,7 +270,7 @@ class MQOnayci extends MQCogul {
 				sahalar.add(...[
 					'fis.id', 'fbil.firmaadi firmaAdi', 'ftip.tip',
 					`(case when COALESCE(fis.onayno, 0) = 0 then 1 else fis.onayno end) onayNo`,
-					'har.onaylimiti onayLimiti', `ftip.paramjson paramJSON`
+					'har.onaylimiti onayLimiti', `fbil.paramjson paramJSON`
 				])
 				kurallar = await sent.execSelect()
 			}
@@ -286,14 +286,16 @@ class MQOnayci extends MQCogul {
 				// kuralKey2Kural[this.getKey(rec)] = rec
 				;(tip2Kurallar[tip] ??= [])
 					.push(rec)
-				if (par) {
+				
+				if (par && empty(firmaParam)) {
 					try {
 						par = JSON.parse(par)
 						if (!empty(par))
-							tip2Param[tip] = par
+							firmaParam = par
 					}
 					catch (ex) { console.error(ex) }
 				}
+				
 				for (let db of allDBNames) {
 					let db_firmaAdi = db.substr(4)
 					if (db_firmaAdi == firmaAdi)
@@ -312,9 +314,9 @@ class MQOnayci extends MQCogul {
 						delete dbSet[db]
 				}
 			}
-			return ({ kurallar, tip2Kurallar, tip2Param, dbSet })  // , kurallar, kuralKey2Kural
+			return ({ kurallar, tip2Kurallar, firmaParam, dbSet })  // , kurallar, kuralKey2Kural
 		})()
-		;mergeInto(_cache, app, 'kurallar', 'tip2Kurallar', 'tip2Param', 'dbSet')
+		;mergeInto(_cache, app, 'kurallar', 'tip2Kurallar', 'firmaParam', 'dbSet')
 
 		let { table2Yapi, tip2Yapi } = this
 		// let userSql = user.sqlServerDegeri()
@@ -755,21 +757,11 @@ class MQOnayci extends MQCogul {
 				onayci_nedenZorunludur: nedenZorunludur
 			} = app.params.web ?? {}*/
 			let { web = {} } = app.params
-			let fl = fromEntries(
-				['onayNedenIstenir', 'redNedenIstenir', 'nedenZorunludur']
-					.map(k => [k, null])
-			)
-			let { tip2Param } = app
-			let tipSet = asSet(recs.map(r => r.tip).filter(Boolean))
-			for (let tip in tipSet) {
-				let par = tip2Param[tip]
-				if (empty(par))
-					continue
-				for (let k in fl)
-					fl[k] ||= asBoolQ(par[k])
-			}
+			let parKeys = ['onayNedenIstenir', 'redNedenIstenir', 'nedenZorunludur', 'onayRedEminmisinizIstenir']
+			let fl = fromEntries(parKeys.map(k => [k, null]))
+			let { firmaParam: par } = app
 			for (let k in fl)
-				fl[k] ??= asBoolQ(web[`onayci_${k}`])
+				fl[k] ||= asBoolQ(par[k]) ?? asBoolQ(web[`onayci_${k}`])
 
 			let { params: { alim } } = app
 			let { gelenProformaIslemleri: proforma } = alim.kullanim
@@ -782,6 +774,7 @@ class MQOnayci extends MQCogul {
 				)
 			)
 			let nedenZorunludur = fl.nedenZorunludur ?? !onaymi
+			let confirmIstenir = fl.onayRedEminmisinizIstenir ?? true
 			
 			let inst = { sonrakineOnayGitmesin: false }
 			let nedenText
@@ -811,13 +804,12 @@ class MQOnayci extends MQCogul {
 					return
 				}
 			}
-			else {
+			else if (confirmIstenir) {
 				let middleText = onaymi ? `<b class=forestgreen>ONAYLAMAK</b>` : `<b class=firebrick>REDDETMEK</b>`
 				let rdlg = await ehConfirm(`<b class=royalblue>${recs.length}</b> adet kaydı ${middleText} istediğinize emin misiniz?`, styledIslemAdi)
 				if (!rdlg)
 					return
 			}
-
 			
 			let { sonrakineOnayGitmesin } = inst
 			let key2Recs = {}
@@ -1042,21 +1034,21 @@ class MQOnayci extends MQCogul {
 		}
 		//- IPTAL - -- onaykurali: { tip: GAF }, { tip: TS, OnayNo: 2 }	-- onayNo yoksa =1 demektir
 	}
-	static async anlasmaGosterIstendi({ sender: gridPart, recs: orjRecs }) {
+	static async belgeDetayiGosterIstendi({ sender: gridPart, recs: orjRecs }) {
 		let e = { ...arguments[0] }
-		let islemAdi = 'Anlaşma Göster'
+		let islemAdi = 'Belge Detayı Göster'
 
 		orjRecs ??= gridPart?.selectedRecs
 		// orjRecs = orjRecs?.filter(r => r?.anlasmaSayac)
 		if (empty(orjRecs)) {
-			hConfirm('Gösterilecek Anlaşma yok', islemAdi)
+			hConfirm('Bir satır seçilmelidir', islemAdi)
 			return
 		}
 
 		let { progressManager: pm } = self
 		let hasPM = !!pm
 		if (!hasPM) {
-			pm = showProgress('Anlaşma Gösterimi hazırlanıyor...', islemAdi, true, () => e.aborted = true)
+			pm = showProgress('Belge Gösterimi hazırlanıyor...', islemAdi, true, () => e.aborted = true)
 			pm.setProgressMax(orjRecs?.length * 4)
 		}
 		
@@ -1449,61 +1441,55 @@ class MQOnayci extends MQCogul {
 					
 					let gridPart
 					let rfb = new RootFormBuilder()
+						.addCSS('MQOnayci part')
 						.addStyle_fullWH()
 						.asWindow(`${tipText} İzle: [<span class=orangered>${fisNox}</span>]`)
 					;{
-						let form = rfb.addFormWithParent().yanYana()
-							.addCSS('absolute')
-							.addStyle_wh('auto', 40)
-							.addStyle(
-								`$elementCSS { right: 0; z-index: 1005 !important }
-								 $elementCSS > * { position: relative !important; min-width: unset !important; width: unset !important; height: var(--full) !important }
-								 $elementCSS button { width: 50px !important }`
-							)
-						/*form.addRadioButton('belgeAnlasmaToggle')
-							.etiketGosterim_yok()
-							.setSource([
-								{ kod: 'B', aciklama: 'Belge' }
-								// { kod: 'A', aciklama: 'Anlaşma' }
+						rfb.addIslemTuslari('islemTuslari')
+							.addCSS('islemTuslari')
+							.setEkSagButonlar('onay', 'red', 'tazele', 'vazgec')
+							.setButonlarIlk([
+								{
+									id: 'onay', text: ' ✅ ', toolTip: 'Onay',
+									handler: _e =>
+										this.onayRedIstendi({ ..._e, ...e, state: true })
+								},
+								{
+									id: 'red', text: ' 🚫 ', toolTip: 'RED',
+									handler: _e =>
+										this.onayRedIstendi({ ..._e, ...e, state: false })
+								},
+								{
+									id: 'tazele', toolTip: 'Tazele',
+									handler: _e =>
+										gridPart.tazele()
+								},
+								{
+									id: 'vazgec', toolTip: 'Vazgeç',
+									handler: ({ builder: { rootPart } }) =>
+										rootPart.close()
+								}
 							])
-							.setValue('B')
-							.addStyle(`$elementCSS { margin-right: 30px !important }`)
-							.degisince(({ value }) => {
-								temps.belgeAnlasma = value
-								gridPart?.tazele()
-							})*/
-
-						/*{ id: 'onay', text: ' ONAY ', handler: _e => this.onayRedIstendi({ ..._e, ...e, state: true }) },
-						{ id: 'red', text: ' RED ', handler: _e => this.onayRedIstendi({ ..._e, ...e, state: false }) },*/
-						;{
-							form.addButton('onay', '✅')
-								.addStyle_wh(60, 50)
-								.addCSS('fs-160')
-								.addStyle(`$elementCSS { padding-left: 15px; margin-right: 20px }`)
-								.setPlaceHolder('Onay')
-								.onClick(_e =>
-									this.onayRedIstendi({ ..._e, ...e, state: true }))
-							form.addButton('red', '❌')
-								.addStyle_wh(60, 50)
-								.addCSS('fs-160')
-								.addStyle(`$elementCSS { padding-left: 15px; margin-right: 30px }`)
-								.setPlaceHolder('RED')
-								.onClick(_e =>
-									this.onayRedIstendi({ ..._e, ...e, state: false }))
+							.addCSS('absolute')
+							.addStyle_wh(4000, 60)
+							.addStyle(...[
+								`$elementCSS { right: 5px }
+								 $elementCSS > div .sol { display: none !important; z-index: -1 !important }
+								 $elementCSS > div .sag { --width-sag: 380px !important; background: #e8e8e8 !important; z-index: 1001 !important }
+								 $elementCSS #onay, $elementCSS #red { font-size: 250%; border-radius: 30px !important; margin-top: -5px }
+								 $elementCSS #onay.jqx-fill-state-normal, $elementCSS #red.jqx-fill-state-normal { background-color: #dedede !important }
+								 $elementCSS #onay.jqx-fill-state-hover, $elementCSS #red.jqx-fill-state-hover { filter: brightness(1.2) !important }
+								 $elementCSS #onay.jqx-fill-state-pressed, $elementCSS #red.jqx-fill-state-pressed { filter: brightness(0.8) !important }
+								 $elementCSS #onay { margin-right: 50px !important }
+								 $elementCSS #red { margin-right: 50px !important }`
+							])
 							
-							form.addButton('tazele')
-								.onClick(() =>
-									gridPart.tazele())
-							form.addButton('vazgec')
-								.onClick(({ builder: { rootPart } }) =>
-									rootPart.close())
-						}
 					}
 					;{
 						rfb.addForm('header').setLayout(({ builder: { parent }}) => $(
 							`<div
-									class="full-width fs-110 bold"
-									style="padding: 5px 10px; min-height: 60px; max-height: 90px; overflow-y: auto !important">` +
+									class="fs-110 bold"
+									style="width: calc(var(--full) - 380px); margin-right: 50px; padding: 15px 10px; min-height: 60px; max-height: 90px; overflow-y: auto !important">` +
 								headerHTML +
 							`</div>`
 						))

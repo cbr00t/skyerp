@@ -40,7 +40,7 @@
 }
 
 .secimler.part .butonlar.part > .sag {
-	--width-sag: 500px !important
+	--width-sag: 500px
 }
 
 .secimler.part .islemTuslari button {

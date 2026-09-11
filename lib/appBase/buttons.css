@@ -68,13 +68,10 @@ body.kiosk .butonlar.part {
 
 .butonlar.part button {
 	vertical-align: top;
-	width: var(--button-width);
-	height: var(--button-height);
-	border: 0;
-	margin-inline-end: var(--button-margin-x);
+	width: var(--button-width); height: var(--button-height);
+	border: 0; margin-inline-end: var(--button-margin-x);
 	line-height: 100%
 }
-
 button, .jqx-button {
 	font-weight: bold;
 	border: none !important;
@@ -85,119 +82,68 @@ button, .jqx-button {
 	background-repeat: no-repeat !important;
 	background-size: 22px
 }
-
 button, button:active, .jqx-button.jqx-fill-state-normal, .jqx-button.jqx-fill-state-hover, .jqx-button.jqx-fill-state-pressed {
 	background-position: center !important
 }
-
 button:not(hover):not(:focus):not(:active), .jqx-button.jqx-fill-state-normal {
 	background-color: transparent;
 	/*background: linear-gradient(90deg, #fcfcfc 5%, #3a3a3a 80%)*/
 }
-
 :not(.islemTuslari) > button:hover, :not(.islemTuslari) > .jqx-button.jqx-fill-state-hover {
 	/*background-color: #edf2f4*/
 }
-
 button:active .jqx-button:focus, .jqx-button.jqx-fill-state-pressed {
 	color: #eee;
 	background-color: #6f9cec !important
 }
 
-body > button#logout {
-	right: 13px
-}
+body > button#logout { right: 13px }
+button#sil { margin-left: 10px; margin-right: 10px }
+button#secimler, button#genelSecimler { margin-left: 5px; margin-right: 5px }
+button#sec, button#tamam { margin-left: 10px }
+button#logout { background-image: url(../../images/logout.png); background-size: cover }
+button#logout.jqx-fill-state-normal { background-color: #a05d45 }
 
-button#sil {
-	margin-left: 10px;
-	margin-right: 10px
-}
-
-button#secimler, button#genelSecimler {
-	margin-left: 5px;
-	margin-right: 5px
-}
-
-button#sec, button#tamam {
-	margin-left: 10px
-}
-
-#logout {
-	background-image: url(../../images/logout.png);
-	background-size: cover
-}
-
-#logout.jqx-fill-state-normal {
-	background-color: #a05d45
-}
-
-#fullScreen {
-	background-image: url(../../images/tamEkranAc.png)
-}
-
-body.dark-theme #fullScreen {
+button#fullScreen { background-image: url(../../images/tamEkranAc.png) }
+body.dark-theme button#fullScreen {
 	background-image: url(../../images/tamEkranAcBeyaz.png);
 	filter: invert(1) hue-rotate(180deg) !important
 }
 
-#cacheReset {
-	background-image: url(../../images/temizle.png)
-}
+button#cacheReset { background-image: url(../../images/temizle.png) }
 
-#navToggle, .navToggle {
-	background-image: url(../../images/nav-toggle.png) !important
-}
-
+#navToggle, .navToggle { background-image: url(../../images/nav-toggle.png) !important }
 .islemTuslari > div > button.jqx-fill-state-normal {
 	color: #eee;
 	background-color: var(--islemTuslari-button-bg-normal)
 }
+/*.islemTuslari > div > button.jqx-fill-state-hover { background-color: #7f9bdd }*/
 
-.islemTuslari > div > button.jqx-fill-state-hover {
-	background-color: #7f9bdd
+button#sec, button#tamam { background-image: url(../../images/sec.png) !important }
+button#sec.jqx-fill-state-normal, button#tamam.jqx-fill-state-normal, button#tazele.jqx-fill-state-normal {
+	background-color: #8ab28a !important
+}
+button#sec.jqx-fill-state-hover, button#tamam.jqx-fill-state-hover, button#tazele.jqx-fill-state-hover {
+	background-color: #61c361 !important
 }
 
-#sec, #tamam {
-	background-image: url(../../images/tamam.png) !important;
-	background-size: 32px
-}
-
-#sec.jqx-fill-state-normal, #tamam.jqx-fill-state-normal, #tazele.jqx-fill-state-normal {
-	background-color: #86a986 !important
-}
-
-#sec.jqx-fill-state-hover, #tamam.jqx-fill-state-hover, #tazele.jqx-fill-state-hover {
-	background-color: #529d52 !important
-}
-
-#tamam.jqx-fill-state-normal {
-}
-
+button#sec { background-size: 42px !important }
+button#tamam { background-size: 32px }
+button#sec.jqx-fill-state-normal { filter: contrast(1.5) saturate(1.1) }
+button#tamam.jqx-fill-state-normal { }
 button#kaydet {
 	background-image: url(../../images/kaydet.png) !important;
 	background-size: 32px
 }
-
 button#yukle {
 	background-image: url(../../images/download.png) !important;
 	background-size: 32px
 }
+button#temizle { background-image: url(../../images/temizle.png) !important }
+button#tazele { background-image: url(../../images/tazele.png) }
+button#vazgec { background-image: url(../../images/close.png) !important }
 
-button#temizle {
-	background-image: url(../../images/temizle.png) !important
-}
-
-#tazele {
-	background-image: url(../../images/tazele.png)
-}
-
-#vazgec {
-	background-image: url(../../images/close.png) !important
-}
-
-.islemTuslari > div > button#yeni {
-	margin-left: 20px
-}
+.islemTuslari > div > button#yeni { margin-left: 20px }
 
 @media (max-width: 850px) {
 	.islemTuslari > div > button#yeni {
@@ -205,159 +151,121 @@ button#temizle {
 	}
 }
 
-#yeni {
+button#yeni {
 	background-image: url(../../images/ekle.png) !important
 }
-
-#yeni.jqx-fill-state-normal {
+button#yeni.jqx-fill-state-normal {
 	background-color: #7e9a7e !important
 }
-
-#yeni.jqx-fill-state-hover {
+button#yeni.jqx-fill-state-hover {
 	background-color: #4a8a4a !important
 }
-
-#yeni.jqx-fill-state-pressed {
+button#yeni.jqx-fill-state-pressed {
 	background-color: #31a431 !important
 }
-
-#degistir {
+button#degistir {
 	background-image: url(../../images/degistir.png) !important
 }
-
-#kopya {
+button#kopya {
 	background-image: url(../../images/kopyala.png) !important
 }
-
-#izle {
+button#izle {
 	background-image: url(../../images/izle.png) !important;
 	background-size: auto
 }
-
-#sil {
+button#sil {
 	background-image: url(../../images/sil.png) !important
 }
-
-#sil.jqx-fill-state-normal, #vazgec.jqx-fill-state-normal {
+button#sil.jqx-fill-state-normal, #vazgec.jqx-fill-state-normal {
 	background-color: #9b7c7c !important
 }
-
-#sil.jqx-fill-state-hover, #vazgec.jqx-fill-state-hover {
+button#sil.jqx-fill-state-hover, #vazgec.jqx-fill-state-hover {
 	background-color: #ba5357 !important
 }
-
-#sil.jqx-fill-state-pressed, #vazgec.jqx-fill-state-pressed {
+button#sil.jqx-fill-state-pressed, #vazgec.jqx-fill-state-pressed {
 	background-color: #a70a0f !important
 }
-
-#basliklariDuzenle {
+button#basliklariDuzenle {
 	background-image: url(../../images/gridKolonDuzenle.png) !important
 }
-
-#basliklariDuzenle.jqx-fill-state-normal {
+button#basliklariDuzenle.jqx-fill-state-normal {
 	background-color: #727272
 }
-
 button#rapor {
 	background-image: url(../../images/rapor_ekrana.png) !important
 }
-
-#kolonFiltre {
+button#kolonFiltre {
 	background-image: url(../../images/hizli_bul.png) !important
 }
-
 button#genelSecimler {
 	background-image: url(../../images/filtre.png) !important;
 	box-shadow: 0 0 3px 2px purple !important
 }
-
 button#secimler {
 	background-image: url(../../images/filtre.png) !important
 }
-
-#basliklariDuzenle, #rapor, #kolonFiltre, #genelSecimler, #secimler {
-}
-
-#yazdir {
+button#yazdir {
 	background-image: url(../../images/yazdir.png) !important
 }
-
-#excel {
+button#excel {
 	background-image: url(../../images/excel.png) !important
 }
-
-#pdf {
+button#pdf {
 	background-image: url(../../images/pdf.png) !important
 }
-
-#html {
+button#html {
 	background-image: url(../../images/html.png) !important
 }
-
-#sol-ok {
+button#sol-ok {
 	background-image: url(../../images/sol.png) !important
 }
-
-#sag-ok {
+button#sag-ok {
 	background-image: url(../../images/sag.png) !important
 }
-
-#raporEkrana {
+button#raporEkrana {
 	background-image: url(../../images/rapor_ekrana.png);
 	background-size: 32px 32px
 }
-
-#raporDizayn {
+button#raporDizayn {
 	background-image: url(../../images/degistir.png);
 	background-size: 32px 32px
 }
-
-#konumBelirle {
+button#konumBelirle {
 	background-color: transparent;
 	background-image: url(../../images/power_on.png);
 	background-size: 48px
 }
-
-#konumGoster {
+button#konumGoster {
 	background-color: transparent;
 	background-image: url(../../images/map.png);
 	background-size: 48px
 }
-
 button#upload {
 	background-color: transparent;
 	background-image: url(../../images/yukari.png);
 	background-size: 48px
 }
-
 button#dropDownMenu {
 	background-image: url(../../images/nav-toggle.png) !important
 }
-
 button#dropDownMenu.jqx-fill-state-normal {
 	background-color: #00000055
 }
-
 button#siralama, button#yukari, button#asagi {
 	background-size: 40px !important
 }
-
 button#siralama.jqx-fill-state-pressed, button#yukari.jqx-fill-state-pressed, button#asagi.jqx-fill-state-pressed {
 	filter: invert(1) hue-rotate(180deg)
 }
-
 button#siralama {
 	background-image: url(../../images/a_z.png) !important
 }
-
 button#yukari {
 	background-image: url(../../images/yukari.png) !important
 }
-
 button#asagi {
 	background-image: url(../../images/asagi.png) !important
 }
-
 button#export { background-image: url(../../images/export.png) !important }
 button#import { background-image: url(../../images/download.png) !important }
 button#importDefs { background-image: url(../../images/list-1.png) !important }

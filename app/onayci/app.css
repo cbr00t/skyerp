@@ -1,50 +1,74 @@
 
-.MQOnayci.masterListe.part .header .islemTuslari { --width-sag: 550px !important }
-.MQOnayci.masterListe.part .header .islemTuslari button#onay,
-	.masterListe.part .header .islemTuslari button#red { width: 70px }
-.MQOnayci.masterListe.part .header .islemTuslari button#red { margin-left: 3px }
-.MQOnayci.masterListe.part .header .islemTuslari button#eIslemIzle { margin-left: 15px; margin-right: 8px }
+.MQOnayci.part .header .islemTuslari { height: 60px }
+.MQOnayci.part .header .islemTuslari .sag,
+.MQProforma.part .header .islemTuslari .sag { --width-sag: 600px !important }
+.MQOnayci.part .islemTuslari button { }
+.MQOnayci.part .islemTuslari button#onay,
+	.MQOnayci.part .islemTuslari button#red { width: 70px }
+.MQOnayci.part .islemTuslari button#red { margin-left: 3px }
+.MQOnayci.part .islemTuslari button#eIslemIzle { margin-left: 15px; margin-right: 8px }
 
-/*.MQOnayci.masterListe.part .header .islemTuslari button#onay.jqx-fill-state-normal { background: limegreen }
-.MQOnayci.masterListe.part .header .islemTuslari button#red.jqx-fill-state-normal { background: indianred }*/
-.MQOnayci.masterListe.part .header .islemTuslari button#onay,
-.MQOnayci.masterListe.part .header .islemTuslari button#red {
-	font-size: 160%;
-	margin-right: 10px
+.MQOnayci.part .islemTuslari button#onay { margin-left: 0px !important; margin-right: 30px !important }
+.MQOnayci.part .islemTuslari button#red { margin: 0 20px !important }
+
+/*.MQOnayci.part .islemTuslari button#onay.jqx-fill-state-normal { background: limegreen }
+.MQOnayci.part .islemTuslari button#red.jqx-fill-state-normal { background: indianred }*/
+.MQOnayci.part .islemTuslari button#izle { background-size: 34px !important }
+.MQOnayci.part .islemTuslari button#onay, .MQOnayci.part .islemTuslari button#red {
+	font-size: 230%;
+	margin-top: 0;
+	margin-right: 10px;
+	width: min-content !important;
+	padding: 3px 0px !important;
+	border-radius: 25px !important;
+	box-sizing: content-box !important
 }
-.MQOnayci.masterListe.part .header .islemTuslari button#onay.jqx-fill-state-normal,
-.MQOnayci.masterListe.part .header .islemTuslari button#red.jqx-fill-state-normal {
-	background-color: #eee !important;
-	box-shadow: 0 0 3px 1px #333
+.MQOnayci.part .islemTuslari button#onay {
+	box-shadow: 0 0 8px 1px forestgreen !important
 }
-.MQOnayci.masterListe.part .header .islemTuslari button#onay:not(.jqx-fill-state-normal),
-.MQOnayci.masterListe.part .header .islemTuslari button#red:not(.jqx-fill-state-normal) {
-	box-shadow: 0 0 5px 1px royalblue;
+.MQOnayci.part .islemTuslari button#red {
+	box-shadow: 0 0 8px 1px red !important;
 	filter: saturate(1.4)
 }
 
-.MQOnayci.masterListe.part .jqx-grid [role = row] > div > div { font-size: 90% !important; padding-top: 3px !important }
-.MQOnayci.masterListe.part .jqx-grid [role = row] > div > div,
-	.MQOnayci.masterListe.part .jqx-grid [role = row] > div > div > div { line-height: 23px !important }
+.MQOnayci.part .islemTuslari button#onay.jqx-fill-state-normal,
+	.MQOnayci.part .islemTuslari button#red.jqx-fill-state-normal { }
+.MQOnayci.part .islemTuslari button#onay.jqx-fill-state-normal {
+	box-shadow: 0 0 8px 1px red;
+	background-color: #d5edd8 !important
+}
+.MQOnayci.part .islemTuslari button#onay.jqx-fill-state-hover { background-color: #e0f0e2 !important }
+.MQOnayci.part .islemTuslari button#onay.jqx-fill-state-pressed { background-color: #9ce7a5 !important }
+.MQOnayci.part .islemTuslari button#red.jqx-fill-state-normal { background-color: #f7c7ce !important }
+.MQOnayci.part .islemTuslari button#red.jqx-fill-state-hover { background-color: #f9b8c3 !important }
+.MQOnayci.part .islemTuslari button#red.jqx-fill-state-pressed { background-color: #d68996 !important }
+
+.MQOnayci.part .islemTuslari button.jqx-fill-state-hover { background-color: #a1a1a1 }
+
+.MQOnayci.part .islemTuslari button#belgeDetayiGoster {
+	font-size: 150%;
+	/*background-image: url(../../images/anaMenu_fiyatGor.png) !important;
+	background-size: auto !important*/
+}
+.MQOnayci.part .islemTuslari button#belgeDetayiGoster.jqx-fill-state-normal { }
+
+
+.MQOnayci.part .jqx-grid [role = row] > div > div { font-size: 87% !important; padding-top: 2px !important }
+.MQOnayci.part .jqx-grid [role = row] > div > div,
+	.MQOnayci.part .jqx-grid [role = row] > div > div > div { line-height: 18px !important }
 @media (max-width: 1000px) {
-	.MQOnayci.masterListe.part .header .islemTuslari { --width-sag: 400px !important }
-	.MQOnayci.masterListe.part .header .islemTuslari button#onay,
+	.MQOnayci.part .islemTuslari { --width-sag: 400px }
+	.MQOnayci.part .islemTuslari button#onay,
 		.masterListe.part .header .islemTuslari button#red { width: 60px }
-	.MQOnayci.masterListe.part .jqx-grid [role = row] > div > div { font-size: 87% !important; padding-top: 3px !important }
-	.MQOnayci.masterListe.part .jqx-grid [role = row] > div > div,
-		.MQOnayci.masterListe.part .jqx-grid [role = row] > div > div > div { line-height: 16px !important }
+	.MQOnayci.part .jqx-grid [role = row] > div > div { font-size: 87% !important; padding-top: 2px !important }
+	.MQOnayci.part .jqx-grid [role = row] > div > div,
+		.MQOnayci.part .jqx-grid [role = row] > div > div > div { line-height: 16px !important }
 }
 @media (max-width: 800px) {
-	.MQOnayci.masterListe.part .header .islemTuslari { --width-sag: 350px !important }
-	.MQOnayci.masterListe.part .header .islemTuslari button#onay,
+	.MQOnayci.part .islemTuslari { --width-sag: 350px }
+	.MQOnayci.part .islemTuslari button#onay,
 		.masterListe.part .header .islemTuslari button#red { width: 55px }
-	.MQOnayci.masterListe.part .jqx-grid [role = row] > div > div { font-size: 90% !important; padding-top: 2px !important }
-	.MQOnayci.masterListe.part .jqx-grid [role = row] > div > div,
-		.MQOnayci.masterListe.part .jqx-grid [role = row] > div > div > div { line-height: 15px !important }
+	.MQOnayci.part .jqx-grid [role = row] > div > div { font-size: 83% !important; padding-top: 2px !important }
+	.MQOnayci.part .jqx-grid [role = row] > div > div,
+		.MQOnayci.part .jqx-grid [role = row] > div > div > div { line-height: 17px !important }
 }
-
-#anlasmaGoster {
-	background-image: url(../../images/anaMenu_fiyatGor.png) !important;
-	background-size: auto !important
-}
-#anlasmaGoster.jqx-fill-state-normal { background-color: whitesmoke }
