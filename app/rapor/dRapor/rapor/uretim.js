@@ -27,15 +27,23 @@ class DRapor_Uretim_Total_Main extends DRapor_UretimBase_Main {
 		}
 	}
 	tabloYapiDuzenle({ result }) {
-		let e = arguments[0]; super.tabloYapiDuzenle(e)
-		let {isAdmin, rol} = config.session ?? {}, {violetmi} = app
-		let maliyetGorurmu = isAdmin || !rol?.ozelRolVarmi('XMALYT'), {uretimMalMuh} = app.params.uretim.kullanim
-		this.tabloYapiDuzenle_sube(e).tabloYapiDuzenle_takip(e).tabloYapiDuzenle_yer(e)
+		let e = arguments[0]
+		super.tabloYapiDuzenle(e)
+		let { violetmi } = app
+		let { isAdmin, rol } = config.session ?? {}
+		let maliyetGorurmu = isAdmin || !rol?.ozelRolVarmi('XMALYT')
+		let { uretimMalMuh } = app.params.uretim.kullanim
+		
+		this.tabloYapiDuzenle_sube(e)
+		this.tabloYapiDuzenle_takip(e)
+		this.tabloYapiDuzenle_yer(e)
+		
 		result
-			.addKAPrefix('isl', 'fistip', 'paket', 'oper')
+			.addKAPrefix('isl', 'fistip', 'paket', 'per', 'oper')
 			.addGrupBasit('FISNOX', 'Belge No', 'fisnox')
 			.addGrupBasit('ISLEM', 'Üretim İşlem', 'isl', null, null, ({ item }) => item.setOrderBySaha('islkod'))
 			.addGrupBasit('FISTIP', 'Fiş Tipi', 'fistip', UretimFisTipi, null, ({ item }) => item.setOrderBySaha('fistipkod'))
+			.addGrupBasit('PER', 'Personel', 'per', DMQPersonel)
 		if (violetmi)
 			result.addGrupBasit('OPER', 'Operasyon', 'oper', DMQOperasyon)
 		this.tabloYapiDuzenle_stok(e)
@@ -57,31 +65,49 @@ class DRapor_Uretim_Total_Main extends DRapor_UretimBase_Main {
 	}
 	loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e)
-		let {stm, attrSet} = e, alias = 'fis'
+		let  {stm, attrSet } = e
+		let alias = 'fis'
+		
 		for (let sent of stm) {
-			let {sahalar, where: wh} = sent; $.extend(e, { sent, alias })
+			let { sahalar, where: wh } = sent
+			extend(e, { sent, alias })
 			sent.fisHareket('ufis', 'ustok')
 			this.donemBagla({ ...e, tarihSaha: 'fis.tarih' })
 			this.loadServerData_queryDuzenle_sube({ ...e, kodClause: 'fis.bizsubekod' })
 			this.loadServerData_queryDuzenle_yer({ ...e, kodClause: 'har.yerkod' })
 			this.loadServerData_queryDuzenle_takip({ ...e, kodClause: 'har.takipno' })
 			this.loadServerData_queryDuzenle_stok({ ...e, kodClause: 'har.stokkod' })
-			if (attrSet.ISLEM) { sent.fromIliski('urtisl isl', 'fis.islkod = isl.kod') }
-			if (attrSet.PAKET) { sent.leftJoin('har', 'paket pak', 'har.paketsayac = pak.kaysayac') }
-			if (!(attrSet.STANAGRP || attrSet.STGRP || attrSet.STISTGRP || attrSet.STOK || attrSet.STOKMARKA)) { sent.har2StokBagla() }
-			let uretBrmClause = `(case when stk.uretbirimtipi = '2' then stk.brm2 else stk.brm end)`;
-			let uretMiktarClause = `SUM(case when stk.uretbirimtipi = '2' then har.miktar2 else har.miktar end)`;
+			if (attrSet.ISLEM)
+				sent.fromIliski('urtisl isl', 'fis.islkod = isl.kod')
+			if (attrSet.PAKET)
+				sent.leftJoin('har', 'paket pak', 'har.paketsayac = pak.kaysayac')
+			if (!(attrSet.STANAGRP || attrSet.STGRP || attrSet.STISTGRP || attrSet.STOK || attrSet.STOKMARKA))
+				sent.har2StokBagla()
+			if (attrSet.PER)
+				sent.leftJoin(alias, 'opergerdetay gdet', 'fis.gerdetaysayac = gdet.kaysayac')
+			
+			let uretBrmClause = `(case when stk.uretbirimtipi = '2' then stk.brm2 else stk.brm end)`
+			let uretMiktarClause = `SUM(case when stk.uretbirimtipi = '2' then har.miktar2 else har.miktar end)`
 			wh.fisSilindiEkle({ alias })
 			wh.add(`${alias}.ozelisaret <> 'X'`)
 			wh.notInDizi(['VR', 'EV'], 'fis.utip')
 			sahalar.add(`${uretBrmClause} uretbrm`)
-			for (const key in attrSet) {
+			for (let key in attrSet) {
 				switch (key) {
 					case 'FISNOX': sahalar.add('fis.fisnox'); break
 					case 'ISLEM': sahalar.add('fis.islkod islkod', 'isl.aciklama isladi'); break
 					case 'PAKET': sahalar.add('pak.kod paketkod', 'pak.aciklama paketadi'); break
 					case 'URETBRM': sahalar.add(`${uretBrmClause} uretbrm`); break
-					case 'FISTIP': sahalar.add('fis.utip fistipkod', `${UretimFisTipi.getClause('fis.utip')} fistipadi`); break
+					case 'FISTIP': {
+						sahalar.add('fis.utip fistipkod', `${UretimFisTipi.getClause('fis.utip')} fistipadi`)
+						break
+					}
+					case 'PER': {
+						sent.leftJoin('gdet', 'personel per', 'gdet.perkod = per.kod')
+						sahalar.add('gdet.perkod', 'per.aciklama peradi')
+						wh.icerikKisitDuzenle_x({ ...e, belirtec: 'personel', saha: 'gdet.perkod' })
+						break
+					}
 					case 'OPER': {
 						sent.leftJoin(alias, 'opergerdetay gdet', 'fis.gerdetaysayac = gdet.kaysayac')
 						sent.leftJoin('gdet', 'operemri oem', 'gdet.fissayac = oem.kaysayac')

@@ -1,9 +1,14 @@
 class MQProforma extends MQGuid {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kodListeTipi() { return 'PROFORMA' } static get sinifAdi() { return 'Proforma Gösterimi' }
-	static get table() { return 'alimproforma' } static get tableAlias() { return 'prf' }
-	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false }
-	static get secimSinif() { return null } static get kolonFiltreKullanilirmi() { return false }
+	static get kodListeTipi() { return 'PROFORMA' }
+	static get sinifAdi() { return 'Proforma Gösterimi' }
+	static get table() { return 'alimproforma' }
+	static get tableAlias() { return 'prf' }
+	static get tanimlanabilirmi() { return false }
+	static get silinebilirmi() { return false }
+	static get secimSinif() { return null }
+	static get kolonDuzenlemeYapilirmi() { return false }
+	static get kolonFiltreKullanilirmi() { return false }
 	static get tumKolonlarGosterilirmi() { return true }
 	static get gridIslemTuslariKullanilirmi() { return false }
 	static get seviyeAcKapatKullanilirmi() { return false }

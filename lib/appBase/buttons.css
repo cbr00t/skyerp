@@ -119,7 +119,8 @@ button#cacheReset { background-image: url(../../images/temizle.png) }
 }
 /*.islemTuslari > div > button.jqx-fill-state-hover { background-color: #7f9bdd }*/
 
-button#sec, button#tamam { background-image: url(../../images/sec.png) !important }
+button#sec { background-image: url(../../images/sec.png) !important }
+button#tamam { background-image: url(../../images/tamam.png) !important }
 button#sec.jqx-fill-state-normal, button#tamam.jqx-fill-state-normal, button#tazele.jqx-fill-state-normal {
 	background-color: #8ab28a !important
 }
@@ -130,7 +131,9 @@ button#sec.jqx-fill-state-hover, button#tamam.jqx-fill-state-hover, button#tazel
 button#sec { background-size: 42px !important }
 button#tamam { background-size: 32px }
 button#sec.jqx-fill-state-normal { filter: contrast(1.5) saturate(1.1) }
-button#tamam.jqx-fill-state-normal { }
+button#tamam.jqx-fill-state-normal { filter: brightness(0.9) saturate(1.8) }
+body.dark-theme button#tamam { filter: invert(1) hue-rotate(180deg) !important }
+body.dark-theme button#tamam.jqx-fill-state-normal { filter: brightness(0.8) saturate(1.8) }
 button#kaydet {
 	background-image: url(../../images/kaydet.png) !important;
 	background-size: 32px

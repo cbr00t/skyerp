@@ -6,21 +6,43 @@ class DRapor_MES_MESSinyal extends DRapor_MES {
 class DRapor_MES_MESSinyal_Main extends DRapor_MES_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_MES_MESSinyal }
 	tabloYapiDuzenle(e) {
-		super.tabloYapiDuzenle(e); const {result} = e; result
-			.addKAPrefix('tezgah')
+		super.tabloYapiDuzenle(e)
+		let { result } = e
+		result
+			.addKAPrefix('tezgah', 'per')
 			.addGrup(new TabloYapiItem().setKA('TEZGAH', 'Tezgah').secimKullanilir().setMFSinif(DMQTezgah).addColDef(new GridKolon({ belirtec: 'tezgah', text: 'Tezgah', minWidth: 230, maxWidth: 450, filterType: 'checkedlist' })))
+			.addGrupBasit('PER', 'Personel', 'per', DMQPersonel)
 			.addGrup(new TabloYapiItem().setKA('TIP', 'Tip')
 				.setFormul([], ({ rec }) => asBool(rec.bsanal) ? '<span class=orangered>Sanal</span>' : '<span class=royalblue>Cihaz</span>')
 				.addColDef(new GridKolon({ belirtec: 'bsanal', text: 'Tip', minWidth: 200, maxWidth: 250, filterType: 'checkedlist' })))
 			.addGrup(new TabloYapiItem().setKA('IP', 'Cihaz IP').secimKullanilir().addColDef(new GridKolon({ belirtec: 'ip', text: 'Cihaz IP', minWidth: 300, maxWidth: 400, filterType: 'checkedlist' })))
 	}
 	loadServerData_queryDuzenle_ek(e) {
-		super.loadServerData_queryDuzenle_ek(e); let {stm, attrSet} = e, {sent} = stm, {sahalar, where: wh} = sent;
-		$.extend(e, { sent }); sent.fromAdd('messinyal sny');
-		this.donemBagla({ ...e, tarihSaha: 'sny.ts' }); for (const key in attrSet) {
+		super.loadServerData_queryDuzenle_ek(e)
+		let { stm, attrSet } = e, { sent } = stm
+		let { sahalar, where: wh } = sent
+		extend(e, { sent })
+		if (attrSet.PER)
+			sent.fromIliski('tekilmakina tez', 'sny.tezgahkod = tez.kod')
+			
+		sent.fromAdd('messinyal sny')
+		this.donemBagla({ ...e, tarihSaha: 'sny.ts' })
+		for (let key in attrSet) {
 			switch (key) {
-				case 'TEZGAH': sent.fromIliski('tekilmakina tez', 'sny.tezgahkod = tez.kod'); sahalar.add('sny.tezgahkod', 'tez.aciklama tezgahadi'); wh.icerikKisitDuzenle_x({ ...e, belirtec: 'tezgah', saha: 'sny.tezgahkod' }); break
-				case 'TIP': sahalar.add('sny.bsanal'); break; case 'IP': sent.sahalar.add('sny.ip'); break
+				case 'TEZGAH': {
+					sent.fromIliski('tekilmakina tez', 'sny.tezgahkod = tez.kod')
+					sahalar.add('sny.tezgahkod', 'tez.aciklama tezgahadi')
+					wh.icerikKisitDuzenle_x({ ...e, belirtec: 'tezgah', saha: 'sny.tezgahkod' })
+					break
+				}
+				case 'PER': {
+					sent.fromIliski('personel per', 'tez.perkod = per.kod')
+					sahalar.add('tez.perkod', 'per.aciklama peradi')
+					wh.icerikKisitDuzenle_x({ ...e, belirtec: 'personel', saha: 'tez.perkod' })
+					break
+				}
+				case 'TIP': sahalar.add('sny.bsanal'); break
+				case 'IP': sent.sahalar.add('sny.ip'); break
 			}
 		}
 		this.loadServerData_queryDuzenle_tarih({ ...e, alias: 'sny', tarihSaha: 'ts' })

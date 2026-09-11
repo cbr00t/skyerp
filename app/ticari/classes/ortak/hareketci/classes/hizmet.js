@@ -73,7 +73,9 @@ class HizmetHareketci extends Hareketci {
 		extend(hv, {
 			bizsubekod: 'fis.bizsubekod', ozelisaret: 'fis.ozelisaret', kaysayac: 'har.kaysayac', hizmetkod: 'har.hizmetkod',
 			/*kdetaysayac: 'har.kdetaysayac', kdetay: 'kdet.kdetay',*/ tarih: 'fis.tarih', fisnox: 'fis.fisnox',
-			fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama', bedel: 'har.bedel',
+			fisaciklama: 'fis.aciklama',
+			detaciklama: 'har.aciklama',
+			bedel: 'har.bedel',
 			vade: ({ hv }) => hv.tarih,
 			brutbedel: ({ hv }) => hv.bedel,
 			isaretlibedel: ({ hv }) => hv.bedel,
@@ -350,11 +352,12 @@ class HizmetHareketci extends Hareketci {
 				.hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
 					extend(hv, {
 						kaysayac: sqlNull, kdetay: sqlEmpty, kdetaysayac: sqlNull,
-						bizsubekod: sqlEmpty, detaciklama: sqlEmpty, ozelisaret: sqlEmpty,
+						bizsubekod: sqlEmpty, ozelisaret: sqlEmpty,
 						kayittipi: `'GOML'`, hizmetkod: 'fhdon.hizmetkod', tarih: 'ghak.tarih', fisnox: 'ghak.fisnox',
-                        takipno: 'ghak.takipno', fisaciklama: 'gcaln.aciklama',
+                        takipno: 'ghak.takipno',
 						isladi: `('GO-${tahakkukmu ? 'Hakediş' : 'Gider'}: ' + RTRIM(ghiz.aciklama))`,
-						refadi: 'gfrm.aciklama', ba: `'${tahakkukmu ? 'A' : 'B'}'`, bedel: 'ekhiz.ekhizmetbedeli'
+						refadi: 'gfrm.aciklama', ba: `'${tahakkukmu ? 'A' : 'B'}'`, bedel: 'ekhiz.ekhizmetbedeli',
+						fisaciklama: 'gcaln.aciklama', detaciklama: sqlEmpty
 					})
 				})
 		}
@@ -377,7 +380,10 @@ class HizmetHareketci extends Hareketci {
 						}
 						/* dbSent.js: yeni method:
 								fis2DegAdresBagla(e) { this.fromIliski('degiskenadres dadr', 'fis.degiskenvknox = dadr.vknox'); return this } */
-						sent.fisHareket('piffis', 'pifhizmet').fis2CariBagla().har2KatDetayBagla().fis2DegAdresBagla()
+						sent.fisHareket('piffis', 'pifhizmet')
+							.fis2CariBagla()
+							.har2KatDetayBagla()
+							.fis2DegAdresBagla()
 						let {where: wh} = sent
 						wh.fisSilindiEkle()
 						wh.inDizi(pifTipleri, 'fis.piftipi')
@@ -402,6 +408,7 @@ class HizmetHareketci extends Hareketci {
 							althesapkod: 'fis.cariitn', takipno: 'har.dettakipno', mustkod: 'fis.must',
 							refkod: `(case when fis.ayrimtipi = 'GP' then fis.degiskenvknox else fis.must end)`,
 							refadi: `(case when fis.ayrimtipi = 'GP' then dadr.birunvan else car.birunvan end)`,
+							fisaciklama: 'fis.cariaciklama',
 							detaciklama: `dbo.strconcat(coalesce(har.degiskenadi, ''), har.ekaciklama)`
 						})
 					}),
@@ -413,8 +420,10 @@ class HizmetHareketci extends Hareketci {
 							(fatura ? 'F' : null),
 							(giderPusula || perakende ? 'P' : null)
 						].filter(x => x != null);
-						sent.fisHareket('piffis', 'piftaksit').fis2CariBagla().x2TahSekliBagla({ kodClause: 'har.taktahsilsekli' });
-						let {where: wh} = sent
+						sent.fisHareket('piffis', 'piftaksit')
+							.fis2CariBagla()
+							.x2TahSekliBagla({ kodClause: 'har.taktahsilsekli' })
+						let { where: wh } = sent
 						wh.fisSilindiEkle()
 						wh
 							.add(`fis.ayrimtipi <> 'IN'`)
@@ -426,12 +435,14 @@ class HizmetHareketci extends Hareketci {
 							kayittipi : `'PIFTK'`, hizmetkod: 'tsek.hizmetkod', plasiyerkod: 'fis.plasiyerkod',
 							refkod: 'fis.must', refadi: 'car.birunvan', althesapkod: 'fis.cariitn', mustkod: 'fis.must',
 							vade: 'har.vade', ba: `dbo.almsattext(fis.almsat, 'B', 'A')`, dvkur: 'fis.dvkur', dvbedel: 'har.dvbedel',
-							kdetaysayac: sqlNull, kdetay: sqlEmpty, fisaciklama: 'fis.cariaciklama',
+							kdetaysayac: sqlNull, kdetay: sqlEmpty,
+							fisaciklama: 'fis.cariaciklama',
+							detaciklama: sqlEmpty,
 							islkod: 'fis.islkod',
 							isladi: (
 								`(case when fis.piftipi = 'F' then dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Alım Fatura', 'Satış Fatura'))` +
 								` else dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Perakende Alım', 'Perakende Satış')) end)`
-							)
+							),
 						})
 					}),
 				/* 3) Fatura Dip Hizmetleri */
@@ -453,12 +464,14 @@ class HizmetHareketci extends Hareketci {
 							kayittipi: `'PIFDIP'`, plasiyerkod: 'fis.plasiyerkod', vade: 'fis.ortalamavade',
 							althesapkod: 'fis.cariitn', takipno: 'fis.orttakipno', mustkod: 'fis.must',
 							ba: 'har.ba', bedel: 'har.bedel', dvkur: 'fis.dvkur', dvbedel: 'har.dvbedel',
-							kdetaysayac: sqlNull, kdetay: sqlEmpty, fisaciklama: 'fis.cariaciklama',
+							kdetaysayac: sqlNull, kdetay: sqlEmpty,
 							islkod: 'fis.islkod',
 							isladi: (
 								`(case when fis.piftipi = 'F' then dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Alım Fatura', 'Satış Fatura'))` +
 								` else dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Perakende Alım', 'Perakende Satış')) end)`
-							)
+							),
+							fisaciklama: 'fis.cariaciklama',
+							detaciklama: sqlEmpty
 						})
 					})
 			]
@@ -516,7 +529,8 @@ class HizmetHareketci extends Hareketci {
 							kaysayac: 'fis.kaysayac', kayittipi: `'KRE'`, hizmetkod: 'fis.hizmetkod',
 							isladi: `'Kredi Alımı'`, refkod: 'fis.kredihesapkod', refadi: 'bhes.aciklama',
 							ba: `'B'`, bedel: 'fis.topbrutbedel',
-							kdetaysayac: sqlNull, kdetay: sqlEmpty, detaciklama: sqlEmpty
+							kdetaysayac: sqlNull, kdetay: sqlEmpty,
+							fisaciklama: sqlEmpty, detaciklama: sqlEmpty
 						})
 	                })
             ]
@@ -541,7 +555,8 @@ class HizmetHareketci extends Hareketci {
 							hizmetkod: `(case when year(coalesce(har.vade, fis.tarih)) <= ${cariYil} then fis.bufaizhizmetkod else fis.gelfaizhizmetkod end)`,
 							isladi: `(case when fis.fistipi = 'D' then 'Kredi Devir' else 'Kredi Alımı' end)`,
 							vade: 'har.vade', ba: `'B'`, bedel: 'har.faiz', dvbedel: 'har.dvfaiz',
-							kdetaysayac: sqlNull, kdetay: sqlEmpty, detaciklama: sqlEmpty
+							kdetaysayac: sqlNull, kdetay: sqlEmpty,
+							fisaciklama: sqlEmpty, detaciklama: sqlEmpty
 						})
 	                }),
 				/* 2) Kendimize havale ile Kredi kapatımı */
@@ -558,7 +573,8 @@ class HizmetHareketci extends Hareketci {
 							kaysayac: 'fis.kaysayac', kayittipi: `'KRHV'`, hizmetkod: 'har.faizkrehizkod',
 							isladi: `'Kendimize Havale'`, refkod: 'fis.banhesapkod', refadi: 'bhes.aciklama',
 							vade: 'khar.vade', ba: `'A'`, bedel: 'har.kredifaiz', dvbedel: 'har.kredidvfaiz',
-							kdetaysayac: sqlNull, kdetay: sqlEmpty, detaciklama: sqlEmpty
+							kdetaysayac: sqlNull, kdetay: sqlEmpty,
+							fisaciklama: sqlEmpty, detaciklama: sqlEmpty
 						})
 	                }),
 				/* 3) Banka Yatan ile Kredi kapatımı */
@@ -576,7 +592,8 @@ class HizmetHareketci extends Hareketci {
 							kaysayac: 'fis.kaysayac',kayittipi: `'KRYT'`, hizmetkod: 'har.faizkrehizkod',
 							islkod: 'fis.muhislkod', isladi: `'Kendimize Havale'`, refkod: 'fis.kasakod', refadi: 'kas.aciklama',
 							vade: 'khar.vade', ba: `'A'`, bedel: 'har.kredifaiz', dvbedel: 'har.kredidvfaiz',
-							kdetaysayac: sqlNull, kdetay: sqlEmpty, detaciklama: sqlEmpty
+							kdetaysayac: sqlNull, kdetay: sqlEmpty,
+							fisaciklama: sqlEmpty, detaciklama: sqlEmpty
 						})
 	                })
             ]

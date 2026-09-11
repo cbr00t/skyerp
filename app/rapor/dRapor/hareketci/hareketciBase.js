@@ -229,8 +229,8 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 			this.tabloYapiDuzenle_baBakiye(e)
 			this.tabloYapiDuzenle_dovizli_baBedel(e)
 			this.tabloYapiDuzenle_dovizli_baBakiye(e)
-			if (!totalmi)
-				result.addGrupBasit('ACIKLAMA', 'Açıklama', 'aciklama', null, null, ({ item }) => item.setSql_hv())
+			//if (!totalmi)
+			result.addGrupBasit('ACIKLAMA', 'Açıklama', 'aciklama', null, null, ({ item }) => item.setSql_hv())
 		}
 	}
 	super_tabloYapiDuzenle(e) { super.tabloYapiDuzenle(e) }

@@ -1,9 +1,14 @@
 class MQOnayci extends MQCogul {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kodListeTipi() { return 'ONAYCI' } static get sinifAdi() { return 'Onay İşlemleri' }
-	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false }
-	static get secimSinif() { return null } static get kolonFiltreKullanilirmi() { return false }
-	static get gridIslemTuslariKullanilirmi() { return false } static get seviyeAcKapatKullanilirmi() { return !isMiniDevice() }
+	static get kodListeTipi() { return 'ONAYCI' }
+	static get sinifAdi() { return 'Onay İşlemleri' }
+	static get tanimlanabilirmi() { return false }
+	static get silinebilirmi() { return false }
+	static get secimSinif() { return null }
+	static get kolonDuzenlemeYapilirmi() { return false }
+	static get kolonFiltreKullanilirmi() { return false }
+	static get gridIslemTuslariKullanilirmi() { return false }
+	static get seviyeAcKapatKullanilirmi() { return false }
 	static get noAutoFocus() { return true }
 	static get table2Yapi() {
 		let { _table2Yapi: result } = this
@@ -141,7 +146,7 @@ class MQOnayci extends MQCogul {
 					gridPart.hepsiniGoster = true
 					gridPart.tazele()
 				})
-				.addCSS('float-right')
+				.addCSS('float-left')
 				.addStyle_fullWH(110)
 			fbd.run()
 		}
@@ -178,7 +183,7 @@ class MQOnayci extends MQCogul {
 			{ id: 'onay', text: ' ✅ ', toolTip: 'ONAY', handler: _e => this.onayRedIstendi({ ..._e, ...e, state: true }) },
 			{ id: 'izle', toolTip: 'Belge/e-İşlem İZLE', handler: _e => this.izleIstendi({ ..._e, ...e }) },
 			{ id: 'belgeDetayiGoster', text: ' 🔎 ' , toolTip: 'Belge Detayı Göster', handler: _e => this.belgeDetayiGosterIstendi({ ..._e, ...e }) },
-			( proformaKullanilir && proformaAnaBolum ? { id: 'proformaGoster', text: 'PRFM', toolTip: 'Proforma Göster', handler: _e => this.proformalariGosterIstendi({ ..._e, ...e }) } : null ),
+			( proformaKullanilir && proformaAnaBolum ? { id: 'proformaGoster', text: 'PRF', toolTip: 'Proforma Göster', handler: _e => this.proformalariGosterIstendi({ ..._e, ...e }) } : null ),
 			{ id: 'red', text: ' 🚫 ', toolTip: 'RED', handler: _e => this.onayRedIstendi({ ..._e, ...e, state: false }) }
 		].filter(Boolean)
 		liste.push(...items)
@@ -1476,23 +1481,32 @@ class MQOnayci extends MQCogul {
 								`$elementCSS { right: 5px }
 								 $elementCSS > div .sol { display: none !important; z-index: -1 !important }
 								 $elementCSS > div .sag { --width-sag: 380px !important; background: #e8e8e8 !important; z-index: 1001 !important }
-								 $elementCSS #onay, $elementCSS #red { font-size: 250%; border-radius: 30px !important; margin-top: -5px }
-								 $elementCSS #onay.jqx-fill-state-normal, $elementCSS #red.jqx-fill-state-normal { background-color: #dedede !important }
-								 $elementCSS #onay.jqx-fill-state-hover, $elementCSS #red.jqx-fill-state-hover { filter: brightness(1.2) !important }
-								 $elementCSS #onay.jqx-fill-state-pressed, $elementCSS #red.jqx-fill-state-pressed { filter: brightness(0.8) !important }
-								 $elementCSS #onay { margin-right: 50px !important }
-								 $elementCSS #red { margin-right: 50px !important }`
+								 /*$elementCSS button#onay, $elementCSS #red { font-size: 250%; border-radius: 30px !important; margin-top: -5px }
+								 $elementCSS button#onay.jqx-fill-state-normal, $elementCSS #red.jqx-fill-state-normal { background-color: #dedede !important }
+								 $elementCSS button#onay.jqx-fill-state-hover, $elementCSS #red.jqx-fill-state-hover { filter: brightness(1.2) !important }
+								 $elementCSS button#onay.jqx-fill-state-pressed, $elementCSS #red.jqx-fill-state-pressed { filter: brightness(0.8) !important }
+								 $elementCSS button#onay { margin-right: 50px !important }
+								 $elementCSS button#red { margin-right: 80px !important }*/`
 							])
 							
 					}
 					;{
-						rfb.addForm('header').setLayout(({ builder: { parent }}) => $(
-							`<div
-									class="fs-110 bold"
-									style="width: calc(var(--full) - 380px); margin-right: 50px; padding: 15px 10px; min-height: 60px; max-height: 90px; overflow-y: auto !important">` +
-								headerHTML +
-							`</div>`
-						))
+						rfb.addForm('header')
+							.setLayout(({ builder: { parent }}) => $(
+								`<div>` +
+									headerHTML +
+								`</div>`
+							))
+							.addCSS('relative fs-95 bold')
+							.addStyle(...[
+								`$elementCSS {
+									width: calc(var(--full) - 330px) !important;
+									height: 60px !important;
+									margin: 0 !important;
+									overflow-y: auto !important;
+									z-index: 1002 !important
+								}`
+							])
 					}
 					;{
 						rfb.addGridliGosterici('grid')

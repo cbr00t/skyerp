@@ -1,9 +1,14 @@
 class MQHatirlatici extends MQCogul {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kodListeTipi() { return 'HATIRLATICI' } static get sinifAdi() { return 'Hatırlatıcı' }
-	static get table() { return 'hbelgehatirlatici' } static get tableAlias() { return 'htr' }
-	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false }
-	static get secimSinif() { return null } static get kolonFiltreKullanilirmi() { return false }
+	static get kodListeTipi() { return 'HATIRLATICI' }
+	static get sinifAdi() { return 'Hatırlatıcı' }
+	static get table() { return 'hbelgehatirlatici' }
+	static get tableAlias() { return 'htr' }
+	static get tanimlanabilirmi() { return false }
+	static get silinebilirmi() { return false }
+	static get secimSinif() { return null }
+	static get kolonDuzenlemeYapilirmi() { return false }
+	static get kolonFiltreKullanilirmi() { return false }
 	static get gridIslemTuslariKullanilirmi() { return false }
 	static get seviyeAcKapatKullanilirmi() { return false }
 	//static get seviyeAcKapatKullanilirmi() { return !isMiniDevice() }

@@ -303,6 +303,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			let { instance: inst } = this
 			let { tabloYapi: { grup: defs } = {} } = inst ?? {}
 			//let { tabloYapi: { grupVeToplam: defs } = {} } = inst ?? {}
+			
 			if (!empty(defs)) {
 				/*res = fromEntries(
 					entries(res).filter(([k, d]) =>
@@ -312,6 +313,9 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				let existsSet = asSet(values(res).map(r => r.kod))
 				let seq = 10
 				for (let [kod, def] of entries(defs)) {
+					if (def?.isHidden)
+						continue
+					
 					let { ka, colDefs: [ cd ] } = def
 					let { aciklama: text } = ka
 					if (existsSet[kod])
@@ -334,10 +338,11 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 		;{
 			let sorted = entries(res)
 			sorted.sort(( [, a], [, b] ) => 
-				a.text.localeCompare(
-					b.text, 'tr',
+				a.text?.localeCompare(
+					b?.text || '',
+					'tr',
 					{ sensitivity: 'base', numeric: true }
-				)
+				) ?? 0
 		   )
 			res = fromEntries(sorted)
 		}

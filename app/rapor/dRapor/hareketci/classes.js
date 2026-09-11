@@ -1095,6 +1095,8 @@ class DRapor_Hareketci_OperBase extends DRapor_Hareketci {
 class DRapor_Hareketci_OperBase_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Hareketci_OperBase }
+	static get perKullanirmi() { return true }
+	
 	secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments)
 		let grupKod = 'donemVeTarih'
@@ -1114,7 +1116,7 @@ class DRapor_Hareketci_OperBase_Main extends DRapor_Hareketci_Main {
 			wh.basiSonu(sec.fisNo, hvDegeri('fisno'))
 			wh.birlestir(sec.operDurum.tekSecim.getTersNullClause('oem.bittarih'))
 		})
-		let {grupListe} = sec
+		let { grupListe } = sec
 		;['tip'].forEach(k =>
 			sec.liste[k]?.hidden())
 		;['EMIRDURUM'].forEach(k =>
@@ -1125,7 +1127,7 @@ class DRapor_Hareketci_OperBase_Main extends DRapor_Hareketci_Main {
 		let e = arguments[0]; super.tabloYapiDuzenle(e)
 		this.tabloYapiDuzenle_sube(e)
 		result
-			.addKAPrefix('fistip', 'durum', 'hat', 'oper', 'sipmust', 'kstok')
+			.addKAPrefix('fistip', 'durum', 'hat', 'per', 'oper', 'sipmust', 'kstok')
 			.addGrupBasit('FISTIP', 'Fiş Tipi', 'fistip', OperFisTipi, null, null,
 				'fistipkod', [_ => _.hvDegeri('fistip'), OperFisTipi.getClause('emr.fistipi')])
 			.addGrupBasit('EMIRDURUM', 'Emir Durumu', 'emirdurum', EmirDevamDurumu, null, null,
@@ -1135,6 +1137,9 @@ class DRapor_Hareketci_OperBase_Main extends DRapor_Hareketci_Main {
 			.addGrupBasit('HAT', 'Hat', 'hat', DMQHat, null, null,
 				null, [_ => _.hvDegeri('hatkod'), 'uhat.aciklama'])
 			.addGrupBasit('FISNOX', 'Emir No', 'fisnox', null, null, ({ item }) => item.setSql_hv())
+		if (this.class.perKullanirmi)
+			result.addGrupBasit('PER', 'Personel', 'per', DMQPersonel, null, ({ item }) => item.setSql_hv())
+		result
 			.addGrupBasit('OPER', 'Operasyon', 'oper', DMQOperasyon, null, null,
 				null, [_ => _.hvDegeri('opno'), 'op.aciklama'])
 			.addGrupBasit('SIPMUST', 'Sipariş Cari', 'sipmust', DMQCari, null, null,
@@ -1171,9 +1176,11 @@ class DRapor_Hareketci_OperDurum extends DRapor_Hareketci_OperBase {
 class DRapor_Hareketci_OperDurum_Main extends DRapor_Hareketci_OperBase_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Hareketci_OperDurum }
+	static get perKullanirmi() { return false }
 
 	tabloYapiDuzenle({ result }) {
-		let e = arguments[0]; super.tabloYapiDuzenle(e)
+		let e = arguments[0]
+		super.tabloYapiDuzenle(e)
 		result
 			//.addGrupBasit('PAKET', 'Paket', 'paket', null, null, ({ item }) => item.setOrderBySaha('paketkod'))
 			//.addToplamBasit('KOLI', 'Koli', 'koli')
@@ -1203,8 +1210,8 @@ class DRapor_Hareketci_OperGer_Main extends DRapor_Hareketci_OperBase_Main {
 	static get raporClass() { return DRapor_Hareketci_OperGer }
 
 	async ilkIslemler(e) {
+		this.iskNedenKod2Adi = await DMQIskNeden.getGloKod2Adi() ?? {}
 		await super.ilkIslemler(e)
-		this.iskNedenKod2Adi = await DMQIskNeden.getGloKod2Adi()
 	}
 	tabloYapiDuzenle({ result }) {
 		let e = arguments[0]
@@ -1262,8 +1269,10 @@ class DRapor_Hareketci_OperGer_Main extends DRapor_Hareketci_OperBase_Main {
 			})
 
 		{
-			let {operGenel: { iskartaMaxSayi: iskMaxSayi = 8 } = {}} = app.params
-			let {iskNedenKod2Adi} = this
+			let { operGenel: { iskartaMaxSayi: iskMaxSayi = 8 } = {} } = app.params
+			let { iskNedenKod2Adi } = this
+			iskNedenKod2Adi ??= {}
+			
 			let getIskMiktarClause = kod => {
 				let result = []
 				for (let i = 1; i <= iskMaxSayi; i++)

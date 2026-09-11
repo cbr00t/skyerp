@@ -330,7 +330,7 @@ class Hareketci extends CObject {
 		liste = liste.flat().map(item => getFuncValue.call(this, item, e)).filter(x => !!x)
 		let allKeys = {}
 		for (let {hv} of liste)
-			$.extend(allKeys, asSet(keys(hv))) 
+			extend(allKeys, asSet(keys(hv))) 
 		let sender = this, {hareketci} = this
 		for (let item of liste) {
 			let {hv: _hv} = item

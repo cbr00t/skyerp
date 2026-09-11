@@ -78,6 +78,8 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		let { eConf } = this
 		let islemAdi = 'Gönderildi Durum Ayarla'
 		let { recs } = await this.getSecilenSatirlar({ islemAdi }) ?? {}
+		if (empty(recs))
+			return
 
 		let defAction = recs[0].efgonderimts ? '' : 'X'
 		let _now = now()

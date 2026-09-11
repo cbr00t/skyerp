@@ -46,13 +46,17 @@ class SkyRaporApp extends TicariApp {
 	async runDevam(e) {
 		await super.runDevam(e)
 		// await this.ilkIslemler(e)
+		app.sqlGetTables().then(res =>
+			this.sqlTables = res)
 		await window.DRapor_Hareketci?.autoGenerateSubClasses(e)
 
-		this._table2ColDefs ??= {
-			piffis: await app.sqlGetColumns('piffis'),
-			sipfis: await app.sqlGetColumns('sipfis'),
-			stfis: await app.sqlGetColumns('stfis')
-		}
+		promise(async () => {
+			this._table2ColDefs ??= {
+				piffis: await app.sqlGetColumns('piffis'),
+				sipfis: await app.sqlGetColumns('sipfis'),
+				stfis: await app.sqlGetColumns('stfis')
+			}
+		})
 	}
 	async afterRun(e) {
 		if (!(qs.tamEkranYok || qs.noFullScreen))
@@ -120,9 +124,8 @@ class SkyRaporApp extends TicariApp {
 				wnd.css('font-size', '130%')
 				wnd.find('div > .jqx-window-header').addClass('bg-darkred')
 			}
-			let {moduller, params} = app
-			let {aktarim: { kullanim: aktarim = {} } } = params
-			this.sqlTables = await app.sqlGetTables()
+			let { moduller, params } = app
+			let { aktarim: { kullanim: aktarim = {} } } = params
 			let eksikParamIsimleri = [], eksikModulIsimleri = []
 			if (!aktarim.webOzetRapor)
 				eksikParamIsimleri.push('Web Özet Rapor')
@@ -130,7 +133,9 @@ class SkyRaporApp extends TicariApp {
 				eksikModulIsimleri.push(Modul_WebOzetRapor.aciklama)
 			if (eksikParamIsimleri.length) {
 				this.noMenuFlag = true
-				let gosterim = eksikParamIsimleri.map(x => `<span class="bold firebrick">${x}</span>`).join(' VE ')
+				let gosterim = eksikParamIsimleri
+					.map(v => `<span class="bold firebrick">${v}</span>`)
+					.join(' VE ')
 				let wnd = createJQXWindow({
 					content: (
 						`<div>${gosterim} parametreleri</div>
@@ -138,11 +143,17 @@ class SkyRaporApp extends TicariApp {
 						<div class="gray">Eğer bu parametreler işaretli ise <b class="royalblue">Güncel Ticari Sürümün</b> yüklü olduğundan emin olunuz ve <u>ilgili parametre adımına girip</u> <b>Kaydet</b> butonuna tıklayınız</div>`
 					),
 					title: `<span class="bold">!! UYARI !!</span><span class="gray"> - ${appName}</span>`,
-					args: { isModal: true, width: Math.min(830, $(window).width() / 1.5), height: 330, showCloseButton: true, showCollapseButton: false, closeButtonAction: 'destroy' }
+					args: {
+						isModal: true, width: Math.min(830, $(window).width() / 1.5), height: 330,
+						showCloseButton: true, showCollapseButton: false, closeButtonAction: 'destroy'
+					}
 					// buttons: { TAMAM: e => e.close() }
 				})
-				wnd.css('font-size', '130%'); wnd.find('div > .jqx-window-header').addClass('bg-darkred') /* wnd.find('div > .buttons > button:eq(0)').jqxButton('template', 'danger') */
+				wnd.css('font-size', '130%')
+				wnd.find('div > .jqx-window-header').addClass('bg-darkred')
+				// wnd.find('div > .buttons > button:eq(0)').jqxButton('template', 'danger') 
 			}
+			
 			if (eksikModulIsimleri.length) {
 				this.noMenuFlag = true
 				let gosterim = eksikModulIsimleri.map(x => `<span class="bold firebrick">${x}</span>`).join(' VE ');
@@ -152,15 +163,20 @@ class SkyRaporApp extends TicariApp {
 						`<div>Eğer zaten lisansınız varsa, VIO Ticari Program'a girip, <b>Dosya > Program > Anahtarın Girilmesi</b> menü adımına tıklayınız ve <b>Tamam</b> butonuna basınız</div>`
 					),
 					title: `<span class="bold">!! UYARI !!</span><span class="gray"> - ${appName}</span>`,
-					args: { isModal: true, width: Math.min(830, $(window).width() / 1.5), height: 330, showCloseButton: true, showCollapseButton: false, closeButtonAction: 'destroy' }
+					args: {
+						isModal: true, width: Math.min(830, $(window).width() / 1.5), height: 330,
+						showCloseButton: true, showCollapseButton: false, closeButtonAction: 'destroy'
+					}
 					// buttons: { TAMAM: e => e.close() }
 				})
-				wnd.css('font-size', '130%'); wnd.find('div > .jqx-window-header').addClass('bg-darkred') /* wnd.find('div > .buttons > button:eq(0)').jqxButton('template', 'danger') */
+				wnd.css('font-size', '130%')
+				wnd.find('div > .jqx-window-header').addClass('bg-darkred')
+				// wnd.find('div > .buttons > button:eq(0)').jqxButton('template', 'danger')
 			}
 		}
 		finally { await super.anaMenuOlustur(e) }
 
-		setTimeout(() => {
+		delay(500).then(() => {
 			let ul = app.mainNav.children('ul')
 			let li = ul.children('li#FAV')
 			if (li) {
@@ -170,8 +186,7 @@ class SkyRaporApp extends TicariApp {
 				if (!li.hasClass('expanded'))
 					li.click()
 			}
-			
-		}, 500)
+		})
 	}
 	super_anaMenuOlustur(e) { return super.anaMenuOlustur(e) }
 	async getAnaMenu(e) {
@@ -190,6 +205,7 @@ class SkyRaporApp extends TicariApp {
 			
 			let { vioAdim, kategoriKod } = sinif
 			kategoriKod ??= ''
+			
 			let subItems = (kategoriKod2MenuItems[kategoriKod] ??= [])
 			subItems.push(new FRMenuChoice({
 				mne, vioAdim,
@@ -203,6 +219,7 @@ class SkyRaporApp extends TicariApp {
 						this.openNewWindow({ menuId, qs: { sameWindow: true } })
 						return
 					}
+					
 					let result = (await sinif.goster(e)) || {}
 					let part = result.part ?? result
 					if (qs.inNewWindow && part?.kapaninca)
@@ -236,9 +253,9 @@ class SkyRaporApp extends TicariApp {
 			)
 			sahalar.add('raportip tip', 'id', 'aciklama raporAdi')
 			
-			let stm = new MQStm({ sent, orderBy: ['tip', 'raporAdi'] })
 			let favItems = []
-			for (let { tip, id, raporAdi: text } of await app.sqlExecSelect(stm)) {
+			let stm = new MQStm({ sent, orderBy: ['tip', 'raporAdi'] })
+			for (let { tip, id, raporAdi: text } of await stm.execSelect()) {
 				let raporSinif = kod2Sinif[tip]
 				if (!raporSinif)
 					continue
@@ -276,7 +293,8 @@ class SkyRaporApp extends TicariApp {
 			}
 			if (!empty(favItems)) {
 				let favParent = new FRMenuCascade({
-					mne: 'FAV', text: '❤️ Favori<br/>Raporlarım',
+					mne: 'FAV',
+					text: '❤️ Favori<br/>Raporlarım',
 					items: favItems
 				})
 				items = [favParent, ...items]
