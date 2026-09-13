@@ -340,7 +340,13 @@ class DAltRapor_TreeGrid extends DAltRapor {
 			return new $.jqx.dataAdapter({
 				hierarchy: { root: key_items }, dataType: 'array', localData: recs, /* hierarchy: { keyDataField: { name: key_id }, parentDataField: { name: 'parentId' } }, */
 				dataFields: keys(tRec).map(name => ({ name, type: typeof tRec[name] == 'object' ? 'array' : (typeof tRec[name] || 'string') })),
-			}, { autoBind: false, loadComplete: (boundRecs, recs) => setTimeout(() => this.gridVeriYuklendi({ ...e, boundRecs, recs }), 5) })
+			}, {
+				autoBind: false,
+				loadComplete: (boundRecs, recs) => {
+					delay(5).then(() =>
+						this.gridVeriYuklendi({ ...e, boundRecs, recs }))
+				}
+			})
 		}
 		catch (ex) { console.error(ex); hConfirm(getErrorText(ex), 'Grid Verisi Yüklenemedi'); return null }
 	}

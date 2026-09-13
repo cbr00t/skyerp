@@ -885,7 +885,9 @@ class GridKolonTip_Bool extends GridKolonTip_Ozel {
 		return ((colDef, rowIndex, columnField, value, html, jqxCol, rec) => {
 			if (rec?.totalsrow)
 				return GridKolonTip.getHTML_groupsTotalRow(value)
-			rec = colDef?.gridPart?.gridWidget?.getboundrows()[rowIndex] ?? rec
+			let { gridWidget: w } = colDef?.gridPart
+			if (w?.getboundrows)
+				rec = w.getboundrows()?.[rowIndex] ?? rec
 			rec = rec?.originalRecord ?? rec
 			if (!(typeof value == 'boolean' || typeof value == 'number')) value = this.value ?? asBool(value)
 			if (!colDef.gridPart?.gridWidget?.editable || (!colDef.columnType || colDef.columnType == 'checkbox' || colDef.columnType == 'custom' || colDef.columnType == 'template')) {

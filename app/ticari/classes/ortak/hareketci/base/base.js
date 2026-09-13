@@ -211,18 +211,22 @@ class Hareketci extends CObject {
 		let tbWhere = secimler?.getTBWhereClause(...arguments)
 		if (tbWhere?.liste?.length)
 			wh.birlestir(tbWhere)
+		
 		if (hv.bizsubekod && !from.aliasIcinTable('sub')) {
 			sent.x2SubeBagla({ kodClause: hv.bizsubekod })
 			if (!from.aliasIcinTable('igrp'))
 				sent.sube2GrupBagla()
 		}
+		
 		if (sender?.finansalAnalizmi) {
 			let {finanalizkullanilmaz: finAnalizKullanimClause} = hv
 			if (finAnalizKullanimClause == sqlEmpty || finAnalizKullanimClause == sqlNull)
 				finAnalizKullanimClause = null
+			
 			if (!sonIslem_whereBaglanmazFlag && finAnalizKullanimClause)
 				wh.degerAta('', finAnalizKullanimClause)      /* ''(false) = kullanılır,  '*'(true) = kullanılMAZ */
-			let {adi: altTipAdiClause, oncelik: altTipOncelikClause, yon: yonClause} = this.class.getAltTipAdiVeOncelikClause({ hv }) ?? {}
+			
+			let { adi: altTipAdiClause, oncelik: altTipOncelikClause, yon: yonClause } = this.class.getAltTipAdiVeOncelikClause({ hv }) ?? {}
 			altTipAdiClause = altTipAdiClause || (this.class.aciklama?.sqlServerDegeri() ?? sqlEmpty)
 			altTipOncelikClause = altTipOncelikClause || sqlZero
 			yonClause = yonClause || (this.class.defaultYon?.sqlServerDegeri() ?? sqlEmpty)
@@ -345,101 +349,135 @@ class Hareketci extends CObject {
 			item.hv = hv
 		}
 	}
-	static extListeDuzenle(e) {
-		let {liste} = e, {kod} = this
+	static extListeDuzenle({ liste }) {
+		let { kod } = this
 		for (let modul of app.getModulIter()) {
 			let extSinif = modul[`extSinif_hareketci_${kod}`]
 			if (extSinif && extSinif.uygunmu !== false)
 				liste.push(extSinif)
 		}
 	}
-	static *getExtIter() { let {extListe} = this; if (extListe) { for (let ext of extListe) { yield ext } } }
+	static *getExtIter() {
+		for (let ext of this.extListe ?? [])
+			yield ext
+	}
 	*getExtIter() { return this.class.getExtIter() }
 	defaultSonIslem(e) { this.uniOrtakSonIslem(e) }
-	stmOlustur(e) {
-		e = e || {}; let _e, stm = new MQStm({ orderBy: ['tarih', 'oncelik'] });
-		this.stmDuzenle(_e = { ...e, stm }); stm = _e.stm;
-		let {sent: uni} = stm
+	stmOlustur(e = {}) {
+		let stm = new MQStm({ orderBy: ['tarih', 'oncelik'] })
+		;{
+			let _e = { ...e, stm }
+			this.stmDuzenle()
+			stm = _e.stm
+		}
+		
+		let { sent: uni } = stm
 		if (uni.unionmu)
-			uni.liste = uni.liste.filter(sent => !!sent?.sahalar?.liste?.length)
+			uni.liste = uni.liste.filter(sent => !empty(sent?.sahalar?.liste))
+		
 		return stm
 	}
-	stmDuzenle(e) { let uni = e.stm.sent = this.uniOlustur(e); return this.stmDuzenleDevam(e) }
+	stmDuzenle(e = {}) {
+		let uni = e.stm.sent = this.uniOlustur(e)
+		return this.stmDuzenleDevam(e)
+	}
 	stmDuzenleDevam(e) { }
 	uniOlustur(e = {}) {
-		let _e, uni = new MQUnionAll()
-		this.uniDuzenle(_e = { ...e, uni })
+		let uni = new MQUnionAll()
+		let _e = { ...e, uni }
+		this.uniDuzenle(_e)
 		return uni
 	}
 	uniDuzenle(e = {}) {
 		extend(e, Hareketci_UniBilgi.ortakArgs)
 		this.uniDuzenleOncesi(e)
-		let {uygunluk2UnionBilgiListe, attrSet} = this, {varsayilanHV: defHV, zorunluAttrSet} = this.class
-		let rapor = e.rapor ?? e.sender, secimler = e.secimler ?? rapor?.secimler
+		let { uygunluk2UnionBilgiListe, attrSet } = this
+		let { varsayilanHV: defHV, zorunluAttrSet } = this.class
+		let { rapor = e.sender, secimler = rapor?.secimler } = e
 		if (empty(attrSet))
 			attrSet = null
-		let {uygunluk} = this, uygunlukVarmi = !empty(uygunluk)
+		
+		let { uygunluk } = this, uygunlukVarmi = !empty(uygunluk)
 		if (!uygunlukVarmi) {
-			let {hareketTipSecim} = this.class; uygunlukVarmi = !empty(hareketTipSecim.kaListe)
+			let {hareketTipSecim} = this.class
+			uygunlukVarmi = !empty(hareketTipSecim.kaListe)
 			if (uygunlukVarmi)
-				uygunluk = asSet(hareketTipSecim.kaListe.map(({ kod }) => kod))
+				uygunluk = asSet(hareketTipSecim.kaListe.map(ka => ka.kod))
 		}
-		let sender = this, hareketci = this, {uni, maliTablomu, sender: { finansalAnalizmi } = {}} = e
+		
+		let sender = this, hareketci = this
+		let { uni, maliTablomu, sender: { finansalAnalizmi } = {} } = e
 		extend(e, { uygunluk, zorunluAttrSet })
 		for (let [selectorStr, unionBilgiListe] of entries(uygunluk2UnionBilgiListe)) {
 			let uygunmu = true
 			if (uygunlukVarmi) {
-				let _keys = selectorStr.split('$').filter(x => !!x)
-				uygunmu = !!_keys.find(key => uygunluk[key])
+				let _keys = selectorStr.split('$').filter(Boolean)
+				uygunmu = _keys.some(key => uygunluk[key])
 				if (!uygunmu)
 					continue
 			}
-			unionBilgiListe = unionBilgiListe.map(item =>
-				getFuncValue.call(this, item, e)).filter(({ sent, hv }) => sent)
+			
+			unionBilgiListe = unionBilgiListe
+				.map(r => getFuncValue.call(this, r, e))
+				.filter(r => r.sent)
+			
 			let tumHVKeys = { ...zorunluAttrSet, ...defHV }
 			for (let { hv } of unionBilgiListe)
 				extend(tumHVKeys, hv)
+			
 			for (let uniBilgi of unionBilgiListe) {
 				let { sent, hv } = uniBilgi
 				let _e = { ...e, sent, hv }
 				let hvDegeri = _e.hvDegeri = k =>
 					hv?.[k] || defHV?.[k]
+				
 				if (hv) {
 					sent = _e.sent = sent.deepCopy()
 					for (let alias in tumHVKeys) {
 						/* tumHVKeys üzerinden gitmeyince bazı sahalar eksik geliyor ?? */
 						if (attrSet && !attrSet[alias])
 							continue
+						
 						let deger = hv[alias] || defHV[alias]
 						if (isFunction(deger))
 							deger = deger.call(this, { ..._e, sender, hareketci, uniBilgi, key: alias, sent, hv, defHV })
 						deger = deger ?? 'NULL';
+						
 						let saha = alias ? `${deger} ${alias}` : deger
 						sent.add(saha)
 					}
 					hv = { ...defHV, ..._e.hv }
 				}
+				
 				extend(_e, { defHV, hv, har: this, harSinif: this.class, rapor, secimler, hvDegeri })
-				this.uniDuzenle_tumSonIslemler(_e); sent = _e.sent
+				this.uniDuzenle_tumSonIslemler(_e)
+				sent = _e.sent
+				
 				if (!(maliTablomu || finansalAnalizmi))
 					sent.groupByOlustur().gereksizTablolariSil()
+				
 				if (sent?.sahalar?.liste?.length)
 					uni.add(sent)
 			}
 		}
+		
 		this.stmIcinSonIslemler(e)
 	}
 	uniDuzenleOncesi(e) { }
 	uniDuzenle_tumSonIslemler(e) {    /* degerci bosGcbEkle value: sent. degerci koopDonemEkle value: sent. degerci sonIslem value: sent */
-		return this.uniDuzenle_whereYapi(e).uniDuzenle_ekDuzenleyiciler(e)
-					.uniDuzenle_sonIslem(e)
+		return this
+			.uniDuzenle_whereYapi(e)
+			.uniDuzenle_ekDuzenleyiciler(e)
+			.uniDuzenle_sonIslem(e)
 	}
 	uniDuzenle_whereYapi(e) {
-		let {whereYapi: handlers} = this
+		let { whereYapi: handlers } = this
 		if (handlers) {
-			let {sent} = e, _e = { ...e, hareketci: this }
+			let { sent } = e
+			let _e = { ...e, hareketci: this }
 			if (sent)
 				_e.where = sent.where
+			
 			for (let key in handlers) {
 				let handler = handlers[key]
 				if (handler)
@@ -449,10 +487,13 @@ class Hareketci extends CObject {
 		return this
 	}
 	uniDuzenle_ekDuzenleyiciler(e) {
-		let {ekDuzenleyiciler: handlers} = this
+		let { ekDuzenleyiciler: handlers } = this
 		if (handlers) {
-			let {sent} = e, _e = { ...e, hareketci: this }
-			if (sent) { _e.where = sent.where }
+			let { sent } = e
+			let _e = { ...e, hareketci: this }
+			if (sent)
+				_e.where = sent.where
+			
 			for (let key in handlers) {
 				let handler = handlers[key]
 				if (handler)
@@ -462,11 +503,13 @@ class Hareketci extends CObject {
 		return this
 	}
 	uniDuzenle_sonIslem(e) {
-		let {sonIslem: handler} = this
+		let { sonIslem: handler } = this
 		if (handler) {
-			let {sent} = e, _e = { ...e, hareketci: this }
+			let { sent } = e
+			let _e = { ...e, hareketci: this }
 			if (sent)
 				_e.where = sent.where
+			
 			handler.call(this, _e)
 		}
 		return this
@@ -540,10 +583,13 @@ class Hareketci extends CObject {
 	static maliTablo_secimlerSentDuzenle({ secimler: sec, detSecimler: detSec, sent, sent: { from, where: wh }, hv, mstClause }) {
 		let { sqlNull, sqlEmpty } = Hareketci_UniBilgi.ortakArgs
 		let varmi = kodClause =>
-			kodClause?.sqlDoluDegermi()
+			!!kodClause
+			// kodClause?.sqlDoluDegermi()
+		
 		let varsaYap = (kodClause, block) => {
 			if (!varmi(kodClause))
 				return false
+			
 			for (let secimler of [detSec, sec]) {
 				if (secimler)
 					block?.call(this, { kodClause, secimler })
@@ -561,7 +607,7 @@ class Hareketci extends CObject {
 					sent.takip2GrupBagla()
 				wh.basiSonu(_sec.takipGrupKod, 'tak.grupkod').ozellik(_sec.takipGrupAdi, 'tgrp.aciklama')
 			}
-		})				
+		})
 		varsaYap(hv.bizsubekod, ({ kodClause, secimler: _sec }) => {
 			if (_sec.subeKod) {
 				if (!from.aliasIcinTable('sub'))

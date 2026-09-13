@@ -6,14 +6,16 @@ class BankaOrtakHareketci extends Hareketci {
 			sent.sahalar.add(`bhes.aciklama ${mstAdiAlias}`))
 	}
 	uniOrtakSonIslem({ sender, hv, sent }) {
-		super.uniOrtakSonIslem(...arguments); let {from, where: wh} = sent;
-		if (!from.aliasIcinTable('bhes')) { sent.x2BankaHesapBagla({ kodClause: hv.banhesapkod }) }
+		super.uniOrtakSonIslem(...arguments)
+		let { from, where: wh } = sent
+		if (!from.aliasIcinTable('bhes'))
+			sent.x2BankaHesapBagla({ kodClause: hv.banhesapkod })
 		/* if (from.aliasIcinTable('ban')) { wh.add(`ban.calismadurumu <> ''`) } */
 		if (!this.sonIslem_whereBaglanmazFlag)
 			wh.add(`bhes.calismadurumu <> ''`)
 	}
 	static varsayilanHVDuzenle_ortak({ hv }) {
-		super.varsayilanHVDuzenle_ortak(...arguments);
+		super.varsayilanHVDuzenle_ortak(...arguments)
 		extend(hv, { finanalizkullanilmaz: 'bhes.finanalizkullanilmaz' })
 	}
 	static varsayilanHVDuzenle({ hv }) {

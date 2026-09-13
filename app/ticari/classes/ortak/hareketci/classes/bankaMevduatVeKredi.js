@@ -34,8 +34,8 @@ class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
     }
 	uniOrtakSonIslem({ sender, hv, sent, sent: { from, where: wh } }) {
 		super.uniOrtakSonIslem(...arguments)
-		let {banhesapkod: kodClause} = hv
-		let {class: { gecerliBankaHesapTipleri: tipListe }} = this
+		let { banhesapkod: kodClause } = hv
+		let { class: { gecerliBankaHesapTipleri: tipListe } } = this
 		if (!from.aliasIcinTable('bhes'))
 			sent.x2BankaHesapBagla({ kodClause })
 		wh.inDizi(tipListe, 'bhes.tipi')

@@ -463,64 +463,75 @@ class SBTabloDetay extends MQDetay {
 		if (!querymi)
 			return
 		
-		let {detayli, raporTanim, subeKodlari, sentDuzenle: genelSentDuzenle, yatayAnalizVarmi, yatayAnaliz} = e
-		let {rapor, rapor: { tabloYapi, sahaAlias: bedelAlias } = {}, secimler = rapor?.secimler, donemBS = rapor.tarihBS} = e
+		let { detayli, raporTanim, subeKodlari, sentDuzenle: genelSentDuzenle, yatayAnalizVarmi, yatayAnaliz } = e
+		let { rapor, rapor: { tabloYapi, sahaAlias: bedelAlias } = {}, secimler = rapor?.secimler, donemBS = rapor.tarihBS } = e
 		if (isPlainObject(donemBS))
 			donemBS = new CBasiSonu(donemBS)
+		
 		let durum = e.durum = {
 			stokmu: querymi && (!hareketcimi || ticarimi) && (shStokHizmet.birliktemi || shStokHizmet.stokmu),
 			hizmetmi: hesapTipi.hizmetmi || (querymi && (!hareketcimi || ticarimi) && (shStokHizmet.birliktemi || shStokHizmet.hizmetmi))
 		}
-		let {stokmu, hizmetmi, birliktemi} = durum
+		
+		let { stokmu, hizmetmi, birliktemi } = durum
 		if (hareketcimi && !ticarimi) {
 			/* question: stokmu, hizmetmi, ... */
 			durum[hesapTipi.question] = true
 		}
 		else if (ticarimi && shStokHizmet.birliktemi)
 			durum.stokmu = durum.hizmetmi = true
-		let {ekBilgi = {}, donemTipi} = veriTipi
-		let {sentUygunluk, sentDuzenle: icerikSentDuzenle} = ekBilgi
+		
+		let { ekBilgi = {}, donemTipi } = veriTipi
+		let { sentUygunluk, sentDuzenle: icerikSentDuzenle } = ekBilgi
 		let sumSahalar = asSet([bedelAlias, 'fmalhammadde', 'fmalmuh', 'malhammadde', 'malmuh'])
 		extend(e, {
 			rapor, raporTanim, aciklama, hesapTipi, veriTipi, shStokHizmet, hareketcimi, maliTablomu: true,
 			bedelAlias, donemTipi, donemBS, secimler, detSecimler, sumSahalar
 		})
+		
 		if (detSecimler) {
 			detSecimler.whereBlockListe = []
 			detSecimler.whereBlockEkle(({ secimler: sec, where: wh, stokmu, hizmetmi, querymi, hareketcimi, harSinif }) =>
 				sec.secimEkWhereDuzenle?.({ ...e, secimler: sec, where: wh, harSinif }))
-			; {
+			;{
 				(secimler = secimler.deepCopy()).beginUpdate()
 				extend(secimler.liste, { ...detSecimler.liste })
 				let whereBlockListe = secimler.whereBlockListe ??= []
-				let {whereBlockListe: detWhereBlockListe} = detSecimler
+				let { whereBlockListe: detWhereBlockListe } = detSecimler
 				if (detWhereBlockListe)
 					whereBlockListe.push(...detWhereBlockListe)
 				secimler.endUpdate()
 			}
 		}
+		
 		for (let [selector, flag] of entries(durum)) {
 			if (!flag)
 				continue
-			for (let _selector of keys(durum))
-				delete e[_selector]
+
+			deleteKeys(e, ...keys(durum))
 			e[selector] = flag
+			
 			if (!(sentUygunluk == null || sentUygunluk?.call(this, e)))
 				continue
+			
 			if (hareketcimi)
 				this.raporQueryDuzenle_hareketci(e)
 		}
-		let {stm, uni} = e
-		if (!uni?.liste?.length)
+		
+		let { stm, uni } = e
+		if (empty(uni?.liste))
 			return this
-		let {defHV, harHVListe} = e    // raporQueryDuzenle_hareketci() tarafından oluşturulması bekleniyor
+		
+		let { defHV, harHVListe } = e    // raporQueryDuzenle_hareketci() tarafından oluşturulması bekleniyor
 		{
 			let sahaAliases = values(tabloYapi?.toplam).map(({ colDefs = [] }) =>
 				colDefs.map(_ => _.belirtec)).flat()
+			
 			for (let i = 0; i < uni.liste.length; i++) {
-				let sent = uni.liste[i], hv = { ...defHV, ...harHVListe?.[i] }, basitHV
+				let sent = uni.liste[i], hv = { ...defHV, ...harHVListe?.[i] }
+				let basitHV
 				;{
-					let {alias2Deger} = sent, {shTipi: shTipiClause} = alias2Deger
+					let { alias2Deger } = sent, { shTipi: shTipiClause } = alias2Deger
 					if (shTipiClause) {
 						let shTipiStr = shTipiClause.replaceAll(`'`, '')
 						extend(e, { stokmu: shTipiStr == 'S', hizmetmi: shTipiStr == 'H' })
@@ -528,6 +539,7 @@ class SBTabloDetay extends MQDetay {
 					basitHV = alias2Deger
 					extend(hv, { ...basitHV })
 				}
+				
 				let { where: wh, sahalar } = sent
 				let donemBSVarmi = e.donemBSVarmi = donemBS?.bosDegilmi ?? false
 				if (donemBSVarmi && !yatayAnaliz?.ekBilgi?.donemmi) {
@@ -539,11 +551,14 @@ class SBTabloDetay extends MQDetay {
 					}
 					wh.basiSonu(tarihBS, (hv.tarih || 'fis.tarih'))
 				}
+				
 				if (subeKodlari?.length)
 					wh.inDizi(subeKodlari, (hv.bizsubekod || 'fis.bizsubekod'))
 				wh.add(`${hv.ozelisaret ?? 'fis.ozelisaret'} <> 'X'`)
+				
 				sent.sahalarReset()
 				extend(e, { sent, where: wh, sahalar, hv })
+				
 				if (detayli) {
 					let { sahalar } = sent
 					for (let [alias, deger] of entries(basitHV)) {
@@ -551,6 +566,7 @@ class SBTabloDetay extends MQDetay {
 							sahalar.add(`${deger} ${alias}`)
 					}
 				}
+				
 				icerikSentDuzenle?.call(this, e)
 				sent = e.sent; wh = sent.where
 				;{
@@ -561,37 +577,45 @@ class SBTabloDetay extends MQDetay {
 						if (!alias2Deger[sahaAlias])
 							sahalar.add(`0 ${sahaAlias}`)
 				}
-				if (detSecimler) {
-					if (hareketcimi && harSinif) {
-						let mstYapi = e.mstYapi = harSinif.mstYapi
-						let mstClause = e.mstClause = hv[mstYapi.hvAlias]
-						harSinif.maliTablo_secimlerSentDuzenle(e)
-					}
+				
+				if (detSecimler && hareketcimi && harSinif) {
+					let mstYapi = e.mstYapi = harSinif.mstYapi
+					let mstClause = e.mstClause = hv[mstYapi.hvAlias]
+					harSinif.maliTablo_secimlerSentDuzenle(e)
 				}
+				
 				if (yatayAnalizVarmi && !yatayAnaliz.dbmi) {
-					let {ekBilgi = {}} = yatayAnaliz, {zorunluKodAttr: kodAttr} = ekBilgi
+					let { ekBilgi = {} } = yatayAnaliz
+					let { zorunluKodAttr: kodAttr } = ekBilgi
 					/*let kodClause = hv[kodAttr]
 					e.yatayAlias = hareketcimi && kodClause ? MQAliasliYapi.getDegerAlias(kodClause) : null*/
 					e.kodClause = hv[kodAttr]
 					ekBilgi.sentDuzenle?.({ ...e, yatayAnalizmi: true })
 				}
+				
 				genelSentDuzenle?.call(this, e)
-				sent.groupByOlustur().gereksizTablolariSil()
+				sent
+					.groupByOlustur()
+					.gereksizTablolariSil()
 			}
 		}
+		
 		return this
 	}
 	raporQueryDuzenle_hareketci(e) {
 		// detayli için attr ve sum düzenlemesi
-		let det = this, {raporTanim, rapor, secimler, bedelAlias, sumSahalar} = e
-		let {donemTipi, detayli, yatayAnalizVarmi, yatayAnaliz, stokmu, hizmetmi} = e
-		let {hesapTipi = {}, veriTipi = {}, shStokHizmet, ozelAttrListe, ekAttrListe = []} = e
-		let {ekBilgi: { harSinif, harEkDuzenle } = {}} = hesapTipi
+		let det = this
+		let { raporTanim, rapor, secimler, bedelAlias, sumSahalar } = e
+		let { donemTipi, detayli, yatayAnalizVarmi, yatayAnaliz, stokmu, hizmetmi } = e
+		let { hesapTipi = {}, veriTipi = {}, shStokHizmet, ozelAttrListe, ekAttrListe = [] } = e
+		let { ekBilgi: { harSinif, harEkDuzenle } = {} } = hesapTipi
 		if (!harSinif)
 			return this
-		let {session} = config, {dbName: buDBName} = session
-		let {dRapor: { konsolideCikti: konsolide, ekDBListe} = {}} = app.params
-		let {mstYapi: { hvAlias } = {}} = harSinif
+		
+		let { session } = config, { dbName: buDBName } = session
+		let { konsolideCikti: konsolide, ekDBListe } = app.params.dRapor ?? {}
+		let { mstYapi: { hvAlias } = {}} = harSinif
+		
 		let aliasListe = []
 		// let sabitAttrListe = []
 		if (ozelAttrListe)
@@ -611,6 +635,7 @@ class SBTabloDetay extends MQDetay {
 			if (zorunluKodAttrListe?.length)
 				sabitAttrListe.push(...zorunluKodAttrListe)
 		}*/
+		
 		let harHVListe = e.harHVListe = []
 		let har = new harSinif()
 		// let har = new harSinif().withAttrs([...sabitAttrListe, ...aliasListe])
@@ -618,21 +643,27 @@ class SBTabloDetay extends MQDetay {
 			raporTanim, det, rapor, secimler, bedelAlias,
 			yatayAnalizVarmi, yatayAnaliz
 		}
-		let {ekBilgi: { harEkDuzenle: harEkDuzenle2 } = {}} = veriTipi
+		
+		let { harEkDuzenle: harEkDuzenle2 } = veriTipi.ekBilgi ?? {}
 		if (harEkDuzenle)
 			har.addEkDuzenleyici(args => harEkDuzenle.call(this, ...args))
 		if (harEkDuzenle2)
 			har.addEkDuzenleyici(args => harEkDuzenle2.call(this, ...args))
-		let {attrSet} = har, {varsayilanHV: defHV} = har.class
+		
+		let { attrSet, class: { varsayilanHV: defHV } } = har
 		e.stm ??= new MQStm({ sent: new MQUnionAll() })
+		
 		let sender = this
-		let {stm} = e, uni = e.uni = stm.sent
+		let { stm } = e
+		let uni = e.uni = stm.sent
+		
 		let _e = { ...e, sender, rapor, secimler }
 		har.ilkIslemler(_e)
+		
 		let harUni = har.uniOlustur(_e)
 		har.sonIslemler(_e)
 		for (let harSent of harUni) {
-			let {alias2Deger: hv} = harSent
+			let { alias2Deger: hv } = harSent
 			let sent = harSent.deepCopy()
 			let addClause = (...aliases) => {
 				for (let alias of aliases) {
@@ -643,8 +674,10 @@ class SBTabloDetay extends MQDetay {
 					let clause = hv[alias]
 					if (!clause)
 						continue
+					
 					if (!detayli && sumSahalar[alias])
 						clause = clause.asSumDeger()
+					
 					let saha = `${clause} ${alias}`
 					sent.sahalar.add(saha)
 				}
@@ -846,24 +879,35 @@ class SBTabloDetay extends MQDetay {
 			static orjBaslikListesiDuzenle({ liste }) {
 				super.orjBaslikListesiDuzenle(...arguments)
 				liste.push(...[
-					new GridKolon({ belirtec: 'bizsubekod', text: 'Şube', filterType: 'checkedlist' }),
-					new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 12 }).tipTarih(),
-					new GridKolon({ belirtec: 'fisnox', text: 'Belge No', genislikCh: 21 }).alignRight(),
+					new GridKolon({ belirtec: 'bizsubekod', text: 'Şube', genislikCh: 5, filterType: 'checkedlist' }),
+					...MQCogul.getKAKolonlar(
+						new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 12 }).tipTarih(),
+						new GridKolon({ belirtec: 'fisnox', text: 'Belge No', genislikCh: 13 }).alignRight(),
+						true    // reversed
+					),
 					( yatayAnalizVarmi ? new GridKolon({ belirtec: 'yatay', text: yatayEtiket || 'Çapraz', genislikCh: 13, filterType: 'checkedlist' }) : null),
 					( konsolide && !(yatayAnalizVarmi && yatayDBmi) ? new GridKolon({ belirtec: 'db', text: 'Veritabanı', genislikCh: 18, filterType: 'checkedlist' }) : null),
-					new GridKolon({ belirtec: bedelAlias, text: 'Bedel', genislikCh: 17, aggregates: ['sum'] }).tipDecimal_bedel(),
+					new GridKolon({ belirtec: bedelAlias, text: 'Bedel', genislikCh: 19, aggregates: ['sum'] }).tipDecimal_bedel(),
 					new GridKolon({ belirtec: 'ba', text: 'B/A', genislikCh: 5, filterType: 'checkedlist' }),
-					new GridKolon({ belirtec: 'refkod', text: 'Ref. Kod', genislikCh: 18 }),
-					new GridKolon({ belirtec: 'refadi', text: 'Ref. Adı', genislikCh: 55 }),
+					...MQCogul.getKAKolonlar(
+						new GridKolon({ belirtec: 'refkod', text: 'Ref. Kod', genislikCh: 16 }).checkedList(),
+						new GridKolon({ belirtec: 'refadi', text: 'Ref. Adı', genislikCh: 50 }).checkedList()
+					),
 					// ...yatayAttrListe?.map(belirtec =>  new GridKolon({ belirtec, text: belirtec, genislikCh: 25 }) ) ?? [],
-					new GridKolon({ belirtec: 'islemadi', text: 'İşlem Adı', genislikCh: 20, filterType: 'checkedlist' }),
-					new GridKolon({ belirtec: 'anaislemadi', text: 'Ana İşlem', filterType: 'checkedlist' }),
-					new GridKolon({ belirtec: 'takipgrupkod', text: 'Takip Grup', genislikCh: 15, filterType: 'checkedlist' }),
-					new GridKolon({ belirtec: 'takipgrupadi', text: 'T.Grup Adı', genislikCh: 25, filterType: 'checkedlist' }),
-					new GridKolon({ belirtec: 'takipno', text: 'Takip No', genislikCh: 15, filterType: 'checkedlist' }),
-					new GridKolon({ belirtec: 'takipadi', text: 'Takip Adı', genislikCh: 25, filterType: 'checkedlist' }),
-					new GridKolon({ belirtec: 'mstkod', text: 'Kod', genislikCh: 15 }),
-					new GridKolon({ belirtec: 'mstadi', text: 'Açıklama', genislikCh: 30 })
+					new GridKolon({ belirtec: 'anaislemadi', text: 'Ana İşlem', genislikCh: 30, filterType: 'checkedlist' }),
+					...MQCogul.getKAKolonlar(
+						new GridKolon({ belirtec: 'takipgrupkod', text: 'Takip Grup', genislikCh: 8, filterType: 'checkedlist' }),
+						new GridKolon({ belirtec: 'takipgrupadi', text: 'T.Grup Adı', genislikCh: 15, filterType: 'checkedlist' })
+					),
+					...MQCogul.getKAKolonlar(
+						new GridKolon({ belirtec: 'takipno', text: 'Takip No', genislikCh: 10, filterType: 'checkedlist' }),
+						new GridKolon({ belirtec: 'takipadi', text: 'Takip Adı', genislikCh: 35, filterType: 'checkedlist' })
+					),
+					new GridKolon({ belirtec: 'islemadi', text: 'İşlem Adı', genislikCh: 15, filterType: 'checkedlist' }),
+					...MQCogul.getKAKolonlar(
+						new GridKolon({ belirtec: 'mstkod', text: 'Kod', genislikCh: 13 }),
+						new GridKolon({ belirtec: 'mstadi', text: 'Açıklama', genislikCh: 30 })
+					)
 				].filter(Boolean))
 			}
 			static async loadServerDataDogrudan({ sender: { grid }}) {

@@ -70,10 +70,18 @@ class Secimler extends CIO {
 			for (let key in _liste) {
 				let secim = liste[key], item = _liste[key]
 				if (!item)
-					continue 
-				let isDef = $.isPlainObject(item)
-				if (secim) { if (isDef) { secim.readFrom(item) } else { liste[key] = secim = item } }
-				else { secim = isDef ? Secim.from(item) : item; if (secim) { this.secimEkle({ key, secim, noInit: true }) } }
+					continue
+				
+				let isDef = isPlainObject(item)
+				if (secim) {
+					if (isDef) { secim.readFrom(item) }
+					else { liste[key] = secim = item } 
+				}
+				else {
+					secim = isDef ? Secim.from(item) : item
+					if (secim)
+						this.secimEkle({ key, secim, noInit: true })
+				}
 			}
 			this.endUpdate()
 		}
@@ -82,12 +90,15 @@ class Secimler extends CIO {
 		return true
 	}
 	writeTo(e) {
-		let {liste} = this
-		for (let [key, secim] of Object.entries(liste)) {
-			if (!secim) { continue }
+		let { liste } = this
+		for (let [key, secim] of entries(liste)) {
+			if (!secim)
+				continue
+			
 			let item = e[key] || {}; item._reduce = e._reduce
 			secim.writeTo(item)
 			delete item._reduce
+			
 			if (empty(item)) { delete e[key] }
 			else { e[key] = item }
 		}
@@ -230,12 +241,16 @@ class Secimler extends CIO {
 		this.secimEkle(`${grupKod}Kod`, new SecimBasSon({ etiket, mfSinif, grupKod }))
 		this.secimEkle(`${grupKod}Adi`, new SecimOzellik({ etiket: `${etiket} Adı`, grupKod }))
 		this.whereBlockEkle(_e => {
-			let {secimler: sec, where: wh} = _e
+			let { secimler: sec, where: wh } = _e
 			_e = { ...e, ..._e, sec, wh }
-			if (isFunction(kodClause)) { kodClause = kodClause.call(this, _e) }
-			if (kodClause) { wh.basiSonu(sec[`${grupKod}Kod`], kodClause) }
-			if (isFunction(adiClause)) { adiClause = adiClause.call(this, _e) }
-			if (adiClause) { wh.ozellik(sec[`${grupKod}Adi`], adiClause) }
+			if (isFunction(kodClause))
+				kodClause = kodClause.call(this, _e)
+			if (kodClause)
+				wh.basiSonu(sec[`${grupKod}Kod`], kodClause)
+			if (isFunction(adiClause))
+				adiClause = adiClause.call(this, _e)
+			if (adiClause)
+				wh.ozellik(sec[`${grupKod}Adi`], adiClause)
 		})
 		return this
 	}
@@ -264,11 +279,11 @@ class Secimler extends CIO {
 			...e, alias, aliasVeNokta, secimler,
 			where: new MQWhereClause()
 		}
-		if (whereBlockListe) {
-			for (let block of whereBlockListe)
-				block.call(this, _e)
-		}
+		
+		for (let block of whereBlockListe ?? [])
+			block.call(this, _e)
 		this.tbWhereClauseDuzenle(_e)
+		
 		return _e.where
 	}
 	tbWhereClauseDuzenle(e) { }

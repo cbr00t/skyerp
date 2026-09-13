@@ -16,17 +16,21 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 			DT: { kod: 'DOKTOR', belirtec: 'doktor', text: 'Doktor' },
 			HS: { kod: 'HASTA', belirtec: 'hasta', text: 'Hasta' }
 		})
-		$.extend(DRapor_AraSeviye_Main, { yatayTip2Bilgi })
+		extend(DRapor_AraSeviye_Main, { yatayTip2Bilgi })
 	}
 	ekCSSDuzenle(e) {
-		super.ekCSSDuzenle(e); const {belirtec, result} = e; switch (belirtec) {
+		super.ekCSSDuzenle(e)
+		let  { belirtec, result } = e
+		switch (belirtec) {
 			case 'dogrusayi': case 'dogrusecimsurems': result.push('limegreen'); break
 			case 'yanlissayi': case 'yanlissecimsurems': case 'secilmeyendogrusayi': result.push('firebrick'); break
 		}
 	}
 	tabloYapiDuzenle(e) {
-		super.tabloYapiDuzenle(e); const {result} = e, {maxSecenekSayisi} = MQSablonAnketYanit;
-		result.addKAPrefix('doktor', 'hasta', 'ilbolge', 'il', 'yasgrup');
+		super.tabloYapiDuzenle(e)
+		let { result } = e
+		let { maxSecenekSayisi } = MQSablonAnketYanit
+		result.addKAPrefix('doktor', 'hasta', 'ilbolge', 'il', 'yasgrup')
 		if (config.dev) {
 			result.addGrup(new TabloYapiItem().setKA('TESTID', 'Test ID').setMFSinif(MQTest).kodsuz().setOrderBy('testid')
 			   .addColDef(new GridKolon({ belirtec: 'testid', text: 'Test ID', filterType: 'input' })))
@@ -39,30 +43,30 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 			.addGrupBasit('CINSIYET', 'Cinsiyet', 'cinsiyet')
 			.addGrupBasit('AKTIFYAS', 'Aktif Yaş', 'aktifyas', null, null, ({ colDef }) => colDef.tipNumerik())
 			.addGrupBasit('YASGRUP', 'Yaş Grubu', 'yasgrup', MQYasGrup, null, ({ item }) => item.kodsuz(), 'yasgrupadi')
-			.addGrupBasit('DEHBVARMI', 'DEHB?', 'dehbvarmi', null, null, ({ colDef }) => colDef.tipBool(), false)
+			.addGrupBasit('DEHBVARMI', 'DEHB?', 'dehbvarmi', null, null, ({ colDef }) => colDef, false)
 			.addToplamBasit('DEHBVARSAYI', 'DEHB Var Sayı', 'dehbvarsayi')
 			.addToplamBasit('DEHBYOKSAYI', 'DEHB Yok Sayı', 'dehbyoksayi')
-			.addGrupBasit('DEHBVARMIKLINIK', 'Kli: DEHB?', 'dehbvarmiklinik', null, null, ({ colDef }) => colDef.tipBool(), false)
+			.addGrupBasit('DEHBVARMIKLINIK', 'Kli: DEHB?', 'dehbvarmiklinik', null, null, ({ colDef }) => colDef, false)
 			.addToplamBasit('DEHBVARSAYIKLINIK', 'Kli: DEHB Var Sayı', 'dehbvarsayiklinik')
 			.addToplamBasit('DEHBYOKSAYIKLINIK', 'Kli: DEHB Yok Sayı', 'dehbyoksayiklinik')
 			.addToplamBasit('DOGRUSAYI', 'Doğru Sayı', 'dogrusayi', null, ({ colDef, item }) => { colDef.tipDecimal(1); item.hidden() })
 			.addToplamBasit('ORTDOGRUSAYI', 'Ort. Doğru Sayı', 'ortdogrusayi', null, ({ colDef, item }) => {
-				colDef.tipDecimal(1).dipAvg();
+				colDef.tipDecimal(1).dipAvg()
 				item.setFormul(['DOGRUSAYI'], ({ rec }) => roundToFra1(rec.dogrusayi / rec.kayitsayisi))
 			 })
 			.addToplamBasit('YANLISSAYI', 'Yanlış Sayı', 'yanlissayi', null, ({ colDef, item }) => { colDef.tipDecimal(1); item.hidden() })
 			.addToplamBasit('ORTYANLISSAYI', 'Ort. Doğru Sayı', 'ortyanlissayi', null, ({ colDef, item }) => {
-				colDef.tipNumerik().dipAvg();
+				colDef.tipNumerik().dipAvg()
 				item.setFormul(['YANLISSAYI'], ({ rec }) => roundToFra1(rec.yanlissayi / rec.kayitsayisi))
 			})
 			.addToplamBasit('SECILMEYENDOGRUSAYI', 'Seçilmeyen Doğru Sayı', 'secilmeyendogrusayi', null, ({ colDef, item }) => { colDef.tipDecimal(1); item.hidden() })
 			.addToplamBasit('ORTSECILMEYENDOGRUSAYI', 'Ort. Seçilmeyen Doğru Sayı', 'ortsecilmeyendogrusayi', null, ({ colDef, item }) => {
-				colDef.tipNumerik().dipAvg();
+				colDef.tipNumerik().dipAvg()
 				item.setFormul(['SECILMEYENDOGRUSAYI'], ({ rec }) => roundToFra1(rec.secilmeyendogrusayi / rec.kayitsayisi))
 			})
 			.addToplamBasit('DOGRUSECIMSUREMS', 'Doğru Seçim Süre (ms)', 'dogrusecimsurems', null, ({ colDef, item }) => { colDef.tipDecimal(1); item.hidden() })
 			.addToplamBasit('ORTDOGRUSECIMSUREMS', 'Ort. Doğru Seçim Süre (ms)', 'ortdogrusecimsurems', null, ({ colDef, item }) => {
-				colDef.tipDecimal().dipAvg();
+				colDef.tipDecimal().dipAvg()
 				item.setFormul(['DOGRUSECIMSUREMS'], ({ rec }) => roundToFra1(rec.dogrusecimsurems / rec.kayitsayisi))
 			})
 			.addToplamBasit('YANLISSECIMSUREMS', 'Yanlış Seçim Süre (ms)', 'yanlissecimsurems', null, ({ colDef, item }) => { colDef.tipDecimal(1); item.hidden() })
@@ -87,8 +91,13 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 		}
 	}
 	loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {stm, attrSet} = e, alias = 'fis'; let {sent} = stm, {where: wh, sahalar} = sent;
-		$.extend(e, { sent }); this.fisVeHareketBagla(e); this.donemBagla({ ...e, sent, tarihSaha: `${alias}.tarihsaat` });
+		super.loadServerData_queryDuzenle(e)
+		let alias = 'fis'
+		let { stm, attrSet } = e
+		let { sent } = stm, { where: wh, sahalar } = sent
+		extend(e, { sent })
+		this.fisVeHareketBagla(e)
+		this.donemBagla({ ...e, sent, tarihSaha: `${alias}.tarihsaat` });
 		wh.add(`(${alias}.bcptyapildi <> 0 OR ${alias}.bankethiyapildi <> 0 OR ${alias}.banketdeyapildi <> 0)`);
 		if (attrSet.DOKTOR) { sent.leftJoin({ alias, from: 'esemuayene mua', on: 'fis.muayeneid = mua.id' }).leftJoin({ alias, from: 'esedoktor dok', on: 'mua.doktorid = dok.id' }) }
 		if (attrSet.HASTA || attrSet.IL || attrSet.ILBOLGE || attrSet.CINSIYET) { sent.leftJoin({ alias, from: 'esehasta has', on: `${alias}.hastaid = has.id` }) }
@@ -110,7 +119,7 @@ class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
 				case 'AKTIFYAS': sahalar.add(`${alias}.aktifyas`); break
 				case 'YASGRUP': sahalar.add('ygrp.id yasgrupkod', 'ygrp.aciklama yasgrupadi'); break
 				// case 'DEHBVARMI': sahalar.add(`(case when fis.bdehbvarmi = 0 then '${MQSQLOrtak.resimClause_x()}'else '${MQSQLOrtak.resimClause_ok({ ekCSS: `filter: hue-rotate(130deg)` })}' end) dehbvarmi`); break
-				case 'DEHBVARMI': sahalar.add(`(case when fis.bdehbvarmi = 0 then '<b class="forestgreen fs-150">-</b>' else '<b class="firebrick fs-120">Var</b>' end) dehbvarmi`); break
+				case 'DEHBVARMI': sahalar.add(`(case when fis.bdehbvarmi = 0 then '-' else '<b class="firebrick fs-120">Var</b>' end) dehbvarmi`); break
 				case 'DEHBVARSAYI': sahalar.add(`SUM(case when fis.bdehbvarmi = 0 then 0 else 1 end) dehbvarsayi`); break
 				case 'DEHBYOKSAYI': sahalar.add(`SUM(case when fis.bdehbvarmi = 0 then 1 else 0 end) dehbyoksayi`); break
 				case 'DEHBVARMIKLINIK': sahalar.add(`(case when fis.bdehbvarmiklinik = 0 then '<b class="forestgreen fs-150">-</b>' else '<b class="firebrick fs-120">Var</b>' end) dehbvarmiklinik`); break

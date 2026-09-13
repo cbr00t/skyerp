@@ -194,17 +194,20 @@ class GridPart extends Part {
 					deleterow: (rowIndexes, commit) => { commit(true) },
 					loadServerData: async (wsArgs, source, callback) => {
 						let {gridWidget, grid} = this
-						if (!gridWidget && grid?.length) { gridWidget = this.gridWidget = grid.jqxGrid('getInstance') }
-						let {_tazele_lastAction: action} = this
+						if (!gridWidget && grid?.length)
+							gridWidget = this.gridWidget = grid.jqxGrid('getInstance')
+						
+						let { _tazele_lastAction: action } = this
 						let result = await this.loadServerData({ ...e, wsArgs, source, callback, action })
 						if (result) {
 							if (isArray(result))
 								result = { totalrecords: result.length, records: result }
 							
 							result = result ?? { totalrecords: 0, records: [] }
-							if (typeof result == 'object' && result.records && !result.totalrecords)
+							if (isObject(result) && result.records && !result.totalrecords)
 								result.totalrecords = result.records.length
-							if (typeof result != 'object')
+							
+							if (!isObject(result))
 								return
 							
 							if (result.records?.length) {
@@ -228,24 +231,25 @@ class GridPart extends Part {
 									}
 								}
 							}
-							;setTimeout(() => {
+							;delay(1).then(() => {
 								try { callback(result) }
 								catch (ex) {
 									console.error(ex)
 									callback([])
 								}
-							}, 1)
+							})
 						}
 					}
 				})
 		}
+		
 		/*let {toplamYapi} = this
 		if (toplamYapi && args.frozenRows == null)
 			args.frozenRows = toplamYapi.sabitSatirSayi || 1*/
 		let _e = { ...e, sender: this, builder, grid, args }
 		this.gridArgsDuzenle(_e)
 		this.gridArgsDuzenle_ek?.call(this, _e)
-		args = _e.args; args.autoHeight = !args.height;
+		args = _e.args; args.autoHeight = !args.height
 		if (args.autoRowHeight)
 			args.autoRowHeight = args.pageable || args.autoHeight
 		if (args.virtualMode && args.groupable && !args.pageable)
@@ -456,9 +460,13 @@ class GridPart extends Part {
 				_recs = await this.loadServerData_recsDuzenle_son(e); recs = e.recs; if (_recs != null) { recs = _recs }
 				result = e.recs = recs
 			}
-			if (result && !$.isArray(result)) { let _recs = result.records = (recs?.records ?? recs); if (result.totalrecords == null) { result.totalrecords = _recs?.length } }
+			if (result && !isArray(result)) {
+				let _recs = result.records = recs?.records ?? recs
+				result.totalrecords ??= _recs?.length
+			}
 			/*let t = recs[0]; recs[0] = recs[1]; recs[1] = t;*/
-			this.kolonFiltreDuzenleyici?.degismedi(); return result
+			this.kolonFiltreDuzenleyici?.degismedi()
+			return result
 		}
 		catch (ex) { let errorText = getErrorText(ex); displayMessage(`<div style="color: firebrick;">${errorText}</div>`, 'Grid Verisi Alınamadı'); /* console.error(ex); */ throw ex }
 	}
@@ -485,9 +493,11 @@ class GridPart extends Part {
 		recs = await recs
 		if (empty(recs))
 			return
-		let {toplamYapi} = this
-		recs.forEach((r, i) =>
+		
+		let { toplamYapi } = this
+		;recs.forEach((r, i) =>
 			r._rowNumber = i + 1)
+		
 		if (toplamYapi) {
 			let {etiket: etk = {}} = toplamYapi, {duzKolonTanimlari: colDefs} = this
 			let aggColDefs = colDefs.filter(({ aggregates: agg }) =>
@@ -503,6 +513,7 @@ class GridPart extends Part {
 							let {tip, belirtec, genislikCh} = c
 							if (tip?.clsss?.mfbmi)
 								return false    // break
+							
 							if (genislikCh && genislikCh > maxGenislikCh) {
 								maxGenislikCh = genislikCh
 								etkBelirtec = belirtec

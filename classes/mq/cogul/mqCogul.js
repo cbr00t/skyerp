@@ -861,6 +861,10 @@ class MQCogul extends MQYapi {
 		}
 			
 		if (!empty(colDefs)) {
+			let typeSet = {
+				ansi: asSet([167, 175]),
+				unicode: asSet([231, 239])
+			}
 			let ra2PInst = fromEntries(
 				values(this._p ?? {})
 					.filter(p => p.rowAttr)
@@ -871,16 +875,30 @@ class MQCogul extends MQYapi {
 			for (let [k, v] of entries(hv)) {
 				if (!(v && isString(v)))
 					continue
-				
-				let _len = colDefs[k]?.length
-				if (_len < 1 || v.length <= _len)
-					continue
 
+				let cd = colDefs[k]
+				if (!cd)
+					continue
+				
+				let { xtype: type } = cd
+				// if (type == 36)
+				let ansi = typeSet.ansi[type]
+				let unicode = typeSet.unicode[type]
+				let str = ansi || unicode
+				if (!str)
+					continue
+				
 				let p = ra2PInst[k]
 				if (p && !(p.class == PInst || p instanceof PInstStr))
 					continue
-
+				
 				if (k.endsWith('tarih') || k.endsWith('zaman') || k.endsWith('ts'))
+					continue
+				
+				let _len = cd?.length ?? -1
+				if (unicode)
+					_len /= 2
+				if (_len < 0 || v.length <= _len)
 					continue
 					
 				let etk = (
@@ -895,10 +913,9 @@ class MQCogul extends MQYapi {
 			}
 		}
 		
-		if (empty(res))
-			return null
-		
-		return `<ul>${res.map(x => `<li>${x}</li>`).join(CrLf)}</ul>`
+		return empty(res)
+			? null
+			: `<ul>${res.map(v =>`<li>${v}</li>`).join(CrLf)}</ul>`
 	}
 	async kaydetVeyaSilmeOncesiIslemler(e = {}) {
 		this.class.globalleriSil(e)

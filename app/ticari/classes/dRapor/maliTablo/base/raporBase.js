@@ -289,7 +289,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 				if (!filtreDBSet || filtreDBSet[aktifDB]) {
 					let yatayDBmi = yatayAnalizVarmi && yatayAnaliz.dbmi
 					let uni = orjUni.deepCopy()
-					for (let {sahalar} of uni) {
+					for (let { sahalar } of uni) {
 						if (detayli)
 							sahalar.add(`'${aktifDB}' _db`)
 						if (yatayAlias)
@@ -299,6 +299,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 					}
 					sonucUni.addAll(uni)
 				}
+				
 				for (let db of ekDBListe ?? []) {
 					if (filtreDBSet && !filtreDBSet[db])
 						continue

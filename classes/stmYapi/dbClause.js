@@ -414,7 +414,8 @@ class MQSubWhereClause extends MQClause {
 		disindakilermi = bs?.disindakilermi ?? bs?.disindakiler ?? disindakilermi
 		let isNot = isObject(e) && asBool(e.not ?? disindakilermi)
 		if (birKismimi && bs.value)
-			this.birKismi({ liste: bs.value, saha, not: isNot })
+			return this.birKismi({ liste: bs.value, saha, not: isNot })
+		
 		let sub = new MQAndClause()
 		if (bs) {
 			let {basi, sonu} = bs ?? {}, eqOp = { sonu: '=' };
@@ -432,7 +433,11 @@ class MQSubWhereClause extends MQClause {
 			this.addDogrudan(text)
 		return this
 	}
-	notBasiSonu(e, _saha) { e = e.saha ? $.extend({}, e) : { deger: e, saha: _saha }; e.not = true; return this.basiSonu(e) }
+	notBasiSonu(e, _saha) {
+		e = e.saha ? $.extend({}, e) : { deger: e, saha: _saha }
+		e.not = true
+		return this.basiSonu(e)
+	}
 	ozellik(e, _saha) {
 		e = e?.saha ? e : { deger: e, saha: _saha }
 		let isNot = isObject(e) && asBool(e.not)
