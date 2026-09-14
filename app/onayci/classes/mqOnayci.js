@@ -723,7 +723,10 @@ class MQOnayci extends MQCogul {
 			gridPart.tazele()
 	}
 
-	static async onayRedIstendi({ sender: gridPart, state: onaymi }) {
+	static async onayRedIstendi({ sender: gridPart, state: onaymi, recs, rec }) {
+		gridPart ??= app.activeWndPart
+		recs ??= makeArray(rec)
+		
 		let { dev } = config
 		let kisaIslemAdi = `${onaymi ? 'ONAY' : 'RED'}`
 		let islemAdi = `${kisaIslemAdi} İşlemi`
@@ -731,12 +734,19 @@ class MQOnayci extends MQCogul {
 		let { progressManager: pm } = self
 		let hasPM = !!pm
 		try {
-			let { boundRecs: allRecs, selectedRecs: recs, gridWidget: w } = gridPart
+			let { boundRecs: allRecs, gridWidget: w } = gridPart
+			if (empty(recs))
+				recs = gridPart.selectedRecs ?? []
+			
 			recs = recs.filter(rec => rec.onayNo && (dev || !rec.onayDurum))
 			if (empty(recs)) {
 				hConfirm('Cevaplanacak uygun belge bulunamadı', islemAdi)
-				return
+				return false
 			}
+
+			//globalThis[onaymi ? 'eConfirm' : 'hConfirm'](rec.uuid)
+			//return
+			
 			let aktarilmamisIrsaliyeSayi = recs.filter(_ => _.irsNox && !_.irsVarmi).length
 			if (aktarilmamisIrsaliyeSayi) {
 				try {
@@ -747,12 +757,12 @@ class MQOnayci extends MQCogul {
 						), styledIslemAdi
 					)
 					if (!rdlg)
-						return
+						return false
 				}
 				catch (ex) {
 					if (ex.rc != 'userClose')
 						throw ex
-					return
+					return false
 				}
 			}
 			
@@ -803,17 +813,17 @@ class MQOnayci extends MQCogul {
 				})
 				nedenText = nedenText?.trim()
 				if (nedenText == null)
-					return 
+					return false
 				if (nedenZorunludur && !nedenText) {
 					hConfirm(`<b>${kisaIslemAdi} Nedeni</b> belirtilmelidir`, islemAdi)
-					return
+					return false
 				}
 			}
 			else if (confirmIstenir) {
 				let middleText = onaymi ? `<b class=forestgreen>ONAYLAMAK</b>` : `<b class=firebrick>REDDETMEK</b>`
 				let rdlg = await ehConfirm(`<b class=royalblue>${recs.length}</b> adet kaydı ${middleText} istediğinize emin misiniz?`, styledIslemAdi)
 				if (!rdlg)
-					return
+					return false
 			}
 			
 			let { sonrakineOnayGitmesin } = inst
@@ -823,6 +833,10 @@ class MQOnayci extends MQCogul {
 				let key = [ _db, onayNo ].join(delimWS)
 				;(key2Recs[key] ??= []).push(rec)
 			}
+
+			/*debugger
+			alert(toJSONStr(recs))
+			return*/
 			
 			let _now = now()
 			let toplu = new MQToplu().withTrn()
@@ -1026,6 +1040,8 @@ class MQOnayci extends MQCogul {
 					autotimeout: 4_000
 				})
 			}
+
+			return true
 		}
 		catch (ex) {
 			hConfirm(getErrorText(ex), islemAdi)
@@ -1143,6 +1159,7 @@ class MQOnayci extends MQCogul {
 					let xsltProcessor
 					try { xsltProcessor = new XSLTProcessor() }
 					catch (ex) { cerr(ex) }
+					
 					try {
 						if (orj_e.aborted)
 							break
@@ -1161,11 +1178,11 @@ class MQOnayci extends MQCogul {
 							}
 						}
 						let xml = $.parseXML(xmlData)
-						let docRefs = Array.from(xml.documentElement.querySelectorAll(`AdditionalDocumentReference`))
+						let docRefs = arrayFrom(xml.documentElement.querySelectorAll(`AdditionalDocumentReference`))
 						let xsltData
 						;{
-							let xbinDocs, subName = 'EmbeddedDocumentBinaryObject'
-							xbinDocs = docRefs.filter(elm =>
+							let subName = 'EmbeddedDocumentBinaryObject'
+							let xbinDocs = docRefs.filter(elm =>
 								elm.querySelector(subName) && (
 									elm.querySelector(subName)?.getAttribute('filename')?.includes('.xslt') ||
 									// elm.querySelector(subName)?.innerHTML?.toUpperCase() == 'XSLT' ||
@@ -1221,7 +1238,7 @@ class MQOnayci extends MQCogul {
 							divContainer.append(eDoc)*/
 						let container = $(`<div/>`).append(eDoc)
 						eDocCount++
-						eDocs.push(container)
+						eDocs.push({ eDoc: container, rec })
 						pm?.progressStep(2)
 					}
 					catch (ex) {
@@ -1540,9 +1557,68 @@ class MQOnayci extends MQCogul {
 			}
 			
 			if (!orj_e.aborted && eDocCount) {
-				for (let eDoc of eDocs) {
+				let c = this._callbacks ??= {}
+				c.wndEIslem ??= (uuid, state) => {
+					// let { activeWndPart: sender } = wnd
+					let sender = gridPart
+					let { boundRecs: recs } = sender ?? {}
+					let rec = recs?.find(r => r.uuid == uuid)
+					this?.onayRedIstendi?.({ sender: gridPart, state, rec })
+				}
+				
+				for (let { eDoc, rec } of eDocs) {
 					// let html = `<html><head>${divContainer.innerHTML}</head></html>`
-					let html = `<html><body>${eDoc[0].innerHTML}</body></html>`
+					let { uuid } = rec
+					let html = `
+						<html lang="tr">
+						<head>
+							<meta charset="utf-8" />
+							<title>e-İşlem Çıktısı</title>
+							<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=yes" />
+							<style>
+								.islemTuslari {
+									display: flex; flex-direction: row;
+									position: fixed; top: 30px; right: 200px;
+									gap: 30px; z-index: 1001
+								}
+								.islemTuslari > button {
+									font-size: 400% !important; width: 100px; height: 80px; border-radius: 20px;
+									background-size: contain; background-position: center; background-repeat: no-repeat
+								}
+							</style>
+						</head>
+						
+						<body>
+							<div class="islemTuslari">
+								<button id="onay" title="Onay"> ✅ </button>
+								<button id="red" title="red"> 🚫 </button>
+							</div>
+							
+							${ eDoc[0].innerHTML }
+							
+							<script>
+								let uuid = '${uuid}'
+								let btns = Object.fromEntries(
+									['onay', 'red']
+										.map(k => [k, document.getElementById(k)])
+								)
+								
+								function onayRed( state) {
+									Object.values(btns).forEach(b =>
+										b.setAttribute('disabled', ''))
+									
+									const wnd = opener
+									wnd.setTimeout(() =>
+										wnd.MQOnayci._callbacks?.wndEIslem?.(uuid, state))
+									close()
+								}
+								
+								btns.onay.addEventListener('click', evt => onayRed(true))
+								btns.red.addEventListener('click', evt => onayRed(false))
+							</script>
+						</body>
+						</html>
+					`
 					let url = URL.createObjectURL(new Blob([html], { type: 'text/html' }))
 					openNewWindow(url)
 					setTimeout(() => URL.revokeObjectURL(url), 10_000)

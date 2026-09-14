@@ -201,7 +201,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		w ??= gridPart.gridWidget
 		let bw = w?.base ?? w
 		
-		let g = tan?.getTanimGlobals()
+		let g = tan?.getTanimGlobals?.()
 		if (!g)
 			return
 

@@ -43,7 +43,7 @@ class HizmetHareketci extends Hareketci {
 	ilkIslemler({ secimler: sec }) {
 		super.ilkIslemler(...arguments)
 		let { uygunluk } = this
-		this.tahminiHizmetAlinmasin = sec.tahminiHizmetAlinmasin?.value
+		this.tahminiHizmetAlinmasin ??= sec.tahminiHizmetAlinmasin?.value ?? true
 	}
 	uniOrtakSonIslem({ hvDegeri, sent, sent: { from } }) {
 		super.uniOrtakSonIslem(...arguments)
@@ -583,15 +583,19 @@ class HizmetHareketci extends Hareketci {
 						sent.fisHareket('finansfis', 'finanshar').fis2KasaBagla()
 							.fromIliski('kredihar khar', 'har.krediharsayac = khar.kaysayac')
 							.fromIliski('kredifis kfis', 'khar.fissayac = kfis.kaysayac');
-	                    let {where: wh} = sent; wh.fisSilindiEkle();
-						wh.degerAta('KB', 'fis.fistipi').degerAta('A', 'fis.ba');
+	                    let { where: wh } = sent
+						wh.fisSilindiEkle()
+						wh.degerAta('KB', 'fis.fistipi').degerAta('A', 'fis.ba')
 						wh.add(`har.krediharsayac IS NOT NULL`, `har.kredifaiz <> 0`)
 	                })
 					.hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
 						extend(hv, {
-							kaysayac: 'fis.kaysayac',kayittipi: `'KRYT'`, hizmetkod: 'har.faizkrehizkod',
-							islkod: 'fis.muhislkod', isladi: `'Kendimize Havale'`, refkod: 'fis.kasakod', refadi: 'kas.aciklama',
-							vade: 'khar.vade', ba: `'A'`, bedel: 'har.kredifaiz', dvbedel: 'har.kredidvfaiz',
+							kaysayac: 'fis.kaysayac',kayittipi: `'KRYT'`,
+							hizmetkod: 'har.faizkrehizkod',
+							islkod: 'fis.muhislkod', isladi: `'Kendimize Havale'`,
+							refkod: 'fis.kasakod', refadi: 'kas.aciklama',
+							vade: 'khar.vade', ba: `'A'`,
+							bedel: 'har.kredifaiz', dvbedel: 'har.kredidvfaiz',
 							kdetaysayac: sqlNull, kdetay: sqlEmpty,
 							fisaciklama: sqlEmpty, detaciklama: sqlEmpty
 						})
@@ -606,13 +610,14 @@ class HizmetHareketci extends Hareketci {
             yatirimGeliri: [
                 new Hareketci_UniBilgi()
 					.sentDuzenleIslemi(({ sent }) => {
-						sent.fisHareket('finansfis', 'finanshar').har2BankaHesapBagla();
+						sent.fisHareket('finansfis', 'finanshar').har2BankaHesapBagla()
 	                    let {where: wh} = sent; wh.fisSilindiEkle().degerAta('HY', 'fis.fistipi')
 	                })
 					.hvDuzenleIslemi(({ hv, sqlNull, sqlEmpty }) => {
 	                    extend(hv, {
 							kaysayac: 'fis.kaysayac', kayittipi: `'YAT'`,
-							islkod: 'fis.muhislkod', isladi: `'Yatırım Geliri'`, refkod: 'har.banhesapkod', refadi: 'bhes.aciklama',
+							islkod: 'fis.muhislkod', isladi: `'Yatırım Geliri'`,
+							refkod: 'har.banhesapkod', refadi: 'bhes.aciklama',
 							ba: `'A'`, bedel: 'har.brutbedel', dvbedel: 'har.dvbrutbedel',
 							kdetaysayac: sqlNull, kdetay: sqlEmpty
 						})

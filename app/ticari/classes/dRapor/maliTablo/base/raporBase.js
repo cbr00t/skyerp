@@ -96,6 +96,7 @@ class SBRapor_Main extends DAltRapor_TreeGrid {
 			this.tabloKolonlariDuzenle_ozel?.(_e)
 			let colDefs = this.tabloKolonlari = _e.liste || []
 			let columns = colDefs.flatMap(colDef => colDef.jqxColumns)
+			await this.gridColWidthDuzenle({ ...e, defs: columns })
 			let lastError
 			for (let i = 1; i <= 3; i++) {
 				try {

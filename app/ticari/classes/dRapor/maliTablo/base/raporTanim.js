@@ -10,9 +10,53 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 	static get ozelImportmu() { return true }
 	static get gridHeight_bosluk() { return 90 } static get _repeatButton_delayMS() { return 100 }
 	get yatayAnalizVarmi() { return !!this.yatayAnaliz?.char }
+	get raporKod() { return this.class.kod }
+	get raporTanim() { return this.rapor?.raporTanim }
+
+	static get yerel() { return app.params.yerel ??= new MQYerelParam() }
+	static get raporGlobals() { return this.yerel.tip2DRaporGlobals ??= {} }
+	get baseKey() { return this.raporKod }
+	get raporGlobals() {
+		let { baseKey: k } = this
+		if (!k)
+			return null
+		let { raporGlobals: g } = this.class
+		return g[k] ??= {}
+	}
+
+	getTanimGlobals(e) {
+		let { raporGlobals: g } = this
+		if (g == null)
+			return null
+		
+		let k = this.getKey(e)
+		if (k == null)
+			return null
+		
+		return g[k] ??= {}
+	}
+	saveGlobals() {
+		let { yerel } = this.class
+		yerel.kaydet()
+		return this
+	}
+	getKey(e, raporKodDahil) {
+		let { raporTanim: tan } = this
+		let hv = tan?.alternateKeyHostVars(e)
+		if (empty(hv))
+			return null
+
+		delete hv.xuserkod
+		if (!raporKodDahil)
+			delete hv.raportip
+		
+		return values(hv)
+			.map(String)
+			.join(delimWS)
+	}
 
 	static pTanimDuzenle({ pTanim }) {
-		super.pTanimDuzenle(...arguments);
+		super.pTanimDuzenle(...arguments)
 		extend(pTanim, {
 			devreDisimi: new PInstBitBool('bdevredisi'),
 			yatayAnaliz: new PInstTekSecim('yatayanaliz', SBTabloYatayAnaliz)
@@ -900,10 +944,10 @@ class SBTabloDetay extends MQDetay {
 						new GridKolon({ belirtec: 'takipgrupadi', text: 'T.Grup Adı', genislikCh: 15, filterType: 'checkedlist' })
 					),
 					...MQCogul.getKAKolonlar(
-						new GridKolon({ belirtec: 'takipno', text: 'Takip No', genislikCh: 10, filterType: 'checkedlist' }),
+						new GridKolon({ belirtec: 'takipno', text: 'Takip No', genislikCh: 20, filterType: 'checkedlist' }),
 						new GridKolon({ belirtec: 'takipadi', text: 'Takip Adı', genislikCh: 35, filterType: 'checkedlist' })
 					),
-					new GridKolon({ belirtec: 'islemadi', text: 'İşlem Adı', genislikCh: 15, filterType: 'checkedlist' }),
+					new GridKolon({ belirtec: 'islemadi', text: 'İşlem Adı', genislikCh: 20, filterType: 'checkedlist' }),
 					...MQCogul.getKAKolonlar(
 						new GridKolon({ belirtec: 'mstkod', text: 'Kod', genislikCh: 13 }),
 						new GridKolon({ belirtec: 'mstadi', text: 'Açıklama', genislikCh: 30 })

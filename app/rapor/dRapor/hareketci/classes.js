@@ -484,7 +484,7 @@ class DRapor_Hareketci_Hizmet_Main extends DRapor_Hareketci_Main {
 		super.secimlerDuzenle(...arguments)
 		sec.secimTopluEkle({
 			hizmetTipi: new SecimBirKismi({ etiket: 'Hizmet Tipi', tekSecimSinif: HizmetTipi, grupKod: 'HIZMET' }).birKismi(),
-			tahminiHizmetAlinmasin: new SecimBool({ grupKod: 'donemVeTarih', etiket: 'Tahmini Hizmetler AlınMAsın' })
+			tahminiHizmetAlinmasin: new SecimBoolTrue({ grupKod: 'donemVeTarih', etiket: 'Tahmini Hizmetler AlınMAsın' })
 		})
 		sec.whereBlockEkle(({ secimler: sec, where: wh }) =>
 			wh.birKismi(sec.hizmetTipi, 'hiz.tip'))

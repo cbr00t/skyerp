@@ -13,12 +13,8 @@ class DMQRapor extends DMQSayacliKA {
 	static get idSaha() { return this.sayacSaha }
 	static get sayacSaha() { return 'id' }
 	static get logKullanilirmi() { return false }
-	static get yerel() {
-		return app.params.yerel ??= new MQYerelParam()
-	}
-	static get raporGlobals() {
-		return this.yerel.tip2DRaporGlobals ??= {}
-	}
+	static get yerel() { return app.params.yerel ??= new MQYerelParam() }
+	static get raporGlobals() { return this.yerel.tip2DRaporGlobals ??= {} }
 	get baseKey() { return this.raporKod }
 	get raporGlobals() {
 		let { baseKey: k } = this
