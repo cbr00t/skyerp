@@ -79,6 +79,12 @@ class EIslemListeBasePart extends MasterListePart {
 			if (!rdlg)
 				return null
 		}
+
+		;recs.forEach(r => {
+			r.fissayac ??= r.kaysayac
+			r.uuid ??= r.efatuuid
+		})
+		
 		return { ...e, sender: this, recs }
 	}
 	showProgress(e) {

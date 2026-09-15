@@ -157,6 +157,7 @@ class EIslemOrtak extends CObject {
 			let stm = _e.stm = getFuncValue.call(this, _e.stm, _e)
 			if (!stm)
 				return this
+			
 			let { seviyelendirici, yukleyici } = _e
 			let recs = _e.recs = await app.sqlExecSelect(stm)
 			let sevRecs = seviyelendirici ? _e.sevRecs = getFuncValue.call(this, seviyelendirici, _e) : null
@@ -170,6 +171,9 @@ class EIslemOrtak extends CObject {
 				let eFis = sayac2EFis[sayac]
 				if (!eFis)
 					eFis = values(sayac2EFis)[0]
+
+				if (!eFis)
+					return this
 				
 				_e.eFis = eFis
 				await getFuncValue.call(this, yukleyici, _e)

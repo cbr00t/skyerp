@@ -39,17 +39,17 @@ class CariTopluIslemFis extends FinansFis {
 			)
 	}
 	
-	async kaydetOncesiIslemler(e) {
+	async uiGirisOncesiIslemler(e) {
 		await promiseAll([
-			super.kaydetOncesiIslemler(e),
+			super.uiGirisOncesiIslemler(e),
 			MQCariIslem.getKod2BA()                      // cache
 		])
 	}
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments)
-		let { globals: { kod2BA = {} } } = MQCariIslem
+		let { globals: { kod2BA = {} } = {} } = MQCariIslem
 		let { islKod, fisTopNet: toplambedel, fisTopDvNet: toplamdvbedel } = this
-		let ba = kod2BA[islKod] ?? (islKod[0] == 'A' ? 'A' : 'B')
+		let ba = kod2BA[islKod] ?? (islKod?.[0] == 'A' ? 'A' : 'B')
 		extend(hv, { ba, toplambedel, toplamdvbedel })
 	}
 }
@@ -297,10 +297,12 @@ class CariDevirFis extends CariTopluIslemFis {
 
 class KasaCariFis extends FinansFis {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kodListeTipi() { return 'KSCAR' } static get sinifAdi() { return 'Kasa Tahsilat/Ödeme' }
+	static get kodListeTipi() { return 'KSCAR' }
+	static get sinifAdi() { return 'Kasa Tahsilat/Ödeme' }
 	static get detaySinif() { return KasaCariDetay }
 	static get gridKontrolcuSinif() { return KasaCariGridci }
-	static get numTipKod() { return 'KCTAH' } static get fisTipi() { return 'KC' }
+	static get numTipKod() { return 'KCTAH' }
+	static get fisTipi() { return 'KC' }
 
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
@@ -310,7 +312,8 @@ class KasaCariFis extends FinansFis {
 		super.extYapilarDuzenle(...arguments)
 		liste.push(ExtFis_Kasa, ExtFis_Plasiyer)
 	}
-	static rootFormBuilderDuzenle_son({ builders: { tsnForm, baslikForm: { builders: baslikFormlar } } }) {
+	static rootFormBuilderDuzenle_son({ islem, inst, builders: { tsnForm, baslikForm: { builders: baslikFormlar } } }) {
+		let yeniVeyaKopyami = islem == 'yeni' || islem == 'kopya'
 		super.rootFormBuilderDuzenle_son(...arguments)
 		;{
 			let form = tsnForm
@@ -318,9 +321,38 @@ class KasaCariFis extends FinansFis {
 				.addStyle_wh(150)
 				.setEtiket('Tahsilat/Ödeme')
 				.setSource(TahsilatOdeme.kaListe)
+				.degisince(_e => {
+					let { value: v, builder: { id, altInst: inst } } = _e
+					inst[id] = isObject(v) ? v.char : v
+					inst?.baDegisti?.({ ...e, ..._e })
+				})
+				.onAfterRun(({ builder: { id, altInst: inst, input } }) =>
+					delay(1).then(() =>
+						input.val(inst[id].char))
+				)
+				[yeniVeyaKopyami ? 'editable' : 'readOnly']()
 		}
 	}
-
+	static standartGorunumListesiDuzenle({ liste }) {
+		super.standartGorunumListesiDuzenle(...arguments)
+		liste.push('baText')
+	}
+	static orjBaslikListesiDuzenle_ara({ liste }) {
+		let { tableAlias: alias } = this
+		super.orjBaslikListesiDuzenle_ara(...arguments)
+		liste.push(
+			gridKolon('baText', 'BA', 10, TahsilatOdeme.getClause(`${alias}.ba`))
+				.center().checkedList()
+		)
+	}
+	static loadServerData_queryDuzenle({ sent, sent: { where: wh, sahalar } }) {
+		super.loadServerData_queryDuzenle(...arguments)
+		let { tableAlias: alias } = this
+		sahalar.add(`${alias}.ba`)
+	}
+	hostVarsDuzenle({ hv }) {
+		super.hostVarsDuzenle(...arguments)
+	}
 	bakiyeKullanimDuzenle({ result: r }) {
 		super.bakiyeKullanimDuzenle(...arguments)
 		r.cari = r.kasa = true

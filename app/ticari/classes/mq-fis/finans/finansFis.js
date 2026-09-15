@@ -29,15 +29,14 @@ class FinansFis extends MQGenelFis {
 		super.pTanimDuzenle(...arguments)
 		extend(pTanim, { baslikAciklama: new PInstStr('aciklama') })
 	}
-	static rootFormBuilderDuzenle_ilk(e) {
-		let { builders: baslikFormlar } = e.builders.baslikForm
+	static rootFormBuilderDuzenle_ilk({ builders: { baslikForm: { builders: baslikFormlar } } }) {
 		baslikFormlar[0].yanYana(3)
-		super.rootFormBuilderDuzenle_ilk(e)
+		super.rootFormBuilderDuzenle_ilk(...arguments)
 	}
-	static rootFormBuilderDuzenle_son(e) {
-		let { builders: baslikFormlar } = e.builders.baslikForm
+	static rootFormBuilderDuzenle_son({ builders: { baslikForm: { builders: baslikFormlar } } }) {
 		baslikFormlar[2].yanYana(2)
-		super.rootFormBuilderDuzenle_son(e)
+		super.rootFormBuilderDuzenle_son(...arguments)
+		
 		let form = baslikFormlar[baslikFormlar[0].builders.length < 3 ? 0 : baslikFormlar[1].builders.length < 3 ? 1 : 2]
 		form.addTextInput('baslikAciklama', 'Açıklama')
 			.etiketGosterim_yok()

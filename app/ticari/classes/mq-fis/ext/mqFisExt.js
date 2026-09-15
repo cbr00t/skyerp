@@ -669,19 +669,27 @@ class Ext_AltHesap extends ExtFis_AltHesap {
 }
 class Ext_CariVeAltHesap extends ExtFis_CariVeAltHesap {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e);
-		let {pTanim} = e;
-		extend(pTanim, { mustUnvan: new PInstStr(), yore: new PInstStr(), altHesapAdi: new PInstStr(), altHesapAdi: new PInstStr() })
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
+		extend(pTanim, {
+			mustUnvan: new PInstStr(), yore: new PInstStr(),
+			altHesapAdi: new PInstStr(), altHesapAdi: new PInstStr()
+		})
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.super_loadServerData_queryDuzenle(e);
-		Ext_AltHesap.mfSinif = this.mfSinif; Ext_AltHesap.loadServerData_queryDuzenle(e);
+		super.super_loadServerData_queryDuzenle(e)
+		Ext_AltHesap.mfSinif = this.mfSinif
+		Ext_AltHesap.loadServerData_queryDuzenle(e)
 		this.tekilOku_queryDuzenle(e)
 	}
-	setValues(e) {
-		super.setValues(e); let {inst} = this, {rec} = e;  /* MQCari.getGridKolonGrup - adiAttr: '...Unvan' olarak atanıyor' */
-		extend(inst, { mustUnvan: rec.mustunvan ?? rec.birunvan, yore: rec.yore, altHesapAdi: rec.althesapadi })
+	setValues({ rec }) {
+		super.setValues(...arguments)
+		// ** MQCari.getGridKolonGrup - adiAttr: '...Unvan' olarak atanıyor'
+		let { inst } = this
+		extend(inst, {
+			mustUnvan: rec.mustunvan ?? rec.birunvan,
+			yore: rec.yore, altHesapAdi: rec.althesapadi
+		})
 	}
 }
 class Ext_Kasa extends ExtFis_Kasa {

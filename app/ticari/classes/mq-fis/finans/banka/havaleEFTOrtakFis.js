@@ -28,13 +28,12 @@ class HEDetay extends BankaOrtakDetay {
 }
 class HEGridci extends BankaOrtakGridci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	tabloKolonlariDuzenle_son(e) {
-		const {tabloKolonlari} = e;
+	tabloKolonlariDuzenle_son({ tabloKolonlari }) {
 		tabloKolonlari.push(
 			new GridKolon({ belirtec: 'dvBedel', text: 'Dv Bedel', genislikCh: 13 }).tipDecimal_dvBedel(),
 			new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 13 }).tipDecimal_bedel()
 		);
-		super.tabloKolonlariDuzenle_son(e);
+		super.tabloKolonlariDuzenle_son(...arguments)
 		tabloKolonlari.push(new GridKolon({ belirtec: 'dekontNox', text: 'Dekont No', genislikCh: 12 }))
 	}
 	super_tabloKolonlariDuzenle_son(e) { super.tabloKolonlariDuzenle_son(e) }
@@ -47,24 +46,25 @@ class HEGelenGidenOrtakFis extends HEFis {
 }
 class HEGelenGidenOrtakDetay extends HEDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static extYapilarDuzenle(e) {
-		e.liste.push(Ext_CariVeAltHesap, Ext_BelgeTarihVeNo, Ext_TakipNo);
-		super.extYapilarDuzenle(e)
+	static extYapilarDuzenle({ liste }) {
+		liste.push(Ext_CariVeAltHesap, Ext_BelgeTarihVeNo, Ext_TakipNo)
+		super.extYapilarDuzenle(...arguments)
 	}
 	static super_extYapilarDuzenle(e) { super.super_extYapilarDuzenle(e) }
 }
 class HEGelenGidenOrtakGridci extends HEGridci {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	tabloKolonlariDuzenle_ilk(e) {
-		const {tabloKolonlari} = e;
+	tabloKolonlariDuzenle_ilk({ tabloKolonlari }) {
 		tabloKolonlari.push(
-			...MQCari.getGridKolonlar({ belirtec: 'cari', gridKolonGrupcu: 'getGridKolonGrup_yoreli' }),
+			...MQCari.getGridKolonlar({ belirtec: 'must', gridKolonGrupcu: 'getGridKolonGrup_yoreli' }),
 			...MQAltHesap.getGridKolonlar({ belirtec: 'altHesap' }),
 			...MQTakipNo.getGridKolonlar({ belirtec: 'takip' })
 		);
-		super.tabloKolonlariDuzenle_ilk(e);
+		super.tabloKolonlariDuzenle_ilk(...arguments)
 	}
-	super_tabloKolonlariDuzenle_son(e) { super.super_tabloKolonlariDuzenle_son(e) }
+	super_tabloKolonlariDuzenle_son(e) {
+		super.super_tabloKolonlariDuzenle_son(e)
+	}
 }
 
 class HEGonderilenFis extends HEGelenGidenOrtakFis {
@@ -76,13 +76,12 @@ class HEGonderilenFis extends HEGelenGidenOrtakFis {
 	static get fisTipiPrefix() { return 'S' }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e);
-		$.extend(e.pTanim, { heTipi: new PInstTekSecim(HavaleEFTTipi) })
+		extend(e.pTanim, { heTipi: new PInstTekSecim(HavaleEFTTipi) })
 	}
-	static rootFormBuilderDuzenle_ara(e) {
-		e = e || {};
-		super.rootFormBuilderDuzenle_ara(e);
-		const baslikFormlar = e.builders.baslikForm.builders;
-		let form = baslikFormlar[0];
+	static rootFormBuilderDuzenle_ara(e = {}) {
+		super.rootFormBuilderDuzenle_ara(e)
+		const baslikFormlar = e.builders.baslikForm.builders
+		let form = baslikFormlar[0]
 		form.addModelKullan({ id: 'heTipi', etiket: 'Havale/EFT', source: e => HavaleEFTTipi.kaListe }).dropDown().noMF()
 	}
 	static loadServerData_queryDuzenle(e) {

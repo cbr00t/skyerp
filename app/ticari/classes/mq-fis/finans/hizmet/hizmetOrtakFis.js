@@ -5,28 +5,42 @@ class HizmetOrtakFis extends FinansFis {
 		super.pTanimDuzenle(...arguments)
 		extend(pTanim, { ba: new PInstTekSecim('ba', GelirGider) })
 	}
-	static rootFormBuilderDuzenle_ilk(e) {
-		super.rootFormBuilderDuzenle_ilk(e)
-		let baslikFormlar = e.builders.baslikForm.builders
-		let form = baslikFormlar[0];
-		form.addModelKullan({ id: 'ba', etiket: 'Gelir/Gider', source: e => GelirGider.instance.kaListe })
-			.dropDown().noMF().kodsuz().bosKodAlinmaz().bosKodEklenmez()
-			.onAfterRun(_e => {
-				let { builder: fbd } = _e
-				if (!fbd.rootPart.yeniVeyaKopyami)
-					fbd?.part?.disable()
-				fbd?.altInst?.baDegisti({ ...e, ..._e })
-			})
-			.degisince(e => e.builder.altInst.baDegisti(e))
-			.addStyle_wh({ width: '130px !important' })
+	static rootFormBuilderDuzenle_ilk({ islem, builders }) {
+		super.rootFormBuilderDuzenle_ilk(...arguments)
+		let yeniVeyaKopyami = islem == 'yeni' || islem == 'kopya'
+		let { tsnForm, baslikForm } = builders
+		let { builders: baslikFormlar } = baslikForm
+		;{
+			let form = tsnForm
+			form.addSelect('ba')
+				.addStyle_wh(150)
+				.setEtiket('Gelir/Gider')
+				.setSource(GelirGider.kaListe)
+				.degisince(_e => {
+					let { value: v, builder: { id, altInst: inst } } = _e
+					inst[id] = isObject(v) ? v.char : v
+					inst?.baDegisti?.({ ...e, ..._e })
+				})
+				.onAfterRun(({ builder: { id, altInst: inst, input } }) =>
+					delay(1).then(() =>
+						input.val(inst[id].char))
+				)
+				[yeniVeyaKopyami ? 'editable' : 'readOnly']()
+		}
 	}
 	static super_rootFormBuilderDuzenle_ilk(e) { super.rootFormBuilderDuzenle_ilk(e) }
-	static standartGorunumListesiDuzenle_son({ liste }) {
-		super.standartGorunumListesiDuzenle_son(...arguments)
+	static standartGorunumListesiDuzenle_ara({ liste }) {
+		super.standartGorunumListesiDuzenle_ara(...arguments)
+		liste.push('baText')
 	}
 	static super_standartGorunumListesiDuzenle_son(e) { super.standartGorunumListesiDuzenle_son(e) }
-	static orjBaslikListesiDuzenle_son({ liste }) {
-		super.orjBaslikListesiDuzenle_son(...arguments)
+	static orjBaslikListesiDuzenle_ara({ liste }) {
+		let { tableAlias: alias } = this
+		super.orjBaslikListesiDuzenle_ara(...arguments)
+		liste.push(
+			gridKolon('baText', 'B/A', 10, GelirGider.getClause(`${alias}.ba`))
+				.center().checkedList()
+		)
 	}
 	static super_orjBaslikListesiDuzenle_son(e) { return super.orjBaslikListesiDuzenle_son(e) }
 	static loadServerData_queryDuzenle({ sent }) {
@@ -501,9 +515,10 @@ class KasaHizmetFis extends HizmetOrtakFis {
 			.onBuildEk(e => { const {builder} = e, {input} = builder; input.attr('readonly', ''); input.addClass('readOnly'); e.builder.rootPart.fbd_dvKur = builder })
 			.addStyle_wh({ width: '150px !important' })
 	}
-	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); const {aliasVeNokta} = this, {sent} = e;
-		sent.sahalar.add('kas.dvtipi dvkod')
+	static loadServerData_queryDuzenle({ sent, sent: { where: wh, sahalar } }) {
+		super.loadServerData_queryDuzenle(...arguments)
+		let { tableAlias: alias } = this
+		sahalar.add(`${alias}.ba`, 'kas.dvtipi dvkod')
 	}
 	setValues({ rec }) {
 		super.setValues(...arguments)

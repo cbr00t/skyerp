@@ -105,7 +105,9 @@ class EYonetici extends CObject {
 		const BlockSize = 20
 		// let senderGIBAlias = eConf.getValue('gibAlias') ?? ''
 		// let senderEIrsGIBAlias = eConf.getValue('eIrsGIBAlias') ?? ''
-		let recs = await app.sqlExecSelect(stm)
+		let recs = e.recs ??= await stm.execSelect()
+		recs = recs.filter(r => r.efatuuid || r.uuid)
+		
 		let ps2Recs = this.class.getPS2Recs({ recs })
 		let uuid2Result = e.uuid2Result = e.uuid2Result || {}
 		if (!empty(ps2Recs)) {
@@ -356,8 +358,12 @@ class EYonetici extends CObject {
 		}
 	}
 	static async eIslemSorgula(e) {
-		let eYoneticiler = await this.getEYoneticiListe(e); delete e.eYoneticiler;
-		let promises = []; for (let eYonetici of eYoneticiler ?? []) { promises.push(eYonetici.eIslemSorgula(e)) } await Promise.all(promises)
+		let eYoneticiler = await this.getEYoneticiListe(e)
+		delete e.eYoneticiler
+		let promises = []
+		for (let eYonetici of eYoneticiler ?? [])
+			promises.push(eYonetici.eIslemSorgula(e))
+		await promiseAll(promises)
 	}
 	async eIslemSorgula(e) {
 		let { eIslSinif: eIslAnaSinif } = this
@@ -369,32 +375,65 @@ class EYonetici extends CObject {
 					: ({ where: wh }) => wh.add(`fis.efatuuid <> ''`)
 			)
 		})
-		let stm = eIslAnaSinif.getUUIDStm(e); for (let key of ['psTip2SayacListe', 'whereDuzenleyici']) { delete e[key] }
-		if (!stm) { throw { isError: true, rc: 'bosUUIDStm', errorText: 'Filtre hatalı' } }
-		let {sender, callback} = e, {eConf} = this, {eIslEkArgs} = eConf, recs = await app.sqlExecSelect(stm);
-		let BlockSize = 50, ps2Recs = this.class.getPS2Recs({ recs }), uuid2Result = e.uuid2Result = e.uuid2Result || {}; let subUUID2Result = e.subUUID2Result = [], seq = 0;
+		let stm = eIslAnaSinif.getUUIDStm(e)
+		for (let key of ['psTip2SayacListe', 'whereDuzenleyici'])
+			delete e[key]
+		if (!stm)
+			throw { isError: true, rc: 'bosUUIDStm', errorText: 'Filtre hatalı' }
+		
+		let { sender, callback } = e
+		let eConf = e.eConf ?? this.eConf, { eIslEkArgs } = eConf
+		let recs = e.recs ??= await stm.execSelect()
+		recs = recs.filter(r => r.efatuuid || r.uuid)
+		
+		let BlockSize = 50
+		let ps2Recs = this.class.getPS2Recs({ recs })
+		let uuid2Result = e.uuid2Result ??= {}
+		let subUUID2Result = e.subUUID2Result = []
+		let seq = 0
 		if (!empty(ps2Recs)) {
-			let eConf = e.eConf ?? this.eConf
 			let oe = eConf.getValue('ozelEntegrator')
 			if (isObject(oe))
 				oe = oe.char
 			
 			for (let psTip in ps2Recs) {
-				let _recs = ps2Recs[psTip], eIslTip2Recs = {};
-				for (let rec of _recs) { let efAyrimTipi = rec.efayrimtipi || 'A'; (eIslTip2Recs[efAyrimTipi] = eIslTip2Recs[efAyrimTipi] || []).push(rec) }
+				let _recs = ps2Recs[psTip]
+				let eIslTip2Recs = {}
+				for (let rec of _recs) {
+					let efAyrimTipi = rec.efayrimtipi || 'A'
+					;(eIslTip2Recs[efAyrimTipi] ??= []).push(rec)
+				}
 				for (let efAyrimTipi in eIslTip2Recs) {
-					let savedToken = this.class.getTempToken(efAyrimTipi); let _recs = eIslTip2Recs[efAyrimTipi] || []; if (!_recs.length) { continue }
+					let savedToken = this.class.getTempToken(efAyrimTipi)
+					let _recs = eIslTip2Recs[efAyrimTipi] ?? []
+					if (empty(_recs))
+						continue
+					
 					for (let i = 0; i < _recs.length; i += BlockSize) {
-						seq++; let subRecs = _recs.slice(i, i + BlockSize);
+						seq++
+						let subRecs = _recs.slice(i, i + BlockSize)
 						let results = await app.wsEIslemYap({
 							eIslemci: efAyrimTipi, oe,
-							eIslemAPI: 'akibetSorgula', eLogin: toJSONStr(eConf.eLogin), eToken: savedToken || '',
-							ekArgs: toJSONStr(eIslEkArgs), args: subRecs.map(rec => ({ gelenmi: false, uuid: rec.uuid }))
+							eIslemAPI: 'akibetSorgula',
+							eLogin: toJSONStr(eConf.eLogin), eToken: savedToken || '',
+							ekArgs: toJSONStr(eIslEkArgs),
+							args: subRecs.map(r => ({ gelenmi: false, uuid: r.uuid ?? r.efatuuid }))
 						});
-						if (!savedToken && results?.length) { let {token} = results[0]; if (token != null && savedToken != token) { savedToken = token; this.class.setTempToken(efAyrimTipi, token) } }
+						if (!savedToken && results?.length) {
+							let {token} = results[0]
+							if (token != null && savedToken != token) {
+								savedToken = token
+								this.class.setTempToken(efAyrimTipi, token)
+							}
+						}
 						if (results) {
 							for (let i = 0; i < subRecs.length; i++) {
-								let result = results[i]; if (!result) { continue } let rec = subRecs[i], {uuid} = rec, sayac = rec.kaysayac;
+								let result = results[i]
+								if (!result)
+									continue
+								let rec = subRecs[i]
+								let { uuid } = rec
+								let sayac = rec.kaysayac
 								if (result?.statusCode == 0) { extend(result, { isError: false }) }
 								extend(result, { islemZamani: now(), isError: result.isError ?? !result.result, psTip, sayac, uuid, rec, efAyrimTipi });
 								uuid2Result[uuid] = subUUID2Result[uuid] = result
@@ -441,9 +480,16 @@ class EYonetici extends CObject {
 					: ({ where: wh }) => wh.add(`fis.efatuuid <> ''`)
 			)
 		})
-		let stm = eIslAnaSinif.getUUIDStm(e); for (let key of ['psTip2SayacListe', 'whereDuzenleyici']) { delete e[key] }
-		if (!stm) { throw { isError: true, rc: 'bosUUIDStm', errorText: 'Filtre hatalı' } }
-		let recs = await app.sqlExecSelect(stm), ps2Recs = this.class.getPS2Recs({ recs });
+		let stm = eIslAnaSinif.getUUIDStm(e)
+		for (let key of ['psTip2SayacListe', 'whereDuzenleyici'])
+			delete e[key]
+		if (!stm)
+			throw { isError: true, rc: 'bosUUIDStm', errorText: 'Filtre hatalı' }
+		
+		let recs = e.recs ??= await stm.execSelect()
+		recs = recs.filter(r => r.efatuuid || r.uuid)
+		
+		let ps2Recs = this.class.getPS2Recs({ recs })
 		let {callback} = e, uuid2Result = e.uuid2Result = e.uuid2Result || {};
 		if (!empty(ps2Recs)) {
 			let eConf = e.eConf ?? this.eConf
@@ -530,7 +576,9 @@ class EYonetici extends CObject {
 		let { eConf = this.eConf } = e
 		let { eIslEkArgs } = eConf
 		
-		let recs = await app.sqlExecSelect(stm)
+		let recs = e.recs ??= await stm.execSelect()
+		recs = recs.filter(r => r.efatuuid || r.uuid)
+		
 		let ps2Recs = this.class.getPS2Recs({ recs })
 		let uuid2Result = e.uuid2Result ??= {}
 		if (!empty(ps2Recs)) {
@@ -615,7 +663,7 @@ class EYonetici extends CObject {
 		}
 	}
 	static async eIslemXMLOlustur(e) {
-		let eYoneticiler = await this.getEYoneticiListe(e);
+		let eYoneticiler = await this.getEYoneticiListe(e)
 		delete e.eYoneticiler
 		let uuid2Result = {}
 		for (let eYonetici of eYoneticiler ?? []) {
@@ -635,10 +683,10 @@ class EYonetici extends CObject {
 		if (!stm)
 			throw { isError: true, rc: 'bosUUIDStm', errorText: 'Filtre hatalı' }
 		let efAyrimTipi2Arastirilacaklar = {}, olusacakPS2Sayaclar = {}
-		let recs = await app.sqlExecSelect(stm)
+		let recs = e.recs ??= await stm.execSelect()
 		window.progressManager?.setProgressMax((window.progressManager?.progressMax || 0) + recs.length)
 		for (let rec of recs) {
-			let {pstip, fissayac, uuid} = rec
+			let { pstip, fissayac, uuid } = rec
 			if (!uuid) {
 				(olusacakPS2Sayaclar[pstip] ??= []).push(fissayac)
 				continue
@@ -691,7 +739,7 @@ class EYonetici extends CObject {
 			if (!stm)
 				return
 			
-			let recs = await app.sqlExecSelect(stm)
+			let recs = await stm.execSelect()
 			let sevRecs = seviyelendirAttrGruplari({ source: recs, attrGruplari: [['pstip', 'fissayac']] })
 			let ps2Sayac2EFis = _e.ps2Sayac2EFis = {}
 			
@@ -722,7 +770,8 @@ class EYonetici extends CObject {
 			await eIslAnaSinif.tipIcinFislerEkDuzenlemeYap(_e)
 			let BlockSize = 100
 			for (let psTip in ps2Sayac2EFis) {
-				let sayac2EFis = ps2Sayac2EFis[psTip], fisSayacListe = keys(sayac2EFis);
+				let sayac2EFis = ps2Sayac2EFis[psTip]
+				let fisSayacListe = keys(sayac2EFis)
 				while (fisSayacListe.length) {
 					let subFisSayacListe = fisSayacListe.splice(0, BlockSize), uuid2SubResult = {};
 					let toplu = new MQToplu()
@@ -1149,15 +1198,17 @@ class EYonetici extends CObject {
 		return result
 	}
 	static getPS2Recs(e = {}) {
-		let recs = e.recs || e
+		let recs = e?.recs ?? e
 		if (!recs)
 			return null
 		
 		let result = {}
-		for (let rec of recs) {
-			let psTip = rec.pstip ?? rec.psTip
+		for (let r of recs) {
+			let psTip = r.pstip ?? r.psTip
+			r.fissayac ??= r.kaysayac ?? r.sayac
+			r.uuid ??= r.efatuuid
 			;(result[psTip] ??= [])
-				.push(rec)
+				.push(r)
 		}
 		
 		return result

@@ -28,7 +28,8 @@ class GidenEIslemFiltre extends EIslemFiltre {
 					`fis.ticmust mustkod`, `car.birunvan`, `fis.efatuuid`,
 					(fisTablo == 'piffis' ? 'fis.zorunluguidstr' : `'' zorunluguidstr`),
 					`fis.efimzats`, `fis.efgonderimts`, `fis.efatonaydurumu`,
-					`fis.net sonucbedel`, `car.vkno vkn`, 'car.efatsenaryotipi'
+					`fis.net sonucbedel`, `car.vkno vkn`, 'car.efatsenaryotipi',
+					'fis.efatuuid'
 				]
 			})
 			sent.fis2TicCariBagla()
@@ -75,7 +76,7 @@ class GidenEIslemFiltre extends EIslemFiltre {
 						when fis.fisekayrim = 'SC' then ${MQSQLOrtak.sqlServerDegeri(VergiNo.perakendeVKN)}
 						else ${MQSQLOrtak.sqlServerDegeri(app.params.isyeri.vergiVeyaVKN || '')}
 					end) vkn`,
-					'car.efatsenaryotipi'
+					'car.efatsenaryotipi',
 				]
 			})
 			uni.add(sent)
@@ -91,11 +92,12 @@ class GidenEIslemFiltre extends EIslemFiltre {
 					{ from: `carmst car`, iliski: `fis.mustahsilkod = car.must` }
 				],
 				where: { birlestir: wh },
-				sahalar: 
-					[`'SM' pstip`, `'' piftipi`, `'MS' efayrimtipi`, `fis.kaysayac`, `'T' almsat`, `'' iade`, `'' ayrimtipi`, `ust.tarih`, `fis.makbuznox fisnox`,
-					`fis.mustahsilkod mustkod`, `car.birunvan`, `fis.efatuuid`, `'' zorunluguidstr`, `fis.efimzats`, `fis.efgonderimts`, `fis.efatonaydurumu`, `0 sonucbedel`, `car.vkno vkn`, 'car.efatsenaryotipi'
+				sahalar:  [
+					`'SM' pstip`, `'' piftipi`, `'MS' efayrimtipi`, `fis.kaysayac`, `'T' almsat`, `'' iade`, `'' ayrimtipi`, `ust.tarih`, `fis.makbuznox fisnox`,
+					`fis.mustahsilkod mustkod`, `car.birunvan`, `fis.efatuuid`, `'' zorunluguidstr`, `fis.efimzats`, `fis.efgonderimts`,
+					`fis.efatonaydurumu`, `0 sonucbedel`, `car.vkno vkn`, 'car.efatsenaryotipi'
 				]
-			});
+			})
 			uni.add(sent)
 		}
 		sentEkle({ fisTablo: 'piffis', psTip: 'SR', ifSql: `fis.piftipi`, efAyrimTipiClause: `'MS'` })

@@ -169,50 +169,67 @@ class NormalIade extends TekSecim {
 class NormalIadeVeBirlikte extends NormalIade {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	kaListeDuzenle({ kaListe }) {
-		super.kaListeDuzenle(...arguments);
+		super.kaListeDuzenle(...arguments)
 		kaListe.push(new CKodVeAdi(['X', 'Birlikte', 'birliktemi']))
 	}
 }
 class BorcAlacak extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return 'B' } get borcmu() { return this.char == 'B' } get alacakmi() { return this.char == 'A' }
-	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); let {kaListe} = e; kaListe.push(
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		kaListe.push(
 			new CKodVeAdi(['B', 'Borç']),
 			new CKodVeAdi(['A', 'Alacak'])
 		)
 	}
 }
+
 class GelirGider extends BorcAlacak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	get gelirmi() { return this.borcmu }
 	get gidermi() { return this.alacakmi }
-	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); let {kaListe} = e;
+	
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
 		for (let ka of kaListe) {
 			switch (ka.kod) {
-				case 'B': ka.aciklama = 'Gelir'; break;
-				case 'A': ka.aciklama = 'Gider'; break;
+				case 'B': {
+					ka.aciklama = `<span class=forestgreen>Gelir</span>`
+					break
+				}
+				case 'A': {
+					ka.aciklama = `<span class=firebrick>Gider</span>`
+					break
+				}
 			}
 		}
 	}
 }
+
 class TahsilatOdeme extends BorcAlacak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return 'A' }
 	get tahsilatmi() { return this.alacakmi }
 	get odememi() { return this.borcmu }
-	kaListeDuzenle(e) {
-		super.kaListeDuzenle(e); let {kaListe} = e;
-		kaListe.reverse();
+
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
 		for (let ka of kaListe) {
 			switch (ka.kod) {
-				case 'A': ka.aciklama = 'Tahsilat'; break;
-				case 'B': ka.aciklama = 'Ödeme'; break;
+				case 'B': {
+					ka.aciklama = `<span class=firebrick>Ödeme</span>`
+					break
+				}
+				case 'A': {
+					ka.aciklama = `<span class=forestgreen>Tahsilat</span>`
+					break
+				}
 			}
 		}
 	}
 }
+
 class FisHesapSekli extends TekSecim {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' } get bedelmi() { return this.char == '' }
