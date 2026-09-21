@@ -138,7 +138,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		
 		let promise_wait, handler
 		handler = evt => {
-			let {ctrlKey: ctrl, altKey: alt, shiftKey: shift, metaKey: meta} = evt
+			let { ctrlKey: ctrl, altKey: alt, shiftKey: shift, metaKey: meta } = evt
 			let p = this._promise_wait = new $.Deferred()
 			let cancel = ctrl || alt || shift || meta
 			p.resolve(cancel)

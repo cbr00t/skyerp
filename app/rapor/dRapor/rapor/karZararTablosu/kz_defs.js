@@ -424,7 +424,8 @@ extend(DRapor_KarZararTablosu.prototype, {
 									let aciklama = text    // grid kolon
 									if (neg) {
 										aciklama += ` (-)`
-										v = -v
+										if (v)
+											v = -v
 									}
 									
 									let t = toplam[text] ??= { neg, aciklama, bedel: 0 }
@@ -446,6 +447,8 @@ extend(DRapor_KarZararTablosu.prototype, {
 									})
 									if (alimlar) {
 										let bedel = -topla(r => r.ciro || 0, alimlar.filter(kosul))
+										if (!bedel)
+											bedel = 0
 										;toplam['Alımlar'] = { neg: true, aciklama: `Alımlar (-)`, bedel }
 										sonucToplam += bedel
 									}
@@ -456,11 +459,15 @@ extend(DRapor_KarZararTablosu.prototype, {
 									}
 									;{
 										let bedel = -topla(r => r.bedel || 0, giderler.filter(kosul))
+										if (!bedel)
+											bedel = 0
 										toplam[`Diğer Giderler`] = { neg: true, aciklama: `Diğer Giderler (-)`, bedel }
 										sonucToplam += bedel
 									}
 								}
 								sonucToplam = roundToBedelFra(sonucToplam)
+								if (!sonucToplam)
+									sonucToplam = 0
 
 								for (let [k, t] of entries(toplam)) {
 									let { bedel: v } = t

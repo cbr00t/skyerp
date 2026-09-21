@@ -356,18 +356,20 @@ class MQYapi extends CIO {
 	setValues(e) { this.keySetValues(e); super.setValues(e) }
 	inExp_hostVarsDuzenle(e) { extend(e.hv, this.hostVars(e)) }
 	inExp_setValues(e) { this.setValues(e) }
-	static sqlExecNone(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecNone' }) }
-	static sqlExecNoneWithResult(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecNoneWithResult' }) }
-	static sqlExecSelect(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecSelect' }) }
-	static sqlExecTekil(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekil' }) }
-	static sqlExecTekilDeger(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekilDeger' }) }
-	static sqlExecSP(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecSP' }) }
-	sqlExecNone(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecNone' }) }
-	sqlExecNoneWithResult(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecNoneWithResult' }) }
-	sqlExecSelect(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecSelect' }) }
-	sqlExecTekil(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekil' }) }
-	sqlExecTekilDeger(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekilDeger' }) }
-	sqlExecSP(e, params) { e = $.isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecSP' }) }
+	static sqlExecNone(e, params) { e = isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecNone' }) }
+	static sqlExecNoneWithResult(e, params) { e = isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecNoneWithResult' }) }
+	static sqlExecSelect(e, params) { e = isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecSelect' }) }
+	static sqlExecTekil(e, params) { e = isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekil' }) }
+	static sqlExecTekilDeger(e, params) { e = isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekilDeger' }) }
+	static sqlExecSP(e, params) { e = isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecSP' }) }
+	static sqlSiraliExec(e, params) { e = isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlSiraliExec' }) }
+	sqlExecNone(e, params) { e = isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecNone' }) }
+	sqlExecNoneWithResult(e, params) { e = isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecNoneWithResult' }) }
+	sqlExecSelect(e, params) { e = isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecSelect' }) }
+	sqlExecTekil(e, params) { e = isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekil' }) }
+	sqlExecTekilDeger(e, params) { e = isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecTekilDeger' }) }
+	sqlExecSP(e, params) { e = isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlExecSP' }) }
+	sqlSiraliExec(e, params) { e = isPlainObject(e) ? e : { query: e, params }; return this._sqlExec({ ...e, selector: 'sqlSiraliExec' }) }
 	static gonderildiIsaretiKoy(e = {}) { return this.gonderildiIsaretiKoyKaldir({ ...e, flag: true }) }
 	static gonderildiIsaretiKaldir(e = {}) { return this.gonderildiIsaretiKoyKaldir({ ...e, flag: false }) }
 	static async gonderildiIsaretiKoyKaldir(e = {}) {
@@ -801,7 +803,7 @@ class MQYapi extends CIO {
 		return result
 	}
 	_sqlExec(e, _params) {
-		e = $.isPlainObject(e) ? e : { query: e, params: _params }
+		e = isPlainObject(e) ? e : { query: e, params: _params }
 		let offlineMode = e.offlineMode ?? e.isOfflineMode ?? e.isOffline ?? e.offline ?? this.isOfflineMode
 		let {selector, db, trnId, query, params, deferFlag, batch} = e
 		return this.class._sqlExec({ selector, db, offlineMode, trnId, query, params, deferFlag, batch })

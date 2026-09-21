@@ -40,7 +40,20 @@
 			extend(this, { tanimPart, inst, satisTablomu })
 		}
 		async ilkIslemler(e) {
-			this.class._tables ??= await app.sqlGetTables()
+			const cls = Ctx
+			let tables = cls._tables ??= await app.sqlGetTables()
+			;{
+				let { _t2Cols: t2Cols } = cls
+				if (t2Cols == null) {
+					t2Cols = cls._t2Cols = {}
+					await promiseAll(
+						keys(tables)
+							.filter(t => t.startsWith('pif') || t.startsWith('sip'))
+							.map(t => app.sqlGetColumns(t)
+								.then(res => t2Cols[t] = res))
+					)
+				}
+			}
 		}
 	}
 
@@ -291,10 +304,17 @@
 			return this.takipNoBagla({ ...e, ticarimi: false })
 		}
 		takipNoBagla({ sent, kodClause, ticarimi } = {}) {
-			let { where: wh } = sent
-			let { params, clauses, secimler: sec } = this
+			let { from, where: wh } = sent
+			let { params, clauses, secimler: sec, class: { _t2Cols: t2Cols } } = this
 			if (params.takipNo) {
 				kodClause ||= clauses.takipNo[ticarimi ? 'ticari' : 'detay']
+				if (kodClause && t2Cols) {
+					let { deger: table } = from.aliasIcinTable('har') ?? {}
+					let cols = t2Cols[table]
+					if (table && cols && !cols?.dettakipno)
+						return this
+				}
+				
 				sent
 					.fromIliski('takipmst tak', `${kodClause} = tak.kod`)
 					.fromIliski('takipgrup tgrp', 'tak.grupkod = tgrp.kod')

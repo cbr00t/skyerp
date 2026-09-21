@@ -45,7 +45,8 @@ class AccPanel extends CKodVeAdi {
 				if (!isFunction(func))
 					func = inst[`acc_initContent_${id}`] ?? this._initDefaultContent
 				let _e = { ...e, item, layout, rfb }
-				delay(10).then(() =>
+				let ms = round(100 + (random() * 700))
+				delay(ms).then(() =>
 					func.call(this, _e))
 			},
 			collapsedContent: ({ sender: acc, item }) =>  {
@@ -79,7 +80,8 @@ class AccPanel extends CKodVeAdi {
 		// makeScrollable(contentLayout)
 		rfb.addStyle(
 			`$elementCSS, $elementCSS .formBuilder-element {
-				margin: 0 !important; padding: 0 !important
+				margin: 0 !important;
+				padding: 0 !important
 			}`
 		)
 		
@@ -93,7 +95,7 @@ class AccPanel extends CKodVeAdi {
 					 box-shadow: 0 0 3px 0 #ccc;
 					 width: calc(var(--full) - 20px);
 					 padding-left: 20px; cursor: pointer;
-					 transition: 200ms ease
+					 transition: 100ms ease
 				 }
 				 $elementCSS .formBuilder-element.baslik:hover { box-shadow: 0 0 3px 0 cadetblue }
 				 $elementCSS .formBuilder-element.baslik:active { box-shadow: 0 0 5px 0 royalblue }
@@ -137,7 +139,7 @@ class AccPanel extends CKodVeAdi {
 			await item.run({ ...e, parentForm: form, form: altForm })
 		
 		await initContentSon?.call?.(this, e)
-		rfb.run()
+		await rfb.run()
 		
 		return this
 	}
@@ -354,7 +356,22 @@ class AccPanelGrid extends AccPanelDetay {
 			.setSource(async _e => {
 				let fbd = _e.builder ?? fbd_grid ?? {}
 				let { id, noTitle } = this
-				let { parent, layout, part: gridPart, input: grid } = fbd
+				let { parent, layout, part: gridPart, input: grid, inst } = fbd
+				if (inst?._noRefreshFlag) {
+					deferExec(
+						'accPanelYapi-setSource-resetFlag',
+						inst => {
+							if (inst._deferNotifiedFlag)
+								return
+							eConfirm(`Sonuçları görmek için lütfen sağ-üst taraftaki <b class=forestgreen>Tazele</b> butonuna basınız`)
+							inst._noRefreshFlag = false
+							inst._deferNotifiedFlag = true
+						},
+						1000,
+						inst
+					)
+					return []
+				}
 				// let parentParent = parent.parent()
 				// parent?.find('.empty')?.addClass('jqx-hidden')
 				
@@ -374,6 +391,7 @@ class AccPanelGrid extends AccPanelDetay {
 
 					return recs ?? []
 				})
+				
 				try { return await pr }
 				catch (ex) {
 					return debounce('accPanel-source-error', () => {

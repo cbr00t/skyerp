@@ -218,11 +218,11 @@ class TahsilatOdeme extends BorcAlacak {
 		for (let ka of kaListe) {
 			switch (ka.kod) {
 				case 'B': {
-					ka.aciklama = `<span class=firebrick>Ödeme</span>`
+					ka.aciklama = `<span class=forestgreen>Tahsilat</span>`
 					break
 				}
 				case 'A': {
-					ka.aciklama = `<span class=forestgreen>Tahsilat</span>`
+					ka.aciklama = `<span class=firebrick>Ödeme</span>`
 					break
 				}
 			}

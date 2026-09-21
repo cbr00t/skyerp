@@ -44,6 +44,11 @@ class MQSQLOrtak extends CObject {
 			e.query = e
 		return MQCogul.sqlExecSP(e)
 	}
+	static siraliExec(e = {}) {
+		if (e.query === undefined)
+			e.query = e
+		return MQCogul.sqlSiraliExec(e)
+	}
 	
 	execNone(e) {
 		let _e = isObject(e) ? { ...e } : {}
@@ -76,6 +81,11 @@ class MQSQLOrtak extends CObject {
 		let _e = isObject(e) ? { ...e } : {}
 		_e.query = this
 		return MQCogul.sqlExecSP(_e)
+	}
+	siraliExec(e = {}) {
+		let _e = isObject(e) ? { ...e } : {}
+		_e.query = this
+		return MQCogul.sqlSiraliExec(_e)
 	}
 	
 	static async topluYazVeyaDegistirIcinYap(e = {}) {

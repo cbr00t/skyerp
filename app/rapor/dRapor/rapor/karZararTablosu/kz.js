@@ -14,8 +14,10 @@ class DRapor_KarZararTablosu extends DRaporMQ {
 	static get otoTazele_minDk() { return config.dev ? .05 : .1 }
 	// static get vioAdim() { return 'MH-R' }
 
-	constructor(e = {}) {
-		super(e)
+	constructor({ event: evt } = {}) {
+		super(...arguments)
+		if (evt?.altKey)
+			this._noRefreshFlag = true
 	}
 
 	async uiGirisOncesiIslemler(e) {
@@ -312,15 +314,14 @@ class DRapor_KarZararTablosu extends DRaporMQ {
 		clearTimeout(this._timer_veriYuklendi)
 		this._timer_veriYuklendi = setTimeout(
 			async () => {
+				if (lc >= 2)
+					hideProgress()
 				for (let i = 0; i < 3; i++) {
 					this.acc_onExpandCollapseOrtak(e)
-					await delay(30)
+					await delay(20)
 				}
 				delete this.loadCount
-				if (lc >= 2)
-					delay(100).then(hideProgress)
-			},
-			50
+			}, 10
 		)
 	}
 
@@ -340,7 +341,7 @@ class DRapor_KarZararTablosu extends DRaporMQ {
 			await item.tazele(e)
 		
 		acc?.render()
-		tanimPart._promise_tazele = delay(3_000)
+		tanimPart._promise_tazele = delay(1_000)
 		tanimPart._tazeleYapildimi = true
 	}
 	
