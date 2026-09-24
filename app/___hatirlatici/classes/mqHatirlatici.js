@@ -1,4 +1,4 @@
-class HatirlaticiPart extends MQCogul {
+class MQHatirlatici extends MQCogul {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'HATIRLATICI' }
 	static get sinifAdi() { return 'Hatırlatıcı' }
@@ -13,6 +13,7 @@ class HatirlaticiPart extends MQCogul {
 	static get seviyeAcKapatKullanilirmi() { return false }
 	//static get seviyeAcKapatKullanilirmi() { return !isMiniDevice() }
 	static get noAutoFocus() { return true }
+	static get yaklasanGunSayisi() { return 7 }
 
 	static listeEkrani_init(e) {
 		super.listeEkrani_init(e)
@@ -56,6 +57,10 @@ class HatirlaticiPart extends MQCogul {
 	}
 	static listeEkrani_activated({ sender: gridPart }) { super.listeEkrani_activated(...arguments) }
 	static listeEkrani_deactivated({ sender: gridPart }) { super.listeEkrani_deactivated(...arguments) }
+	static async orjBaslikListesi_gridInit({ sender: { grid } } = {}) {
+		await super.orjBaslikListesi_gridInit(...arguments)
+		// grid.jqxGrid({ pageSize: 20 })
+	}
 	static islemTuslariDuzenle_listeEkrani(e) {
 		super.islemTuslariDuzenle_listeEkrani(e)
 		let { liste, part: { ekSagButonIdSet: sagSet }}  = e
@@ -67,8 +72,13 @@ class HatirlaticiPart extends MQCogul {
 		liste.push(...items)
 		extend(sagSet, asSet(items.map(_ => _.id)))
 	}
-	static rootFormBuilderDuzenle_listeEkrani({ sender: gridPart, rootBuilder: rfb }) {
-		super.rootFormBuilderDuzenle_listeEkrani(...arguments)
+	static async rootFormBuilderDuzenle_listeEkrani({ sender: gridPart, rootBuilder: rfb }) {
+		await super.rootFormBuilderDuzenle_listeEkrani(...arguments)
+		rfb.addStyle(...[
+			`/*$elementCSS > .header { height: 50px !important }*/
+			 $elementCSS > .header > .islemTuslari > div > #finish { margin-right: 20px !important }`
+		])
+		
 		this.fbd_listeEkrani_addCheckBox(rfb, {
 			id: 'hepsiniGoster', text: '+ Kapananlar',
 			value: gridPart.hepsiniGoster,
@@ -77,27 +87,55 @@ class HatirlaticiPart extends MQCogul {
 				gridPart.hepsiniGoster = input.is(':checked')
 				gridPart.tazele()
 			}
-		 })
-
-		rfb.addStyle(
-			`/*$elementCSS > .header { height: 50px !important }*/
-			 $elementCSS > .header > .islemTuslari > div > #finish { margin-right: 20px !important }`
-		)
+		})
+		
+		let filtreler = [
+			{ id: 'tumu', text: 'Tümü' },
+			{ id: 'gecikmis', text: 'Gecikmiş' },
+			{ id: 'yaklasiyor', text: 'Yaklaşıyor' },
+			{ id: 'normal', text: 'Normal' }
+		]
+		rfb.addForm('hatirlaticiFiltreler')
+			.setParent(() =>
+				gridPart.islemTuslariPart.sol)
+			.setLayout(({ builder: { id } }) => {
+				return $(
+					`<div class="hat-filtreler" role="group" aria-label="Hatırlatıcı durumu">
+						${filtreler.map(({ id, text }) => (
+							`<button type="button" class="hat-filtre hat-filtre-${id}" data-filtre="${id}">
+							${text}
+							<span class="hat-sayi">0</span></button>`
+						)).join('')}
+					</div>`
+				)
+			})
+			.onAfterRun(({ builder: { layout } }) => {
+				gridPart.hatirlaticiFiltreLayout = layout
+				layout.on('click', '.hat-filtre', ({ currentTarget: target }) => {
+					let filtre = $(target).data('filtre')
+					if (gridPart.hatirlaticiFiltre == filtre)
+						return
+					gridPart.hatirlaticiFiltre = filtre
+					gridPart.tazele()
+				})
+				this.hatirlaticiFiltreleriGuncelle({ sender: gridPart })
+			})
 	}
 	static orjBaslikListesi_argsDuzenle({ args }) {
 		super.orjBaslikListesi_argsDuzenle(...arguments)
 		let mini = isMiniDevice()
 		extend(args, {
-			columnsMenu: !mini, columnsHeight: 25,
-			groupsExpandedByDefault: true, showGroupsHeader: true,
-			rowsHeight: mini ? 75 : 65
+			columnsMenu: false, columnsHeight: 0,
+			showGroupsHeader: false, showStatusBar: true,
+			showAggregates: false, pageable: true, pageSize: 20,
+			rowsHeight: mini ? 176 : 164
 		})
 	}
 	static orjBaslikListesi_groupsDuzenle({ sender: gridPart, liste }) {
 		super.orjBaslikListesi_groupsDuzenle(...arguments)
-		let { hepsiniGoster } = gridPart
-		if (hepsiniGoster)
-			liste.push('_durumText')
+		//let { hepsiniGoster } = gridPart
+		//if (hepsiniGoster)
+		//	liste.push('_durumText')
 	}
 	static ekCSSDuzenle({ rowIndex, dataField: belirtec, value, rec, result: res }) {
 		super.ekCSSDuzenle(...arguments)
@@ -118,18 +156,21 @@ class HatirlaticiPart extends MQCogul {
 	}
 	static orjBaslikListesiDuzenle({ sender: gridPart, liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
-		let mini = isMiniDevice()		
-		let { tableAlias: alias } = this
-		liste.push(...[
-			new GridKolon({ belirtec: '_text', text: ' ', minWidth: 30 * katSayi_ch2Px }).noSql(),
-			new GridKolon({ belirtec: 'kalanGun', text: 'Kalan', genislikCh: 9 }).noSql().tipNumerik().checkedList(),
-			new GridKolon({ belirtec: 'sonTarihText', text: 'Bitiş', genislikCh: 25 }).noSql().checkedList(),
-			new GridKolon({ belirtec: '_durumText', text: 'Durum', genislikCh: 13, filterType: 'checkedlist', hidden: mini }).noSql()
-		].filter(Boolean))
+		liste.push(gridKolon('_text', 'Hatırlatıcı', '100%').noSql())
 	}
 	static async loadServerDataDogrudan({ sender: gridPart }) {
 		gridPart.otoTazeleDisabled = true
-		try { return await this._loadServerDataDogrudan(...arguments) }
+		try {
+			let recs = await this._loadServerDataDogrudan(...arguments)
+			gridPart.hatirlaticiTumRecs = recs
+			
+			this.hatirlaticiFiltreleriGuncelle({ sender: gridPart })
+			let { hatirlaticiFiltre: flt } = gridPart
+			return (
+				!flt || flt == 'tumu' ? recs :
+				recs.filter(r => this.getHatirlaticiDurum(r) == flt)
+			)
+		}
 		finally { gridPart.otoTazeleDisabled = false }
 	}
 	static async _loadServerDataDogrudan({ sender: gridPart }) {
@@ -170,8 +211,6 @@ class HatirlaticiPart extends MQCogul {
 					? ( sonTarih - today() ) / Date_OneDayNum
 					: null
 			)
-			r.sonTarihText = this.getHTML_sonTarih({ rec: r })
-				
 			recs.push(r)
 		}
 
@@ -224,15 +263,10 @@ class HatirlaticiPart extends MQCogul {
 		orderBy.liste = ['kapandi', 'sonTarih DESC', 'kayitTipi', 'tipAdi']
 	}
 	static gridVeriYuklendi(e = {}) {
-		let mini = isMiniDevice()
+		super.gridVeriYuklendi(e)
 		let { sender: gridPart } = e
-		let { gridWidget: w, gridWidget: { groups } } = gridPart
-		let { hepsiniGoster, prevRecs, boundRecs } = gridPart
-		groups.forEach(g =>
-			w.hidecolumn(g))
-		;['_durumText'].forEach(k =>
-			w[hepsiniGoster ? 'showcolumn' : 'hidecolumn'](k))
-		gridPart.prevRecs = boundRecs
+		gridPart.prevRecs = gridPart.boundRecs
+		this.hatirlaticiFiltreleriGuncelle(e)
 	}
 
 	static startServiceProc(e = {}) {
@@ -371,7 +405,7 @@ class HatirlaticiPart extends MQCogul {
 			done ? 'Görev Tamamlandı' :
 			state
 		} işlemi`
-		let { selectedRecs: recs } = gridPart
+		let recs = e.recs ?? gridPart.selectedRecs
 		let orjRecs = recs
 		let { user2Adi = {}, frpPort } = app
 		let topic = makeArray(app.ntfyTopic)
@@ -417,6 +451,7 @@ class HatirlaticiPart extends MQCogul {
 			return false
 		}
 
+		let { class: { DefaultWSHostName_SkyServer: defHost } } = config
 		let { kayitTipi, sureTipi, yenilenmeSuresi } = recs[0]
 		let inst = {}
 		let yenilenirmi = false
@@ -594,9 +629,9 @@ class HatirlaticiPart extends MQCogul {
 					let targetUsers = kesinUser ? [kesinUser] : users
 					let sonTarihText = asDateAndToKisaString(sonTarih)
 					let indicator = (
-						assign ? '⌛' :
-						release ? '❌' :
-						done ? '✅' : null
+						assign ? '?' :
+						release ? '?' :
+						done ? '?' : null
 					)
 					let statusText = (
 						assign ? 'Alındı' :
@@ -705,60 +740,87 @@ class HatirlaticiPart extends MQCogul {
 	}
 
 	static getHTML({ rec }) {
-		let { user2Adi } = app
-		let { session: { user: buUser } } = config
-		let { kayitTipi, tipAdi, referans, kapandi, kapanisNotu, users, kesinUser } = rec
-
-		users = users?.filter(u => u != buUser)
-		let tipAdiText = tipAdi ? `<span class="violet">${tipAdi}</span>` : null
-		let tipRefStr = [tipAdiText, referans].filter(Boolean).join(' - ')
-		let usersText = (
-			kesinUser ? '' :
-			[
-				users.slice(0, 1)
-					?.map(u => `+${user2Adi[u] || u}`)
-					?.join(', '),
-				( len(users > 1) ? `+ ${len(users) - 1}` : null )
-			].filter(Boolean).join(' ')
-		)
+		let { id, kapandi, kayitTipi, tipAdi, referans, sonTarih, kapanisNotu, users = [], kesinUser, kalanGun } = rec
+		let esc = value =>
+			$('<div/>').text(value == null ? '' : String(value)).html()
 		
-		return [
-			`<div class="flex-row full-width" style="gap: 0 10px">`,
-				`<template class="sort-data">${[kayitTipi, tipRefStr].filter(Boolean).join(delimWS)}</template>`,
-				( kayitTipi ? `<div class="fs-85 bold royalblue">[${kayitTipi}]</div>` : null ),
-				( tipRefStr ? `<div>${tipRefStr}</div>` : null ),
-				( usersText ? `<div class="lightgray"> - </div> <div class="royalblue">${usersText}</div>` : null ),
-				( kesinUser ? `<div>📌</div>` : null ),
-			`</div>`
-		].filter(Boolean).join('\n')
+		let durum = this.getHatirlaticiDurum(rec)
+		let gun = abs(round(kalanGun ?? 0))
+		let tarih = sonTarih ? sonTarih.toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Belirtilmedi'
+		let haftaGunu = sonTarih ? sonTarih.toLocaleDateString('tr-TR', { weekday: 'long' }) : ''
+		let aciklama = (
+			durum == 'kapandi' ? 'Tamamlandı' :
+			durum == 'gecikmis' ? `${gun} gün gecikti` :
+			durum == 'yaklasiyor' ? (gun ? `${gun} gün kaldı` : 'Bugün sona eriyor') :
+			kalanGun == null ? 'Tarih bekleniyor' : `${gun} gün kaldı`
+		)
+		let kisiListesi = kesinUser
+			? [kesinUser, ...users.filter(u => u != kesinUser)]
+			: users
+		let avatars = kisiListesi.slice(0, 3).map((u, i) => {
+			let adi = app.user2Adi?.[u] || u
+			let harfler = adi.split(/\s+/).filter(Boolean).map(v => v[0]).slice(0, 2).join('').toUpperCase()
+			return `<span class="hat-avatar ${u == kesinUser ? 'atanan' : ''}" title="${esc(adi)}">${esc(harfler)}</span>`
+		}).join('')
+		let kalanKisi = kisiListesi.length > 3 ? `<span class="hat-avatar" title="${kisiListesi.length - 3} kişi daha">+${kisiListesi.length - 3}</span>` : ''
+		let plaka = kayitTipi == 'ARC' && referans
+			? `<span class="hat-plaka"><span>TR</span>${esc(referans)}</span>` : ''
+		let baslik = esc(tipAdi || referans || 'Hatırlatıcı')
+		let referansText = !plaka && tipAdi && referans ? `<div class="hat-referans">${esc(referans)}</div>` : ''
+		let kapanis = kapanisNotu && kapandi ? `<div class="hat-kapanis">${esc(kapanisNotu)}</div>` : ''
+		
+		return `<article class="hat-kart hat-${durum}" data-id="${esc(id)}">
+			<div class="hat-kimlik">
+				<div class="hat-simge" aria-hidden="true">${kayitTipi == 'ARC' ? '??' : '??'}</div>
+				<div class="hat-bilgi">
+					<div class="hat-tip"><strong>[${esc(kayitTipi || 'DİĞER')}]</strong> ${kayitTipi == 'ARC' ? 'Araç' : 'Hatırlatıcı'}</div>
+					<div class="hat-baslik">${baslik}</div>
+					${plaka || referansText}
+				</div>
+			</div>
+			<div class="hat-tarih">
+				<span class="hat-tarih-simge" aria-hidden="true">?</span>
+				<div><small>Son tarih</small><strong>${esc(tarih)}</strong><span>${esc(haftaGunu)}</span></div>
+			</div>
+			<div class="hat-sag">
+				<div class="hat-durum"><span aria-hidden="true">?</span><div><strong>${esc(aciklama)}</strong>
+					<small>${sonTarih ? esc('(' + sonTarih.toLocaleDateString('tr-TR') + (durum == 'gecikmis' ? ' tarihinden beri)' : ' son tarih)')) : ''}</small></div></div>
+				<div class="hat-sorumlular"><span aria-hidden="true">?</span><small>Sorumlular</small>${avatars}${kalanKisi}
+					${kapandi || kesinUser == config.session.user ? '' : '<button type="button" class="hat-gorev-al" title="Görevi Al" aria-label="Görevi Al">+</button>'}</div>
+				${kapanis}
+			</div>
+			<button type="button" class="hat-menu" title="İşlemler" aria-label="İşlemler">?</button>
+		</article>`
 	}
-	static getHTML_sonTarih({ rec }) {
-		let { sonTarih, kapanmaTarihi, kapanisNotu } = rec
-		let items = sonTarih || kapanmaTarihi
-			? [
-				`<div class=flex-row full-width" style="gap: 0 10px">`,
-					( sonTarih ? `
-						<div class="orangered">
-							<span class="gray">Son:</span>
-							<b>${asDateAndToKisaString(sonTarih)}</b>
-						</div>` : null ),
-					( kapanmaTarihi ? `
-						<div class="firebrick">
-							<span class="lightgray"> | </span>
-							<span class="gray">Kap:</span>
-							<b>${asDateAndToKisaString(kapanmaTarihi)}</b>
-						</div>`
-					: null ),
-				`</div>`,
-				( kapanmaTarihi && kapanisNotu ? `<div class="royalblue"><b>${kapanisNotu}</b></div>` : null ),
-				].filter(Boolean)
-			: []
-		return [
-			`<div class="full-width" style="gap: 0 10px">`,
-				`<template class="sort-data">${items.join(delimWS)}</template>`,
-				...items,
-			`</div>`
-		].filter(Boolean).join('\n')
+	
+	static hatirlaticiFiltreleriGuncelle({ sender: gridPart }) {
+		let layout = gridPart?.hatirlaticiFiltreLayout
+		if (!layout?.length)
+			return
+		
+		let sayac = { tumu: 0, gecikmis: 0, yaklasiyor: 0, normal: 0 }
+		for (let r of gridPart.hatirlaticiTumRecs ?? []) {
+			let durum = this.getHatirlaticiDurum(r)
+			sayac.tumu++
+			if (sayac[durum] != null)
+				sayac[durum]++
+		}
+		
+		layout.find('.hat-filtre').each((_, elm) => {
+			let btn = $(elm)
+			let id = btn.data('filtre')
+			btn.toggleClass('aktif', gridPart.hatirlaticiFiltre == id)
+				.attr('aria-pressed', gridPart.hatirlaticiFiltre == id)
+				.find('.hat-sayi').text(sayac[id])
+		})
+	}
+	static getHatirlaticiDurum({ kapandi, kalanGun }) {
+	    return (
+			kapandi ? 'kapandi' :
+	        kalanGun == null ? 'normal' :
+	        kalanGun < 0 ? 'gecikmis' :
+	        kalanGun <= this.yaklasanGunSayisi ? 'yaklasiyor' :
+			'normal'
+		)
 	}
 }
-

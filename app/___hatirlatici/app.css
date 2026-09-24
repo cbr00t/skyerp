@@ -1,0 +1,81 @@
+.MQHatirlatici.masterListe.part { --hat-yazi: #1d293c; --hat-soluk: #627187 }
+.MQHatirlatici.masterListe.part .header { background: #f8fafd }
+.MQHatirlatici.masterListe.part .header .islemTuslari { --width-sag: 280px !important }
+.MQHatirlatici.masterListe.part .header .islemTuslari .sol { display: flex; align-items: center; gap: 16px; flex-wrap: wrap }
+.MQHatirlatici.masterListe.part #hepsiniGoster-parent { top: 0; margin-left: 12px }
+.MQHatirlatici.masterListe.part #hepsiniGoster-parent label { top: -2px; color: #3d4858 }
+.MQHatirlatici.masterListe.part .hat-filtreler { display: flex; gap: 5px }
+.MQHatirlatici.masterListe.part .hat-filtre { border: 1px solid #dbe4ed; border-radius: 9px; padding: 7px 10px; font-weight: bold; color: #4a6078; background: #e9f3ff; cursor: pointer }
+.MQHatirlatici.masterListe.part .hat-filtre-gecikmis { background: #ffeeef; color: #af2932 }
+.MQHatirlatici.masterListe.part .hat-filtre-yaklasiyor { background: #fff4e3; color: #a56c15 }
+.MQHatirlatici.masterListe.part .hat-filtre-normal { background: #eaf9f2; color: #178354 }
+.MQHatirlatici.masterListe.part .hat-filtre.aktif { background: #0b70d9; color: white; box-shadow: 0 2px 7px #5caaf0 }
+.MQHatirlatici.masterListe.part .hat-sayi { border-radius: 50%; padding: 2px 6px; background: #ffffff55 }
+.MQHatirlatici.masterListe.part .jqx-grid { background: #f1f6fc; color: var(--hat-yazi) }
+.MQHatirlatici.masterListe.part .jqx-grid [role=row] { background: transparent !important }
+.MQHatirlatici.masterListe.part .jqx-grid [role=row] > div { border: 0; background: transparent }
+.MQHatirlatici.masterListe.part .jqx-grid [role=row] > div > div { padding: 0 !important; line-height: normal !important }
+.MQHatirlatici.masterListe.part .hat-kart {
+	box-sizing: border-box; display: grid; grid-template-columns: minmax(220px, 1.5fr) minmax(155px, .85fr) minmax(220px, 1.1fr) 28px;
+	align-items: center; gap: 12px; height: 145px; padding: 10px 14px; background: white;
+	border: 1px solid #dce4ed; border-left: 7px solid #25a370; border-radius: 7px;
+	box-shadow: 0 2px 6px #1a3e6818; color: var(--hat-yazi); font: 16px Arial, sans-serif
+}
+.MQHatirlatici.masterListe.part .hat-gecikmis { border-left-color: #f0444e }
+.MQHatirlatici.masterListe.part .hat-yaklasiyor { border-left-color: #efab36 }
+.MQHatirlatici.masterListe.part .hat-kapandi { border-left-color: #8b9aae; opacity: .8 }
+.MQHatirlatici.masterListe.part .jqx-grid-cell-selected .hat-kart { outline: 2px solid #0b70d9; outline-offset: -2px }
+.MQHatirlatici.masterListe.part .hat-kimlik { display: flex; align-items: center; gap: 14px; min-width: 0 }
+.MQHatirlatici.masterListe.part .hat-simge { flex: 0 0 60px; width: 60px; height: 60px; border-radius: 50%; background: #e7f2ff; display: grid; place-items: center; font-size: 30px }
+.MQHatirlatici.masterListe.part .hat-bilgi { min-width: 0 }
+.MQHatirlatici.masterListe.part .hat-tip { color: var(--hat-soluk); font-size: 13px; font-weight: bold }
+.MQHatirlatici.masterListe.part .hat-tip strong { color: #0b70d9 }
+.MQHatirlatici.masterListe.part .hat-baslik { font-size: 20px; font-weight: bold; margin: 5px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.MQHatirlatici.masterListe.part .hat-plaka { display: inline-flex; align-items: center; gap: 10px; min-height: 29px; border: 1px solid #65768b; border-radius: 5px; padding-right: 10px; font-size: 19px; letter-spacing: 1px; font-weight: bold }
+.MQHatirlatici.masterListe.part .hat-plaka span { background: #1765c7; padding: 7px 5px; color: white; font-size: 10px }
+.MQHatirlatici.masterListe.part .hat-referans { color: #56667b; overflow: hidden; text-overflow: ellipsis }
+.MQHatirlatici.masterListe.part .hat-tarih { border-left: 1px solid #e0e7ef; border-right: 1px solid #e0e7ef; display: flex; align-items: center; gap: 12px; padding: 0 14px; min-height: 95px }
+.MQHatirlatici.masterListe.part .hat-tarih-simge { color: #52677f; font-size: 28px }
+.MQHatirlatici.masterListe.part .hat-tarih small,
+.MQHatirlatici.masterListe.part .hat-tarih strong,
+.MQHatirlatici.masterListe.part .hat-tarih span:last-child { display: block }
+.MQHatirlatici.masterListe.part .hat-tarih small { color: var(--hat-soluk) }
+.MQHatirlatici.masterListe.part .hat-tarih strong { color: #c43d22; margin: 4px 0; font-size: 19px }
+.MQHatirlatici.masterListe.part .hat-tarih span:last-child { color: var(--hat-soluk); font-size: 14px }
+.MQHatirlatici.masterListe.part .hat-sag { min-width: 0 }
+.MQHatirlatici.masterListe.part .hat-durum { border-radius: 9px; padding: 9px 11px; display: flex; align-items: center; gap: 11px; background: #e9f8f1; color: #13734f }
+.MQHatirlatici.masterListe.part .hat-gecikmis .hat-durum { background: #feedef; color: #ad1824 }
+.MQHatirlatici.masterListe.part .hat-yaklasiyor .hat-durum { background: #fff3e1; color: #a36c13 }
+.MQHatirlatici.masterListe.part .hat-kapandi .hat-durum { background: #edf0f5; color: #526175 }
+.MQHatirlatici.masterListe.part .hat-durum > span { font-size: 27px }
+.MQHatirlatici.masterListe.part .hat-durum strong,
+.MQHatirlatici.masterListe.part .hat-durum small { display: block }
+.MQHatirlatici.masterListe.part .hat-durum small { color: var(--hat-soluk); font-size: 12px; margin-top: 3px }
+.MQHatirlatici.masterListe.part .hat-sorumlular { display: flex; align-items: center; gap: 5px; margin-top: 10px; white-space: nowrap }
+.MQHatirlatici.masterListe.part .hat-sorumlular small { color: var(--hat-soluk); margin-right: 5px }
+.MQHatirlatici.masterListe.part .hat-avatar,
+.MQHatirlatici.masterListe.part .hat-gorev-al { display: inline-grid; place-items: center; min-width: 27px; height: 27px; padding: 0 3px; border-radius: 50%; background: #146bc5; color: white; font-size: 11px; font-weight: bold }
+.MQHatirlatici.masterListe.part .hat-avatar.atanan { background: #1e385c }
+.MQHatirlatici.masterListe.part .hat-gorev-al { border: 0; background: #e6ebf2; color: #46566b; font-size: 19px; cursor: pointer }
+.MQHatirlatici.masterListe.part .hat-kapanis { color: #64748b; font-size: 12px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis }
+.MQHatirlatici.masterListe.part .hat-menu { border: 0; background: transparent; color: #36465b; font-size: 25px; cursor: pointer }
+.hat-menu-popup { position: absolute; z-index: 99999; min-width: 145px; padding: 6px; background: white; color: #203047; box-shadow: 0 3px 14px #22394d55; border-radius: 7px }
+.hat-menu-popup button { display: block; width: 100%; text-align: left; border: 0; background: transparent; padding: 9px; cursor: pointer }
+.hat-menu-popup button:hover { background: #e8f2ff }
+@media (max-width: 950px) {
+	.MQHatirlatici.masterListe.part .header .islemTuslari { --width-sag: 240px !important }
+	.MQHatirlatici.masterListe.part .hat-kart { grid-template-columns: minmax(180px, 1.3fr) minmax(125px, .8fr) minmax(180px, 1fr) 24px; gap: 5px; padding: 8px }
+	.MQHatirlatici.masterListe.part .hat-simge { flex-basis: 42px; width: 42px; height: 42px; font-size: 22px }
+	.MQHatirlatici.masterListe.part .hat-baslik { font-size: 16px }
+}
+@media (max-width: 650px) {
+	.MQHatirlatici.masterListe.part .hat-kart { grid-template-columns: minmax(0, 1fr) 25px; grid-template-rows: auto auto auto; height: 158px }
+	.MQHatirlatici.masterListe.part .hat-kimlik { grid-column: 1; grid-row: 1 }
+	.MQHatirlatici.masterListe.part .hat-tarih { grid-column: 1; grid-row: 2; min-height: 0; border: 0; padding: 0 }
+	.MQHatirlatici.masterListe.part .hat-tarih strong { font-size: 15px }
+	.MQHatirlatici.masterListe.part .hat-tarih-simge { display: none }
+	.MQHatirlatici.masterListe.part .hat-sag { grid-column: 1 / 3; grid-row: 3 }
+	.MQHatirlatici.masterListe.part .hat-durum { padding: 4px }
+	.MQHatirlatici.masterListe.part .hat-menu { grid-column: 2; grid-row: 1 }
+	.MQHatirlatici.masterListe.part .hat-filtre { padding: 5px }
+}
