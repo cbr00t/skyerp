@@ -61,7 +61,7 @@ class ButonlarPart extends Part {
 					let msg = getErrorText(ex)
 					cerr(ex)
 					if (msg)
-						hConfirm(msg)
+						deferExec('errorHandler', () => hConfirm(msg), 10)
 				}
 				finally { setTimeout(() => setButonEnabled(btn, true), 800) }
 			}

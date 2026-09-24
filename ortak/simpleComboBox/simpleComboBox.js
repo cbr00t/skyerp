@@ -27,22 +27,27 @@ class SimpleComboBoxPart extends Part {
 		return item
 	}
 	set item(value) {
-		let { layout, input, kodSaha, adiSaha, autoClearFlag: autoClear } = this
+		let { layout, kodSaha, adiSaha, autoClearFlag: autoClear } = this
 		let item = value
 		if (!isObject(item))
 			item = { [adiSaha]: item }
 		this._item = item
 		let { [kodSaha]: kod } = item ?? {}
-		layout?.[kod ? 'addClass' : 'removeClass']('has-value')
-		if (input?.length) {
-			// input.val(this.renderedInputText)
-			let { placeholder, _initPlaceholder } = this
-			if (!autoClear) {
-				placeholder = this.renderedText
-				placeholder ||= _initPlaceholder || placeholder
+
+		this.deferExec('item-uiUpdate', () => {
+			let { layout, input } = this
+			layout?.[kod ? 'addClass' : 'removeClass']('has-value')
+			if (input?.length) {
+				// input.val(this.renderedInputText)
+				input.val(null)
+				let { placeholder, _initPlaceholder } = this
+				if (!autoClear) {
+					placeholder = this.renderedText
+					placeholder ||= _initPlaceholder || placeholder
+				}
+				input.attr('placeholder', placeholder)
 			}
-			input.attr('placeholder', placeholder)
-		}
+		}, 50)
 	}
 	get value() {
 		let {item, kodSaha} = this
@@ -57,7 +62,7 @@ class SimpleComboBoxPart extends Part {
 			value = null
 		this.item = { [kodSaha]: value }
 		if (!this.aciklama)
-			setTimeout(() => this.aciklamaBelirle(), 10)
+			this.deferExec('setValue-aciklamaBelirle', () => this.aciklamaBelirle(), 200)
 	}
 	get aciklama() {
 		let {item, adiSaha} = this
@@ -250,9 +255,9 @@ class SimpleComboBoxPart extends Part {
 		this.disabled = disabled    // init event trigger
 		this._initialized = true
 		
-		deferExec(
+		this.deferExec(
 			'simpleComboBox_onInit',
-			e => {
+			() => {
 				let { kodSaha, noInitCommitFlag: noInitCommit } = this
 				this.onResize(e)
 				let value = input.val()
@@ -260,7 +265,7 @@ class SimpleComboBoxPart extends Part {
 				if (value && !noInitCommit)
 					this._onChange({ type: 'init', layout, input, value })
 			},
-			10, e
+			10
 		)
 	}
 	destroyPart(e) {
@@ -681,6 +686,13 @@ class SimpleComboBoxPart extends Part {
 	noQueue() { this.queue = null; return this }
 	useQueue() { this.queue = []; return this }
 	getLayout() { return $(`<div><input type="text"></div>`) }
+
+	deferExec(pf, proc, ms, ...args) {
+		let id = this._deferId ??= newGUID()
+		if (pf)
+			id = `${pf}-${id}`
+		return deferExec(id, proc, ms, ...args)
+	}
 }
 
 

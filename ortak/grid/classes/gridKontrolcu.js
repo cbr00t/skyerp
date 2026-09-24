@@ -18,7 +18,12 @@ class GridKontrolcu extends CObject {
 	tabloKolonlariDuzenle(e = {}) { this.tabloKolonlariDuzenle_ortak(e) }
 	tabloKolonlariDuzenle_ortak(e = {}) {
 		let { tabloKolonlari } = e
-		if (config.dev) { tabloKolonlari.push(new GridKolon({ belirtec: 'okunanHarSayac', text: '-har-', genislikCh: 5 }).tipNumerik().readOnly().sabitle()) }
+		if (config.dev) {
+			tabloKolonlari.push(
+				new GridKolon({ belirtec: 'okunanHarSayac', text: '-har-', genislikCh: 7 })
+					.tipNumerik().readOnly().sabitle()
+			)
+		}
 		this.tabloKolonlariDuzenle_ilk(e); this.tabloKolonlariDuzenle_ara(e); this.tabloKolonlariDuzenle_son(e)
 	}
 	tabloKolonlariDuzenle_ilk(e) { } tabloKolonlariDuzenle_ara(e) { } tabloKolonlariDuzenle_son(e) { }

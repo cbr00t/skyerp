@@ -59,8 +59,8 @@ class TabFisListeOrtak extends TabFis {
 	}
 	static async loadServerDataDogrudan({ offlineRequest, offlineMode } = {}) {
 		if (!offlineRequest) {
-			let cacheClasses = [MQTabStok, MQTabTahsilSekli]
-			await Promise.allSettled(cacheClasses.map(_ => _.getGloKod2Rec()))
+			let cacheClasses = [MQTabStok, MQTabTahsilSekli, MQTabTahsilSekliVeKarmaTahsilat]
+			await promiseAllSet(cacheClasses.map(_ => _.getGloKod2Rec()))
 		}
 		let recs = await super.loadServerDataDogrudan(...arguments)
 		// recs.reverse()

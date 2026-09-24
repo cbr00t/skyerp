@@ -1027,7 +1027,11 @@ class MQCogul extends MQYapi {
 			let result = await part.run()
 			return { part, result }
 		}
-		catch (ex) { hConfirm(getErrorText(ex)); throw ex }
+		catch (ex) {
+			let msg = getErrorText(ex)
+			deferExec('errorHandler', () => hConfirm(msg), 10)
+			throw ex
+		}
 	}
 	tanimla(e = {}) {
 		e.inst ??= this

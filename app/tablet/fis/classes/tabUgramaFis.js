@@ -6,7 +6,7 @@ class TabUgramaFis extends TabFis {
 
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
-		$.extend(pTanim, {
+		extend(pTanim, {
 			nedenKod: new PInstStr('nedenkod')
 		})
 	}
@@ -16,7 +16,12 @@ class TabUgramaFis extends TabFis {
 		this.detaylar = (await MQTabUgramaNeden.loadServerData()).filter(_ => _.kod)
 		return await super.yeniTanimOncesiVeyaYukleSonrasiIslemler(...arguments)
 	}
+	async yeniTanimOncesiIslemler(e) {
+		await super.yeniTanimOncesiIslemler(e)
+		//await this.ugramaFisKontrol(e)
+	}
 	async kaydetOncesiIslemler(e) {
+		await this.ugramaFisKontrol(e)
 		this.detaylar = []
 		return await super.kaydetOncesiIslemler(e)
 	}
@@ -27,11 +32,37 @@ class TabUgramaFis extends TabFis {
 		}
 		return await super.loadServerData_detaylar(...arguments)
 	}
+	async ugramaFisKontrol({ tarihKontrolEdilir = true } = {}) {
+		let { tarih, mustKod, class: { table } } = this
+		let varmi = false
+		;{
+			let keyHV = this.class.varsayilanKeyHostVars()
+			let sent = new MQSent(), { where: wh, sahalar } = sent
+			sent.fromAdd(table)
+			wh
+				.birlestirDict(keyHV)
+				.degerAta(mustKod, 'must')
+			if (tarihKontrolEdilir)
+				wh.degerAta(tarih, 'tarih')
+			sahalar.add(`COUNT(*) sayi`)
+			varmi = asBool(await sent.execTekilDeger())
+		}
+		if (varmi) {
+			throw {
+				isError: true,
+				errorText: [
+					`<b class=royalblue>${mustKod}</b> müşterisi için`,
+					`<b class=royalblue>${dateKisaString(tarih)}</b> tarihine ait`,
+					`<u class=firebrick>Uğrama Fişi</u> zaten var`
+				].join(' ')
+			}
+		}
+	}
 	async onlineFisDuzenle({ oFis }) {
 		super.onlineFisDuzenle(...arguments)
-		let {mustKod, nedenKod} = this
-		let {detaySinif: oDetSinif} = oFis.class
-		oFis.detaylar = [ new oDetSinif({ mustKod, nedenKod }) ]
+		let { mustKod, nedenKod, aciklama: detAciklama } = this
+		let { detaySinif: oDetSinif } = oFis.class
+		oFis.detaylar = [ new oDetSinif({ mustKod, nedenKod, detAciklama }) ]
 	}
 
 	static async rootFormBuilderDuzenle_tablet(e) {
@@ -120,14 +151,16 @@ class TabUgramaFis extends TabFis {
 	}
 }
 
+
 class TabUgramaOnlineFis extends MQDetayliOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	// fis: plasiyersonuc  =>  har: plas2musugramasonuc
-	static get table() { return 'plasiyersonuc' } static get tableAlias() { return 'fis' }
+	static get table() { return 'plasiyersonuc' }
+	static get tableAlias() { return 'fis' }
 	static get detaySinif() { return TabUgramaOnlineDetay }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
-		$.extend(pTanim, {
+		extend(pTanim, {
 			tarih: new PInstDateNow('tarih'),
 			plasiyerKod: new PInstStr('plasiyerkod')
 		})
@@ -135,22 +168,27 @@ class TabUgramaOnlineFis extends MQDetayliOrtak {
 	keyHostVarsDuzenle({ hv }) {
 		super.keyHostVarsDuzenle(...arguments)
 		let {tarih, plasiyerKod: plasiyerkod} = this
-		$.extend(hv, { tarih, plasiyerkod })
+		extend(hv, { tarih, plasiyerkod })
 	}
 	keySetValues({ rec }) {
 		super.keySetValues(...arguments)
 		let {tarih, plasiyerkod: plasiyerKod} = rec
-		$.extend(this, { tarih, plasiyerKod })
+		extend(this, { tarih, plasiyerKod })
 	}
 }
+
 class TabUgramaOnlineDetay extends MQDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'plas2musugramasonuc' }
+	static get seqSaha() { return null }
+	
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
-		$.extend(pTanim, {
-			mustKod: new PInstStr('must'),
-			nedenKod: new PInstStr('nedenkod')
+		extend(pTanim, {
+			mustKod: new PInstStr('mustkod'),
+			nedenKod: new PInstStr('ugramamanedenkod'),
+			mustKod: new PInstStr('mustkod'),
+			detAciklama: new PInstStr('ekbilgi')
 		})
 	}
 }

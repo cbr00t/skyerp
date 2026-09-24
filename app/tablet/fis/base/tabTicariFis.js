@@ -52,8 +52,8 @@ class TabTicariFis extends TabTSFis {
 	}
 	static async loadServerDataDogrudan({ offlineRequest, offlineMode } = {}) {
 		if (!offlineRequest) {
-			let cacheClasses = [MQTabTahsilSekli]
-			await Promise.allSettled(cacheClasses.map(_ => _.getGloKod2Rec()))
+			let cacheClasses = [MQTabTahsilSekli, MQTabTahsilSekliVeKarmaTahsilat]
+			await promiseAllSet(cacheClasses.map(_ => _.getGloKod2Rec()))
 		}
 		return await super.loadServerDataDogrudan(...arguments)
 	}
