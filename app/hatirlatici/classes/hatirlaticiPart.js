@@ -7,9 +7,9 @@ class HatirlaticiPart extends SimplePart {
 	static get sinifAdi() { return this.title }
 	static get table() { return 'hbelgehatirlatici' }
 	static get tableAlias() { return 'htr' }
-	static listeEkraniAc(e = {}) { return this.run(e) }
 	get table() { return this.class.table }
 	get isDestroyed() { return !!this._destroyed || !!this.part?.isDestroyed }
+	
 	get rowsHeight() {
 		let { layout } = this.rfb ?? {}
 		let width = layout?.width?.() || window.innerWidth || 1200
@@ -144,7 +144,9 @@ class HatirlaticiPart extends SimplePart {
 		super.afterRun(...arguments)
 		let { part, rfb, gridPart } = this
 		let { gridWidget: w } = gridPart ?? {}
-		
+
+		app.enterKioskMode()
+		$('body').addClass('allow-nav')
 		part.kapaninca(() =>
 			this.destroyPart())
 		
@@ -183,7 +185,10 @@ class HatirlaticiPart extends SimplePart {
 		return super.close(e)
 	}
 	destroyPart() {
-		if (this._destroyed) return
+		app.exitKioskMode()
+		if (this._destroyed)
+			return
+		
 		this._destroyed = true
 		for (let key of ['arama', 'ntfy', 'fullscreen', 'serviceProc', 'otoTazele', 'pending'])
 			clearTimeout(this[`_timer_${key}`])
@@ -287,7 +292,7 @@ class HatirlaticiPart extends SimplePart {
 		let { length: selected } = selectedRecs, busy = _gridLoading || _taskBusy
 		header.find('[data-action="assign"], [data-action="release"], [data-action="done"]').prop('disabled', busy || !selected)
 		header.find('[data-action="refresh"]').prop('disabled', !!busy)
-		header.find('.hat-summary').text(
+		header.find('.hat-summary').html(
 			_taskBusy ? 'İşlem yapılıyor…' : _gridLoading ? 'Hatırlatıcılar yükleniyor…' :
 			this._lastLoadError ? `Yüklenemedi: ${this._lastLoadError}` :
 			`${this.filteredRecs().length} hatırlatıcı${selected ? ` · ${selected} seçili` : ''}${counts.kapandi ? ` · ${counts.kapandi} kapanan` : ''}`

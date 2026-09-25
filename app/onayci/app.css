@@ -54,7 +54,7 @@
 .MQOnayci.part .islemTuslari button#belgeDetayiGoster.jqx-fill-state-normal { }
 body.dark-theme .MQOnayci.part .islemTuslari button#belgeDetayiGoster { filter: invert(1) hue-rotate(180deg) contrast(1.5) }
 
-.MQOnayci.part .jqx-grid [role = row] > div > div { font-size: 87% !important; padding-top: 2px !important }
+.MQOnayci.part .jqx-grid [role = row] > div > div { font-size: 87% !important; padding-top: 0 !important }
 .MQOnayci.part .jqx-grid [role = row] > div > div,
 	.MQOnayci.part .jqx-grid [role = row] > div > div > div { line-height: 18px !important }
 @media (max-width: 1000px) {

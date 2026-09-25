@@ -106,6 +106,7 @@ class HatirlaticiApp extends TicariApp {
 		let { dev } = config, { isAdmin } = config.session ?? {}
 		let { inNewWindow } = qs
 		let classes = [
+			// HatirlaticiPart
 			( dev ? HatirlaticiPart : MQHatirlatici )
 		]
 		

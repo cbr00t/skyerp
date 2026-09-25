@@ -509,9 +509,13 @@ class MQCogul extends MQYapi {
 		let { yerelParamBelirtec } = this
 		let mfSinif2KolonAyarlari = app.params.yerel?.mfSinif2KolonAyarlari || {}
 		let kolonAyarlari = mfSinif2KolonAyarlari[yerelParamBelirtec] || {}
-		let orjBaslikListesi = this.orjBaslikListesi
+		let { orjBaslikListesi } = this
+		let k2Def = fromEntries(
+			orjBaslikListesi.map(cd =>
+				[cd.belirtec, cd])
+		)
 		let { gorunumListesi } = kolonAyarlari
-		if (empty(gorunumListesi))
+		if (empty(gorunumListesi) || !gorunumListesi.every(k => k2Def[k]))
 			gorunumListesi = this.standartGorunumListesi
 		if (empty(gorunumListesi)) { liste.push(...orjBaslikListesi) }
 		else {

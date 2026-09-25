@@ -13,7 +13,6 @@ class OnayciPart extends SimplePart {
 	static get sinifAdi() { return this.title }
 	static get kodListeTipi() { return 'ONAYCI' }
 	static get islemTuslariVarmi() { return false }
-	static listeEkraniAc(e = {}) { return this.run(e) }
 
 	get table2Yapi() { return this.class.table2Yapi }
 	get tip2Yapi() { return this.class.tip2Yapi }
@@ -41,28 +40,6 @@ class OnayciPart extends SimplePart {
 
 	get hepsiniGoster() { return this.durum != 'bekleyen' }
 	get onayDurum() { return ({ onayli: 'O', red: 'R' })[this.durum] || '' }
-
-	constructor(e = {}) {
-		super(e)
-		let secs = Number(e.otoTazeleSecs ?? qs.otoTazele ?? qs.otoTazeleSecs)
-		extend(this, {
-			durum: e.onayDurum == 'O' ? 'onayli' : e.onayDurum == 'R' ? 'red' : e.hepsiniGoster ? 'tumu' : 'bekleyen',
-			arama: '',
-			recs: [],
-			otoTazeleDisabled: !!qs.otoTazeleYok,
-			otoTazeleSecs: Number.isFinite(secs) && secs > 0 ? secs : null,
-			serviceProc_delaySecs: Math.max(Number(qs.serviceProc_delaySecs) || 10, 2),
-			_previewTokens: new Set()
-		})
-	}
-
-	recordKey(r) {
-		return JSON.stringify([r._db, r.onayId, Number(r.onayNo)])
-	}
-
-	documentKey(r) {
-		return JSON.stringify([r._db, r._table, r.onayId])
-	}
 
 	static get table2Yapi() {
 		let { _table2Yapi: result } = this
@@ -134,6 +111,23 @@ class OnayciPart extends SimplePart {
 		return result
 	}
 
+	constructor(e = {}) {
+		super(e)
+		let secs = Number(e.otoTazeleSecs ?? qs.otoTazele ?? qs.otoTazeleSecs)
+		extend(this, {
+			durum: e.onayDurum == 'O' ? 'onayli' : e.onayDurum == 'R' ? 'red' : e.hepsiniGoster ? 'tumu' : 'bekleyen',
+			arama: '',
+			recs: [],
+			otoTazeleDisabled: !!qs.otoTazeleYok,
+			otoTazeleSecs: Number.isFinite(secs) && secs > 0 ? secs : null,
+			serviceProc_delaySecs: Math.max(Number(qs.serviceProc_delaySecs) || 10, 2),
+			_previewTokens: new Set()
+		})
+	}
+
+	recordKey(r) { return toJSONStr([r._db, r.onayId, Number(r.onayNo)]) }
+	documentKey(r) { return toJSONStr([r._db, r._table, r.onayId]) }
+
 	rfbDuzenle() {
 		super.rfbDuzenle(...arguments)
 		let { rfb, content, rowsHeight, class: { partName } } = this
@@ -166,9 +160,9 @@ class OnayciPart extends SimplePart {
 					</div>
 					<div class="ony-controls">
 						<div class="ony-tabs" role="group" aria-label="Durum filtresi">${[
-							['bekleyen', 'Bekleyen'],
-							['onayli', 'Onaylı'],
-							['red', 'Reddedilen'],
+							['bekleyen', '<span class=orangered>Bekleyen</span>'],
+							['onayli', `<span style="color: #239e78">Onaylı</span>`],
+							['red', `<span style="color: #ed5265">Reddedilen</span>`],
 							['tumu', 'Tümü']
 						].map(([id, text]) =>
 							`<button type="button" data-filter="${id}" aria-pressed="${id == this.durum}">
@@ -212,20 +206,13 @@ class OnayciPart extends SimplePart {
 			.setSource(() => this.loadGridData())
 			.widgetArgsDuzenleIslemi(({ args }) => {
 				extend(args, {
-					showGroupsHeader: false,
-					groupable: false,
-					columnsMenu: false,
-					showStatusBar: false,
-					columnsHeight: 0,
-					rowsHeight,
-					adaptive: false,
-					selectionMode: 'checkbox',
-					sortable: false,
-					filterable: false,
-					pageable: false,
-					virtualmode: false,
-					enableHover: true,
-					enableTooltips: false
+					showGroupsHeader: false, showStatusBar: false,
+					groupable: false, columnsMenu: false,
+					columnsHeight: 0, rowsHeight,
+					adaptive: false, selectionMode: 'checkbox',
+					sortable: false, filterable: false,
+					pageable: false, virtualmode: false,
+					enableHover: true, enableTooltips: false
 				})
 			})
 			.veriYukleninceIslemi(() => {
@@ -253,6 +240,8 @@ class OnayciPart extends SimplePart {
 		let { part, rfb, gridPart } = this
 		let { gridWidget: w } = gridPart ?? {}
 
+		app.enterKioskMode()
+		$('body').addClass('allow-nav')
 		part.kapaninca(() => this.destroyPart())
 
 		let root = rfb.layout?.[0]
@@ -292,6 +281,7 @@ class OnayciPart extends SimplePart {
 	}
 
 	destroyPart() {
+		app.exitKioskMode()
 		if (this._destroyed)
 			return
 		this._destroyed = true
@@ -410,7 +400,7 @@ class OnayciPart extends SimplePart {
 
 		this.gridPart?.grid?.find('.ony-card button').prop('disabled', busy)
 
-		header.find('.ony-summary').text(
+		header.find('.ony-summary').html(
 			this._lastLoadError ? `Yüklenemedi: ${this._lastLoadError}` :
 			this._gridLoading ? 'Belgeler yükleniyor…' :
 			this._taskBusy ? 'İşlem sürüyor…' :
@@ -504,24 +494,37 @@ class OnayciPart extends SimplePart {
 			r.proformaId ? '<span class="ony-tag ony-proforma">Proforma bağlı</span>' : ''
 		].join('')
 
-		return `<article class="ony-card ony-${state}" data-id="${esc(this.recordKey(r))}">
-			<div class="ony-main"><div class="ony-type-icon">${this.icon('file')}</div><div class="ony-description">
-				<div class="ony-type">${esc(this.tip2Yapi[r.tip]?.tipText || r.tip)} <span>${esc(r._db)}</span></div>
-				<h3 title="${esc(r.mustUnvan)}">${esc(r.mustUnvan || 'Cari unvanı yok')}</h3>
-				<div class="ony-reference" title="${esc(r.ekBilgi)}">${esc(r.fisNox)}${r.ekBilgi ? ' · ' + esc(r.ekBilgi) : ''}</div>
-				<div class="ony-flags">${flags}</div>
-			</div></div>
-			<div class="ony-date">${this.icon('calendar')}<div><span>${esc(date(r.tarih))}</span>
-				<strong>${esc(bedelToString(r.bedel))}</strong><small>Belge tutarı</small></div></div>
-			<div class="ony-info"><div class="ony-status">${this.icon(state == 'bekleyen' ? 'clock' : state == 'red' ? 'reject' : 'check')}
-				<div><strong>${status}</strong><small>${esc(r.onayNo)}. onay kademesi${time ? ' · ' + esc(time) : ''}</small></div></div>
-				<div class="ony-approvers"><span title="${esc(users[r.onceUser] || r.onceUser)}">Önceki: <b>${esc(users[r.onceUser] || r.onceUser || '—')}</b></span>
-				<span title="${esc(users[r.sonraUser] || r.sonraUser)}">Sonraki: <b>${esc(users[r.sonraUser] || r.sonraUser || '—')}</b></span></div>
-				${reason ? `<div class="ony-note" title="${esc(reason)}">${r.onayRedNedeni ? 'Neden' : 'Önceki not'}: ${esc(reason)}</div>` : ''}
-			</div><div class="ony-actions">${button('view', 'Belgeyi görüntüle', 'eye')}${button('detail', 'Detay / Anlaşma', 'file')}
-				${this.proformaKullanilir ? button('proforma', 'Proformalar', 'folder') : ''}
-				${config.dev || !r.onayDurum ? button('approve', 'Onayla', 'check') + button('reject', 'Reddet', 'reject') : ''}
-			</div></article>`
+		return (
+			`<article class="ony-card ony-${state}" data-id="${esc(this.recordKey(r))}">
+				<div class="ony-main"><div class="ony-type-icon">${this.icon('file')}</div><div class="ony-description">
+					<div class="ony-type">${esc(this.tip2Yapi[r.tip]?.tipText || r.tip)} <span>${esc(r._db)}</span></div>
+					<h3 title="${esc(r.mustUnvan)}">${esc(r.mustUnvan || 'Cari unvanı yok')}</h3>
+					<div class="ony-reference" title="${esc(r.ekBilgi)}">${esc(r.fisNox)}${r.ekBilgi ? ' · ' + esc(r.ekBilgi) : ''}</div>
+					<div class="ony-flags">${flags}</div>
+				</div></div>
+				<div class="ony-date">${this.icon('calendar')}<div><span>${esc(date(r.tarih))}</span>
+					<strong>${esc(bedelToString(r.bedel))}</strong><small>Belge tutarı</small></div></div>
+				<div class="ony-info"><div class="ony-status">${this.icon(state == 'bekleyen' ? 'clock' : state == 'red' ? 'reject' : 'check')}
+					<div>
+						<strong>${status}</strong><small>${esc(r.onayNo)}. onay kademesi${time ? ' · ' + esc(time) : ''}</small></div>
+					</div>
+					<div class="ony-approvers">
+						<span title="${esc(users[r.onceUser] || r.onceUser)}">Önceki: <b>${esc(users[r.onceUser] || r.onceUser || '—')}</b></span>
+						<span title="${esc(users[r.sonraUser] || r.sonraUser)}">Sonraki: <b>${esc(users[r.sonraUser] || r.sonraUser || '—')}</b></span>
+					</div>
+					${reason ? `<div class="ony-note" title="${esc(reason)}">${r.onayRedNedeni ? 'Neden' : 'Önceki not'}: ${esc(reason)}</div>` : ''}
+				</div>
+				<div class="ony-actions">
+					${button('view', 'Belgeyi görüntüle', 'eye')}
+					${button('detail', 'Detay / Anlaşma', 'file')}
+					${this.proformaKullanilir ? button('proforma', 'Proformalar', 'folder') : ''}
+					${/*config.dev ||*/ !r.onayDurum ? (
+						button('approve', 'Onayla', 'check') +
+						button('reject', 'Reddet', 'reject')
+					) : ''}
+				</div>
+			</article>`
+		)
 	}
 
 	getKAKolonlar(colKod, colAdi) {
@@ -1771,31 +1774,52 @@ class OnayciPart extends SimplePart {
 							_recs = stm ? await stm.execSelect() : null
 
 							_recs?.forEach(r => {
-								let { fiyat, bedel, dvKod, anlDurum, ozelFiyat, anlOranText } = r
-
+								let { fiyat, miktar, brm, bedel, dvKod, iskOranText, anlDurum, ozelFiyat, anlOranText } = r
+								r.brm ||= brm = 'AD'
+								r.dvKod ||= dvKod = 'TL'
 								;['Kod', 'Adi'].forEach(pf => {
 									let kt = `sh${pf}`
 									if (!r[kt])
 										r[kt] = r[`stok${pf}`] || r[`hizmet${pf}`]
 								})
-
-								dvKod ||= 'TL'
-								r.bedelStr ||= [
-									`<div>`,
-										`<div class="float-left fs-90 royalblue">
+								
+								let { shKod, shAdi } = r
+								r.shText = (
+									`<div style="padding: 0 10px; line-height: 25px">
+										<div class="bold float-left">${shAdi || ''}</div>
+										<div class="gray float-right mt-2">${shKod || ''}</div>
+									</div>`
+								)
+								r.miktarText = (
+									`<div style="padding: 10px; line-height: 25px">
+										<div class="bold float-left blue">${numberToString(miktar)}</div>
+										<div class="gray float-right">${brm}</div>
+									</div>`
+								)
+								r.iskOranText = (
+									iskOranText
+										? `<span class="firebrick">%${iskOranText}</span>`
+										: ''
+								)
+								r.bedelStr ||= (
+									`<div style="padding: 10px; line-height: 25px">
+										<div class="float-left fs-90 royalblue">
 											<span class="lightgray">FY: </span>
 											<span>${fiyatToString(fiyat)}</span>
-										</div>`,
-										`<div class="float-right mt-1 fs-100 bold forestgreen">
+										</div>
+										<div class="float-right mt-1 fs-100 bold forestgreen">
 											<span class="lightgray"> </span>
 											<span>${bedelToString(bedel)} ${dvKod}</span>
-										</div>`,
-									`</div>`
-								].filter(Boolean).join(' ')
+										</div>
+									</div>`
+								)
 
 								r.anlKosulStr = (
-									anlDurum ?
-										`<div class="fs-110 mt-1 bold center forestgreen" style="padding: 5px; box-shadow: 0 0 2px 1px forestgreen">Uygun</div>` :
+									anlDurum ? (
+										`<div class="fs-110 mt-1 bold center forestgreen" style="padding: 5px; box-shadow: 0 0 2px 1px forestgreen">
+											Uygun
+										</div>`
+									) :
 									ozelFiyat ? [
 										`<div>`,
 											`<div class="float-left fs-90 bold royalblue">
@@ -1835,64 +1859,12 @@ class OnayciPart extends SimplePart {
 						}
 
 						_colDefs = [
-							...this.getKAKolonlar(
-								new GridKolon({
-									belirtec: 'shKod',
-									text: 'Ürün/Hiz.',
-									genislikCh: 16
-								}).checkedList(),
-								new GridKolon({
-									belirtec: 'shAdi',
-									text: 'Ürün/Hiz. Adı',
-									genislikCh: mini ? 25 : 50
-								}).checkedList()
-							),
-							new GridKolon({
-								belirtec: 'anlUygun',
-								text: 'Anl?',
-								genislikCh: 5
-							}).tipBool().checkedList(),
-							...(mini ?
-								this.getKAKolonlar(
-									new GridKolon({
-										belirtec: 'brm',
-										text: 'Brm',
-										genislikCh: 4
-									}).checkedList(),
-									new GridKolon({
-										belirtec: 'miktar',
-										text: 'Miktar',
-										genislikCh: 9
-									}).tipDecimal().input()
-								) :
-								this.getKAKolonlar(
-									new GridKolon({
-										belirtec: 'miktar',
-										text: 'Miktar',
-										genislikCh: 8
-									}).tipDecimal().input(),
-									new GridKolon({
-										belirtec: 'brm',
-										text: 'Brm',
-										genislikCh: 4
-									}).checkedList()
-								)
-							),
-							new GridKolon({
-								belirtec: 'iskOranText',
-								text: 'İsk.',
-								genislikCh: 7
-							}).checkedList().alignRight(),
-							new GridKolon({
-								belirtec: 'bedelStr',
-								text: 'Bedel',
-								genislikCh: 19
-							}).input(),
-							new GridKolon({
-								belirtec: 'anlKosulStr',
-								text: 'Anl. Koşul',
-								genislikCh: 15
-							}).input()
+							gridKolon('shText', 'Ürün/Hiz. Adı'),
+							gridKolon('anlUygun', 'Anl?', 5).tipBool(),
+							gridKolon('miktarText', 'Miktar', 8),
+							gridKolon('iskOranText', 'İskonto', 5),
+							gridKolon('bedelStr', 'Bedel', 19),
+							gridKolon('anlKosulStr', 'Anl. Koşul', 15)
 						]
 
 						;_colDefs.forEach(cd => {
@@ -1913,11 +1885,11 @@ class OnayciPart extends SimplePart {
 					let rfb = new RootFormBuilder()
 						.addCSS('MQOnayci part')
 						.addStyle_fullWH()
+						.addStyle(`$elementCSS { --header-height: 80px }`)
 						.asWindow(`${tipText} İzle: [<span class=orangered>${fisNox}</span>]`)
 
 					;{
 						rfb.addIslemTuslari('islemTuslari')
-							.addCSS('islemTuslari')
 							.setEkSagButonlar('onay', 'red', 'tazele', 'vazgec')
 							.setButonlarIlk([
 								{
@@ -1953,12 +1925,12 @@ class OnayciPart extends SimplePart {
 									handler: ({ builder: { rootPart } }) => rootPart.close()
 								}
 							])
-							.addCSS('absolute')
-							.addStyle_wh(4000, 60)
+							.addCSS('islemTuslari absolute')
+							.addStyle_wh(4000, 'var(--header-height)')
 							.addStyle(
 								`$elementCSS { right: 5px }
 								 $elementCSS > div .sol { display: none !important; z-index: -1 !important }
-								 $elementCSS > div .sag { --width-sag: 380px !important; background: #e8e8e8 !important; z-index: 1001 !important }`
+								 $elementCSS > div .sag { --width-sag: 380px !important; background: transparent !important; z-index: 1001 !important }`
 							)
 					}
 
@@ -1971,7 +1943,7 @@ class OnayciPart extends SimplePart {
 							.addStyle(
 								`$elementCSS {
 									width: calc(var(--full) - 330px) !important;
-									height: 60px !important;
+									height: var(--header-height) !important;
 									margin: 0 !important;
 									overflow-y: auto !important;
 									z-index: 1002 !important
@@ -1986,10 +1958,15 @@ class OnayciPart extends SimplePart {
 							.addStyle(`$elementCSS [role = columnheader] { }`)
 							.widgetArgsDuzenleIslemi(({ args }) =>
 								extend(args, {
-									rowsHeight: 50,
-									selectionMode: 'multipleRowsExtended'
+									columnsMenu: false, adaptive: false,
+									groupable: false, filterable: false,
+									showGroupsHeader: false, showStatusBar: false,
+									rowsHeight: 60, columnsHeight: 0,
+									selectionMode: 'none',
+									enableHover: true, enableTooltips: false
 								})
 							)
+							.rowNumberOlmasin()
 							.setTabloKolonlari(_colDefs)
 							.setSource(_e => getSource({ ...e, ..._e }))
 							.onAfterRun(({ builder: { part, rootPart } }) =>

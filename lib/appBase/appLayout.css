@@ -256,11 +256,18 @@ body.bg-modal > #root-parent > #ust-parent,
 
 body.kiosk > .app-titlebar { right: 160px } body.kiosk > .app-titlebar .app-title { margin-left: -50px }
 body.kiosk > .app-titlebar .db-name,
-	body.kiosk #root-parent > #nav-toggle,
+	body.kiosk:not(.allow-nav) #root-parent > #nav-toggle,
 	body.kiosk #root-parent > #ust-parent > #parent > #windows-parent #windows > button,
 	body.kiosk #root-parent > #ust-parent > #parent > #windows-parent #windows > ul,
-	body.kiosk #root-parent > #ust-parent > #parent > main #anaMenu { display: none !important }
+	body.kiosk:not(.allow-nav) #root-parent > #ust-parent > #parent > main #anaMenu { display: none !important }
 body.kiosk { --tabs-tabPage-height: 0px }
+body.kiosk.allow-nav #root-parent > #nav-toggle { filter: invert(1) hue-rotate(180deg); margin: 1px -2px }
+body.kiosk.allow-nav #root-parent > #nav-toggle:not(:hover):not(:focus):not(:active) { opacity: .2 }
+body.dark-theme.kiosk.allow-nav #root-parent > #nav-toggle:not(:hover):not(:focus):not(:active) { opacity: .3 }
+body.kiosk.allow-nav #root-parent > #nav-toggle:hover { opacity: .5 }
+body.kiosk.allow-nav #root-parent > #nav-toggle:focus,
+	body.kiosk.allow-nav #root-parent > #nav-toggle:active { opacity: 1 }
+body.kiosk.allow-nav #root-parent > #nav-toggle:focus { background-color: slateblue }
 
 body > .indicators {
 	position: fixed; bottom: 40px; right: 5px;

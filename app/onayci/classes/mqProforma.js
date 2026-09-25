@@ -13,10 +13,20 @@ class MQProforma extends MQGuid {
 	static get gridIslemTuslariKullanilirmi() { return false }
 	static get seviyeAcKapatKullanilirmi() { return false }
 	// static get noAutoFocus() { return true }
+	static get rowsHeight() {
+		let width = window.innerWidth || 1200
+		return (
+			width < 680 ? 180 :
+			width < 1050 ? 230 :
+			300
+		)
+	}
 
 	static listeEkrani_init({ sender: gridPart }) {
 		super.listeEkrani_init(...arguments)
-		gridPart.secinceKontroluYapilmaz()
+		gridPart
+			.secinceKontroluYapilmaz()
+			.rowNumberOlmasin()
 	}
 	static listeEkrani_afterRun({ sender: gridPart }) {
 		super.listeEkrani_afterRun(...arguments)
@@ -42,33 +52,40 @@ class MQProforma extends MQGuid {
 			)
 		rfb.addForm('header')
 			.setParent(() => islemTuslari.find('.sol'))
-			.setLayout(() => $(MQOnayci.getHTML({ rec })))
-			.addCSS('absolute fs-110')
+			.setLayout(() => $(OnayciPart.getHTML({ rec })))
+			.addCSS('absolute fs-90')
 			.addStyle(`$elementCSS { top: 3px; left: 90px }`)
 	}
 	static orjBaslikListesi_argsDuzenle({ args }) {
 		super.orjBaslikListesi_argsDuzenle(...arguments)
-		let mini = isMiniDevice()
+		// let mini = isMiniDevice()
+		let { rowsHeight } = this
 		extend(args, {
-			columnsMenu: !mini,
-			showGroupsHeader: false,
-			rowsHeight: 200,
+			columnsMenu: false, adaptive: false,
+			showGroupsHeader: false, showStatusBar: false,
+			rowsHeight, columnsHeight: 0,
+			selectionMode: 'singleCell',
+			groupable: false, filterable: false,
+			enableHover: false, enableTooltips: false
 			// rowsHeight: mini ? 130 : 90
 		})
 	}
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e)
-		let { tableAlias: alias, adiSaha } = this
+		let { tableAlias: alias, idSaha, adiSaha } = this
 		let { sender: gridPart, liste } = e
 		let mini = isMiniDevice()
-		
+
+		liste = e.liste = liste.filter(cd =>
+			cd.belirtec != idSaha)
 		liste.push(...[
-			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 13 }).noSql().tipDate().checkedList(),
-			new GridKolon({ belirtec: 'aciklama', text: 'Açıklama', minWidth: 20 * katSayi_ch2Px }).noSql().input(),
+			//new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 13 }).noSql().tipDate().checkedList(),
+			gridKolon('_text', 'Açıklama', '40%').noSql(),
 			new GridKolon({
 				filterable: false, sortable: false, groupable: false,
-				belirtec: 'content', text: 'İçerik', genislikCh: 60,
+				belirtec: 'content', text: 'İçerik', width: '59%',
 				cellsRenderer: (cd, i, k, _v, h, jc, r) => {
+					let { name: clsName } = this
 					let { dosyaAdi: v } = r
 					let url = v ? this.getFileURL(v) : null
 					if (url) {
@@ -78,9 +95,10 @@ class MQProforma extends MQGuid {
 						
 						h = resimmi
 							? `<iframe
-									class="full-wh"
 									style="
-										border: none; margin: 0; padding: 0;
+										width: calc(var(--full) - 40px);
+										height: calc(var(--full) - 40px);
+										border: none; margin: 0; padding: 20px;
 										pointer-events: none
 										${
 											config.colorScheme == 'dark'
@@ -89,15 +107,34 @@ class MQProforma extends MQGuid {
 										}
 									"
 									src="data:text/html;,<html><body><img style='width: ${jc.width - 25}px' src='${url}'></img></body></html>"
-									onclick="${this.name}.izleIstendi({ gridPart: app.activeWndPart })"
+									onclick="${clsName}.izleIstendi({ gridPart: app.activeWndPart })"
 								></iframe>`
-							: `<iframe class="full-wh" style="border: none; margin: 0; padding: 0; background-size: contain" src="${url}"></iframe>`
+							: `<iframe 
+									style="
+										width: calc(var(--full) - 40px);
+										height: calc(var(--full) - 40px);
+										border: none; margin: 0; padding: 20px;
+										background-size: contain
+									"
+									src="${url}"
+								></iframe>`
 					}
 					return h
 				}
-			}).noSql(),
-			new GridKolon({ belirtec: 'dosyaAdi', text: 'Dosya Adı', genislikCh: 20, hidden: mini }).noSql().input()
+			}).noSql()
 		].filter(Boolean))
+	}
+	static async loadServerDataDogrudan(e) {
+		let recs = await super.loadServerDataDogrudan(e)
+		;recs?.forEach(r => {
+			let { aciklama } = r
+			r._text = (
+				`<div class="full-wh fs-120" style="padding: 30px; line-height: 25px">
+					<b style="color: #338">${aciklama}</b>
+				</div>`
+			)
+		})
+		return recs
 	}
 	static loadServerData_queryDuzenle({ sender: gridPart, sent }) {
 		super.loadServerData_queryDuzenle(...arguments)

@@ -19,24 +19,49 @@ class GridKolon extends GridKolonVeGrupOrtak {
 	readFrom_ara(e) {
 		if (!super.readFrom_ara(e))
 			return false
-		let {maxLength} = e, genislik = e.genislik ?? e.width ?? null, tipOrDef = e.tip ?? null
+		
+		let { maxLength, genislikCh } = e
+		let genislik = e.genislik ?? e.width ?? null
+		if (genislik == null && isString(genislikCh)) {
+			genislik = genislikCh
+			genislikCh = undefined
+		}
+		
 		/* this.belirtec = e.belirtec || e.attr || e.dataField || e.datafield; */
 		this.text = e.text ?? ''
+		
 		if (genislik)
 			this.genislik = genislik
 		else if (e.genislikCh != null)
 			this.genislikCh = e.genislikCh
-		this.minWidth = e.minWidth ?? 0; this.maxWidth = e.maxWidth; this.sql = e.sql ?? (e.noSql ? false : null)
+		if (e.minWidth !== undefined)
+			this.minWidth = e.minWidth
+		if (e.maxWidth !== undefined)
+			this.maxWidth = e.maxWidth
+		this.sql = e.sql ?? (e.noSql ? false : null)
 		this.columnType = e.columnType ?? null; this.cellsFormat = e.cellsFormat ?? null; this.aggregates = e.aggregates ?? null
 		this.filterType = e.filterType ?? null; this.filterCondition = e.filterCondition ?? null
 		this.setAttributes(e)
-		let {colEventNames, globalEventNames} = this.class
+		
+		let { colEventNames, globalEventNames } = this.class
 		for (let key of colEventNames) {
-			if (key == 'cellClassName') { this[key] = e[key] }
-			else { let func = getFunc(e[key]); if (func) { this[key] = func } }
+			if (key == 'cellClassName')
+				this[key] = e[key]
+			else {
+				let func = getFunc(e[key])
+				if (func)
+					this[key] = func
+			}
 		}
-		for (let key of globalEventNames) { let func = getFunc(e[key]); if (func) { this[key] = func } }
-		let tip = null; if (tipOrDef) {
+		for (let key of globalEventNames) {
+			let func = getFunc(e[key])
+			if (func)
+				this[key] = func
+		}
+		
+		let tip = null
+		let tipOrDef = e.tip ?? null
+		if (tipOrDef) {
 			if (typeof tipOrDef == 'object') { tip = $.isPlainObject(tipOrDef) ? GridKolonTip.from(tipOrDef) : tipOrDef }
 			else if (typeof tipOrDef == 'string') { tip = GridKolonTip.from({ ...e, tip: tipOrDef }) }
 		}

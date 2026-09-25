@@ -1528,12 +1528,15 @@ class MQOnayci extends MQCogul {
 					;{
 						rfb.addGridliGosterici('grid')
 							.addCSS('dock-bottom')
-							.addStyle_fullWH(null, 'calc(var(--full) - 90px)')
-							.addStyle(
-								`$elementCSS [role = columnheader] { }`
-							)
+							.addStyle_fullWH(null, 'calc(var(--full) - 80px)')
+							// .addStyle(`$elementCSS [role = columnheader] { }`)
+							.rowNumberOlmasin()
+							.notAdaptive()
 							.widgetArgsDuzenleIslemi(({ args }) =>
-								extend(args, { rowsHeight: 50, selectionMode: 'multipleRowsExtended' })
+								extend(args, {
+									rowsHeight: 80,
+									selectionMode: 'none'
+								})
 							)
 							.setTabloKolonlari(_colDefs)
 							.setSource(_e =>
