@@ -389,7 +389,11 @@ class HatirlaticiPart extends SimplePart {
 		$elementCSS .hat-grid { flex: 1 1 0; min-height: 0; width: calc(100% - 36px) !important; margin: 0 18px 18px; position: relative }
 		$elementCSS .hat-grid > .grid { height: 100% !important; width: 100% !important; border: 0; background: transparent }
 		$elementCSS .hat-grid .jqx-grid-content, $elementCSS .hat-grid .jqx-grid-cell { background: #f3f6fa; border-color: transparent !important }
-		$elementCSS .hat-grid .jqx-grid-cell-selected { background: #e5eefc !important }
+		/*$elementCSS .hat-grid .jqx-grid-content, $elementCSS .hat-grid .jqx-grid-cell { background: #f3f6fa; border-color: transparent !important }*/
+		$elementCSS .hat-grid .jqx-grid-cell-selected { background: #d7ebe1 !important }
+		$elementCSS .jqx-grid-cell-selected .hat-card { background: #d0e9dc !important }
+		$elementCSS .jqx-grid-cell-selected .hat-card.hat-gecikmis { background: #fcdada !important }
+		$elementCSS .jqx-grid-cell-selected .hat-card.hat-yaklasiyor { background: #eed6b9 !important }
 		$elementCSS .hat-grid .hat-card-cell > div { margin: 0 !important; padding: 0 !important; height: 100%; overflow: hidden }
 		$elementCSS .hat-card { --hat-accent: #239e78; box-sizing: border-box; height: calc(100% - 12px); margin: 3px 10px 9px 4px; padding: 20px 20px 20px 18px; display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(170px, .8fr) minmax(260px, 1.15fr) 32px; align-items: center; gap: 18px; background: white; border: 1px solid var(--hat-border); border-left: 5px solid var(--hat-accent); border-radius: 11px; box-shadow: 0 3px 8px #20314f08; white-space: normal; font-family: 'Segoe UI', Arial, sans-serif }
 		$elementCSS .hat-gecikmis { --hat-accent: #ed5265 }

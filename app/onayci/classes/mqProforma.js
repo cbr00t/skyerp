@@ -12,6 +12,7 @@ class MQProforma extends MQGuid {
 	static get tumKolonlarGosterilirmi() { return true }
 	static get gridIslemTuslariKullanilirmi() { return false }
 	static get seviyeAcKapatKullanilirmi() { return false }
+	static get bulFormKullanilirmi() { return false }
 	// static get noAutoFocus() { return true }
 	static get rowsHeight() {
 		let width = window.innerWidth || 1200
@@ -30,6 +31,11 @@ class MQProforma extends MQGuid {
 	}
 	static listeEkrani_afterRun({ sender: gridPart }) {
 		super.listeEkrani_afterRun(...arguments)
+		$('body').removeClass('allow-nav')
+	}
+	static listeEkrani_destroyPart({ sender: gridPart } = {}) {
+		super.listeEkrani_destroyPart(...arguments)
+		$('body').addClass('allow-nav')
 	}
 	static islemTuslariDuzenle_listeEkrani(e) {
 		super.islemTuslariDuzenle_listeEkrani(e)

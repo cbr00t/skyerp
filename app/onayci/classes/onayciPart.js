@@ -22,7 +22,7 @@ class OnayciPart extends SimplePart {
 	get rowsHeight() {
 		let width = this.rfb?.layout?.width?.() || window.innerWidth || 1200
 		return (
-			width < 680 ? 330 :
+			width < 680 ? 200 :
 			width < 1050 ? 232 :
 			218
 		)
@@ -591,11 +591,13 @@ class OnayciPart extends SimplePart {
 		$elementCSS .ony-grid { flex: 1 1 0; min-height: 0; width: calc(100% - 36px) !important; margin: 0 18px 18px; position: relative }
 		$elementCSS .ony-grid > .grid { height: 100% !important; width: 100% !important; border: 0; background: transparent }
 		$elementCSS .ony-grid .jqx-grid-content, $elementCSS .ony-grid .jqx-grid-cell { background: #f3f6fa; border-color: transparent !important }
-		$elementCSS .ony-grid .jqx-grid-cell-selected { background: #e5eefc !important }
+		/*$elementCSS .ony-grid .jqx-grid-cell-selected { background: #e5eefc !important }*/
 		$elementCSS .ony-grid .ony-card-cell > div { margin: 0 !important; padding: 0 !important; height: 100%; overflow: hidden }
-		$elementCSS .ony-card { --ony-accent: #239e78; box-sizing: border-box; height: calc(100% - 12px); margin: 3px 10px 9px 4px; padding: 0px 20px 10px 18px; display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(170px, .8fr) minmax(260px, 1.15fr) 32px; align-items: center; gap: 18px; background: white; border: 1px solid var(--ony-border); border-left: 5px solid var(--ony-accent); border-radius: 11px; box-shadow: 0 3px 8px #20314f08; white-space: normal; font-family: 'Segoe UI', Arial, sans-serif }
+		$elementCSS .ony-card { --ony-accent: #239e78; box-sizing: border-box; height: calc(100% - 12px); margin: 3px 10px 9px 4px; padding: 0px 20px 10px 18px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(170px, .8fr) minmax(260px, 1.15fr) 32px; align-items: center; gap: 18px; background: white; border: 1px solid var(--ony-border); border-left: 5px solid var(--ony-accent); border-radius: 11px; box-shadow: 0 3px 8px #20314f08; white-space: normal; font-family: 'Segoe UI', Arial, sans-serif }
 		$elementCSS .ony-red { --ony-accent: #ed5265 }
 		$elementCSS .ony-bekleyen { --ony-accent: #e9a23b }
+		$elementCSS .jqx-grid-cell-selected { background: #e5eefc }
+		$elementCSS .jqx-grid-cell-selected .ony-bekleyen { background: #d2e1f6 !important }
 		$elementCSS .ony-kapandi { --ony-accent: #9aa7b7 }
 		$elementCSS .ony-main { display: flex; align-items: center; gap: 15px; min-width: 0 }
 		$elementCSS .ony-type-icon { display: grid; place-items: center; flex: 0 0 54px; height: 54px; border-radius: 18px; color: #3678c9; background: #eaf3ff }
@@ -603,7 +605,7 @@ class OnayciPart extends SimplePart {
 		$elementCSS .ony-description { min-width: 0 }
 		$elementCSS .ony-type { color: #1d72d1; font-weight: 700; font-size: 11px; margin-bottom: 7px }
 		$elementCSS .ony-type span { color: #8a98aa; font-weight: 500; margin-left: 4px }
-		$elementCSS h3 { color: #263348; font-size: 17px; font-weight: 650; margin: 0 0 7px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+		$elementCSS h3 { color: #263348; font-size: 17px; font-weight: 650; margin: 0 0 7px; white-space: normal; overflow: hidden; text-overflow: ellipsis }
 		$elementCSS .ony-reference { font-size: 12px; line-height: 1.5; color: #63758f; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere }
 		$elementCSS .ony-plate { display: inline-block; border: 1px solid #c9d7e8; border-left: 5px solid #206bd0; border-radius: 4px; padding: 2px 8px; font-weight: 650; letter-spacing: 1px }
 		$elementCSS .ony-note { font-size: 11px; color: #8894a5; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 4px }
@@ -622,7 +624,7 @@ class OnayciPart extends SimplePart {
 		$elementCSS .ony-avatar { display: inline-flex; align-items: center; justify-content: center; width: 27px; height: 27px; border-radius: 50%; color: white; background: #3479c9; font-weight: 600; font-size: 10px; flex-shrink: 0 }
 		$elementCSS .ony-owner { background: #253f65; box-shadow: 0 0 0 2px #c7d9f0 }
 		$elementCSS .ony-extra { color: #5c7290; background: #eaf0f8 }
-		$elementCSS .ony-people button, $elementCSS .ony-actions button { display: inline-grid; place-items: center; border: 0; background: #f0f4fa; color: #59718e; border-radius: 8px; width: 29px; height: 29px; padding: 5px }
+		$elementCSS .ony-people button, $elementCSS .ony-actions button { display: inline-grid; place-items: center; border: 0; background: #f0f4fa; color: #59718e; border-radius: 8px; width: 29px; height: 25px; padding: 5px }
 		$elementCSS .ony-people button { border-radius: 50% }
 		$elementCSS .ony-actions { display: flex; flex-direction: column; gap: 4px }
 		$elementCSS .ony-actions button:hover, $elementCSS .ony-people button:hover { color: #1764bf; background: #dfedff }
@@ -654,15 +656,16 @@ class OnayciPart extends SimplePart {
 			$elementCSS .ony-search { margin-left: 0; flex: 1; width: 130px }
 			$elementCSS .ony-tabs { gap: 0 }
 			$elementCSS .ony-tabs button { padding: 8px; font-size: 11px }
-			$elementCSS .ony-grid { width: calc(100% - 12px) !important; margin: 0 6px 8px }
-			$elementCSS .ony-card { grid-template-columns: minmax(0, 1fr) 30px; grid-template-rows: auto auto auto; gap: 8px; padding: 14px 12px; margin-right: 5px }
+			$elementCSS .ony-grid { width: calc(100% - 12px) !important; margin: 0 2px 8px }
+			$elementCSS .ony-card { grid-template-columns: minmax(0, 1fr) 30px; grid-template-rows: auto auto auto; gap: 8px; padding: 4px 12px; margin-right: 5px }
 			$elementCSS .ony-type-icon { flex-basis: 38px; height: 42px; border-radius: 12px }
 			$elementCSS .ony-main { gap: 10px }
 			$elementCSS h3 { font-size: 14px }
 			$elementCSS .ony-date { padding-left: 48px }
 			$elementCSS .ony-info { grid-column: 1 / 3; grid-row: 3; border: 0; padding: 0 }
-			$elementCSS .ony-actions { grid-column: 2; grid-row: 1 / 3 }
+			$elementCSS .ony-actions { grid-column: 2; grid-row: 1 / 3; padding-top: 0 !important }
 			$elementCSS .ony-status { padding: 9px }
+			$elementCSS .ony-shell { gap: 3px important; padding: 0 16px !important }
 		}`
 	}
 
@@ -1785,7 +1788,7 @@ class OnayciPart extends SimplePart {
 								
 								let { shKod, shAdi } = r
 								r.shText = (
-									`<div style="padding: 0 10px; line-height: 25px">
+									`<div style="padding: 0 5px; line-height: 20px">
 										<div class="bold float-left">${shAdi || ''}</div>
 										<div class="gray float-right mt-2">${shKod || ''}</div>
 									</div>`
@@ -1983,6 +1986,11 @@ class OnayciPart extends SimplePart {
 						break
 
 					rfb.run()
+					let { part } = rfb
+					part?.kapaninca(() =>
+						$('body').addClass('allow-nav'))
+					$('body').removeClass('allow-nav')
+					
 					pm?.progressStep()
 				}
 			}
