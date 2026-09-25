@@ -3,3 +3,4 @@
 <script src="<?=$_partRoot?>/params.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqClasses.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqHatirlatici.js?<?=$appVersion?>"></script>
+<script src="<?=$_partRoot?>/hatirlaticiPart.js?<?=$appVersion?>"></script>

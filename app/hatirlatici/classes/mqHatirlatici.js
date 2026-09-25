@@ -1,4 +1,4 @@
-class HatirlaticiPart extends MQCogul {
+class MQHatirlatici extends MQCogul {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'HATIRLATICI' }
 	static get sinifAdi() { return 'Hatırlatıcı' }

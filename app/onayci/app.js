@@ -119,14 +119,28 @@ class OnayciApp extends TicariApp {
 		
 		let { dev } = config, { isAdmin } = config.session ?? {}
 		let { inNewWindow } = qs
-		let items = []
 		
-		for (let cls of [MQOnayci]) {
-			let {vioAdim, kodListeTipi: mne, sinifAdi: text} = cls
+		let items = []
+		let classes = [
+			( dev ? OnayciPart : MQOnayci )
+		]
+		for (let cls of classes) {
+			let { vioAdim, kodListeTipi: mne, sinifAdi: text, mqYapimi: mq } = cls
 			items.push(new FRMenuChoice({
 				mne, vioAdim, text,
 				block: e => {
-					let { part } = cls.listeEkraniAc(e) ?? {}
+					let part
+					if (mq)
+						part = cls.listeEkraniAc(e)?.part
+					else {
+						if (cls.run)
+							part = cls.run(e)
+						else {
+							part = new cls()
+							part.run(e)
+						}
+					}
+					
 					if (inNewWindow)
 						part?.kapaninca?.(() => self.close())
 				}

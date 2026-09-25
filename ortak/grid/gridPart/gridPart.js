@@ -578,11 +578,13 @@ class GridPart extends Part {
 		let { recs } = e
 		if (empty(recs))
 			return
+		
 		let mfSinif = e.mfSinif = this.getMFSinif ? this.getMFSinif(e) : null
 		if (mfSinif?.orjBaslikListesi_recsDuzenle_hizliBulIslemi) {
 			if (mfSinif.orjBaslikListesi_recsDuzenle_hizliBulIslemi(e) === false)
 				return
 		}
+		
 		let { filtreTokens, _hizliBulFiltreAttrListe: attrListe } = this
 		filtreTokens ??= []
 		if (empty(attrListe)) {
@@ -597,6 +599,7 @@ class GridPart extends Part {
 			}
 			this._hizliBulFiltreAttrListe = attrListe
 		}
+		
 		let orjRecs = recs
 		recs = []
 		for (let rec of orjRecs) {
@@ -604,6 +607,7 @@ class GridPart extends Part {
 			let values = attrListe
 				.map(key => isObject(rec[key]) ? toJSONStr(rec[key]) : rec[key]?.toString())
 				.filter(Boolean)
+			
 			for (let token of filtreTokens) {
 				let _uygunmu = false
 				for (let value of values) {
