@@ -23,8 +23,8 @@ class OnayciPart extends SimplePart {
 		let width = this.rfb?.layout?.width?.() || window.innerWidth || 1200
 		return (
 			width < 680 ? 200 :
-			width < 1050 ? 232 :
-			218
+			width < 1050 ? 130 :
+			120
 		)
 	}
 
@@ -518,7 +518,7 @@ class OnayciPart extends SimplePart {
 					${button('view', 'Belgeyi görüntüle', 'eye')}
 					${button('detail', 'Detay / Anlaşma', 'file')}
 					${this.proformaKullanilir ? button('proforma', 'Proformalar', 'folder') : ''}
-					${/*config.dev ||*/ !r.onayDurum ? (
+					${false && !r.onayDurum ? (
 						button('approve', 'Onayla', 'check') +
 						button('reject', 'Reddet', 'reject')
 					) : ''}
@@ -609,7 +609,7 @@ class OnayciPart extends SimplePart {
 		$elementCSS .ony-reference { font-size: 12px; line-height: 1.5; color: #63758f; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere }
 		$elementCSS .ony-plate { display: inline-block; border: 1px solid #c9d7e8; border-left: 5px solid #206bd0; border-radius: 4px; padding: 2px 8px; font-weight: 650; letter-spacing: 1px }
 		$elementCSS .ony-note { font-size: 11px; color: #8894a5; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 4px }
-		$elementCSS .ony-date { display: flex; align-items: center; gap: 12px; border-left: 1px solid #e5ebf3; padding-left: 20px; color: #71839c; min-height: 84px }
+		$elementCSS .ony-date { display: flex; align-items: center; gap: 12px; border-left: 1px solid #e5ebf3; padding-left: 20px; color: #71839c; min-height: 50px }
 		$elementCSS .ony-date span, $elementCSS .ony-date small { display: block; font-size: 12px }
 		$elementCSS .ony-date strong { display: block; color: #3d506d; font-size: 17px; margin: 6px 0 }
 		$elementCSS .ony-info { border-left: 1px solid #e5ebf3; padding-left: 18px; min-width: 0 }
@@ -650,22 +650,22 @@ class OnayciPart extends SimplePart {
 		}
 		@container (max-width: 679px) {
 			$elementCSS .ony-header { padding: 15px 12px 10px }
-			$elementCSS .ony-heading { gap: 12px; margin-bottom: 12px }
+			$elementCSS .ony-heading { gap: 15px; margin-bottom: 12px }
 			$elementCSS .ony-toolbar { gap: 5px; flex-wrap: wrap }
 			$elementCSS .ony-toolbar button { padding: 8px; font-size: 11px }
 			$elementCSS .ony-search { margin-left: 0; flex: 1; width: 130px }
 			$elementCSS .ony-tabs { gap: 0 }
 			$elementCSS .ony-tabs button { padding: 8px; font-size: 11px }
 			$elementCSS .ony-grid { width: calc(100% - 12px) !important; margin: 0 2px 8px }
-			$elementCSS .ony-card { grid-template-columns: minmax(0, 1fr) 30px; grid-template-rows: auto auto auto; gap: 8px; padding: 4px 12px; margin-right: 5px }
+			$elementCSS .ony-card { grid-template-columns: minmax(0, 1fr) 30px; grid-template-rows: auto auto auto; gap: 0; padding: 4px 12px; margin-right: 5px }
 			$elementCSS .ony-type-icon { flex-basis: 38px; height: 42px; border-radius: 12px }
 			$elementCSS .ony-main { gap: 10px }
 			$elementCSS h3 { font-size: 14px }
 			$elementCSS .ony-date { padding-left: 48px }
 			$elementCSS .ony-info { grid-column: 1 / 3; grid-row: 3; border: 0; padding: 0 }
 			$elementCSS .ony-actions { grid-column: 2; grid-row: 1 / 3; padding-top: 0 !important }
-			$elementCSS .ony-status { padding: 9px }
-			$elementCSS .ony-shell { gap: 3px important; padding: 0 16px !important }
+			$elementCSS .ony-status { padding: 3px 5px }
+			$elementCSS .ony-shell { gap: 0 important; padding: 0 8px !important }
 		}`
 	}
 
