@@ -73,7 +73,7 @@ class MQAktivasyon extends MQDetayliMaster {
 	static rootFormBuilderDuzenleSonrasi_listeEkrani(e) {
 		super.rootFormBuilderDuzenleSonrasi_listeEkrani(e)
 		let { rootBuilder: rfb } = e
-		this.fbd_listeEkrani_addButton(rfb, 'kontorMenu', '...', 50, e =>
+		this.fbd_listeEkrani_addButton(rfb, 'kontorMenu', 'KNT', 70, e =>
 			this.kontorMenuIstendi(e))
 	}
 	static rootFormBuilderDuzenle(e) {
@@ -144,25 +144,39 @@ class MQAktivasyon extends MQDetayliMaster {
 		liste.push(...[
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 15 }).tipDate(),
 			new GridKolon({ belirtec: 'baktifmi', text: 'Aktif?', genislikCh: 8 }).tipBool(),
-			new GridKolon({ belirtec: 'mustkod', text: 'Müşteri', genislikCh: 16 }),
-			new GridKolon({ belirtec: 'mustadi', text: 'Müşteri Adı', genislikCh: 45, sql: 'mus.aciklama' }),
+			...this.getKAKolonlar(
+				new GridKolon({ belirtec: 'mustkod', text: 'Müşteri', genislikCh: 16 }),
+				new GridKolon({ belirtec: 'mustadi', text: 'Müşteri Adı', genislikCh: 45, sql: 'mus.aciklama' })
+			),
 			new GridKolon({ belirtec: 'surumtext', text: 'Sürüm', genislikCh: 13, sql: VIOSurum.getClause(`${alias}.surum`) }).alignCenter(),
-			new GridKolon({ belirtec: 'bayikod', text: 'Bayi', genislikCh: 10, sql: 'mus.bayikod', filterType: 'checkedlist' }),
-			new GridKolon({ belirtec: 'bayiadi', text: 'Bayi Adı', genislikCh: 25, sql: 'bay.aciklama', filterType: 'checkedlist' }),
-			new GridKolon({ belirtec: 'anabayikod', text: 'Ana Bayi', genislikCh: 15, sql: 'bay.anabayikod', filterType: 'checkedlist' }),
-			new GridKolon({ belirtec: 'anabayiadi', text: 'Ana Bayi Adı', genislikCh: 20, sql: 'abay.aciklama', filterType: 'checkedlist' }),
+			...this.getKAKolonlar(
+				new GridKolon({ belirtec: 'bayikod', text: 'Bayi', genislikCh: 10, sql: 'mus.bayikod', filterType: 'checkedlist' }),
+				new GridKolon({ belirtec: 'bayiadi', text: 'Bayi Adı', genislikCh: 25, sql: 'bay.aciklama', filterType: 'checkedlist' })
+			),
+			...this.getKAKolonlar(
+				new GridKolon({ belirtec: 'anabayikod', text: 'Ana Bayi', genislikCh: 15, sql: 'bay.anabayikod', filterType: 'checkedlist' }),
+				new GridKolon({ belirtec: 'anabayiadi', text: 'Ana Bayi Adı', genislikCh: 20, sql: 'abay.aciklama', filterType: 'checkedlist' })
+			),
 			new GridKolon({ belirtec: 'yore', text: 'Yöre', genislikCh: 25, sql: 'mus.yore' }),
-			new GridKolon({ belirtec: 'ilkod', text: 'İl', genislikCh: 8, sql: 'mus.ilkod' }),
-			new GridKolon({ belirtec: 'iladi', text: 'İl Adı', genislikCh: 25, sql: 'il.aciklama' }),
-			new GridKolon({ belirtec: 'tanitim', text: 'Tanıtım', genislikCh: 43, sql: 'mus.tanitim' }),
+			...this.getKAKolonlar(
+				new GridKolon({ belirtec: 'ilkod', text: 'İl', genislikCh: 8, sql: 'mus.ilkod' }),
+				new GridKolon({ belirtec: 'iladi', text: 'İl Adı', genislikCh: 25, sql: 'il.aciklama' })
+			),
+			new GridKolon({ belirtec: 'tanitim', text: 'Tanıtım', genislikCh: 47, sql: 'mus.tanitim' }),
 			new GridKolon({ belirtec: 'kullanicisayi', text: 'Kull.Sayı', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'elterminalsayi', text: 'ElTerm.Sayı', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'dokunmatiksayi', text: 'Tablet Sayı', genislikCh: 10 }).tipNumerik(),
 			new GridKolon({ belirtec: 'topbedel', text: 'Top. Bedel', genislikCh: 17 }).tipDecimal_bedel(),
-			new GridKolon({ belirtec: 'ilktarih', text: 'İlk Lisans', genislikCh: 13 }).tipDate(),
-			new GridKolon({ belirtec: 'demosuresifirlatarih', text: 'Demo Sıfırlama', genislikCh: 13 }).tipDate(),
-			new GridKolon({ belirtec: 'ekbilgi', text: 'Ek Bilgi', genislikCh: 50 }),
-			new GridKolon({ belirtec: 'ozelekbilgi', text: 'Özel Ek Bilgi', genislikCh: 50 })
+			...this.getKAKolonlar(
+				new GridKolon({ belirtec: 'ilktarih', text: 'İlk Lisans', genislikCh: 13 }).tipDate(),
+				new GridKolon({ belirtec: 'demosuresifirlatarih', text: 'Demo Sıfırlama', genislikCh: 13 }).tipDate(),
+				true    // reverse
+			),
+			...this.getKAKolonlar(
+				new GridKolon({ belirtec: 'ekbilgi', text: 'Ek Bilgi', genislikCh: 50 }),
+				new GridKolon({ belirtec: 'ozelekbilgi', text: 'Özel Ek Bilgi', genislikCh: 50 }),
+				true    // reverse
+			)
 		])
 	}
 	static loadServerData_queryDuzenle({ gridPart, sender, stm, sent, basit, tekilOku, modelKullanmi }) {

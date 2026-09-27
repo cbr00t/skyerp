@@ -47,9 +47,20 @@ class TabRapor extends MQKAOrtak {
 			gridPart.tazele()
 		})
 	}
-	static islemTuslariDuzenle_listeEkrani({ liste, part }) {
+	static islemTuslariDuzenle_listeEkrani({ sender: tanimPart, liste, part }) {
 		super.islemTuslariDuzenle_listeEkrani(...arguments)
 		liste.find(_ => _.id == 'degistir').id = 'izle'
+		/*liste.push(...[
+			{
+				id: 'yazdir',
+				placeHolder: 'Yazdır',
+				priority: 45,
+				handler: _e => {
+					tanimPart.inst.yazdir({ ...e, ..._e })
+					_e.close?.()
+				}
+			}
+		])*/
 		extend(part.ekSagButonIdSet ??= {}, asSet(['degistir', 'izle']))
 	}
 	static loadServerDataDogrudan({ offlineBuildQuery, offlineRequest, offlineMode } = {}) {
@@ -74,7 +85,7 @@ class TabRapor extends MQKAOrtak {
 		let { parentPart: tanimPart, part, liste, inst } = e
 		e.tanimPart = tanimPart
 		let items = [
-			{
+			/*{
 				id: 'menu', text: '...', handler: async _e => {
 					_e = { ...e, ..._e }
 					try {
@@ -87,16 +98,22 @@ class TabRapor extends MQKAOrtak {
 					}
 					catch (ex) { cerr(ex); throw ex }
 				}
-			},
+			},*/
 			{
-				id: 'yazdir', handler: async _e => {
+				id: 'yazdir',
+				toolTip: 'Yazdır',
+				priority: 35,
+				handler: async _e => {
 					let { inst } = tanimPart
 					try { return inst.yazdir({ ...e, ..._e }) }
 					catch (ex) { cerr(ex); throw ex }
 				}
 			},
 			{
-				id: 'tazele', handler: async _e => {
+				id: 'tazele',
+				toolTip: 'Tazele',
+				priority: 25,
+				handler: async _e => {
 					let { inst } = tanimPart
 					try { return inst.tazele({ ...e, ..._e }) }
 					catch (ex) { cerr(ex); throw ex }
@@ -285,7 +302,7 @@ class TabRapor extends MQKAOrtak {
 
 	static getTanimPartMenuItems(e = {}) {
 		super.getTanimPartMenuItems(e)
-		let { tanimPart = e.sender } = e
+		/*let { tanimPart = e.sender } = e
 		e.tanimPart = tanimPart
 		return [
 			{
@@ -295,7 +312,7 @@ class TabRapor extends MQKAOrtak {
 					_e.close?.()
 				}
 			}
-		]
+		]*/
 	}
 	getUstBilgi(e) { return [] }
 	gridArgsDuzenleIslemi({ args }) {

@@ -93,9 +93,10 @@ class AccordionPart extends Part {
 		let {id2Elm} = this
 		for (let item of panels) {
 			let id = item.id ||= newGUID()
-			let container = id2Elm[id], hasElm = container?.length
+			let container = id2Elm[id]
+			let hasElm = container?.length
 			// let fullRender = !(hasElm && item._rendered)
-			let {title, collapsed, expanded, disabled} = item
+			let { title, collapsed, expanded, disabled } = item
 			title ??= ''
 			collapsed ??= (expanded == null ? null : !expanded) ?? defaultCollapsed
 			let elmHeader
@@ -125,16 +126,19 @@ class AccordionPart extends Part {
 				container[collapsed ? 'removeClass' : 'addClass']('expanded')
 				container[disabled ? 'addClass' : 'removeClass']('disabled')
 			}
+			
 			elmHeader.height(title ? null : 10)
 			let elmTitle = elmHeader.children('.title')
 			if (elmTitle.length)
 				elmTitle.html(title)
 			else
 				(elmTitle = $(`<div class="title">${title}</div>`)).appendTo(elmHeader)
+			
 			let elmCollapsedContent = elmHeader.children('.collapsed-content')
 			if (!elmCollapsedContent.length)
 				(elmCollapsedContent = $(`<div class="collapsed-content"/>`)).appendTo(elmHeader)
 			elmCollapsedContent.children().remove()
+			
 			let collapsedKey = 'collapsedContent'
 			let targetKey = collapsed ? collapsedKey : 'content'
 			// if (collapsed) {
@@ -144,6 +148,7 @@ class AccordionPart extends Part {
 				if (targetContent && !targetContent.parent()?.length)
 					targetContent.appendTo(elmCollapsedContent)
 			}
+			
 			if (!collapsed) {
 				let elmContent = container.children('.content')
 				if (!elmContent.children().length) {
@@ -153,6 +158,7 @@ class AccordionPart extends Part {
 							targetContent.detach()
 						targetContent.appendTo(elmContent)
 					}
+					
 					/*let itemsCSS = {}
 					for (let key of ['overflow', 'overflow-x', 'overflow-y'])
 						itemsCSS[key] = container.css(key)
@@ -186,21 +192,25 @@ class AccordionPart extends Part {
 						}
 					})*/
 				}
+				
 				if (fullScreen) {
 					delay(100).then(() => {
 						let safeZone = 10
-						let {length: N} = layout.children('.accordion.item')
+						let { length: N } = layout.children('.accordion.item')
 						if (fullScreen && N)
 							N = 1
+						
 						let H = layout.height()
 						let headerH = parseInt(layout.css('--acc-header-height'))                   // getComputedStyle(layout[0]).getPropertyValue('--acc-header-height')
 						let itemPadY = parseInt(layout.css('--item-pad-y'))                         // getComputedStyle(layout[0]).getPropertyValue('--item-pad-y')
 						let border = 3                                                              // css’den sabit
 						let collapsedItemHeight = headerH + (itemPadY * 2) + (border * 2)
 						let contentHeight = parseInt(H - collapsedItemHeight * N - safeZone)
+						
 						elmContent.height(contentHeight)
 						//makeScrollable(elmContent)
 						elmContent.scrollTop(0)
+						
 						/*elmContent.css(
 							'height',
 							`calc(${layout.height()}px - (var(--acc-header-height) * ${layout.children().length - 1}))`
@@ -208,6 +218,7 @@ class AccordionPart extends Part {
 						)*/
 					})
 				}
+				
 				clearTimeout(this._timer_triggerResize)
 				this._timer_triggerResize = setTimeout(() => {
 					try { $(window).trigger('resize') }
@@ -222,14 +233,17 @@ class AccordionPart extends Part {
 				setTimeout(() => this.signalStateChange({ action, item }, true), 1)
 			}*/
 		}
+		
 		clearTimeout(this._timer_triggerResize)
 		this._timer_triggerResize = setTimeout(() => {
 			try { $(window).trigger('resize') }
 			finally { this._timer_triggerResize }
 		}, 5)
+		
 		this._lastPanelCount = panels.length
 		return this
 	}
+	
 	add(e, _title, _collapsed, _content, _collapsedContent, _disabled, _data) {
 		let item = typeof e == 'object' ? e : {
 			id: e, title: _title, collapsed: _collapsed,

@@ -58,7 +58,7 @@ class TabDokumDevice_Ekran extends TabDokumDevice {
 			let rfb = new RootFormBuilder()
 				.asWindow('Döküm Önizleme')
 				.setInst(this)
-			rfb
+				.addStyle_fullWH()
 				.addStyle(
 					`$elementCSS [data-builder-id = 'data'] > :not(label) {
 						font-family: Consolas, "Courier New", monospace !important;
@@ -70,8 +70,9 @@ class TabDokumDevice_Ekran extends TabDokumDevice {
 						padding: 8px !important;
 						background-size: 10px 13px !important;
 						background-position: 6px 8px !important;
-						background-image: linear-gradient(to right, rgba(0, 0, 250, .007) 1px, transparent 1px),
-												linear-gradient(to bottom, rgba(0, 255, 100, .02) 1px, transparent 1px);
+						background-image:
+							linear-gradient(to right, rgba(0, 0, 250, .007) 1px, transparent 1px),
+							linear-gradient(to bottom, rgba(0, 255, 100, .02) 1px, transparent 1px);
 						white-space: pre !important;
 						overflow: auto !important
 					}
@@ -116,21 +117,23 @@ class TabDokumDevice_Ekran extends TabDokumDevice {
 					}
 				})
 			rfb.addTextArea('data')
+				//.setRows(1)
 				.setCols(10000)
-				.addStyle_fullWH(null, `calc(var(--full) - ${HeaderHeight}px)`)
+				.addStyle_fullWH(null, `calc(var(--full) - ${HeaderHeight + 30}px)`)
 				.etiketGosterim_yok()
 				// .readOnly()
 				.degisince( ({ builder: { inst, input } }) =>
 					inst.data = input.val())
-				.onAfterRun( ({ builder: { rootPart, inst, input } }) => {
+				.onAfterRun(async ({ builder: { rootPart, inst, layout, input } }) => {
 					rootPart.txtData = input
-					setTimeout(() => {
-						input.focus()
-						setTimeout(() => {
-							input.scrollTop(0)
-							input[0].selectionStart = input[0].selectionEnd = 0
-						}, 100)
-					}, 400)
+					await delay(100)
+					input.focus()
+					
+					await delay(100)
+					input.scrollTop(0)
+					input[0].selectionStart = input[0].selectionEnd = 0
+					
+					$(window).trigger('resize')
 				})
 			await rfb.run()
 		}

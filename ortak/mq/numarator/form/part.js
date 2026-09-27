@@ -107,8 +107,10 @@ class NumaratorPart extends Part {
 		let fisNo = yeniVeyaKopyami ? null : (sonNo + 1)
 		extend(fis, { seri, noYil, fisNo })
 		extend(num, { sayac, belirtec, seri, noYil, sonNo })
-		num.belgeTipi.char = belgeTipi
+		if (isObject(num.belgeTipi))
+			num.belgeTipi.char = belgeTipi
 		/*this.txtSeri.val(fis.seri);*/
+		
 		let _e = { ...e, parentPart, sender, seri, noYil, sonNo: yeniVeyaKopyami ? sonNo : null }
 		await this.otoNumGoster(_e)
 		txtFisNo.focus()

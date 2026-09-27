@@ -1,97 +1,146 @@
 :root {
 	--islemTuslari-button-bg-normal: #535457
 }
-
 .butonlar.part {
 	--button-width: 65px;
-	--button-height: 48px;
-	--button-margin-x: 2px;
+	--button-height: 50px;
+	position: relative;
+	display: flex;
+	flex-wrap: nowrap !important;
+	align-items: center;
+	gap: 5px;
+	width: var(--full) !important;
+	height: var(--button-height);
+	/*
+		hidden yerine clip:
+		yatay taşmayı keser ama dropdown'un
+		aşağı doğru dışarı çıkmasına izin verir.
+	*/
+	overflow-x: clip !important;
+	overflow-y: visible !important;
+	z-index: 1002
+	
+	/*--button-margin-x: 2px;
 	--button-form-margin-x: 1px;
 	--button-right-katsayi: 20;
 	--button-right: calc(var(--button-width) + var(--button-margin-x) * var(--button-right-katsayi) + var(--button-form-margin-x));
 	--width-sag: calc((var(--button-right) + 10px) * 2 + var(--width-sag-ek));
-	--width-sag-ek: 5px;
+	--width-sag-ek: 5px
 	width: var(--full) !important;
 	height: var(--button-height);
-	/*background-color: whitesmoke;*/
 	position: relative;
 	margin: 0;
 	padding: 0;
-	/*box-shadow: 0px var(--islemTuslari-box-shadow-height) 30px 0px #edeef2;*/
-	/*background: linear-gradient(90deg, transparent 30%, #f2f2f2 100%) !important;*/
 	background: transparent !important;
 	overflow-x: hidden !important;
-	overflow-y: overlay !important;
-	z-index: 1000
+	overflow-y: overlay !important*/
 }
+.butonlar.part > .sol {
+	display: flex;
+	flex: 1 1 0;
+	flex-wrap: nowrap !important;
+	align-items: center;
+	gap: 4px;
+	width: auto;
+	min-width: 0;
+	overflow: hidden !important
+}
+.butonlar.part > .sag {
+	position: relative;
+	display: flex;
+	flex: 0 0 auto;
+	flex-wrap: nowrap !important;
+	align-items: center;
+	gap: 4px;
+	width: auto;
+	min-width: 0
+}
+.butonlar.part > .overflow-button { flex: 0 0 auto }
+.butonlar.part button {
+	width: var(--button-width);
+	height: var(--button-height);
+	flex: 0 0 auto;
+    margin: 0
+	/*vertical-align: top;
+	border: 0; margin-inline-end: var(--button-margin-x);
+	line-height: 100%*/
+}
+.butonlar.part button.overflow-hidden { display: none !important }
+.butonlar.part .butonlar-overflow-menu {
+    position: absolute;
+    top: calc(var(--full) + 10px);
+    right: 4px;
+    display: none;
+    flex-direction: column;
+    min-width: 300px;
+    padding: 8px;
+    border-radius: 20px;
+    background: #d9e0ea;
+    box-shadow: 0 8px 30px 0 #5558;
+    z-index: 3000 !important
+}
+.butonlar.part .butonlar-overflow-menu.open { display: flex }
+.butonlar.part .butonlar-overflow-menu .overflow-item {
+    width: var(--full);
+    height: 50px;
+    padding: 0 13px;
+	margin: 3px 0;
+    text-align: left;
+    white-space: nowrap;
+    border-radius: 7px;
+	color: #333;
+    background: transparent
+}
+.butonlar.part .butonlar-overflow-menu > .overflow-item:hover { background: #ffffff18 }
 
 body.kiosk .butonlar.part {
-	z-index: 1001;
-	user-select: none !important
+	user-select: none !important;
+	z-index: 1001
 }
 
-@media (max-width: 1000px) {
+/*@media (max-width: 1000px) {
 	.butonlar.part {
 		--button-width: 48px;
 		--button-height: 40px;
 		--button-right-katsayi: 5
 	}
 }
-
 .butonlar.part > div {
 	position: relative;
-	/* width: var(--full) !important; */
 	height: calc(var(--full) - 5px) !important;
 	margin: 0;
 	padding: 0 calc(var(--button-form-margin-x) / 2)
 }
-
 .butonlar.part > .sol {
 	width: calc(var(--full) - (var(--width-sag) + 3px + var(--button-form-margin-x)));
 	background: transparent
 }
-
 .butonlar.part > .sag {
 	position: absolute;
 	right: 0;
 	width: var(--width-sag);
 	text-align: right;
-	/*background: linear-gradient(90deg, transparent 30%, #f2f2f2 100%);*/
 	z-index: 1
 }
-
-/*body.kiosk .butonlar.part > .sag { background: linear-gradient(90deg, transparent 80%, #f2f2f2 100%) }*/
 .butonlar.part > .sag > button:nth-last-child(2) {
 	margin-left: 10px;
 	margin-right: 5px
-}
+}*/
 
-.butonlar.part button {
-	vertical-align: top;
-	width: var(--button-width); height: var(--button-height);
-	border: 0; margin-inline-end: var(--button-margin-x);
-	line-height: 100%
-}
+
 button, .jqx-button {
 	font-weight: bold;
 	border: none !important;
-	/*border: 1px solid #f9f9f9 !important;*/
-	border-radius: 13px;
-	/* box-shadow: 0 0 2px 0 #ececec;*/
+	border-radius: 20px;
 	outline: none !important;
-	background-repeat: no-repeat !important;
-	background-size: 22px
+	background-size: 24px;
+	background-repeat: no-repeat !important
 }
 button, button:active, .jqx-button.jqx-fill-state-normal, .jqx-button.jqx-fill-state-hover, .jqx-button.jqx-fill-state-pressed {
 	background-position: center !important
 }
-button:not(hover):not(:focus):not(:active), .jqx-button.jqx-fill-state-normal {
-	background-color: transparent;
-	/*background: linear-gradient(90deg, #fcfcfc 5%, #3a3a3a 80%)*/
-}
-:not(.islemTuslari) > button:hover, :not(.islemTuslari) > .jqx-button.jqx-fill-state-hover {
-	/*background-color: #edf2f4*/
-}
+button:not(hover):not(:focus):not(:active), .jqx-button.jqx-fill-state-normal { background-color: transparent }
+:not(.islemTuslari) > button:hover, :not(.islemTuslari) > .jqx-button.jqx-fill-state-hover { }
 button:active .jqx-button:focus, .jqx-button.jqx-fill-state-pressed {
 	color: #eee;
 	background-color: #6f9cec !important
@@ -117,7 +166,6 @@ button#cacheReset { background-image: url(../../images/temizle.png) }
 	color: #eee;
 	background-color: var(--islemTuslari-button-bg-normal)
 }
-/*.islemTuslari > div > button.jqx-fill-state-hover { background-color: #7f9bdd }*/
 
 button#sec { background-image: url(../../images/sec.png) !important }
 button#tamam { background-image: url(../../images/tamam.png) !important }
@@ -274,8 +322,8 @@ button#import { background-image: url(../../images/download.png) !important }
 button#importDefs { background-image: url(../../images/list-1.png) !important }
 .islemTuslari > div > button#import { margin-left: 30px }
 
-.islemTuslari button#seviyeAc { background-image: url(../../images/seviye_ac.png); background-color: #eef9f3; margin-left: 5px }
-.islemTuslari button#seviyeKapat { background-image: url(../../images/seviye_kapat.png); background-color: #f9f2ee}
+.islemTuslari button#seviyeAc { background-image: url(../../images/seviye_ac.png); background-color: #eef9f3 }
+.islemTuslari button#seviyeKapat { background-image: url(../../images/seviye_kapat.png); background-color: #f9f2ee }
 .islemTuslari button#seviyeAc, .islemTuslari button#seviyeKapat { background-size: 38px !important }
 body.dark-theme .islemTuslari button#seviyeAc,
 	body.dark-theme .islemTuslari button#seviyeKapat { filter: invert(1) hue-rotate(180deg) !important }

@@ -561,9 +561,9 @@ class MQDetayli extends MQSayacli {
 	}
 	addDetaylar(liste) { return this.addDetay(liste) }
 	detaylarReset() { this.detaylar = []; return this }
-	static kolonFiltreIstendi(e) {
-		e = e ?? {}; let gridPart = e.gridPart ?? e.sender; if (!gridPart) { return }
-		return gridPart.kolonFiltreIstendi(e)
+	static kolonFiltreIstendi(e = {}) {
+		let { gridPart = e.parentPart ?? e.sender } = e
+		return gridPart?.kolonFiltreIstendi?.(e)
 	}
 }
 class MQDetayliMaster extends MQDetayli {

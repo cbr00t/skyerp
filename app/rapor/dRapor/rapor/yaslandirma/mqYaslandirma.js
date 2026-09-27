@@ -231,7 +231,7 @@ class MQYaslandirma extends DRaporMQ {
 	}
 	
 	static detayGoster(e = {}) {
-		let { mfSinif, gridPart = e.sender, rec: parentRec } = e
+		let { mfSinif, gridPart = e.parentPart ?? e.sender, rec: parentRec } = e
 		let { dataKey } = mfSinif ?? {}
 		if (!dataKey)
 			return

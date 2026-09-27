@@ -44,8 +44,8 @@ body #ust-parent > #parent > #windows-parent > div > #windows,
 .skyTabs.part > .tabs > .tabPage,
 body #ust-parent > #parent > #windows-parent > div > #windows > .content,
 body #ust-parent > #parent > main,
-.part > .header,
-.butonlar.part { position: relative }
+
+.part > .header { position: relative }
 
 html, body,
 body > #root-parent,

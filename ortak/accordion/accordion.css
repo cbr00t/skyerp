@@ -82,7 +82,7 @@
 	width: calc(var(--full) - 4px);
 	height: calc(var(--full) - (var(--acc-header-height) + 2px));
 	padding: 3px 2px; box-sizing: border-box;
-	border-top: 2px solid rgba(0 200, 255, .8);
+	border-top: 2px solid rgba(0, 200, 255, .8);
 	overflow-x: hidden !important;
 	overflow-y: auto !important;
 	box-sizing: content-box;
@@ -99,12 +99,12 @@
 @media (max-width: 800px) {
 	.accordion.part .accordion.item > .header > .title {
 		margin-top: 0;
-		margin-bottom: -30px;
+		margin-bottom: -15px;
 		line-height: 13px
 	}
 	.accordion.part .accordion.item > .header > .collapsed-content {
 		--acc-header-collapsed-lineHeight: 13px;
-		font-size: 80%
+		font-size: 75%
 	}
 	.accordion.part .item:not(.expanded) { --acc-header-height: 33px }
 	.accordion.part .item.expanded { --acc-header-height: 50px }

@@ -133,15 +133,15 @@ class DRapor_KarZararTablosu extends DRaporMQ {
 	}
 	static tanimPart_islemTuslariDuzenle(e) {
 		super.tanimPart_islemTuslariDuzenle(e)
-		let { sender: tanimPart, liste, part: { ekSagButonIdSet: sagSet } } = e
+		let { parentPart: tanimPart = e.sender, liste, part: { ekSagButonIdSet: sagSet } } = e
 		let { inst } = tanimPart
 		extend(e, { tanimPart, inst })
 		liste = e.liste = liste.filter(_ => _.id != 'tamam')
 		let items = [
-			{ id: 'seviyeAc', handler: _e => inst.gridSeviyeAcKapatIstendi({ ..._e, ...e, state: true }) },
-			{ id: 'seviyeKapat', handler: _e => inst.gridSeviyeAcKapatIstendi({ ..._e, ...e, state: false }) },
-			{ id: 'secimler', handler: _e => inst.secimlerIstendi({ ..._e, ...e }) },
-			{ id: 'tazele', handler: _e => inst.tazeleIstendi({ ..._e, ...e }) }
+			{ id: 'seviyeAc', handler: _e => inst.gridSeviyeAcKapatIstendi({ ..._e, ...e, tanimPart, state: true }) },
+			{ id: 'seviyeKapat', handler: _e => inst.gridSeviyeAcKapatIstendi({ ..._e, ...e, tanimPart, state: false }) },
+			{ id: 'secimler', handler: _e => inst.secimlerIstendi({ ..._e, ...e, tanimPart }) },
+			{ id: 'tazele', handler: _e => inst.tazeleIstendi({ ..._e, ...e, tanimPart }) }
 		]
 		liste = e.liste = [...items, ...liste]
 		extend(sagSet, asSet(items.map(_ => _.id)))
@@ -410,7 +410,6 @@ class DRapor_KarZararTablosu extends DRaporMQ {
 	gridSeviyeAcKapatIstendi(e = {}) {
 		let { tanimPart = {}, state } = e
 		let { acc = tanimPart.acc ?? {} } = e
-
 		let { layout } = acc
 		let grids = arrayFrom(layout.find('.grid.part'))
 		for (let grid of grids) {

@@ -230,7 +230,7 @@ extend(DRapor_KarZararTablosu.prototype, {
 				.add(...[
 					new AccPanelGrid()
 						.setId('gelir')
-						.setWidth('37%')
+						.setWidth('35%')
 						.fullHeight()
 						.setUserData({ noSort: true, keyFields: ['shKod'] })
 						.setToplamBelirtec('shAdi')
@@ -242,7 +242,7 @@ extend(DRapor_KarZararTablosu.prototype, {
 							})
 						})
 						.setTabloKolonlari(_e => [
-							new GridKolon({ belirtec: 'shText', text: `<span class=forestgreen>GELİRLER</span>`, genislikCh: 36 }).checkedList(),
+							new GridKolon({ belirtec: 'shText', text: `<span class=forestgreen>GELİRLER</span>`, genislikCh: 33 }).checkedList(),
 							new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 17 }).tipDecimal_bedel().sum(),
 							new GridKolon({ belirtec: 'grupText', text: 'Grup', genislikCh: 20 }).checkedList().hidden()
 						])
@@ -287,7 +287,7 @@ extend(DRapor_KarZararTablosu.prototype, {
 							grid.jqxGrid('groups', ['grupText'])),
 					new AccPanelGrid()
 						.setId('gider')
-						.setWidth('37%')
+						.setWidth('35%')
 						.fullHeight()
 						.setUserData({ noSort: true, keyFields: ['shKod'] })
 						.setToplamBelirtec('shAdi')
@@ -299,7 +299,7 @@ extend(DRapor_KarZararTablosu.prototype, {
 							})
 						})
 						.setTabloKolonlari(_e => [
-							new GridKolon({ belirtec: 'shText', text: `<span class=orange>GİDERLER</span>`, genislikCh: 36 }).checkedList(),
+							new GridKolon({ belirtec: 'shText', text: `<span class=orange>GİDERLER</span>`, genislikCh: 33 }).checkedList(),
 							new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 17 }).tipDecimal_bedel().sum(),
 							new GridKolon({ belirtec: 'grupText', text: 'Grup', genislikCh: 20 }).checkedList().hidden()
 						])
@@ -344,7 +344,7 @@ extend(DRapor_KarZararTablosu.prototype, {
 							grid.jqxGrid('groups', ['grupText'])),
 					new AccPanelGrid()
 						.setId('sonuc')
-						.setWidth(430)
+						.setWidth(410)
 						.fullHeight()
 						.setUserData({ noSort: true, noGroupTotals: true })
 						//.setToplamBelirtec('aciklama')
@@ -357,7 +357,7 @@ extend(DRapor_KarZararTablosu.prototype, {
 							})
 						)
 						.setTabloKolonlari(_e => [
-							new GridKolon({ belirtec: 'aciklama', text: `<span class=cadetblue>SONUÇ</span>`, genislikCh: 25 }).checkedList(),
+							new GridKolon({ belirtec: 'aciklama', text: `<span class=cadetblue>SONUÇ</span>`, genislikCh: 20 }).checkedList(),
 							new GridKolon({ belirtec: 'bedel', text: 'Bedel', genislikCh: 17 }).tipDecimal_bedel()
 						])
 						.cssDuzenleIslemi(_e => {

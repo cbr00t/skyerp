@@ -160,24 +160,36 @@ class TabFis extends MQDetayliGUIDOrtak {
 		super.islemTuslariDuzenle_listeEkrani(e)
 		let { parentPart: gridPart, part, liste } = e
 		let items = [
-			{ id: 'menu', text: '...', handler: async _e => {
-				_e = { ...e, ..._e }
-				try {
-					let args = await this.getDefaultContextMenuArgs(_e)
-					if (args) {
-						let { selectedRecs: recs } = gridPart
-						extend(_e, { recs, ...args })
-						gridPart.openContextMenu(_e)
+			/*{
+				id: 'menu', text: 'Menü',
+				handler: async _e => {
+					_e = { ...e, ..._e }
+					try {
+						let args = await this.getDefaultContextMenuArgs(_e)
+						if (args) {
+							let { selectedRecs: recs } = gridPart
+							extend(_e, { recs, ...args })
+							gridPart.openContextMenu(_e)
+						}
 					}
+					catch (ex) { cerr(ex); throw ex }
 				}
-				catch (ex) { cerr(ex); throw ex }
-			}}
+			}*/
+			{
+				id: 'yazdir', toolTip: 'Yazdır', priority: 60,
+				handler: _e =>
+					this.orjBaslikListesi_yazdirIstendi({ ...e, ..._e })
+			}
 		]
+		
 		let set = part.ekSagButonIdSet ??= {}
 		if (items.length) {
-			liste.unshift(...items)
-			extend(set, asSet(items.map(_ => _.id)))
+			liste.push(...items)
+			// liste.unshift(...items)
+			//extend(set, asSet(items.map(_ => _.id)))
 		}
+		;['menu'].forEach(k =>
+			set[k] = true)
 	}
 	static orjBaslikListesi_argsDuzenle({ args }) {
 		let e = arguments[0]
@@ -585,14 +597,16 @@ class TabFis extends MQDetayliGUIDOrtak {
 	}
 
 	static getDefaultContextMenuItems(e) {
-		return [
+		return super.getDefaultContextMenuItems(e)
+		/*return [
 			...(super.getDefaultContextMenuItems(e) ?? []),
-			{ id: 'yazdir',  text: 'Yazdır', handler: _e => this.orjBaslikListesi_yazdirIstendi({ ...e, ..._e }) }
-		]
+			{ id: 'yazdir', text: 'Yazdır', handler: _e => this.orjBaslikListesi_yazdirIstendi({ ...e, ..._e }) }
+		]*/
 	}
 	static getTanimPartMenuItems(e = {}) {
 		super.getTanimPartMenuItems(e)
-		let { sender: tanimPart } = e, { acc } = tanimPart
+		let { sender: tanimPart = e.tanimPart } = e
+		let { acc } = tanimPart ?? {}
 		return [
 			{ id: 'yazdir', text: 'Yazdır', handler: _e => { this.yazdir({ ...e, ..._e, tanimPart }); _e.close?.() } },
 			{ id: 'duzenle', text: 'Düzenle', handler: _e => { acc.expand('duzenle'); _e.close() } },
@@ -609,10 +623,12 @@ class TabFis extends MQDetayliGUIDOrtak {
 		}
 	}
 	static async orjBaslikListesi_yazdirIstendi(e = {}) {
-		let {gridPart = e.sender, recs, close} = e
+		let { gridPart = e.parentPart ?? e.sender, recs, close } = e
+		recs ??= gridPart?.selectedRecs
 		if (empty(recs))
 			return
-		let count = recs.length
+		
+		let { length: count } = recs
 		showProgress(`${count} adet belge yazdırılıyor...`, 'Yazdır')
 		let {progressManager: pm} = window
 		pm.setProgressMax(count * 5 + 10)
@@ -852,19 +868,24 @@ class TabFis extends MQDetayliGUIDOrtak {
 				{ key: 'notlar', _comment: 'gizli' }
 			]
 		})*/
+		
 		let { tablet: { dokumEkrana } = {} } = app.params
 		// let form = this.getDokumForm(e) ?? new TabDokumForm(data)
+		
 		let form = this.getDokumForm(e) ?? new TabDokumForm()
 		if (isPlainObject(form))
 			form = new TabDokumForm(form)
+		
 		let device = TabDokumDevice.newDefault(e)
 		let yontem = TabDokumYontemi.newDefault()
+		
 		let dokumcu = new TabDokumcu()
 			.setSource(form).setDevice(device)
 			.setYontem(yontem)
 		if (dokumEkrana)
 			dokumcu.ekrana()
 		// dokumcu.setPrefix('\nMUHTELİF MÜŞTERİLERE GÖNDERMEK ÜZERE\nSİPARİŞLER AŞAĞIDAKİ GİBİDİR:\n\n\n')
+		
 		let inst = this
 		await dokumcu.yazdir({ inst })
 	}
@@ -1098,7 +1119,7 @@ class TabFis extends MQDetayliGUIDOrtak {
 							//.addStyle(`$elementCSS { max-width: 800px }`)
 					}
 					if (rfb.builders?.length)
-						setTimeout(() => rfb.run(), 100)
+						delay(100).then(() => rfb.run())
 				}
 			})
 			acc.add({
@@ -1113,13 +1134,14 @@ class TabFis extends MQDetayliGUIDOrtak {
 					await this.rootFormBuilderDuzenle_tablet_acc_dip({ ...e, rfb, item, layout })
 					if (!rfb.builders?.length)
 						rfb.addStyle_fullWH(null, 1)
-					setTimeout(() => rfb.run(), 100)
+					delay(100).then(() => rfb.run())
 				}
 			})
 			acc.add({
 				id: 'detay', title: 'Detaylar',
 				collapsedContent: async ({ item, layout }) => {
 					let rfb = getBuilder(layout)
+					rfb.addStyle_fullWH(null, 'calc(var(--full) - 200px)')
 					await this.rootFormBuilderDuzenle_tablet_acc_detayCollapsed({ ...e, rfb, item, layout })
 					rfb.run()
 				},
@@ -1127,7 +1149,7 @@ class TabFis extends MQDetayliGUIDOrtak {
 					let rfb = getBuilder(layout)
 					await this.rootFormBuilderDuzenle_tablet_acc_detay({ ...e, rfb, item, layout })
 					if (rfb.builders?.length)
-						setTimeout(() => rfb.run(), 100)
+						delay(100).then(() => rfb.run())
 				}
 			})
 			await this.rootFormBuilderDuzenle_tablet_acc_baslikOncesi(...arguments)

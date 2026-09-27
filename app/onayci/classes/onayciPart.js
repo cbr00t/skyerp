@@ -22,8 +22,8 @@ class OnayciPart extends SimplePart {
 	get rowsHeight() {
 		let width = this.rfb?.layout?.width?.() || window.innerWidth || 1200
 		return (
-			width < 680 ? 200 :
-			width < 1050 ? 130 :
+			width < 680 ? 210 :
+			width < 1050 ? 180 :
 			120
 		)
 	}
@@ -464,7 +464,7 @@ class OnayciPart extends SimplePart {
 	static getHTML({ rec }) {
 		let esc = v => OnayciPart.prototype.escapeHTML(v)
 		return `<div style="display:flex;flex-wrap:wrap;gap:5px 12px;color:#40536e;font:13px 'Segoe UI',Arial">
-			<b>${esc(rec.mustUnvan)}</b><span>${esc(rec.fisNox)}</span>
+			<b class="royalblue">${esc(rec.mustUnvan)}</b><span>${esc(rec.fisNox)}</span>
 			<span>${esc(dateKisaString(asDate(rec.tarih)))}</span>
 			<span>${esc(rec._db)} · Onay ${esc(rec.onayNo)}</span>
 			<b>${esc(bedelToString(rec.bedel))}</b></div>`
@@ -578,7 +578,7 @@ class OnayciPart extends SimplePart {
 		$elementCSS button:disabled { opacity: .45; cursor: default }
 		$elementCSS button:focus-visible, $elementCSS input:focus-visible { outline: 2px solid #2472d8; outline-offset: 2px }
 		$elementCSS svg { width: 20px; height: 20px; flex: 0 0 auto; vertical-align: middle }
-		$elementCSS .ony-toolbar button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid #d6dfeb; border-radius: 9px; background: white; padding: 9px 13px; color: #40536e; font-weight: 600; font-size: 13px }
+		$elementCSS .ony-toolbar button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid #d6dfeb; border-radius: 9px; background: white; padding: 9px 13px; color: #40536e; font-weight: 600 }
 		$elementCSS .ony-toolbar .ony-primary { background: #206bd0; border-color: #206bd0; color: white }
 		$elementCSS .ony-controls { flex-wrap: wrap }
 		$elementCSS .ony-tabs { gap: 4px; padding: 4px; border: 1px solid #dce5ef; border-radius: 10px; background: #eaf0f7 }
@@ -639,7 +639,7 @@ class OnayciPart extends SimplePart {
 		$elementCSS .ony-actions [data-action=approve] { color: #198162; background: #eaf7f1 }
 		$elementCSS .ony-actions [data-action=reject] { color: #c23349; background: #fff0f2 }
 		@container (max-width: 1049px) {
-			$elementCSS .ony-card { grid-template-columns: minmax(0, 1fr) minmax(250px, .9fr) 30px; gap: 12px; padding: 16px }
+			$elementCSS .ony-card { grid-template-columns: minmax(0, 1fr) minmax(250px, .9fr) 30px; gap: 12px; padding: 8px }
 			$elementCSS .ony-main { grid-column: 1; grid-row: 1 }
 			$elementCSS .ony-date { grid-column: 1; grid-row: 2; min-height: 0; border: 0; padding-left: 69px }
 			$elementCSS .ony-date svg, $elementCSS .ony-date small { display: none }
@@ -1457,6 +1457,7 @@ class OnayciPart extends SimplePart {
 		let mini = isMiniDevice()
 		let errors = [], eDocs = [], eDocCount = 0
 
+		let { inKioskMode: wasInKioskMode } = app
 		try {
 			let eConf, { tip2Yapi } = this
 			for (let rec of recs) {
@@ -1794,7 +1795,7 @@ class OnayciPart extends SimplePart {
 									</div>`
 								)
 								r.miktarText = (
-									`<div style="padding: 10px; line-height: 25px">
+									`<div style="padding: 10px; line-height: 20px">
 										<div class="bold float-left blue">${numberToString(miktar)}</div>
 										<div class="gray float-right">${brm}</div>
 									</div>`
@@ -1805,7 +1806,7 @@ class OnayciPart extends SimplePart {
 										: ''
 								)
 								r.bedelStr ||= (
-									`<div style="padding: 10px; line-height: 25px">
+									`<div style="padding: 10px; line-height: 20px">
 										<div class="float-left fs-90 royalblue">
 											<span class="lightgray">FY: </span>
 											<span>${fiyatToString(fiyat)}</span>
@@ -1886,7 +1887,7 @@ class OnayciPart extends SimplePart {
 
 					let gridPart
 					let rfb = new RootFormBuilder()
-						.addCSS('MQOnayci part')
+						.addCSS('onayci part')
 						.addStyle_fullWH()
 						.addStyle(`$elementCSS { --header-height: 80px }`)
 						.asWindow(`${tipText} İzle: [<span class=orangered>${fisNox}</span>]`)
@@ -1942,7 +1943,7 @@ class OnayciPart extends SimplePart {
 							.setLayout(({ builder: { parent } }) => $(
 								`<div>` + headerHTML + `</div>`
 							))
-							.addCSS('relative fs-95 bold')
+							.addCSS('relative')
 							.addStyle(
 								`$elementCSS {
 									width: calc(var(--full) - 330px) !important;
@@ -1950,7 +1951,8 @@ class OnayciPart extends SimplePart {
 									margin: 0 !important;
 									overflow-y: auto !important;
 									z-index: 1002 !important
-								}`
+								}
+								$elementCSS > * { font-size: 110% !important }`
 							)
 					}
 
@@ -1984,11 +1986,18 @@ class OnayciPart extends SimplePart {
 
 					if (orj_e.aborted)
 						break
-
+					
+					rfb.onAfterRun(() => {
+						if (wasInKioskMode)
+							app.exitKioskMode()
+					})
 					rfb.run()
 					let { part } = rfb
-					part?.kapaninca(() =>
-						$('body').addClass('allow-nav'))
+					part?.kapaninca(() => {
+						$('body').addClass('allow-nav')
+						if (wasInKioskMode)
+							app.enterKioskMode()
+					})
 					$('body').removeClass('allow-nav')
 					
 					pm?.progressStep()

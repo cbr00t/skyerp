@@ -220,8 +220,14 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		panelDuzenleyici?.islemTuslariDuzenle_listeEkrani_ilk?.(_e)
 		mfSinif?.islemTuslariDuzenle_listeEkrani_ilk?.(e)
 		super.islemTuslariDuzenle(e); let {liste} = e; let yListe = [];
-		if (!panelDuzenleyici && (!mfSinif || mfSinif?.kolonDuzenlemeYapilirmi))
-			yListe.push({ id: 'basliklariDuzenle', toolTip: 'Kolon Başlıklarını Düzenle', handler: e => this.basliklariDuzenleIstendi(e) })
+		if (!panelDuzenleyici && (!mfSinif || mfSinif?.kolonDuzenlemeYapilirmi)) {
+			yListe.push({
+				id: 'basliklariDuzenle',
+				toolTip: 'Kolon Başlıklarını Düzenle',
+				priority: 85,
+				handler: e => this.basliklariDuzenleIstendi(e)
+			})
+		}
 		if (secimler && mfSinif?.raporKullanilirmi)
 			yListe.push({ id: 'rapor', toolTip: 'Rapor', handler: e => this.sabitBilgiRaporuIstendi(e) })
 		if (!panelDuzenleyici && (!mfSinif || mfSinif?.kolonFiltreKullanilirmi))
@@ -236,29 +242,29 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		}
 		if (!panelDuzenleyici && (!mfSinif || mfSinif?.seviyeAcKapatKullanilirmi)) {
 			yListe.push(
-				{ id: 'seviyeAc', toolTip: 'Seviyeleri Aç', handler: e => this.seviyeAc({ ...e, ..._e }) },
-				{ id: 'seviyeKapat', toolTip: 'Seviyeleri Kapat', handler: e => this.seviyeKapat({ ...e, ..._e }) }
+				{ id: 'seviyeAc', toolTip: 'Seviyeleri Aç', priority: 80, handler: e => this.seviyeAc({ ...e, ..._e }) },
+				{ id: 'seviyeKapat', toolTip: 'Seviyeleri Kapat', priority: 81, handler: e => this.seviyeKapat({ ...e, ..._e }) }
 			)
 		}
 		let _e = { ...e, mfSinif, secimler, orjListe: yListe }
 		let tanimlanabilirmi = this.getTanimlanabilirmi(_e), degistirilebilirmi = this.getDegistirilebilirmi(_e)
 		let silinebilirmi = this.getSilinebilirmi(_e), inExpKullanilirmi = this.getInExpKullanilirmi(_e)
 		if (tanimlanabilirmi)
-			yListe.push({ id: 'yeni', toolTip: 'Yeni Kayıt', handler: e => this.yeniIstendi(e) })
+			yListe.push({ id: 'yeni', toolTip: 'Yeni Kayıt', priority: 10, handler: e => this.yeniIstendi(e) })
 		if (degistirilebilirmi)
-			yListe.push({ id: 'degistir', toolTip: 'Değiştir', handler: e => this.degistirIstendi(e) })
+			yListe.push({ id: 'degistir', toolTip: 'Değiştir', priority: 12, handler: e => this.degistirIstendi(e) })
 		if (tanimlanabilirmi)
-			yListe.push({ id: 'kopya', toolTip: 'Kopyala', handler: e => this.kopyaIstendi(e) })
+			yListe.push({ id: 'kopya', toolTip: 'Kopyala', priority: 15, handler: e => this.kopyaIstendi(e) })
 		if (inExpKullanilirmi) {
 			if (tanimlanabilirmi)
-				yListe.push({ id: 'import', toolTip: 'Tanımları Dosyadan Yükle', handler: e => this.importIstendi(e) })
+				yListe.push({ id: 'import', toolTip: 'Tanımları Dosyadan Yükle', priority: 20, handler: e => this.importIstendi(e) })
 			yListe.push(
-				{ id: 'export', toolTip: 'Tanımları Dosyaya Kaydet', handler: e => this.exportIstendi(e) },
-				{ id: 'importDefs', toolTip: 'Varsayılanları Yükle', handler: e => this.importDefsIstendi(e) }
+				{ id: 'export', toolTip: 'Tanımları Dosyaya Kaydet', priority: 15, handler: e => this.exportIstendi(e) },
+				{ id: 'importDefs', toolTip: 'Varsayılanları Yükle', priority: 20, handler: e => this.importDefsIstendi(e) }
 			)
 		}
 		if (silinebilirmi)
-			yListe.push({ id: 'sil', toolTip: 'SİL', args: { template: 'danger' }, handler: e => this.silIstendi(e) })
+			yListe.push({ id: 'sil', toolTip: 'SİL', priority: 18, args: { template: 'danger' }, handler: e => this.silIstendi(e) })
 		if (!$.isEmptyObject(liste))
 			yListe.push(...liste)
 		e.liste = yListe
@@ -514,12 +520,12 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		};
 		let rfb = new RootFormBuilder({ parentPart: gridPart, layout: wndContent }).autoInitLayout()
 		let form = rfb.addFormWithParent('islemTuslari').altAlta().addStyle(
-			`$elementCSS button { font-size: 120%; width: var(--full) !important; height: 50px !important; margin: 5px 0 0 5px; margin-block-end: 5px }
+			`$elementCSS button { font-size: 120%; width: var(--full) !important; margin: 5px 0 0 5px; margin-block-end: 5px }
 			 $elementCSS button.jqx-fill-state-normal { background-color: whitesmoke !important }
 			 $elementCSS button.jqx-fill-state-hover { background-color: #d9e0f0 !important }
 			 $elementCSS button.jqx-fill-state-pressed { color: whitesmoke !important; background-color: royalblue !important }`
 		)
-		$.extend(e, {
+		extend(e, {
 			evt, sender: this, gridPart, gridWidget, cells, recs,
 			belirtec, title, close, rfb, form,
 			wndArgs: {

@@ -111,12 +111,12 @@ class MQXIsler extends MQMasterOrtak {
 		}
 	}
 	static gridVeriYuklendi(e) {
-		super.gridVeriYuklendi(e); let gridPart = e.gridPart ?? e.sender ?? e.parentPart, {gridWidget} = e, {siralamami} = gridPart;
+		super.gridVeriYuklendi(e); let gridPart = e.gridPart ?? e.parentPart ?? e.sender, {gridWidget} = e, {siralamami} = gridPart;
 		if (!siralamami) { gridWidget.clearselection() }
 	}
 	static islemTuslariDuzenle_listeEkrani(e) {
-		let {liste} = e, butonlarPart = e.part, gridPart = e.gridPart ?? e.sender ?? e.parentPart, {noSwitchFlag} = gridPart;
-		if (!noSwitchFlag && this.switchPartClass) { liste.push({ id: 'switch', text: this.switchButtonText, handler: e => this.switchIstendi(e) }) }
+		let {liste} = e, butonlarPart = e.part, gridPart = e.gridPart ?? e.parentPart ?? e.sender, {noSwitchFlag} = gridPart;
+		if (!noSwitchFlag && this.switchPartClass) { liste.push({ id: 'switch', text: this.switchButtonText, handler: e => this.switchIstendi({ ...e, gridPart }) }) }
 		let _e = $.extend({}, e, { liste: []}); this.islemTuslariDuzenleInternal_listeEkrani(_e); if (_e.liste?.length) {
 			let ekSagButonIdSet = butonlarPart.ekSagButonIdSet = butonlarPart.ekSagButonIdSet || {}, _liste = _e.liste;
 			liste.splice(liste.findIndex(item => item.id == 'vazgec'), 0, ..._liste)
@@ -142,7 +142,8 @@ class MQXIsler extends MQMasterOrtak {
 	static switchIstendi(e) {
 		let {switchPartClass} = this; if (!switchPartClass) { return }
 		let gridPart = e.gridPart = e.gridPart ?? e.sender ?? e.parentPart, {args} = gridPart;
-		args.noSwitchFlag = true; switchPartClass.listeEkraniAc({ args })
+		args.noSwitchFlag = true
+		switchPartClass.listeEkraniAc({ args })
 	}
 	static yeniOperIstendi(e) {
 		let gridPart = e.gridPart ?? e.parentPart ?? e.sender, {tezgahKod} = gridPart, recs = gridPart.selectedRecs.filter(rec => !rec.devreDisimi);

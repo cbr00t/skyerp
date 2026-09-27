@@ -289,10 +289,12 @@ class TabTSFis extends TabFis {
 	static async rootFormBuilderDuzenle_tablet_acc_detay({ sender: tanimPart, inst: fis, rfb }) {
 		let e = arguments[0]
 		await super.rootFormBuilderDuzenle_tablet_acc_detay(e)
+		
 		let { depomu } = app, { tablet: { depoBedelGorur } = {} } = app.params
 		let { acc } = tanimPart, { detaySinif, bedelKullanilirmi } = fis.class
 		let { stokSinif } = detaySinif
 		bedelKullanilirmi &&= !(depomu && depoBedelGorur === false)
+		
 		rfb.addSimpleComboBox('barkod', 'Barkod', 'Barkod giriniz veya Ürün seçiniz')
 			.addStyle(`$elementCSS { max-width: 800px }`)
 			.etiketGosterim_yok()
@@ -311,10 +313,11 @@ class TabTSFis extends TabFis {
 				part.focus()
 			})
 		rfb.addGridliGosterici('grid')
-			.addStyle_fullWH(null, `calc(var(--full) - 55px)`)
+			.addStyle_fullWH(null, $(window).height() - 410)
 			.rowNumberOlmasin().notAdaptive()
 			.widgetArgsDuzenleIslemi(({ args }) => extend(args, {
-				rowsHeight: 70, selectionMode: 'singlerow'
+				rowsHeight: 85,
+				selectionMode: 'singlerow'
 			}))
 			.setTabloKolonlari([
 				new GridKolon({ belirtec: '_html', text: 'Ürün', filterType: 'input' }),
@@ -345,10 +348,10 @@ class TabTSFis extends TabFis {
 				rootPart.gridPart = gridPart
 				extend(gridPart, {
 					gridSatirCiftTiklandiBlock: ({ sender: tanimPart, event: { args } = {} }) => {
-						let {gridWidget: w, selectedRec: det} = tanimPart ?? {}
-						let {row: { bounddata: _det } = {}} = args ?? {}
-						let {uid} = det ?? {}
-						let {_lastClickedCell: { column: belirtec } = {}} = w
+						let { gridWidget: w, selectedRec: det } = tanimPart ?? {}
+						let { row: { bounddata: _det } = {} } = args ?? {}
+						let { uid} = det ?? {}
+						let { _lastClickedCell: { column: belirtec } = {} } = w
 						if (belirtec && w.getcolumn(belirtec)?.columntype?.toLowerCase() == 'button')
 							return
 						if (det && det != _det) {
@@ -360,7 +363,7 @@ class TabTSFis extends TabFis {
 						acc.expand('duzenle')
 					},
 					gridContextMenuIstendiBlock: ({ sender: { gridWidget: w }}) => {
-						let {clickedrow: tr} = w.mousecaptureposition ?? {}
+						let { clickedrow: tr } = w.mousecaptureposition ?? {}
 						let uid = $(tr).attr('row-id')                                   // tr = null ==> skinti yok, sadece undefined alır
 						if (uid == null)
 							return true                                                  // continue next events
@@ -372,7 +375,7 @@ class TabTSFis extends TabFis {
 						return false                                                     // prevent next events
 					}
 				})
-				{
+				;{
 					let { bindingCompleteBlock: savedHandler } = gridPart
 					let veriYuklenince = async (...rest) => {
 						try {
@@ -404,9 +407,11 @@ class TabTSFis extends TabFis {
 		
 		let getDetay = () =>
 			gridPart?.selectedRec ?? {}
+		
 		let initFlag = !getDetay()
 		if (!initFlag)
-			setTimeout(() => initFlag = true, 200)
+			delay(200).then(() => initFlag = true)
+		
 		let temps = item.temps ??= {}
 		let txtMiktar, divBedel
 		let updateUI = temps.updateUI = () => {

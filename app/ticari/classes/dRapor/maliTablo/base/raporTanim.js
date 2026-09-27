@@ -104,7 +104,8 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 			.setSource(SBTabloYatayAnaliz.kaListe)
 			.addStyle_wh(250);
 		kaForm.addCheckBox('devreDisimi', 'Devre Dışı?').addStyle(
-			`$elementCSS { margin-left: 10px } $elementCSS > label { color: firebrick !important }
+			`$elementCSS { margin: 35px 0 0 10px }
+			 $elementCSS > label { color: firebrick !important }
 			 $elementCSS > input:checked + label { font-style: bold !important }`
 		);
 		let btnCSS_bgBlue =
@@ -1242,9 +1243,9 @@ class SBTabloGridci extends GridKontrolcu {
 			new GridKolon({ belirtec: 'tersIslemmi', text: 'Ters?', genislikCh: 10, cellClassName, cellsRenderer }).tipBool(),
 			new GridKolon({ belirtec: 'hesapTipi', text: 'Hesap Tipi', genislikCh: 25, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: SBTabloHesapTipi }).kodsuz().listedenSecilemez(),
 			new GridKolon({ belirtec: 'veriTipi', text: 'Veri Tipi', genislikCh: 25, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: SBTabloVeriTipi }).kodsuz().listedenSecilemez(),
-			new GridKolon({ belirtec: 'shStokHizmet', text: 'Stok/Hizmet', genislikCh: 13, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: SBTabloStokHizmet }).kodsuz().listedenSecilemez(),
+			new GridKolon({ belirtec: 'shStokHizmet', text: 'Stok/Hizmet', genislikCh: 15, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: SBTabloStokHizmet }).kodsuz().listedenSecilemez(),
 			/*new GridKolon({ belirtec: 'shAlmSat', text: 'S/H Alım-Satış', genislikCh: 15, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: AlimSatis }).kodsuz().listedenSecilemez(),*/
-			new GridKolon({ belirtec: 'shIade', text: 'S/H İADE', genislikCh: 10, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: NormalIadeVeBirlikte }).kodsuz().listedenSecilemez(),
+			new GridKolon({ belirtec: 'shIade', text: 'S/H İADE', genislikCh: 13, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: NormalIadeVeBirlikte }).kodsuz().listedenSecilemez(),
 			new GridKolon({ belirtec: 'shAyrimTipi', text: 'S/H Ayrım', genislikCh: 13, cellClassName, cellsRenderer }).tipTekSecim({ tekSecimSinif: SBTabloAyrimTipi }).kodsuz().listedenSecilemez(),
 			new GridKolon({ belirtec: 'satirListeStr', text: 'Satır Liste', genislikCh: 13, cellClassName, cellsRenderer }),
 			new GridKolon({ belirtec: 'secimlerStr', text: 'Seçimler', genislikCh: 30, cellClassName, cellsRenderer }),
@@ -1397,7 +1398,7 @@ class SBTabloGridci extends GridKontrolcu {
 		let form = fbd_content.addFormWithParent().yanYana(2)
 		form.addTextInput('aciklama', 'Açıklama').addStyle_wh(400)
 		fbd_tersIslemmi = form.addCheckBox('tersIslemmi', 'Ters İşlem?')
-			.addStyle(`$elementCSS { margin: -5px 0 0 30px }`)
+			.addStyle(`$elementCSS { margin: 30px 0 0 30px }`)
 			.setVisibleKosulu(({ builder: fbd }) => {
 				let { hesapTipi: { altSeviyeToplamimi, satirlarToplamimi, formulmu, ekBilgi: { querymi } = {} } = {} } = fbd.altInst
 				return querymi || formulmu ? true : 'jqx-hidden'

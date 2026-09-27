@@ -1,4 +1,4 @@
-.modelTanim.part { --islemTuslari-height: 55px; --header-height: calc(var(--islemTuslari-height) + 5px); overflow: hidden }
+.modelTanim.part { --islemTuslari-height: 50px; --header-height: calc(var(--islemTuslari-height) + 5px); overflow: hidden }
 .modelTanim.part .header { position: relative; height: var(--header-height) }
 .modelTanim.part .header .islemTuslari { position: relative; height: var(--islemTuslari-height); margin: 0; padding: 0; background: transparent !important; z-index: 1001 !important }
 .modelTanim.part .header .islemTuslari > .sol { background: unset !important }

@@ -5,7 +5,8 @@
 .jqx-grid .detay-grid-parent { width: var(--full); height: calc(var(--full) - 13px) }
 .jqx-grid .detay-grid-parent .jqx-grid {
 	font-size: 100%; width: var(--full);
-	max-width: calc(var(--full) - 26px) !important; max-height: calc(var(--full) - 13px) !important;
+	max-width: calc(var(--full) - 26px) !important;
+	max-height: calc(var(--full) - 13px) !important;
 	margin: 3px 0 0 0 /*; animation: 1000ms 1 grid-open */
 }
 /*@media (max-width: 610px) {
@@ -26,9 +27,9 @@
 .jqx-grid div[role=row] .jqx-grid-cell-pinned[title = true] { width: 35px }
 .jqx-widget, .jqx-widget-header, .jqx-widget-content,
 	.jqx-grid .jqx-grid-cell,
-	.jqx-grid .jqx-grid-group-cell { font-size: unset }
+		.jqx-grid .jqx-grid-group-cell { font-size: unset }
 	.jqx-grid .jqx-grid-cell,
-	.jqx-grid .jqx-grid-group-cell { /* cursor: pointer; */ cursor: initial !important }
+		.jqx-grid .jqx-grid-group-cell { /* cursor: pointer; */ cursor: initial !important }
 	.jqx-grid .jqx-grid-content .jqx-grid-cell-edit > *,
 	.jqx-grid .jqx-grid-content .jqx-grid-group-cell-edit > * {/* width: var(--full) !important ; */}
 	.jqx-grid .jqx-grid-content .jqx-grid-cell-edit > input[type=date],
@@ -39,11 +40,13 @@
 	.jqx-grid .jqx-grid-content .jqx-grid-group-cell-edit input[type=time] { text-align: center; font-size: 85% }
 .jqx-grid .jqx-grid-cell-filter-row .jqx-datetimeinput .jqx-action-button { top: 0 }
 .jqx-grid .jqx-clear >.jqx-widget-header { color: #999; background: linear-gradient(90deg, #47608d29 5%, #fdfeff2b 50%) !important }
-.jqx-grid .jqx-clear > .jqx-grid-groups-header > div > div { font-weight: bold; font-size: 100% }
+.jqx-grid .jqx-clear > .jqx-grid-groups-header > div > div { font-weight: bold; font-size: 130% }
 .jqx-grid .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header {
-	font-weight: bold; color: #999; text-wrap: pretty
+	font-weight: bold; color: #555;
+	text-wrap: pretty
 }
 .jqx-grid .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header > * {
+	font-size: 110%;
 	padding: 0 !important
 }
 .jqx-grid .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header > * > *:first-child {
@@ -52,20 +55,17 @@
 .jqx-grid:has(:focus) .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header > * > *:first-child {
 	border-bottom: 3px solid royalblue !important
 }
-.jqx-grid .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header > * > *:first-child > * {
-}
-.jqx-grid.jqx-grid-metro .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header {
-	font-size: 150%
-}
+.jqx-grid .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header > * > *:first-child > * { }
+.jqx-grid.jqx-grid-metro .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header { }
 .jqx-grid .jqx-grid-column-header > div {
 	--width: 5px;
 	max-width: calc(var(--full) - var(--width) + 1px) !important;
-	box-shadow: 1px 0 5px 1px blue;
-	box-sizing: border-box;
+	box-shadow: 1px 0 5px 0px blue;
+	box-sizing: border-box
 	/*border-right: var(--width) solid blue !important*/
 }
-.jqx-grid div[role=row] .jqx-grid-cell-selected { color: unset; background: #0d366333; border: none }
-.gridKolonVeGrupOrtak.list-item { line-height: 150% }
+.jqx-grid div[role=row] .jqx-grid-cell-selected { color: unset; background: #417fc340; border: none }
+.gridKolonVeGrupOrtak.list-item { line-height: 130% }
 .gridKolonVeGrupOrtak.list-item .kod { font-weight: bold; width: 23% }
 .jqx-grid [role = row]  * { cursor: default }
 .jqx-grid [role = row] > *:not(.jqx-grid-cell-alt):not(.jqx-grid-cell-selected).grid-readOnly { /* background: #c3c3c3; */ background: linear-gradient(90deg, #dcdcdc 20%, #d8d8d8 100%) !important }
@@ -74,12 +74,20 @@
 .jqx-grid [role = row] :has(.grid-cell-group) { background: var(--s-whitesmoke); vertical-align: top !important; box-shadow: 0 0 1px 1px lightgreen !important }
 body.dark-theme .jqx-grid [role = row] :has(.grid-cell-group) { filter: invert(1) hue-rotate(180deg) }
 .jqx-grid [role = row] .grid-cell-group {
-	font-size: 110%; font-weight: bold; color: whitesmoke; background-color: #3a3a3a; height: calc(var(--full) / 1.03);
-	vertical-align: top !important; padding: 0px 13px; padding-top: 8px; padding-bottom: 0; line-height: 23px; word-break: break-word
+	font-size: 110%; font-weight: bold;
+	color: whitesmoke; background-color: #3a3a3a;
+	height: calc(var(--full) / 1.03);
+	vertical-align: top !important;
+	padding: 0px 8px;
+	padding-top: 8px;
+	padding-bottom: 0;
+	line-height: 23px;
+	word-break: break-word
 }
 @media (max-width: 1000px) {
 	.jqx-grid [role = row] .grid-cell-group {
-		font-size: 100%; height: calc(var(--full) / .8);
+		font-size: var(--full);
+		height: calc(var(--full) / .8);
 		padding-top: 5px; line-height: 18px
 	}
 }
@@ -103,7 +111,9 @@ body.dark-theme .jqx-grid [role = row] .grid-cell-group { color: #ccc; backgroun
 .grid-contextmenu.jqx-window > div > .content { width: var(--full) !important; height: var(--full) !important; margin: 0 !important; padding: 3px 0px !important }
 .grid-contextmenu.jqx-window div { }
 .grid-contextmenu .grid-toolbar, .grid-contextmenu .grid-toolbar > #grid-islemTuslari { width: var(--full) !important }
-.grid-open-slow { animation: 2000ms 1 grid-open } .grid-open { animation: 1300ms 1 grid-open } .grid-open-fast { animation: 700ms 1 grid-open }
+.grid-open-slow { animation: 2000ms 1 grid-open }
+.grid-open { animation: 1300ms 1 grid-open }
+.grid-open-fast { animation: 700ms 1 grid-open }
 @keyframes grid-open {
 	  0% { opacity: .7; filter: blur(2px) }
 	100% { opacity: 1; filter: blur(0px) }
@@ -129,7 +139,7 @@ body.dark-theme .jqx-grid [role = row] .grid-cell-group { color: #ccc; backgroun
 	backdrop-filter: brightness(.96)
 }
 .jqx-grid [role = row] > div:not(:first-child) > div {
-	margin-top: 0 !important;
+	margin-top: -3px !important;
 	padding: 3px
 }
 .jqx-grid [role = row] > div:not(:first-child),
@@ -140,7 +150,7 @@ body.dark-theme .jqx-grid [role = row] .grid-cell-group { color: #ccc; backgroun
 	text-wrap: pretty !important;
 	word-break: auto-phrase !important
 }
-.jqx-grid [role = row]:not([row-id = '']) { box-shadow: 1px 0px 2px 1px #3f62ca91 }
+.jqx-grid [role = row]:not([row-id = '']) { box-shadow: 1px 0px 5px 1px #9ea4b7 }
 .jqx-grid [role = row] > .jqx-grid-cell-selected:not(.grid-readOnly) { font-weight: 600; color: #333 }
 @media (max-width: 1000px) {
 	.jqx-grid [role = row] > div:not(:first-child) > div {
@@ -153,6 +163,6 @@ body.dark-theme .jqx-grid [role = row] .grid-cell-group { color: #ccc; backgroun
 	.jqx-grid [role = row] > div:not(:first-child) > div {
 		margin-top: 0 !important;
 		padding: 5px 2px;
-		line-height: 12px
+		line-height: 14px
 	}
 }
