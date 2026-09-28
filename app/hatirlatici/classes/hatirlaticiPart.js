@@ -785,6 +785,7 @@ class HatirlaticiPart extends SimplePart {
 				let res = await toplu.execute()
 				if (res === false)
 					return false
+				
 				this._taskCommitted = true
 			}
 
@@ -875,9 +876,8 @@ class HatirlaticiPart extends SimplePart {
 										label: 'HATIRLATICILARI GÖSTER'
 									}
 								]
-								await ntfy({ topic: t, priority, tags, markdown, title, message, click, actions }).catch(ex => {
-									this._notificationErrors.push(getErrorText(ex))
-								})
+								await ntfy({ topic: t, priority, tags, markdown, title, message, click, actions })
+									.catch(ex => { this._notificationErrors.push(getErrorText(ex)) })
 							}
 							
 							await delay(50)
@@ -912,8 +912,11 @@ class HatirlaticiPart extends SimplePart {
 		return Math.round((gun(son) - gun(ilk)) / 86_400_000)
 	}
 	async setTaskState(e = {}) {
-		if (this.isDestroyed || this._taskBusy || this._gridLoading) return false
-		if (!['assign', 'release', 'done'].includes(e.state)) return false
+		if (this.isDestroyed || this._taskBusy || this._gridLoading)
+			return false
+		if (!['assign', 'release', 'done'].includes(e.state))
+			return false
+		
 		this._taskBusy = true
 		this._taskCommitted = false
 		this._notificationErrors = []

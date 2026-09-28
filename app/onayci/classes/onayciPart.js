@@ -345,8 +345,8 @@ class OnayciPart extends SimplePart {
 
 	filteredRecs() {
 		let { recs, arama, tip2Yapi } = this
-		let filtreTokens = arama.trim().split(/\s+/).filter(Boolean)
-		if (!filtreTokens.length)
+		let filtreTokens = arama?.trim?.().split?.(/\s+/)?.filter(Boolean) ?? []
+		if (empty(filtreTokens))
 			return recs
 	
 		let culture = 'tr-TR'
@@ -421,7 +421,7 @@ class OnayciPart extends SimplePart {
 		}
 
 		try {
-			let e = { sender: this.gridPart, recs }
+			let e = { parentPart: this.gridPart, recs }
 			switch (action) {
 				case 'view': return await this.izleIstendi(e)
 				case 'detail': return await this.belgeDetayiGosterIstendi(e)
@@ -443,7 +443,7 @@ class OnayciPart extends SimplePart {
 		try {
 			return await this._onayRedIstendi({
 				...e,
-				sender: this.gridPart ?? e.sender
+				sender: this.gridPart ?? e.parentPart
 			})
 		}
 		catch (ex) {
@@ -526,7 +526,6 @@ class OnayciPart extends SimplePart {
 			</article>`
 		)
 	}
-
 	getKAKolonlar(colKod, colAdi) {
 		let result = [colKod, colAdi].filter(Boolean)
 		if (!isMiniDevice() || result.length < 2)
@@ -540,14 +539,12 @@ class OnayciPart extends SimplePart {
 		)
 		return result
 	}
-
 	escapeHTML(value) {
 		return String(value ?? '').replace(
 			/[&<>"']/g,
 			c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
 		)
 	}
-
 	icon(id) {
 		let path = {
 			reject: '<path d="m6 6 12 12M6 18 18 6"/>',
@@ -565,7 +562,6 @@ class OnayciPart extends SimplePart {
 
 		return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg>`
 	}
-
 	getStyle() {
 		return `$elementCSS { --ony-border: #dce5ef; color: #24334a; background: #f3f6fa; font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden }
 		$elementCSS .ony-shell { position: absolute; inset: 0; padding: 0 !important; display: flex !important; flex-direction: column; container-type: inline-size }
@@ -1023,8 +1019,8 @@ class OnayciPart extends SimplePart {
 		return recs
 	}
 
-	async _onayRedIstendi({ sender: gridPart, state: onaymi, recs, rec }) {
-		gridPart ??= this.gridPart ?? {}
+	async _onayRedIstendi({ parentParts: gridPart, sender, state: onaymi, recs, rec }) {
+		gridPart ??= this.gridPart ?? sender ?? {}
 		recs ??= makeArray(rec)
 
 		let { dev } = config
@@ -1140,7 +1136,6 @@ class OnayciPart extends SimplePart {
 				return false
 
 			let { sonrakineOnayGitmesin } = inst
-
 			// Bir proformanın durdurma kararı diğer belgelere taşınmamalıdır.
 			let toplu = this.buildApprovalBatch({
 				recs, onaymi, nedenText, sonrakineOnayGitmesin
@@ -1177,16 +1172,14 @@ class OnayciPart extends SimplePart {
 			}
 		}
 	}
-
 	buildApprovalBatch({ recs, onaymi, nedenText, sonrakineOnayGitmesin }) {
 		let toplu = new MQToplu().withTrn()
 		let ts = now()
 		let groups = new Map()
-
+		let { proformaKullanilir } = this
 		for (let r of recs) {
 			let stage = Number(r.onayNo)
 			let maxStage = this.getOnayMax(r)
-
 			if (
 				!app.dbSet?.[r._db] ||
 				!this.table2Yapi[r._table] ||
@@ -1198,14 +1191,13 @@ class OnayciPart extends SimplePart {
 			) {
 				throw {
 					isError: true,
-					errorText: 'Belgenin şirket, tablo veya onay kuralı doğrulanamadı. Listeyi yenileyiniz.'
+					errorText: 'Belgenin şirket, tablo veya onay kuralı doğrulanamadı. Lütfen listeyi yenileyiniz.'
 				}
 			}
 
 			let key = JSON.stringify([
-				r._db,
-				stage,
-				this.proformaKullanilir ? r.proformaId || '' : ''
+				r._db, stage,
+				proformaKullanilir ? r.proformaId || '' : ''
 			])
 
 			if (!groups.has(key))
@@ -1216,8 +1208,8 @@ class OnayciPart extends SimplePart {
 		for (let rows of groups.values()) {
 			let { _db: db, onayNo: stage, proformaId } = rows[0]
 			stage = Number(stage)
-
-			let stop = !!(this.proformaKullanilir && proformaId && sonrakineOnayGitmesin)
+			
+			let stop = !!(proformaKullanilir && proformaId && sonrakineOnayGitmesin)
 			let upd = new MQIliskiliUpdate({
 				from: `${db}..webonay`,
 				where: { inDizi: rows.map(r => r.onayId), saha: 'id' },
@@ -1225,9 +1217,9 @@ class OnayciPart extends SimplePart {
 					{ degerAta: onaymi ? 'O' : 'R', saha: `w${stage}onaydurum` },
 					{ degerAta: ts, saha: `w${stage}onayredts` },
 					{ degerAta: nedenText || '', saha: `w${stage}onayredtext` },
-					this.proformaKullanilir ?
+					proformaKullanilir ?
 						{ degerAta: proformaId || null, saha: 'proformaid' } : null,
-					this.proformaKullanilir && proformaId ?
+					proformaKullanilir && proformaId ?
 						{ degerAta: stop ? 'X' : '', saha: `w${stage}sonradurumu` } : null
 				].filter(Boolean)
 			})
@@ -1262,17 +1254,17 @@ class OnayciPart extends SimplePart {
 			}
 
 			for (let [table, ids] of finalByTable) {
-				toplu.add(new MQIliskiliUpdate({
-					from: `${db}..${table}`,
-					where: { inDizi: ids, saha: 'kaysayac' },
-					set: { degerAta: onaymi ? '' : 'RD', saha: 'wonay' }
-				}))
+				toplu.add(
+					new MQIliskiliUpdate({
+						from: `${db}..${table}`,
+						where: { inDizi: ids, saha: 'kaysayac' },
+						set: { degerAta: onaymi ? '' : 'RD', saha: 'wonay' }
+					})
+				)
 			}
 		}
-
 		return toplu
 	}
-
 	async notifyNextApprovers({ recs, onaymi, sonrakineOnayGitmesin }) {
 		let errors = []
 		let onayBilgiSet = new Set()
