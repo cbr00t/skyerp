@@ -1886,7 +1886,7 @@ class OnayciPart extends SimplePart {
 
 					;{
 						rfb.addIslemTuslari('islemTuslari')
-							.setEkSagButonlar('onay', 'red', 'tazele', 'vazgec')
+							.setEkSagButonlar(['onay', 'red', 'tazele', 'vazgec'])
 							.setButonlarIlk([
 								{
 									id: 'onay',
@@ -1924,9 +1924,26 @@ class OnayciPart extends SimplePart {
 							.addCSS('islemTuslari absolute')
 							.addStyle_wh(4000, 'var(--header-height)')
 							.addStyle(
-								`$elementCSS { right: 5px }
+								`$elementCSS { left: 70vw; top: -5px; z-index: 1005 !important }
+								 $elementCSS > div > * { gap: 1.3em !important }
 								 $elementCSS > div .sol { display: none !important; z-index: -1 !important }
-								 $elementCSS > div .sag { --width-sag: 380px !important; background: transparent !important; z-index: 1001 !important }`
+								 $elementCSS > div .sag { --width-sag: 380px !important; background: transparent !important; z-index: 1001 !important }
+								 $elementCSS button { font-size: 35pt !important; padding: 0 !important; background-position: center !important }
+								 @media (max-width: 1200px) {
+									 $elementCSS { left: 63vw }
+								 }
+								 @media (max-width: 900px) {
+									 $elementCSS { left: 57vw }
+									 $elementCSS > div > * { gap: .7em !important }
+								 }
+								 @media (max-width: 710px) {
+									 $elementCSS { left: 45vw }
+									 $elementCSS > div > * { gap: .5em !important }
+								 }
+								 @media (max-width: 580px) {
+									 $elementCSS { left: 38vw }
+									 $elementCSS > div > * { gap: .4em !important }
+								 }`
 							)
 					}
 

@@ -122,8 +122,8 @@ class OnayciApp extends TicariApp {
 		
 		let items = []
 		let classes = [
-			// OnayciPart
-			( dev ? OnayciPart : MQOnayci )
+			OnayciPart
+			// ( dev ? OnayciPart : MQOnayci )
 		]
 		for (let cls of classes) {
 			let { vioAdim, kodListeTipi: mne, sinifAdi: text, mqYapimi: mq } = cls

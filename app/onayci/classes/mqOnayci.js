@@ -630,7 +630,8 @@ class MQOnayci extends MQCogul {
 		if (degistimi) {
 			let { ntfyTopic: topic } = app
 			let priority = 1, tags = ['_new']
-			await ntfy({ topic, priority, tags })
+			if (false)
+				await ntfy({ topic, priority, tags })
 		}
 		return true
 	}
@@ -723,7 +724,7 @@ class MQOnayci extends MQCogul {
 			gridPart.tazele()
 	}
 
-	static async onayRedIstendi({ sender: gridPart, state: onaymi, recs, rec }) {
+	static async onayRedIstendi({ parentPart: gridPart, state: onaymi, recs, rec }) {
 		gridPart ??= app.activeWndPart
 		recs ??= makeArray(rec)
 		
@@ -1010,11 +1011,15 @@ class MQOnayci extends MQCogul {
 						}
 						
 						seqId = newGUID()
-						await ntfy({ topic, seqId, priority, tags, title, message, icon, actions })
+						if (false)
+							await ntfy({ topic, seqId, priority, tags, title, message, icon, actions })
 					}
 				}
 				
-				try { await toplu.execute() }
+				try {
+					if (false)
+						await toplu.execute() 
+				}
 				catch (ex) {
 					if (seqId && !empty(topicSet)) {
 						// clear nextUser notifications
@@ -1055,7 +1060,7 @@ class MQOnayci extends MQCogul {
 		}
 		//- IPTAL - -- onaykurali: { tip: GAF }, { tip: TS, OnayNo: 2 }	-- onayNo yoksa =1 demektir
 	}
-	static async belgeDetayiGosterIstendi({ sender: gridPart, recs: orjRecs }) {
+	static async belgeDetayiGosterIstendi({ parentPart: gridPart, recs: orjRecs }) {
 		let e = { ...arguments[0] }
 		let islemAdi = 'Belge Detayı Göster'
 
@@ -1099,7 +1104,7 @@ class MQOnayci extends MQCogul {
 			throw ex
 		}
 	}
-	static async izleIstendi({ sender: gridPart, recs, rec, anlasmami, temps = {} }) {
+	static async izleIstendi({ parentPart: gridPart, recs, rec, anlasmami, temps = {} }) {
 		let orj_e = arguments[0]
 		let e = { ...orj_e }
 		let islemAdi = 'Belge İçerik Göster'
@@ -1562,11 +1567,11 @@ class MQOnayci extends MQCogul {
 			if (!orj_e.aborted && eDocCount) {
 				let c = this._callbacks ??= {}
 				c.wndEIslem ??= (uuid, state) => {
-					// let { activeWndPart: sender } = wnd
-					let sender = gridPart
-					let { boundRecs: recs } = sender ?? {}
+					// let { activeWndPart: parentPart } = wnd
+					let parentPart = gridPart
+					let { boundRecs: recs } = parentPart ?? {}
 					let rec = recs?.find(r => r.uuid == uuid)
-					this?.onayRedIstendi?.({ sender: gridPart, state, rec })
+					this?.onayRedIstendi?.({ parentPart: gridPart, state, rec })
 				}
 				
 				for (let { eDoc, rec } of eDocs) {
@@ -1644,7 +1649,7 @@ class MQOnayci extends MQCogul {
 			throw ex
 		}
 	}
-	static async proformalariGosterIstendi({ sender: gridPart, recs: orjRecs }) {
+	static async proformalariGosterIstendi({ parentPart: gridPart, recs: orjRecs }) {
 		let e = { ...arguments[0] }
 		let islemAdi = 'Proforma Göster'
 
