@@ -99,15 +99,16 @@ class GridPart extends Part {
 			gridVeriDegistiBlock: e.gridVeriDegisince || e.gridVeriDegistiBlock || e.gridVeriDegisti || e.cellValueChanged,
 			gridGroupsChangedBlock: e.groupsChanged ?? e.groupsChangedBlock ?? e.gridGroupsChanged ?? e.gridGroupsChangedBlock,
 			gridRenderedBlock: e.gridRenderedBlock || e.gridRendered, tusaBasilincaBlock: e.tusaBasilincaBlock || e.tusaBasilinca,
+			gridSelectionChangedBlock: e.gridSelectionChangedBlock ?? e.gridSelectionChanged,
 			gridHucreTiklandiBlock: e.gridHucreTiklandiBlock || e.gridHucreTiklandi, gridHucreCiftTiklandiBlock: e.gridHucreCiftTiklandiBlock || e.gridHucreCiftTiklandi,
 			gridHucreTiklandiBlock: e.gridHucreTiklandiBlock || e.gridHucreTiklandi, gridHucreCiftTiklandiBlock: e.gridHucreCiftTiklandiBlock || e.gridHucreCiftTiklandi,
 			gridContextMenuIstendiBlock: e.gridContextMenuIstendiBlock || e.gridContextMenuIstendi, gridIDBelirtec: e.gridIDBelirtec || this.defaultGridIDBelirtec,
 			kolonFiltreDuzenleyici: e.kolonFiltreDuzenleyici ?? new GridKolonFiltreDuzenleyici(), sabitFlag: e.sabit ?? e.sabitmi ?? e.sabitFlag ?? this.defaultSabitFlag ?? false, detaySinif: e.detaySinif,
 			_kontrolcu: e.kontrolcu, rowNumberOlmasinFlag: e.rowNumberOlmasin ?? e.rowNumberOlmasinFlag ?? (isMiniDevice() ? true : undefined),
 			notAdaptiveFlag: e.notAdaptive ?? e.notAdaptiveFlag, noAnimateFlag: e.noAnimate ?? e.noAnimateFlag,
-			toplamYapi: e.toplamYapi
+			toplamYapi: e.toplamYapi, _selectedRows: e._selectedRows ?? e.selectedRows ?? {}
 		})
-		let {kolonFiltreDuzenleyici} = this
+		let { kolonFiltreDuzenleyici } = this
 		if (isPlainObject(kolonFiltreDuzenleyici))
 			kolonFiltreDuzenleyici = this.kolonFiltreDuzenleyici = new GridKolonFiltreDuzenleyici(kolonFiltreDuzenleyici)
 	}
@@ -145,7 +146,7 @@ class GridPart extends Part {
 		let grid = this.grid ?? this.layout
 		if (grid.hasClass('wnd-content')) { grid = grid.find(this.gridFormSelector) }
 		this.grid = grid
-		let { builder, tabloKolonlari, argsDuzenleBlock, gridRenderedBlock, cacheFlag, asyncFlag, notAdaptiveFlag, toplamYapi } = this
+		let { builder, tabloKolonlari, argsDuzenleBlock, cacheFlag, asyncFlag, notAdaptiveFlag, toplamYapi } = this
 		let mini = isMiniDevice(), micro = isMicroDevice()
 		let cache = cacheFlag, async = asyncFlag, _theme = theme;	/*let _theme = theme == 'metro' ? 'material' : theme;*/
 		let args = {
@@ -176,8 +177,12 @@ class GridPart extends Part {
 				this.gridRendered({ sender: this, builder, type, gridPart: this, grid: this.grid, gridWidget: this.gridWidget }),
 			/*rendered: type => this.gridRendered({ sender: this, builder, type: e, grid, gridWidget }), */
 			handleKeyboardNavigation: evt => {
-				if (this.dragDropDisabledFlag_resetTimer) { clearTimeout(this.dragDropDisabledFlag_resetTimer); delete this.dragDropDisabledFlag_resetTimer }
-				let {builder, grid, gridWidget} = this; this.dragDropDisabledFlag = true;
+				if ( this.dragDropDisabledFlag_resetTimer ) {
+					clearTimeout(this.dragDropDisabledFlag_resetTimer)
+					delete this.dragDropDisabledFlag_resetTimer
+				}
+				let { builder, grid, gridWidget } = this
+				this.dragDropDisabledFlag = true
 				try { return this.gridHandleKeyboardNavigation({ sender: this, builder, event: evt, grid, gridWidget }) }
 				finally {
 					this.dragDropDisabledFlag_resetTimer = setTimeout(() => {
@@ -300,6 +305,8 @@ class GridPart extends Part {
 		grid.on('celldoubleclick', evt => setTimeout(() => this.gridHucreCiftTiklandi({ sender: this, type: 'cell', builder, event: evt }), 10));
 		grid.on('bindingcomplete', event => this.gridVeriYuklendi({ ...e, sender: this, builder, event, grid, gridWidget, source: gridWidget.source }));
 		grid.on('groupschanged', event => this.gridGroupsChanged({ ...e, sender: this, builder, event, grid, gridWidget, source: gridWidget.source }));
+		grid.on('rowselect', evt => delay(10).then(() => this.gridSelectionChanged({ sender: this, type: 'row', state: true, builder, event: evt })))
+		grid.on('rowunselect', evt => delay(10).then(() => this.gridSelectionChanged({ sender: this, type: 'row', state: false, builder, event: evt })))
 		grid.on('cellvaluechanged', evt => {
 			let _e = {
 				...e, sender: this, builder, event: evt, grid, gridWidget, belirtec: evt.args.datafield,
@@ -952,18 +959,44 @@ class GridPart extends Part {
 	adaptive() { return this.notAdaptiveFlag = false; return this } notAdaptive() { return this.notAdaptiveFlag = true; return this }
 	animate() { this.noAnimateFlag = false; return this } noAnimate() { this.noAnimateFlag = true; return this }
 	async gridVeriYuklendi(e) {
-		let {grid, gridWidget, bindingCompleteBlock, expandedIndexes} = this
-		setTimeout(() => grid.find(`span:contains("www.jqwidgets.com")`).addClass('basic-hidden'), 50)
+		let { grid, gridWidget: w, bindingCompleteBlock, expandedIndexes, recs = [], _selectedRows = {} } = this
+		delay(50, () => grid.find(`span:contains("www.jqwidgets.com")`).addClass('basic-hidden'))
 		if (empty(expandedIndexes))
 			await this.kolonFiltreDegisti(e)
+		
 		if (bindingCompleteBlock)
 			await getFuncValue.call(this, bindingCompleteBlock, e)
+		
 		let kontrolcu = this.getKontrolcu(e)
 		await kontrolcu?.gridVeriYuklendi?.(e)
 		this.gridGroupsChanged(e)
+		
 		if (empty(expandedIndexes)) {
 			for (let delayMS of [100])
 				setTimeout(() => this.onResize(), delayMS)
+		}
+
+		if (!(empty(recs) || empty(_selectedRows))) {
+			function getKey(r) {
+				let ignoreKeys = asSet(['uid', 'uniqueid', 'boundindex', 'visibleindex', '_rowNumber', '_p'])
+				let res = []
+				for (let [k, v] of entries(r)) {
+					if (!ignoreKeys[k] && v != null)
+						res.push(String(v))
+				}
+				return res
+			}
+			
+			w.beginupdate()
+			try {
+				w.clearselection()
+				grid.jqxGrid('selectedrowindexes', (
+					recs
+						.filter(r => _selectedRows[getKey(r)])
+						.map(r => r.visibleindex)
+				))
+			}
+			finally { w.endupdate() }
 		}
 	}
 	gridVeriDegisti(e) {
@@ -987,6 +1020,45 @@ class GridPart extends Part {
 				if (hasGroup) { if (!jqxCol.hidden) { gridWidget.hidecolumn(belirtec) } } else { if (!state.hidden && jqxCol.hidden) { gridWidget.showcolumn(belirtec) } }
 			}
 		}
+	}
+	gridSelectionChanged(e) {
+		let { gridWidget: w, gridSelectionChangedBlock: handler, clickedColumn } = this
+		if (!clickedColumn)
+			return
+		
+		let { event: evt, state } = e
+		let { args: { rowindex: ri } = {} } = evt
+		let r = w.getrowdata(ri)
+		if (r == null)
+			return
+
+		function getKey() {
+			let ignoreKeys = asSet(['uid', 'uniqueid', 'boundindex', 'visibleindex', '_rowNumber', '_p'])
+			let res = []
+			for (let [k, v] of entries(r)) {
+				if (!ignoreKeys[k] && v != null)
+					res.push(String(v))
+			}
+			return res
+		}
+		
+		let _selectedRows = this._selectedRows ??= {}
+		if (!state) {
+			if (ri != null) {
+				let indexes = makeArray(ri)
+				deleteKeys(_selectedRows, ...indexes.map(i => getKey(w.getrowdata(i))))
+			}
+			// this._selectedRows = {}
+		}
+		else
+			_selectedRows[getKey()] = r
+		
+		let _e = { ...e, rowIndex: ri, rec: r }
+		if (handler)
+			handler.call(this, _e)
+
+		let kontrolcu = this.getKontrolcu(_e)
+		kontrolcu?.gridSelectionChanged?.(_e)
 	}
 	gridRendered(e) {
 		let { gridRenderedBlock } = this
