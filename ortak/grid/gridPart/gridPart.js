@@ -979,12 +979,12 @@ class GridPart extends Part {
 		if (!(empty(recs) || empty(_selectedRows))) {
 			function getKey(r) {
 				let ignoreKeys = asSet(['uid', 'uniqueid', 'boundindex', 'visibleindex', '_rowNumber', '_p'])
-				let res = []
+				let res = {}
 				for (let [k, v] of entries(r)) {
 					if (!ignoreKeys[k] && v != null)
-						res.push(String(v))
+						res[k] = v
 				}
-				return res
+				return toJSONStr(res)
 			}
 			
 			w.beginupdate()
@@ -1034,12 +1034,12 @@ class GridPart extends Part {
 
 		function getKey() {
 			let ignoreKeys = asSet(['uid', 'uniqueid', 'boundindex', 'visibleindex', '_rowNumber', '_p'])
-			let res = []
+			let res = {}
 			for (let [k, v] of entries(r)) {
 				if (!ignoreKeys[k] && v != null)
-					res.push(String(v))
+					res[k] = v
 			}
-			return res
+			return toJSONStr(res)
 		}
 		
 		let _selectedRows = this._selectedRows ??= {}
