@@ -43,16 +43,16 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		};
 		return $.merge(super.defaultTabloKolonlari, [
 			new GridKolon({ belirtec: 'eIslTipText', text: 'e-İşlem', genislikCh: 11, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
-			new GridKolon({ belirtec: 'belgeTipText', text: 'Belge<br/>Tipi', filterType: 'checkedlist', genislikCh: 13, cellClassName: getCSSDuzenleyici() }),
+			new GridKolon({ belirtec: 'belgeTipText', text: 'Belge<br/>Tipi', filterType: 'checkedlist', genislikCh: 15, cellClassName: getCSSDuzenleyici() }),
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 11, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }).tipDate(),
-			new GridKolon({ belirtec: 'fisnox', text: 'Belge<br/>No', genislikCh: 18, cellClassName: getCSSDuzenleyici() }),
+			new GridKolon({ belirtec: 'fisnox', text: 'Belge<br/>No', genislikCh: 20, cellClassName: getCSSDuzenleyici() }),
 			new GridKolon({ belirtec: 'akibetText', text: 'Akıbet', genislikCh: 12, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
-			new GridKolon({ belirtec: 'mustText', text: 'Müşteri', filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
-			new GridKolon({ belirtec: 'efimzats', text: 'XML Oluş.<br/>Zamanı', genislikCh: 11, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
-			new GridKolon({ belirtec: 'efgonderimts', text: 'Gönderim<br/>Zamanı', genislikCh: 11, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
-			new GridKolon({ belirtec: 'sonucbedel', text: 'Sonuç<br/>Bedel', genislikCh: 17, cellClassName: getCSSDuzenleyici() }).tipDecimal_bedel(),
+			new GridKolon({ belirtec: 'mustText', text: 'Müşteri', minWidth: 500, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
+			new GridKolon({ belirtec: 'efimzats', text: 'XML Oluş.<br/>Zamanı', genislikCh: 13, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
+			new GridKolon({ belirtec: 'efgonderimts', text: 'Gönderim<br/>Zamanı', genislikCh: 13, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
+			new GridKolon({ belirtec: 'sonucbedel', text: 'Sonuç<br/>Bedel', genislikCh: 19, cellClassName: getCSSDuzenleyici() }).tipDecimal_bedel(),
 			new GridKolon({ belirtec: 'dvKodText', text: 'Dv.', genislikCh: 5, cellClassName: getCSSDuzenleyici() }),
-			new GridKolon({ belirtec: 'efUUIDText', text: 'UUID<br/>(ETTN)', genislikCh: 34, cellClassName: getCSSDuzenleyici() })
+			new GridKolon({ belirtec: 'efUUIDText', text: 'UUID<br/>(ETTN)', genislikCh: 30, cellClassName: getCSSDuzenleyici() })
 		])
 	}
 	loadServerData_veriDuzenle(e) {
@@ -200,9 +200,28 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		let { event: { ctrlKey: ctrl } = {} } = e
 		if (ctrl)
 			await this.xmlKaldirIstendi({ ...e, recs })
+		
 		try {
 			extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
 			this.showProgress(_e)
+			
+			let sayaclar = asSet(recs.map(r => r.kaysayac))
+			await EYonetici.eIslemXMLOlustur({ ..._e, internal: true })
+			
+			;{
+				let pr = promise(resolve => {
+					let { veriYukleninceBlock: handler } = listePart
+					listePart.veriYuklenince((...args) => {
+						listePart.veriYuklenince(handler)
+						handler?.call(this, ...args)
+						resolve()
+					})
+				})
+				await this.tazele()
+				await pr
+				recs = _e.recs = listePart.boundRecs
+					.filter(r => sayaclar[r.kaysayac])
+			}
 			await EYonetici.eIslemGonder(_e)
 		}
 		catch (ex) {
@@ -228,6 +247,8 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		try {
 			extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
 			this.showProgress(_e)
+
+			let sayaclar = asSet(recs.map(r => r.kaysayac))
 			await EYonetici.eIslemXMLOlustur({ ..._e, internal: true })
 			;{
 				let pr = promise(resolve => {
@@ -240,7 +261,8 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 				})
 				await this.tazele()
 				await pr
-				recs = _e.recs = ( await this.getSecilenSatirlar({ islemAdi }) )?.recs
+				recs = _e.recs = listePart.boundRecs
+					.filter(r => sayaclar[r.kaysayac])
 			}
 			await EYonetici.eIslemIzle(_e)
 		}
@@ -257,7 +279,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		let {silent, event: { ctrlKey: ctrl } = {}} = e
 		let mesajli = !(silent || ctrl)
 		let _e = await this.getSecilenSatirlar({ islemAdi, mesajli }) || {}
-		let {recs} = _e
+		let { recs } = _e
 		if (!recs)
 			return
 		try {
@@ -288,6 +310,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 					this.tazele())
 				return
 			}
+			
 			this.showProgress(_e)
 			await EYonetici.eIslemSorgula(_e)
 		}

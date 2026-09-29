@@ -1002,6 +1002,8 @@ class GridPart extends Part {
 					if (index != null && index >= 0)
 						selIndexes.push(index)
 				}
+				if (selIndexes.length >= this._selectedRows?.length)
+					break
 			}
 			
 			this._restoringSelection = true
@@ -1092,8 +1094,10 @@ class GridPart extends Part {
 		let remembered = this._selectedRows ??= {}
 		for (let r of recs) {
 			let key = this.getRecKey(r)
-			if (state) remembered[key] = r
-			else delete remembered[key]
+			if (state)
+				remembered[key] = r
+			else
+				delete remembered[key]
 		}
 		
 		let _e = { ...e, rowIndex: ri, rec: recs[0] }

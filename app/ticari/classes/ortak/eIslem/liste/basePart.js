@@ -22,7 +22,7 @@ class EIslemListeBasePart extends MasterListePart {
 	getSecimler(e) { return new this.class.filtreSinif({ eConf: this.eConf }) }
 	gridArgsDuzenleDevam(e) {
 		super.gridArgsDuzenleDevam(e); let {args} = e;
-		$.extend(args, { columnsHeight: 55, rowsHeight: 45, showGroupsHeader: true, showFilterRow: true, filterMode: 'default', virtualMode: false, selectionMode: 'checkbox' })
+		$.extend(args, { columnsHeight: 55, rowsHeight: 55, showGroupsHeader: true, showFilterRow: true, filterMode: 'default', virtualMode: false, selectionMode: 'checkbox' })
 	}
 	defaultLoadServerData(e) {
 		let _e = { ...e, alias: 'fis' }, {secimler} = this, query = _e.query = secimler.getQueryStm(_e);

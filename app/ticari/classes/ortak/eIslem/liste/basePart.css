@@ -15,10 +15,7 @@
 .eIslemListe.part .islemTuslari button { /* position: absolute; right: 8px; */ background-size: 28px 28px !important }
 .eIslemListe.part .jqx-grid .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header > div { margin-top: 8px }
 .eIslemListe.part .jqx-grid .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header > div > div { line-height: 20px !important }
-.eIslemListe.part .jqx-grid div[role=row] > * { font-size: 83%; line-height: 20px; text-wrap: wrap !important; word-break: break-word !important }
 .eIslemListe.part .jqx-grid div[role=row] > * > * { position: relative; width: calc(var(--full) - 10px); height: var(--full); margin-top: 3px !important }
 .eIslemListe.part .jqx-grid div[role=row] > .jqx-grid-cell-pinned > * { margin-top: 0 !important; padding: 0; padding-left: 3px }
-.eIslemListe.part .jqx-grid [role = row] .jqx-checkbox > * { margin-top: -10px !important }
-.eIslemListe.part .jqx-grid div[role=row] > ._rowNumber > * { top: 10px }
 .eIslemListe.part .jqx-grid div[role=row] > :not(.jqx-grid-cell-pinned) {  }
 .eIslemListe.part .jqx-grid div[role=row] > :not(.jqx-grid-cell-pinned) > * { }
