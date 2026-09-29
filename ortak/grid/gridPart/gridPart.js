@@ -305,8 +305,22 @@ class GridPart extends Part {
 		grid.on('celldoubleclick', evt => setTimeout(() => this.gridHucreCiftTiklandi({ sender: this, type: 'cell', builder, event: evt }), 10));
 		grid.on('bindingcomplete', event => this.gridVeriYuklendi({ ...e, sender: this, builder, event, grid, gridWidget, source: gridWidget.source }));
 		grid.on('groupschanged', event => this.gridGroupsChanged({ ...e, sender: this, builder, event, grid, gridWidget, source: gridWidget.source }));
-		grid.on('rowselect', evt => delay(10).then(() => this.gridSelectionChanged({ sender: this, type: 'row', state: true, builder, event: evt })))
-		grid.on('rowunselect', evt => delay(10).then(() => this.gridSelectionChanged({ sender: this, type: 'row', state: false, builder, event: evt })))
+		/*grid.on('rowselect', evt => delay(10).then(() => this.gridSelectionChanged({ sender: this, type: 'row', state: true, builder, event: evt })))
+		grid.on('rowunselect', evt => delay(10).then(() => this.gridSelectionChanged({ sender: this, type: 'row', state: false, builder, event: evt })))*/
+		for (let [eventName, state] of [['rowselect', true], ['rowunselect', false]]) {
+			grid.on(eventName, evt => {
+				if (this._restoringSelection)
+					return
+				let rowIndex = evt.args?.rowindex
+				let indexes = isArray(rowIndex) ? rowIndex : [rowIndex]
+				let recs = indexes.map(i => gridWidget.getrowdata(i)).filter(Boolean)
+				let selectionVersion = this._selectionVersion ?? 0
+				delay(10).then(() => {
+					if (selectionVersion == (this._selectionVersion ?? 0))
+						this.gridSelectionChanged({ sender: this, type: 'row', state, builder, event: evt, rowIndex, recs })
+				})
+			})
+		}
 		grid.on('cellvaluechanged', evt => {
 			let _e = {
 				...e, sender: this, builder, event: evt, grid, gridWidget, belirtec: evt.args.datafield,
@@ -869,19 +883,31 @@ class GridPart extends Part {
 		}
 		return _e.result
 	}
-	tazeleDefer(e) {
-		e = e || {}; let deferMS = (typeof e == 'object' ? e.deferMS : e) ?? 500; let timerKey = '_timer_tazeleDefer'; clearTimeout(this[timerKey]);
-		this[timerKey] = setTimeout(() => { if (this.isDestroyed) { return } try { this.tazele(e) } finally { delete this[timerKey] } }, deferMS)
+	tazeleDefer(e = {}) {
+		let deferMS = (isObject(e) ? e.deferMS : e) ?? 500
+		let timerKey = '_timer_tazeleDefer'
+		clearTimeout(this[timerKey])
+		this[timerKey] = setTimeout(() => {
+			if (this.isDestroyed)
+				return
+			try { this.tazele(e) }
+			finally { delete this[timerKey] }
+		}, deferMS)
 		return this
 	}
 	tazele(e = {}) {
+		let { grid, gridWidget: w, noAnimateFlag, _selectedRows, boundRecs, selectedRecs, _maxRecLen: maxLen } = this
 		let { action } = e
 		if (action)
 			this._tazele_lastAction = action
 		
 		this.expandedIndexes = {}
-		let { grid, gridWidget, noAnimateFlag } = this
-		if (gridWidget?.isbindingcompleted()) {
+		if (boundRecs && maxLen != null && boundRecs.length >= maxLen) {
+			this._selectedRows = _selectedRows = fromEntries(
+				selectedRecs.map(r => [ this.getRecKey(r), r ]))
+		}
+		
+		if (w?.isbindingcompleted()) {
 			if (!noAnimateFlag) {
 				let animation = 'grid-open-slow'
 				grid.removeClass('grid-open grid-open-fast grid-open-slow')
@@ -892,15 +918,19 @@ class GridPart extends Part {
 					delete this.timer_animate
 				}, 2000)
 			}
-			try { gridWidget.refresh() }
+			
+			try { w.refresh() }
 			catch (ex) { }
 			
-			try { return gridWidget.updatebounddata() }
+			try { return w.updatebounddata() }
 			catch (ex) {
-				delay(500).then(() => gridWidget.updatebounddata())
+				delay(500).then(() => w.updatebounddata())
 				console.debug(ex)
 				return this
 			}
+			
+			if (w?.isbindingcompleted() && this._lastRecs)
+				this.syncSelectedRows()
 		}
 		return this
 	}
@@ -960,7 +990,36 @@ class GridPart extends Part {
 	animate() { this.noAnimateFlag = false; return this } noAnimate() { this.noAnimateFlag = true; return this }
 	async gridVeriYuklendi(e) {
 		let { grid, gridWidget: w, bindingCompleteBlock, expandedIndexes, recs = [], _selectedRows = {} } = this
-		delay(50, () => grid.find(`span:contains("www.jqwidgets.com")`).addClass('basic-hidden'))
+		delay(50, () =>
+			grid.find(`span:contains("www.jqwidgets.com")`).addClass('basic-hidden'))
+
+
+		if (this.isSelectionMode_rows || this.isSelectionMode_checkBox) {
+			let selIndexes = []
+			for (let r of w.getrows() ?? recs) {
+				if (Object.prototype.hasOwnProperty.call(this._selectedRows, this.getRecKey(r))) {
+					let index = r.boundindex ?? r.visibleindex
+					if (index != null && index >= 0)
+						selIndexes.push(index)
+				}
+			}
+			
+			this._restoringSelection = true
+			// w.beginupdate()
+			try {
+				w.clearselection()
+				grid.jqxGrid('selectedrowindexes', selIndexes)
+				w.refresh()
+			}
+			finally {
+				// w.endupdate()
+				this._restoringSelection = false
+			}
+		}
+		
+		this._lastRecs = w.getrows() ?? recs
+		this._maxRecLen = max(this._maxRecLen || 0, this._lastRecs?.length)
+		
 		if (empty(expandedIndexes))
 			await this.kolonFiltreDegisti(e)
 		
@@ -972,31 +1031,8 @@ class GridPart extends Part {
 		this.gridGroupsChanged(e)
 		
 		if (empty(expandedIndexes)) {
-			for (let delayMS of [100])
-				setTimeout(() => this.onResize(), delayMS)
-		}
-
-		if (!(empty(recs) || empty(_selectedRows))) {
-			function getKey(r) {
-				let ignoreKeys = asSet(['uid', 'uniqueid', 'boundindex', 'visibleindex', '_rowNumber', '_p'])
-				let res = []
-				for (let [k, v] of entries(r)) {
-					if (!ignoreKeys[k] && v != null)
-						res.push(`${k}=${String(v)}`)
-				}
-				return res
-			}
-			
-			w.beginupdate()
-			try {
-				w.clearselection()
-				grid.jqxGrid('selectedrowindexes', (
-					recs
-						.filter(r => _selectedRows[getKey(r)])
-						.map(r => r.visibleindex)
-				))
-			}
-			finally { w.endupdate() }
+			delay(100).then(() =>
+				this.onResize())
 		}
 	}
 	gridVeriDegisti(e) {
@@ -1021,44 +1057,50 @@ class GridPart extends Part {
 			}
 		}
 	}
-	gridSelectionChanged(e) {
-		let { gridWidget: w, gridSelectionChangedBlock: handler, clickedColumn } = this
-		if (!clickedColumn)
+	syncSelectedRows() {
+		let { gridWidget: w, boundRecs: recs = [], selectedRowIndexes = [] } = this
+		if (!(w && (this.isSelectionMode_rows || this.isSelectionMode_checkBox)))
 			return
 		
-		let { event: evt, state } = e
-		let { args: { rowindex: ri } = {} } = evt
-		let r = w.getrowdata(ri)
-		if (r == null)
-			return
+		let selected = new Set(selectedRowIndexes.map(Number))
+		let remembered = this._selectedRows ??= {}
+		for (let r of recs) {
+			let { boundindex: index = r.visibleindex } = r
+			if (index == null || index < 0)
+				continue
+			
+			let key = this.getRecKey(r)
+			if (selected.has(index))
+				remembered[key] = r
+			else
+				delete remembered[key]
+		}
+		this._selectionVersion = (this._selectionVersion ?? 0) + 1
+	}
 
-		function getKey() {
-			let ignoreKeys = asSet(['uid', 'uniqueid', 'boundindex', 'visibleindex', '_rowNumber', '_p'])
-			let res = []
-			for (let [k, v] of entries(r)) {
-				if (!ignoreKeys[k] && v != null)
-					res.push(`${k}=${String(v)}`)
-			}
-			return res
+	gridSelectionChanged(e) {
+		let { gridWidget: w, gridSelectionChangedBlock: handler } = this
+		let { event: evt, state, rowIndex: ri = evt?.args?.rowindex, recs = [] } = e
+		
+		if (empty(recs)) {
+			let indexes = isArray(ri) ? ri : [ri]
+			recs = indexes.map(i => w.getrowdata(i)).filter(Boolean)
+		}
+		if (empty(recs))
+			return
+		
+		let remembered = this._selectedRows ??= {}
+		for (let r of recs) {
+			let key = this.getRecKey(r)
+			if (state) remembered[key] = r
+			else delete remembered[key]
 		}
 		
-		let _selectedRows = this._selectedRows ??= {}
-		if (!state) {
-			if (ri != null) {
-				let indexes = makeArray(ri)
-				deleteKeys(_selectedRows, ...indexes.map(i => getKey(w.getrowdata(i))))
-			}
-			// this._selectedRows = {}
-		}
-		else
-			_selectedRows[getKey()] = r
-		
-		let _e = { ...e, rowIndex: ri, rec: r }
+		let _e = { ...e, rowIndex: ri, rec: recs[0] }
 		if (handler)
 			handler.call(this, _e)
-
-		let kontrolcu = this.getKontrolcu(_e)
-		kontrolcu?.gridSelectionChanged?.(_e)
+		
+		this.getKontrolcu(_e)?.gridSelectionChanged?.(_e)
 	}
 	gridRendered(e) {
 		let { gridRenderedBlock } = this
@@ -1648,6 +1690,23 @@ class GridPart extends Part {
 		let result; for (let belirtec of colNames) {
 			result = (belirtec2Kolon[belirtec]?.[eventName]?.(...args)) ?? result }
 		return result
+	}
+	getRecKey(r) {
+		if (r == null)
+			return null
+		
+		let ignoreKeys = new Set(['uid', 'uniqueid', 'boundindex', 'visibleindex', '_rowNumber', '_p'])
+		let tokens = []
+		for (let k of keys(r).sort()) {
+			if (ignoreKeys.has(k) || r[k] == null)
+				continue
+			let v = r[k]
+			if (isFunction(v) || isClassOrInstance(v))
+				continue
+			let value = isObject(v) ? toJSONStr(v) : String(v)
+			tokens.push([k, typeof v, value])
+		}
+		return JSON.stringify(tokens)
 	}
 	onResize(e) {
 		super.onResize(e); clearTimeout(this._timer_gridResize); delete this._timer_gridResize;
