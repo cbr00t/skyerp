@@ -12,7 +12,7 @@ class StokHareketci extends Hareketci {
 	static get finAnaliz_baIcinTersIslemYapilirmi() { return false }
 
 	static get clausecu() {
-		let { _clausecu: result } = this
+		let { _clausecu: result, _kesimFisVarmi } = this
 		if (result == null) {
 			result = this._clausecu = {
 				ticNetBedel: () =>
@@ -27,29 +27,37 @@ class StokHareketci extends Hareketci {
 				urunMiktarClause: () =>
 					'coalesce(hbed.miktar, cast(har.urunsayisi as dec(17,5)))',
 				tekstilSentBaslat: (sent, harTablo) => {
-					let {where: wh} = sent;
-					sent.fisHareket('kesimfis', harTablo)
-						.leftJoin('fis', 'ufis uret', 'fis.kaysayac = uret.kesimfissayac');
-					wh.fisSilindiEkle().add('uret.kesimfissayac IS NULL', 'fis.bdevirmi = 0');    /* uretim fisine donusmemis kesim */
+					if (_kesimFisVarmi) {
+						let { where: wh } = sent
+						sent.fisHareket('kesimfis', harTablo)
+							.leftJoin('fis', 'ufis uret', 'fis.kaysayac = uret.kesimfissayac')
+						wh.fisSilindiEkle().add('uret.kesimfissayac IS NULL', 'fis.bdevirmi = 0')    // uretim fisine donusmemis kesim
+					}
 				},
 				tekstilUrunSentBaslat: (sent, harTablo) => {
-					this.clausecu.tekstilSentBaslat(sent, 'kesimdetay'); let {where: wh} = sent;
-					sent.leftJoin('har', 'kesimdetbeden hbed', 'har.kaysayac = hbed.harsayac')
-						.fromIliski('maldepartman dep', 'fis.depkod = dep.kod');
-					wh.add(`coalesce(hbed.miktar, har.urunsayisi) <> 0`)
+					if (_kesimFisVarmi) {
+						let { clausecu } = this, { where: wh } = sent
+						clausecu.tekstilSentBaslat(sent, 'kesimdetay')
+						sent.leftJoin('har', 'kesimdetbeden hbed', 'har.kaysayac = hbed.harsayac')
+							.fromIliski('maldepartman dep', 'fis.depkod = dep.kod');
+						wh.add(`coalesce(hbed.miktar, har.urunsayisi) <> 0`)
+					}
 				},
 				tekstilDigerSentBaslat: (sent, harTablo) => {
-					this.clausecu.tekstilSentBaslat(sent, 'kesimdetay'); let {where: wh} = sent;
-					sent.fromIliski('stkmst urn', 'fis.urunkod = urn.kod');
+					if (_kesimFisVarmi) {
+						let { clausecu } = this, { where: wh } = sent
+						clausecu.tekstilSentBaslat(sent, 'kesimdetay')
+						sent.fromIliski('stkmst urn', 'fis.urunkod = urn.kod');
+					}
 				}
 			}
 		}
 		return result
 	}
 	static get hvci() {
-		let {_hvci: result} = this;
+		let { _hvci: result } = this
 		if (result == null) {
-			let {sqlNull, sqlZero} = Hareketci_UniBilgi.ortakArgs
+			let { sqlNull, sqlZero } = Hareketci_UniBilgi.ortakArgs
 			result = this._hvci = {
 				opno: sqlNull,
 				basitToplanamaz: hv => ({
@@ -68,7 +76,10 @@ class StokHareketci extends Hareketci {
 					belgedipotvvegekap: 'har.dipotvvegekap', bedel: 'har.bedel'
 				}),
 				basit: (hv, miktarClause) =>
-					({ ...this.hvci.basitToplanamaz(hv), ...this.hvci.basitToplanabilir(miktarClause) }),
+					({
+						...this.hvci.basitToplanamaz(hv),
+						...this.hvci.basitToplanabilir(miktarClause)
+					}),
 				tum: ({ hv, yerKodClause, miktarClause, maliyetsizmi }) => ({
 					...this.hvci.basit(hv, miktarClause), unionayrim: `'IrsFat'`,
 					dosyatipi: `(case when fis.iade = 'I' then (case when fis.almsat = 'T' then 'FatTI' else 'FatAI' end) else 'FatN' end)`,
@@ -149,18 +160,19 @@ class StokHareketci extends Hareketci {
 			(satis.stokIadeGiderPusulasi ? new CKodVeAdi(['giderPusulasi', 'Gider Pusulası']) : null),
 			(ticari.sutAlim ? new CKodVeAdi(['topluAlimMakbuz', 'Toplu Alım Makbuz']) : null),
 			(gercekmi && uretim.tekstil ? new CKodVeAdi(['kesimIslemi', 'Kesim İşlemi']) : null)
-		].filter(x => !!x))
+		].filter(Boolean))
     }
 	static async ilkIslemler(e) {
 		await super.ilkIslemler(e)
-		if (this._sablonsalVarmi == null)
-			this._sablonsalVarmi = await app.sqlHasTable('ozellikbirlesim')
+		this._sablonsalVarmi ??= await app.sqlHasTable('ozellikbirlesim')
+		this._kesimFisVarmi ??= await app.sqlHasTable('kesimfis')
+		
 	}
 	uniDuzenleOncesi({ sender: { finansalAnalizmi } = {} }) {
 		super.uniDuzenleOncesi(...arguments)
 		let {attrSet} = this
 		if (finansalAnalizmi && attrSet) {
-			// $.extend(attrSet, asSet(['miktar', 'miktar2']))
+			// extend(attrSet, asSet(['miktar', 'miktar2']))
 			for (let key of ['bedel', 'brutbedel', 'malmuh', 'malhammadde', 'fmalmuh', 'fmalhammadde'])
 				delete attrSet[key]
 		}
@@ -241,11 +253,14 @@ class StokHareketci extends Hareketci {
     }
     /** UNION sorgusu hazırlama – hareket tipleri için */
     uygunluk2UnionBilgiListeDuzenleDevam(e) {
+		let { _kesimFisVarmi } = this.class
         super.uygunluk2UnionBilgiListeDuzenleDevam(e)
         this.uniDuzenle_stokGirisCikisTransfer(e).uniDuzenle_ticari(e)
 		this.uniDuzenle_perakendeVeGiderPusulasi(e).uniDuzenle_magaza(e)
 		this.uniDuzenle_fason(e).uniDuzenle_uretim(e).uniDuzenle_genelDekont(e)
-		this.uniDuzenle_topluAlimMakbuz(e).uniDuzenle_kesimIslemi(e)
+		this.uniDuzenle_topluAlimMakbuz(e)
+		if (_kesimFisVarmi)
+			this.uniDuzenle_kesimIslemi(e)
     }
 	static getHV_hmr_normal(e) { return this.getHV_hmr({ ...e, empty: false }) }
 	static getHV_hmr_bos(e) { return this.getHV_hmr({ ...e, empty: true }) }
@@ -275,7 +290,7 @@ class StokHareketci extends Hareketci {
 						`(case when fis.gctipi = 'G' then (case fis.ozeltip when 'DV' then 'Stok Devir' else 'Stok Giriş' end) else` +
 							` (case fis.ozeltip when 'SY' then 'Sayım Fişi' else 'Stok Çıkış' end)` + 
 						` end)`;
-					$.extend(hv, {
+					extend(hv, {
 						kayittipi: `'STST'`, dosyatipi: `'Stk'`, unionayrim: `'Stk'`,
 						maltip: 'fis.gctipi', iadetip: 'fis.iade', anaislemadi: gcAnaIslemAdi,
 						islemadi: 'isl.aciklama', yerkod: 'har.detyerkod', gc: 'fis.gctipi', oncelik: 'fis.oncelik',
@@ -313,7 +328,7 @@ class StokHareketci extends Hareketci {
 							` when 'FS' then 'Fasona Gönderilen' when 'SB' then 'Şubeler Arası Trf'` +
 							` when 'UC' then 'Üretime Çıkış' else 'Transfer'` +
 						` end)`
-					$.extend(hv, {
+					extend(hv, {
 						kayittipi: `'STST'`, dosyatipi: `'Trf'`, unionayrim: unionAyrim.sqlServerDegeri(),
 						maltip: 'fis.gctipi', anaislemadi: transferAnaIslemAdi, islemadi: 'isl.aciklama',
 						yerkod: yerKodClause, refyerkod: refYerKodClause, gc: gcKod.sqlServerDegeri(), oncelik: 'fis.oncelik',
@@ -330,7 +345,7 @@ class StokHareketci extends Hareketci {
 				})
 			}
 		};
-		$.extend(liste, { stokGiris$stokCikis: [uniBilgici.stokGC()] })
+		extend(liste, { stokGiris$stokCikis: [uniBilgici.stokGC()] })
 		if (uygunluk.stokTransfer && (gercekmi || yerBazindaMaliyetmi)) {
 			liste.stokTransfer = [
 				uniBilgici.transfer({ yerKodClause: 'har.detyerkod', refYerKodClause: 'har.detyerkod', gcKod: 'C', unionAyrim: 'TCik' }),
@@ -347,10 +362,10 @@ class StokHareketci extends Hareketci {
 		let {params} = app, {kullanim: alim} = params.alim, {kullanim: satis} = params.satis, {maliyet} = params;
 		let yeniEmanet = alim.yeniEmanet || satis.yeniEmanet, {alimIadeHesap: alimIadeleriHesaplanirmi} = maliyet;
 		let {gercekmi, maliyetlimi, clausecu, hvci} = this.class;
-		$.extend(liste, {
+		extend(liste, {
 			fatura$irsaliye: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
-					let {where: wh} = sent;
+					let { where: wh } = sent
 					sent.fisHareket('piffis', 'pifstok').fis2StokIslemBagla().fis2CariBagla();
 					wh.fisSilindiEkle().notDegerAta('PR', 'fis.ayrimtipi');                         /* magaza fisleri buraya gelmez ('FS' icin pifstok kaydi olmaz) */
 					if (uygunluk.fatura && maliyetlimi) {
@@ -362,43 +377,62 @@ class StokHareketci extends Hareketci {
 						]))
 					}
 					if (gercekmi) {
-						let or = new MQOrClause();
+						let or = new MQOrClause()
 						if (uygunluk.fatura) {
 							or.add(
-								new MQAndClause([{ degerAta: 'F', saha: 'fis.piftipi' }, { inDizi: ['', 'S'], saha: 'fis.onctip' }]),
-								new MQAndClause([{ degerAta: 'I', saha: 'fis.piftipi' }])
+								`fis.piftipi = 'I'`,
+								new MQAndClause([
+									{ degerAta: 'F', saha: 'fis.piftipi' },
+									{ inDizi: ['', 'S'], saha: 'fis.onctip' }
+								])
 							)
 						}
-						wh.notDegerAta('IN', 'fis.ayrimtipi');                                      /* gercek harekette 'IN' (intaç) alinmaz */
-						if (or.liste.length) { wh.add(or) }
+						wh.notDegerAta('IN', 'fis.ayrimtipi')                                       /* gercek harekette 'IN' (intaç) alinmaz */
+						if (or.liste.length)
+							wh.add(or)
 						wh.add(
 							`fis.stokkontrolagirmez = ''`,
 							new MQOrClause([
-								{ degerAta: 'I', saha: 'fis.piftipi'},
-								new MQAndClause([{ degerAta: 'F', saha: 'fis.piftipi'}, { notDegerAta: 'I', saha: 'fis.onctip' }])
+								`fis.piftipi = 'I'`,
+								new MQAndClause([
+									{ degerAta: 'F', saha: 'fis.piftipi'},
+									{ notDegerAta: 'I', saha: 'fis.onctip' }
+								])
 							])
 						)
 					}
 				}).hvDuzenleIslemi(({ hv }) => {
-					$.extend(hv, {
-						...hvci.tum({ hv, yerKodClause: 'har.detyerkod', miktarClause: '(har.miktar + har.malfazmkt)', maliyetsizmi: false }),
+					extend(hv, {
+						...hvci.tum({
+							hv,
+							yerKodClause: 'har.detyerkod',
+							miktarClause: '(har.miktar + har.malfazmkt)',
+							maliyetsizmi: false
+						}),
 						refyerkod: 'fis.detrefyerkod'
 					})
 				}),
 				(yeniEmanet && gercekmi ? new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
-					let {where: wh} = sent;
-					sent.fisHareket('piffis', 'pifstok').fis2StokIslemBagla().fis2CariBagla();
-					wh.fisSilindiEkle().degerAta('EX', 'fis.ayrimtipi');                                                                                     /* sadece 'Yeni Emanet' */
-					wh.add(`fis.fisekayrim = ''`, `fis.stokkontrolagirmez = ''`);
-					wh.add(new MQOrClause([
-						{ degerAta: 'I', saha: 'fis.piftipi' },
-						(uygunluk.fatura ? new MQAndClause([{ degerAta: 'F', saha: 'fis.piftipi' }, { degerAta: 'T', saha: 'fis.almsat' } ]) : null),        /* Satış Fatura */
-						(uygunluk.irsaliye ? new MQAndClause([{ degerAta: 'I', saha: 'fis.piftipi' }, { degerAta: 'A', saha: 'fis.almsat' } ]) : null),      /* Alım İrsaliye */
-						new MQAndClause([{ degerAta: 'F', saha: 'fis.piftipi' }, { notDegerAta: 'I', saha: 'fis.onctip' }])
-					].filter(x => !!x)));
+					let { where: wh } = sent
+					sent.fisHareket('piffis', 'pifstok').fis2StokIslemBagla().fis2CariBagla()
+					wh
+						.fisSilindiEkle()
+						.degerAta('EX', 'fis.ayrimtipi')
+						.add(`fis.fisekayrim = ''`, `fis.stokkontrolagirmez = ''`)
+						.add(new MQOrClause([
+							`fis.piftipi = 'I'`,
+							(uygunluk.fatura ? new MQAndClause([{ degerAta: 'F', saha: 'fis.piftipi' }, { degerAta: 'T', saha: 'fis.almsat' } ]) : null),        /* Satış Fatura */
+							(uygunluk.irsaliye ? new MQAndClause([{ degerAta: 'I', saha: 'fis.piftipi' }, { degerAta: 'A', saha: 'fis.almsat' } ]) : null),      /* Alım İrsaliye */
+							new MQAndClause([`fis.piftipi = 'I'`, `fis.onctip <> 'I'`])
+						].filter(Boolean)))
 				}).hvDuzenleIslemi(({ hv }) => {
-					$.extend(hv, {
-						...hvci.tum({ hv, yerKodClause: 'fis.refyerkod', miktarClause: '(har.miktar + har.malfazmkt)', maliyetsizmi: false }),
+					extend(hv, {
+						...hvci.tum({
+							hv,
+							yerKodClause: 'fis.refyerkod',
+							miktarClause: '(har.miktar + har.malfazmkt)',
+							maliyetsizmi: false
+						}),
 						refyerkod: 'fis.yerkod'
 					})
 				}) : null)
@@ -409,7 +443,7 @@ class StokHareketci extends Hareketci {
 	/** (Perakende ve Gider Pusulası) için UNION */
     uniDuzenle_perakendeVeGiderPusulasi({ uygunluk, liste }) {
 		let {clausecu, hvci} = this.class;
-		$.extend(liste, {
+		extend(liste, {
 			perakende$giderPusulasi: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					let tipListe = [
@@ -425,7 +459,7 @@ class StokHareketci extends Hareketci {
 						`(case when fis.ayrimtipi in ('GP', 'GS') then 'Gider Pusulası' else` +
 							` dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Perakende Alım', 'Perakende Satış'))` +
 						` end)`;
-					$.extend(hv, {
+					extend(hv, {
 						...hvci.basit(hv, 'har.miktar'), unionayrim: `'Per'`, anaislemadi: islemAdiClause,
 						yerkod: 'fis.yerkod', gc: `dbo.almsattext(fis.almsat, 'G', 'C')`,
 						dosyatipi: `(case when fis.ayrimtipi in ('GP', 'GS') then 'GPus' when fis.iade = 'I' then 'PerI' else 'PerN' end)`,
@@ -443,7 +477,7 @@ class StokHareketci extends Hareketci {
 	/** (Mağaza Satışı) için UNION - miktar/bedel sum() yapilir */
     uniDuzenle_magaza({ uygunluk, liste }) {
 		let {hvci, clausecu} = this.class;
-		$.extend(liste, {
+		extend(liste, {
 			magaza: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					let {where: wh} = sent;
@@ -454,7 +488,7 @@ class StokHareketci extends Hareketci {
 						`(case when fis.ayrimtipi in ('GP', 'GS') then 'Gider Pusulası' else` +
 							` dbo.iadetext(fis.iade, dbo.almsattext(fis.almsat, 'Perakende Alım', 'Perakende Satış'))` +
 						` end)`;
-					$.extend(hv, {
+					extend(hv, {
 						...hvci.basitToplanamaz(hv), unionayrim: `'Per'`, oncelik: '160', anaislemadi: islemAdiClause,
 						islemadi: `dbo.iadetext(fis.iade, 'Mağaza Satış')`, sevktarihi: 'fis.tarih',
 						dosyatipi: `(case when fis.iade = 'I' then 'MagI' else 'MagN' end)`,
@@ -476,15 +510,17 @@ class StokHareketci extends Hareketci {
     uniDuzenle_fason({ uygunluk, liste }) {
 		if (!(uygunluk.irsaliye || uygunluk.fatura)) { return this }
 		let {gercekmi, maliyetlimi, hvci, clausecu} = this.class;
-		$.extend(liste, {
+		extend(liste, {
 			fason: [
 				/* Giriş Hareketi */
 				(gercekmi ? new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					let {where: wh} = sent;
 					sent.fisHareket('piffis', 'piffsstok').fis2StokIslemBagla().fis2CariBagla();
 					let irsFatTipOr = new MQOrClause();
-					if (uygunluk.fatura) { irsFatTipOr.add(new MQAndClause([`(fis.piftipi = 'F'`, `fis.onctip in ('', 'S'))`])) }
-					if (uygunluk.irsaliye) { irsFatTipOr.add(`fis.piftipi = 'I'`) }
+					if (uygunluk.fatura)
+						irsFatTipOr.add(new MQAndClause([`fis.piftipi = 'F'`, `fis.onctip in ('', 'S')`]))
+					if (uygunluk.irsaliye)
+						irsFatTipOr.add(`fis.piftipi = 'I'`)
 					wh.fisSilindiEkle().add(
 						`fis.almsat = 'A'`, `fis.ayrimtipi = 'FS'`, `fis.refyerkod > ''`,
 						'fis.bdevirdir = 0', `fis.stokkontrolagirmez = ''`,
@@ -492,7 +528,7 @@ class StokHareketci extends Hareketci {
 						irsFatTipOr
 					)
 				}).hvDuzenleIslemi(({ hv }) => {
-					$.extend(hv, {
+					extend(hv, {
 						...hvci.tum({ hv, yerKodClause: 'fis.refyerkod', miktarClause: '(har.miktar + har.malfazmkt)', maliyetsizmi: true }),    /* cikis maliyetsiz */
 						refyerkod: 'har.detyerkod'
 					});
@@ -503,14 +539,15 @@ class StokHareketci extends Hareketci {
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					let {where: wh} = sent;
 					sent.fisHareket('piffis', 'piffsstok').fis2StokIslemBagla().fis2CariBagla();
-					wh.fisSilindiEkle().add(`fis.ayrimtipi = 'FS'`, 'fis.bdevirdir = 0', `fis.stokkontrolagirmez = ''`);                          /* sadece fasonlar */
-					let irsFatTipOr = new MQOrClause();
-					if (uygunluk.fatura && maliyetlimi) {                                                                                         /* maliyetlide cikis alinmaz */
-						irsFatTipOr.add(new MQAndClause([`(fis.piftipi = 'F'`, `dbo.almsattext(fis.almsat, 'G', 'C') = 'G'`]))
-					}
+					wh
+						.fisSilindiEkle()
+						.add(`fis.ayrimtipi = 'FS'`, 'fis.bdevirdir = 0', `fis.stokkontrolagirmez = ''`)                                          /* sadece fasonlar */
+					let irsFatTipOr = new MQOrClause()
+					if (uygunluk.fatura && maliyetlimi)                                                                                           /* maliyetlide cikis alinmaz */
+						irsFatTipOr.add(new MQAndClause([`fis.piftipi = 'F'`, `dbo.almsattext(fis.almsat, 'G', 'C') = 'G'`]))
 					if (gercekmi) {                                                                                                               /* sadece gercek hareket - irsaliye veya fatura */
-						if (uygunluk.fatura) { irsFatTipOr.add(new MQAndClause([`(fis.piftipi = 'F'`, `fis.onctip in ('', 'S')`])) }
-						if (uygunluk.irsaliye) { irsFatTipOr.add(`fis.piftipi = 'I'`) };
+						if (uygunluk.fatura) { irsFatTipOr.add(new MQAndClause([`fis.piftipi = 'F'`, `fis.onctip in ('', 'S')`])) }
+						if (uygunluk.irsaliye) { irsFatTipOr.add(`fis.piftipi = 'I'`) }
 						wh.add(new MQOrClause([`fis.piftipi = 'I'`, new MQAndClause([`fis.piftipi = 'F'`, `fis.onctip <> 'I'` ])]))
 					}
 					if (irsFatTipOr?.liste?.length) wh.add(irsFatTipOr)
@@ -520,7 +557,7 @@ class StokHareketci extends Hareketci {
 							` then dbo.iadetext(fis.iade,dbo.almmussattext(fis.almsat, 'Alım İrsaliye', 'Müstahsil İrsaliye', 'Satış İrsaliye'))` +
 							` else dbo.iadetext(fis.iade, isl.aciklama)` +
 						` end))`;
-					$.extend(hv, {
+					extend(hv, {
 						...hvci.tum({ hv, yerKodClause: 'har.detyerkod', miktarClause: '(har.miktar + har.malfazmkt)', maliyetsizmi: true }),     /* cikis maliyetsiz */
 						islemadi: islemAdiClause, dosyatipi: `'FatFS'`, refyerkod: 'fis.refyerkod'
 					});
@@ -536,7 +573,7 @@ class StokHareketci extends Hareketci {
 		let {gercekmi, maliyetlimi, hvci, clausecu} = this.class;
 		let miktarClause = 'dbo.uhnum(har.udurum, har.miktar - har.firemiktar - har.hurdamiktar, har.miktar)';
 		let nMaliyetClause = '(har.malhammadde + har.malmuh + har.malaktmuh)';
-		$.extend(liste, {
+		extend(liste, {
 			uretim: [
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					let {where: wh} = sent;
@@ -546,7 +583,7 @@ class StokHareketci extends Hareketci {
 					wh.fisSilindiEkle().add(`har.udurum <> 'A'`)    /* ara urun alinmaz */
 					if (maliyetlimi) { wh.notInDizi(['EV', 'EL'], 'fis.utip') }
 				}).hvDuzenleIslemi(({ hv }) => {
-					$.extend(hv, {
+					extend(hv, {
 						kayittipi: `'URTST'`, unionayrim: `'Urt'`,
 						dosyatipi: `(case fis.utip when 'VR' then 'Vir' when 'EV' then 'EkOz' when 'EL' then 'ElGeç' else 'Urt' end)`,
 						maltip: 'fis.udurum', iadetip: 'fis.iade',
@@ -571,7 +608,7 @@ class StokHareketci extends Hareketci {
     }
 	/* (Genel Dekont) için UNOON */
 	uniDuzenle_genelDekont({ uygunluk, liste }) {
-	    $.extend(liste, {
+	    extend(liste, {
 	        genelDekont: [
 	            new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					let {where: wh} = sent;
@@ -579,7 +616,7 @@ class StokHareketci extends Hareketci {
 	                wh.fisSilindiEkle().inDizi(['ST', 'GL', 'SH'], 'har.kayittipi')
 						.add('har.stokkod IS NOT NULL');
 	            }).hvDuzenleIslemi(({ hv }) => {
-	                $.extend(hv, {
+	                extend(hv, {
 	                    kayittipi: `'GENDK'`, dosyatipi: `'GDek'`, maltip: 'har.kayittipi', anaislemadi: `'Genel Dekont'`,
 						yerkod: 'har.yerkod', gc: `dbo.batext(har.ba, 'G', 'C')`, oncelik: '220', islkod: 'fis.islkod', islemadi: 'isl.aciklama',
 						fisaciklama: 'fis.aciklama', detaciklama: 'har.aciklama', takipno: 'har.takipno',
@@ -597,7 +634,7 @@ class StokHareketci extends Hareketci {
 	/* (Rotalı Alım) için UNOON */
 	uniDuzenle_topluAlimMakbuz({ uygunluk, liste, sqlZero }) {
 		let {gercekmi, maliyetlimi} = this.class;
-	    $.extend(liste, {
+	    extend(liste, {
 	        topluAlimMakbuz: [
 				/* rotali alim - gercek giris */
 	            (gercekmi ? new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
@@ -607,7 +644,7 @@ class StokHareketci extends Hareketci {
 							/* dogrudan Mustahsil, Toplayıcı, Tanker(Mustahsil detay icin) -- toplu satis=T alinmadi */
 	                wh.fisSilindiEkle().inDizi(['M', 'P', 'K'], 'fis.tipkod')
 	            }).hvDuzenleIslemi(({ hv }) => {
-	                $.extend(hv, {
+	                extend(hv, {
 						kayittipi: `'HIZAS'`, dosyatipi: `'Rot'`,
 						maltip: 'fis.tipkod', anaislemadi: `'Toplu Alım'`,
 						yerkod: '(case when fis.bozeldepo = 1 then coalesce(odep.yerkod,fis.yerkod) else fis.yerkod end)',
@@ -624,7 +661,7 @@ class StokHareketci extends Hareketci {
 						.fromIliski('rota rot', 'fis.toprotasayac = rot.kaysayac');
 	                wh.fisSilindiEkle().degerAta('K', 'fis.tipkod').add('har.miktar <> 0')
 	            }).hvDuzenleIslemi(({ hv }) => {
-	                $.extend(hv, {
+	                extend(hv, {
 						kayittipi: `'TPALM'`, dosyatipi: `'TPAlm'`,
 						maltip: 'fis.tipkod', anaislemadi: `'Toplu Alım'`,
 						yerkod: 'fis.yerkod', gc: `'G'`,
@@ -644,7 +681,7 @@ class StokHareketci extends Hareketci {
 						.add('ara.biptalmi = 0', 'har.miktar <> 0');
 					if (gercekmi) { wh.add(`fis.donusmus = ''`) }
 	            }).hvDuzenleIslemi(({ hv }) => {
-	                $.extend(hv, {
+	                extend(hv, {
 						kayittipi: `'TPALM'`, dosyatipi: `'TMak'`,
 						maltip: 'fis.fistipi', anaislemadi: `'Toplu Alım Makbuzu'`,
 						yerkod: 'fis.yerkod', gc: `'G'`, oncelik: '20',
@@ -659,74 +696,74 @@ class StokHareketci extends Hareketci {
     uniDuzenle_kesimIslemi({ uygunluk, liste }) {
 		let {gercekmi} = this.class; if (!gercekmi) { return this }
 		let {hvci, clausecu} = this.class;
-		$.extend(liste, {
+		extend(liste, {
 			kesimIslemi: [
 				/* Tekstil Kesim Kumas */
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					clausecu.tekstilDigerSentBaslat(sent, 'kesimdetay'); let {where: wh} = sent;
 					wh.add('har.kumasmiktar <> 0')
 				}).hvDuzenleIslemi(({ hv }) => {
-					$.extend(hv, { ...hvci.tekstilDigerDef() });
-					$.extend(hv, { ...hvci.hmrKumas(hv) })
+					extend(hv, { ...hvci.tekstilDigerDef() });
+					extend(hv, { ...hvci.hmrKumas(hv) })
 				}),
 				/* fire kumastan ek urun */
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					clausecu.tekstilDigerSentBaslat(sent, 'kesimdetay'); let {where: wh} = sent;
 					wh.add('har.firedenuretmiktar <> 0', `har.firedenstokkod > ''`)
 				}).hvDuzenleIslemi(({ hv }) => {
-					$.extend(hv, {
+					extend(hv, {
 						...hvci.tekstilDigerDef(), oncelik: '35', gc: `'G'`,
 						stokkod: 'fis.firedenstokkod', miktar: 'har.firedenuretmiktar'
 					});
-					$.extend(hv, { ...hvci.hmrEkUrun(hv) })
+					extend(hv, { ...hvci.hmrEkUrun(hv) })
 				}),
 				/* tekstil ek malzeme cikisi ve yari mamul girisi */
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					clausecu.tekstilDigerSentBaslat(sent, 'kesimek'); let {where: wh} = sent;
 					wh.add('har.firedenuretmiktar <> 0', `har.firedenstokkod > ''`)
 				}).hvDuzenleIslemi(({ hv }) => {
-					$.extend(hv, {
+					extend(hv, {
 						...hvci.tekstilDigerDef(), oncelik: '38',
 						gc: `(case when har.kayittipi = 'E' then 'G' else 'C' end)`,
 						stokkod: 'har.firedenstokkod', miktar: 'har.miktar'
 					});
-					$.extend(hv, { ...hvci.hmrEkUrun(hv) })
+					extend(hv, { ...hvci.hmrEkUrun(hv) })
 				}),
 				/* tekstil urun girisi */
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					clausecu.tekstilUrunSentBaslat(sent, 'kesimdetay'); let {where: wh} = sent;
 					wh.add('har.firedenuretmiktar <> 0', `har.firedenstokkod > ''`)
 				}).hvDuzenleIslemi(({ hv }) => {
-					$.extend(hv, {
+					extend(hv, {
 						...hvci.tekstilUrunDef(), oncelik: '40', gc: `'G'`,
 						stokkod: 'fis.urunkod', miktar: clausecu.urunMiktarClause()
 					});
-					$.extend(hv, { ...hvci.hmrAsilUrun(hv) })
+					extend(hv, { ...hvci.hmrAsilUrun(hv) })
 				}),
 				/* tekstil urun-2 girisi */
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					clausecu.tekstilUrunSentBaslat(sent, 'kesimdetay'); let {where: wh} = sent;
 					wh.add(`har.urunkod2 > ''`)
 				}).hvDuzenleIslemi(({ hv }) => {
-					$.extend(hv, {
+					extend(hv, {
 						...hvci.tekstilUrunDef(), oncelik: '40', gc: `'G'`,
 						stokkod: 'fis.urunkod2', miktar: clausecu.urunMiktarClause()
 					});
-					$.extend(hv, { ...hvci.hmrAsilUrun(hv) })
+					extend(hv, { ...hvci.hmrAsilUrun(hv) })
 				}),
 				/* tekstil urun-3 girisi */
 				new Hareketci_UniBilgi().sentDuzenleIslemi(({ sent }) => {
 					clausecu.tekstilUrunSentBaslat(sent, 'kesimdetay'); let {where: wh} = sent;
 					wh.add(`har.urunkod3 > ''`)
 				}).hvDuzenleIslemi(({ hv }) => {
-					$.extend(hv, {
+					extend(hv, {
 						...hvci.tekstilUrunDef(), oncelik: '40', gc: `'G'`,
 						stokkod: 'fis.urunkod3', miktar: clausecu.urunMiktarClause()
 					});
-					$.extend(hv, { ...hvci.hmrAsilUrun(hv) })
+					extend(hv, { ...hvci.hmrAsilUrun(hv) })
 				})
 			]
-		});
+		})
         return this
     }
 

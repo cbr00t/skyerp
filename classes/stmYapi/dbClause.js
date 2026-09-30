@@ -785,15 +785,18 @@ class MQHavingClause extends MQSubWhereClause {
 class MQAndOrClause extends MQSubWhereClause {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	buildString_baslangicsiz(e) {
-		if (this.liste.length <= 1) { super.buildString_baslangicsiz(e) } else { e.result += '('; super.buildString_baslangicsiz(e); e.result += ')' }
+		if (this.liste.length <= 1) { super.buildString_baslangicsiz(e) }
+		else { e.result += '('; super.buildString_baslangicsiz(e); e.result += ')' }
 		return this
 	}
 }
 class MQAndClause extends MQAndOrClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get baglac() { return ' AND ' }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get baglac() { return ' AND ' }
 }
 class MQOrClause extends MQAndOrClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get baglac() { return ' OR ' }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get baglac() { return ' OR ' }
 }
 class MQInClause extends MQClause {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
