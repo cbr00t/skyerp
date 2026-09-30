@@ -193,7 +193,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		let { eConf } = this
 		let islemAdi = 'e-İşlem Gönder'
 		let _e = await this.getSecilenSatirlar_mesajli({ islemAdi }) ?? {}
-		let { recs } = _e
+		let { recs, sender: listePart } = _e
 		if (!recs)
 			return
 		
