@@ -926,8 +926,8 @@ class SBTabloDetay extends MQDetay {
 				liste.push(...[
 					new GridKolon({ belirtec: 'bizsubekod', text: 'Şube', genislikCh: 5, filterType: 'checkedlist' }),
 					...MQCogul.getKAKolonlar(
-						new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 12 }).tipTarih(),
-						new GridKolon({ belirtec: 'fisnox', text: 'Belge No', genislikCh: 13 }).alignRight(),
+						new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 17 }).tipTarih(),
+						new GridKolon({ belirtec: 'fisnox', text: 'Belge No', genislikCh: 25 }).alignRight(),
 						true    // reversed
 					),
 					( yatayAnalizVarmi ? new GridKolon({ belirtec: 'yatay', text: yatayEtiket || 'Çapraz', genislikCh: 13, filterType: 'checkedlist' }) : null),
@@ -935,18 +935,18 @@ class SBTabloDetay extends MQDetay {
 					new GridKolon({ belirtec: bedelAlias, text: 'Bedel', genislikCh: 19, aggregates: ['sum'] }).tipDecimal_bedel(),
 					new GridKolon({ belirtec: 'ba', text: 'B/A', genislikCh: 5, filterType: 'checkedlist' }),
 					...MQCogul.getKAKolonlar(
-						new GridKolon({ belirtec: 'refkod', text: 'Ref. Kod', genislikCh: 16 }).checkedList(),
-						new GridKolon({ belirtec: 'refadi', text: 'Ref. Adı', genislikCh: 50 }).checkedList()
+						new GridKolon({ belirtec: 'refkod', text: 'Ref. Kod', genislikCh: 18 }).checkedList(),
+						new GridKolon({ belirtec: 'refadi', text: 'Ref. Adı', genislikCh: 60 }).checkedList()
 					),
 					// ...yatayAttrListe?.map(belirtec =>  new GridKolon({ belirtec, text: belirtec, genislikCh: 25 }) ) ?? [],
-					new GridKolon({ belirtec: 'anaislemadi', text: 'Ana İşlem', genislikCh: 30, filterType: 'checkedlist' }),
+					new GridKolon({ belirtec: 'anaislemadi', text: 'Ana İşlem', genislikCh: 20, filterType: 'checkedlist' }),
 					...MQCogul.getKAKolonlar(
-						new GridKolon({ belirtec: 'takipgrupkod', text: 'Takip Grup', genislikCh: 8, filterType: 'checkedlist' }),
-						new GridKolon({ belirtec: 'takipgrupadi', text: 'T.Grup Adı', genislikCh: 15, filterType: 'checkedlist' })
+						new GridKolon({ belirtec: 'takipgrupkod', text: 'Takip Grup', genislikCh: 13, filterType: 'checkedlist' }),
+						new GridKolon({ belirtec: 'takipgrupadi', text: 'T.Grup Adı', genislikCh: 20, filterType: 'checkedlist' })
 					),
 					...MQCogul.getKAKolonlar(
 						new GridKolon({ belirtec: 'takipno', text: 'Takip No', genislikCh: 20, filterType: 'checkedlist' }),
-						new GridKolon({ belirtec: 'takipadi', text: 'Takip Adı', genislikCh: 35, filterType: 'checkedlist' })
+						new GridKolon({ belirtec: 'takipadi', text: 'Takip Adı', genislikCh: 45, filterType: 'checkedlist' })
 					),
 					new GridKolon({ belirtec: 'islemadi', text: 'İşlem Adı', genislikCh: 20, filterType: 'checkedlist' }),
 					...MQCogul.getKAKolonlar(

@@ -17,6 +17,10 @@ class CariHareketci extends Hareketci {
 			yon: `(case ctip.satmustip when 'S' then 'sag' else 'sol' end)`
 		}
 	}
+	static icerikSabit2DefDuzenle({ liste }) {
+		super.icerikSabit2DefDuzenle(...arguments)
+		liste.push(gridKolon('vade', 'Vade', 13).checkedList().date())
+	}
 	static mstYapiDuzenle({ result }) {
 		super.mstYapiDuzenle(...arguments)
 		let defHVAlias = 'must'

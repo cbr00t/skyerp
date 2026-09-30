@@ -4,6 +4,10 @@
 <script src="<?=$_partRoot?>/etc/md5.min.js"></script>
 <script src="<?=$_partRoot?>/etc/string.js"></script>
 <script src="<?=$_partRoot?>/etc/base64.js"></script>
+
+<!-- Gerçek XLSX: veri tipleri, temel stiller ve hiyerarşi -->
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+
 <script src="<?=$_partRoot?>/etc/simple-notify.min.js"></script>
 <link rel="stylesheet" href="<?=$_partRoot?>/etc/simple-notify.css" />
 <script src="<?=$_partRoot?>/xml/xmlWriter.js?<?=$appVersion?>"></script>

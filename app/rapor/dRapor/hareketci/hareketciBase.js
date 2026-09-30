@@ -588,6 +588,9 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	async hareketKartiGoster({ rec: parentRec, uid } = {}) {
 		let e = { ...arguments[0] }
 		let rapor = this
+		if (!this.class.totalmi)
+			return
+		
 		let { gridPart, secimler } = this
 		let { grid, gridWidget: { base: w } } = gridPart
 		parentRec ??= w.rowsByKey[uid] ?? w.getSelection()[0]
@@ -599,11 +602,19 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		let { icerikSabit2Def: sabit2CD } = harSinif
 		let { attrSet = raporTanim.attrSet } = e
 		let kaSet = asSet(tabloYapi.kaPrefixes)
-
+		let { grupVeToplam } = tabloYapi
+		
 		attrSet = {
 			...attrSet,
-			...asSet('TARIH', 'REF', 'ISL', 'FISNOX', 'VADE')
+			...asSet('TARIH', 'REF', 'ISL', 'FISNOX')
 		}
+		if (!empty(sabit2CD)) {
+			for (let [key, { colDefs: [ { belirtec } ] }] of entries(grupVeToplam)) {
+				if (sabit2CD[belirtec])
+					attrSet[key] = true
+			}
+		}
+		
 		;extend(e, {
 			attrSet,
 			genelSon_ilkIslem({ stm, toplamColDefs }) {
@@ -651,11 +662,12 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 								adiSaha = b + 'adi'
 								b += 'kod'
 							}
+							
 							let cl = hv[b]
 							let v = parentRec[b]
 							if (!cl || v === undefined)
 								continue
-	
+							
 							if (dateSet[b])
 								v = asDate(v)
 							wh.degerAta(v, cl)
@@ -700,7 +712,11 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 			harYapi, parentRec,
 			getRecs: async () => {
 				e.toplamColDefs = []
-				return await this.loadServerData(e) ?? []
+				let sevRecs = await this.loadServerData(e) ?? []
+				let recs = getFlatLeafs(sevRecs)
+				if (empty(recs))    // muhtemelen tek seviye
+					recs = sevRecs
+				return recs
 			},
 			getColDefs: () => [
 				...values(sabit2CD),

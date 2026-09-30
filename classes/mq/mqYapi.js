@@ -55,12 +55,15 @@ class MQYapi extends CIO {
 		if (!frMenu)
 			return null
 
-		let targetName = new this().getExportDefName(e) || this.sinifAdi
+		let targetName = new this().getExportDefName({ basic: true }) || this.sinifAdi
 		if (!targetName)
 			return null
 		
-		let res = Array.from(frMenu)
-			.filter(r => r.choicemi && r.text?.toString?.()?.includes(targetName))
+		let res = arrayFrom(frMenu)
+			.filter(r =>
+				r.choicemi && r.mnemonic?.toString?.()?.includes(targetName) ||
+				r.text?.toString?.()?.includes(targetName)
+			)
 			.at(0) ?? {}
 		return res?.mnemonic || res?.id
 	}
@@ -238,10 +241,11 @@ class MQYapi extends CIO {
 	yeniOncesiIslemler(e) { return this.kaydetOncesiIslemler(e) }
 	degistirOncesiIslemler(e) { return this.kaydetOncesiIslemler(e) }
 	silmeOncesiIslemler(e) { return this.kaydetVeyaSilmeOncesiIslemler(e) }
-	async kaydetOncesiIslemler(e) {
-		e = e ?? {}; await this.kaydetVeyaSilmeOncesiIslemler(e);
-		let {islem} = e; if (islem == 'degistir') {
-			let {isOfflineMode, gonderildiDesteklenirmi, gonderimTSSaha} = this.class;
+	async kaydetOncesiIslemler(e = {}) {
+		await this.kaydetVeyaSilmeOncesiIslemler(e)
+		let { islem } = e
+		if (islem == 'degistir') {
+			let { isOfflineMode, gonderildiDesteklenirmi, gonderimTSSaha } = this.class
 			if (isOfflineMode && gonderildiDesteklenirmi && gonderimTSSaha) {
 				let keyHV = this.alternateKeyHostVars(e)
 				if (empty(keyHV))

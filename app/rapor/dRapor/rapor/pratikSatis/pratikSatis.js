@@ -132,7 +132,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 				`$elementCSS {
 					position: fixed !important;
 					top: 5px !important; right: 50px !important;
-					border-radius: 13px; z-index: 1001 !important;
+					border-radius: 13px; z-index: 1010 !important;
 					pointer-events: auto !important
 				}
 				$elementCSS > input { height: unset !important }

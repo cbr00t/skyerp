@@ -1213,15 +1213,29 @@ class GridPart extends Part {
 			.add(fbd_islemTuslari).addStyle_fullWH()
 		); rfb.run()
 	}
-	gridExport_excel(e = {}) {
+	/*gridExport_excel(e = {}) {
 		try { this.grid.jqxGrid('exportview', 'xlsx', 'jqxGrid') }
 		catch (ex) {
 			console.error(ex)
 			let {gridWidget} = this, _data = gridWidget.exportdata('html');
 			let data = ''; for (let ch of _data) { data += tr2En[ch] || ch }
 			downloadData(new Blob([data]), 'Grid.xls', 'application/vnd.ms-excel')
-			/*e = e || {}; let {gridWidget} = this; let _data = gridWidget.exportdata('tsv'); if (!_data) { return _data }*/
+			//let {gridWidget} = this; let _data = gridWidget.exportdata('tsv'); if (!_data) { return _data }
 			let {rootPart} = e, _wnd = rootPart?.wnd; if (_wnd?.length) { _wnd.jqxWindow('close') }
+		}
+	}*/
+	async gridExport_excel(e = {}) {
+		// download:false ile dosya indirmeden XLSX binary verisi alınabilir.
+		let exporter = new GridExporter_Grid({ gridPart: this, fileName: 'Grid.xlsx' })
+		try {
+			return await exporter[e.download === false ? 'toBuffer' : 'download'](e)
+			// return await exporter.toBuffer(e)
+		}
+		catch (ex) {
+			console.error(ex)
+			if (e.download === false) throw ex
+			hConfirm(getErrorText(ex), 'Excel Çıktısı')
+			return null
 		}
 	}
 	gridExport_html(e = {}) {

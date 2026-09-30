@@ -422,9 +422,11 @@ class DRapor_Hareketci_Cari_Main extends DRapor_Hareketci_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Hareketci_Cari }
 	static get ticarimi() { return true }
-	tabloYapiDuzenle({ result }) {
+	tabloYapiDuzenle({ result: res }) {
 		this.tabloYapiDuzenle_cari(...arguments)
 		super.tabloYapiDuzenle(...arguments)
+		res
+			.addGrupBasit('VADE', 'Vade', 'vade', null, null, ({ item }) => item.setSql_hv())
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
 		super.loadServerData_queryDuzenle_hrkSent(e)

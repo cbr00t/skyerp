@@ -55,6 +55,10 @@ class DAltRapor_TreeGrid extends DAltRapor {
 				this.tabloKolonlariDuzenle_ozel?.(_e)
 				
 				let colDefs = this.tabloKolonlari = _e.liste ?? []
+				
+				// Fake gridPart üzerinden tip/fra bilgisi exporter'a da ulaşır.
+				gridPart.excelKolonTanimlari = colDefs
+				
 				let columns = noAutoColumns ? [] : colDefs.flatMap(colDef => colDef.jqxColumns)
 				let source = []
 				let localization = localizationObj
@@ -93,7 +97,8 @@ class DAltRapor_TreeGrid extends DAltRapor {
 				grid.on('sort', event => this.gridSortIstendi({ ...e, event }))
 				this.onGridRun(e)
 			})
-		if (this.class.mainmi) { fbd.addCSS('_main') }
+		if (this.class.mainmi)
+			fbd.addCSS('_main')
 	}
 	tabloKolonlariDuzenle(e) { }
 	sabitRaporTanimDuzenle(e) { }
@@ -438,7 +443,43 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		e.button?.addClass('jqx-hidden')
 		app.anaMenuOlustur()
 	}
-	exportExcelIstendi(e) { return this.exportXIstendi({ ...e, type: 'xls', mimeType: 'application/vnd.ms-excel' }) }
+	/*exportExcelIstendi(e) {
+		return this.exportXIstendi({ ...e, type: 'xls', mimeType: 'application/vnd.ms-excel' })
+	}*/
+	async exportExcelIstendi(e = {}) {
+		let { gridPart } = this
+		let exporter = new GridExporter_TreeGrid({ gridPart, fileName: 'SkyRapor.xlsx' })
+		showProgress()
+		try {
+			let data = await exporter.toBuffer(e)
+			// download: false ile binary veri doğrudan çağırana döner.
+			if (e.download === false)
+				return data
+			
+			// Mevcut özel export hook'u artık gerçek XLSX binary verisi alır.
+			if (this.exportXIstendi_ozel) {
+				let { mimeType } = GridExporter
+				let url = URL.createObjectURL(new Blob([data], { type: mimeType }))
+				try {
+					if (await this.exportXIstendi_ozel({ ...e, type: 'xlsx', mimeType, data, url }) === true)
+						return data
+				}
+				finally {
+					delay(60_000).then(() =>
+						URL.revokeObjectURL(url))
+				}
+			}
+			return await exporter.download({ ...e, data })
+			// return data
+		}
+		catch (ex) {
+			console.error(ex)
+			if (e.download === false) throw ex
+			hConfirm(getErrorText(ex), 'Excel Çıktısı')
+			return null
+		}
+		finally { hideProgress() }
+	}
 	exportPDFIstendi(e) { return this.exportXIstendi({ ...e, type: 'pdf', mimeType: 'application/pdf' }) }
 	exportHTMLIstendi(e) { return this.exportXIstendi({ ...e, type: 'html', mimeType: 'text/html' }) }
 	exportXIstendi(e) {
@@ -859,10 +900,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 						subRec[grupAttr] ||
 						subRec?.detaylar?.[0]?.[grupAttr]
 					)*/
-					let { [grupAttr]: v } = walkToLeafUntil(
-						subRec, r =>
-							r[grupAttr]
-					) ?? {}
+					let { [grupAttr]: v } = walkToLeafWhile(subRec, r => r[grupAttr]) ?? {}
 					let _rec = { [grupAttr]: v ?? '' }
 					_rec[icerikAttr] = deger
 					result.push(_rec)

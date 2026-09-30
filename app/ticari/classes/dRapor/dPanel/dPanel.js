@@ -158,7 +158,7 @@ class DPanel extends Part {
 			})
 			.addStyle_wh(100)
 			.addStyle(
-				`$elementCSS { position: absolute !important; right: 230px !important; border-radius: 13px; z-index: 1001 !important }
+				`$elementCSS { position: absolute !important; right: 230px !important; border-radius: 13px; z-index: 1010 !important }
 				 $elementCSS.active { animation: 3000ms infinite anim-dPanel-otoTazele }
 				 .dPanel.part.refreshing $elementCSS > input {
 					background-color: lightcyan !important;

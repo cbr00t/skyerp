@@ -172,8 +172,9 @@ class MQCogul extends MQYapi {
 	getRootFormBuilder(e) { e = e || {}; e.inst = this; return this.class.getRootFormBuilder(e) }
 	static rootFormBuilderDuzenle(e) { }
 	static async rootFormBuilderDuzenleSonrasi(e) {
-		await this.forAltYapiClassesDoAsync('rootFormBuilderDuzenle', e);
+		await this.forAltYapiClassesDoAsync('rootFormBuilderDuzenle', e)
 		await this.rootFormBuilderDuzenleSonrasi_ayrimVeOzelSahalar(e)
+		await this.rootFormBuilder_uiSahalariDuzenle(e)
 	}
 	static async rootFormBuilderDuzenleSonrasi_ayrimVeOzelSahalar(e) {
 		let {etiketGosterim} = e, {ayrimIsimleri} = this; if (!$.isEmptyObject(ayrimIsimleri)) {
@@ -217,7 +218,96 @@ class MQCogul extends MQYapi {
 		}
 		return parentBuilder
 	}
-	static getFormBuilders(e) { let _e = $.extend(e, { liste: [] }); this.formBuildersDuzenle(_e); return e.liste }
+	static async rootFormBuilder_uiSahalariDuzenle(e = {}) {
+		let { inst, tanimFormBuilder: tanimForm = e.rootForm } = e
+		if (empty(tanimForm?.builders))
+			return
+
+		inst ??= new this()
+		let { pTanim, _colDefs: colDefs, guidmi, kodSaha, sinifAdi } = this
+		if (!empty(colDefs)) {
+			let typeSet = {
+				ansi: asSet([167, 175]),
+				unicode: asSet([231, 239])
+			}
+			
+			let ra2PInst = {}
+			;{
+				function enumerate(source) {
+					if (empty(source))
+						return
+					
+					for (let [ia, p] of entries(source)) {
+						let { pInstClassmi: clsmi } = p.class
+						if (clsmi) {
+							let { sinif: cls } = p
+							if (cls)
+								enumerate(cls.pTanim)
+						}
+						else {
+							let { rowAttr: ra } = p
+							if (ra)
+								ra2PInst[ra] = p
+						}
+					}
+				}
+				enumerate(pTanim)
+			}
+			
+			let hv = new this().hostVars(e)
+			let ia2MaxLen = {}
+			for (let rk of keys(hv)) {
+				let cd = colDefs[rk]
+				if (!cd)
+					continue
+
+				if (guidmi && rk == kodSaha)
+					continue
+				
+				let { xtype: type } = cd
+				let ansi = typeSet.ansi[type]
+				let unicode = typeSet.unicode[type]
+				let str = ansi || unicode
+				if (!str)
+					continue
+
+				if (rk.endsWith('tarih') || rk.endsWith('zaman') || rk.endsWith('ts'))
+					continue
+				
+				let p = ra2PInst[rk]
+				if (!p)
+					continue
+				
+				if (!(p.class == PInst || p instanceof PInstStr || p instanceof PInstNum))
+					continue
+
+				let { ioAttr: ia } = p
+				if (!ia)
+					continue
+				
+				let maxLen = cd?.length ?? -1
+				if (unicode)
+					maxLen /= 2
+				if (maxLen >= 0)
+					ia2MaxLen[ia] = maxLen
+			}
+
+			for (let fbd of tanimForm.getBuilders()) {
+				let { ioAttr: ia, id, maxLength: curMaxLen } = fbd
+				let maxLen = ia2MaxLen[ia || id]
+				if (maxLen == null || maxLen < 0)
+					continue
+				if (curMaxLen != null && curMaxLen <= maxLen)
+					continue
+				fbd.setMaxLength?.(maxLen)
+			}
+		}
+	}
+	static getFormBuilders(e) {
+		let _e = extend(e, { liste: [] })
+		this.formBuildersDuzenle(_e)
+		return e.liste
+	}
 	static formBuildersDuzenle(e) { }
 	formBuildersDuzenle(e) { this.class.formBuildersDuzenle(e) }
 	static rootFormBuilderDuzenle_islemTuslari(e) { }
@@ -559,7 +649,7 @@ class MQCogul extends MQYapi {
 		return await this.loadServerDataDogrudan(e)
 	}
 	static async loadServerDataDogrudan(e = {}) {
-		let {offlineRequest, offlineMode} = e
+		let { offlineRequest, offlineMode } = e
 		if (offlineRequest) {
 			let {table} = this
 			this._online_sqlColDefs ??= await app.sqlGetColumns({ table, offlineMode })
@@ -858,25 +948,42 @@ class MQCogul extends MQYapi {
 			?.flat()
 			?.filter(Boolean) ?? []
 
-		let { kod, class: { _colDefs: colDefs, kodKullanilirmi, guidmi, kodSaha, kodEtiket, adiSaha, sinifAdi } } = this
+		let { kod, class: { pTanim, _colDefs: colDefs, kodKullanilirmi, guidmi, kodSaha, kodEtiket, adiSaha, sinifAdi } } = this
 		if (kodKullanilirmi && !guidmi && !kod?.trimEnd()) {
 			kodEtiket ||= 'Kod'
 			res.push(`<b class=royalblue>${kodEtiket}</b> değeri boş olamaz`)
 		}
-			
+		
 		if (!empty(colDefs)) {
 			let typeSet = {
 				ansi: asSet([167, 175]),
 				unicode: asSet([231, 239])
 			}
-			let ra2PInst = fromEntries(
-				values(this._p ?? {})
-					.filter(p => p.rowAttr)
-					.map(p => [p.rowAttr, p])
-			)
+			let ra2PInst = {}
+			;{
+				function enumerate(source) {
+					if (empty(source))
+						return
+					
+					for (let [ia, p] of entries(source)) {
+						let { pInstClassmi: clsmi } = p.class
+						if (clsmi) {
+							let { sinif: cls } = p
+							if (cls)
+								enumerate(cls.pTanim)
+						}
+						else {
+							let { rowAttr: ra } = p
+							if (ra)
+								ra2PInst[ra] = p
+						}
+					}
+				}
+				enumerate(pTanim)
+			}
 			
 			let hv = this.hostVars(e)
-			for (let [k, v] of entries(hv)) {
+			for (let [k, v] of keys(hv)) {
 				if (!(v && isString(v)))
 					continue
 

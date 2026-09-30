@@ -221,7 +221,7 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 		extend(res, { raportip })
 	}
 	
-	static async importIstendi({ sender: gridPart }) {
+	static async importIstendi({ parentPart: gridPart }) {
 		try {
 			let { data: recs } = await openFile({ coklu: false, capture: false, type: wsDataType, accept: wsContentType })
 			recs ??= []
@@ -255,7 +255,8 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 			throw ex
 		}
 	}
-	static async exportIstendi({ sender: gridPart, sender: { selectedRecs: recs } }) {
+	static async exportIstendi({ parentPart: gridPart }) {
+		let { selectedRecs: recs } = gridPart ?? {}
 		if (empty(recs)) {
 			hConfirm('Dışarı aktarılacak tanımlar seçilmelidir', 'Dışa Aktar')
 			return

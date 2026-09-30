@@ -90,11 +90,11 @@ class DMQRapor extends DMQSayacliKA {
 		return this
 	}
 	getExportDefName(e = {}) {
-		let { parentPart = e.sender } = e
+		let { basic, parentPart = e.sender ?? app.activeWndPart } = e
 		let { rapor = parentPart?.rapor } = e
 		let { rapor: asilRapor, aciklama = rapor?.class?.aciklama } = rapor ?? {}
 		let { kod: raporTip } = asilRapor?.class ?? {}
-		return [raporTip, aciklama]
+		return [raporTip, (basic ? null : aciklama)]
 			.filter(Boolean)
 			.join(' - ')
 	}
