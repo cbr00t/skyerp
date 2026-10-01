@@ -3,7 +3,7 @@ class MQTicariGenelFis extends MQGenelFis {
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e) }
 	static async raporKategorileriDuzenle_detaylar_hmr(e) {
 		const {shdDisi, fiiliHareketmi, kat} = e;
-		const alinmayacaklar = fiiliHareketmi ? {} : asSet(['raf', 'lotNo']);
+		const alinmayacaklar = fiiliHareketmi ? {} : asSet(['raf', 'lotNo'])
 		for (const item of HMRBilgi.hmrIter()) {
 			const rSahalar = item.asRaporKolonlari();
 			for (const rSaha of rSahalar) {

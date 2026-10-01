@@ -858,3 +858,17 @@ class StokMaliyetYontemi extends TekSecim {
 		)
 	}
 }
+
+class SipOnayDurum extends TekSecim {
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get defaultChar() { return 'ON' }
+	
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		kaListe.push(
+			new CKodVeAdi([' ', '<span class=forestgreen>Onaylı</span>', 'onaylimi']),
+			new CKodVeAdi(['ON', '<span class=orange>Onay Bekleyen</span>', 'onaysizmi']),
+			new CKodVeAdi(['RD', '<span class=firebrick>RED</span>', 'redmi'])
+		)
+	}
+}

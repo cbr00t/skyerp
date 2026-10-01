@@ -86,6 +86,7 @@ class TicariFis extends TSOrtakFis {
 			mustKod: new PInstStr(this.mustSaha),
 			ticMustKod: new PInstStr('ticmust'),
 			altHesapKod: new PInstStr('cariitn'),
+			plasiyerKod: new PInstStr('plasiyerkod'),
 			sevkAdresKod: new PInstStr('xadreskod'),
 			nakSekliKod: new PInstStr('nakseklikod'),
 			fisTipi: new PInstTekSecim('fistipi', clsFisTipi),
@@ -622,17 +623,24 @@ class SiparisFis extends TicariFis {
 	static get onayliTipler() { return ['', 'BK', 'RV', 'OG'] }
 	static get yerKullanilirmi() { return false }
 	
+	get onaylimi() { return this.onayDurum.onaylimi }
+	set onaylimi(v) { this.onayDurum[v ? 'onayliYap' : 'onaysizYap']() }
+	
 	constructor(e = {}) {
 		super(e)
 		this.noYil = 0
 		this.baslikTeslimTarihi = e.teslimTarihi || this.baslikTeslimTarihi
 		if (this.baslikTeslimTarihi)
 			this.teslimOrtakdir = true
+
+		mergeIntoIfExists(e, this, 'onaylimi')
 	}
 	static pTanimDuzenle({ pTanim }) {
-		super.pTanimDuzenle(...arguments); extend(pTanim, {
+		super.pTanimDuzenle(...arguments)
+		extend(pTanim, {
 			teslimOrtakdir: new PInstBitBool('bteslimortakdir'),
-			baslikTeslimTarihi: new PInstDate('basteslimtarihi')
+			baslikTeslimTarihi: new PInstDate('basteslimtarihi'),
+			onayDurum: new PInstTekSecim('onaytipi', SipOnayDurum)
 		})
 	}
 	static async raporKategorileriDuzenle_detaylar_tsStokMiktarOncesi(e) {

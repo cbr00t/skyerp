@@ -173,15 +173,22 @@ class PInstClass extends PInst {
 class PInstTekSecim extends PInstClass {
 	static get pInstClassmi() { return false }
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	get hostVarsDegeri() { return this.value.char }
+	
 	getValueDevam(value) {
-		value = super.getValueDevam(value); if (typeof value != 'object') value = new this.sinif({ char: value });
+		value = super.getValueDevam(value)
+		if (!isObject(value))
+			value = new this.sinif({ char: value })
 		return value
 	}
 	get initValue() {
-		let result = super.initValue;
-		if (result == null) result = this.value?.defaultChar
-		return result
+		let res = super.initValue
+		if (res == null)
+			res = this.value?.defaultChar
+		return res
 	}
-	get hostVarsDegeri() { return this.value.char }
-	setValues(e) { const {value} = e; this.value.char = value ?? this.value.class.defaultChar }
+	setValues({ value } = {}) {
+		let { value: tSec } = this
+		tSec.char = value ?? tSec.class.defaultChar
+	}
 }

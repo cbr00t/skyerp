@@ -501,9 +501,12 @@ class TSStokDetayOrtak extends TSStokHizmetDetay {
 	constructor(e) { e = e || {}; super(e); this.hmrPropertyleriOlustur(e) }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); let {pTanim} = e;
-		$.extend(pTanim, {
-			miktar2: new PInstNum('miktar2'), brm2: new PInstStr(), brmOrani: new PInstNum(),
-			/* Ticari sahalar */ otvKod: new PInstStr(), hmr: new PInstClass(HMRBilgi)
+		extend(pTanim, {
+			miktar2: new PInstNum('miktar2'), brm2: new PInstStr(),
+			brmOrani: new PInstNum(),
+			/* Ticari sahalar */ 
+			tvKod: new PInstStr(),
+			hmr: new PInstClass(HMRBilgi)
 		})
 	}
 	static raporQueryDuzenle(e) {
