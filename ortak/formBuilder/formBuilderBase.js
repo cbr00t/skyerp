@@ -315,40 +315,40 @@ class FormBuilderBase extends CObject {
 		this.add(builder); return builder
 	}
 	addTanimFormTabPanel(e, _value) {
-		e = e || {}; let id = isObject(e) ? e.id : e;
-		let etiket = isObject(e) ? e.etiket : _etiket;
-		let builder = new FBuilder_TanimFormTabs({ id: id, etiket: etiket });
+		let id = isObject(e) ? e.id : e
+		let etiket = isObject(e) ? e.etiket : _etiket
+		let builder = new FBuilder_TanimFormTabs({ id, etiket })
 		this.add(builder); return builder
 	}
 	addLabel(e, _etiket, _renk, _zeminRenk, _styles) {
-		e = e || {}; let id = isObject(e) ? e.id : e;
+		let id = isObject(e) ? e.id : e
 		let etiket = isObject(e) ? e.etiket : _etiket;
 		let renk = isObject(e) ? e.renk : _renk;
 		let zeminRenk = isObject(e) ? e.zeminRenk : _zeminRenk;
 		let styles = isObject(e) ? e.styles : _styles;
-		let builder = new FBuilder_Label({ id: id, etiket: etiket, styles: styles });
+		let builder = new FBuilder_Label({ id, etiket, styles });
 		if (renk || zeminRenk) { builder.addStyle(e => `$elementCSS { ${renk ? `color: ${renk};` : ''}${zeminRenk ? `color: ${zeminRenk};` : ''} }`) }
 		this.add(builder); return builder
 	}
 	addBaslik(e, _etiket, _renk, _zeminRenk, _styles) {
-		e = e || {}; let id = isObject(e) ? e.id : e;
+		let id = isObject(e) ? e.id : e
 		let etiket = isObject(e) ? e.etiket : _etiket;
 		let renk = isObject(e) ? e.renk : _renk;
 		let zeminRenk = isObject(e) ? e.zeminRenk : _zeminRenk;
 		let styles = isObject(e) ? e.styles : _styles;
-		let builder = new FBuilder_Baslik({ id: id, etiket: etiket, styles: styles });
+		let builder = new FBuilder_Baslik({ id, etiket, styles });
 		if (renk || zeminRenk) { builder.addStyle(e => `$elementCSS { ${renk ? `color: ${renk};` : ''}${zeminRenk ? `color: ${zeminRenk};` : ''} }` ) }
-		this.add(builder); return builder
+		this.add(builder)
+		return builder
 	}
 	addGroupBox(e, _etiket) {
-		e = e || {}; let id = isObject(e) ? e.id : e;
+		let id = isObject(e) ? e.id : e
 		let etiket = isObject(e) ? e.etiket : _etiket;
 		let builder = new FBuilder_GroupBox({ id: id, etiket: etiket });
 		this.add(builder); return builder
 	}
 	addTextInput(e, _etiket, _value, _placeHolder, _maxLength) {
-		e = e || {};
-		let id = isObject(e) ? e.id : e;
+		let id = isObject(e) ? e.id : e
 		let etiket = isObject(e) ? e.etiket : _etiket;
 		let value = isObject(e) ? e.value : _value;
 		let placeHolder = isObject(e) ? e.placeHolder ?? e.placeholder : _placeHolder;

@@ -53,12 +53,13 @@ class ModelKullanPart extends Part {
 	}
 	runDevam(e) {
 		super.runDevam(e); let {parentPart, mfSinif, layout, isDropDown, coklumu, noAutoWidthFlag} = this;
-		let kodSaha = (mfSinif ? (mfSinif.idSaha ?? mfSinif.kodSaha) : null) || this.kodSaha || CKodVeAdi.kodSaha, adiSaha = (mfSinif ? mfSinif.adiSaha : null) || this.adiSaha || CKodVeAdi.adiSaha;
+		let kodSaha = (mfSinif ? (mfSinif.idSaha ?? mfSinif.kodSaha) : null) || this.kodSaha || CKodVeAdi.kodSaha, adiSaha = (mfSinif ? mfSinif.adiSaha : null) || this.adiSaha || CKodVeAdi.adiSaha
 		let {placeHolder} = this; if (placeHolder == null && coklumu) { placeHolder = '-Hepsi-' } if (placeHolder == null && mfSinif) { placeHolder = mfSinif.sinifAdi }
 		let parent = layout.parent(), da = this.getDataAdapter({ maxRow: this.maxRow });
 		let args = {
 			theme, autoOpen: false, width: this.width || (!noAutoWidthFlag && parent?.length ? parent.width() : null) || '99.7%',
-			height: this.height || '100%', searchMode: 'containsignorecase', autoDropDownHeight: false, dropDownHeight: 215, itemHeight: 35,
+			height: this.height || '100%', searchMode: 'containsignorecase',
+			autoDropDownHeight: false, dropDownHeight: 275, itemHeight: 50,
 			valueMember: kodSaha, displayMember: adiSaha, disabled: this.disabled, placeHolder: placeHolder || '',
 			renderer: (index, aciklama, kod) => {
 				let { layout, widget, kodGosterilsinmi } = this

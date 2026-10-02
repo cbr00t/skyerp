@@ -353,6 +353,8 @@ class GridKolon extends GridKolonVeGrupOrtak {
 	setTip(value) { this.tip = value; return this }
 	setCellClassName(value) { this.cellClassName = value; return this }
 	setCellsRenderer(handler) { this.cellsRenderer = handler; return this }
+	degisirken(handler) { this.cellValueChanging = handler; return this }
+	degisince(handler) { this.cellValueChanged = handler; return this }
 	sum() { this.aggregates = ['sum']; return this }
 	avg() { this.aggregates = ['avg']; return this }
 	checkedList() { this.filterType = 'checkedlist'; return this }

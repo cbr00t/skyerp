@@ -55,8 +55,8 @@ input[type=time].no-secs::-webkit-datetime-edit-second-field { color: transparen
 .jqx-switchbutton .jqx-switchbutton-label-on { color: #ccc; background: royalblue }
 .jqx-switchbutton .jqx-switchbutton-label-off { color: #555; background: #ccc }
 .jqx-listbox.jqx-popup { box-shadow: 3px 3px 20px #d6ddf3; background: linear-gradient(90deg, #fcfcfc 35%, #eff2f5 80%) !important; z-index: 20000 !important }
-.jqx-listitem-element { margin: 3px 0 }
-.jqx-listitem-element > * { font-size: 85%; height: var(--full) !important; padding: 2px 2px 0 8px }
+.jqx-listitem-element { margin: 5px 0 }
+.jqx-listitem-element > * { font-size: 95%; height: var(--full) !important; padding: 5px 2px 5px 8px }
 .jqx-listitem-element > .jqx-listitem-state-hover { background: linear-gradient(90deg, #d6deea 10%, #fcfcfc 90%) !important }
 .jqx-listitem-element > *:not(.jqx-listitem-state-hover):not(.jqx-listitem-state-selected) { }
 .jqx-listitem-element > .jqx-listitem-state-group { color: #555 !important; background-color: #eee !important; margin: 10px 0 0 15px }

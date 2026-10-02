@@ -392,30 +392,47 @@ class MQCogul extends MQYapi {
 		if (!$.isEmptyObject(styles)) fbd.addStyle(styles)
 		return fbd
 	}
-	getFormBuilders(e) { e = e || {}; let _e = $.extend(e, { liste: [] }); this.formBuildersDuzenle(_e); return _e.liste; }
-	static async formBuilder_getTabPanel(e) {
-		e = e || {}; let rfb = await this.getRootFormBuilder(), tanimForm = rfb.builders[0];
-		let _e = $.extend({}, e, { tanimFormBuilder: tanimForm }); this.formBuilder_addTabPanel(_e);
+	getFormBuilders(e = {}) { let _e = $.extend(e, { liste: [] }); this.formBuildersDuzenle(_e); return _e.liste; }
+	static async formBuilder_getTabPanel(e = {}) {
+		let rfb = await this.getRootFormBuilder()
+		let tanimForm = rfb.builders[0]
+		let _e = extend({}, e, { tanimFormBuilder: tanimForm })
+		this.formBuilder_addTabPanel(_e)
 		return { rootFormBuilder: rfb, tanimFormBuilder: tanimForm, tabPanel: _e.tabPanel }
 	}
-	static formBuilder_addTabPanel(e) {
-		e = e || {}; let {tabPages} = e;
+	static formBuilder_addTabPanel(e = {}) {
+		let { tabPages } = e
 		let tabPanel = e.tabPanel = new FBuilder_Tabs({
-			id: 'tabPanel', afterRun: e => {
-				let {builder} = e, id2TabPanel = builder.rootPart.id2TabPanel = {};
-				for (let subBuilder of builder.builders) { id2TabPanel[subBuilder.id] = subBuilder }
+			id: 'tabPanel',
+			afterRun: e => {
+				let { builder } = e
+				let id2TabPanel = builder.rootPart.id2TabPanel = {}
+				for (let subBuilder of builder.builders)
+					id2TabPanel[subBuilder.id] = subBuilder
 			}
-		});
-		tabPanel.addStyle_fullWH(); if (tabPages) { tabPanel.builders = tabPages }
-		let {tanimFormBuilder} = e; tanimFormBuilder.add(tabPanel)
+		})
+		
+		tabPanel.addStyle_fullWH()
+		if (tabPages)
+			tabPanel.builders = tabPages
+		
+		let { tanimFormBuilder: tanimForm } = e
+		tanimForm.add(tabPanel)
 	}
 	static async formBuilder_getTabPanelWithGenelTab(e) {
 		let _e = $.extend({}, e), result = await this.formBuilder_getTabPanel(_e); $.extend(_e, result);
-		this.formBuilder_addTabPanelWithGenelTab(_e); $.extend(_e, result); return _e
+		this.formBuilder_addTabPanelWithGenelTab(_e)
+		extend(_e, result)
+		return _e
 	}
 	static formBuilder_addTabPanelWithGenelTab(e) {
-		let {tabPanel} = e; if (!tabPanel) { this.formBuilder_addTabPanel(e); tabPanel = e.tabPanel }
-		let id_genel = 'genel'; let tabPage_genel = tabPanel.builders.find(builder => builder.id == id_genel);
+		let {tabPanel} = e
+		if (!tabPanel) {
+			this.formBuilder_addTabPanel(e)
+			tabPanel = e.tabPanel
+		}
+		let id_genel = 'genel'
+		let tabPage_genel = tabPanel.builders.find(builder => builder.id == id_genel)
 		if (!tabPage_genel) { tabPanel.builders.unshift(tabPage_genel = new FBuilder_TabPage({ id: id_genel, etiket: 'Genel' })) }
 		tabPage_genel.addStyle_fullWH(); e.tabPage_genel = tabPage_genel
 	}

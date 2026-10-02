@@ -517,7 +517,7 @@ class DPanel extends Part {
 				if (!inst) {
 					console.warn('panel inst yok, muhtemelen class değişti')
 					delete id2Detay[id]
-					this.saveLayout()
+					// this.saveLayout()
 					continue
 				}
 				item.setInst(this).setPart(inst)

@@ -1,7 +1,7 @@
 class PortalApp extends TicariApp {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	get configParamSinif() { return MQYerelParamConfig_App }
-	get yerelParamSinif() { return MQYerelParam }
+	get yerelParamSinif() { return MQYerelParam_App }
 	get dataKey() { return 'portal' }
 	get defaultWSPath() { return 'ws/vioPortal' }
 	get defaultLoginTipi() { return 'bayiLogin' }
@@ -75,7 +75,8 @@ class PortalApp extends TicariApp {
 	getAnaMenu(e) {
 		if (this.noMenuFlag)
 			return new FRMenu()
-		
+
+		let { dev } = config
 		let { current: login } = MQLogin
 		let { adminmi, bayimi } = login
 		let items = [
@@ -130,6 +131,13 @@ class PortalApp extends TicariApp {
 					})
 				)
 			}),
+			( dev && adminmi ? 
+				new FRMenuChoice({
+					mne: MQAutoServices.kodListeTipi,
+					text: MQAutoServices.sinifAdi,
+					block: e => MQAutoServices.listeEkraniAc(e)
+				})
+			: null ),
 			(
 				config.dev && adminmi
 				? new FRMenuChoice({

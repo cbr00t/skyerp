@@ -214,8 +214,10 @@ class MQYapi extends CIO {
 	static orjBaslikListesi_recsDuzenle(e) {}
 	static orjBaslikListesi_recsDuzenleSon(e) {}
 	tekilOku(e) {
-		e = e || {}; if (this.class.tekilOkuYapilazmi) { return e.rec ?? e._rec }
-		e.query = this.tekilOku_queryOlustur(e); return this.class.tekilOku_querySonucu(e)
+		if (this.class.tekilOkuYapilazmi)
+			return e.rec ?? e._rec
+		e.query = this.tekilOku_queryOlustur(e)
+		return this.class.tekilOku_querySonucu(e)
 	}
 	tekilOku_queryOlustur(e) {
 		e = e || {}; let {tableAlias: alias, aliasVeNokta, tableAndAlias} = this.class;

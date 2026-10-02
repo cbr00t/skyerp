@@ -1424,7 +1424,7 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			.addKAPrefix('anagrup', 'grup', 'sistgrup', 'sh', 'marka')
 			.addGrupBasit('SHANAGRP', 'S/H Ana Grup', 'anagrup', DMQStokAnaGrup)
 			.addGrupBasit('SHGRP', 'S/H Grup', 'grup', DMQStokGrup)
-			.addGrupBasit('SHISTGRP', 'S/H  İst. Grup', 'istgrup', DMQStokIstGrup)
+			.addGrupBasit('SHISTGRP', 'S/H İst. Grup', 'istgrup', DMQStokIstGrup)
 			.addGrupBasit('SH', 'Stok/Hizmet', 'sh', DMQStok)
 			.addGrupBasit('SHMARKA', 'Stok Marka', 'marka', DMQStokMarka)
 			.addGrupBasit('BRM', 'Brm', 'brm', null, 9, ({ colDef }) => colDef.alignCenter())

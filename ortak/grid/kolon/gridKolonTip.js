@@ -220,9 +220,13 @@ class GridKolonTip extends CObject {
 		if (jqxCellsFormat !== undefined && !(jqxColumnType == 'template' || jqxColumnType == 'custom')) { column.cellsFormat = jqxCellsFormat }
 		if (isEditable != null) { column.editable = isEditable }
 	}
-	setMaxLength(value) { this.maxLength = value; return this } kodsuz() { return this.kodGosterilmesin() }
-	kodGosterilmesin() { this.kodGosterilmesinmi = true; return this } kodGosterilsin() { this.kodGosterilmesinmi = false; return this }
-	listedenSecilemez() { this.listedenSecilemezFlag = true; return this } listedenSecililir() { this.listedenSecilemezFlag = false; return this }
+	setMaxLength(value) { this.maxLength = value; return this }
+	kodsuz() { return this.kodGosterilmesin() }
+	kodGosterilmesin() { this.kodGosterilmesinmi = true; return this }
+	kodGosterilsin() { this.kodGosterilmesinmi = false; return this }
+	listedenSecilemez() { this.listedenSecilemezFlag = true; return this }
+	listedenSecililir() { this.listedenSecilemezFlag = false; return this }
+	listedenSecilmez() { return this.listedenSecilemez() }
 }
 class GridKolonTip_String extends GridKolonTip {
     static { window[this.name] = this; this._key2Class[this.name] = this }
@@ -501,28 +505,56 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 	static get tekSecimmi() { return true } static get birKismimi() { return false }
 	get jqxColumnType() { return 'custom' } get jqxFilterType() { return 'checkedlist' }
 	get source() { return this._source } set source(value) { this._source = value }
-	get kaListe() { return this.tekSecim?.kaListe } get defaultChar() { return this.tekSecim?.char }
+	get kaListe() { return this.tekSecim?.kaListe }
+	get defaultChar() { return this.tekSecim?.char }
 	readFrom(e) {
-		if (!e) { return false }
-		let {tekSecim, tekSecimSinif, kaListe} = e;
-		if (typeof tekSecimSinif == 'string') { tekSecimSinif = getFunc.call(this, tekSecimSinif, e) }
-		if (!tekSecim && tekSecimSinif) { tekSecim = new tekSecimSinif() }
+		if (!e)
+			return false
+		
+		let { tekSecim, tekSecimSinif, kaListe, defaultValue, value, source } = e
+		let { kodAttr, adiAttr, comboBoxmi = e.comboBox } = e
+		if (isString(tekSecimSinif))
+			tekSecimSinif = getFunc.call(this, tekSecimSinif, e)
+		if (!tekSecim && tekSecimSinif)
+			tekSecim = new tekSecimSinif()
+		
 		if (tekSecim) {
-			if (typeof tekSecim == 'string') { tekSecim = getFunc.call(this, tekSecim, e) }
-			if (tekSecim) { tekSecim = getFuncValue.call(this, tekSecim, e) }
-			if ($.isPlainObject(tekSecim)) { tekSecim = tekSecimSinif ? new tekSecimSinif(tekSecim) : null }
+			if (isString(tekSecim))
+				tekSecim = getFunc.call(this, tekSecim, e)
+			if (tekSecim)
+				tekSecim = getFuncValue.call(this, tekSecim, e)
+			if (isPlainObject(tekSecim))
+				tekSecim = tekSecimSinif ? new tekSecimSinif(tekSecim) : null
 		}
-		if (!tekSecim) { tekSecim = new TekSecim() }
+		
+		tekSecim ??= new TekSecim()
 		if (kaListe) {
-			if (typeof kaListe == 'string') { kaListe = getFunc.call(this, kaListe, e) }
-			if (kaListe) { kaListe = getFuncValue.call(this, kaListe, e) }
-			if (kaListe) { tekSecim.kaListe = kaListe }
+			if (isString(kaListe))
+				kaListe = getFunc.call(this, kaListe, e)
+			if (kaListe)
+				kaListe = getFuncValue.call(this, kaListe, e)
+			if (kaListe)
+				tekSecim.kaListe = kaListe
 		}
-		let {defaultValue} = e; if (defaultValue != null) { tekSecim.defaultChar = defaultValue }
-		let {value} = e; if (value != null) tekSecim.char = value;
-		this.tekSecim = tekSecim; this.source = e.source || (() => this.kaListe); this.comboBoxmi = e.comboBoxmi ?? e.comboBox;
-		this.kodAttr = e.kodAttr || 'kod'; this.adiAttr = e.adiAttr || 'aciklama'; this.recKodAttr = e.recKodAttr; this.recAdiAttr = e.recAdiAttr;
-		this._cellValueChanging = e.cellValueChanging; this._cellValueChanged = e.cellValueChanged;
+		if (defaultValue != null)
+			tekSecim.defaultChar = defaultValue
+		if (value != null)
+			tekSecim.char = value
+		
+		this.tekSecim = tekSecim
+		this.source = source || (() => this.kaListe)
+		this.comboBoxmi = e.comboBoxmi
+		
+		this.kodAttr = kodAttr || 'kod'
+		this.adiAttr = adiAttr || 'aciklama'
+		
+		mergeInto(e, this, 'recKodAttr', 'recAdiAttr')
+		;['cellValueChanging', 'cellValueChanged'].forEach(k => {
+			let v = e[k]
+			if (v !== undefined)
+				this[`_${k}`] = v
+		})
+		
 		return true
 	}
 	get cellsRenderer() {
@@ -548,7 +580,7 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 				coklumu: this.class.birKismimi, autoBind: true, value,
 				/*selectionRendererBlock: e => { if (!e.coklumu) { return e.wItem.label || '' } },*/ argsDuzenle: e => {
 					extend(e.args, {
-						autoOpen: false, itemHeight: 28, width: cellWidth, height: cellHeight, dropDownWidth: cellWidth * 2,
+						autoOpen: false, width: cellWidth, height: cellHeight, dropDownWidth: cellWidth * 2,
 						dropDownHeight: 400, autoDropDownHeight: false
 						/*renderSelectedItem: (index, rec) => { rec = rec.originalItem || rec || {}; return rec.kod || '' }*/
 					})
@@ -597,18 +629,18 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 	}
 	get getEditorValue() {
 		return ((colDef, rowIndex, value, editor) => {
-			let part = editor.data('part');
+			let part = editor.data('part')
 			return part /*&& part.kodGecerlimi*/ ? part.val() : editor.val()
 		})
 	}
 	get cellValueChanging() {
 		return ((colDef, rowIndex, dataField, columnType, oldValue, newValue) => {
-			let {recAdiAttr, _cellValueChanging} = this;
-			let {gridWidget} = colDef.gridPart;
-			let rec = (rowIndex != null && rowIndex > -1) ? gridWidget.getboundrows()[rowIndex] : null;
+			let { recAdiAttr, _cellValueChanging } = this
+			let { gridWidget } = colDef.gridPart
+			let rec = (rowIndex != null && rowIndex > -1) ? gridWidget.getboundrows()[rowIndex] : null
 			if (recAdiAttr && rec != null) {
 				let kod = newValue;
-				let adi = kod == null ? null : this.getKodIcinAdi({ kod: kod, rec: rec });
+				let adi = kod == null ? null : this.getKodIcinAdi({ kod, rec })
 				if (adi != null)
 					rec[recAdiAttr] = adi
 			}
@@ -618,36 +650,36 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 	}
 	get cellValueChanged() {
 		return ((colDef, rowIndex, dataField, columnType, oldValue, newValue) => {
-			let {_cellValueChanged} = this;
+			let { _cellValueChanged } = this
 			if (_cellValueChanged)
 				getFuncValue.call(this, _cellValueChanged, e)
 		})
 	}
-	getKodIcinAdi(e) {
-		let {kod, belirtec, rec} = e;
-		return kod == null ? null : (this.getKADict({ belirtec: belirtec, rec: rec }) || {})[kod]?.aciklama
+	getKodIcinAdi(e = {}) {
+		let { kod, belirtec, rec } = e
+		if (kod == null)
+			return null
+		return this.getKADict({ belirtec, rec })?.[kod]?.aciklama
 	}
-	getSource(e) {
-		e = e || {}
-		let {rec, belirtec} = e;
-		let result = this.source;
+	getSource(e = {}) {
+		let { rec, belirtec } = e
+		let { source: result } = this
 		if (rec) {
-			let {_sourceYapi} = rec;
-			let _source = _sourceYapi == null ? _sourceYapi : _sourceYapi[belirtec];
+			let { _sourceYapi } = rec
+			let _source = _sourceYapi == null ? _sourceYapi : _sourceYapi[belirtec]
 			if (_source !== undefined)
 				result = _source
 		}
 		return result
 	}
-	setSource(e) {
-		e = e || {}
-		let {rec, belirtec, source} = e;
-		let sourceSetFlag = false;
+	setSource(e = {}) {
+		let { rec, belirtec, source } = e
+		let sourceSetFlag = false
 		if (rec) {
-			let _sourceYapi = rec._sourceYapi = rec._sourceYapi || {};
-			let {_kaDictYapi} = rec;
+			let _sourceYapi = rec._sourceYapi ??= {}
+			let { _kaDictYapi } = rec
 			if (_sourceYapi && belirtec) {
-				_sourceYapi[belirtec] = source;
+				_sourceYapi[belirtec] = source
 				sourceSetFlag = true
 			}
 			if (_kaDictYapi)
@@ -655,12 +687,14 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 		}
 		if (!sourceSetFlag)
 			this.source = source
+		
 		if (source) {
 			// if ($.isFunction(source))
 			// 	source = getFuncValue.call(this, source, e)
-			if ($.isArray(source))
-				this.kaDictYapiOlustur($.extend({}, e, { source: source }))
+			if (isArray(source))
+				this.kaDictYapiOlustur({ ...e, source })
 		}
+		
 		return this
 	}
 	resetSourceCache(e) {

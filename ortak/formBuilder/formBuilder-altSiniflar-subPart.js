@@ -1290,15 +1290,18 @@ class FBuilder_SimpleComboBox extends FBuilder_TextInput {
         let {input} = this                                                    // Layout aslında input olarak hizmet edecek
         if (input?.length) {
             let sender = this, builder = this
-			let { parent, layout, input, _initValue: value = this.value } = this
+			let { parent, layout, input, _initValue: value = this.value, disabled, isReadOnly } = this
+			disabled ??= isReadOnly
+			
 			if (layout?.length && parent?.length && layout.parent() != parent)
 				layout.detach().appendTo(parent)
-			let {placeholder = e.placeHolder, _source: source, widgetArgsDuzenle} = this
-            let args = { value, sender, builder, layout, input, placeholder, source }
+			
+			let { placeholder = e.placeHolder, _source: source, widgetArgsDuzenle } = this
+            let args = { value, sender, builder, layout, input, placeholder, source, disabled }
 			let keys = [
 				'id', 'name', 'etiket', 'listSource', 'autoClearFlag', 'kodsuzmu',
 				'mfSinif', 'kodSaha', 'adiSaha', 'delay', 'minLength', 'maxRows',
-				'disabled', 'userData', 'events', 'ozelQueryDuzenle', 'renderer'
+				'userData', 'events', 'ozelQueryDuzenle', 'renderer'
 			]
 			for (let k of keys) {
 				let v = this[k]

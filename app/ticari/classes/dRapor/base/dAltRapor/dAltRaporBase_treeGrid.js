@@ -1428,8 +1428,12 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		return this.raporTanimIstendi(e); return this.wnd_raporTanim
 	}
 	getColumns(colDefs) {
-		colDefs = super.getColumns(colDefs); if (!colDefs) { return colDefs }
-		let {gridPart, tabloYapi} = this; let icerikColsSet; for (let colDef of colDefs) {
+		colDefs = super.getColumns(colDefs)
+		if (!colDefs)
+			return colDefs
+		let {gridPart, tabloYapi} = this
+		let icerikColsSet
+		for (let colDef of colDefs) {
 			let kod = colDef.userData?.kod
 			if (tabloYapi.toplam[kod] && !colDef.align)
 				colDef.alignRight()
