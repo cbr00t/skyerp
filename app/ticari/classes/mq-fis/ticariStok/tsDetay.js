@@ -505,7 +505,7 @@ class TSStokDetayOrtak extends TSStokHizmetDetay {
 			miktar2: new PInstNum('miktar2'), brm2: new PInstStr(),
 			brmOrani: new PInstNum(),
 			/* Ticari sahalar */ 
-			tvKod: new PInstStr(),
+			otvKod: new PInstStr(),
 			hmr: new PInstClass(HMRBilgi)
 		})
 	}

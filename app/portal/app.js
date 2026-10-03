@@ -131,18 +131,20 @@ class PortalApp extends TicariApp {
 					})
 				)
 			}),
-			( dev && adminmi ? 
+			( dev && ( adminmi || (bayimi && login.yetkiVarmi('aktivasyonYap') ) ) ? 
 				new FRMenuChoice({
 					mne: MQAutoServices.kodListeTipi,
 					text: MQAutoServices.sinifAdi,
-					block: e => MQAutoServices.listeEkraniAc(e)
+					block: e =>
+						MQAutoServices.listeEkraniAc(e)
 				})
 			: null ),
 			(
 				config.dev && adminmi
 				? new FRMenuChoice({
 					 mne: 'TURMOB_IMPORT', text: 'Turmob Kayıtlarını İçeri Al',
-					 block: e => MQKontor_Turmob.importRecordsIstendi(e)
+					 block: e =>
+						 MQKontor_Turmob.importRecordsIstendi(e)
 				})
 				: null
 			)

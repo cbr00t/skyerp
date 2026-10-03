@@ -848,8 +848,8 @@ class FBuilder_Button extends FBuilder_InputOrtak {
 				this.signalClick({ ..._e, builder: this, input: input, event: evt }))
 		}
 		styles.push(
-			`$elementCSS { backdrop-filter: brightness(0.93) !important; border-radius: 10px }
-			 body.dark-theme $elementCSS { backdrop-filter: brightness(0.96) !important }
+			`$elementCSS { backdrop-filter: brightness(0.93); border-radius: 10px }
+			 body.dark-theme $elementCSS { backdrop-filter: brightness(0.96) }
 			 $elementCSS > input {
 				font-weight: bold;
 				font-size: 85%; min-width: 60px;

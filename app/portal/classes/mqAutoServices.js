@@ -18,7 +18,7 @@ class MQAutoServices extends MQCogul {
 		return l.bayimi && l.yetkiVarmi('aktivasyonYap')
 	}
 	static get silinebilirmi() {
-		if (MQLogin.current?.yetkiVarmi('sil'))
+		if (!MQLogin.current?.yetkiVarmi('sil'))
 			return false
 		
 		let { current: l } = MQLogin
@@ -27,10 +27,62 @@ class MQAutoServices extends MQCogul {
 		
 		return l.bayimi && l.yetkiVarmi('aktivasyonSil')
 	}
+	static get delimName() { return '.' }
+	static get services() {
+		let { _services: res } = this
+		if (res == null) {
+			res = this._services = [
+				['skyws', 'SkyWS (SSL)', 'skywsmi', {
+					localPort: 9200,
+					compress: false, enc: false
+				}],
+				['skywsX', 'SkyWS (Açıktan)', 'skywsXmi', {
+					localPort: 8200,
+					compress: false, enc: true
+				}],
+				['sql', 'SQL Server', 'sqlmi', {
+					localPort: 1433,
+					compress: true, enc: true
+				}],
+				['vioWS', 'ESKİ Vio WebServis', 'vioWSmi', {
+					localPort: 8083,
+					compress: true, enc: true
+				}],
+				['hfs', 'HFS (Http File Server)', 'hfsmi', {
+					localPort: 80,
+					compress: true, enc: true
+				}],
+				['pavo', 'PAVO', 'pavomu', {
+					localPort: 4567,
+					compress: true, enc: false
+				}]
+			].filter(Boolean).map(r => new CKodAdiVeEkBilgi(r))
+		}
+		return res
+	}
+	static get kod2Service() {
+		let { _kod2Service: res } = this
+		if (res == null) {
+			let { services } = this
+			res = this._kod2Service = fromEntries(
+				services.map(r => [ r.kod, r ]))
+		}
+		return res
+	}
+	static get port2Service() {
+		let { _port2Service: res } = this
+		if (res == null) {
+			let { services } = this
+			res = this._port2Service = fromEntries(
+				services.map(r => [ r.ekBilgi?.localPort, r ]))
+		}
+		return res
+	}
 
 	constructor(e = {}) {
 		super(e)
-		this.rec = e.rec ?? {}
+		this.remoteProxy = e.remoteProxy ?? {}
+		this.frp = e.frp ?? []
 	}
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
@@ -41,63 +93,18 @@ class MQAutoServices extends MQCogul {
 	}
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e)
+
+		let { dev } = config
+		let { adminmi } = MQLogin.current ?? {}
+		let { services, kod2Service } = this
 		let { islem, inst = {}, tanimPart = e.sender, tanimFormBuilder: tanimForm } = e
-		let { rec = {} } = inst
 		tanimForm.addStyle_fullWH()
 
-		let services = [
-			['skyws', 'SkyWS (SSL)', 'skywsmi', {
-				update: {
-					local: { port: 9200 },
-					compress: false, enc: false
-				}
-			}],
-			['skywsX', 'SkyWS (Açıktan)', 'skywsXmi', {
-				update: {
-					local: { port: 8200 },
-					compress: false, enc: true
-				}
-			}],
-			['sql', 'SQL Server', 'sqlmi', {
-				update: {
-					local: { port: 1433 },
-					compress: true, enc: true
-				}
-			}],
-			['vioWS', 'ESKİ Vio WebServis', 'vioWSmi', {
-				update: {
-					local: { port: 8083 },
-					compress: true, enc: true
-				}
-			}],
-			['hfs', 'HFS (Http File Server)', 'hfsmi', {
-				update: {
-					local: { port: 80 },
-					compress: true, enc: true
-				}
-			}],
-			['pavo', 'PAVO', 'pavomu', {
-				update: {
-					local: { port: 4567 },
-					compress: true, enc: false
-				}
-			}]
-		].filter(Boolean).map(r => new CKodAdiVeEkBilgi(r))
-		let kod2Service = fromEntries(
-			services.map(r => [r.kod, r]))
-		let port2Service = fromEntries(
-			services
-				.map(r => [
-					r.ekBilgi?.update?.local?.port,
-					r
-				])
-				.filter(([k, v]) => k)
-		)
-		
 		let yeniVeyaKopyami = islem == 'yeni' || islem == 'kopya'
 		;{
 			let mfSinif = MQLogin_Musteri, { sinifAdi: etiket } = mfSinif
 			tanimForm.addSimpleComboBox('mustKod', etiket, etiket)
+				.setMFSinif(MQLogin_Musteri)
 				.etiketGosterim_yok()
 				.addStyle_wh(800, 60)
 				[yeniVeyaKopyami ? 'editable' : 'readOnly']()
@@ -107,26 +114,26 @@ class MQAutoServices extends MQCogul {
 				.setPlaceHolder(etiket)
 				.etiketGosterim_yok()
 				.addStyle_wh(400, 60)
-				[yeniVeyaKopyami ? 'editable' : 'readOnly']()
+				[yeniVeyaKopyami || !inst.mustAlias ? 'editable' : 'readOnly']()
 		}
 
 		this.formBuilder_addTabPanel(e)
 		let { tabPanel } = e
 		;{
+			let width_sag = 290
 			let tabPage = tabPanel.addTab('frp', 'FRP')
 				.yanYana()
-
 			;{
 				let form = tabPage.addFormWithParent('list').altAlta()
-					.addStyle_fullWH('59%')
+					.addStyle_fullWH(`calc(var(--full) - ${width_sag + 50}px)`)
 				form.addBaslik(null, 'FRP Tanımları')
-				form.addGridliGiris('grid')
+				form.addGridliGiris('frp')
 					.setTabloKolonlari([
 						gridKolon('service', 'Servis', 35).checkedList()
 							.degisince(({ rowIndex, gridRec: r, value: v, setCellValue }) => {
 								let ka = kod2Service[r.service] ?? {}
-								let { kod: name, ekBilgi: { update } = {} } = ka
-								let { local: { port: localPort = {} }, compress, enc } = update ?? {}
+								let { kod: name, ekBilgi } = ka
+								let { localPort, compress, enc } = ekBilgi ?? {}
 								if (name)
 									setCellValue({ rowIndex, belirtec: 'name', value: name })
 								if (localPort)
@@ -142,54 +149,85 @@ class MQAutoServices extends MQCogul {
 						gridKolon('localPort', 'Yerel Port', 13).checkedList().number().sifirGosterme(),
 						gridKolon('compress', 'Sıkıştır?', 10).tipBool(),
 						gridKolon('enc', 'Şifrele?', 10).tipBool(),
-						gridKolon('remotePort', 'Cloud Port', 13).checkedList().number().sifirGosterme(),
-						gridKolon('name', 'Belirteç', 25).checkedList()
+						gridKolon('remoteAccess', 'Erişim?', 10).checkedList().tipBool(),
+						gridKolon('localIP', 'Yerel IP', 15).checkedList(),
+						gridKolon('name', 'Belirteç', 30).checkedList(),
+						gridKolon('remotePort', 'Cloud Port', 13).checkedList().number().sifirGosterme()
 					])
-					.setSource(async _e => {
-						let { mustAlias: als } = this
-						let { list } = rec.frp
-						return list.map(r => {
-							let { service, name, local: { port: localPort = {} }, remote: { port: remotePort = {} } } = r
-							service ||= port2Service[localPort]?.aciklama
-							name ||= `${als}.${service.name}-${localPort}`
-							return {
-								service, name,
-								localPort, remotePort
-							}
-						})
-					})
+					.setSource(() =>
+						inst.frp ?? [])
 					/*.widgetArgsDuzenleIslemi(({ args }) => {
 						extend(args, { editMode: 'click' })
 					})*/
 					.onAfterRun(({ builder: { part } }) =>
 						tanimPart.grid_frpDefs = part)
-					.addStyle_fullWH(null, 'unset')
+					.addStyle_fullWH(null, 530)
 					.addCSS('dock-bottom')
 			}
 
 			;{
 				let form = tabPage.addFormWithParent('acl').altAlta()
-					.addStyle_fullWH('39%')
+					.addStyle_fullWH(width_sag)
 				form.addBaslik(undefined, 'Firewall Yetkilendirmesi')
 				
-				form.addCheckBox('enabled', 'Aktif?')
-				form.addGridliGiris('ports')
-					.setTabloKolonlari([ gridKolon('value', 'İzinli Servis/Port', 25).input() ])
-					.setSource(async _e => {
-						return []
-					})
-					.onAfterRun(({ builder: { part } }) =>
-						tanimPart.grid_frpAcl_ports = part)
-					.addStyle_fullWH(null, 300)
+				form.addCheckBox('aclEnabled', 'Aktif?')
 				form.addGridliGiris('addresses')
-					.setTabloKolonlari([ gridKolon('value', 'İzinli IPler', 25).input() ])
-					.setSource(async _e => {
-						return []
+					.setTabloKolonlari([ gridKolon('value', 'İzinli IPler', 20).input() ])
+					.setSource(() => {
+						let addresses = inst.addresses ?? []
+						return addresses
+							.filter(Boolean)
+							.map(value => ({ value }))
+					})
+					.veriDegisinceIslemi(({ sender: gridPart }) => {
+						let { boundRecs: recs } = gridPart
+						inst.addresses = recs
+							.map(r => r.value)
+							.filter(Boolean)
 					})
 					.onAfterRun(({ builder: { part } }) =>
 						tanimPart.grid_frpAcl_addresses = part)
-					.addStyle_fullWH(null, 200)
+					.addStyle_fullWH(null, 500)
 			}
+		}
+		
+		;{
+			let tabPage = tabPanel.addTab('remoteProxy', 'Sky Proxy')
+				.altAlta()
+				.setAltInst(inst.remoteProxy)
+			tabPage.addBaslik(undefined, 'Sky Proxy')
+
+			;{
+				let form = tabPage.addFormWithParent().yanYana()
+					.addStyle(`$elementCSS { padding: 10px 20px !important }`)
+				form.addCheckBox('enabled', 'Aktif?')
+					.degisince(({ builder: { altInst: r } }) => {
+						if (r.enabled && !r.key) {
+							let { fbd_remoteProxy_key: fbd } = tanimPart
+							fbd.value = r.key = generateKey()
+						}
+					})
+					.onAfterRun(({ builder: fbd }) =>
+						tanimPart.fbd_remoteProxy_enabled = fbd)
+				form.addButton('sil')
+					.addStyle_wh(50, 50)
+					.addStyle(`$elementCSS { margin: -13px 0 0 20px !important; backdrop-filter: unset !important }`)
+					.onClick(({ builder: { altInst: r } }) => {
+						let { fbd_remoteProxy_key: fbd } = tanimPart
+						fbd.value = r.key = null
+					})
+			}
+			tabPage.addTextInput('key', 'Anahtar/Şifre')			
+				.setPlaceHolder('Anahtar/Şifre')
+				.etiketGosterim_yok()
+				.setMaxLength(50)
+				[dev && adminmi ? 'editable' : 'readOnly']()
+				.degisince(({ builder: fbd, builder: { altInst: r } }) => 
+					fbd.value = r.key = r.key || null)
+				.onAfterRun(({ builder: fbd }) =>
+					tanimPart.fbd_remoteProxy_key = fbd)
+				.addStyle_wh(300, 80)
+				.addCSS('center')
 		}
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
@@ -213,9 +251,9 @@ class MQAutoServices extends MQCogul {
 		
 		return recs
 	}
-	yaz(e) { return this.kaydet(e) }
-	degistir(e) { return this.yaz(e) }
-	sil(e) { this.rec = {}; return this.yaz(e) }
+	yaz(e) { return this.kaydet({ islem: 'yeni', ...e }) }
+	degistir(e) { return this.yaz({ islem: 'degistir', eskiInst: e }) }
+	sil(e) { this.rec = {}; return this.yaz({ islem: 'sil', ...e }) }
 	varmi(e) { return !empty(this.rec) }
 	async yukle(e) { return await super.yukle(e) }
 	async tekilOku({ islem, _rec: rec }) {
@@ -230,16 +268,16 @@ class MQAutoServices extends MQCogul {
 				throw error(msg)
 		}
 		
-		let { mustKod, rec } = this
-		if (!rec)
-			throw error('Kaydedilecek bilgi belirlenemedi')
-
+		let { mustKod } = this
 		if (!mustKod)
 			throw error('<b class=firebrick>Müşteri</b> belirtilmelidir')
-
-		throwIf(await MQLogin_Musteri.bosVeyaKodYoksaMesaj(mustKod))
 		
-		let data = { ...rec }
+		throwIf(await MQLogin_Musteri.bosVeyaKodYoksaMesaj(mustKod))
+
+		let data = this.hostVars(e)
+		if (!data)
+			throw error('Kaydedilecek bilgi belirlenemedi')
+		
 		deleteKeys(data, ...[
 			'mustKod', 'mustUnvan', '_p',
 			'uid', 'uniqueid', 'boundindex', 'visibleindex',
@@ -248,18 +286,109 @@ class MQAutoServices extends MQCogul {
 		
 		return await app.wsUpdateAutoServices({ mustKod, data })
 	}
-	keyHostVars({ hv }) {
-		mergeInto(this, hv, 'mustKod')
+	keyHostVarsDuzenle({ hv }) {
+		hv.mustKod = this.mustKod
 	}
 	keySetValues({ rec }) {
-		mergeInto(rec, this, 'mustKod')
+		this.mustKod = rec.mustKod
 	}
-	hostVars({ hv }) {
-		let { rec } = this
-		if (rec)
-			extend(hv, rec)
+	hostVarsDuzenle({ hv }) {
+		let { dev } = config
+		let { adminmi } = MQLogin.current ?? {}
+		let { delimName: sep, services, kod2Service, port2Service } = this.class
+		let { mustAlias: als, frp, aclEnabled, addresses: aclAddresses, remoteProxy } = this
+		
+		let frpList = [], frpAcl = {}
+		let aclPorts = []
+		for (let { service, name, localPort, localIP, remotePort, remoteAccess } of frp) {
+			let sd = kod2Service[service] ?? {}
+			if (name && !name.includes(sep))
+				name = [als, name].filter(Boolean).join(sep)
+			else if (!name)
+				name = [als, `${sd.kod}-${localPort}`].filter(Boolean).join(sep)
+			
+			if (!name)
+				continue
+
+			if (!localPort && service)
+				localPort = sd.ekBilgi?.localPort
+			if (!localPort)
+				continue
+			
+			let r = {
+				service, name,
+				local: { port: localPort }
+			}
+			if (localIP)
+				r.local.ip = localIP
+			if (remotePort)
+				r.remote = { port: remotePort }
+			
+			frpList.push(r)
+			if (remoteAccess)
+				aclPorts.push(remotePort || name)
+		}
+		extend(frpAcl, {
+			enabled: aclEnabled,
+			ports: aclPorts,
+			addresses: aclAddresses
+		})
+		
+		let rec = {
+			frp: {
+				list: frpList,
+				acl: frpAcl
+			}
+		}
+		;{
+			let rp = remoteProxy
+			if (!empty(rp)) {
+				if (rp.enabled && !rp.key && !(dev && adminmi))
+					throw error(`<b class=royalblue>Sky Proxy</b> etkin iken <b class=firebrick>Anahtar bilgisi</b> belirtilmelidir`)
+				rec.remoteProxy = rp
+			}
+		}
+		
+		extend(hv, rec)
 	}
-	setValues({ rec }) {
-		extend(this, { rec })
+	setValues({ rec = {} }) {
+		let { delimName: sep, services, kod2Service, port2Service } = this.class
+		let { mustAlias: als = this.mustAlias, remoteProxy } = rec
+		
+		let orjAcl = rec.frp?.acl ?? {}
+		let enabledPorts = asSet(orjAcl.ports ?? orjAcl.port ?? [])
+		let addresses = orjAcl?.addresses ?? orjAcl?.address ?? orjAcl.ips ?? orjAcl.ip ?? []
+		let aclEnabled = orjAcl?.enabled && !empty(enabledPorts)
+
+		let frp = []
+		for (let r of rec.frp?.list ?? []) {
+			let { service, name, local, remote } = r
+			let { port: localPort } = local ?? {}
+			if (!localPort)
+				continue
+
+			service ||= port2Service[localPort]?.kod
+			let sd = kod2Service[service] ?? {}
+			
+			let { port: remotePort } = remote ?? {}
+			let orjName = name
+			als ||= name?.split?.(sep)?.[0]?.trim() ?? ''
+			name = name
+				? ( name.includes(sep) ? name.split(sep).slice(1).join(sep) : name )
+				: `${sd.kod}-${localPort}`
+			
+			frp.push({
+				service, name,
+				localPort, remotePort,
+				remoteAccess: ( enabledPorts[remotePort] ?? enabledPorts[orjName] ) ?? false
+			})
+		}
+
+		remoteProxy ??= {}
+		extend(this, {
+			mustAlias: als,
+			aclEnabled, addresses,
+			frp, remoteProxy
+		})
 	}
 }

@@ -214,6 +214,7 @@ class MQYapi extends CIO {
 	static orjBaslikListesi_recsDuzenle(e) {}
 	static orjBaslikListesi_recsDuzenleSon(e) {}
 	tekilOku(e) {
+		e ??= {}
 		if (this.class.tekilOkuYapilazmi)
 			return e.rec ?? e._rec
 		e.query = this.tekilOku_queryOlustur(e)
