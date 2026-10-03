@@ -114,7 +114,7 @@ class MQAutoServices extends MQCogul {
 				.setPlaceHolder(etiket)
 				.etiketGosterim_yok()
 				.addStyle_wh(400, 60)
-				[yeniVeyaKopyami || !inst.mustAlias ? 'editable' : 'readOnly']()
+				// [yeniVeyaKopyami || !inst.mustAlias ? 'editable' : 'readOnly']()
 		}
 
 		this.formBuilder_addTabPanel(e)
@@ -253,7 +253,7 @@ class MQAutoServices extends MQCogul {
 	}
 	yaz(e) { return this.kaydet({ islem: 'yeni', ...e }) }
 	degistir(e) { return this.yaz({ islem: 'degistir', eskiInst: e }) }
-	sil(e) { this.rec = {}; return this.yaz({ islem: 'sil', ...e }) }
+	sil(e) { return this.yaz({ islem: 'sil', ...e }) }
 	varmi(e) { return !empty(this.rec) }
 	async yukle(e) { return await super.yukle(e) }
 	async tekilOku({ islem, _rec: rec }) {
@@ -262,7 +262,7 @@ class MQAutoServices extends MQCogul {
 			rec = await app.wsAutoServices({ mustKod })
 		return rec
 	}
-	async kaydet(e) {
+	async kaydet({ islem } = {}) {
 		let throwIf = msg => {
 			if (msg)
 				throw error(msg)
@@ -274,7 +274,8 @@ class MQAutoServices extends MQCogul {
 		
 		throwIf(await MQLogin_Musteri.bosVeyaKodYoksaMesaj(mustKod))
 
-		let data = this.hostVars(e)
+		let silmi = islem == 'sil'
+		let data = silmi ? {} : this.hostVars(e)
 		if (!data)
 			throw error('Kaydedilecek bilgi belirlenemedi')
 		
@@ -283,8 +284,12 @@ class MQAutoServices extends MQCogul {
 			'uid', 'uniqueid', 'boundindex', 'visibleindex',
 			...keys(data).filter(k => k[0] == '_')
 		])
+
+		let args = { mustKod, data }
+		if (silmi)
+			args.delete = true
 		
-		return await app.wsUpdateAutoServices({ mustKod, data })
+		return await app.wsUpdateAutoServices(args)
 	}
 	keyHostVarsDuzenle({ hv }) {
 		hv.mustKod = this.mustKod
@@ -300,7 +305,7 @@ class MQAutoServices extends MQCogul {
 		
 		let frpList = [], frpAcl = {}
 		let aclPorts = []
-		for (let { service, name, localPort, localIP, remotePort, remoteAccess } of frp) {
+		for (let { service, name, localPort, localIP, remotePort, remoteAccess } of frp ?? []) {
 			let sd = kod2Service[service] ?? {}
 			if (name && !name.includes(sep))
 				name = [als, name].filter(Boolean).join(sep)
@@ -345,7 +350,8 @@ class MQAutoServices extends MQCogul {
 			if (!empty(rp)) {
 				if (rp.enabled && !rp.key && !(dev && adminmi))
 					throw error(`<b class=royalblue>Sky Proxy</b> etkin iken <b class=firebrick>Anahtar bilgisi</b> belirtilmelidir`)
-				rec.remoteProxy = rp
+				let cfg = rec.config ??= {}
+				cfg.remoteProxy = rp
 			}
 		}
 		
@@ -353,7 +359,8 @@ class MQAutoServices extends MQCogul {
 	}
 	setValues({ rec = {} }) {
 		let { delimName: sep, services, kod2Service, port2Service } = this.class
-		let { mustAlias: als = this.mustAlias, remoteProxy } = rec
+		let { mustAlias: als = this.mustAlias, config: cfg } = rec
+		let { remoteProxy } = cfg ?? {}
 		
 		let orjAcl = rec.frp?.acl ?? {}
 		let enabledPorts = asSet(orjAcl.ports ?? orjAcl.port ?? [])
