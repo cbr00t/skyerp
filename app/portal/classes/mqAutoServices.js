@@ -370,7 +370,7 @@ class MQAutoServices extends MQCogul {
 		let frp = []
 		for (let r of rec.frp?.list ?? []) {
 			let { service, name, local, remote } = r
-			let { port: localPort } = local ?? {}
+			let { ip: localIP, port: localPort } = local ?? {}
 			if (!localPort)
 				continue
 
@@ -386,7 +386,7 @@ class MQAutoServices extends MQCogul {
 			
 			frp.push({
 				service, name,
-				localPort, remotePort,
+				localIP, localPort, remotePort,
 				remoteAccess: ( enabledPorts[remotePort] ?? enabledPorts[orjName] ) ?? false
 			})
 		}
