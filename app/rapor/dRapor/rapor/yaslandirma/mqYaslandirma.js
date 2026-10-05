@@ -46,6 +46,7 @@ class MQYaslandirma extends DRaporMQ {
 			deleteKeys(l, _keys.map(k => k + 'Adi'))
 		}
 	}
+	static secimlerDuzenleSon({ secimler: sec }) { }
 	static islemTuslariDuzenle_listeEkrani({ sender: gridPart, liste, part: { ekSagButonIdSet: sagSet } }) {
 		super.islemTuslariDuzenle_listeEkrani(...arguments)
 		let items = [
@@ -98,10 +99,10 @@ class MQYaslandirma extends DRaporMQ {
 		let { kademeler } = Yaslandirma
 		liste.push(
 			new GridKolon({ belirtec: 'dengesizmi', text: 'Dengesiz?', genislikCh: 9 }).checkedList().bool(),
-			...MQCogul.getKAKolonlar(
-				new GridKolon({ belirtec: 'mustKod', text: 'Müşteri', genislikCh: 13 }).input(),
-				new GridKolon({ belirtec: 'mustUnvan', text: 'Ünvan', genislikCh: 45 }).input()
-			),
+			//...MQCogul.getKAKolonlar(
+			new GridKolon({ belirtec: 'mustKod', text: 'Müşteri', genislikCh: 13 }).input(),
+			new GridKolon({ belirtec: 'mustUnvan', text: 'Ünvan', genislikCh: 45 }).input(),
+			//),
 			...MQCogul.getKAKolonlar(
 				new GridKolon({ belirtec: 'yore', text: 'Yöre', genislikCh: 16 }).checkedList(),
 				new GridKolon({ belirtec: 'ilAdi', text: 'İl Adı', genislikCh: 13 }).checkedList()

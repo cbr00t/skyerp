@@ -333,19 +333,51 @@ class TicariApp extends App {
 		return result ?? null
 	}
 	wsPlasiyerIcinCariler(e = {}) {
+		let {
+			smTipi,    // smTipi: { null: Hepsi | 'S': Sadece Satıcı | 'M': Sadece Müşteri }
+			plasiyereBagliOlanlar = e.sadecePlasiyereBagliOlanlar,
+			filtre = {}
+		} = e
+		for (let [k, v] of entries(filtre))
+			filtre[k] = makeArray(v)
+
+		let { plasiyer } = filtre
+		plasiyereBagliOlanlar ??= !empty(plasiyer)
+
+		if (smTipi && empty(filtre.tip)) {
+			switch (smTipi) {
+				case 'S': filtre.tip = ['SAT']; break
+				case 'M': filtre.tip = ['MUS']; break
+			}
+		}
+
+		let args = { ...e, }
+		for (let [k, vals] of entries(filtre)) {
+			if (empty(vals))
+				continue
+
+			switch (k) {
+				case 'plasiyer': {
+					args.plasiyerKod = vals
+					break
+				}
+				case 'cariTip': {
+					args.cariTipKod = vals
+					break
+				}
+				case 'cari': case 'must': {
+					args.mustKod = vals
+					break
+				}
+			}
+		}
+		
 		return ajaxPost({
-			timeout: 10 * 60000,
+			timeout: 10 * 30_000,
 			processData: false, ajaxContentType: wsContentTypeVeCharSet,
-			url: app.getWSUrl({ wsPath: 'ws/genel', api: 'plasiyerIcinCariler', args: e })
+			url: app.getWSUrl({ wsPath: 'ws/genel', api: 'plasiyerIcinCariler', args })
 		})
 	}
-	/*wsTopluDurum(e = {}) {
-		deleteKeys(e, 'data', 'args')
-		return ajaxGet({
-			timeout: 300000, processData: false, ajaxContentType: wsContentType,
-			url: app.getWSUrl({ wsPath: 'ws/genel', api: 'topluDurum', args: e })
-		})
-	}*/
 	wsTicQueryRun(e = {}) {
 		let {
 			smTipi,    // smTipi: { null: Hepsi | 'S': Sadece Satıcı | 'M': Sadece Müşteri }
@@ -353,7 +385,6 @@ class TicariApp extends App {
 			plasiyereBagliOlanlar = e.sadecePlasiyereBagliOlanlar,
 			filtre = {}
 		} = e
-
 		for (let [k, v] of entries(filtre))
 			filtre[k] = makeArray(v)
 
@@ -361,8 +392,7 @@ class TicariApp extends App {
 		smTipi ||= null
 		plasiyereBagliOlanlar ??= !empty(plasiyer)
 		
-		// let { plasiyer, must, bolge } = filtre
-		let getFilterParam = k => {
+		function getFilterParam(k) {
 			let vals = filtre[k.toLowerCase()] 
 			if (empty(vals))
 				return null
@@ -371,6 +401,7 @@ class TicariApp extends App {
 			let value = vals.map(kod => ({ kod }))
 			return { name, type: 'structured', typeName: 'type_charList', value }
 		}
+		
 		let params = [
 			getFilterParam('Plasiyer'),
 			getFilterParam('Must'),
@@ -395,6 +426,13 @@ class TicariApp extends App {
 			return this.sqlExecSP({ query: 'tic_topluDurum', params })
 		})
 	}
+	/*wsTopluDurum(e = {}) {
+		deleteKeys(e, 'data', 'args')
+		return ajaxGet({
+			timeout: 300000, processData: false, ajaxContentType: wsContentType,
+			url: app.getWSUrl({ wsPath: 'ws/genel', api: 'topluDurum', args: e })
+		})
+	}*/
 	wsTicKapanmayanHesap({ plasiyerKod, mustKod } = {}) {
 		return this.wsTicQueryRun({
 			method: 'tic_kapanmayanHesap2',

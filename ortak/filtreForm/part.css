@@ -10,8 +10,9 @@
 	background: transparent !important;
 	width: 180px; height: 33px; padding: 5px 8px; z-index: 1001 !important
 }
-.part .header > *  .filtreForm.part,
-.part .baslikFormlar .filtreForm.part {
+/*.part .header > *  .filtreForm.part,
+.part .baslikFormlar .filtreForm.part*/
+.filtreForm.part {
 	--expanded-input-width: 200px
 }
 
@@ -19,22 +20,22 @@
 /*.bulForm.filtreForm.part input:hover:not(.has-data) { opacity: .7 }*/
 .filtreForm.part .input {
 	font-size: 95% !important;
-	width: 0px;
 	padding-left: 45px;
 	background-image: url(../../images/search.png);
 	background-color: #f9f9f9; background-repeat: no-repeat;
 	background-size: 22px 22px; background-position: 13px 50%;
 	opacity: .8 !important
 }
+.filtreForm.part:not(.no-expand) .input { width: 0px }
 .bulForm.filtreForm.part:not(:has(:hover)):not(:has(:focus)):not(:has(:active)) input {
 	background-color: #ffffffaa !important;
 	border: 2px solid #333
 }
 /*.bulForm.filtreForm.part input.has-data { opacity: .8 !important }
 .bulForm.filtreForm.part input:hover { opacity: 1 !important }*/
-.bulForm.filtreForm.part input:hover,
-.bulForm.filtreForm.part input:focus,
-	.bulForm.filtreForm.part input:active {
+.bulForm.filtreForm.part:not(.no-expand) input:hover,
+.bulForm.filtreForm.part:not(.no-expand) input:focus,
+	.bulForm.filtreForm.part:not(.no-expand) input:active {
 		width: var(--expanded-input-width);
 		box-shadow: 0 0 5px 3px #333;
 		margin-left: calc(0px - var(--expanded-input-width));

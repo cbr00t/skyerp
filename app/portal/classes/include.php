@@ -2,5 +2,5 @@
 <script src="<?=$_partRoot?>/tekSecim.js?<?=$appVersion?>"></script> <script src="<?=$_partRoot?>/mqSiniflar.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqLogin.js?<?=$appVersion?>"></script> <script src="<?=$_partRoot?>/mqAktivasyon.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqKontor.js?<?=$appVersion?>"></script> <script src="<?=$_partRoot?>/mqKontorHareket.js?<?=$appVersion?>"></script>
-<script src="<?=$_partRoot?>/mqAutoServices.js?<?=$appVersion?>">
-	
+<script src="<?=$_partRoot?>/kontorYonetimPart.js?<?=$appVersion?>"></script>
+<script src="<?=$_partRoot?>/mqAutoServices.js?<?=$appVersion?>"></script>

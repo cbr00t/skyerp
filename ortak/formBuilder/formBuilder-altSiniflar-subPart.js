@@ -826,7 +826,7 @@ class FBuilder_Button extends FBuilder_InputOrtak {
 	static get inputTagName() { return 'button' }
 	constructor(e = {}) {
 		super(e)
-		extend(this, { disabled: e.disabled ?? false, onClickEvent: e.onClick || e.onClickEvent || e.handler });
+		extend(this, { disabled: e.disabled ?? false, onClickEvent: e.onClick || e.onClickEvent || e.handler })
 		if (e.etiketGosterim == null)
 			this.etiketGosterim_yok()
 	}
@@ -1187,7 +1187,7 @@ class FBuilder_IslemTuslari extends FBuilder_DivOrtak {
 	prepend() { this.prependFlag = true; return this } setPrependFlag(value) { this.prependFlag = value; return this }
 	setTip(value) { this.tip = value; return this }
 	setButonlarIlk(value) { this.ekButonlarIlk = value; return this }
-	setButonlarSon(value) { this.ekButonlarSon = true; return this }
+	setButonlarSon(value) { this.ekButonlarSon = value; return this }
 	setId2Handler(handler) { this.id2Handler = handler; return this }
 	setButonlarDuzenleyici(handler) { this.butonlarDuzenleyici = handler; return this }
 	setSagButonlar(..._values) { let values = _values?.flat(); this.sagButonlar = values; return this }

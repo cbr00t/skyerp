@@ -183,7 +183,7 @@ class MQKontor extends MQDetayliMaster {
 			})
 		}
 		
-		if ((login.adminmi || login.sefmi) && this.faturalastirmaYapilirmi) {
+		if ((login.adminmi || login.sefmi) && (this.faturalastirmaYapilirmi || this == MQKontor)) {
 			form_ek.addButton('faturalastir', 'FAT')
 				.onClick(async _e => {
 					try { await this.kontor_topluFaturalastirIstendi({ ..._e, ...e }) }
@@ -462,8 +462,10 @@ class MQKontor extends MQDetayliMaster {
 	
 	static async kontor_topluFaturalastirIstendi(e) {
 		let islemAdi = e.islemAdi = 'Kontör Faturalaştır'
-		let { rootBuilder: rfb } = e.builder
-		let { part } = rfb
+		let { sinifAdi } = this
+		let { rootBuilder: rfb } = e.builder ?? {}
+		let { silent, noConfirm } = e
+		let { part = rfb?.part } = e
 		let { current: login } = MQLogin
 		e.part = part
 		
@@ -476,11 +478,70 @@ class MQKontor extends MQDetayliMaster {
 			return false
 		}
 		
-		let { recs = part.selectedRecs } = e
+		let { recs = part?.selectedRecs } = e
 		e.recs = recs
 		if (empty(recs)) {
-			hConfirm('Faturalaşacak kayıtlar seçilmelidir', islemAdi)
+			if (!silent)
+				hConfirm('Faturalaşacak kayıtlar seçilmelidir', islemAdi)
 			return false
+		}
+
+		if (this == MQKontor) {
+			let tip2Recs = {}
+			;recs.forEach(r =>
+				(tip2Recs[r.tip] ??= []).push(r))
+	
+			let tip2Sinif = fromEntries(
+				keys(tip2Recs)
+					.map(tip => [tip, new KontorTip(tip)?.ekBilgi])
+					.filter(([, cls]) => cls)
+			)
+	
+			;{
+				let desteklenmeyenTipAdlari = []
+				for (let [tip, recs] of entries(tip2Recs)) {
+					let cls = tip2Sinif[tip]
+					if (cls?.faturalastirmaYapilirmi)
+						continue
+					delete tip2Recs[tip]
+					desteklenmeyenTipAdlari.push(`<b>${cls?.sinifAdi ?? new KontorTip(tip)?.aciklama ?? tip}</b>`)
+				}
+				if (!empty(desteklenmeyenTipAdlari))
+					wConfirm(getMergedText('Bazı Kontör tipleri desteklenmiyor:', desteklenmeyenTipAdlari), islemAdi)
+			}
+	
+			if (empty(tip2Recs))
+				return
+
+			let mevcutTipAdlari = [], count = 0
+			for (let [tip, recs] of entries(tip2Recs)) {
+				mevcutTipAdlari.push(tip2Sinif[tip]?.sinifAdi || tip)
+				count += recs.length
+			}
+	
+			/*let res = await ehConfirm(
+				(
+					`<div><b>${mevcutTipAdlari.join(', ')}</b> için <b class=forestgreen>${count}</b> adet Kontör Belgesi faturalaştırılacak</div>` +
+					`<div class="bold mt-2">Devam edilsin mi?</div>`
+				),
+				islemAdi
+			)
+			if (!res)
+				return*/
+	
+			try {
+				for (let [tip, recs] of entries(tip2Recs)) {
+					let cls = tip2Sinif[tip]
+					let args = {
+						silent: false, noConfirm: false,
+						part, tumFisler: [],
+						recs
+					}
+					await cls.kontor_topluFaturalastirIstendi(args)
+				}
+			}
+			finally { hideProgress() }
+			return
 		}
 		
 		let fisSayacListe = recs?.map(r => r.fissayac ?? r.kaysayac)
@@ -513,7 +574,8 @@ class MQKontor extends MQDetayliMaster {
 		}
 
 		if (empty(kRecs)) {
-			wConfirm(`<br/><b class=red>ERP'ye işlenecek bilgi yok</b>`, islemAdi)
+			if (!silent)
+				wConfirm(`<br/><b class=red>ERP'ye işlenecek bilgi yok</b>`, islemAdi)
 			hideProgress()
 			return false
 		}
@@ -525,7 +587,7 @@ class MQKontor extends MQDetayliMaster {
 			fatmi2Sayi[faturami] = (fatmi2Sayi[faturami] ?? 0) + 1
 			//r.fatdurum != 'B'
 		})
-		;{
+		if (!(silent || noConfirm)) {
 			let msg = [
 				`Seçilen kayıtlara ait<br>`,
 				`<ul style="margin-top: 10px">`,
@@ -564,7 +626,8 @@ class MQKontor extends MQDetayliMaster {
 		pm?.setProgressMax((kRecs.length * 3) + 3)
 		pm?.setProgressValue(0); pm?.progressStep(3); abortCheck?.()
 		if (!kRecs.length) {
-			hConfirm(`ERP'ye işlenecek kontör kaydı bulanamadı`, islemAdi)
+			if (!silent)
+				hConfirm(`ERP'ye işlenecek kontör kaydı bulanamadı`, islemAdi)
 			hideProgress()
 			delete this._hTimer_faturalastir
 			return false
@@ -628,7 +691,7 @@ class MQKontor extends MQDetayliMaster {
 				return false
 			}
 		}
-		finally { part.tazele() }
+		finally { part?.tazele() }
 		
 		pm?.progressEnd().showAbortButton().setAbortText('TAMAM')
 		delete this._hTimer_importRecords_progress
@@ -636,7 +699,7 @@ class MQKontor extends MQDetayliMaster {
 		
 		eConfirm((
 			`<br/><ul>` +
-			`<li><b class=royalblue>${totalCount}</b> adet <b class=royalblue>Kontör Alım Hareketi</b> için<p/></li>` +
+			`<li><b class=royalblue>${totalCount}</b> adet ${sinifAdi} <b class=royalblue>Kontör Alımı</b> için<p/></li>` +
 			`<li>ERP tarafında <b class=forestgreen>${tumFisler?.length ?? 0}</b> adet <b class=forestgreen>Belge</b> oluşturuldu</li>` +
 			`</ul>${ekMesaj}`
 		), islemAdi)
@@ -682,8 +745,10 @@ class MQKontor extends MQDetayliMaster {
 			}
 			;{
 				let kodlar = this.vioHizmetKodlar?.filter(Boolean)
-				if (empty(kodlar))
+				if (empty(kodlar)) {
+					hideProgress()
 					throw { isError: true, errorText: `<b>${this.tipAdi}</b> için <b class=firebrick>VIO Hizmet Kodu</b> belirsizdir` }
+				}
 				
 				let sent = new MQSent(), { where: wh, sahalar } = sent
 				sent.fromAdd('hizmst')
@@ -1004,7 +1069,7 @@ class MQKontorDetay extends MQDetay {
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
 		let { fisSinif: mfSinif } = this
-		let { eDeftermi } = mfSinif
+		let { eDeftermi } = mfSinif ?? {}
 		let { tableAlias: alias } = this
 		let { current: login } = MQLogin
 		if (login.yetkiVarmi('degistir')){

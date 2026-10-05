@@ -275,7 +275,7 @@ class MQAutoServices extends MQCogul {
 		throwIf(await MQLogin_Musteri.bosVeyaKodYoksaMesaj(mustKod))
 
 		let silmi = islem == 'sil'
-		let data = silmi ? {} : this.hostVars(e)
+		let data = silmi ? {} : this.hostVars(e)    // super.hostVars CIO > hostVarsDuzenle
 		if (!data)
 			throw error('Kaydedilecek bilgi belirlenemedi')
 		

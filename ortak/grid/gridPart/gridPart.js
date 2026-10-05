@@ -1748,6 +1748,7 @@ showstatusbar: true, showaggregates: true, showtoolbar: true, showfilterrow: fal
 filtermode: 'excel', filtermode: 'simple',
 pagermode: 'advanced', pagesizeoptions: [5, 10, 13, 15, 20, 25, 50, 80, 100],
 pagerbuttonscount: 15, pagesize: 10, pagerposition: 'top',
+enableHover: true, enableTooltips: false
 */
 /*
 	onGridRendered(e) {

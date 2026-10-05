@@ -76,16 +76,18 @@ class MQKod extends MQCogul {
 	}
 	static orjBaslikListesiDuzenle({ liste, mfSinif }) {
 		let e = arguments[0]; super.orjBaslikListesiDuzenle(e)
-		mfSinif ??= this; let {kodEtiket, kodKullanilirmi, guidmi, kodSaha, adiSaha} = mfSinif
+		mfSinif ??= this
+		let { kodEtiket, kodKullanilirmi, guidmi, kodSaha, adiSaha, birlesikGorunumKullanilmazmi } = mfSinif
 		kodEtiket ||= (guidmi ? 'ID' : 'Kod')
 		let mini = isMiniDevice()
 		let cellsRenderer = e.cellsRenderer = (colDef, rowIndex, belirtec, value, html, jqxCol, rec) => {
-			if (belirtec == adiSaha && mini && kodKullanilirmi && !guidmi) {
+			if (!birlesikGorunumKullanilmazmi && belirtec == adiSaha && mini && kodKullanilirmi && !guidmi) {
 				html = changeTagContent(html, [
 					`<span class="asil">${value}</span>`,
 					`<span class="ek-bilgi bold royalblue float-right" style="padding-left: 10px">${rec[kodSaha]}</span>`
 				].join('\n'))
 			}
+			
 			let _osColor = rec?.oscolor
 			let htmlColor = _osColor ? os2HTMLColor(_osColor) : null
 			if (htmlColor) {
@@ -100,7 +102,7 @@ class MQKod extends MQCogul {
 				text: kodEtiket, cellsRenderer,
 				minWidth: 100,
 				width: mini ? 150 : guidmi ? 320 : 250,
-				hidden: mini || !(kodKullanilirmi || guidmi),
+				hidden: (!birlesikGorunumKullanilmazmi && mini) || !(kodKullanilirmi || guidmi),
 				sql: kodKullanilirmi ? undefined : false
 			})
 		)
@@ -169,7 +171,8 @@ class MQKA extends MQKod {
 	
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); let {pTanim} = e;
-		if (this.adiKullanilirmi) { $.extend(pTanim, { aciklama: new PInstStr(this.adiSaha) }) }
+		if (this.adiKullanilirmi)
+			extend(pTanim, { aciklama: new PInstStr(this.adiSaha) })
 	}
 	static secimlerDuzenle(e) {
 		super.secimlerDuzenle(e); let {secimler: sec} = e;
@@ -203,12 +206,12 @@ class MQKA extends MQKod {
 	}
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e)
-		let {liste, mfSinif, cellsRenderer} = e
-		mfSinif ??= this
-		let {adiKullanilirmi, adiSaha} = mfSinif
 		let mini = isMiniDevice(), micro = isMicroDevice()
+		let { liste, mfSinif, cellsRenderer } = e
+		mfSinif ??= this
+		let { adiKullanilirmi, adiSaha, birlesikGorunumKullanilmazmi } = mfSinif
 		if (adiKullanilirmi) {
-			let colDef_adi = liste.find(colDef => colDef.belirtec == adiSaha)
+			let colDef_adi = liste.find(cd => cd.belirtec == adiSaha)
 			if (!colDef_adi) {
 				let adiEtiket = mfSinif.adiEtiket ?? 'Açıklama'
 				let colDef = new GridKolon({
@@ -217,10 +220,10 @@ class MQKA extends MQKod {
 					width: micro
 						? '70%'
 						: mini
-							? Math.min(400, asInteger($(window).width() / 1.3))
-							: Math.min(500, asInteger($(window).width() / 2))
+							? min(400, asInteger($(window).width() / 1.3))
+							: min(500, asInteger($(window).width() / 2))
 				})
-				liste[mini ? 'unshift' : 'push'](colDef)
+				liste[!birlesikGorunumKullanilmazmi && mini ? 'unshift' : 'push'](colDef)
 			}
 		}
 	}
@@ -242,15 +245,20 @@ class MQKA extends MQKod {
 		if (!this.kod) { return this.aciklama }
 		return `${e.styled ? '<b>' : ''}${this.kod}${e.styled ? '</b>' : ''}-${this.aciklama}`
 	}
-	static getGridKolonGrup(e) {
-		e = e || {}; let mfSinif = e.mfSinif || this; let _mfSinif = mfSinif; if (isFunction(_mfSinif)) { _mfSinif = getFuncValue.call(this, _mfSinif, {}) }
-		let {belirtec} = e, sinifAdi = e.sinifAdi || _mfSinif.sinifAdi, kodAttr = e.kodAttr || `${belirtec}Kod`, adiAttr = e.adiAttr || `${belirtec}Adi`;
-		let kodEtiket = e.kodEtiket || sinifAdi, adiEtiket = e.adiEtiket || /*_mfSinif.adiEtiket ||*/ sinifAdi;
-		let isDropDown = e.dropDown ?? e.isDropDown;
-		let ekStmDuzenleyici = e.stmDuzenle ?? e.stmDuzenleyici;
-		let ozelQueryDuzenle = e.ozelQueryDuzenle ?? e.ozelQueryDuzenleBlock;
-		let degisince = e.degisince ?? e.ekDegisince ?? e.degisinceBlock, gelince = e.gelince ?? e.ekGelince ?? e.gelinceBlock;
-		let argsDuzenleBlock = e.argsDuzenle ?? e.argsDuzenleBlock;
+	static getGridKolonGrup(e = {}) {
+		let mfSinif = e.mfSinif || this
+		let _mfSinif = mfSinif
+		if (isFunction(_mfSinif))
+			_mfSinif = getFuncValue.call(this, _mfSinif, {})
+		
+		let { belirtec } = e, sinifAdi = e.sinifAdi || _mfSinif.sinifAdi
+		let kodAttr = e.kodAttr || `${belirtec}Kod`, adiAttr = e.adiAttr || `${belirtec}Adi`
+		let kodEtiket = e.kodEtiket || sinifAdi, adiEtiket = e.adiEtiket || /*_mfSinif.adiEtiket ||*/ sinifAdi
+		let isDropDown = e.dropDown ?? e.isDropDown
+		let ekStmDuzenleyici = e.stmDuzenle ?? e.stmDuzenleyici
+		let ozelQueryDuzenle = e.ozelQueryDuzenle ?? e.ozelQueryDuzenleBlock
+		let degisince = e.degisince ?? e.ekDegisince ?? e.degisinceBlock, gelince = e.gelince ?? e.ekGelince ?? e.gelinceBlock
+		let argsDuzenleBlock = e.argsDuzenle ?? e.argsDuzenleBlock
 		let kolonGrup = new GridKolonGrup_KA({
 			mfSinif: mfSinif || this, belirtec, adiAttr, degisince, gelince, isDropDown, ozelQueryDuzenle,
 			kaKolonu: new GridKolon({ belirtec: kodAttr, text: adiEtiket || kodEtiket || `${sinifAdi}`, genislikCh: e.adiGenislikCh || 50 }),
@@ -331,8 +339,10 @@ class MQKA extends MQKod {
 				return result
 			}
 		})
+		
 		if (argsDuzenleBlock)
 			getFuncValue.call(this, argsDuzenleBlock, { ...e, kolonGrup })
+		
 		return kolonGrup
 	}
 }

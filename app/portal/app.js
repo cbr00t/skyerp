@@ -125,26 +125,30 @@ class PortalApp extends TicariApp {
 						let { kodListeTipi: mne, sinifAdi: text } = cls
 						return new FRMenuChoice({
 							mne, text,
-							block: e =>
-								cls.listeEkraniAc(e)
+							block: e => cls.listeEkraniAc(e)
 						})
 					})
 				)
 			}),
-			( dev && ( adminmi || (bayimi && login.yetkiVarmi('aktivasyonYap') ) ) ? 
+			( adminmi || (bayimi && login.yetkiVarmi('aktivasyonYap')) ?
+				 new FRMenuChoice({
+					 mne: KontorYonetimPart.kodListeTipi,
+					 text: KontorYonetimPart.sinifAdi,
+					 block: e => KontorYonetimPart.run(e)
+				 })
+			: null ),
+			( dev && ( adminmi || (bayimi && login.yetkiVarmi('aktivasyonYap')) ) ? 
 				new FRMenuChoice({
 					mne: MQAutoServices.kodListeTipi,
 					text: MQAutoServices.sinifAdi,
-					block: e =>
-						MQAutoServices.listeEkraniAc(e)
+					block: e => MQAutoServices.listeEkraniAc(e)
 				})
 			: null ),
 			(
 				config.dev && adminmi
 				? new FRMenuChoice({
 					 mne: 'TURMOB_IMPORT', text: 'Turmob Kayıtlarını İçeri Al',
-					 block: e =>
-						 MQKontor_Turmob.importRecordsIstendi(e)
+					 block: e => MQKontor_Turmob.importRecordsIstendi(e)
 				})
 				: null
 			)

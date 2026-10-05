@@ -1,17 +1,25 @@
 class MQMustBilgi extends MQKAOrtak {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get dataKey() { return 'mustBilgi' } static get tableAlias() { return 'mbil' }
-	static kodListeTipi() { return 'MUST' } static get sinifAdi() { return 'Plasiyer için Müşteriler' }
-	static get tanimUISinif() { return ModelTanimPart } static get secimSinif() { return null }
-	static get tekilOkuYapilazmi() { return true } static get tumKolonlarGosterilirmi() { return true }
+	static get dataKey() { return 'mustBilgi' }
+	static get tableAlias() { return 'mbil' }
+	static kodListeTipi() { return 'MUST' }
+	static get sinifAdi() { return 'Plasiyer için Müşteriler' }
+	static get tanimUISinif() { return ModelTanimPart }
+	static get secimSinif() { return null }
+	static get tekilOkuYapilazmi() { return true }
+	static get tumKolonlarGosterilirmi() { return true }
+	static get gridIslemTuslariKullanilirmi() { return true }
+	static get birlesikGorunumKullanilmazmi() { return true }
 
 	static islemTuslariDuzenle_listeEkrani({ liste, part }) {
 		let e = arguments[0]
 		let removeIdSet = asSet(['yeni', 'sil', 'kopya'])
 		liste = e.liste = liste.filter(_ => !removeIdSet[_.id])
+		
 		let rec = liste.find(_ => _.id == 'degistir')
 		if (rec)
 			rec.id = 'izle'
+		
 		let ekSagButonIdSet = part.ekSagButonIdSet ??= {}
 		ekSagButonIdSet.izle = true
 	}
@@ -42,8 +50,9 @@ class MQMustBilgi extends MQKAOrtak {
 		super.orjBaslikListesiDuzenle(...arguments)
 		let { session } = config, { yerel } = app.params
 		session ??= yerel.lastSession ?? {}
-		let {loginTipi, user} = session
-		let colDef = liste.find(_ => _.belirtec == 'kod')
+		let { loginTipi, user } = session
+		
+		/*let colDef = liste.find(_ => _.belirtec == 'kod')
 		colDef?.hidden()
 		colDef = liste.find(_ => _.belirtec == 'aciklama')
 		extend(colDef, {
@@ -55,7 +64,8 @@ class MQMustBilgi extends MQKAOrtak {
 					`<div style="${marginStyle}">${rec.aciklama || ''}</div></div>`
 				)
 			}
-		})
+		})*/
+		
 		liste.push(...[
 			new GridKolon({ belirtec: 'yore', text: 'Yöre', genislikCh: 20, cellClassName: 'darkgray' }),
 			new GridKolon({ belirtec: 'iladi', text: 'İl Adı', genislikCh: 13, cellClassName: 'darkgray' }),
@@ -151,8 +161,9 @@ class MQMustBilgi extends MQKAOrtak {
 	static tanimPart_islemTuslariDuzenle(e) {
 		super.tanimPart_islemTuslariDuzenle(e)
 		let { dev } = config
-		let { sender: tanimPart } = e
+		let { parentPart: tanimPart } = e
 		let { inst } = tanimPart
+		
 		let items = [
 			{
 				id: 'dataOutput', text: 'PDF<br/>e-Mail',
@@ -161,6 +172,7 @@ class MQMustBilgi extends MQKAOrtak {
 			}
 		].filter(Boolean)
 		e.liste = [...items, ...e.liste]
+		
 		let ekSagButonIdSet = e.part.ekSagButonIdSet ??= {}
 		extend(ekSagButonIdSet, asSet(items.map(_ => _.id)))
 	}
@@ -251,21 +263,27 @@ class MQMustBilgi extends MQKAOrtak {
 				etFuncValue.call(this, ekIslemler.ilk, { id, etiket, mfSinif, etiket, parent, fbd })
 			return fbd
 		}
+		
 		addGrid('kapanmayanHesap', null, MQKapanmayanHesaplar, { ilk: e => {
 			let { parentBuilder } = e
 			parentBuilder.addButton('navToggle')
 				.onClick(e => {
-					let {builder} = e, {parentBuilder, rootPart} = builder;
-					let builder_sol = parentBuilder.id2Builder[id]
-					let { kapanmayanHesap: builder_sag } = parentBuilder.id2Builder
-					builder_sol.layout.toggleClass('jqx-hidden')
-					builder_sag.layout.toggleClass('full-width-important')
+					let { builder: fbd } = e
+					let { parentBuilder, rootPart } = fbd
+					let fbd_sol = parentBuilder.id2Builder[id]
+					let { kapanmayanHesap: fbd_sag } = parentBuilder.id2Builder
+					fbd_sol.layout.toggleClass('jqx-hidden')
+					fbd_sag.layout.toggleClass('full-width-important')
 					rootPart.onResize()
 				}).addStyle(e => `$elementCSS { position: absolute; width: auto !important; height: auto !important; margin-top: -45px; z-index: 500 }`)
-				.addStyle(e => `$elementCSS > button { width: 45px !important; height: 45px !important }`);
+				.addStyle(e => `$elementCSS > button { width: 45px !important; height: 45px !important }`)
+			
 			let width = 400
-			let subParentBuilder = parentBuilder.addFormWithParent().altAlta().addStyle_fullWH(width)
+			let subParentBuilder = parentBuilder.addFormWithParent()
+				.altAlta()
+				.addStyle_fullWH(width)
 			subParentBuilder._width = width
+			
 			;{
 				let mfSinif = MQKapanmayanHesaplar_Yaslandirma
 				let { dataKey: id } = mfSinif
@@ -289,7 +307,8 @@ class MQMustBilgi extends MQKAOrtak {
 				})
 			}
 			{
-				let mfSinif = MQKapanmayanHesaplar_Dip, {dataKey: id} = mfSinif;
+				let mfSinif = MQKapanmayanHesaplar_Dip
+				let { dataKey: id } = mfSinif
 				let fbd = subParentBuilder.addGridliGosterici(id).addStyle_fullWH(null, 400)
 					.setMFSinif(mfSinif).rowNumberOlmasin()
 					.widgetArgsDuzenleIslemi(({ sender, args, builder: fbd }) => {
@@ -315,7 +334,7 @@ class MQMustBilgi extends MQKAOrtak {
 		}
 	}
 
-	async dataOutputIstendi({ sender: tanimPart, recs: orjRecs, detRecs: orjDetRecs }) {
+	async dataOutputIstendi({ parentPart: tanimPart, recs: orjRecs, detRecs: orjDetRecs }) {
 		let { params: { localData } } = app
 		let { kod: mustKod, aciklama: mustUnvan, class: { sinifAdi: islemAdi } } = this
 		let { [mustKod]: mustBilgi } = localData.get('mustBilgi') ?? {}

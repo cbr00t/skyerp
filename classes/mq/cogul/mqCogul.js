@@ -26,6 +26,7 @@ class MQCogul extends MQYapi {
 	static get gridDetaylimi() { return this.detaylimi }
 	static get ozelTanimIslemi() { return null }
 	static get bulFormKullanilirmi() { return true }
+	static get birlesikGorunumKullanilmazmi() { return false }
 	static get gereksizTablolariSilYapilirmi() { return true }
 	static get islemTuslari_sagButonlar_ekMarginX() { return isMiniDevice() ? 0 : 15 }
 	static get orjBaslik_gridRenderDelayMS() { return null }

@@ -46,7 +46,7 @@
 	text-wrap: pretty
 }
 .jqx-grid .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header > * {
-	font-size: 110%;
+	font-size: 100%;
 	padding: 0 !important
 }
 .jqx-grid .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header > * > *:first-child {

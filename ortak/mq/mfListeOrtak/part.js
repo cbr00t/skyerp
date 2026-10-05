@@ -116,7 +116,7 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 			if (!grupAttrListe?.length && ustSeviyeAttrListe?.length) { grupAttrListe = [...ustSeviyeAttrListe] }
 			else if (grupAttrListe?.length && !ustSeviyeAttrListe?.length) { ustSeviyeAttrListe = [...grupAttrListe] }
 			let groups = mfSinif?.orjBaslikListesi_getGroups?.(e); if (groups?.length) { ustSeviyeAttrListe.push(...groups) }
-			$.extend(panelDuzenleyici, { gridPart: this, grupAttrListe, ustSeviyeAttrListe });
+			extend(panelDuzenleyici, { gridPart: this, grupAttrListe, ustSeviyeAttrListe });
 			if (!panelDuzenleyici.colCount) { panelDuzenleyici.colCount = e => this.getColCount(e) }
 		}
 		this.panelDuzenleyici = panelDuzenleyici;
@@ -184,13 +184,16 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		if (mfSinif?.listeEkrani_deactivated) { mfSinif.listeEkrani_deactivated(e) }
 	}
 	initBulForm(e) {
-		let {layout, bulForm, filtreTokens} = this
-		if (!bulForm?.length) { bulForm = layout.find('#bulForm') }
-		if (!bulForm?.length) { bulForm = layout.find('.bulForm') }
+		let { layout, bulForm, filtreTokens } = this
+		if (!bulForm?.length)
+			bulForm = layout.find('#bulForm')
+		if (!bulForm?.length)
+			bulForm = layout.find('.bulForm')
+		
 		if (bulForm?.length) {
 			let mfSinif = this.getMFSinif(e)
 			if (!mfSinif || mfSinif.bulFormKullanilirmi) {
-				let {bulPart} = this
+				let { bulPart } = this
 				if (!bulPart) {
 					bulPart = this.bulPart = new FiltreFormPart({
 						layout: bulForm,

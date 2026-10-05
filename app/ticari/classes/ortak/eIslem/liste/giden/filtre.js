@@ -61,7 +61,7 @@ class GidenEIslemFiltre extends EIslemFiltre {
 			})
 		}
 		;{
-			let wh = this.getTBWhereClause(extend({}, e, { psTip: 'ST' }))
+			let wh = this.getTBWhereClause({ ...e, psTip: 'ST' })
 			if (!wh)
 				return
 			
