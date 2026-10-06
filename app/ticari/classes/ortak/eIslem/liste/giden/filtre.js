@@ -55,10 +55,10 @@ class GidenEIslemFiltre extends EIslemFiltre {
 				fisTablo: 'piffis', psTip: 'P', ifSql: 'fis.piftipi',
 				efAyrimTipiClause: `(case when fis.piftipi = 'I' then 'IR' when fis.almsat = 'M' then 'MS' else ${fisGenelAyrimTipiClause} end)`
 			})
-			sentEkle({
+			/*sentEkle({
 				fisTablo: 'sipfis', psTip: 'S', ifSql: `'F'`,
 				efAyrimTipiClause: fisGenelAyrimTipiClause
-			})
+			})*/
 		}
 		;{
 			let wh = this.getTBWhereClause({ ...e, psTip: 'ST' })
