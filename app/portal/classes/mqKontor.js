@@ -1396,19 +1396,35 @@ class MQKontorDetay extends MQDetay {
 		return result
 	}
 	static async kontor_silIstendi(e) {
-		let islemAdi = e.islemAdi = 'Kontör SİL', {sender: part, parentRec, recs, sayacListe} = e, {parentPart} = part, {current: login} = MQLogin;
-		if (!(login.yetkiVarmi('sil') || login.sefmi)) { hConfirm('Kayıt <b>SİLME</b> yetkiniz yok', islemAdi); return false }
-		if (parentRec == null) { parentRec = e.parentRec = parentPart.selectedRec }
-		let {kaysayac: fisSayac} = parentRec; if (recs == null) { recs = $.makeArray(e.rec) }
-		if (sayacListe == null) { sayacListe = e.sayacListe = recs.map(rec => rec.kaysayac) }
-		let rdlg = await ehConfirm(`Seçilen <b>${recs.length} adet Kontör</b> kaydı <b class=firebrick>SİLİNSİN Mİ?</b>`, islemAdi);
-		if (rdlg != true) { return rdlg } extend(e, { fisSayac, part, parentPart });
+		let islemAdi = e.islemAdi = 'Kontör SİL'
+		let { sender: part, parentRec, recs, sayacListe } = e
+		let { parentPart } = part, { current: login } = MQLogin
+		if (!(login.yetkiVarmi('sil') || login.sefmi)) {
+			hConfirm('Kayıt <b>SİLME</b> yetkiniz yok', islemAdi)
+			return false
+		}
+		
+		parentRec ??= e.parentRec = parentPart?.selectedRec
+		let { fisSayac = parentRec?.kaysayac } = e
+		if (recs == null)
+			recs = makeArray(e.rec)
+		sayacListe ??= e.sayacListe = recs.map(r =>
+			r.kaysayac)
+		
+		let rdlg = await ehConfirm(`Seçilen <b>${recs.length} adet Kontör</b> kaydı <b class=firebrick>SİLİNSİN Mİ?</b>`, islemAdi)
+		if (rdlg != true)
+			return rdlg
+		
+		extend(e, { fisSayac, part, parentPart })
 		try { return await this.kontor_sil(e) }
 		catch (ex) { hConfirm(getErrorText(ex), islemAdi); throw ex }
 	}
 	static async kontor_sil({ islemAdi, fisSayac, sayacListe, part }) {
-		if (!sayacListe?.length) { return false }
-		let {tip, table} = MQKontor, {table: detayTable} = this;
+		if (empty(sayacListe))
+			return false
+
+		islemAdi ||= e.islemAdi = 'Kontör SİL'
+		let { tip, table } = MQKontor, { table: detayTable } = this
 		let query = new MQToplu([
 			'DECLARE @dusulecek_alinan INT = 0',
 			'DECLARE @dusulecek_harcanan INT = 0',
@@ -1426,21 +1442,33 @@ class MQKontorDetay extends MQDetay {
 				],
 				sahalar: `@dusulecek_harcanan = 0 - SUM(kontorsayi)`,
 			}),
-			new MQIliskiliDelete({ from: detayTable, where: { inDizi: sayacListe, saha: 'kaysayac' } }),
+			new MQIliskiliDelete({
+				from: detayTable,
+				where: { inDizi: sayacListe, saha: 'kaysayac' }
+			}),
 			`IF EXISTS (`,
-				new MQSent({ from: detayTable, where: { degerAta: fisSayac, saha: 'fissayac' }, sahalar: '*' }),
+				new MQSent({
+					from: detayTable, sahalar: '*',
+					where: { degerAta: fisSayac, saha: 'fissayac' }
+				}),
 			') BEGIN ' ,
 				new MQIliskiliUpdate({
-					from: table, where: { degerAta: fisSayac, saha: 'kaysayac' },
+					from: table,
+					where: { degerAta: fisSayac, saha: 'kaysayac' },
 					set: [
 						'topalinan = topalinan - COALESCE(@dusulecek_alinan, 0)',
 						'topharcanan = topharcanan - COALESCE(@dusulecek_harcanan, 0)'
 					]
 				}),
 			`END ELSE `,
-				new MQIliskiliDelete({ from: table, where: { degerAta: fisSayac, saha: 'kaysayac' } })
-		]).withDefTrn();
-		let result = await app.sqlExecNoneWithResult(query); part?.tazele();
+				new MQIliskiliDelete({
+					from: table,
+					where: { degerAta: fisSayac, saha: 'kaysayac' }
+				})
+		]).withDefTrn()
+		
+		let result = await query.executeResult()
+		part?.tazele()
 		return result
 	}
 

@@ -45,11 +45,20 @@ class KontorYonetimPart extends SimplePart {
 			form.addButton('yeni')
 				.setPlaceholder('Yeni Satış')
 				.addCSS('relative')
-				.addStyle_wh(100, 55)
-				.addStyle(`$elementCSS { left: 150px }`)
+				.addStyle_wh(80, 55)
+				.addStyle(`$elementCSS { left: 100px }`)
 				.onClick(async () => {
 					try { await this.yeni() }
 					catch (ex) { cerr(ex); hConfirm(getErrorText(ex), 'Yeni Satış') }
+				})
+			form.addButton('sil')
+				.setPlaceholder('Sil')
+				.addCSS('relative')
+				.addStyle_wh(80, 55)
+				.addStyle(`$elementCSS { left: 150px }`)
+				.onClick(async () => {
+					try { await this.sil() }
+					catch (ex) { cerr(ex); hConfirm(getErrorText(ex), 'Sil') }
 				})
 			
 			let bulForm = form.addForm('bulForm')
@@ -70,10 +79,9 @@ class KontorYonetimPart extends SimplePart {
 					let part = fbd.part = new FiltreFormPart({
 						layout,
 						degisince: ({ tokens }) => {
-							;values(this.grids).forEach(p => {
-								p.filtreTokens = tokens
-								p.tazele()
-							})
+							;values(this.grids).forEach(p =>
+								p.filtreTokens = tokens)
+							this.tazele()
 						}
 					})
 					part.run()
@@ -110,7 +118,7 @@ class KontorYonetimPart extends SimplePart {
 				.addStyle(`$elementCSS { top: 0; padding: 10px 20px }`)
 			
 			let gridOrtakDuzenle = (fbd, argsEkDuzenle, ekIslem) => {
-				let rowsHeight = 75
+				let rowsHeight = 85
 				return fbd
 					.rowNumberOlmasin().notAdaptive()
 					.widgetArgsDuzenleIslemi(({ args, ...rest }) => {
@@ -122,11 +130,33 @@ class KontorYonetimPart extends SimplePart {
 						})
 						argsEkDuzenle?.call?.(this, { args, ...rest })
 					})
-					.veriYukleninceIslemi(({ builder: { part } }) => {
+					.veriYukleninceIslemi(async ({ builder: { part } }) => {
 						let { grid, gridWidget: w } = part
 						let height = this.mustKod ? rowsHeight - 15 : rowsHeight
-						delay(1).then(() =>
-							grid.jqxGrid('rowsheight', height))
+						
+						await delay(1)
+						grid.jqxGrid('rowsheight', height)
+						
+						grid.find(`[role = row] > div button`).on('click', async evt => {
+							let { currentTarget: target } = evt, { id } = target
+							setButonEnabled($(target), false)
+							try {
+								await delay(10)
+								let rowIndex = Number( $(target).parents('[role = row]').attr('row-id') )
+								if (isNaN(rowIndex) || rowIndex == null)
+									return
+
+								w.clearselection()
+								w.selectrow(rowIndex)
+								
+								switch (id) {
+									case '_degistir': this.degistir(); break
+									case '_sil': this.sil(); break
+								}
+							}
+							catch(ex) { cerr(ex); hConfirm(getErrorText(ex)) }
+							finally { setButonEnabled($(target), true) }
+						})
 					})
 					.onAfterRun(e => {
 						let { id, part } = e.builder
@@ -228,11 +258,39 @@ class KontorYonetimPart extends SimplePart {
 	}
 	async yeni() {
 		let islemAdi = 'Yeni Satış'
-		let parentPart = this
-		let kontorSayi = 1
+		let parentPart = this, kontorSayi = 1
 		let { mustKod, grids: { har } } = this
 		mustKod ||= har.selectedRec?.mustKod
+		
 		return await MQKontor.kontor_yeniIstendi({ parentPart, mustKod, kontorSayi })
+	}
+	async sil() {
+		let islemAdi = 'Kontör SİL'
+		let { mustKod, grids: { har } } = this
+		let { selectedRecs: _recs } = har ?? {}
+
+		if (empty(_recs)) {
+			hConfirm('Silinecek kayıtlar seçilmelidir', islemAdi)
+			return false
+		}
+		
+		let fisID2SayacListe = {}, total = 0
+		for (let { fisID, id } of _recs) {
+			(fisID2SayacListe[fisID] ??= [])
+				.push(id)
+			total++
+		}
+		
+		if (!await ehConfirm(`Seçilen <b>${total} adet Kontör</b> kaydı <b class=firebrick>SİLİNSİN Mİ?</b>`, islemAdi))
+			return false
+
+		for (let [fisSayac, sayacListe] of entries(fisID2SayacListe)) {
+			if (!await MQKontorDetay.kontor_sil({ islemAdi, fisSayac, sayacListe }))
+				return false
+		}
+
+		this.tazele()
+		return true
 	}
 	
 	async getData_ozet(e = {}) {
@@ -292,6 +350,7 @@ class KontorYonetimPart extends SimplePart {
 		}) ?? []
 
 		let gap = '20px'
+		let btns = { w: '32px', h: '32px', z: 1001 }
 		let { kaDict: kontorTip2KA } = KontorTip
 		return recs.map(r => ({
 			...r,
@@ -305,11 +364,12 @@ class KontorYonetimPart extends SimplePart {
 							</div>
 						</div>
 					</div>`}
-					<div class="flex-row full-width" style="${r.ok ? 'background-color: lightgreen;' : ''}">
+					<div class="flex-row full-width" style="${r.ok ? 'background-color: lightgray;' : ''}">
 						<div style="width: calc(var(--full) - 230px); gap: ${gap}">
 							<div>
 								<div class="mb-1">
 									<b class="purple">${kontorTip2KA[r.tip || ' ']?.aciklama ?? r.tip}</b>
+									<span class="fs-150${r.ok ? '' : ' jqx-hidden'}"> ✅ </span>
 								</div>
 								<div>
 									<b class="royalblue">${asDateAndToKisaString(r.tarih)}</b>
@@ -319,13 +379,18 @@ class KontorYonetimPart extends SimplePart {
 						</div>
 						<div>
 							<div>
-								<span><b class="forestgreen fs-110">${numberToString(r.miktar)}</b> kontör</span>
-								<b class="forestgreen fs-95">${KontorFatDurum.kaDict[r.fatDurum || ' ']?.aciklama ?? r.fatDurum}</b>
+								<div><b class="forestgreen fs-110">${numberToString(r.miktar)}</b> kontör</div>
+								<div><b class="forestgreen fs-95">${KontorFatDurum.kaDict[r.fatDurum || ' ']?.aciklama ?? r.fatDurum}</b></div>
 							</div>
 						</div>
 					</div>
-					<div class="absolute" style="top: 10px; right: 5px">
-						<span class="fs-180${r.ok ? '' : ' jqx-hidden'}"> ✅ </span>
+					<div class="buttons absolute" style="top: 0; right: 5px">
+						<div class="item right mb-1">
+							<button id="_degistir" style="width: ${btns.w}; height: ${btns.h}; z-index: ${btns.z}">D</button>
+						</div>
+						<div class="item right">
+							<button id="_sil" style="width: ${btns.w}; height: ${btns.h}; z-index: ${btns.z}">X</button>
+						</div>
 					</div>
 				</div>`
 			)
