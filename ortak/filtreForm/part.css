@@ -10,6 +10,10 @@
 	background: transparent !important;
 	width: 180px; height: 33px; padding: 5px 8px; z-index: 1001 !important
 }
+body.kiosk .filtreForm.part:not(.no-expand) {
+	--expanded-input-width: 150px;
+	top: 7px; right: 250px
+}
 /*.part .header > *  .filtreForm.part,
 .part .baslikFormlar .filtreForm.part*/
 

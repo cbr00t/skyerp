@@ -1138,7 +1138,7 @@ class MQCogul extends MQYapi {
 		catch (ex) { displayMessage(getErrorText(ex)); throw ex }
 	}
 	static async listedenSectirt(e = {}) {
-		let { mfSinif = this, colDefs, source, kosul, kodKullanilir } = e
+		let { mfSinif = this, colDefs, source, kosul, kodKullanilir, coklu = e.coklumu } = e
 		let { kodListeTipi: _kodListeTipi = mfSinif?.kodListeTipi ?? newGUID() } = e
 		let { sinifAdi: _sinifAdi = mfSinif?.sinifAdi ?? this.sinifAdi } = e
 		
@@ -1158,16 +1158,33 @@ class MQCogul extends MQYapi {
 			static get kolonFiltreKullanilirmi() { return false }
 			static get raporKullanilirmi() { return false }
 			static get tumKolonlarGosterilirmi() { return false }
-		
+
+			static listeEkrani_init({ sender: gridPart }) {
+				super.listeEkrani_init(...arguments)
+				gridPart.rowNumberOlmasin()
+			}
 			static orjBaslikListesi_argsDuzenle({ sender: gridPart, args }) {
 				super.orjBaslikListesi_argsDuzenle(...arguments)
-				gridPart.rowNumberOlmasin().notAdaptive()
+				extend(args, {
+					showGroupsHeader: false,
+					columnsReorder: false,
+					columnsMenu: false,
+					enableTooltips: false,
+					adaptive: false,
+					selectionmode: coklu ? 'multiplerows' : 'singlerow'
+				})
 			}
 			static orjBaslikListesiDuzenle({ liste }) {
 				if (colDefs)
 					liste.push(...colDefs)
-				else
-					liste.push(gridKolon(mfSinif.adiSaha || 'aciklama', ' '))
+				else {
+					let cellsRenderer = (cd, ri, k, v, html, jqxCol, r) =>
+						`<div style="padding: 2px 10px">${html}</div>`
+					liste.push(
+						gridKolon(mfSinif.adiSaha || 'aciklama', ' ')
+							.setCellsRenderer(cellsRenderer)
+					)
+				}
 			}
 			static async loadServerDataDogrudan(e = {}) {
 				if (source)

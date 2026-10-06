@@ -143,15 +143,15 @@ class PortalApp extends TicariApp {
 					text: MQAutoServices.sinifAdi,
 					block: e => MQAutoServices.listeEkraniAc(e)
 				})
-			: null ),
-			(
+			: null )
+			/*(
 				config.dev && adminmi
 				? new FRMenuChoice({
 					 mne: 'TURMOB_IMPORT', text: 'Turmob Kayıtlarını İçeri Al',
 					 block: e => MQKontor_Turmob.importRecordsIstendi(e)
 				})
 				: null
-			)
+			)*/
 		].filter(Boolean)
 		
 		return new FRMenu({ items })

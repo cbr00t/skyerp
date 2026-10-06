@@ -416,7 +416,7 @@ class MQKontor extends MQDetayliMaster {
 		return await cls?.kontor_yeniIstendiDevam({ ...e, mfSinif: cls })
 	}
 	static async kontor_yeniIstendiDevam(e = {}) {
-		let islemAdi = e.islemAdi = 'Kontör Satışı'
+		let islemAdi = e.islemAdi = `${this.sinifAdi} Kontör Satışı`
 		let islem = e.islem = 'yeni'
 		let { gridPart: part = e.parentPart ?? e.sender ?? e.builder?.rootBuilder } = e
 		let { mustKod = part?.mustKod, kontorSayi = part?.kontorSayi } = e
@@ -442,7 +442,8 @@ class MQKontor extends MQDetayliMaster {
 		let rfb = e.rfb = new RootFormBuilder('kontorTanim')
 		rfb.setInst(inst).addCSS(rfb.id)
 		
-		let wnd, fbd_islemTuslari = e.fbd_islemTuslari = rfb.addIslemTuslari('islemTuslari')
+		let wnd
+		let fbd_islemTuslari = e.fbd_islemTuslari = rfb.addIslemTuslari('islemTuslari')
 			.setTip('tamamVazgec').addStyle_wh(null, 'var(--islemTuslari-height)')
 			.setId2Handler({
 				tamam: async _e => {
@@ -469,7 +470,7 @@ class MQKontor extends MQDetayliMaster {
 			content: rfb.layout,
 			args: {
 				isModal: false,
-				width: 800, height: 370
+				width: 800, height: 385
 			}
 		})
 		
@@ -1294,9 +1295,9 @@ class MQKontorDetay extends MQDetay {
 		})
 	}
 	static kontor_degistirIstendi(e) {
-		let detaySinif = this
 		let islem = e.islem = 'degistir'
-		let islemAdi = e.islemAdi = 'Kontör Düzenle'
+		let { mfSinif = this.mfSinif } = e
+		let islemAdi = e.islemAdi = `${mfSinif?.sinifAdi || ''} Kontör Düzenle`
 		let { sender: part, parentRec, rec, inst } = e
 		let parentPart = e.parentPart ?? part.parentPart
 		if (!MQLogin.current.yetkiVarmi('degistir')) {
@@ -1304,9 +1305,9 @@ class MQKontorDetay extends MQDetay {
 			return false
 		}
 
-		let { mfSinif = this.mfSinif } = e
 		e.parentRec = parentRec ??= parentPart.selectedRec
 		
+		let detaySinif = this
 		if (inst == null) {
 			e.inst = inst = new detaySinif()
 			inst.setValues({ rec })
@@ -1345,7 +1346,7 @@ class MQKontorDetay extends MQDetay {
 			content: rfb.layout,
 			args: {
 				isModal: false,
-				width: 800, height: 370
+				width: 800, height: 375
 			}
 		})
 		
@@ -1396,7 +1397,8 @@ class MQKontorDetay extends MQDetay {
 		return result
 	}
 	static async kontor_silIstendi(e) {
-		let islemAdi = e.islemAdi = 'Kontör SİL'
+		let { mfSinif = this.mfSinif } = e
+		let islemAdi = e.islemAdi = `${mfSinif?.sinifAdi || ''} Kontör SİL`
 		let { sender: part, parentRec, recs, sayacListe } = e
 		let { parentPart } = part, { current: login } = MQLogin
 		if (!(login.yetkiVarmi('sil') || login.sefmi)) {
@@ -1423,7 +1425,7 @@ class MQKontorDetay extends MQDetay {
 		if (empty(sayacListe))
 			return false
 
-		islemAdi ||= e.islemAdi = 'Kontör SİL'
+		islemAdi ||= e.islemAdi = `${this.sinifAdi} Kontör SİL`
 		let { tip, table } = MQKontor, { table: detayTable } = this
 		let query = new MQToplu([
 			'DECLARE @dusulecek_alinan INT = 0',

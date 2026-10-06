@@ -9,11 +9,6 @@ class KontorYonetimPart extends SimplePart {
 	get selectedRecs() { return this.getSelectedRecs('har') }
 	get selectedRec() { return this.selectedRecs[0] ?? null }
 	get isDestroyed() { return !!this._destroyed || !!this.part?.isDestroyed }
-	getSelectedRecs(id) {
-		let p = this.grids[id], w = p?.gridWidget
-		// GridPart son tıklanan hücreyi de seçilmiş sayabilir; burada gerçek satır seçimi gerekir.
-		return w ? w.getselectedrowindexes().map(i => w.getrowdata(i)).filter(Boolean) : p?.selectedRecs ?? []
-	}
 
 	constructor(e = {}) {
 		super(e)
@@ -26,9 +21,17 @@ class KontorYonetimPart extends SimplePart {
 	rfbDuzenle() {
 		super.rfbDuzenle(...arguments)
 		let { rfb, content, islemTuslari } = this
-		rfb.addCSS('kontor-yonetim-root').addStyle(this.getStyle())
-			.setWndArgs({ width: Math.min(1440, window.innerWidth - 20), height: Math.min(900, window.innerHeight - 20) })
-		islemTuslari.setButonlarIlk([{ id: 'tazele', handler: () => this.tazele() }]).addStyle_wh(null, 44)
+		rfb.addCSS('kontor-yonetim-root')
+			.addStyle(this.getStyle())
+			.setWndArgs({
+				width: min(1440, window.innerWidth - 20),
+				height: min(900, window.innerHeight - 20)
+			})
+		islemTuslari
+			.setButonlarIlk([
+				{ id: 'tazele', handler: () => this.tazele() }
+			])
+			.addStyle_wh(null, 44)
 		content.setLayout($('<div/>')).addCSS('kontor-shell')
 		content.addForm('baslik').addCSS('kontor-baslik')
 			.setLayout($(`<div>
@@ -70,6 +73,7 @@ class KontorYonetimPart extends SimplePart {
 				if (v == this._sonMustKod)
 					return
 				this._sonMustKod = this.mustKod = v
+				this.gridBoyutlariniGuncelle()
 				this.tazele({ action: 'change' })
 			})
 			.onAfterRun(({ builder: { part } }) => {
@@ -130,7 +134,7 @@ class KontorYonetimPart extends SimplePart {
 				.setTabloKolonlari([gridKolon('_text', text).noSql().setCellClassName('kontor-card-cell')])
 				.setSource(() => this[`getData_${id}`]())
 				.widgetArgsDuzenleIslemi(({ args }) => extend(args, {
-					rowsHeight: id == 'ozet' ? 174 : 150, columnsHeight: 36,
+					rowsHeight: id == 'ozet' ? 200 : 150, columnsHeight: 36,
 					selectionMode: 'multiplerows', enableHover: true, enableTooltips: false,
 					columnsResize: false, columnsMenu: false, groupable: false,
 					filterable: false, sortable: false, showGroupsHeader: false, enableBrowserSelection: true
@@ -158,7 +162,10 @@ class KontorYonetimPart extends SimplePart {
 	}
 	afterRun() {
 		super.afterRun(...arguments)
-		this.part?.kapaninca(() => this.destroyPart())
+		this._wasInKioskMode = app.inKioskMode
+		app.enterKioskMode()
+		requestFullScreen()
+		
 		let root = this.rfb?.layout?.[0]
 		if (root && globalThis.ResizeObserver) {
 			this._resizeObserver = new ResizeObserver(() => {
@@ -170,9 +177,15 @@ class KontorYonetimPart extends SimplePart {
 		this.gridBoyutlariniGuncelle()
 		this.butonlariGuncelle()
 	}
-	destroyPart() {
+	destroyPart(e) {
 		if (this._destroyed)
 			return
+		
+		if (!this._wasInKioskMode) {
+			app.exitKioskMode()
+			delete this._wasInKioskMode
+		}
+		
 		this._destroyed = true
 		this._resizeObserver?.disconnect()
 		for (let key of ['arama', 'ozetSecim', 'resize'])
@@ -180,6 +193,8 @@ class KontorYonetimPart extends SimplePart {
 		for (let p of values(this.grids))
 			p.grid?.off('.kontorYonetim')
 		clearTimeout(this.bulPart?.timer_change)
+
+		super.destroyPart(e)
 	}
 	gridVeriYuklendi({ id, part }) {
 		let { gridWidget: w } = part
@@ -219,10 +234,17 @@ class KontorYonetimPart extends SimplePart {
 	gridBoyutlariniGuncelle() {
 		if (this.isDestroyed)
 			return
+
+		let { mustKod } = this
 		for (let [id, { grid, gridWidget: w }] of entries(this.grids)) {
 			if (!w || !grid?.length)
 				continue
-			let height = id == 'ozet' ? 174 : grid.width() < 480 ? 210 : 150
+			let gw = grid.width(), minW = 860
+			let height = (
+				id == 'ozet'
+					? ( gw < minW ? 200 : 180 )
+					: ( gw < minW ? 180 : 140 )
+			) - ( mustKod ? 40 : 0 )
 			if (w.rowsheight != height)
 				grid.jqxGrid({ rowsheight: height })
 			w.refresh()
@@ -442,30 +464,7 @@ class KontorYonetimPart extends SimplePart {
 		}
 		finally { hideProgress(); this.tazele() }
 	}
-
-	getSent_ortak({ ozetmi = false } = {}) {
-		let { mustKod, tip } = this, { current: login } = MQLogin
-		if (!login)
-			throw { isError: true, errorText: 'Kontör bilgileri için oturum açılmalıdır' }
-		let sent = new MQSent(), { where: wh } = sent
-		if (ozetmi)
-			sent.fromAdd('muskontor fis').leftJoin('fis', 'muskontordetay har', 'har.fissayac = fis.kaysayac')
-		else
-			sent.fromAdd('muskontordetay har').innerJoin('har', 'muskontor fis', 'har.fissayac = fis.kaysayac')
-		sent.innerJoin('fis', 'musteri mus', 'fis.mustkod = mus.kod').leftJoin('mus', 'bayi bay', 'mus.bayikod = bay.kod')
-		if (mustKod)
-			wh.degerAta(mustKod, 'fis.mustkod')
-		if (tip)
-			wh.degerAta(tip, 'fis.tip')
-		login.yetkiClauseDuzenle({ sent, clauses: { musteri: 'fis.mustkod', bayi: 'mus.bayikod', anaBayi: 'bay.anabayikod' } })
-		return sent
-	}
-	getDataKey(id) {
-		return toJSONStr([
-			this._veriSurum ?? 0, this.mustKod, this.tip,
-			...(id == 'har' ? [this.durum, this.ozetFisIDListe] : [])
-		])
-	}
+	
 	async getData_ozet() {
 		let dataKey = this.getDataKey('ozet')
 		let sent = this.getSent_ortak({ ozetmi: true })
@@ -476,11 +475,16 @@ class KontorYonetimPart extends SimplePart {
 			`COALESCE(SUM(case when har.ahtipi = 'A' then har.kontorsayi else 0 - har.kontorsayi end), 0) topKalan`
 		)
 		sent.groupByOlustur()
-		let recs = await new MQStm({ sent, orderBy: ['mustUnvan', 'tip', 'fisID'] }).execSelect() ?? []
+		let recs = await new MQStm({
+			sent,
+			orderBy: ['mustUnvan', 'tip', 'fisID']
+		}).execSelect() ?? []
 		if (this.isDestroyed)
 			return []
+		
 		if (dataKey != this.getDataKey('ozet'))
 			return await this.getData_ozet()
+		
 		return recs.map(r => {
 			r.tipAdi = this.duzMetin(KontorTip.kaDict[r.tip]?.aciklama ?? r.tip)
 			r._text = this.getLayout_ozet(r)
@@ -491,6 +495,7 @@ class KontorYonetimPart extends SimplePart {
 		let dataKey = this.getDataKey('har')
 		let { durum, ozetFisIDListe } = this, sent = this.getSent_ortak()
 		let { where: wh, sahalar } = sent
+		
 		wh.degerAta('A', 'har.ahtipi')
 		if (durum == 'bekleyen')
 			wh.degerAta(0, 'har.btamamlandi')
@@ -498,30 +503,95 @@ class KontorYonetimPart extends SimplePart {
 			wh.add('har.btamamlandi <> 0')
 		if (ozetFisIDListe.length)
 			wh.inDizi(ozetFisIDListe, 'fis.kaysayac')
-		sahalar.addWithAlias('har',
-			'kaysayac id', 'tarih', 'fisnox fisNox', 'kontorsayi miktar', 'btamamlandi tamamlandi', 'fatdurum fatDurum'
-		).addWithAlias('fis', 'kaysayac fisID', 'tip', 'mustkod mustKod').add('mus.aciklama mustUnvan')
+		sahalar
+			.addWithAlias('har',
+				'kaysayac id', 'tarih', 'fisnox fisNox', 'kontorsayi miktar', 'btamamlandi tamamlandi', 'fatdurum fatDurum')
+			.addWithAlias('fis',
+				'kaysayac fisID', 'tip', 'mustkod mustKod')
+			.add('mus.aciklama mustUnvan')
+		
 		let recs = await new MQStm({ sent, orderBy: ['tamamlandi', 'tarih DESC', 'id DESC'] }).execSelect() ?? []
 		if (this.isDestroyed)
 			return []
+		
 		if (dataKey != this.getDataKey('har'))
 			return await this.getData_har()
+
 		return recs.map(r => {
 			r.tamamlandi = asBool(r.tamamlandi)
 			r.tipAdi = this.duzMetin(KontorTip.kaDict[r.tip]?.aciklama ?? r.tip)
 			r.fatDurumAdi = this.duzMetin(KontorFatDurum.kaDict[r.fatDurum || ' ']?.aciklama ?? r.fatDurum)
-			r.durumAdi = r.tamamlandi ? 'Tamamlandı' : 'Bekliyor'
+			r.durumAdi = r.tamamlandi ? `ERP'ye İşlendi` : 'Bekliyor'
 			r._text = this.getLayout_har(r)
 			return r
 		})
 	}
+	getSent_ortak({ ozetmi = false } = {}) {
+		let { mustKod, tip } = this, { current: login } = MQLogin
+		if (!login)
+			throw { isError: true, errorText: 'Kontör bilgileri için oturum açılmalıdır' }
+		
+		let sent = new MQSent(), { where: wh } = sent
+		if (ozetmi) {
+			sent
+				.fromAdd('muskontor fis')
+				.leftJoin('fis', 'muskontordetay har', 'har.fissayac = fis.kaysayac')
+		}
+		else {
+			sent
+				.fromAdd('muskontordetay har')
+				.innerJoin('har', 'muskontor fis', 'har.fissayac = fis.kaysayac')
+		}
+		sent
+			.innerJoin('fis', 'musteri mus', 'fis.mustkod = mus.kod')
+			.leftJoin('mus', 'bayi bay', 'mus.bayikod = bay.kod')
+		
+		if (mustKod)
+			wh.degerAta(mustKod, 'fis.mustkod')
+		else
+			wh.add(`fis.mustkod <> ''`)
+		
+		if (tip)
+			wh.degerAta(tip, 'fis.tip')
+		
+		login.yetkiClauseDuzenle({
+			sent,
+			clauses: {
+				musteri: 'fis.mustkod',
+				bayi: 'mus.bayikod',
+				anaBayi: 'bay.anabayikod'
+			}
+		})
+		return sent
+	}
+	getSelectedRecs(id) {
+		let p = this.grids[id], w = p?.gridWidget
+		// GridPart son tıklanan hücreyi de seçilmiş sayabilir; burada gerçek satır seçimi gerekir.
+		return w
+			? w.getselectedrowindexes()
+				.map(i => w.getrowdata(i))
+				.filter(Boolean)
+			: p?.selectedRecs ?? []
+	}
+	getDataKey(id) {
+		return toJSONStr([
+			this._veriSurum ?? 0, this.mustKod, this.tip,
+			...(id == 'har' ? [this.durum, this.ozetFisIDListe] : [])
+		])
+	}
 	html(v) { return escapeHTML((v ?? '').toString()) }
 	duzMetin(v) { return (v ?? '').toString().replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim() }
 	getLayout_ozet(r) {
-		let h = v => this.html(v), n = v => h(numberToString(v ?? 0))
+		let h = v => this.html(v)
+		let n = v => h(numberToString(v ?? 0))
+		let { mustKod } = this
+		
 		return `<article class="kontor-card kontor-ozet-card">
-			<div class="kontor-card-heading"><b>${h(r.tipAdi)}</b><span class="kontor-kod">${h(r.mustKod)}</span></div>
-			<div class="kontor-unvan" title="${h(r.mustUnvan)}">${h(r.mustUnvan)}</div>
+			<div class="kontor-card-heading">
+				<b>${h(r.tipAdi)}</b>
+				${ mustKod ? '' : `<span class="kontor-kod">${h(r.mustKod)}</span>` }
+			</div>
+			${ mustKod ? '' : `<div class="kontor-unvan" title="${h(r.mustUnvan)}">${h(r.mustUnvan)}</div>` }
 			<div class="kontor-bakiye ${r.topKalan < 0 ? 'kontor-negatif' : ''}"><b>${n(r.topKalan)}</b><span>Kalan kontör</span></div>
 			<div class="kontor-toplamlar">
 				<span class="alinan">Toplam alınan <b>${n(r.topAlinan)}</b></span>
@@ -531,77 +601,92 @@ class KontorYonetimPart extends SimplePart {
 	}
 	getLayout_har(r) {
 		let h = v => this.html(v)
+		let { mustKod } = this
 		let buttons = [['degistir', 'Değiştir', '✎'], ['sil', 'Sil', '×']]
 			.filter(([id]) => this.yetkiVarmi(id))
-			.map(([id, text, icon]) => `<button type="button" data-islem="${id}" title="${text}" aria-label="${text}">${icon}</button>`).join('')
+			.map(([id, text, icon]) =>
+				`<button type="button" data-islem="${id}" title="${text}" aria-label="${text}">${icon}</button>`)
+					.join('')
+		
 		return `<article class="kontor-card kontor-har-card ${r.tamamlandi ? 'kontor-tamamlandi' : ''}">
 			<div class="kontor-card-main">
-				<div class="kontor-card-heading"><b>${h(r.tipAdi)}</b><span class="kontor-durum-badge">${h(r.durumAdi)}</span></div>
-				${this.mustKod ? '' : `<div class="kontor-unvan" title="${h(r.mustUnvan)}">${h(r.mustUnvan)} <span class="kontor-kod">${h(r.mustKod)}</span></div>`}
-				<div class="kontor-belge"><b>${h(asDateAndToKisaString(r.tarih))}</b><span>${h(r.fisNox)}</span></div>
+				<div class="kontor-card-heading">
+					<b>${h(r.tipAdi)}</b>
+					<span class="kontor-durum-badge">${h(r.durumAdi)}</span>
+				</div>
+				${mustKod ? '' :
+				  `<div class="kontor-unvan" title="${h(r.mustUnvan)}">${h(r.mustUnvan)}
+						<span class="kontor-kod">${h(r.mustKod)}</span>
+					</div>`
+				}
+				<div class="kontor-belge"><b>${h(asDateAndToKisaString(r.tarih))}</b>
+				<span>${h(r.fisNox)}</span></div>
 			</div>
-			<div class="kontor-miktar"><div><b>${h(numberToString(r.miktar))}</b> kontör</div><span>${h(r.fatDurumAdi)}</span></div>
+			<div class="kontor-miktar">
+				<div><b>${h(numberToString(r.miktar))}</b> kontör</div>
+				<span>${h(r.fatDurumAdi)}</span>
+			</div>
 			<div class="kontor-cell-buttons">${buttons}</div>
 		</article>`
 	}
 	getStyle() {
 		return `
 		$elementCSS { --kontor-border: #dce5ef; container-type: inline-size; font-family: 'Segoe UI', Arial, sans-serif }
-		$elementCSS .kontor-shell { position: absolute; inset: 0 0 0; width: 100% !important; height: auto !important; display: flex !important; flex-direction: column; gap: 12px; padding: 18px; box-sizing: border-box; background: #f4f7fb; overflow: auto }
+		$elementCSS .kontor-shell { position: absolute; inset: 0 0 0; width: 100% !important; height: auto !important; display: flex !important; flex-direction: column; gap: 10px; padding: 10px 18px; box-sizing: border-box; background: #f4f7fb; overflow: auto }
 		$elementCSS .kontor-shell .formBuilder-element { box-sizing: border-box }
 		$elementCSS .kontor-shell > div { margin: 0 !important; flex-shrink: 0; float: none !important; padding-inline-end: 0 }
 		$elementCSS .kontor-baslik { display: flex; align-items: center; justify-content: space-between; gap: 14px }
-		$elementCSS .kontor-eyebrow { color: #71839b; font-size: 10px; letter-spacing: 1.5px }
-		$elementCSS h2 { margin: 3px 0 0; font-size: 23px; color: #20334c }
-		$elementCSS .kontor-bilgi { position: relative; top: -1rem; right: 8rem; font-size: 90%; color: #697c93 }
+		$elementCSS .kontor-eyebrow { color: #71839b; font-size: 90%; letter-spacing: 1.5px }
+		$elementCSS h2 { margin: 3px 0 0; font-size: 150%; color: #20334c }
+		$elementCSS .kontor-bilgi { position: relative; top: -.5rem; right: 9rem; font-size: 95%; color: #697c93 }
 		$elementCSS .kontor-toolbar { display: flex !important; flex-wrap: wrap; align-items: center; gap: 8px; height: auto !important }
 		$elementCSS .kontor-toolbar > div { width: auto !important; height: auto !important; margin: 0 !important; float: none !important }
-		$elementCSS .kontor-toolbar button { min-width: 84px; height: 42px !important; margin: 0 !important; padding: 0 16px !important; border: 1px solid var(--kontor-border); border-radius: 8px; background: white; color: #334d6c; font: inherit; font-size: 13px; cursor: pointer }
+		$elementCSS .kontor-toolbar button { min-width: 84px; height: 42px !important; margin: 0 !important; padding: 0 16px !important; border: 1px solid var(--kontor-border); border-radius: 8px; background: white; color: #334d6c; font: inherit; font-size: 90%; cursor: pointer }
 		$elementCSS .kontor-toolbar button:is(#yeni, #degistir, #sil) { background-image: none !important; background-color: white !important }
 		$elementCSS .kontor-toolbar .kontor-primary button { background: #247a5d !important; border-color: #247a5d; color: white }
 		$elementCSS .kontor-toolbar .kontor-danger button { color: #ac3947 }
 		$elementCSS button:disabled { opacity: .45; cursor: default }
 		$elementCSS :is(button, input, select):focus-visible { outline: 2px solid #467fc7; outline-offset: 2px }
-		$elementCSS .kontor-filtreler { display: flex !important; flex-wrap: wrap; align-items: flex-end; gap: 12px; height: auto !important; padding: 12px; border: 1px solid var(--kontor-border); border-radius: 10px; background: white }
+		$elementCSS .kontor-filtreler { display: flex !important; flex-wrap: wrap; align-items: flex-end; gap: 12px; height: auto !important; padding: 13px; border: 1px solid var(--kontor-border); border-radius: 10px; background: white }
 		$elementCSS .kontor-filtreler > div, $elementCSS .kontor-filtreler > label { float: none !important; margin: 0 !important; min-width: 0 }
-		$elementCSS .kontor-filtreler label, $elementCSS .kontor-arama > span { font-size: 12px; color: #697c93 }
+		$elementCSS .kontor-filtreler label, $elementCSS .kontor-arama > span { font-size: 90%; color: #697c93 }
 		$elementCSS .kontor-musteri { flex: 2 1 270px; width: auto !important; height: auto !important; display: flex; flex-direction: column; gap: 5px; padding: 0; position: relative }
 		$elementCSS .kontor-musteri > input { padding-right: 42px !important }
-		$elementCSS .kontor-musteri > button#liste { position: absolute !important; left: auto !important; right: 8px !important; top: auto !important; bottom: 5px; width: 30px; height: 30px; padding: 0 !important; opacity: .7; border: 0; background: transparent; border-radius: 6px; font-size: 20px }
+		$elementCSS .kontor-musteri > button#liste { position: absolute !important; left: auto !important; right: 8px !important; top: auto !important; bottom: 5px; width: 30px; height: 30px; padding: 0 !important; opacity: .7; border: 0; background: transparent; border-radius: 6px; font-size: 130% }
 		$elementCSS .kontor-durum { flex: 1 1 150px; width: auto !important }
 		$elementCSS .kontor-tip { flex: 1 1 180px; width: auto !important }
 		$elementCSS .kontor-arama { flex: 2 1 150px; width: auto !important; display: flex; flex-direction: column; gap: 5px }
-		$elementCSS .kontor-filtreler :is(input, select) { width: 100% !important; height: 40px !important; padding: 8px 10px; border: 1px solid var(--kontor-border); border-radius: 7px; background: white; color: #20334c; box-sizing: border-box; font: inherit; font-size: 13px }
+		$elementCSS .kontor-filtreler :is(input, select) { width: 100% !important; height: 40px !important; padding: 5px 10px; border: 1px solid var(--kontor-border); border-radius: 7px; background: white; color: #20334c; box-sizing: border-box; font: inherit; font-size: 90% }
 		$elementCSS .kontor-grids { flex: 1 0 340px !important; min-height: 340px; width: 100% !important; display: grid !important; grid-template-columns: minmax(260px, 330px) minmax(0, 1fr); gap: 14px; height: auto !important }
 		$elementCSS .kontor-grids > .kontor-grid { position: relative; margin: 0 !important; padding: 0; width: 100% !important; height: 100% !important; min-width: 0; float: none !important }
 		$elementCSS .kontor-grid > .grid { width: 100% !important; height: 100% !important; border: 1px solid var(--kontor-border); border-radius: 9px; box-sizing: border-box }
 		$elementCSS .kontor-card-cell > div { padding: 0 !important; margin: 0 !important; height: 100%; overflow: hidden }
-		$elementCSS .kontor-card { height: calc(100% - 12px); margin: 5px; padding: 10px 13px; box-sizing: border-box; white-space: normal; overflow: hidden; border: 1px solid var(--kontor-border); border-radius: 8px; background: white; color: #314763; font-size: 13px }
+		$elementCSS .kontor-card { height: calc(100% - 12px); margin: 5px; padding: 10px 13px; box-sizing: border-box; white-space: normal; overflow: hidden; border: 1px solid var(--kontor-border); border-radius: 8px; background: white; color: #314763; font-size: 100% }
 		$elementCSS .jqx-grid-cell-selected .kontor-card { border-color: #5589ca; background: #eef5ff }
 		$elementCSS .kontor-card-heading { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-width: 0 }
 		$elementCSS .kontor-card-heading > b { color: #684fa0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
-		$elementCSS .kontor-kod { color: #71839b; font-size: 11px; overflow-wrap: anywhere }
-		$elementCSS .kontor-unvan { margin: 6px 0; font-size: 12px; color: #47698e; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere }
+		$elementCSS .kontor-kod { color: gray; font-weight: bold; font-size: 80%; padding-left: 10px; overflow-wrap: anywhere }
+		$elementCSS .kontor-unvan { margin: 3px 0; font-size: 70%; color: #47698e; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere }
 		$elementCSS .kontor-ozet-card .kontor-unvan { -webkit-line-clamp: 1 }
-		$elementCSS .kontor-bakiye { display: flex; align-items: baseline; gap: 9px; margin: 10px 0; color: #247a5d }
-		$elementCSS .kontor-bakiye b { font-size: 27px }
-		$elementCSS .kontor-bakiye span { font-size: 11px }
+		$elementCSS .kontor-bakiye { display: flex; align-items: baseline; gap: 9px; margin: 5px 0; color: #247a5d }
+		$elementCSS .kontor-bakiye b { font-size: 150% }
+		$elementCSS .kontor-bakiye span { font-size: 100% }
 		$elementCSS .kontor-negatif { color: #b43d4f }
-		$elementCSS .kontor-toplamlar { display: flex; justify-content: space-between; gap: 10px; border-top: 1px solid #e7edf5; padding-top: 8px; font-size: 11px; color: #71839b }
+		$elementCSS .kontor-toplamlar { display: flex; justify-content: space-between; gap: 10px; border-top: 1px solid #e7edf5; padding-top: 8px; font-size: 90%; color: #71839b }
 		$elementCSS .kontor-toplamlar span { display: flex; flex-direction: column; gap: 3px }
-		$elementCSS .kontor-toplamlar b { color: #314763; font-size: 14px }
+		$elementCSS .kontor-toplamlar b { color: #314763; font-size: 110% }
 		$elementCSS .kontor-toplamlar .harcanan > b { color: firebrick }
 		$elementCSS .kontor-har-card { display: grid; grid-template-columns: minmax(0, 1fr) 145px 36px; align-items: center; gap: 14px }
 		$elementCSS .kontor-card-main { min-width: 0 }
-		$elementCSS .kontor-durum-badge { flex: 0 0 auto; font-size: 10px; color: #9d651f; background: #fff2dd; padding: 4px 7px; border-radius: 6px }
+		$elementCSS .kontor-durum-badge { flex: 0 0 auto; font-size: 100%; color: #9d651f; background: #fff2dd; margin-top: 5px; padding: 8px 7px; border-radius: 6px }
 		$elementCSS .kontor-tamamlandi .kontor-durum-badge { color: #247a5d; background: #e5f3ec }
-		$elementCSS .kontor-belge { display: flex; flex-wrap: wrap; gap: 8px; color: #71839b; font-size: 12px; overflow-wrap: anywhere }
+		$elementCSS .kontor-belge { display: flex; flex-wrap: wrap; gap: 8px; color: #71839b; font-size: 100%; overflow-wrap: anywhere }
 		$elementCSS .kontor-belge b { color: #3e6f9c }
-		$elementCSS .kontor-miktar { text-align: right; color: #247a5d; font-size: 12px }
-		$elementCSS .kontor-miktar b { font-size: 23px }
-		$elementCSS .kontor-miktar > span { display: block; margin-top: 5px; color: #71839b; font-size: 11px }
+		$elementCSS .kontor-miktar { text-align: right; color: #247a5d; font-size: 100% }
+		$elementCSS .kontor-miktar b { font-size: 130% }
+		$elementCSS .kontor-miktar > span { display: block; margin-top: 5px; color: #71839b; font-size: 90% }
 		$elementCSS .kontor-cell-buttons { display: flex; flex-direction: column; gap: 8px }
-		$elementCSS .kontor-cell-buttons button { width: 34px; height: 34px; padding: 0; border: 1px solid var(--kontor-border); border-radius: 7px; background: #f5f8fc; color: #527399; font-size: 20px; cursor: pointer }
+		$elementCSS .kontor-cell-buttons button { width: 34px; height: 34px; padding: 0; border: 1px solid var(--kontor-border); border-radius: 7px; background: #f5f8fc; color: #527399; font-size: 130%; cursor: pointer }
 		$elementCSS .kontor-cell-buttons button[data-islem=sil] { color: #b43d4f }
 		@container (max-width: 850px) {
 			$elementCSS .kontor-grids { grid-template-columns: 1fr; flex-basis: 760px !important; grid-template-rows: 300px minmax(440px, 1fr) }
@@ -613,7 +698,7 @@ class KontorYonetimPart extends SimplePart {
 			$elementCSS .kontor-filtreler { padding: 10px; gap: 10px }
 			$elementCSS .kontor-musteri, $elementCSS .kontor-arama { flex-basis: 100% }
 			$elementCSS .kontor-durum, $elementCSS .kontor-tip { flex: 1 1 120px }
-			$elementCSS .kontor-toolbar button { min-width: 70px; padding: 0 10px !important; font-size: 12px }
+			$elementCSS .kontor-toolbar button { min-width: 70px; padding: 0 10px !important; font-size: 80% }
 		}
 		$elementCSS .kontor-grid-har { container-type: inline-size }
 		@container (max-width: 480px) {
