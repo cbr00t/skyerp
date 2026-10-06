@@ -1137,6 +1137,62 @@ class MQCogul extends MQYapi {
 		}
 		catch (ex) { displayMessage(getErrorText(ex)); throw ex }
 	}
+	static async listedenSectirt(e = {}) {
+		let { mfSinif = this, colDefs, source, kosul, kodKullanilir } = e
+		let { kodListeTipi: _kodListeTipi = mfSinif?.kodListeTipi ?? newGUID() } = e
+		let { sinifAdi: _sinifAdi = mfSinif?.sinifAdi ?? this.sinifAdi } = e
+		
+		let cls = (class extends MQCogul {
+			static get classKey() { return this.kodListeTipi }
+			static get kodListeTipi() { return _kodListeTipi }
+			static get sinifAdi() { return _sinifAdi }
+			static get kodKullanilirmi() { return kodKullanilir ?? false }
+			static get secimSinif() { return null }
+			static get secimSinif() { return null }
+			static get tanimlanabilirmi() { return false }
+			static get degistirilebilirmi() { return false }
+			static get silinebilirmi() { return false }
+			static get gridIslemTuslariKullanilirmi() { return false }
+			static get seviyeAcKapatKullanilirmi() { return false }
+			static get kolonDuzenlemeYapilirmi() { return false }
+			static get kolonFiltreKullanilirmi() { return false }
+			static get raporKullanilirmi() { return false }
+			static get tumKolonlarGosterilirmi() { return false }
+		
+			static orjBaslikListesi_argsDuzenle({ sender: gridPart, args }) {
+				super.orjBaslikListesi_argsDuzenle(...arguments)
+				gridPart.rowNumberOlmasin().notAdaptive()
+			}
+			static orjBaslikListesiDuzenle({ liste }) {
+				if (colDefs)
+					liste.push(...colDefs)
+				else
+					liste.push(gridKolon(mfSinif.adiSaha || 'aciklama', ' '))
+			}
+			static async loadServerDataDogrudan(e = {}) {
+				if (source)
+					return isFunction(source) ? await source?.call(this, e) : source
+				return (
+					await mfSinif?.kaListe ??
+					await mfSinif?.loadServerData?.(e)
+				)
+			}
+		})
+		
+		let res = await promise(callback => {
+			cls.listeEkraniAc({
+				parentPart: app.activeWndPart,
+				secince: async _e => {
+					let args = { ...e, ..._e }
+					if (!kosul || await kosul.call(this, args))
+						await callback(args)
+				},
+				kapaninca: () => callback(null)
+			})
+		})
+		
+		return res
+	}
 	static async tanimla(e = {}) {
 		let { tanimUISinif } = this
 		if (!tanimUISinif)

@@ -9,7 +9,8 @@ class MQKontor extends MQDetayliMaster {
 	static get hepsimi() { return this == MQKontor }
 	static get kodListeTipi() { return `KNT-${this.tip}` }
 	static get sinifAdi() { return this.tipAdi }
-	static get table() { return 'muskontor' } static get tableAlias() { return 'knt' }
+	static get table() { return 'muskontor' }
+	static get tableAlias() { return 'knt' }
 	static get sayacSaha() { return 'kaysayac' }
 	static get detaySinif() { return MQKontorDetay }
 	static get gridKontrolcuSinif() { return MQKontorGridci }
@@ -174,7 +175,9 @@ class MQKontor extends MQDetayliMaster {
 			form.addButton('kontorEkle', '+')
 				.addStyle_wh(80)
 				.onClick(async _e => {
-					try { await this.kontor_yeniIstendi(({ ..._e, ...e })) }
+					try {
+						await this.kontor_yeniIstendi(({ ..._e, ...e }))
+					}
 					catch (ex) {
 						if (ex.rc != 'userAbort')
 							hConfirm(getErrorText(ex), 'Kontör Satışı')
@@ -183,7 +186,7 @@ class MQKontor extends MQDetayliMaster {
 			})
 		}
 		
-		if ((login.adminmi || login.sefmi) && (this.faturalastirmaYapilirmi || this == MQKontor)) {
+		if ((login.adminmi || login.sefmi) && (this.faturalastirmaYapilirmi || this.hepsimi)) {
 			form_ek.addButton('faturalastir', 'FAT')
 				.onClick(async _e => {
 					try { await this.kontor_topluFaturalastirIstendi({ ..._e, ...e }) }
@@ -400,10 +403,23 @@ class MQKontor extends MQDetayliMaster {
 		super.orjBaslikListesi_satirCiftTiklandi(...arguments)
 		layout.find('button#degistir')?.click()
 	}
-	static async kontor_yeniIstendi(e) {
-		let islem = e.islem = 'yeni', islemAdi = e.islemAdi = 'Kontör Satışı'
-		let part = e.gridPart ?? e.sender ?? e.builder?.rootBuilder
-		let { mustKod, kontorSayi } = part
+	static async kontor_yeniIstendi(e = {}) {
+		let cls = this
+		if (cls.hepsimi) {
+			cls = (
+				await MQCogul.listedenSectirt({
+					mfSinif: KontorTipBasit,
+					kosul: ({ rec }) => rec.ekBilgi?.faturalastirmaYapilirmi
+				})
+			)?.rec?.ekBilgi
+		}
+		return await cls?.kontor_yeniIstendiDevam({ ...e, mfSinif: cls })
+	}
+	static async kontor_yeniIstendiDevam(e = {}) {
+		let islemAdi = e.islemAdi = 'Kontör Satışı'
+		let islem = e.islem = 'yeni'
+		let { gridPart: part = e.parentPart ?? e.sender ?? e.builder?.rootBuilder } = e
+		let { mustKod = part?.mustKod, kontorSayi = part?.kontorSayi } = e
 		let { current: login } = MQLogin
 		
 		let { eDeftermi, kontorSayiKullanilirmi, detaySinif } = this
@@ -486,7 +502,7 @@ class MQKontor extends MQDetayliMaster {
 			return false
 		}
 
-		if (this == MQKontor) {
+		if (this.hepsimi) {
 			let tip2Recs = {}
 			;recs.forEach(r =>
 				(tip2Recs[r.tip] ??= []).push(r))
@@ -1148,7 +1164,8 @@ class MQKontorDetay extends MQDetay {
 	
 	static rootFormBuilderDuzenle_kontor({ rootPart, sender, mfSinif, rfb, fbd_form: parentForm, inst, islem }) {
 		rootPart ??= sender
-		let { selectedRec: rec  } = rootPart ?? {}
+		mfSinif ??= this
+		let { selectedRec: rec } = rootPart ?? {}
 		let { tip, eDeftermi, kontorSayiKullanilirmi } = mfSinif
 		let { mustKod, altMustVKN, fatDurum, tamamlandimi, ayrimTipi } = inst
 		let degistirmi = islem == 'degistir'
@@ -1451,7 +1468,7 @@ class MQKontorDetay extends MQDetay {
 		let { ayrimTipi: t = {}, kontorSayi: sayi } = this
 		
 		let dataType = 'text'
-		let url = `https://${host}:90/data/portal/fiyat/${tip}.js`
+		let url = `https://${host}:2095/mnt/web-data/portal/fiyat/${tip}.js`
 		try {
 			let code = await ajaxPost({ dataType, url })
 			if (!code)

@@ -37,11 +37,21 @@ class KontorYonetimPart extends SimplePart {
 				.setPlaceholder('Faturalaştır')
 				.addCSS('jqx-success relative')
 				.addStyle_wh(200, 55)
-				.addStyle(`$elementCSS { left: 100px }`)
+				.addStyle(`$elementCSS { left: 50px }`)
 				.onClick(async () => {
 					try { await this.faturalastir() }
 					catch (ex) { cerr(ex); hConfirm(getErrorText(ex), 'Faturalaştır') }
 				})
+			form.addButton('yeni')
+				.setPlaceholder('Yeni Satış')
+				.addCSS('relative')
+				.addStyle_wh(100, 55)
+				.addStyle(`$elementCSS { left: 150px }`)
+				.onClick(async () => {
+					try { await this.yeni() }
+					catch (ex) { cerr(ex); hConfirm(getErrorText(ex), 'Yeni Satış') }
+				})
+			
 			let bulForm = form.addForm('bulForm')
 				.setLayout($(
 					`<div
@@ -96,6 +106,7 @@ class KontorYonetimPart extends SimplePart {
 		;{
 			let fbd_grids = content.addFormWithParent('subContent').yanYana()
 				.addCSS('relative')
+				.addStyle_fullWH(null, `calc(var(--full) - 200px)`)
 				.addStyle(`$elementCSS { top: 0; padding: 10px 20px }`)
 			
 			let gridOrtakDuzenle = (fbd, argsEkDuzenle, ekIslem) => {
@@ -124,17 +135,20 @@ class KontorYonetimPart extends SimplePart {
 					})
 					.addStyle(`$elementCSS [role = row] > div > div { font-size: 80%; margin-top: 0 !important; padding: 5px 10px }`)
 			}
-			/*gridOrtakDuzenle(
+			gridOrtakDuzenle(
 				fbd_grids.addGridliGosterici('ozet')
 					.setTabloKolonlari([ gridKolon('_text', 'ÖZET') ])
 					.setSource(e => this.getData_ozet(e))
 					.addStyle_wh(300, 400)
-			)*/
+			)
 			gridOrtakDuzenle(
 				fbd_grids.addGridliGosterici('har')
 					.setTabloKolonlari([ gridKolon('_text', 'KONTÖR SATIŞLARI') ])
 					.setSource(e => this.getData_har(e))
-					.addStyle_wh(900, 550),
+					.addStyle_fullWH(`calc(var(--full) - 500px)`)
+					.addStyle(
+						`$elementCSS { min-width: 600px !important; max-width: 1200px !important }`
+					),
 					//.addStyle_wh(700, 700),
 				null,
 				({ builder: { part: { grid } } }) =>
@@ -211,6 +225,14 @@ class KontorYonetimPart extends SimplePart {
 			}
 		}
 		finally { hideProgress() }
+	}
+	async yeni() {
+		let islemAdi = 'Yeni Satış'
+		let parentPart = this
+		let kontorSayi = 1
+		let { mustKod, grids: { har } } = this
+		mustKod ||= har.selectedRec?.mustKod
+		return await MQKontor.kontor_yeniIstendi({ parentPart, mustKod, kontorSayi })
 	}
 	
 	async getData_ozet(e = {}) {

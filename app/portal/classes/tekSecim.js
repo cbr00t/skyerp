@@ -1,10 +1,11 @@
-class KontorTip extends TekSecim {
+class KontorTipBasit extends TekSecim {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'KTIP' }
+	static get sinifAdi() { return 'Kontör Tip' }
 	static get defaultChar() { return null }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)
 		kaListe.push(
-			new CKodVeAdi([' ', MQKontor.tipAdi, 'hepsimi']),
 			...entries(MQKontor.key2SubClasses)
 				.filter(([, c]) => c.uygunmu)
 				.map(([, c]) => {
@@ -15,8 +16,17 @@ class KontorTip extends TekSecim {
 		)
 	}
 }
+class KontorTip extends KontorTipBasit {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		kaListe.unshift(new CKodVeAdi([' ', MQKontor.tipAdi, 'hepsimi']))
+	}
+}
 class KontorAHTip extends TekSecim {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'KAHAyrim' }
+	static get sinifAdi() { return 'Kontör A/H Ayrım' }
 	static get defaultChar() { return 'A' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)
@@ -28,6 +38,8 @@ class KontorAHTip extends TekSecim {
 }
 class KontorFatDurum extends TekSecim {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'KFATDUR' }
+	static get sinifAdi() { return 'Kontör Faturalaşma Durumu' }
 	static get defaultChar() { return '' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)
