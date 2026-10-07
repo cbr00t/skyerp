@@ -18,6 +18,7 @@
 <script src="<?=$_partRoot?>/mqStokGrup.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqStokIstGrup.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqStok.js?<?=$appVersion?>"></script>
+<script src="<?=$_partRoot?>/mqFormul.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqKategori.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqHizmetGrup.js?<?=$appVersion?>"></script>
 <script src="<?=$_partRoot?>/mqHizmetIstGrup.js?<?=$appVersion?>"></script>

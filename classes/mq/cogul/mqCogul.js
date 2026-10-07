@@ -824,6 +824,7 @@ class MQCogul extends MQYapi {
 	}
 	}
 	static loadServerData_queryDuzenle_son(e = {}) { }
+	static kaKolonGrup_queryDuzenle(e = {}) { }
 	static async loadServerData_querySonucu(e = {}) {
 		let sender = e.sender ?? e
 		let ozelQuerySonucuBlock = e.ozelQuerySonucuBlock ?? e.ozelQuerySonucu ?? sender.ozelQuerySonucuBlock ?? sender.ozelQuerySonucu

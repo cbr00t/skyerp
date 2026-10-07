@@ -257,22 +257,32 @@ class MQKA extends MQKod {
 		let isDropDown = e.dropDown ?? e.isDropDown
 		let ekStmDuzenleyici = e.stmDuzenle ?? e.stmDuzenleyici
 		let ozelQueryDuzenle = e.ozelQueryDuzenle ?? e.ozelQueryDuzenleBlock
-		let degisince = e.degisince ?? e.ekDegisince ?? e.degisinceBlock, gelince = e.gelince ?? e.ekGelince ?? e.gelinceBlock
+		let degisince = e.degisince ?? e.ekDegisince ?? e.degisinceBlock
+		let gelince = e.gelince ?? e.ekGelince ?? e.gelinceBlock
 		let argsDuzenleBlock = e.argsDuzenle ?? e.argsDuzenleBlock
 		let kolonGrup = new GridKolonGrup_KA({
-			mfSinif: mfSinif || this, belirtec, adiAttr, degisince, gelince, isDropDown, ozelQueryDuzenle,
+			mfSinif: mfSinif || this,
+			belirtec, adiAttr, degisince, gelince, isDropDown, ozelQueryDuzenle,
 			kaKolonu: new GridKolon({ belirtec: kodAttr, text: adiEtiket || kodEtiket || `${sinifAdi}`, genislikCh: e.adiGenislikCh || 50 }),
 			dataBlock: async e => {
 				let { kod } = e
 				if (kod != null && !kod)
 					return []
 				
-				let {sender, gridPart, value, maxRow} = e, colDef = sender ?? {}, mfSinif = colDef.mfSinif ?? this
-				let belirtec = colDef.belirtec, kodAttr = e.kodAttr || colDef.kodAttr || `${belirtec}Kod`, adiAttr = e.adiAttr || colDef.adiAttr ||`${belirtec}Adi`
-				let {tableAndAlias, tableAlias: alias, aliasVeNokta, kodSaha, adiSaha, emptyKodValue = ''} = mfSinif
+				let { sender, gridPart, value, maxRow } = e
+				let colDef = sender ?? {}
+				let mfSinif = colDef.mfSinif ?? this
+				let belirtec = colDef.belirtec
+				let kodAttr = e.kodAttr || colDef.kodAttr || `${belirtec}Kod`
+				let adiAttr = e.adiAttr || colDef.adiAttr ||`${belirtec}Adi`
+				let { tableAndAlias, tableAlias: alias, aliasVeNokta, kodSaha, adiSaha, emptyKodValue = '' } = mfSinif
 				let sent = new MQSent({
-					from: tableAndAlias, where: [`${aliasVeNokta}${kodSaha} <> ${MQSQLOrtak.sqlDegeri(emptyKodValue)}`],
-					sahalar: [`${aliasVeNokta}${kodSaha} ${kodAttr}`, `${aliasVeNokta}${adiSaha} ${adiAttr}` ]
+					from: tableAndAlias,
+					where: [`${aliasVeNokta}${kodSaha} <> ${MQSQLOrtak.sqlDegeri(emptyKodValue)}`],
+					sahalar: [
+						`${aliasVeNokta}${kodSaha} ${kodAttr}`,
+						`${aliasVeNokta}${adiSaha} ${adiAttr}`
+					].filter(Boolean)
 				})
 				
 				if (kod)
@@ -315,27 +325,50 @@ class MQKA extends MQKod {
 				if (keyHV)
 					sent.where.birlestirDict({ alias, dict: keyHV })
 				
+				let fis = e.fis ?? gridPart?.fis
+				let { tableAlias } = mfSinif ?? {}
+				
 				let stm = new MQStm({ sent, orderBy: [kodAttr] })
 				let { stmDuzenleyiciler } = kolonGrup
 				if (ekStmDuzenleyici || stmDuzenleyiciler) {
-					let fis = e.fis ?? gridPart?.fis, {tableAlias, aliasVeNokta} = mfSinif, {sent} = stm, handlers = [];
-					if (ekStmDuzenleyici) { handlers.push(ekStmDuzenleyici) }
-					if (!$.isEmptyObject(stmDuzenleyiciler)) { handlers.push(...stmDuzenleyiciler) }
-					let _e = { ...e, sender, colDef, fis, mfSinif, alias: tableAlias, aliasVeNokta, stm, sent };
+					let { aliasVeNokta } = mfSinif ?? {}
+					let { sent } = stm
+					let handlers = []
+					if (ekStmDuzenleyici)
+						handlers.push(ekStmDuzenleyici)
+					if (!empty(stmDuzenleyiciler))
+						handlers.push(...stmDuzenleyiciler)
+					
+					let _e = {
+						...e, sender, colDef, fis, mfSinif,
+						alias: tableAlias, aliasVeNokta, stm, sent
+					}
 					for (let handler of stmDuzenleyiciler) {
-						_e.result = getFuncValue.call(mfSinif, handler, _e)
+						_e.result = handler.call(mfSinif, _e)
 						if (_e.result === false)
 							return null
 						stm = _e.stm
 					}
 				}
+
+				;{
+					let args = {
+						...e, sender, colDef, fis, mfSinif,
+						alias: tableAlias, aliasVeNokta, stm, sent
+					}
+					if (mfSinif.kaKolonGrup_queryDuzenle(args) === false)
+						return null
+					stm = args.stm
+				}
 				
-				let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode, {trnId} = e;
+				let offlineMode = e.offlineMode ?? e.isOfflineMode ?? this.isOfflineMode
+				let { trnId } = e
 				let result = await this.sqlExecSelect({
 					offlineMode, trnId,
 					maxRow: (maxRow == null ? app.params.ortak.autoComplete_maxRow : maxRow),
 					query: stm
 				})
+				
 				return result
 			}
 		})

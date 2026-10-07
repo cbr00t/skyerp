@@ -3,8 +3,11 @@ class TSDetay extends MQDetay {
 	static get mfSinif() { return null } static get tip() { return null } static get tipText() { return null }
 	get tip() { return this.class.tip } get tipText() { return this.class.tipText }
 	static get shSahaPrefix() { return null } static get shEtiket() { return null }
-	get shdDetaymi() { return this.class.shdDetaymi } get stokGibimi() { return this.class.stokGibimi } get hizmetmi() { return this.class.hizmetmi } get demirbasmi() { return this.class.demirbasmi }
+	get shdDetaymi() { return this.class.shdDetaymi } get stokGibimi() { return this.class.stokGibimi }
+	get hizmetmi() { return this.class.hizmetmi } get demirbasmi() { return this.class.demirbasmi }
+	get formulmu() { return this.class.formulmu }
 	get ekBilgimi() { return this.class.ekBilgimi } get aciklamami() { return this.class.aciklamami }
+	static get uygunmu() { return true }
 	get iskBedelYapi() {
 		let {_temps} = this, {iskBedelYapi: result} = _temps
 		if (result === undefined) {
@@ -27,7 +30,9 @@ class TSDetay extends MQDetay {
 	uiSatirBedelHesaplaSonrasi(e) { this.uiSatirBedelHesaplaSonrasi_ara(e); let {fis} = e; if (fis) { fis.uiSatirBedelHesaplaSonrasi(e) } }
 	uiSatirBedelHesaplaSonrasi_ara(e) { }
 	iskBedelYapiReset() { delete this._temps.iskBedelYapi }
+	ticariGrid_shKolon_degisinceEk(e) { }
 }
+
 class TSSHDDetay extends TSDetay {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get shdDetaymi() { return true } static get shTable() { return null } static get shAlias() { return null }
@@ -127,12 +132,13 @@ class TSSHDDetay extends TSDetay {
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e)
 		let { aliasVeNokta, shTable, shAlias, shKodSaha } = this
-		let { sent } = e, { sahalar } = sent
+		let { sent } = e, { where: wh, sahalar } = sent
 		sent.fromIliski(`${shTable} ${shAlias}`, `${aliasVeNokta}${shKodSaha} = ${shAlias}.kod`)
 		sahalar.add(
 			`${aliasVeNokta}${shKodSaha} shKod`, `${shAlias}.aciklama shAdi`, `${shAlias}.brm`,
 			`${aliasVeNokta}miktar`, `${aliasVeNokta}fiyat`, `${aliasVeNokta}bedel`, `${aliasVeNokta}ekaciklama`
 		)
+		
 		let { stokGibimi } = this
 		for (let item of HMRBilgi) {
 			let { kami, mfSinif, rowAttr, ioAttr, adiAttr } = item
@@ -145,7 +151,7 @@ class TSSHDDetay extends TSDetay {
 					`${table} ${tableAlias}`,
 					`${aliasVeNokta}${rowAttr} = ${tableAlias}.${kodSaha}`
 				)
-				sahalar.add(`${aliasVeNokta}${rowAttr}`);
+				sahalar.add(`${aliasVeNokta}${rowAttr}`)
 				if (adiAttr)
 					sahalar.add(`${tableAlias}.${adiSaha} ${adiAttr}`)
 				mfSinif?.hmr_queryEkDuzenle?.({ ...e, alias: tableAlias })
@@ -428,6 +434,7 @@ class TSSHDDetay extends TSDetay {
 		}
 	}
 }
+
 class TSStokHizmetDetay extends TSSHDDetay {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get shdmi() { return true }
@@ -461,7 +468,7 @@ class TSStokHizmetDetay extends TSSHDDetay {
 	}
 	setValues(e) {
 		super.setValues(e); let {rec} = e;
-		$.extend(this, { brm2: rec.brm2, brmOrani: rec.brmorani })
+		extend(this, { brm2: rec.brm2, brmOrani: rec.brmorani })
 	}
 	ticariHostVarsDuzenle(e) {
 		super.ticariHostVarsDuzenle(e); let {fis, hv} = e;
@@ -479,11 +486,19 @@ class TSStokHizmetDetay extends TSSHDDetay {
 		$.extend(this, { stopajKod: rec.stopajKod || '', orjstopajKod: rec.shstopajhesapkod, stopajOrani: rec.stopajorani })
 	}
 }
+
 class TSStokDetayOrtak extends TSStokHizmetDetay {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get mfSinif() { return MQStok } static get stokGibimi() { return true }
-	static get tip() { return 'stok' } static get tipText() { return 'Stok' } static get shSahaPrefix() { return 'stok' }
-	static get table() { return 'pifstok' } static get shTable() { return 'stkmst' } static get shAlias() { return 'stk' } static get shEtiket() { return 'Stok' }
+	static get mfSinif() { return MQStok }
+	static get stokGibimi() { return true }
+	static get tip() { return 'stok' }
+	static get tipText() { return 'Stok' }
+	static get table() { return 'pifstok' }
+	static get shTable() { return 'stkmst' }
+	static get shAlias() { return 'stk' }
+	static get shEtiket() { return 'Stok' }
+	static get shSahaPrefix() { return 'stok' }
+	
 	static getOrjKdvKodClause(e) {
 		let {shAlias} = this, {fis} = e;
 		return fis.class.satismi ? `${shAlias}.satkdvhesapkod` : `${shAlias}.almkdvhesapkod`
@@ -536,16 +551,23 @@ class TSStokDetayOrtak extends TSStokHizmetDetay {
 		}
 	}
 	static loadServerData_queryDuzenle(e) {
-		super.loadServerData_queryDuzenle(e); let {aliasVeNokta, shTable, shAlias, shKodSaha, shAdiSaha, hizmetmi} = this;
-		let {sent, fisSinif} = e, {sahalar} = sent, {siparismi} = fisSinif ?? {};
-		if (!(hizmetmi || siparismi)) { sent.fromIliski('stkyer yer', `${aliasVeNokta}detyerkod = yer.kod`) }
-		sent.fromIliski('takipmst tak', `${aliasVeNokta}dettakipno = tak.kod`);
-		sahalar.add(`${aliasVeNokta}miktar2`);
-		if (hizmetmi || siparismi) { sahalar.add(`'' yerkod`) }
+		super.loadServerData_queryDuzenle(e)
+		let { aliasVeNokta, shTable, shAlias, shKodSaha, shAdiSaha, hizmetmi } = this
+		let { sent, fisSinif } = e
+		let { where: wh, sahalar } = sent, { siparismi } = fisSinif ?? {}
+		if (!(hizmetmi || siparismi))
+			sent.fromIliski('stkyer yer', `${aliasVeNokta}detyerkod = yer.kod`)
+		sent.fromIliski('takipmst tak', `${aliasVeNokta}dettakipno = tak.kod`)
+		wh.degerAta('', `${aliasVeNokta}dettipi`)
+		sahalar.add(`${aliasVeNokta}miktar2`)
+		if (hizmetmi || siparismi)
+			sahalar.add(`'' yerkod`)
 		sahalar.add(`${hizmetmi || siparismi ? `''` : 'yer.aciklama'} yeradi`, 'tak.aciklama takipadi', `${shAlias}.brm2`, `${shAlias}.brmorani`)
 	}
 	static tekilOku_detaylar_queryDuzenle_ticari(e) {
-		super.tekilOku_detaylar_queryDuzenle_ticari(e); let {aliasVeNokta} = this, {sent, fis} = e, {yildizlimi} = fis;
+		super.tekilOku_detaylar_queryDuzenle_ticari(e)
+		let { aliasVeNokta } = this
+		let { sent, fis } = e, { yildizlimi } = fis
 		sent.fromIliski(`vergihesap otver`, `${aliasVeNokta}otvhesapkod = otver.kod`);
 		sent.sahalar.add(`otver.belirtec otvbelirtec`);
 		if (yildizlimi) {
@@ -559,19 +581,28 @@ class TSStokDetayOrtak extends TSStokHizmetDetay {
 		let hv = super.hostVars(e), {hmr} = this;
 		if (hmr) { $.extend(hv, hmr.hostVars(e)) } return hv
 	}
-	hostVarsDuzenle(e) { super.hostVarsDuzenle(e) }
-	setValues(e) { super.setValues(e); let {hmr} = this; if (hmr) { hmr.setValues(e) } }
+	hostVarsDuzenle({ hv }) {
+		super.hostVarsDuzenle(...arguments)
+		extend(hv, {
+			dettipi: '',
+			formulsayac: null,
+		})
+	}
+	setValues(e) {
+		super.setValues(e)
+		this.hmr?.setValues(e)
+	}
 	ticariHostVarsDuzenle(e) {
 		super.ticariHostVarsDuzenle(e); let {fis, hv} = e;
-		$.extend(hv, { otvhesapkod: this.otvKod || '' })
+		extend(hv, { otvhesapkod: this.otvKod || '' })
 	}
 	ticariSetValues(e) {
 		super.ticariSetValues(e); let {fis, rec} = e;
-		$.extend(this, { otvKod: rec.otvhesapkod, orjotvKod: rec.orjotvkod, otvBelirtec: rec.otvbelirtec, orjotvBelirtec: rec.orjotvbelirtec })
+		extend(this, { otvKod: rec.otvhesapkod, orjotvKod: rec.orjotvkod, otvBelirtec: rec.otvbelirtec, orjotvBelirtec: rec.orjotvbelirtec })
 	}
 	eBilgiSetValues_ilk(e) {
 		super.eBilgiSetValues_ilk(e); let rec = this.eBilgi;
-		$.extend(this, { brm2: rec.shbrm2, brmOrani: rec.shbrmorani, otvKod: rec.otvKod || '', orjotvKod: rec.shotvhesapkod, otvOrani: rec.otvorani });
+		extend(this, { brm2: rec.shbrm2, brmOrani: rec.shbrmorani, otvKod: rec.otvKod || '', orjotvKod: rec.shotvhesapkod, otvOrani: rec.otvorani });
 		this.miktar2Hesapla()
 	}
 	miktar2Hesapla(e) {
@@ -589,11 +620,96 @@ class TSStokDetayOrtak extends TSStokHizmetDetay {
 		}
 	}
 }
+
 class TSStokDetay extends TSStokDetayOrtak {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get stokmu() { return true }
 	static getDetayTable(e) { let fisSinif = e.fisSinif ?? e.fis?.class; return fisSinif.tsStokDetayTable }
-	static get sipDonusumTable() { return 'sip2ifstok' } static get stDonusumTable() { return 'sip2trfstok' }
+	static get sipDonusumTable() { return 'sip2ifstok' }
+	static get stDonusumTable() { return 'sip2trfstok' }
 }
+
+class TSFormulDetay extends TSStokDetay {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get tip() { return 'formul' } static get tipText() { return 'Formül' }
+	static get formulmu() { return true }
+	static get uygunmu() { return app.params.uretim?.formulRevizyon }
+	static get mfSinif() { return MQFormul }
+	static get shTable() { return this.mfSinif.table }
+	static get shAlias() { return this.mfSinif.tableAlias }
+	static get shEtiket() { return this.tipText }
+	static get shSahaPrefix() { return super.shSahaPrefix }
+
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
+		extend(pTanim, {
+			formulSayac: new PInst(),
+			revNox: new PInstStr()
+		})
+	}
+	static loadServerData_queryDuzenle({ sent, fisSinif }) {
+		// super.loadServerData_queryDuzenle(...arguments)
+		let { tableAlias: alias } = this
+		let { where: wh, sahalar } = sent
+		sent
+			.fromIliski('urtfrm frm', `${alias}.formulsayac = frm.kaysayac`)
+			.fromIliski('stkmst stk', `frm.formul = stk.kod`)
+		wh
+			.degerAta('A', `${alias}.dettipi`)
+			.add(`${alias}.formulsayac IS NOT NULL`)
+		sahalar.add(
+			'frm.formul shKod', 'stk.aciklama shAdi',
+			'stk.brm', `${alias}.miktar`, `${alias}.fiyat`,
+			`${alias}.bedel`, `${alias}.ekaciklama`,
+			`${alias}.formulsayac`, 'frm.revnox'
+		)
+	}
+	static tekilOku_detaylar_queryDuzenle_ticari({ sent, fis }) {
+		// super.tekilOku_detaylar_queryDuzenle_ticari(...arguments)
+		/*let { tableAlias: alias } = this
+		let { where: wh, sahalar } = sent
+		sent.fromIliski('urtfrm frm', `${alias}.formulsayac = frm.kaysayac`)
+		sahalar.add(`${alias}.formulsayac`, 'frm.revnox')*/
+	}
+	hostVarsDuzenle({ hv }) {
+		super.hostVarsDuzenle(...arguments)
+		let { formulSayac: formulsayac } = this
+		extend(hv, { dettipi: 'A', formulsayac })
+	}
+	setValues({ rec }) {
+		super.setValues(...arguments)
+		let { formulsayac: formulSayac, revnox: revNox } = rec
+		extend(this, { formulSayac, revNox })
+	}
+	async ticariGrid_shKolon_degisinceEk({ gridRec: det, rec, newValue: v, oldValue, rowIndex: ri, dataField: k } = {}) {
+		await super.ticariGrid_shKolon_degisinceEk(...arguments)
+		let { formulsayac: formulSayac, revnox: revNox = '', formul } = rec
+		extend(det, { formulSayac, revNox })
+	}
+	async disKaydetOncesiIslemler(e) {
+		await this._promise_ekBilgiler
+		await super.disKaydetOncesiIslemler(e)
+	}
+	ekBilgileriBelirle(e) {
+		this._promise_ekBilgiler = promise(async () => {
+			let { shKod, formulSayac, revNox } = this
+			revNox ??= ''
+			if (shKod && !formulSayac) {
+				let sent = new MQSent({
+					from: 'urtfrm frm',
+					where: [
+						`frm.ozelisaret = ''`,
+						{ degerAta: shKod, saha: 'formul' },
+						{ degerAta: revNox, saha: 'revnox' }
+					],
+					sahalar: ['kaysayac']
+				})
+				formulSayac = this.formulSayac = Number(await sent.execTekilDeger()) || null
+			}
+			return true
+		})
+	}
+}
+
 class TSHizmetDetay extends TSStokHizmetDetay {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get mfSinif() { return MQHizmet } static get hizmetmi() { return true }
@@ -636,6 +752,8 @@ class TSDemirbasDetay extends TSSHDDetay {
 	static get mfSinif() { return MQDemirbas } static get demirbasmi() { return true }
 	static get tip() { return 'demirbas' } static get tipText() { return 'Demirbaş' } static get shSahaPrefix() { return 'demirbas' }
 	static get table() { return 'pifdemirbas' } static get shTable() { return 'demmst' } static get shAlias() { return 'dem' } static get shEtiket() { return 'Demirbaş' }
+	static get uygunmu() { return app.params.ticariGenel?.kullanim?.demirbas }
+
 	static getOrjKdvKodClause(e) {
 		let {shAlias} = this, {fis} = e;
 		return fis.class.satismi ? `${shAlias}.satkdvhesapkod` : `${shAlias}.almkdvhesapkod`

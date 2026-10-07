@@ -8,38 +8,38 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 	}
 	tabloKolonlariDuzenle(e) {
 		let { tabloKolonlari } = e
+		let shTipDonusumler = [
+			new CKodAdiVeEkBilgi(['stok', 'Stok', 'stokmu', TSStokDetay]),
+			new CKodAdiVeEkBilgi(['formul', 'Formül', 'formulmu', TSFormulDetay]),
+			new CKodAdiVeEkBilgi(['hizmet', 'Hizmet', 'hizmetmi', TSHizmetDetay]),
+			new CKodAdiVeEkBilgi(['demirbas', 'Demirbaş', 'demirbasmi', TSDemirbasDetay])
+		].filter(({ ekBilgi: cls }) =>
+			cls.uygunmu)
+		
 		tabloKolonlari.push(
 			new GridKolon({ belirtec: 'tip', text: ' ', genislikCh: 13 }).noSql()
-				.tipButton(({ rec: { _tipText: v }  }) =>
-					v || 'Stok')
+				.tipButton(({ rec: { tipText, _tipText: v }  }) =>
+					v || tipText || shTipDonusumler[0].aciklama)
 				.alignCenter()
 				.sabitle()
 				.onClick((e = {}) => {
 					e = e.args ?? e
 					let { originalEvent: { target = {} } = {} } = e
 					let { owner: w, rowindex: ri, datafield: k, value: tip }  = e
-					let r = w.getrowdata(ri, k)
-					let { uid } = r
-					switch (tip) {
-						case 'stok': {
-							r = new TSHizmetDetay(r)
-							r._tipText = 'Hizmet'
-							break
-						}
-						case 'hizmet': {
-							r = new TSDemirbasDetay(r)
-							r._tipText = 'Demirbaş'
-							break
-						}
-						default: {
-							r = new TSStokDetay(r)
-							r._tipText = null
-							break
-						}
-					}
-					let { parentPart: pp } = this
-					let { belirtec2Kolon } = pp
+					let { parentPart: pp } = this, { belirtec2Kolon } = pp
+					let r = w.getrowdata(ri, k), { uid } = r
 					let { sh: colDef } = belirtec2Kolon
+
+					let ka
+					;{
+						let ind = ( shTipDonusumler.findIndex(ka => ka.kod == tip) || 0 ) + 1
+						ka = shTipDonusumler[ind < shTipDonusumler.length ? ind : 0]
+					}
+
+					let { aciklama, ekBilgi: detSinif } = ka
+					r = new detSinif(r)
+					r._tipText = aciklama
+					
 					r.shKod = r.shAdi = null
 					delay(20).then(() => {
 						w.updaterow(uid, r)
@@ -125,32 +125,35 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 			new GridKolon({ belirtec: 'otvBelirtec', text: 'Ötv', genislikCh: 4 }).tipNumerik().sifirGosterme().readOnly().hidden(),
 			new GridKolon({ belirtec: 'stopajBelirtec', text: 'Sto', genislikCh: 4 }).tipNumerik().sifirGosterme().readOnly().hidden(),
 			new GridKolon({ belirtec: 'kdvEkText', text: 'KDV Ek', genislikCh: 12, cellClassName: 'kdvEkText grid-readOnly' }).readOnly().hidden()
-		);
+		)
 		shColDef.stmDuzenleyiciEkle(e => {
-			let { aliasVeNokta, stm, fis, mfSinif } = e
-			let { kdvHesapKodPrefix_stok, kdvHesapKodPrefix_hizmet } = fis?.class ?? {}
-			for (let sent of stm) {
-				let hesapSaha_almSatPrefix = (
-					(mfSinif.stokmu || mfSinif.demirbasmi) ? kdvHesapKodPrefix_stok :
-					mfSinif.hizmetmi ? kdvHesapKodPrefix_hizmet :
-					null
-				)
-				if (!hesapSaha_almSatPrefix)
-					return
-				
-				let { vergiBelirtecler } = mfSinif
-				for (let key of vergiBelirtecler) {
-					if (key == TicariFis.vergiBelirtec_kdv) {
-						let kdvDegiskenmiClause = `${aliasVeNokta}${hesapSaha_almSatPrefix}kdvdegiskenmi`
-						sent.sahalar.add(`${kdvDegiskenmiClause} kdvDegiskenmi`)
+			let { mfSinif, aliasVeNokta, stm, fis, gridRec: det } = e
+			if (mfSinif?.stokmu || mfSinif?.hizmetmi) {			
+				let { kdvHesapKodPrefix_stok, kdvHesapKodPrefix_hizmet } = fis?.class ?? {}
+				for (let sent of stm) {
+					let hesapSaha_almSatPrefix = (
+						(mfSinif.stokmu || mfSinif.demirbasmi) ? kdvHesapKodPrefix_stok :
+						mfSinif.hizmetmi ? kdvHesapKodPrefix_hizmet :
+						null
+					)
+					if (!hesapSaha_almSatPrefix)
+						return
+					
+					let { vergiBelirtecler } = mfSinif
+					for (let key of vergiBelirtecler) {
+						if (key == TicariFis.vergiBelirtec_kdv) {
+							let kdvDegiskenmiClause = `${aliasVeNokta}${hesapSaha_almSatPrefix}kdvdegiskenmi`
+							sent.sahalar.add(`${kdvDegiskenmiClause} kdvDegiskenmi`)
+						}
+						let vergiHesapClause = `${aliasVeNokta}${hesapSaha_almSatPrefix}${key}hesapkod`;
+						sent.fromIliski(`vergihesap ${key}ver`, `${vergiHesapClause} = ${key}ver.kod`);
+						sent.sahalar.add(`${vergiHesapClause} ${key}Kod`, `${key}ver.belirtec ${key}Belirtec`)					/* ( stk.satkdvhesapkod kdvkod ... ) gibi */
 					}
-					let vergiHesapClause = `${aliasVeNokta}${hesapSaha_almSatPrefix}${key}hesapkod`;
-					sent.fromIliski(`vergihesap ${key}ver`, `${vergiHesapClause} = ${key}ver.kod`);
-					sent.sahalar.add(`${vergiHesapClause} ${key}Kod`, `${key}ver.belirtec ${key}Belirtec`)					/* ( stk.satkdvhesapkod kdvkod ... ) gibi */
 				}
 			}
+			det.ticariGrid_shKolon_stmDuzenleEk?.(e)
 			mfSinif.ticariGrid_shKolon_stmDuzenleEk?.(e)
-		});
+		})
 		shColDef.degisince(async e => {
 			let { gridPart, fis, mfSinif, gridRec: det, rec, setCellValue } = e
 			let detaySinif = det?.class
@@ -189,10 +192,10 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 				setCellValue({ belirtec: k, value: duzValue })
 			}
 
-			delay(5).then(async () => {
-				await mfSinif.ticariGrid_shKolon_degisinceEk?.({ ...e, rec })
-				await fis.shKodDegisti(e)
-			})
+			await delay(5)
+			await det.ticariGrid_shKolon_degisinceEk?.({ ...e, rec })
+			await mfSinif.ticariGrid_shKolon_degisinceEk?.({ ...e, rec })
+			await fis.shKodDegisti(e)
 			
 			delete e.rec /* e.rec => Promise (async) */
 			e.detay = det

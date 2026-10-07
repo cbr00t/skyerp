@@ -453,15 +453,16 @@ class MQBankaGenelParam extends MQTicariParamBase {
 }
 class MQUretimParam extends MQTicariParamBase {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get paramKod() { return 'URETIM' } static get sinifAdi() { return 'Üretim Parametreleri' }
-	constructor(e) { e = e || {}; super(e) }
+	static get paramKod() { return 'URGEN' }
+	static get sinifAdi() { return 'Üretim Parametreleri' }
 	static paramYapiDuzenle({ paramci }) {
-		super.paramYapiDuzenle(...arguments);
-		{
-			let form = paramci.addKullanim().addFormWithParent()
+		super.paramYapiDuzenle(...arguments)
+		;{
+			let form = paramci.addFormWithParent()
 			form.addBool('uretimMalMuh', 'Maliyet Muhasebesi')
 			form.addBool('karmaUretim', 'Karma Üretim')
 			form.addBool('ayrisimUretimi', 'Ayrışım Üretimi')
+			form.addBool('formulRevizyon', 'Formül Revizyon')
 		}
 		/*
 		at: 'superAgac'				put: self sablonsalFormul;
@@ -484,6 +485,9 @@ class MQUretimParam extends MQTicariParamBase {
 		at: 'formulDerinlemesineMaxSeviye'	put: self formulDerinlemesineSeviye;
 		at: 'formulFiyatFra'		put: self formulFiyatFra;
 		*/
+	}
+	paramSetValues({ rec }) {
+		super.paramSetValues(...arguments)
 	}
 }
 class MQOperGenelParam extends MQTicariParamBase {

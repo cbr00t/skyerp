@@ -2,10 +2,6 @@ class TicariFis extends TSOrtakFis {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return (this.alimmi ? 'Alım ' : this.satismi ? 'Satış ' : '') + (this.iademi ? 'İADE ' : '') }
 	static get ticarimi() { return true } static get detaySinif() { return super.detaySinif }
-	static detaySiniflarDuzenle({ liste }) {
-		super.detaySiniflarDuzenle(...arguments); liste.push(TSHizmetDetay);
-		if (app.params.ticariGenel?.kullanim?.demirbas) { liste.push(TSDemirbasDetay) }
-	}
 	static get gridKontrolcuSinif() { return TicariGridKontrolcu }
 	static get taksitTable() { return this.siparismi ? 'siptaksit' : 'piftaksit' }
 	static get noYilKullanilirmi() { return true }
@@ -29,50 +25,22 @@ class TicariFis extends TSOrtakFis {
 	static get varsayilanIslKod() { return ( this.alimmi ? 'AF' : this.satismi ? 'TF' : this.mustahsilmi ? 'MF' : super.islTipKod ) }
 	static get mustSaha() { return 'must' }
 	static get sevkTSKullanilirmi() { return true }
-	get fisTopIslBedel() { let toplam = 0; let {detaylar} = this; for (let det of detaylar) { toplam += (det.iskBedelToplam || 0) } return toplam }
-	get ekVergiVarmi() { let {detaylar} = this; for (let det of detaylar) { if (det.ekVergiYapi && !det.bosmu) { return true } } return false }
-	static async getMustKonKendiDetayKod({ mustKod } = {}) {
-		if (!mustKod)
-			return null
-		
-		let { mustSaha } = this
-		let sent = new MQSent(), { where: wh, sahalar } = sent
-		sent.fromAdd('carmst')
-		wh.degerAta(mustKod, mustSaha)
-		sahalar.add('kendidetaykod')
-		
-		return await sent.execTekilDeger()?.trimEnd()
+	get fisTopIslBedel() {
+		let toplam = 0
+		let { detaylar } = this
+		for (let det of detaylar)
+			toplam += (det.iskBedelToplam || 0)
+		return toplam
 	}
-	async getMustKonKendiDetayKod(e = {}) {
-		let { mustKod = this.mustKod } = e
-		return this.class.getMustKonKendiDetayKod({ mustKod })
+	get ekVergiVarmi() {
+		let { detaylar } = this
+		for (let det of detaylar) {
+			if (det.ekVergiYapi && !det.bosmu)
+				return true
+		}
+		return false
 	}
-	static async getMusKarsiRefKod({ mustKod } = {}) {
-		if (!mustKod)
-			return null
-
-		let { mustSaha } = this
-		let sent = new MQSent(), { where: wh, sahalar } = sent
-		sent.fromAdd('carmst')
-		wh.degerAta(mustKod, mustSaha)
-		sahalar.add('musrefkod')
-		
-		return await sent.execTekilDeger()?.trimEnd()
-	}
-	async getMusKarsiRefKod(e = {}) {
-		let { mustKod = this.mustKod } = e
-		return this.class.getMusKarsiRefKod({ mustKod })
-	}
-	static async kdvKod2RecGlobalOlustur(e) {
-		let kaListe = [ new CKodVeAdi({ kod: '', aciklama: '' }) ];
-		let kdvKod2Rec = await MQVergi.getKdvBilgileri({ fisSinif: this })
-		for (let rec of values(kdvKod2Rec))
-			kaListe.push(new CKodVeAdi({ kod: rec.kdvKod, aciklama: rec.kdvBelirtec }))
-		extend(TicariFis, {
-			_kdvKod2Rec: kdvKod2Rec,
-			_kdvKAListe: kaListe
-		})
-	}
+	
 	constructor(e = {}) {
 		super(e)
 		;['zorunluKdvKod', 'otoSablonSayac', 'musteriOncekiBakiyeDurumu'].forEach(k =>
@@ -94,7 +62,8 @@ class TicariFis extends TSOrtakFis {
 		})
 	}
 	static secimlerDuzenle(e) {
-		super.secimlerDuzenle(e); let sec = e.secimler;
+		super.secimlerDuzenle(e)
+		let { secimler: sec } = e
 		sec.secimTopluEkle({
 			must: new SecimString({ etiket: 'Müşteri', mfSinif: MQCari }), mustUnvan: new SecimOzellik({ etiket: 'Müşteri Ünvan' }),
 			ticMust: new SecimString({ etiket: 'Tic. Müşteri', mfSinif: MQCari }), altHesapKod: new SecimString({ etiket: 'Alt Hesap', mfSinif: MQAltHesap }),
@@ -608,7 +577,59 @@ class TicariFis extends TSOrtakFis {
 		}
 		extend(this, musteriOncekiBakiyeDurumu)
 	}
+
+	static detaySiniflarDuzenle({ liste }) {
+		super.detaySiniflarDuzenle(...arguments)
+		if (TSFormulDetay.uygunmu)
+			liste.push(TSFormulDetay)
+		liste.push(TSHizmetDetay)
+		if (TSDemirbasDetay.uygunmu)
+			liste.push(TSDemirbasDetay)
+	}
+	static async getMustKonKendiDetayKod({ mustKod } = {}) {
+		if (!mustKod)
+			return null
+		
+		let { mustSaha } = this
+		let sent = new MQSent(), { where: wh, sahalar } = sent
+		sent.fromAdd('carmst')
+		wh.degerAta(mustKod, mustSaha)
+		sahalar.add('kendidetaykod')
+		
+		return await sent.execTekilDeger()?.trimEnd()
+	}
+	async getMustKonKendiDetayKod(e = {}) {
+		let { mustKod = this.mustKod } = e
+		return this.class.getMustKonKendiDetayKod({ mustKod })
+	}
+	static async getMusKarsiRefKod({ mustKod } = {}) {
+		if (!mustKod)
+			return null
+
+		let { mustSaha } = this
+		let sent = new MQSent(), { where: wh, sahalar } = sent
+		sent.fromAdd('carmst')
+		wh.degerAta(mustKod, mustSaha)
+		sahalar.add('musrefkod')
+		
+		return await sent.execTekilDeger()?.trimEnd()
+	}
+	async getMusKarsiRefKod(e = {}) {
+		let { mustKod = this.mustKod } = e
+		return this.class.getMusKarsiRefKod({ mustKod })
+	}
+	static async kdvKod2RecGlobalOlustur(e) {
+		let kaListe = [ new CKodVeAdi({ kod: '', aciklama: '' }) ];
+		let kdvKod2Rec = await MQVergi.getKdvBilgileri({ fisSinif: this })
+		for (let rec of values(kdvKod2Rec))
+			kaListe.push(new CKodVeAdi({ kod: rec.kdvKod, aciklama: rec.kdvBelirtec }))
+		extend(TicariFis, {
+			_kdvKod2Rec: kdvKod2Rec,
+			_kdvKAListe: kaListe
+		})
+	}
 }
+
 class SiparisFis extends TicariFis {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get siparismi() { return true }

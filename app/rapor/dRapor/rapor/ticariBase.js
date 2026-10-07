@@ -289,7 +289,8 @@ class DRapor_Sevkiyat_Main extends DRapor_Ticari_Main {
 	}
 	tabloYapiDuzenle_ciro(e) {
 		super.tabloYapiDuzenle_ciro(e); let {isAdmin, rol} = config.session ?? {};
-		let maliyetGorurmu = isAdmin || !rol?.ozelRolVarmi('XMALYT'), {uretimMalMuh} = app.params.uretim.kullanim;
+		let maliyetGorurmu = isAdmin || !rol?.ozelRolVarmi('XMALYT')
+		let { uretimMalMuh } = app.params.uretim ?? {}
 		let {result} = e, tip2Bilgi = { BR: { miktarPrefix: 'br', etiketPrefix: 'Brüt' }, IA: { miktarPrefix: 'ia', etiketPrefix: 'İADE' } };
 		result
 			.addToplam(new TabloYapiItem().setKA('BRCIRO', 'Brüt Ciro').addColDef(new GridKolon({ belirtec: 'brciro', text: 'Brüt Ciro', genislikCh: 19, filterType: 'numberinput' }).tipDecimal()))

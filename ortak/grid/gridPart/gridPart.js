@@ -1009,9 +1009,9 @@ class GridPart extends Part {
 			this._restoringSelection = true
 			// w.beginupdate()
 			try {
-				w.clearselection()
-				grid.jqxGrid('selectedrowindexes', selIndexes)
-				w.refresh()
+				w?.clearselection()
+				grid?.jqxGrid('selectedrowindexes', selIndexes)
+				w?.refresh()
 			}
 			finally {
 				// w.endupdate()

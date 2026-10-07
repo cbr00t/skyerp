@@ -39,14 +39,21 @@ class TSGridKontrolcu extends GridKontrolcu {
 		})
 	}
 	tabloKolonlariDuzenle(e) {
-		super.tabloKolonlariDuzenle(e); let shKolonGrup = MQStok.getGridKolonGrup_brmli({
+		super.tabloKolonlariDuzenle(e)
+		let shKolonGrup = MQStok.getGridKolonGrup_brmli({
 			belirtec: 'sh', kodAttr: 'shKod', adiAttr: 'shAdi', adiEtiket: 'Stok/Hizmet Adı',
 			mfSinif: e => { let {rec} = e; return (rec == null ? TSStokDetay : rec.class)?.mfSinif ?? TSStokDetay }
-		}).sabitle();
-		shKolonGrup.stmDuzenleyiciEkle(({ aliasVeNokta, stm }) => {
-			for (let {sahalar} of stm) { sahalar.add(`${aliasVeNokta}adidegisir adiDegisirmi`) }
-		});
-		let {tabloKolonlari} = e; tabloKolonlari.push(
+		}).sabitle()
+		
+		shKolonGrup.stmDuzenleyiciEkle(({ mfSinif, aliasVeNokta, stm }) => {
+			if (mfSinif.stokmu || mfSinif.hizmetmi) {
+				for (let { sahalar } of stm)
+					sahalar.add(`${aliasVeNokta}adidegisir adiDegisirmi`)
+			}
+		})
+		
+		let { tabloKolonlari } = e
+		tabloKolonlari.push(
 			shKolonGrup,
 			new GridKolon({
 				belirtec: 'miktar', text: 'Miktar', genislikCh: 13,

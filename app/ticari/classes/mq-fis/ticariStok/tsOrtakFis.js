@@ -1,7 +1,13 @@
 class TSOrtakFis extends MQTicariGenelFis {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get detaySinif() { return super.detaySinif } static get aciklamaKullanilirmi() { return true }
-	static detaySiniflarDuzenle(e) { super.detaySiniflarDuzenle(e); e.liste.push(TSStokDetay, TSAciklamaDetay) }
+	static detaySiniflarDuzenle({ liste }) {
+		super.detaySiniflarDuzenle(...arguments)
+		liste.push(...[
+			TSStokDetay,
+			TSAciklamaDetay
+		].filter(cls => cls.uygunmu))
+	}
 	static get aciklamaDetaySinif() { return TSAciklamaDetay }
 	static get gridKontrolcuSinif() { return TSGridKontrolcu }
 	static get baslikOzelAciklamaTablo() { return null }

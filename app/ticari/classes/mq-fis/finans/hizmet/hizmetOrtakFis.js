@@ -225,7 +225,7 @@ class HizmetOrtakGridci extends FinansGridci {
 	tabloKolonlariDuzenle_ara(e) {
 		super.tabloKolonlariDuzenle_ara(e);
 		const kolonGruplar = MQHizmet.getGridKolonlar({ gridKolonGrupcu: 'getGridKolonGrup_kategorili', belirtec: 'hizmet' });
-		const gkg_hizmet = kolonGruplar[0];
+		const gkg_hizmet = kolonGruplar[0]
 		let colDef = gkg_hizmet.tabloKolonlari.find(_colDef => _colDef.belirtec == 'katDetaySayac');
 		if (colDef) {
 			$.extend(colDef, {
@@ -247,7 +247,7 @@ class HizmetOrtakGridci extends FinansGridci {
 			.degisince(async e => {
 				const det = e.gridRec;
 				const rec = e.rec = await e.rec;
-				det.hizmetEkBilgileriAta(e);
+				det.hizmetEkBilgileriAta(e)
 				const {fis, gridPart, gridWidget, setCellValue} = e;
 				const {ba} = fis;
 				const {belirtec2Kolon} = gridPart;

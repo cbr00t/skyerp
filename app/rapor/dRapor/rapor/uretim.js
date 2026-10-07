@@ -32,7 +32,7 @@ class DRapor_Uretim_Total_Main extends DRapor_UretimBase_Main {
 		let { violetmi } = app
 		let { isAdmin, rol } = config.session ?? {}
 		let maliyetGorurmu = isAdmin || !rol?.ozelRolVarmi('XMALYT')
-		let { uretimMalMuh } = app.params.uretim.kullanim
+		let { uretimMalMuh } = app.params.uretim ?? {}
 		
 		this.tabloYapiDuzenle_sube(e)
 		this.tabloYapiDuzenle_takip(e)

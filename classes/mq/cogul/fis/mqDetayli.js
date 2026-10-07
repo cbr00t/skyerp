@@ -21,19 +21,42 @@ class MQDetayli extends MQSayacli {
 	static get detaySinif() { return null } static get detayTable() { return this.detaySinif?.table }
 	static get gridDetaySinif() { return this.detaySinif || (this.detaySiniflar || [])[0] }
 	static get detayTableAlias() { return (this.detaySinif || MQDetay).tableAlias }
-	static detaySinifFor(e) { e = e || {}; return e.detaySinif || (this.detaySiniflar || [])[0] }
+	static detaySinifFor(e = {}) {
+		let { detaySinif, rec } = e
+		let { tip, dettipi: detTipi } = rec ?? {}
+		if ((!detaySinif || detaySinif?.stokmu) && (tip == 'formul' || detTipi == 'A'))
+			return TSFormulDetay
+		
+		let { detaySiniflar } = this
+		return (
+			detaySinif ??
+			detaySiniflar.find(cls => cls.tip == tip) ??
+			detaySiniflar[0]
+		)
+	}
 	static get sabitBilgiRaporcuSinif() { return FisRapor } static get logAnaTip() { return 'F' }
 	static get gridHeight_bosluk() { return 90 }
-	constructor(e) {
-		e = e || {}; super(e); let detaylar = this.detaylar = e.detaylar || [];
-		let hasNull = false; for (let [i, det] of entries(detaylar)) {
-			if (det == null) { hasNull = true; continue }
-			if (!$.isPlainObject(det)) { continue }
-			let detTip = det.detTip ?? det.dettip ?? det._detTip ?? det.tip ?? '';
-			let detSinif = this.class.detaySinifFor({ detTip, rec: det });
-			if (detSinif) { det = detaylar[i] = new detSinif(det) }
+	constructor(e = {}) {
+		super(e)
+		let detaylar = this.detaylar ??= e.detaylar ?? []
+		let hasNull = false
+		for (let [i, det] of entries(detaylar)) {
+			if (det == null) {
+				hasNull = true
+				continue
+			}
+			if (!isPlainObject(det))
+				continue
+			
+			let detTip = det.detTip ?? det.dettip ?? det._detTip ?? det.tip ?? ''
+			let detSinif = this.class.detaySinifFor({ detTip, rec: det })
+			if (detSinif) {
+				det = detaylar[i] = new detSinif(det)
+				det.ekBilgileriBelirle?.(e)
+			}
 		}
-		if (hasNull) { detaylar = this.detaylar = detaylar.filter(x => x != null) }
+		if (hasNull)
+			detaylar = this.detaylar = detaylar.filter(x => x != null)
 	}
 	static getUISplitHeight(e) { return null }
 	static detaySiniflarDuzenle(e) { }
@@ -274,12 +297,21 @@ class MQDetayli extends MQSayacli {
 		if (!detaySiniflar) { detaySiniflar = this.class.detaySiniflar || [] }
 		let fisSayac = this.sayac; $.extend(e, { fisSayac, fis: this, detaySiniflar }); let seq2Detaylar = {};
 		for (let detaySinif of detaySiniflar) {
-			let _e = $.extend({}, e, { detaySinif }); for (let key of ['rec', 'parentRec', 'detaySiniflar', 'tabloKolonlari']) { delete _e[key] }
-			let detRecs = _e.detRecs = await this.tekilOku_detaylar(_e); for (let rec of detRecs) {
-				let _detaySinif = this.class.detaySinifFor({ detaySinif, rec });
-				if (!_detaySinif) { throw { isError: true, rc: 'detayBelirlenemedi', errorText: 'Detay sınıfı belirlenemedi' } }
-				let det = new _detaySinif(); _e.rec = rec; det.setValues(_e);
-				let seq = det.seq || 0; (seq2Detaylar[seq] = seq2Detaylar[seq] || []).push(det)
+			let _e = { ...e, detaySinif }
+			deleteKeys(_e, 'rec', 'parentRec', 'detaySiniflar', 'tabloKolonlari')
+			let detRecs = _e.detRecs = await this.tekilOku_detaylar(_e)
+			for (let rec of detRecs) {
+				let _detaySinif = this.class.detaySinifFor({ detaySinif, rec })
+				if (!_detaySinif)
+					throw { isError: true, rc: 'detayBelirlenemedi', errorText: 'Detay sınıfı belirlenemedi' }
+				
+				_e.rec = rec
+				let det = new _detaySinif()
+				det.setValues(_e)
+				
+				let seq = det.seq || 0
+				;(seq2Detaylar[seq] ??= [])
+					.push(det)
 			}
 		}
 		this.detaylarReset(); let {detaylar} = this, siraliSeqArr = arraySort(keys(seq2Detaylar).map(x => asInteger(x)));
@@ -356,7 +388,7 @@ class MQDetayli extends MQSayacli {
 		let { islem = 'yeni', trnId } = e
 		let { numarator: num, detaylar, class: { guidmi } } = this
 		for (let det of detaylar)
-			await det?.kaydetOncesiIslemler(e)
+			await det?.kaydetOncesiIslemler?.(e)
 
 		;{
 			let kontrolEdilirmi = !guidmi && (islem == 'yeni' || islem == 'kopya')

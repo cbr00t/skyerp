@@ -170,7 +170,8 @@ class MQOrtakFis extends MQDetayli {
 			throw { isError: true, rc: 'invalidArgument', errorText }
 		
 		for (let det of detaylar) {
-			if (det == null) { continue }
+			if (det == null)
+				continue
 			let errorText = await det.dataDuzgunmu?.(e)
 			if (errorText)
 				throw { isError: true, rc: 'invalidArgument', errorText }

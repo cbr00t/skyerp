@@ -38,9 +38,18 @@ class MQStok extends MQKA {
 			wh.add(`${aliasVeNokta}silindi = ''`, `${aliasVeNokta}satilamazfl = ''`)
 	}
 	static getGridKolonGrup_brmli(e) {
-		const kolonGrup = this.getGridKolonGrup(e); if (!kolonGrup) { return kolonGrup }
-		const {tabloKolonlari} = kolonGrup; tabloKolonlari.push(new GridKolon({ belirtec: 'brm', text: 'Brm', genislikCh: 4 }).readOnly());
-		kolonGrup.stmDuzenleyiciEkle(({ aliasVeNokta, stm }) => { for (const sent of stm.getSentListe()) { sent.sahalar.add(`${aliasVeNokta}brm`) } });
+		let kolonGrup = this.getGridKolonGrup(e)
+		if (!kolonGrup)
+			return kolonGrup
+		
+		let { tabloKolonlari } = kolonGrup
+		tabloKolonlari.push(new GridKolon({ belirtec: 'brm', text: 'Brm', genislikCh: 4 }).readOnly());
+		kolonGrup.stmDuzenleyiciEkle(({ mfSinif, aliasVeNokta, stm }) => {
+			if (mfSinif?.stokmu || mfSinif?.hizmetmi) {
+				for (let { sahalar } of stm)
+					sahalar.add(`${aliasVeNokta}brm`)
+			}
+		})
 		kolonGrup.degisince(async ({ rec, setCellValue }) => {
 			rec = await rec
 			setCellValue({ belirtec: 'brm', value: rec?.brm || '' })

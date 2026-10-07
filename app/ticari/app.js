@@ -265,6 +265,12 @@ class TicariApp extends App {
 			}),
 
 			new FRMenuCascade({
+				mne: 'U', text: 'Üretim', items: [
+					new FRMenuChoice({ mne: 'F', text: 'Formül listesi', block: e => MQFormul.listeEkraniAc(e) })
+				]
+			}),
+
+			new FRMenuCascade({
 				mne: 'M', text: 'Muhasebe', items: [
 					new FRMenuChoice({ mne: 'H', text: 'Muhasebe Hesap listesi', block: e => MQMuhHesap.listeEkraniAc(e) })
 				]

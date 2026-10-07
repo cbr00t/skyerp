@@ -36,7 +36,7 @@ class DRapor_Hareketci_AlimSatisVeSiparisOrtak_Main extends DRapor_Hareketci_Mai
 		}
 		this.tabloYapiDuzenle_baBedel_kdvDahil(e)
 		if (maliyetKullanilirmi && maliyetGorurmu) {
-			let { uretimMalMuh } = app.params.uretim?.kullanim ?? {}
+			let { uretimMalMuh } = app.params.uretim ?? {}
 			result
 				.addToplamBasit_bedel('STBRCIRO', 'Brüt Ciro', 'stbrciro')
 				.addToplamBasit_bedel('ISKBEDEL', 'İskonto Bedel', 'iskbedel')
