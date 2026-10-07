@@ -18,8 +18,8 @@ class MQAutoServices extends MQCogul {
 		return l.bayimi && l.yetkiVarmi('aktivasyonYap')
 	}
 	static get silinebilirmi() {
-		if (!MQLogin.current?.yetkiVarmi('sil'))
-			return false
+		/*if (!MQLogin.current?.yetkiVarmi('sil'))
+			return false*/
 		
 		let { current: l } = MQLogin
 		if (l.adminmi)
