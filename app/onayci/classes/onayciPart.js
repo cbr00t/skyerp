@@ -168,6 +168,13 @@ class OnayciPart extends SimplePart {
 							`<button type="button" data-filter="${id}" aria-pressed="${id == this.durum}">
 								${text}
 							</button>`).join('')}</div>
+						<div class="ony-tabs" role="group" aria-label="">${[
+							['selectAll', '<span class="forestgreen">Tümünü Seç</span>'],
+							['deselectAll', `<span style="firebrick">Seçimi Kaldır</span>`]
+						].map(([id, text]) =>
+							`<button type="button" data-action="${id}">
+								${text}
+							</button>`).join('')}</div>
 						<input class="ony-search" type="search" placeholder="Belge, firma veya kullanıcı ara…" aria-label="Belge ara">
 					</div>
 					<div class="ony-summary" aria-live="polite">Yükleniyor…</div>
@@ -175,13 +182,15 @@ class OnayciPart extends SimplePart {
 			))
 			.onAfterRun(({ builder: { layout } }) => {
 				this.header = layout
-
 				layout.on('click.onayci', 'button[data-action]', evt => {
-					let action = evt.currentTarget.dataset.action
-					if (action == 'refresh')
-						this.tazele()
-					else
-						this.actionIstendi({ action })
+					let { action } = evt.currentTarget.dataset
+					let { gridPart: { gridWidget: w } } = this
+					switch (action) {
+						case 'refresh': this.tazele(); break
+						case 'selectAll': w.selectallrows(); break
+						case 'deselectAll': w.clearselection(); break
+						default: this.actionIstendi({ action }); break
+					}
 				})
 
 				layout.on('click.onayci', 'button[data-filter]', evt => {
@@ -199,7 +208,7 @@ class OnayciPart extends SimplePart {
 		this.fbd_grid = content.addGridliGosterici('grid')
 			.rowNumberOlmasin().noAnimate().noEmptyRow()
 			.setTabloKolonlari([
-				gridKolon('_text', 'Onay İşlemleri')
+				gridKolon('_text', ' ')
 					.setCellClassName('ony-card-cell')
 					.noSql()
 			])
@@ -208,7 +217,7 @@ class OnayciPart extends SimplePart {
 				extend(args, {
 					showGroupsHeader: false, showStatusBar: false,
 					groupable: false, columnsMenu: false,
-					columnsHeight: 0, rowsHeight,
+					columnsHeight: 30, rowsHeight,
 					adaptive: false, selectionMode: 'checkbox',
 					sortable: false, filterable: false,
 					pageable: false, virtualmode: false,
@@ -226,6 +235,7 @@ class OnayciPart extends SimplePart {
 					evt.preventDefault()
 					evt.stopPropagation()
 					let target = evt.currentTarget
+					
 					let id = $(target).closest('.ony-card').attr('data-id')
 					let rec = this.recs.find(r => this.recordKey(r) == id)
 					if (rec)
@@ -395,6 +405,7 @@ class OnayciPart extends SimplePart {
 		})
 		header.find('[data-action]').prop('disabled', busy || !selected.length)
 		header.find('[data-action="refresh"]').prop('disabled', busy)
+		header.find('[data-action="selectAll"], [data-action="deselectAll"]').prop('disabled', false)
 		header.find('[data-action="approve"], [data-action="reject"]')
 			.prop('disabled', busy || !selected.some(r => r.onayNo && (config.dev || !r.onayDurum)))
 

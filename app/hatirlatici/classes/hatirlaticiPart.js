@@ -76,6 +76,13 @@ class HatirlaticiPart extends SimplePart {
 								<span data-count="${id}">0</span>
 							</button>`).join('')}</div>
 						<label class="hat-closed"><input type="checkbox" data-field="hepsiniGoster"> Kapananlar dahil</label>
+						<div class="hat-tabs" role="group">${[
+							['selectAll', '<span class="forestgreen">Tümünü Seç</span>'],
+							['deselectAll', `<span style="firebrick">Seçimi Kaldır</span>`]
+						].map(([id, text]) =>
+							`<button type="button" data-action="${id}">
+								${text}
+							</button>`).join('')}</div>
 						<input class="hat-search" type="search" placeholder="Hatırlatıcı ara…" aria-label="Hatırlatıcı ara">
 					</div>
 					<div class="hat-summary" aria-live="polite">Yükleniyor…</div>
@@ -86,9 +93,14 @@ class HatirlaticiPart extends SimplePart {
 				layout.find('input[data-field="hepsiniGoster"]')
 					.prop('checked', this.hepsiniGoster)
 				layout.on('click.hatirlatici', 'button[data-action]', evt => {
-					let action = evt.currentTarget.dataset.action
-					if (action == 'refresh') this.tazele()
-					else this.setTaskState({ state: action })
+					let { action } = evt.currentTarget.dataset
+					let { gridPart: { gridWidget: w } } = this
+					switch (action) {
+						case 'refresh': this.tazele(); break
+						case 'selectAll': w.selectallrows(); break
+						case 'deselectAll': w.clearselection(); break
+						default: this.setTaskState({ state: action }); break
+					}
 				})
 				layout.on('click.hatirlatici', 'button[data-filter]', evt => {
 					this.durum = evt.currentTarget.dataset.filter
@@ -107,7 +119,7 @@ class HatirlaticiPart extends SimplePart {
 		this.fbd_grid = content.addGridliGosterici('grid')
 			.rowNumberOlmasin().noAnimate().noEmptyRow()
 			.setTabloKolonlari([
-				gridKolon('_text', 'Hatırlatıcılar')
+				gridKolon('_text', ' ')
 					.setCellClassName('hat-card-cell')
 					.noSql()
 			])
@@ -116,7 +128,7 @@ class HatirlaticiPart extends SimplePart {
 				extend(args, {
 					showGroupsHeader: false, groupable: false,
 					columnsMenu: false, showStatusBar: false,
-					columnsHeight: 0, rowsHeight,
+					columnsHeight: 30, rowsHeight,
 					adaptive: false, selectionMode: 'checkbox',
 					sortable: false, filterable: false,
 					pageable: false, virtualmode: false,
@@ -292,6 +304,7 @@ class HatirlaticiPart extends SimplePart {
 		let { length: selected } = selectedRecs, busy = _gridLoading || _taskBusy
 		header.find('[data-action="assign"], [data-action="release"], [data-action="done"]').prop('disabled', busy || !selected)
 		header.find('[data-action="refresh"]').prop('disabled', !!busy)
+		header.find('[data-action="selectAll"], [data-action="deselectAll"]').prop('disabled', false)
 		header.find('.hat-summary').html(
 			_taskBusy ? 'İşlem yapılıyor…' : _gridLoading ? 'Hatırlatıcılar yükleniyor…' :
 			this._lastLoadError ? `Yüklenemedi: ${this._lastLoadError}` :
