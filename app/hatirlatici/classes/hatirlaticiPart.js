@@ -65,6 +65,13 @@ class HatirlaticiPart extends SimplePart {
 						</div>
 					</div>
 					<div class="hat-controls">
+						<div class="hat-tabs" role="group">${[
+							['selectAll', '<span class="forestgreen">Tümünü Seç</span>'],
+							['deselectAll', `<span style="firebrick">Seçimi Kaldır</span>`]
+						].map(([id, text]) =>
+							`<button type="button" data-action="${id}">
+								${text}
+							</button>`).join('')}</div>
 						<div class="hat-tabs" role="group" aria-label="Durum filtresi">${[
 							['tumu', 'Tümü'],
 							['gecikmis', '<span class=firebrick>Gecikmiş</span>'],
@@ -76,13 +83,6 @@ class HatirlaticiPart extends SimplePart {
 								<span data-count="${id}">0</span>
 							</button>`).join('')}</div>
 						<label class="hat-closed"><input type="checkbox" data-field="hepsiniGoster"> Kapananlar dahil</label>
-						<div class="hat-tabs" role="group">${[
-							['selectAll', '<span class="forestgreen">Tümünü Seç</span>'],
-							['deselectAll', `<span style="firebrick">Seçimi Kaldır</span>`]
-						].map(([id, text]) =>
-							`<button type="button" data-action="${id}">
-								${text}
-							</button>`).join('')}</div>
 						<input class="hat-search" type="search" placeholder="Hatırlatıcı ara…" aria-label="Hatırlatıcı ara">
 					</div>
 					<div class="hat-summary" aria-live="polite">Yükleniyor…</div>

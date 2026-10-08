@@ -1718,11 +1718,16 @@ class GridPart extends Part {
 		for (let k of keys(r).sort()) {
 			if (ignoreKeys.has(k) || r[k] == null)
 				continue
+			
 			let v = r[k]
 			if (isFunction(v) || isClassOrInstance(v))
 				continue
-			let value = isObject(v) ? toJSONStr(v) : String(v)
-			tokens.push([k, typeof v, value])
+
+			try {
+				let _v = isObject(v) ? toJSONStr(v) : String(v)
+				tokens.push([k, typeof v, _v])
+			}
+			catch (ex) { }
 		}
 		return JSON.stringify(tokens)
 	}

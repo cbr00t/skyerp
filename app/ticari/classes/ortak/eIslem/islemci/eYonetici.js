@@ -242,7 +242,8 @@ class EYonetici extends CObject {
 				ps2SayacListe: this.ps2SayacListe ?? (() => this.class.getPS2SayacListe(e))
 			})
 		}
-		let { recs } = e
+		
+		let { recs, toplu } = e
 		if (!recs) {
 			let stm = eIslAnaSinif.getUUIDStm(e)
 			deleteKeys(e, 'psTip2SayacListe', 'whereDuzenleyici')
@@ -270,7 +271,7 @@ class EYonetici extends CObject {
 				catch (ex) { cerr(ex) }
 				finally { hideProgress() }
 			}
-			let divContainer = $(`<div/>`)[0]
+			let divContainer = toplu ? $(`<div/>`)[0] : null
 			let eDocCount = 0
 			for (let psTip in ps2Recs) {
 				let _recs = ps2Recs[psTip]
@@ -282,7 +283,7 @@ class EYonetici extends CObject {
 					if (!eIslAltBolum)
 						throw { isError: true, rc: 'eIslAnaBolumBelirsiz', errorText: 'e-İşlem için Ana Bölüm belirlenemedi' }
 					let xmlDosyaAdi = `${uuid}.xml`, xmlDosya = `${eIslAltBolum}\\${gelenmi ? 'ALINAN' : 'IMZALI'}\\${xmlDosyaAdi}`
-					let result = uuid2Result[uuid] = uuid2Result[uuid] || {}
+					let result = uuid2Result[uuid] ??= {}
 					extend(result, { islemZamani: now(), isError: false, eIslSinif, efAyrimTipi, rec, anaBolum: eIslAltBolum, xmlDosya })
 					try {
 						let xmlData = uuid2Result[uuid]?.xmlData
@@ -308,7 +309,7 @@ class EYonetici extends CObject {
 						let xslt = $.parseXML(xsltData)
 						let xsltProcessor, eDoc
 						try {
-							(xsltProcessor = new XSLTProcessor()).importStylesheet(xslt)
+							;(xsltProcessor = new XSLTProcessor()).importStylesheet(xslt)
 							eDoc = xsltProcessor.transformToFragment(xml, document)
 						}
 						catch (ex) {
@@ -322,36 +323,50 @@ class EYonetici extends CObject {
 							console.error({ isError: true, rc: 'xsltTransform', errorText: 'XSLT Görüntüsü oluşturulamadı', source: xsltProcessor })
 							continue
 						}
-						if (eDocCount) {
-							let elmPageBreak = $(`<div style="float: none;"><div style="page-break-after: always;"></div></div>`)[0];
-							divContainer.lastElementChild.after(elmPageBreak); divContainer.lastElementChild.after(eDoc.querySelector('div'))
+
+						let _container = toplu ? divContainer : $(`<div/>`)[0]
+						if (toplu && eDocCount) {
+							let elmPageBreak = $(`<div style="float: none;"><div style="page-break-after: always;"></div></div>`)[0]
+							_container.lastElementChild.after(elmPageBreak)
+							_container.lastElementChild.after(eDoc.querySelector('div'))
 						}
 						else
-							divContainer.append(eDoc)
+							_container.append(eDoc)
+						
 						eDocCount++
-						extend(result, { xmlData, xml, xsltData, xslt, xsltProcessor, eDoc, divContainer })
+						extend(result, { xmlData, xml, xsltData, xslt, xsltProcessor, eDoc, divContainer: _container })
 						window.progressManager?.progressStep()
 						if (callback && keys(uuid2Result).length % 201 == 200)
 							getFuncValue.call(this, callback, e)
+						
+						if (!toplu && _container) {
+							let html = `<html><body>${_container.innerHTML}</body></html>`
+							let url = URL.createObjectURL(new Blob([html], { type: 'text/html' }))
+							openNewWindow(url)
+						}
 					}
 					catch (ex) {
 						if (!ex.responseJSON && ex.responseText) {
 							try { ex = JSON.parse(ex.responseText) }
 							catch (_ex) { }
 						}
-						extend(result, { isError: true, rc: ex?.rc ?? ex.code ?? '??', errorText: getErrorText(ex), error: ex })
-						console.error(ex)
+
+						let errorText = getErrorText(ex)
+						extend(result, { isError: true, rc: ex?.rc ?? ex.code ?? '??', errorText, error: ex })
+						console.error(ex, errorText)
 					}
 				}
 			}
 			if (callback)
 				getFuncValue.call(this, callback, e)
+			
 			if (!e.internal) {
-				if (eDocCount) {
+				if (toplu && eDocCount) {
 					let newDocHTML = `<html><body>${divContainer.innerHTML}</body></html>`
 					let url = URL.createObjectURL(new Blob([newDocHTML], { type: 'text/html' }))
 					openNewWindow(url)
 				}
+				
 				if (sender && !sender.isDestroyed)
 					sender?.tazele()
 			}
@@ -683,7 +698,14 @@ class EYonetici extends CObject {
 		if (!stm)
 			throw { isError: true, rc: 'bosUUIDStm', errorText: 'Filtre hatalı' }
 		let efAyrimTipi2Arastirilacaklar = {}, olusacakPS2Sayaclar = {}
-		let recs = e.recs ??= await stm.execSelect()
+		let { recs } = e
+		if (!recs) {
+			let stm = eIslAnaSinif.getUUIDStm(e)
+			deleteKeys(e, 'psTip2SayacListe', 'whereDuzenleyici')
+			if (!stm)
+				throw { isError: true, rc: 'bosUUIDStm', errorText: 'Filtre hatalı' }
+			recs = await stm.execSelect()
+		}
 		window.progressManager?.setProgressMax((window.progressManager?.progressMax || 0) + recs.length)
 		for (let rec of recs) {
 			let { pstip, fissayac, uuid } = rec
@@ -691,13 +713,16 @@ class EYonetici extends CObject {
 				(olusacakPS2Sayaclar[pstip] ??= []).push(fissayac)
 				continue
 			}
-			let efAyrimTipi = rec.efayrimtipi ||= 'A'
+			// let efAyrimTipi = rec.efayrimtipi ||= 'A'
+			let efAyrimTipi = rec.efayrimtipi = eIslAnaSinif.tip
 			; (efAyrimTipi2Arastirilacaklar[efAyrimTipi] ??= []).push(rec)
 		}
 		if (!empty(efAyrimTipi2Arastirilacaklar)) {
 			for (let efAyrimTipi in efAyrimTipi2Arastirilacaklar) {
 				let arastirilacaklar = efAyrimTipi2Arastirilacaklar[efAyrimTipi]
-				let eIslSinif = EIslemOrtak.getClass(efAyrimTipi), anaBolum = eConf.getAnaBolumFor(eIslSinif)
+				// let eIslSinif = EIslemOrtak.getClass(efAyrimTipi)
+				let eIslSinif = eIslAnaSinif
+				let anaBolum = eConf.getAnaBolumFor(eIslSinif)
 				if (!anaBolum)
 					throw { isError: true, rc: 'eIslAnaBolumBelirsiz', errorText: `e-İşlem için Ana Bölüm belirsizdir` }
 				let eksikUUID2Dosya = {}, dosyaAdiSet = {}
@@ -752,7 +777,8 @@ class EYonetici extends CObject {
 					delete rec.sevktarihi
 				}
 				let { pstip: psTip, fissayac: fisSayac, sevktarih } = rec
-				let efAyrimTipi = rec.efayrimtipi ||= 'A'
+				let efAyrimTipi = rec.efayrimtipi = eIslAnaSinif.tip
+				// let efAyrimTipi = rec.efayrimtipi ||= 'A'
 				extend(rec, {
 					tarihStr: asReverseDateString(rec.tarih),
 					sevkTarihStr: asReverseDateString(sevktarih || _today),
@@ -788,14 +814,15 @@ class EYonetici extends CObject {
 							uploadList = []
 						}
 						if (toplu.liste.length) {
-							await app.sqlExecNone(toplu)
+							await toplu.execute()
 							toplu.liste = []
 						}
 					}
 					for (let fisSayac of subFisSayacListe) {
 						promises.push(defer(async p => {
-							let eFis = sayac2EFis[fisSayac], {baslik} = eFis, {efayrimtipi: efAyrimTipi} = baslik;
-							let eIslSinif = EIslemOrtak.getClass({ tip: efAyrimTipi }), anaBolum = eConf.getAnaBolumFor({ eIslSinif });
+							let eFis = sayac2EFis[fisSayac], {baslik} = eFis, {efayrimtipi: efAyrimTipi} = baslik
+							let eIslSinif = EIslemOrtak.getClass({ tip: efAyrimTipi })
+							let anaBolum = eConf.getAnaBolumFor({ eIslSinif })
 							let uuid
 							try {
 								if (!anaBolum)

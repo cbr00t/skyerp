@@ -10,13 +10,29 @@ class EIslemAkibet_Callback extends CObject {
 			this.ekIslem(e.ekIslem)
 	}
 	run(e) {
-		e ??= {};
+		e ??= {}
 		if (window.progressManager && !progressManager.ekBilgiHandler) {
-			progressManager.ekBilgiHandler = _e => { progressManager._ekBilgiIstendimi = true; $.extend(e, _e); this.ekBilgiGoster(e) };
+			progressManager.ekBilgiHandler = _e => {
+				progressManager._ekBilgiIstendimi = true
+				extend(e, _e)
+				this.ekBilgiGoster(e)
+			}
 			progressManager.showEkBilgi()
 		}
-		else if (!window.progressManager || progressManager._ekBilgiIstendimi) { this.ekBilgiGoster(e) }
-		let {ekIslemler} = this; if (ekIslemler) { return new $.Deferred(async p => { try { for (let ekIslem of ekIslemler) { await getFuncValue.call(this, ekIslem, e) } p.resolve() } catch (ex) { p.reject(ex) } }) }
+		else if (!window.progressManager || progressManager._ekBilgiIstendimi)
+			this.ekBilgiGoster(e)
+		
+		let { ekIslemler } = this
+		if (ekIslemler) {
+			return new defer(async p => {
+				try {
+					for (let ekIslem of ekIslemler)
+						await getFuncValue.call(this, ekIslem, e)
+					p.resolve()
+				}
+				catch (ex) { p.reject(ex) }
+			})
+		}
 	}
 	ekBilgiGoster(e) {
 		e ??= {}; let {part} = this; if (part && part.isDestroyed) part = this.part = null

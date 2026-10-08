@@ -27,9 +27,8 @@ class MQEIslem_Gelen extends MQCogul {
     static listeEkrani_afterRun({ sender: listePart }) {
         super.listeEkrani_afterRun(...arguments)
     }
-    static secimlerDuzenle({ sender: listePart, secimler: sec }) {
+    static secimlerDuzenle({ parentPart: listePart, secimler: sec }) {
         super.secimlerDuzenle(...arguments)
-
         let { donem: { tekSecim: donem } } = sec
         donem.buYil()
 
@@ -59,7 +58,7 @@ class MQEIslem_Gelen extends MQCogul {
     }
     static islemTuslariDuzenle_listeEkrani(e = {}) {
         super.islemTuslariDuzenle_listeEkrani(e)
-        let { sender: listePart, liste, part: butonlarPart } = e
+        let { parentPart: listePart, liste, part: butonlarPart } = e
         let { ekSagButonIdSet } = butonlarPart
         
         let withErrCheck = async (islemAdi, args, block) => {
@@ -127,12 +126,12 @@ class MQEIslem_Gelen extends MQCogul {
         liste.push(...items)
         extend(ekSagButonIdSet, asSet(items.map(r => r.id)))
     }
-    static rootFormBuilderDuzenle_islemTuslari({ sender: listePart, fbd_islemTuslari: fbd }) {
+    static rootFormBuilderDuzenle_islemTuslari({ parentPart: listePart, fbd_islemTuslari: fbd }) {
 		super.rootFormBuilderDuzenle_islemTuslari(...arguments)
     }
     static orjBaslikListesi_argsDuzenle(e = {}) {
         super.orjBaslikListesi_argsDuzenle(e)
-		let { sender: listePart, args } = e
+		let { parentPart: listePart, args } = e
         extend(args, {
             rowsHeight: 60, groupsExpandedByDefault: true,
             showStatusBar: true, showAggregates: true
@@ -211,7 +210,7 @@ class MQEIslem_Gelen extends MQCogul {
             }
         }
     }
-    static orjBaslikListesiDuzenle({ sender: listePart, liste }) {
+    static orjBaslikListesiDuzenle({ parentPart: listePart, liste }) {
         super.orjBaslikListesiDuzenle(...arguments)
         liste.push(...[
 			gridKolon('tamamlandi', 'Tamam?', 5).noSql().checkedList().tipBool(),
@@ -264,7 +263,7 @@ class MQEIslem_Gelen extends MQCogul {
         })
         return recs
     }
-    static loadServerData_queryDuzenle({ sender: listePart, stm, sent, secimler: sec }) {
+    static loadServerData_queryDuzenle({ parentPart: listePart, stm, sent, secimler: sec }) {
         super.loadServerData_queryDuzenle(...arguments)
         
         sent.sahalarVeGroupByVeHavingReset()
@@ -311,7 +310,7 @@ class MQEIslem_Gelen extends MQCogul {
             ]
         */
     }
-    static gridVeriYuklendi({ sender: listePart, recs }) {
+    static gridVeriYuklendi({ parentPart: listePart, recs }) {
         super.gridVeriYuklendi(...arguments)
     }
     static orjBaslikListesi_groupsDuzenle({ sender: listePart, liste }) {
@@ -357,7 +356,7 @@ class MQEIslem_Gelen extends MQCogul {
         ])
     }
     static async loadServerData_detaylar(e = {}) {
-		let { sender: listePart, wsArgs, secimler: sec } = e
+		let { parentPart: listePart, wsArgs, secimler: sec } = e
 		let stm = e.stm = new MQStm()
 		e.sent = stm.sent
 		this.loadServerData_detaylar_queryDuzenle(e)
@@ -426,7 +425,7 @@ class MQEIslem_Gelen extends MQCogul {
 	}
 
 	static initRowDetails_dip(e = {}) {
-		let { sender: listePart, parent: grid, parentRec, rowIndex } = e
+		let { parentPart: listePart, parent: grid, parentRec, rowIndex } = e
 		let rfb = new RootFormBuilder()
 		rfb.addGridliGosterici('dip-grid')
 			.setLayout(grid)
@@ -481,7 +480,7 @@ class MQEIslem_Gelen extends MQCogul {
 			.filter(Boolean)
 			.join(' ')
 	}
-	static loadServerData_dip({ sender: gridPart, parentRec: pr } = {}) {
+	static loadServerData_dip({ parentPart: gridPart, parentRec: pr } = {}) {
 		if (!pr)
 			return []
 
@@ -533,9 +532,9 @@ class MQEIslem_Gelen extends MQCogul {
 		
 		return recs
 	}
-	static gridVeriYuklendi_dip({ sender: gridPart } = {}) {}
+	static gridVeriYuklendi_dip({ parentPart: gridPart } = {}) {}
 	
-    static async bekleyenleriGetirIstendi({ sender: listePart } = {}) {
+    static async bekleyenleriGetirIstendi({ parentPart: listePart } = {}) {
 		let islemAdi = 'e-İşlem Bekleyenleri Getir'
 		let { sorguFiltre: wsSec } = listePart
 		await promise(tamamIslemi => {
@@ -570,7 +569,7 @@ class MQEIslem_Gelen extends MQCogul {
 				hideProgress())
 		}
     }
-	static async xmlYukleIstendi({ sender: listePart } = {}) {
+	static async xmlYukleIstendi({ parentPart: listePart } = {}) {
 		let islemAdi = 'e-İşlem XML Yükle'
 		let { eConf, sorguFiltre: wsSec, tip2EYonetici: tip2EYon } = listePart
 		let { value: vknKontrol } = wsSec.vknKontrol
@@ -678,7 +677,7 @@ class MQEIslem_Gelen extends MQCogul {
 				hideProgress())
 		}
     }
-	static async eIslemIzleIstendi({ sender: listePart } = {}) {
+	static async eIslemIzleIstendi({ parentPart: listePart } = {}) {
 		let islemAdi = 'e-İşlem İZLE'
         let { tip2EYonetici } = listePart
         let totalCount = 0, tip2Recs = {}
@@ -717,7 +716,7 @@ class MQEIslem_Gelen extends MQCogul {
 
         return tip2Res
     }
-	static async eIslemKaldirIstendi({ sender: listePart } = {}) {
+	static async eIslemKaldirIstendi({ parentPart: listePart } = {}) {
 		let islemAdi = 'e-İşlem KALDIR'
         let { tip2EYonetici } = listePart
         let totalCount = 0, tip2Recs = {}
@@ -769,7 +768,7 @@ class MQEIslem_Gelen extends MQCogul {
 
         return tip2Res
     }
-	static async musteriBelirleIstendi({ sender: listePart } = {}) {
+	static async musteriBelirleIstendi({ parentPart: listePart } = {}) {
 		let islemAdi = 'Müşteri Belirle'
 		let { eConf, selectedRec: rec } = listePart
 		if (!rec) {
@@ -810,7 +809,7 @@ class MQEIslem_Gelen extends MQCogul {
 	}
 	static async ticariyeAktarIstendi(e = {}) {
 		let islemAdi = 'e-İşlem Ticariye Aktar'
-		let { sender: listePart } = e
+		let { parentPart: listePart } = e
 		let { eConf, selectedRec: rec } = listePart
 		let { zorunlu: { cariYil } } = app.params
 		cariYil ||= today().yil
@@ -868,7 +867,7 @@ class MQEIslem_Gelen extends MQCogul {
 			})
 			let _recs = await uni.execSelect()
 			if (!empty(_recs)) {
-				this.ticariyeAktarIstendi_kaydetSonrasi({ sender: listePart, rec, uuid })    // tamamlandı işareti yoksa koy, sonucu beklemeye gerek yok
+				this.ticariyeAktarIstendi_kaydetSonrasi({ parentPart: listePart, rec, uuid })    // tamamlandı işareti yoksa koy, sonucu beklemeye gerek yok
 				err('Bu belge zaten ticariye aktarılmış')
 			}
 		}
@@ -974,7 +973,7 @@ class MQEIslem_Gelen extends MQCogul {
 		return res
 		
     }
-	static async ticariyeAktarIstendi_kaydetSonrasi({ sender: listePart, rec, uuid, fis } = {}) {
+	static async ticariyeAktarIstendi_kaydetSonrasi({ parentPart: listePart, rec, uuid, fis } = {}) {
 		if (fis)
 			fis._kaydedildimi = true
 

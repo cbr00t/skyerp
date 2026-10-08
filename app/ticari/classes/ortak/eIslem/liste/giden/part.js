@@ -19,12 +19,13 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		liste.unshift(
 			{ id: 'eIslemGonder', toolTip: 'e-İşlem GÖNDER', handler: e => this.eIslemGonderIstendi(e) },
 			{ id: 'eIslemIzle', toolTip: 'e-İşlem İzle', handler: e => this.eIslemIzleIstendi(e) },
+			{ id: 'eIslemYazdir', text: 'YZDR', toolTip: 'e-İşlem Yazdır', handler: e => this.eIslemIzleIstendi({ ...e, toplu: true }) },
 			{ id: 'eIslemSorgu', toolTip: 'e-İşlem Durum Sorgula', handler: e => this.eIslemSorguIstendi(e) },
 			{ id: 'eIslemXMLOlustur', toolTip: 'e-İşlem XML Oluştur', handler: e => this.eIslemXMLOlusturIstendi(e) },
 			{ id: 'eIslemIptal', toolTip: 'e-İşlem İPTAL', handler: e => this.eIslemIptalIstendi(e) },
 			{ id: 'xmlKaldir', toolTip: 'XML Kaldır', handler: e => this.xmlKaldirIstendi(e) }
 		)
-		extend(part.sagButonIdSet, asSet(['eIslemGonder', 'eIslemIzle', 'eIslemSorgu', 'eIslemXMLOlustur', 'eIslemIptal', 'xmlKaldir']))
+		extend(part.sagButonIdSet, asSet(['eIslemGonder', 'eIslemIzle', 'eIslemYazdir', 'eIslemSorgu', 'eIslemXMLOlustur', 'eIslemIptal', 'xmlKaldir']))
 	}
 	get defaultTabloKolonlari() {
 		let getCSSDuzenleyici = e => {
@@ -234,6 +235,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 	}
 	async eIslemIzleIstendi(e = {}) {
 		let islemAdi = 'e-İşlem İZLE'
+		let { toplu } = e
 		let _e = await this.getSecilenSatirlar_mesajli({ islemAdi }) ?? {}
 		let { recs, sender: listePart } = _e
 		if (!recs)
@@ -245,7 +247,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 			await this.xmlKaldirIstendi({ ...e, silent: true, recs })
 		
 		try {
-			extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
+			extend(_e, { eConf, toplu, callback: new EIslemAkibet_Callback({ islemAdi }) })
 			this.showProgress(_e)
 
 			let sayaclar = asSet(recs.map(r => r.kaysayac))

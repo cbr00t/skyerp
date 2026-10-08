@@ -159,6 +159,13 @@ class OnayciPart extends SimplePart {
 						</div>
 					</div>
 					<div class="ony-controls">
+						<div class="ony-tabs" role="group" aria-label="">${[
+							['selectAll', '<span class="forestgreen">Tümünü Seç</span>'],
+							['deselectAll', `<span style="firebrick">Seçimi Kaldır</span>`]
+						].map(([id, text]) =>
+							`<button type="button" data-action="${id}">
+								${text}
+							</button>`).join('')}</div>
 						<div class="ony-tabs" role="group" aria-label="Durum filtresi">${[
 							['bekleyen', '<span class=orangered>Bekleyen</span>'],
 							['onayli', `<span style="color: #239e78">Onaylı</span>`],
@@ -166,13 +173,6 @@ class OnayciPart extends SimplePart {
 							['tumu', 'Tümü']
 						].map(([id, text]) =>
 							`<button type="button" data-filter="${id}" aria-pressed="${id == this.durum}">
-								${text}
-							</button>`).join('')}</div>
-						<div class="ony-tabs" role="group" aria-label="">${[
-							['selectAll', '<span class="forestgreen">Tümünü Seç</span>'],
-							['deselectAll', `<span style="firebrick">Seçimi Kaldır</span>`]
-						].map(([id, text]) =>
-							`<button type="button" data-action="${id}">
 								${text}
 							</button>`).join('')}</div>
 						<input class="ony-search" type="search" placeholder="Belge, firma veya kullanıcı ara…" aria-label="Belge ara">
@@ -391,11 +391,11 @@ class OnayciPart extends SimplePart {
 	}
 
 	headerGuncelle() {
-		let { header } = this
+		let { header, gridPart } = this
 		if (!header?.length || this.isDestroyed)
 			return
 
-		let selected = this.selectedRecs
+		let { selectedRecs: selected } = this
 		let busy = !!(this._gridLoading || this._taskBusy)
 
 		header.find('[data-filter]').each((i, el) => {
@@ -409,7 +409,7 @@ class OnayciPart extends SimplePart {
 		header.find('[data-action="approve"], [data-action="reject"]')
 			.prop('disabled', busy || !selected.some(r => r.onayNo && (config.dev || !r.onayDurum)))
 
-		this.gridPart?.grid?.find('.ony-card button').prop('disabled', busy)
+		gridPart?.grid?.find('.ony-card button').prop('disabled', busy)
 
 		header.find('.ony-summary').html(
 			this._lastLoadError ? `Yüklenemedi: ${this._lastLoadError}` :
@@ -440,6 +440,7 @@ class OnayciPart extends SimplePart {
 			}
 		}
 		catch (ex) {
+			cerr(ex);
 			hConfirm(getErrorText(ex), this.title)
 			return false
 		}
@@ -458,8 +459,10 @@ class OnayciPart extends SimplePart {
 			})
 		}
 		catch (ex) {
-			if (ex?.rc != 'userClose')
+			if (ex?.rc != 'userClose') {
+				cerr(ex)
 				hConfirm(getErrorText(ex), 'Onay / Red')
+			}
 			return false
 		}
 		finally {
@@ -529,10 +532,10 @@ class OnayciPart extends SimplePart {
 					${button('view', 'Belgeyi görüntüle', 'eye')}
 					${button('detail', 'Detay / Anlaşma', 'file')}
 					${this.proformaKullanilir ? button('proforma', 'Proformalar', 'folder') : ''}
-					${false && !r.onayDurum ? (
+					${ false && !r.onayDurum ? (
 						button('approve', 'Onayla', 'check') +
 						button('reject', 'Reddet', 'reject')
-					) : ''}
+					) : '' }
 				</div>
 			</article>`
 		)
@@ -1444,6 +1447,7 @@ class OnayciPart extends SimplePart {
 		let orj_e = arguments[0]
 		let e = { ...orj_e }
 		let islemAdi = 'Belge İçerik Göster'
+		let { dev } = config
 
 		recs ??= (rec ? [rec] : null) ?? gridPart.selectedRecs
 		recs = recs.filter(r => r?.tip)
@@ -1462,9 +1466,10 @@ class OnayciPart extends SimplePart {
 
 		let { inKioskMode: wasInKioskMode } = app
 		try {
-			let eConf, { tip2Yapi } = this
+			let eConf
+			let { tip2Yapi } = this
 			for (let rec of recs) {
-				let { tip } = rec
+				let { tip, onayDurum } = rec
 
 				if (tip == '_AlimAnlasma')
 					tip = rec.tip = 'GeciciAlimEFat'
@@ -1642,7 +1647,7 @@ class OnayciPart extends SimplePart {
 					}
 				}
 				else {
-					let { tip, tipText, _db: db, sayac, fisNox, colDefs, source } = rec
+					let { tip, tipText, _db: db, sayac, fisNox, colDefs, source, onayDurum } = rec
 					let headerHTML = this.class.getHTML({ rec })
 
 					colDefs ??= e.colDefs
@@ -1672,61 +1677,60 @@ class OnayciPart extends SimplePart {
 								efat() {
 									let harTable = `${db}..${harTables[0]}`
 									let sent = new MQSent(), { where: wh, sahalar } = sent
-
-									sent
-										.fisHareket(table, harTable, true)
-										.innerJoin('har', `${db}..stkmst stk`, 'har.stokkod = stk.kod')
-										.innerJoin('har', `${db}..hizmst hiz`, 'har.hizmetkod = hiz.kod')
-
-									if (anlasmami) {
+									;{
 										sent
-											.leftJoin(
-												'har', `${db}..alimanlasma anl`, [
-													`fis.mustkod <> ''`,
-													`fis.mustkod = anl.must`,
-													`anl.almsat = 'A'`,
-													`anl.devredisi = ''`,
-													`fis.tarih >= anl.tarihb`,
-													`fis.tarih <= anl.tarihs`,
-													`( (har.shtip = '' AND anl.ayrimkod = '') OR (har.shtip = 'H' AND anl.ayrimkod = 'HZ'))`
-												]
-											)
-											.leftJoin(
-												'anl', `${db}..anlastarife adet`, [
-													`anl.kaysayac = adet.anlassayac`,
-													`(
-														(anl.ayrimkod = '' AND har.stokkod = adet.stokkod) OR
-														(anl.ayrimkod = 'HZ' and har.hizmetkod = adet.fasonhizmetkod)
-													)`
-												]
-											)
+											.fisHareket(table, harTable, true)
+											.innerJoin('har', `${db}..stkmst stk`, 'har.stokkod = stk.kod')
+											.innerJoin('har', `${db}..hizmst hiz`, 'har.hizmetkod = hiz.kod')
 									}
-
-									wh.degerAta(sayac, 'fis.kaysayac')
-									sahalar.add(
-										'har.kaysayac sayac',
-										'har.seq',
-										`(case har.shtip when 'H' then har.hizmetkod when 'D' then har.demkod else har.stokkod end) shKod`,
-										`dbo.emptycoalesce(
-											(case har.shtip when 'H' then hiz.aciklama when 'D' then NULL else stk.aciklama end),
-											har.efstokadi
-										) shAdi`,
-										'har.miktar',
-										'stk.brm',
-										'har.bedel',
-										'fis.dvkod dvKod',
-										`har.fiyat`,
-										'har.iskorantext iskOranText'
-									)
-
-									if (anlasmami) {
+									;{
+										if (anlasmami) {
+											sent
+												.leftJoin(
+													'har', `${db}..alimanlasma anl`, [
+														`fis.mustkod <> ''`,
+														`fis.mustkod = anl.must`,
+														`anl.almsat = 'A'`,
+														`anl.devredisi = ''`,
+														`fis.tarih >= anl.tarihb`,
+														`fis.tarih <= anl.tarihs`,
+														`( (har.shtip = '' AND anl.ayrimkod = '') OR (har.shtip = 'H' AND anl.ayrimkod = 'HZ'))`
+													]
+												)
+												.leftJoin(
+													'anl', `${db}..anlastarife adet`, [
+														`anl.kaysayac = adet.anlassayac`,
+														`(
+															(anl.ayrimkod = '' AND har.stokkod = adet.stokkod) OR
+															(anl.ayrimkod = 'HZ' and har.hizmetkod = adet.fasonhizmetkod)
+														)`
+													]
+												)
+										}
+										wh.degerAta(sayac, 'fis.kaysayac')
 										sahalar.add(
-											'har.alimanlasmadurumu anlDurum',
-											'adet.ozelfiyat ozelFiyat',
-											'adet.iskorantext anlOranText'
+											'har.kaysayac sayac',
+											'har.seq',
+											`(case har.shtip when 'H' then har.hizmetkod when 'D' then har.demkod else har.stokkod end) shKod`,
+											`dbo.emptycoalesce(
+												(case har.shtip when 'H' then hiz.aciklama when 'D' then NULL else stk.aciklama end),
+												har.efstokadi
+											) shAdi`,
+											'har.miktar',
+											'stk.brm',
+											'har.bedel',
+											'fis.dvkod dvKod',
+											`har.fiyat`,
+											'har.iskorantext iskOranText'
 										)
+										if (anlasmami) {
+											sahalar.add(
+												'har.alimanlasmadurumu anlDurum',
+												'adet.ozelfiyat ozelFiyat',
+												'adet.iskorantext anlOranText'
+											)
+										}
 									}
-
 									return new MQStm({ sent, orderBy: ['seq'] })
 								},
 
@@ -1757,7 +1761,7 @@ class OnayciPart extends SimplePart {
 
 										wh.fisSilindiEkle()
 										wh.degerAta(sayac, 'fis.kaysayac')
-										sahalar.add(
+										sahalar.add(...[
 											'har.kaysayac sayac',
 											'har.seq',
 											`${hizmetmi ? 'har.hizmetkod' : 'har.stokkod'} shKod`,
@@ -1768,7 +1772,7 @@ class OnayciPart extends SimplePart {
 											'fis.dvkod dvKod',
 											`har.belgefiyat fiyat`,
 											'har.iskorantext iskOranText'
-										)
+										])
 
 										uni.add(sent)
 									}
@@ -1779,7 +1783,6 @@ class OnayciPart extends SimplePart {
 
 							let stm = geciciEFatmi ? getStm.efat() : getStm.diger()
 							_recs = stm ? await stm.execSelect() : null
-
 							_recs?.forEach(r => {
 								let { fiyat, miktar, brm, bedel, dvKod, iskOranText, anlDurum, ozelFiyat, anlOranText } = r
 								r.brm ||= brm = 'AD'
@@ -1890,118 +1893,123 @@ class OnayciPart extends SimplePart {
 
 					let gridPart
 					let rfb = new RootFormBuilder()
-						.addCSS('onayci part')
-						.addStyle_fullWH()
-						.addStyle(`$elementCSS { --header-height: 80px }`)
-						.asWindow(`${tipText} İzle: [<span class=orangered>${fisNox}</span>]`)
-
 					;{
-						rfb.addIslemTuslari('islemTuslari')
-							.setEkSagButonlar(['onay', 'red', 'tazele', 'vazgec'])
-							.setButonlarIlk([
-								{
-									id: 'onay',
-									text: ' ✅ ',
-									toolTip: 'Onay',
-									handler: _e => this.onayRedIstendi({
-										..._e,
-										sender: this.gridPart,
-										recs: [rec],
-										state: true
+						;{
+							rfb
+								.addCSS('onayci part')
+								.addStyle_fullWH()
+								.addStyle(`$elementCSS { --header-height: 80px }`)
+								.asWindow(`${tipText} İzle: [<span class=orangered>${fisNox}</span>]`)
+						}
+	
+						;{
+							rfb.addIslemTuslari('islemTuslari')
+								.setEkSagButonlar(['onay', 'red', 'tazele', 'vazgec'])
+								.setButonlarIlk([
+									( onayDurum && !dev ? null : {
+										id: 'onay',
+										text: ' ✅ ',
+										toolTip: 'Onay',
+										handler: _e => this.onayRedIstendi({
+											..._e,
+											sender: this.gridPart,
+											recs: [rec],
+											state: true
+										})
+									} ),
+									( onayDurum && !dev ? null : {
+										id: 'red',
+										text: ' 🚫 ',
+										toolTip: 'RED',
+										handler: _e => this.onayRedIstendi({
+											..._e,
+											sender: this.gridPart,
+											recs: [rec],
+											state: false
+										})
+									} ),
+									{
+										id: 'tazele',
+										toolTip: 'Tazele',
+										handler: _e => gridPart.tazele()
+									},
+									{
+										id: 'vazgec',
+										toolTip: 'Vazgeç',
+										handler: ({ builder: { rootPart } }) => rootPart.close()
+									}
+								].filter(Boolean))
+								.addCSS('islemTuslari absolute')
+								.addStyle_wh(4000, 'var(--header-height)')
+								.addStyle(
+									`$elementCSS { left: 70vw; top: -5px; z-index: 1005 !important }
+									 $elementCSS > div > * { gap: 1.3em !important }
+									 $elementCSS > div .sol { display: none !important; z-index: -1 !important }
+									 $elementCSS > div .sag { --width-sag: 380px !important; background: transparent !important; z-index: 1001 !important }
+									 $elementCSS button { font-size: 35pt !important; padding: 0 !important; background-position: center !important }
+									 @media (max-width: 1200px) {
+										 $elementCSS { left: 63vw }
+									 }
+									 @media (max-width: 900px) {
+										 $elementCSS { left: 57vw }
+										 $elementCSS > div > * { gap: .7em !important }
+									 }
+									 @media (max-width: 710px) {
+										 $elementCSS { left: 45vw }
+										 $elementCSS > div > * { gap: .5em !important }
+									 }
+									 @media (max-width: 580px) {
+										 $elementCSS { left: 38vw }
+										 $elementCSS > div > * { gap: .4em !important }
+									 }`
+								)
+						}
+	
+						;{
+							rfb.addForm('header')
+								.setLayout(({ builder: { parent } }) => $(
+									`<div>` + headerHTML + `</div>`
+								))
+								.addCSS('relative')
+								.addStyle(
+									`$elementCSS {
+										width: calc(var(--full) - 330px) !important;
+										height: var(--header-height) !important;
+										margin: 0 !important;
+										overflow-y: auto !important;
+										z-index: 1002 !important
+									}
+									$elementCSS > * { font-size: 110% !important }`
+								)
+						}
+	
+						;{
+							rfb.addGridliGosterici('grid')
+								.addCSS('dock-bottom')
+								.addStyle_fullWH(null, 'calc(var(--full) - 90px)')
+								.addStyle(`$elementCSS [role = columnheader] { }`)
+								.widgetArgsDuzenleIslemi(({ args }) =>
+									extend(args, {
+										columnsMenu: false, adaptive: false,
+										groupable: false, filterable: false,
+										showGroupsHeader: false, showStatusBar: false,
+										rowsHeight: 60, columnsHeight: 0,
+										selectionMode: 'none',
+										enableHover: true, enableTooltips: false
 									})
-								},
-								{
-									id: 'red',
-									text: ' 🚫 ',
-									toolTip: 'RED',
-									handler: _e => this.onayRedIstendi({
-										..._e,
-										sender: this.gridPart,
-										recs: [rec],
-										state: false
-									})
-								},
-								{
-									id: 'tazele',
-									toolTip: 'Tazele',
-									handler: _e => gridPart.tazele()
-								},
-								{
-									id: 'vazgec',
-									toolTip: 'Vazgeç',
-									handler: ({ builder: { rootPart } }) => rootPart.close()
-								}
-							])
-							.addCSS('islemTuslari absolute')
-							.addStyle_wh(4000, 'var(--header-height)')
-							.addStyle(
-								`$elementCSS { left: 70vw; top: -5px; z-index: 1005 !important }
-								 $elementCSS > div > * { gap: 1.3em !important }
-								 $elementCSS > div .sol { display: none !important; z-index: -1 !important }
-								 $elementCSS > div .sag { --width-sag: 380px !important; background: transparent !important; z-index: 1001 !important }
-								 $elementCSS button { font-size: 35pt !important; padding: 0 !important; background-position: center !important }
-								 @media (max-width: 1200px) {
-									 $elementCSS { left: 63vw }
-								 }
-								 @media (max-width: 900px) {
-									 $elementCSS { left: 57vw }
-									 $elementCSS > div > * { gap: .7em !important }
-								 }
-								 @media (max-width: 710px) {
-									 $elementCSS { left: 45vw }
-									 $elementCSS > div > * { gap: .5em !important }
-								 }
-								 @media (max-width: 580px) {
-									 $elementCSS { left: 38vw }
-									 $elementCSS > div > * { gap: .4em !important }
-								 }`
-							)
-					}
-
-					;{
-						rfb.addForm('header')
-							.setLayout(({ builder: { parent } }) => $(
-								`<div>` + headerHTML + `</div>`
-							))
-							.addCSS('relative')
-							.addStyle(
-								`$elementCSS {
-									width: calc(var(--full) - 330px) !important;
-									height: var(--header-height) !important;
-									margin: 0 !important;
-									overflow-y: auto !important;
-									z-index: 1002 !important
-								}
-								$elementCSS > * { font-size: 110% !important }`
-							)
-					}
-
-					;{
-						rfb.addGridliGosterici('grid')
-							.addCSS('dock-bottom')
-							.addStyle_fullWH(null, 'calc(var(--full) - 90px)')
-							.addStyle(`$elementCSS [role = columnheader] { }`)
-							.widgetArgsDuzenleIslemi(({ args }) =>
-								extend(args, {
-									columnsMenu: false, adaptive: false,
-									groupable: false, filterable: false,
-									showGroupsHeader: false, showStatusBar: false,
-									rowsHeight: 60, columnsHeight: 0,
-									selectionMode: 'none',
-									enableHover: true, enableTooltips: false
+								)
+								.rowNumberOlmasin()
+								.setTabloKolonlari(_colDefs)
+								.setSource(_e => getSource({ ...e, ..._e }))
+								.onAfterRun(({ builder: { part, rootPart } }) =>
+									gridPart = rootPart.gridPart = part)
+								.veriYukleninceIslemi(({ recs }) => {
+									let { gridWidget: w } = gridPart
+									let anlasmami = temps?.belgeAnlasma == 'A'
+									;['miktar'].forEach(k =>
+										w[anlasmami ? 'hidecolumn' : 'showcolumn'](k))
 								})
-							)
-							.rowNumberOlmasin()
-							.setTabloKolonlari(_colDefs)
-							.setSource(_e => getSource({ ...e, ..._e }))
-							.onAfterRun(({ builder: { part, rootPart } }) =>
-								gridPart = rootPart.gridPart = part)
-							.veriYukleninceIslemi(({ recs }) => {
-								let { gridWidget: w } = gridPart
-								let anlasmami = temps?.belgeAnlasma == 'A'
-								;['miktar'].forEach(k =>
-									w[anlasmami ? 'hidecolumn' : 'showcolumn'](k))
-							})
+						}
 					}
 
 					if (orj_e.aborted)
@@ -2012,6 +2020,7 @@ class OnayciPart extends SimplePart {
 							app.exitKioskMode()
 					})
 					rfb.run()
+					
 					let { part } = rfb
 					part?.kapaninca(() => {
 						$('body').addClass('allow-nav')
@@ -2026,6 +2035,7 @@ class OnayciPart extends SimplePart {
 
 			if (!orj_e.aborted && eDocCount) {
 				for (let { eDoc, rec } of eDocs) {
+					let { onayDurum } = rec
 					let token = newGUID()
 					this._previewTokens.add(token)
 
@@ -2037,7 +2047,7 @@ class OnayciPart extends SimplePart {
 						})
 					)
 
-					let html = `
+					let html = (`
 						<html lang="tr">
 						<head>
 							<meta charset="utf-8" />
@@ -2060,20 +2070,21 @@ class OnayciPart extends SimplePart {
 							</style>
 						</head>
 						<body>
-							<div class="islemTuslari">
-								<button id="onay" title="Onay"> ✅ </button>
-								<button id="red" title="red"> 🚫 </button>
-							</div>
+							${ onayDurum && !dev ? '' : `
+								<div class="islemTuslari">
+									<button id="onay" title="Onay"> ✅ </button>
+									<button id="red" title="red"> 🚫 </button>
+								</div>
+							` }
 
 							${eDoc[0].innerHTML}
 
-							<script>
+							${ onayDurum && !dev ? '' : `<script>
 								let token = ${JSON.stringify(token)}
 								let btns = Object.fromEntries(
 									['onay', 'red']
 										.map(k => [k, document.getElementById(k)])
 								)
-
 								function onayRed(state) {
 									Object.values(btns).forEach(b =>
 										b.setAttribute('disabled', ''))
@@ -2086,10 +2097,10 @@ class OnayciPart extends SimplePart {
 
 								btns.onay.addEventListener('click', evt => onayRed(true))
 								btns.red.addEventListener('click', evt => onayRed(false))
-							</script>
+							</script>` }
 						</body>
 						</html>
-					`
+					`)
 
 					let url = URL.createObjectURL(new Blob([html], { type: 'text/html' }))
 					openNewWindow(url)
