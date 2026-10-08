@@ -1465,11 +1465,27 @@ class OnayciPart extends SimplePart {
 		let errors = [], eDocs = [], eDocCount = 0
 
 		let { inKioskMode: wasInKioskMode } = app
+		let db2EIslAnaBolum = app.db2EIslAnaBolum ??= {}
 		try {
-			let eConf
+			let dbSet = asSet(recs.map(r => r._db))
+			for (let db in dbSet) {
+				if (db2EIslAnaBolum[db] === undefined) {
+					let sent = new MQSent(), { where: wh, sahalar } = sent
+					;{
+						sent.fromAdd(`${db}..yflaglar`)
+						wh.degerAta(MQEIslemParam.paramKod, 'kod')
+						sahalar.add('jsonstr')
+					}
+					let str = await sent.execTekilDeger(sent)
+					let rec = str ? JSON.parse(str) : null
+					db2EIslAnaBolum[db] = rec?.efatAnaBolum ?? null
+				}
+			}
+			
+			let eConf = await MQEConf.getInstance()
 			let { tip2Yapi } = this
 			for (let rec of recs) {
-				let { tip, onayDurum } = rec
+				let { tip, _db: db, onayDurum } = rec
 
 				if (tip == '_AlimAnlasma')
 					tip = rec.tip = 'GeciciAlimEFat'
@@ -1480,11 +1496,10 @@ class OnayciPart extends SimplePart {
 					if (!uuid)
 						continue
 
-					if (eConf === undefined)
-						eConf = await MQEConf.getInstance() ?? null
-
 					eIslTip ||= 'E'
 					let gelenmi = tip == 'GeciciAlimEFat'
+					
+					eConf.anaBolum = db2EIslAnaBolum[db] || null
 					let eIslAltBolum = eConf.getAnaBolumFor({ eIslTip })
 						?.trimEnd()
 						?.replaceAll('\\', '/')

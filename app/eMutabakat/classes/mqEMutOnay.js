@@ -63,7 +63,8 @@ class MQEMutOnay extends MQCogul {
 		await super.uiGirisSonrasiIslemler(...arguments)
 	}
 	static tanimPart_islemTuslariDuzenle(e) {
-		let { sender: tanimPart, sender: { inst }, part, liste } = e
+		let { parentPart: tanimPart, part, liste } = e
+		let { inst } = tanimPart
 		let { wsResult } = inst
 		super.tanimPart_islemTuslariArgsDuzenle(e)
 		let items = []
