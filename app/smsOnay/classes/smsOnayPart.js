@@ -11,9 +11,14 @@ class SMSOnayPart extends SimplePart {
 		this.id = qs.id ?? null
 	}
 	run(e) {
+		this._wasInKioskMode = app.inKioskMode
+		if (!config.dev)
+			delay(10).then(() => app.enterKioskMode())
 		super.run(e)
+	}
+	rfbDuzenle(e) {
+		super.rfbDuzenle(e)
 		let { rfb, content } = this
-		
 		content
 			.setLayout(_e => {
 				let elm = this.getLayout({ ...e, ..._e })
@@ -23,12 +28,6 @@ class SMSOnayPart extends SimplePart {
 			})
 			.addStyle(_e =>
 				this.getStyle({ ...e, ..._e }))
-		
-		rfb.run()
-
-		this._wasInKioskMode = app.inKioskMode
-		if (!config.dev)
-			delay(10).then(() => app.enterKioskMode())
 	}
 	async ilkIslemler(e) {
 		await super.ilkIslemler(e)
