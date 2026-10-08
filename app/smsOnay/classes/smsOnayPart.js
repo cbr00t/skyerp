@@ -34,7 +34,7 @@ class SMSOnayPart extends SimplePart {
 
 	constructor(e = {}) {
 		super(e)
-		this.id = qs.id ?? e.id ?? null // String olarak kalır: GUID / bigint hassasiyeti korunur.
+		this.id = qs.id ?? e.id ?? null    // String olarak kalır: GUID / bigint hassasiyeti korunur.
 		this.belgeTip = qs.belgeTip ?? e.belgeTip ?? null
 		this.state = 'loading'
 		this.kodUzunlugu = 6
@@ -42,9 +42,13 @@ class SMSOnayPart extends SimplePart {
 	}
 	rfbDuzenle(e) {
 		super.rfbDuzenle(e)
-		this.rfb.setId(this.class.partName).addStyle_fullWH()
-		this.content.setLayout($(this.getLayout()))
-			.addCSS('sms-onay-shell').addStyle(this.getStyle())
+		this.rfb
+			.setId(this.class.partName)
+			.addStyle_fullWH()
+		this.content
+			.setLayout($(this.getLayout()))
+			.addCSS('sms-onay-shell')
+			.addStyle(this.getStyle())
 	}
 	async afterRun(e) {
 		await super.afterRun(e)
@@ -115,11 +119,12 @@ class SMSOnayPart extends SimplePart {
 		})
 	}
 	wsSMSOnayGonder(e = {}) {
-		let { onayKodu, reqId } = e
+		let { onayKodu } = e
+		let args = { ...this.getWSArgs(e), onayKodu }
 		return ajaxPost({
 			processData: false, contentType: wsContentTypeVeCharSet, timeout: 20000,
-			url: app.getWSUrl({ api: 'onayla', args: this.getWSArgs(e) }),
-			data: toJSONStr({ onayKodu, reqId })
+			url: app.getWSUrl({ api: 'onayla', args })
+			// data: toJSONStr({ onayKodu })
 		})
 	}
 	getWSArgs(e = {}) {
@@ -130,26 +135,26 @@ class SMSOnayPart extends SimplePart {
 	}
 	bilgiRecAl(res) {
 		if (!res || typeof res !== 'object' || Array.isArray(res))
-			throw new Error('Belge bilgileri alınamadı. Lütfen yeniden deneyin.')
+			throw new Error('Belge bilgileri alınamadı. Lütfen yeniden deneyin')
 		if (res.isError || res.success === false)
 			throw res
 		let rec = res.rec ?? res
 		if (!rec || typeof rec !== 'object' || Array.isArray(rec) || !Object.keys(rec).length)
-			throw new Error('Belge bilgileri bulunamadı.')
+			throw new Error('Belge bilgileri bulunamadı')
 		if (rec.isError || rec.success === false)
 			throw rec
 		let belgeAlanlari = ['id', 'belgeTipAdi', 'adSoyad', 'unvan', 'tarih', 'seri', 'no', 'sonucBedel', 'bedel', 'state', 'onaylandi', 'kalanSaniye', 'sonGecerlilikZamani']
 		if (!belgeAlanlari.some(key => rec[key] != null))
-			throw new Error('Belge bilgileri bulunamadı.')
+			throw new Error('Belge bilgileri bulunamadı')
 		if (rec.id != null && String(rec.id) !== String(this.id))
-			throw new Error('Bağlantı ile belge bilgileri eşleşmiyor.')
+			throw new Error('Bağlantı ile belge bilgileri eşleşmiyor')
 		return rec
 	}
 	async bilgiYukle() {
 		if (this._destroyed || this._loading || this.state === 'submitting')
 			return
 		if (this.id == null || !String(this.id).trim()) {
-			this.setState('error', 'Onay bağlantısında belge kimliği bulunamadı. Lütfen SMS ile gelen bağlantıyı kullanın.')
+			this.setState('error', 'Onay bağlantısında belge kimliği bulunamadı. Lütfen SMS ile gelen bağlantıyı kullanın')
 			return
 		}
 		this._loading = true
@@ -162,7 +167,7 @@ class SMSOnayPart extends SimplePart {
 			let rec = this.rec = this.bilgiRecAl(res)
 			let len = Number(rec.kodUzunlugu ?? 6)
 			if (!Number.isInteger(len) || len < 4 || len > 12)
-				throw new Error('Onay kodu bilgisi geçersiz. Lütfen belgeyi düzenleyen firmayla görüşün.')
+				throw new Error('Onay kodu bilgisi geçersiz. Lütfen belgeyi düzenleyen firmayla görüşün')
 			
 			this.kodUzunlugu = len
 			this.belgeGoster(rec)
@@ -178,7 +183,7 @@ class SMSOnayPart extends SimplePart {
 		}
 		catch (ex) {
 			if (!this._destroyed)
-				this.setState('error', this.getErrorText(ex, 'Belge bilgileri yüklenemedi. Bağlantınızı kontrol edip yeniden deneyin.'))
+				this.setState('error', this.getErrorText(ex, 'Belge bilgileri yüklenemedi. Bağlantınızı kontrol edip yeniden deneyin'))
 		}
 		finally {
 			this._loading = false
@@ -220,8 +225,8 @@ class SMSOnayPart extends SimplePart {
 		
 		this.setState('submitting')
 		try {
-			let { id: reqId } = this._lastReq
-			let res = await this.wsSMSOnayGonder({ reqId, onayKodu })
+			// let { id: reqId } = this._lastReq
+			let res = await this.wsSMSOnayGonder({ onayKodu })
 			if (this._destroyed)
 				return
 			
@@ -230,9 +235,17 @@ class SMSOnayPart extends SimplePart {
 				this._lastReq = null
 				this.setState('approved')
 			}
-			else if (res && typeof res === 'object' && (res.isError || res.success === false || res.onaylandi === false || ['expired', 'cancelled', 'locked'].includes(this.belgeDurumu(res)))) {
+			else if (
+				res && isObject(res) && (
+					res.isError || res.success === false || res.onaylandi === false ||
+					['expired', 'cancelled', 'locked'].includes(this.belgeDurumu(res))
+				)
+			) {
 				let state = this.belgeDurumu(res)
-				this.setState(state === 'approved' ? 'ready' : state, this.getErrorText(res, 'Kod doğrulanamadı. SMS ile gelen kodu kontrol edin.'))
+				this.setState(
+					state === 'approved' ? 'ready' : state,
+					this.getErrorText(res, 'Kod doğrulanamadı. SMS ile gelen kodu kontrol edin')
+				)
 				if (this.state === 'ready') {
 					this.ui.code.attr('aria-invalid', 'true').trigger('focus')
 					this.sayacGuncelle()
@@ -320,7 +333,7 @@ class SMSOnayPart extends SimplePart {
 	kodUygula(text) {
 		let code = this.panodanKodBul(text)
 		if (!code) {
-			this.mesajGoster(`Panodaki metinden tek bir ${this.kodUzunlugu} haneli kod alınamadı. Yalnızca onay kodunu yapıştırın.`, 'warning')
+			this.mesajGoster(`Panodaki metinden tek bir ${this.kodUzunlugu} haneli kod alınamadı. Yalnızca onay kodunu yapıştırın`, 'warning')
 			this.ui.code.trigger('focus')
 			return
 		}
@@ -330,13 +343,15 @@ class SMSOnayPart extends SimplePart {
 		this.ui.code.trigger('focus')
 	}
 	async kodYapistir() {
-		if (this._destroyed || this.state !== 'ready' || this._pasting) return
+		if (this._destroyed || this.state !== 'ready' || this._pasting)
+			return
 		this._pasting = true
 		this.kontrolGuncelle()
 		try {
 			if (!globalThis.navigator?.clipboard?.readText) throw new Error('clipboard unavailable')
 			let text = await navigator.clipboard.readText()
-			if (!this._destroyed && this.state === 'ready') this.kodUygula(text)
+			if (!this._destroyed && this.state === 'ready')
+				this.kodUygula(text)
 		}
 		catch (_) {
 			if (!this._destroyed && this.state === 'ready') {
@@ -344,24 +359,32 @@ class SMSOnayPart extends SimplePart {
 				this.ui.code.trigger('focus')
 			}
 		}
-		finally { this._pasting = false; if (!this._destroyed) this.kontrolGuncelle() }
+		finally {
+			this._pasting = false
+			if (!this._destroyed)
+				this.kontrolGuncelle()
+		}
 	}
 	static async onayEkraniAc({ url, onayKodu } = {}) {
-		if (typeof url !== 'string' || !url.trim()) throw new Error('Onay bağlantısı belirtilmedi.')
-		let target = new URL(url, globalThis.location.href)
-		if (!['https:', 'http:'].includes(target.protocol)) throw new Error('Geçersiz onay bağlantısı.')
-		let kopyalandi = false
+		if (!(isString(url) && url.trim()))
+			throw new Error('Onay bağlantısı belirtilmedi')
+		
+		let target = new URL(url, location.href)
+		if (!['https:', 'http:'].includes(target.protocol))
+			throw new Error('Geçersiz onay bağlantısı')
+		
+		let copied = false
 		try {
 			if (onayKodu != null && navigator.clipboard?.writeText) {
 				await navigator.clipboard.writeText(String(onayKodu))
-				kopyalandi = true
+				copied = true
 			}
 		}
-		catch (_) { }
-		globalThis.location.assign(target.href)
-		return { kopyalandi }
+		catch (ex) { }
+		location.assign(target.href)
+		
+		return { copied }
 	}
-
 	belgeGoster(rec) {
 		let { root, code } = this.ui
 		root.toggleClass('sms-long-code', this.kodUzunlugu > 6)
@@ -486,11 +509,11 @@ class SMSOnayPart extends SimplePart {
 	}
 	getStyle() {
 		return `
-		$elementCSS { --sms-ink: #183746; --sms-muted: #687d87; --sms-accent: #087c77; --sms-border: #dce7e9; width: 100% !important; height: 100% !important; position: absolute; inset: 0; margin: 0 !important; padding: 0 !important; overflow: auto !important; color: var(--sms-ink); background: radial-gradient(ellipse at 12% 8%, #dcefea 0, transparent 50%), radial-gradient(ellipse at 92% 88%, #e7eafa 0, transparent 45%), #f4f7f8; color-scheme: light; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 15px; line-height: 1.5; }
+		$elementCSS { --sms-ink: #183746; --sms-muted: #687d87; --sms-accent: #087c77; --sms-border: #dce7e9; width: 100% !important; height: 100% !important; position: absolute; inset: 0; margin: 0 !important; padding: 0 !important; overflow: auto !important; color: var(--sms-ink); background: radial-gradient(ellipse at 12% 8%, #dcefea 0, transparent 50%), radial-gradient(ellipse at 92% 88%, #e7eafa 0, transparent 45%), #f4f7f8; color-scheme: light; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Verdana, sans-serif; font-size: 12pt; line-height: 1.5; }
 		$elementCSS *, $elementCSS *::before, $elementCSS *::after { box-sizing: border-box }
 		$elementCSS [hidden] { display: none !important }
 		$elementCSS .sms-page { min-height: 100%; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 20px; gap: 20px }
-		$elementCSS .sms-brand { display: flex; align-items: center; gap: 10px; color: #365962; font-size: 14px; font-weight: 600 }
+		$elementCSS .sms-brand { display: flex; align-items: center; gap: 10px; color: #365962; font-size: 140%; font-weight: 600 }
 		$elementCSS svg { flex-shrink: 0; vertical-align: middle }
 		$elementCSS .sms-brand-icon { display: grid; place-items: center; width: 35px; height: 35px; border: 1px solid #c5ddda; border-radius: 11px; background: #ffffff90; color: var(--sms-accent) }
 		$elementCSS .sms-card { width: 100%; max-width: 520px; padding: 30px; border: 1px solid #ffffff; border-radius: 24px; background: #fff; box-shadow: 0 18px 65px #214d5912, 0 2px 8px #214d5908 }
@@ -499,23 +522,23 @@ class SMSOnayPart extends SimplePart {
 		$elementCSS .sms-badge { color: #307165; background: #eaf5ef; font-size: 11px; font-weight: 600; padding: 5px 10px; border-radius: 50px }
 		$elementCSS h1, $elementCSS h2, $elementCSS p, $elementCSS dl { margin: 0; padding: 0 }
 		$elementCSS h1 { font-size: 27px; line-height: 1.25; letter-spacing: -.7px; color: var(--sms-ink); font-weight: 700 }
-		$elementCSS .sms-description { margin: 10px 0 22px; font-size: 14px; color: var(--sms-muted); overflow-wrap: anywhere }
+		$elementCSS .sms-description { margin: 10px 0 22px; font-size: 140%; color: var(--sms-muted); overflow-wrap: anywhere }
 		$elementCSS .sms-document { padding: 20px; background: #f6f9fa; border: 1px solid #e5edef; border-radius: 15px; margin-bottom: 25px; overflow-wrap: anywhere }
-		$elementCSS .sms-doc-type { color: var(--sms-accent); font-size: 12px; font-weight: 650; margin-bottom: 7px }
+		$elementCSS .sms-doc-type { color: var(--sms-accent); font-size: 120%; font-weight: 650; margin-bottom: 7px }
 		$elementCSS h2 { color: var(--sms-ink); font-size: 18px; font-weight: 650; line-height: 1.35 }
 		$elementCSS .sms-meta { display: flex; gap: 12px 24px; flex-wrap: wrap; margin-top: 16px }
 		$elementCSS .sms-meta-item { min-width: 50px; max-width: 100% }
 		$elementCSS dt { color: var(--sms-muted); font-size: 11px; font-weight: 400 }
 		$elementCSS dd { color: var(--sms-ink); font-size: 13px; font-weight: 600; margin: 2px 0 0 }
 		$elementCSS .sms-amount { border-top: 1px dashed #d5e2e5; margin-top: 17px; padding-top: 14px; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 5px 16px }
-		$elementCSS .sms-amount > span { color: var(--sms-muted); font-size: 12px }
+		$elementCSS .sms-amount > span { color: var(--sms-muted); font-size: 120% }
 		$elementCSS .sms-amount > strong { font-size: 26px; font-weight: 700; letter-spacing: -.6px; color: var(--sms-ink); max-width: 100%; overflow-wrap: anywhere }
 		$elementCSS .sms-form-head { display: flex; align-items: center; justify-content: space-between; gap: 10px }
-		$elementCSS .sms-code-title { font-size: 14px; font-weight: 650 }
+		$elementCSS .sms-code-title { font-size: 140%; font-weight: 650 }
 		$elementCSS .sms-timer { display: flex; align-items: center; gap: 5px; color: var(--sms-accent); font-size: 13px; font-weight: 650; font-variant-numeric: tabular-nums; white-space: nowrap }
 		$elementCSS .sms-timer svg { width: 16px; height: 16px }
 		$elementCSS .sms-timer.is-urgent { color: #a6590a }
-		$elementCSS .sms-phone { color: var(--sms-muted); font-size: 12px; margin: 6px 0 14px; overflow-wrap: anywhere }
+		$elementCSS .sms-phone { color: var(--sms-muted); font-size: 120%; margin: 6px 0 14px; overflow-wrap: anywhere }
 		$elementCSS .sms-code-row { display: flex; gap: 9px; align-items: stretch }
 		$elementCSS .sms-code-label { display: block; flex: 1; min-width: 0 }
 		$elementCSS input[name="onayKodu"] { width: 100%; min-width: 0; height: 58px; padding: 10px 14px; border: 1.5px solid #cddce0; border-radius: 11px; background: #fff; color: var(--sms-ink); font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; font-size: 27px; letter-spacing: .15em; text-align: center; outline: none; box-shadow: none; transition: border-color .15s, box-shadow .15s }
@@ -523,7 +546,7 @@ class SMSOnayPart extends SimplePart {
 		$elementCSS input[name="onayKodu"]:focus { border-color: var(--sms-accent); box-shadow: 0 0 0 4px #087c7712 }
 		$elementCSS input[name="onayKodu"][aria-invalid="true"] { border-color: #bb5c43 }
 		$elementCSS input[name="onayKodu"]:disabled { background: #f5f7f8; color: #82929a }
-		$elementCSS.sms-long-code input[name="onayKodu"] { font-size: 18px; letter-spacing: .04em }
+		$elementCSS.sms-long-code input[name="onayKodu"] { font-size: 180%; letter-spacing: .04em }
 		$elementCSS button { font: inherit; cursor: pointer; border: 0; margin: 0; white-space: normal; height: auto }
 		$elementCSS button:focus-visible { outline: 3px solid #29978f; outline-offset: 3px }
 		$elementCSS button:disabled { cursor: default }
@@ -531,17 +554,17 @@ class SMSOnayPart extends SimplePart {
 		$elementCSS .sms-paste svg { width: 20px; height: 20px }
 		$elementCSS .sms-paste:hover:enabled { background: #e7f2f0 }
 		$elementCSS .sms-paste:disabled { opacity: .45 }
-		$elementCSS .sms-code-help { font-size: 11px; color: var(--sms-muted); margin: 8px 0 14px }
+		$elementCSS .sms-code-help { font-size: 90%; color: var(--sms-muted); margin: 8px 0 14px }
 		$elementCSS .sms-time-track { height: 3px; background: #edf1f2; border-radius: 8px; overflow: hidden; margin-bottom: 18px }
 		$elementCSS .sms-time-track > div { height: 100%; width: 100%; background: #6caaa0; border-radius: inherit; transition: width .35s linear }
 		$elementCSS .sms-send { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; min-height: 50px; padding: 12px 20px; border-radius: 11px; background: var(--sms-accent); color: #fff; font-size: 15px; font-weight: 650; box-shadow: 0 5px 12px #087c7715 }
 		$elementCSS .sms-send:hover:enabled { background: #086d68 }
 		$elementCSS .sms-send:disabled { background: #dce6e8; color: #607780; box-shadow: none }
 		$elementCSS .sms-send svg { width: 19px; height: 19px }
-		$elementCSS .sms-status { padding: 12px 14px; border-radius: 10px; margin-top: 18px; background: #f5f8fa; color: #526a75; font-size: 12px; overflow-wrap: anywhere }
+		$elementCSS .sms-status { padding: 12px 14px; border-radius: 10px; margin-top: 18px; background: #f5f8fa; color: #526a75; font-size: 120%; overflow-wrap: anywhere }
 		$elementCSS .sms-status[data-tone="warning"] { background: #fff6e9; color: #875916 }
 		$elementCSS .sms-status[data-tone="success"] { background: #edf7f1; color: #2c7250 }
-		$elementCSS .sms-retry { width: 100%; min-height: 44px; color: var(--sms-accent); background: #edf5f4; padding: 10px 12px; border-radius: 10px; margin-top: 12px; font-size: 13px; font-weight: 600 }
+		$elementCSS .sms-retry { width: 100%; min-height: 44px; color: var(--sms-accent); background: #edf5f4; padding: 10px 12px; border-radius: 10px; margin-top: 12px; font-size: 130%; font-weight: 600 }
 		$elementCSS .sms-retry:disabled { opacity: .5 }
 		$elementCSS .sms-footer { display: flex; justify-content: center; align-items: flex-start; gap: 7px; max-width: 470px; font-size: 11px; color: #617c84; text-align: center }
 		$elementCSS .sms-footer svg { width: 15px; height: 15px; margin-top: 1px }
