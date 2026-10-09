@@ -573,7 +573,9 @@ class TabloYapiItem extends CObject {
 	}
 	setSql(value) { this.sql = value; return this }
 	setSQL(value) { return this.setSql(value) }
-	setSql_hv(belirtec) { return this.setSql([e => e.hvDegeri(belirtec || e.belirtec)]) }
+	setSql_hv(belirtec) { return this.setSql([ e => e.hvDegeri(belirtec || e.belirtec) ]) }
+	setSql_hvSum(belirtec) { return this.setSql_hvSumDeger(belirtec) }
+	setSql_hvSumDeger(belirtec) { return this.setSql([ e => MQSQLOrtak.asSumDeger( e.hvDegeri(belirtec || e.belirtec) ) ]) }
 	setOrderBySaha(value) { this.orderBySaha = value; return this } setOrderBy(value) { return this.setOrderBySaha(value) }
 	noOrderBy() { return this.setOrderBySaha(null) } setHrkAttr(value) { this.hrkAttr = value; return this }
 	kodsuz() { this.kodsuzmu = true; return this } kodlu() { this.kodsuzmu = false; return this }

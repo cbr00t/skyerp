@@ -575,7 +575,7 @@ class DRapor_Hareketci_Demirbas_Main extends DRapor_Hareketci_Main {
 				item.kodsuz().noOrderBy().setSql_hv())
 			.addGrupBasit_fiyat('FIYAT', 'Fiyat', 'fiyat', null, null, ({ item }) => item.setSql_hv())
 		this.tabloYapiDuzenle_demirbasVeMasraf(...arguments)                                                // demirbas + masraf
-		result.addToplamBasit('MIKTAR', 'Miktar', 'miktar', null, null, ({ item }) => item.setSql_hv())
+		result.addToplamBasit('MIKTAR', 'Miktar', 'miktar', null, null, ({ item }) => item.setSql_hvSum())
 		super.tabloYapiDuzenle(...arguments)
 	}
 	loadServerData_queryDuzenle_hrkSent({ sent, attrSet, hvDegeri }) {
@@ -1186,15 +1186,15 @@ class DRapor_Hareketci_OperDurum_Main extends DRapor_Hareketci_OperBase_Main {
 		result
 			//.addGrupBasit('PAKET', 'Paket', 'paket', null, null, ({ item }) => item.setOrderBySaha('paketkod'))
 			//.addToplamBasit('KOLI', 'Koli', 'koli')
-			.addToplamBasit('EMIRMIKTAR', 'Emir Mik.', 'emirmiktar', null, null, ({ item }) => item.setSql_hv())
-			.addToplamBasit('URETBRUTMIKTAR', 'Üret. Brüt', 'uretbrutmiktar', null, null, ({ item }) => item.setSql_hv())
-			.addToplamBasit('URETFIREMIKTAR', 'Fire Mik.', 'uretfiremiktar', null, null, ({ item }) => item.setSql_hv())
-			.addToplamBasit('ISKARTAMIKTAR', 'Isk. Mik.', 'iskartamiktar', null, null, ({ item }) => item.setSql_hv())
-			.addToplamBasit('URETNETMIKTAR', 'Üret. Net', 'uretnetmiktar', null, null, ({ item }) => item.setSql_hv())
-			.addToplamBasit('KALANMIKTAR', 'Kalan Mik.', 'kalanmiktar', null, null, ({ item }) => item.setSql_hv())
-			.addToplamBasit('ISLENEBILIRMIKTAR', 'İşl. Mik.', 'islenebilirmiktar', null, null, ({ item }) => item.setSql_hv())
-			.addToplamBasit('HAZSURESN', 'Haz.Süre (sn)', 'hazsuresn', null, null, ({ item }) => item.setSql_hv())
-			.addToplamBasit('TOPSURESN', 'Top.Süre (sn)', 'topsuresn', null, null, ({ item }) => item.setSql_hv())
+			.addToplamBasit('EMIRMIKTAR', 'Emir Mik.', 'emirmiktar', null, null, ({ item }) => item.setSql_hvSum())
+			.addToplamBasit('URETBRUTMIKTAR', 'Üret. Brüt', 'uretbrutmiktar', null, null, ({ item }) => item.setSql_hvSum())
+			.addToplamBasit('URETFIREMIKTAR', 'Fire Mik.', 'uretfiremiktar', null, null, ({ item }) => item.setSql_hvSum())
+			.addToplamBasit('ISKARTAMIKTAR', 'Isk. Mik.', 'iskartamiktar', null, null, ({ item }) => item.setSql_hvSum())
+			.addToplamBasit('URETNETMIKTAR', 'Üret. Net', 'uretnetmiktar', null, null, ({ item }) => item.setSql_hvSum())
+			.addToplamBasit('KALANMIKTAR', 'Kalan Mik.', 'kalanmiktar', null, null, ({ item }) => item.setSql_hvSum())
+			.addToplamBasit('ISLENEBILIRMIKTAR', 'İşl. Mik.', 'islenebilirmiktar', null, null, ({ item }) => item.setSql_hvSum())
+			.addToplamBasit('HAZSURESN', 'Haz.Süre (sn)', 'hazsuresn', null, null, ({ item }) => item.setSql_hvSum())
+			.addToplamBasit('TOPSURESN', 'Top.Süre (sn)', 'topsuresn', null, null, ({ item }) => item.setSql_hvSum())
 			.addGrupBasit('TOPSURETEXT', 'Top.Süre Text', 'topsuretext', null, 13, ({ item, colDef }) => {
 				item.noOrderBy()
 					.setFormul(['TOPSURESN'], ({ rec: { topsuresn: v } }) => timeToString(asDate(v)))
@@ -1224,12 +1224,12 @@ class DRapor_Hareketci_OperGer_Main extends DRapor_Hareketci_OperBase_Main {
 				null, [_ => _.hvDegeri('perkod'), 'per.aciklama'])
 			.addGrupBasit('TEZGAH', 'Tezgah', 'tezgah', DMQPersonel, null, null,
 				null, [_ => _.hvDegeri('tezgahkod'), 'tez.aciklama'])
-			.addGrupBasit('EMIRMIKTAR', 'Emir Mik.', 'emirmiktar', null, null, ({ item }) => item.setSql_hv())
-			.addToplamBasit('BRUTMIKTAR', 'Brüt Mik.', 'brutmiktar', null, null, ({ item }) => item.setSql_hv())
-			.addToplamBasit('FIREMIKTAR', 'Fire Mik.', 'firemiktar', null, null, ({ item }) => item.setSql_hv())
-			.addToplamBasit('ISKARTAMIKTAR', 'Isk. Mik.', 'iskartamiktar', null, null, ({ item }) => item.setSql_hv())
-			.addToplamBasit('NETMIKTAR', 'Net Mik.', 'netmiktar', null, null, ({ item }) => item.setSql_hv())
-			.addToplamBasit('NETMIKTAR2', 'Net Mik.2', 'netmiktar2', null, null, ({ item }) => item.setSql_hv())
+			.addGrupBasit('EMIRMIKTAR', 'Emir Mik.', 'emirmiktar', null, null, ({ item }) => item.setSql_hvSum())
+			.addToplamBasit('BRUTMIKTAR', 'Brüt Mik.', 'brutmiktar', null, null, ({ item }) => item.setSql_hvSum())
+			.addToplamBasit('FIREMIKTAR', 'Fire Mik.', 'firemiktar', null, null, ({ item }) => item.setSql_hvSum())
+			.addToplamBasit('ISKARTAMIKTAR', 'Isk. Mik.', 'iskartamiktar', null, null, ({ item }) => item.setSql_hvSum())
+			.addToplamBasit('NETMIKTAR', 'Net Mik.', 'netmiktar', null, null, ({ item }) => item.setSql_hvSum())
+			.addToplamBasit('NETMIKTAR2', 'Net Mik.2', 'netmiktar2', null, null, ({ item }) => item.setSql_hvSum())
 		let {toplam} = result
 		let brmListe = keys(MQStokGenelParam.tip2BrmListe)
 		let {brmDict} = app.params.stokBirim ?? {}
@@ -1248,21 +1248,21 @@ class DRapor_Hareketci_OperGer_Main extends DRapor_Hareketci_OperBase_Main {
 			}
 		}
 		result
-			.addToplamBasit('BRUTISLEMSURESN', 'Brüt Süre (sn)', 'brutislemsuresn', null, null, ({ item }) => item.setSql_hv())
+			.addToplamBasit('BRUTISLEMSURESN', 'Brüt Süre (sn)', 'brutislemsuresn', null, null, ({ item }) => item.setSql_hvSum())
 			.addGrupBasit('BRUTISLEMSURETEXT', 'Brüt Süre Text', 'brutislemsuretext', null, 13, ({ item, colDef }) => {
 				item.noOrderBy()
 					.setFormul(['BRUTISLEMSURESN'], ({ rec: { brutislemsuresn: v } }) => timeToString(asDate(v)))
 				colDef.alignCenter()
 				extend(colDef.userData ??= {}, { ekCSS: ['bold', 'royalblue'] })
 			})
-			.addToplamBasit('TOPDURSURESN', 'Top Dur. (sn)', 'topduraksamasuresn', null, null, ({ item }) => item.setSql_hv())
+			.addToplamBasit('TOPDURSURESN', 'Top Dur. (sn)', 'topduraksamasuresn', null, null, ({ item }) => item.setSql_hvSum())
 			.addGrupBasit('TOPDURSURETEXT', 'Top Dur. Text', 'topduraksamasuretext', null, 13, ({ item, colDef }) => {
 				item.noOrderBy()
 					.setFormul(['TOPDURSURESN'], ({ rec: { topduraksamasuresn: v } }) => timeToString(asDate(v)))
 				colDef.alignCenter()
 				extend(colDef.userData ??= {}, { ekCSS: ['bold', 'royalblue'] })
 			})
-			.addToplamBasit('NETISLEMSURESN', 'Net Süre (sn)', 'netislemsuresn', null, null, ({ item }) => item.setSql_hv())
+			.addToplamBasit('NETISLEMSURESN', 'Net Süre (sn)', 'netislemsuresn', null, null, ({ item }) => item.setSql_hvSum())
 			.addGrupBasit('NETISLEMSURETEXT', 'Net Süre Text', 'netislemsuretext', null, 13, ({ item, colDef }) => {
 				item.noOrderBy()
 					.setFormul(['NETISLEMSURESN'], ({ rec: { netislemsuresn: v } }) => timeToString(asDate(v)))
@@ -1340,7 +1340,7 @@ class DRapor_Hareketci_Iskarta_Main extends DRapor_Hareketci_OperBase_Main {
 			.addGrupBasit('NEDEN', 'Neden', 'neden', DMQIskNeden, null, null)
 				// null, [_ => _.hvDegeri('nedkod'), 'ned.aciklama'])     -- özel olarak eklenecek
 			.addToplamBasit('ISKARTAMIKTAR', 'Isk. Mik.', 'iskartamiktar', null)
-				// null, ({ item }) => item.setSql_hv())                  -- özel olarak eklenecek
+				// null, ({ item }) => item.setSql_hvSum())               -- özel olarak eklenecek
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
 		super.loadServerData_queryDuzenle_hrkSent(e)
@@ -1371,26 +1371,24 @@ class DRapor_Hareketci_Duraksama_Main extends DRapor_Hareketci_OperBase_Main {
 				null, [_ => _.hvDegeri('nedenkod'), 'dned.aciklama'])
 			.addGrupBasit('DURTIP', 'Dur. Tip', 'durtip', DurTipi, null, null,
 				null, [_ => _.hvDegeri('durtipi'), _ => DurTipi.getClause(_.hvDegeri('durtipi'))])
-			.addToplamBasit('DURSURESN', 'Süre (sn)', 'dursuresn', null, null, ({ item }) => item.setSql_hv())
+			.addToplamBasit('DURSURESN', 'Süre (sn)', 'dursuresn', null, null, ({ item }) => item.setSql_hvSum())
 			.addGrupBasit('DURSURETEXT', 'Süre Text', 'dursuretext', null, 13, ({ item, colDef }) => {
 				item.noOrderBy()
 					.setFormul(['DURSURESN'], ({ rec: { dursuresn: v } }) => timeToString(asDate(v)))
 				colDef.alignCenter()
 				extend(colDef.userData ??= {}, { ekCSS: ['bold', 'royalblue'] })
 			})
-			.addGrupBasit('DURBASTS', null, 'durbasts', null, null, ({ item }) =>
-				item.setSql_hv().hidden())
+			.addGrupBasit('DURBASTS', null, 'durbasts', null, null, ({ item }) => item.setSql_hv().hidden())
 			.addGrupBasit('DURBASTSTEXT', 'Başlangıç', 'durbaststext', null, null, ({ item }) =>
 				item.noOrderBy()
 					.setFormul(['DURBASTS'], ({ rec: { durbasts: v } }) => dateTimeAsKisaString(asDate(v)))
 			)
-			.addGrupBasit('DURSONTS', null, 'dursonts', null, null, ({ item }) =>
-				item.setSql_hv().hidden())
+			.addGrupBasit('DURSONTS', null, 'dursonts', null, null, ({ item }) => item.setSql_hv().hidden())
 			.addGrupBasit('DURSONTSTEXT', 'Bitiş', 'dursontstext', null, null, ({ item }) =>
 				item.noOrderBy()
 					.setFormul(['DURSONTS'], ({ rec: { dursonts: v } }) => dateTimeAsKisaString(asDate(v)))
 			)
-			.addGrupBasit('DURACIKLAMA', 'Dur. Açıklama', 'duraciklama', null, null, ({ item }) => item.setSql_hv())
+			.addGrupBasit('DURACIKLAMA', 'Dur. Açıklama', 'duraciklama', null, null, ({ item }) => item.setSql_hvSum())
 	}
 	loadServerData_queryDuzenle_hrkSent(e) {
 		super.loadServerData_queryDuzenle_hrkSent(e)

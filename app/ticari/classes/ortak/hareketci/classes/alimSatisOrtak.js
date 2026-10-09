@@ -30,7 +30,7 @@ class AlimSatisOrtakHareketci extends Hareketci {
 			hv[key] = sqlEmpty
 		// for (let key of ['dvbedel']) { hv[key] = sqlZero }
 		extend(hv, {
-			must: ({ hv }) => hv.refkod,
+			//must: ({ hv }) => hv.refkod,
 			aciklama: ({ hv }) => {
                 let withCoalesce = clause =>
 					(clause?.sqlDoluDegermi ?? false) ? `COALESCE(${clause}, '')` : sqlEmpty
@@ -147,6 +147,7 @@ class AlimSatisOrtakHareketci extends Hareketci {
 						brutbedel: 'har.brutbedel', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
 						satiriskonto: 'har.satiriskonto', dipiskonto: 'har.dipiskonto',
 						harciro: 'har.harciro', topkdv: '(har.tumkdv - har.pertevkifat)',
+						kdvlinetciro: '(har.harciro + har.tumkdv - har.pertevkifat)',
 						fmalhammadde: hizmetmi ? sqlZero : 'har.fmalhammadde',
 						fmalmuh: hizmetmi ? sqlZero : 'har.fmalmuh',
 						shTipi: `'${hizmetmi ? 'H' : 'S'}'`,

@@ -123,7 +123,7 @@ class SMSOnayPart extends SimplePart {
 		let args = { ...this.getWSArgs(e), onayKodu }
 		return ajaxPost({
 			processData: false, contentType: wsContentTypeVeCharSet, timeout: 20_000,
-			url: app.getWSUrl({ api: 'smsOnayla', args })
+			url: app.getWSUrl({ api: 'smsOnayGonder', args })
 			// data: toJSONStr({ onayKodu })
 		})
 	}
@@ -134,7 +134,7 @@ class SMSOnayPart extends SimplePart {
 		return args
 	}
 	bilgiRecAl(res) {
-		if (!res || !isObject('object') || isArray(res))
+		if (!(res && isObject(res)) || isArray(res))
 			throw new Error('Belge bilgileri alınamadı. Lütfen yeniden deneyin')
 		if (res.isError || res.success === false)
 			throw res
@@ -285,8 +285,9 @@ class SMSOnayPart extends SimplePart {
 	gecerlilikTarihi(rec, _now = now()) {
 		if (!(rec.remainingSecs == null || rec.remainingSecs === '')) {
 			let secs = Number(rec.remainingSecs)
-			if (!Number.isFinite(secs)) throw new Error('Onay süresi bilgisi geçersiz')
-			return _now + max(0, secs) * 1000
+			if (!Number.isFinite(secs))
+				throw new Error('Onay süresi bilgisi geçersiz')
+			return _now.addSeconds(max(0, secs))
 		}
 		
 		if (rec.validUntil) {
@@ -294,7 +295,7 @@ class SMSOnayPart extends SimplePart {
 			let serverTS = rec.serverTS ? asDate(rec.serverTS).getTime() : _now
 			if (!Number.isFinite(ts) || !Number.isFinite(serverTS))
 				throw new Error('Onay süresi bilgisi geçersiz')
-			return _now + (ts - serverTS)
+			return asDate(_now.getTime() + (ts - serverTS))
 		}
 		
 		if (this._fallbackTS)
@@ -304,7 +305,7 @@ class SMSOnayPart extends SimplePart {
 		let ts
 		try { ts = Number(sessionStorage?.getItem(key)) } catch (ex) { }
 		if (!Number.isFinite(ts) || ts <= 0) {
-			ts = _now + 5 * 60 * 1000
+			ts = _now.addSeconds(5 * 60)
 			try { sessionStorage?.setItem(key, String(ts)) } catch (ex) { }
 		}
 		
@@ -454,7 +455,7 @@ class SMSOnayPart extends SimplePart {
 			expired: ['Süre doldu', 'Onay kodunun süresi doldu. Yeni SMS onayı için belgeyi düzenleyen firmayla görüşün.', 'warning'],
 			cancelled: ['İptal edildi', 'Bu belge için onay işlemi iptal edilmiş.', 'warning'],
 			locked: ['Onay durduruldu', 'Onay işlemi kullanıma kapalı. Belgeyi düzenleyen firmayla görüşün.', 'warning'],
-			uncertain: ['Sonuç bekleniyor', 'Gönderimin sonucu doğrulanamadı. Tekrar göndermeden önce Onay stateunu kontrol et’e basın.', 'warning'],
+			uncertain: ['Sonuç bekleniyor', 'Gönderimin sonucu doğrulanamadı. Yeniden denemek için Tekrar dene tuşuna basın.', 'warning'],
 			error: ['Bilgi alınamadı', 'Belge bilgileri doğrulanamadı. Lütfen yeniden deneyin.', 'warning']
 		}
 		let [label, text, tone] = defs[state] ?? defs.error
@@ -466,7 +467,7 @@ class SMSOnayPart extends SimplePart {
 		root.find('[data-field="result"]').prop('hidden', !approved)
 		root.find('[data-field="form"]').prop('hidden', approved || ['cancelled', 'locked'].includes(state))
 		root.find('[data-field="intro"]').prop('hidden', approved)
-		this.ui.retry.text(state === 'uncertain' ? 'Onay stateunu kontrol et' : 'Bilgileri yeniden yükle')
+		this.ui.retry.text(state === 'uncertain' ? 'Tekrar dene' : 'Bilgileri yeniden yükle')
 		if (!['ready', 'submitting'].includes(state)) {
 			clearInterval(this._timer_sayac)
 			this._timer_sayac = null
@@ -540,7 +541,7 @@ class SMSOnayPart extends SimplePart {
 							<label class="sms-code-label">
 								<span class="sms-sr-only">SMS onay kodu</span>
 								<input name="onayKodu" type="text" inputmode="numeric" autocomplete="one-time-code"
-									   autocapitalize="off" spellcheck="false" maxlength="32" placeholder="000000"
+									   autocapitalize="off" spellcheck="false" maxlength="6" placeholder="000000"
 									   aria-label="SMS onay kodu" disabled>
 							</label>
 							<button type="button" class="sms-paste" data-action="paste" title="Onay kodunu panodan yapıştır" aria-label="Onay kodunu panodan yapıştır" disabled>

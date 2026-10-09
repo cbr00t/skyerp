@@ -223,8 +223,8 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 							}
 						)
 				})
-				.addToplamBasit('TOPKDV', 'KDV', 'topkdv', null, null, ({ item }) => item.setSql_hv())
-			
+				.addToplamBasit('TOPKDV', 'KDV', 'topkdv', null, null, ({ item }) => item.setSql_hvSum())
+				.addToplamBasit('KDVLINETCIRO', `KDV'li Net Ciro`, 'kdvlinetciro', null, null, ({ item }) => item.setSql_hvSum())
 			this.tabloYapiDuzenle_baBedel(e)
 			this.tabloYapiDuzenle_baBakiye(e)
 			this.tabloYapiDuzenle_dovizli_baBedel(e)
