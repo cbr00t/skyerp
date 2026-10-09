@@ -6,7 +6,7 @@ class SMSOnayApp extends App {
 	get autoExecMenuId() { return this.mainClass.kodListeTipi }
 	static get yerelParamSinif() { return MQYerelParam }
 	get configParamSinif() { return MQYerelParamConfig_App }
-	get defaultWSPath() { return `${super.superDefaultWSPath}/genel` }
+	get defaultWSPath() { return `${super.superDefaultWSPath}/sms` }
 
 	constructor(e = {}) { super(e) }
 	async init(e) {

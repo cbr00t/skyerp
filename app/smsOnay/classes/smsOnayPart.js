@@ -2,16 +2,16 @@
  * Geçici API sözleşmesi — servis kesinleşince yalnızca wsSMSOnay* / bilgiRecAl
  * metotlarını ve gerekirse belgeDurumu / onayBasarilimi eşlemesini uyarlayın.
  *
- * POST onayBilgi?id={SMS belgesinin DB kimliği}&belgeTip={qs.belgeTip}
+ * POST onayBilgi?id={SMS belgesinin DB kimliği}&tip={qs.tip}
  *   Doğrudan rec veya { rec }:
- *   { id?, belgeTipAdi?, adSoyad? (veya unvan), tarih?, seri?, no?,
+ *   { id?, tipAdi?, adSoyad? (veya unvan), tarih?, seri?, no?,
  *     sonucBedel? (veya bedel), paraBirimi?: 'TRY', telefonMasked?,
  *     kodUzunlugu?: 6, state?: 'bekliyor'|'onaylandi'|'suresiDoldu'|'iptal',
- *     kalanSaniye?: 300, sonGecerlilikZamani?: ISO-8601, sunucuZamani?: ISO-8601 }
- *   Süre için kalanSaniye veya saat dilimi içeren sonGecerlilikZamani tercih edilir.
+ *     remainingSecs?: 300, validUntil?: ISO-8601, serverTS?: ISO-8601 }
+ *   Süre için remainingSecs veya saat dilimi içeren validUntil tercih edilir.
  *   İkisi de yoksa ilk açılıştan itibaren 5 dakika; aynı sekmede yenileme sıfırlamaz.
  *
- * POST onayla?id=...&belgeTip=...   JSON: { onayKodu: '012345', reqId: '...' }
+ * POST onayla?id=...&tip=...   JSON: { onayKodu: '012345', reqId: '...' }
  *   - Başarı: true veya { success: true } / { onaylandi: true } / { state: 'onaylandi' }.
  *   - Hata: { isError: true, errorText: '...' }.
  *   Boş/belirsiz yanıt ve ağ hatası başarı sayılmaz, state yeniden sorgulanır.
@@ -35,7 +35,7 @@ class SMSOnayPart extends SimplePart {
 	constructor(e = {}) {
 		super(e)
 		this.id = qs.id ?? e.id ?? null    // String olarak kalır: GUID / bigint hassasiyeti korunur.
-		this.belgeTip = qs.belgeTip ?? e.belgeTip ?? null
+		this.tip = qs.tip ?? e.tip ?? null
 		this.state = 'loading'
 		this.kodUzunlugu = 6
 		this.rec = null
@@ -114,40 +114,43 @@ class SMSOnayPart extends SimplePart {
 
 	wsSMSOnayBilgi(e = {}) {
 		return ajaxPost({
-			processData: false, contentType: wsContentTypeVeCharSet, timeout: 20000,
-			url: app.getWSUrl({ api: 'onayBilgi', args: this.getWSArgs(e) })
+			processData: false, contentType: wsContentTypeVeCharSet, timeout: 20_000,
+			url: app.getWSUrl({ api: 'smsOnayBilgi', args: this.getWSArgs(e) })
 		})
 	}
 	wsSMSOnayGonder(e = {}) {
 		let { onayKodu } = e
 		let args = { ...this.getWSArgs(e), onayKodu }
 		return ajaxPost({
-			processData: false, contentType: wsContentTypeVeCharSet, timeout: 20000,
-			url: app.getWSUrl({ api: 'onayla', args })
+			processData: false, contentType: wsContentTypeVeCharSet, timeout: 20_000,
+			url: app.getWSUrl({ api: 'smsOnayla', args })
 			// data: toJSONStr({ onayKodu })
 		})
 	}
 	getWSArgs(e = {}) {
-		let args = { id: e.id ?? this.id, belgeTip: e.belgeTip ?? this.belgeTip }
-		if (args.belgeTip == null || args.belgeTip === '')
-			delete args.belgeTip
+		let args = { id: e.id ?? this.id, tip: e.tip ?? this.tip }
+		if (!args.tip)
+			delete args.tip
 		return args
 	}
 	bilgiRecAl(res) {
-		if (!res || typeof res !== 'object' || Array.isArray(res))
+		if (!res || !isObject('object') || isArray(res))
 			throw new Error('Belge bilgileri alınamadı. Lütfen yeniden deneyin')
 		if (res.isError || res.success === false)
 			throw res
+		
 		let rec = res.rec ?? res
-		if (!rec || typeof rec !== 'object' || Array.isArray(rec) || !Object.keys(rec).length)
+		if (!(rec && isObject(rec)) || isArray(rec) || empty(rec))
 			throw new Error('Belge bilgileri bulunamadı')
 		if (rec.isError || rec.success === false)
 			throw rec
-		let belgeAlanlari = ['id', 'belgeTipAdi', 'adSoyad', 'unvan', 'tarih', 'seri', 'no', 'sonucBedel', 'bedel', 'state', 'onaylandi', 'kalanSaniye', 'sonGecerlilikZamani']
+		
+		let belgeAlanlari = ['id', 'tipAdi', 'adSoyad', 'unvan', 'tarih', 'seri', 'no', 'sonucBedel', 'bedel', 'state', 'onaylandi', 'remainingSecs', 'validUntil']
 		if (!belgeAlanlari.some(key => rec[key] != null))
 			throw new Error('Belge bilgileri bulunamadı')
 		if (rec.id != null && String(rec.id) !== String(this.id))
 			throw new Error('Bağlantı ile belge bilgileri eşleşmiyor')
+		
 		return rec
 	}
 	async bilgiYukle() {
@@ -191,18 +194,25 @@ class SMSOnayPart extends SimplePart {
 		}
 	}
 	belgeDurumu(rec = {}) {
-		let state = String(rec.state ?? '').toLocaleLowerCase('tr-TR')
-		if (rec.onaylandi === true || ['onaylandi', 'onaylandı', 'approved'].includes(state)) return 'approved'
-		if (['suresidoldu', 'süresidoldu', 'expired'].includes(state)) return 'expired'
-		if (['iptal', 'cancelled', 'canceled'].includes(state)) return 'cancelled'
-		if (['kilitli', 'locked'].includes(state)) return 'locked'
-		if (!state || ['bekliyor', 'pending'].includes(state)) return 'ready'
-		return 'error' // Tanınmayan sunucu stateunda onay açılmaz.
+		let state = String(rec.state ?? '').toLocaleLowerCase(culture)
+		if (rec.onaylandi === true || ['onaylandi', 'onaylandı', 'approved'].includes(state))
+			return 'approved'
+		if (['suresidoldu', 'süresidoldu', 'expired'].includes(state))
+			return 'expired'
+		if (['iptal', 'cancelled', 'canceled'].includes(state))
+			return 'cancelled'
+		if (['kilitli', 'locked'].includes(state))
+			return 'locked'
+		if (!state || ['pending', 'ready', 'bekliyor'].includes(state))
+			return 'ready'
+		return 'error'    // Tanınmayan sunucu state'inde onay açılmaz
 	}
 	onayBasarilimi(res) {
 		if (res === true) return true
-		if (!res || typeof res !== 'object' || res.isError || res.success === false || res.onaylandi === false) return false
-		if (res.state && this.belgeDurumu({ state: res.state }) !== 'approved') return false
+		if (!(res && isObject(res)) || res.isError || res.success === false || res.onaylandi === false)
+			return false
+		if (res.state && this.belgeDurumu({ state: res.state }) !== 'approved')
+			return false
 		return res.success === true || res.onaylandi === true || this.belgeDurumu(res) === 'approved'
 	}
 	async gonder() {
@@ -260,7 +270,10 @@ class SMSOnayPart extends SimplePart {
 				let res = ex?.responseJSON
 				if (res?.isError || res?.success === false) {
 					let state = this.belgeDurumu(res)
-					this.setState(state === 'approved' ? 'ready' : state, this.getErrorText(res, 'Kod doğrulanamadı.'))
+					this.setState(
+						state === 'approved' ? 'ready' : state,
+						this.getErrorText(res, 'Kod doğrulanamadı')
+					)
 					this.sayacGuncelle()
 				}
 				else
@@ -270,28 +283,31 @@ class SMSOnayPart extends SimplePart {
 	}
 
 	gecerlilikTarihi(rec, _now = now()) {
-		if (rec.kalanSaniye != null && rec.kalanSaniye !== '') {
-			let secs = Number(rec.kalanSaniye)
-			if (!Number.isFinite(secs)) throw new Error('Onay süresi bilgisi geçersiz.')
+		if (!(rec.remainingSecs == null || rec.remainingSecs === '')) {
+			let secs = Number(rec.remainingSecs)
+			if (!Number.isFinite(secs)) throw new Error('Onay süresi bilgisi geçersiz')
 			return _now + max(0, secs) * 1000
 		}
-		if (rec.sonGecerlilikZamani) {
-			let ts = asDate(rec.sonGecerlilikZamani).getTime()
-			let serverTS = rec.sunucuZamani ? asDate(rec.sunucuZamani).getTime() : _now
+		
+		if (rec.validUntil) {
+			let ts = asDate(rec.validUntil).getTime()
+			let serverTS = rec.serverTS ? asDate(rec.serverTS).getTime() : _now
 			if (!Number.isFinite(ts) || !Number.isFinite(serverTS))
-				throw new Error('Onay süresi bilgisi geçersiz.')
+				throw new Error('Onay süresi bilgisi geçersiz')
 			return _now + (ts - serverTS)
 		}
+		
 		if (this._fallbackTS)
 			return this._fallbackTS
 		
-		let key = `smsOnay.deadline:${encodeURIComponent(this.belgeTip ?? '')}:${encodeURIComponent(this.id)}`
+		let key = `smsOnay.deadline:${encodeURIComponent(this.tip ?? '')}:${encodeURIComponent(this.id)}`
 		let ts
 		try { ts = Number(sessionStorage?.getItem(key)) } catch (ex) { }
 		if (!Number.isFinite(ts) || ts <= 0) {
 			ts = _now + 5 * 60 * 1000
 			try { sessionStorage?.setItem(key, String(ts)) } catch (ex) { }
 		}
+		
 		return this._fallbackTS = ts
 	}
 	sayacBaslat() {
@@ -306,7 +322,7 @@ class SMSOnayPart extends SimplePart {
 		
 		let secs = max(0, ceil((this.sonGecerlilikTS - now()) / 1000))
 		let { ui } = this
-		ui.countdown.text(`${String(Math.floor(secs / 60)).padStart(2, '0')}:${String(secs % 60).padStart(2, '0')}`)
+		ui.countdown.text(`${String(floor(secs / 60)).padStart(2, '0')}:${String(secs % 60).padStart(2, '0')}`)
 		ui.root.find('[data-field="timer"]').toggleClass('is-urgent', secs <= 60)
 		ui.root.find('[data-field="progress"]').css('width', `${min(100, secs / this._sayacToplam * 100)}%`)
 		if (!secs && this.state === 'ready')
@@ -388,9 +404,9 @@ class SMSOnayPart extends SimplePart {
 	belgeGoster(rec) {
 		let { root, code } = this.ui
 		root.toggleClass('sms-long-code', this.kodUzunlugu > 6)
-		let tip = String(rec.belgeTipAdi || 'Belge')
+		let tip = String(rec.tipAdi || 'Belge')
 		root.find('[data-field="document"]').prop('hidden', false)
-		root.find('[data-field="belgeTipAdi"]').text(tip)
+		root.find('[data-field="tipAdi"]').text(tip)
 		let alici = rec.adSoyad || rec.unvan || ''
 		root.find('[data-field="alici"]').text(alici ? `Sn. ${alici}` : 'Sayın ilgili')
 		root.find('[data-field="description"]').text(`${tip} için SMS ile gelen kodu kullanarak onay verebilirsiniz.`)
@@ -417,7 +433,7 @@ class SMSOnayPart extends SimplePart {
 	}
 	bedelGoster(v, paraBirimi = 'TL') {
 		let n = isNumber(v) ? v : Number(String(v).replace(/\s/g, '').replace(/^(\d{1,3}(?:\.\d{3})+),/, '$1,').replace(/\.(?=.*[,])/g, '').replace(',', '.'))
-		let text = Number.isFinite(n) ? new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n) : String(v)
+		let text = Number.isFinite(n) ? new Intl.NumberFormat(culture, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n) : String(v)
 		return `${text} ${!paraBirimi || ['TRY', 'TL'].includes(paraBirimi) ? 'TL' : paraBirimi}`
 	}
 	getErrorText(ex, fallback) {
@@ -455,7 +471,8 @@ class SMSOnayPart extends SimplePart {
 			clearInterval(this._timer_sayac)
 			this._timer_sayac = null
 		}
-		if (state === 'expired') this.ui.countdown.text('00:00')
+		if (state === 'expired')
+			this.ui.countdown.text('00:00')
 		this.kontrolGuncelle()
 	}
 	kontrolGuncelle() {
@@ -477,33 +494,80 @@ class SMSOnayPart extends SimplePart {
 			clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
 			check: '<path d="m5 12 4 4L19 6"/>'
 		}
-		return `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.shield}</svg>`
+		return `<svg viewBox="0 0 24 24" width="24" height="24" fill="none"
+					 stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"
+					 aria-hidden="true">${paths[name] || paths.shield}</svg>`
 	}
 	getLayout() {
 		return `<div class="sms-onay-shell">
 			<div class="sms-page">
-				<header class="sms-brand"><span class="sms-brand-icon">${this.icon('shield')}</span><span>SMS ile belge onayı</span></header>
+				<header class="sms-brand">
+					<span class="sms-brand-icon">${this.icon('shield')}</span>
+					<span>SMS ile belge onayı</span>
+				</header>
 				<main class="sms-card" aria-label="Belge onay ekranı">
-					<div class="sms-card-top"><span class="sms-eyebrow">BELGE DOĞRULAMA</span><span class="sms-badge" data-field="badge">Yükleniyor</span></div>
-					<div data-field="intro"><h1>Belgenizi onaylayın</h1><p class="sms-description" data-field="description">Belge bilgileri hazırlanıyor.</p></div>
+					<div class="sms-card-top">
+						<span class="sms-eyebrow">BELGE DOĞRULAMA</span>
+						<span class="sms-badge" data-field="badge">Yükleniyor</span>
+					</div>
+					<div data-field="intro">
+						<h1>Belgenizi onaylayın</h1>
+						<p class="sms-description" data-field="description">Belge bilgileri hazırlanıyor.</p>
+					</div>
 					<section class="sms-document" data-field="document" aria-label="Belge bilgileri" hidden>
-						<div class="sms-doc-type" data-field="belgeTipAdi">Belge</div><h2 data-field="alici">Sayın ilgili</h2>
+						<div class="sms-doc-type" data-field="tipAdi">Belge</div>
+						<h2 data-field="alici">Sayın ilgili</h2>
 						<dl class="sms-meta" data-field="meta"></dl>
-						<div class="sms-amount" data-field="amount" hidden><span>Sonuç bedel</span><strong data-field="bedel"></strong></div>
+						<div class="sms-amount" data-field="amount" hidden>
+							<span>Sonuç bedel</span>
+							<strong data-field="bedel"></strong>
+						</div>
 					</section>
-					<section class="sms-result" data-field="result" hidden><span class="sms-success-icon">${this.icon('check')}</span><h1>Onayınız alındı</h1><p>Belge onayı başarıyla tamamlandı.</p></section>
+					<section class="sms-result" data-field="result" hidden>
+						<span class="sms-success-icon">${this.icon('check')}</span>
+						<h1>Onayınız alındı</h1>
+						<p>Belge onayı başarıyla tamamlandı.</p>
+					</section>
 					<form class="sms-form" data-field="form" novalidate>
-						<div class="sms-form-head"><span class="sms-code-title">SMS Onay Kodu</span><div class="sms-timer" data-field="timer" hidden>${this.icon('clock')}<span data-field="countdown" aria-label="Kalan süre" role="timer">05:00</span></div></div>
+						<div class="sms-form-head">
+							<span class="sms-code-title">SMS Onay Kodu</span>
+							<div class="sms-timer" data-field="timer" hidden>${this.icon('clock')}
+								<span data-field="countdown" aria-label="Kalan süre" role="timer">05:00</span>
+							</div>
+						</div>
 						<p class="sms-phone" data-field="phone">SMS mesajındaki kodu aşağıya yazın.</p>
-						<div class="sms-code-row"><label class="sms-code-label"><span class="sms-sr-only">SMS onay kodu</span><input name="onayKodu" type="text" inputmode="numeric" autocomplete="one-time-code" autocapitalize="off" spellcheck="false" maxlength="32" placeholder="000000" aria-label="SMS onay kodu" disabled></label><button type="button" class="sms-paste" data-action="paste" title="Onay kodunu panodan yapıştır" aria-label="Onay kodunu panodan yapıştır" disabled>${this.icon('paste')}<span>Yapıştır</span></button></div>
-						<p class="sms-code-help" data-field="code-help">6 haneli kod · Baştaki sıfırlar dahil</p>
+						<div class="sms-code-row">
+							<label class="sms-code-label">
+								<span class="sms-sr-only">SMS onay kodu</span>
+								<input name="onayKodu" type="text" inputmode="numeric" autocomplete="one-time-code"
+									   autocapitalize="off" spellcheck="false" maxlength="32" placeholder="000000"
+									   aria-label="SMS onay kodu" disabled>
+							</label>
+							<button type="button" class="sms-paste" data-action="paste" title="Onay kodunu panodan yapıştır" aria-label="Onay kodunu panodan yapıştır" disabled>
+								${this.icon('paste')}
+								<span>Yapıştır</span>
+							</button>
+						</div>
+						<p class="sms-code-help" data-field="code-help">
+							6 haneli kod · Baştaki sıfırlar dahil
+						</p>
 						<div class="sms-time-track" aria-hidden="true"><div data-field="progress"></div></div>
-						<button type="submit" class="sms-send" data-action="send" disabled><span>Gönder</span>${this.icon('arrow')}</button>
+						<button type="submit" class="sms-send" data-action="send" disabled>
+							<span>Gönder</span>
+							${this.icon('arrow')}
+						</button>
 					</form>
-					<p class="sms-status" data-field="status" data-tone="info" role="status" aria-live="polite" aria-atomic="true">Belge bilgileri alınıyor…</p>
-					<button type="button" class="sms-retry" data-action="retry" hidden>Bilgileri yeniden yükle</button>
+					<p class="sms-status" data-field="status" data-tone="info" role="status" aria-live="polite" aria-atomic="true">
+						Belge bilgileri alınıyor…
+					</p>
+					<button type="button" class="sms-retry" data-action="retry" hidden>
+						Bilgileri Yeniden Yükle
+					</button>
 				</main>
-				<footer class="sms-footer">${this.icon('shield')}<span>Onayınız yalnızca ekranda gösterilen belge için kaydedilir.</span></footer>
+				<footer class="sms-footer">
+					${this.icon('shield')}
+					<span>Onayınız yalnızca ekranda gösterilen belge için kaydedilir.</span>
+				</footer>
 			</div>
 		</div>`
 	}
