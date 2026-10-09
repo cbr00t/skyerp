@@ -192,5 +192,5 @@ class EIslIhracat extends EIslFatura {
 	static get tip() { return 'IH' }
 	static get sinifAdi() { return 'e-İhracat' }
 	static get kisaAdi() { return 'e-İhr' }
-	get xsltBelirtec() { return 'EIhracat' }
+	get xsltBelirtec() { return EIslFatura.xsltBelirtec }
 }

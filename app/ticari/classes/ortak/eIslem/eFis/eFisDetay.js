@@ -143,7 +143,13 @@ class EFisDetay extends EFisBase {
 		})
 		;MQEIslSHRefDetay.tumSHSahalar.forEach(k =>
 			hv[k] = '')
-
+		
+		;{
+			let { _colDefs: cd } = this.class
+			if (cd)
+				deleteKeys(hv, keys(hv).filter(k => !cd[k]))
+		}
+		
 		if (shRefDet) {
 			let { shKod_rowAttr, shKod, shTip } = shRefDet
 			shTip = ( isObject(shTip) ? shTip.char : shTip ) ?? ''

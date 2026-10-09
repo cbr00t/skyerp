@@ -255,7 +255,12 @@ class EYonetici_Gelen extends CObject {
         let alim = true
         let { efAyrimTipi, eIrsmi } = this
         let pifTipi = eIrsmi ? 'I' : 'F'
-    
+
+        await promiseAll([
+            (async c => { EFis._colDefs ??= await app.sqlGetColumns('efgecicialfatfis') })(),
+            (async c => { EFisDetay._colDefs ??= await app.sqlGetColumns('efgecicialfatdetay') })()
+        ])
+        
         let toplu = new MQToplu()
         let fissayac = '@fisSayac'.sqlConst()
         let _preQueriesAdded = false

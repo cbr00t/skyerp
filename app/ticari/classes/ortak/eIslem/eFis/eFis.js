@@ -344,6 +344,12 @@ class EFis extends EFisBase {
 			efdvkdv: getBedel(true, icmal.toplamKDV),
 			efdvsonuc: getBedel(true, icmal.sonucBedel)
 		}
+
+		;{
+			let { _colDefs: cd } = this.class
+			if (cd)
+				deleteKeys(hv, keys(hv).filter(k => !cd[k]))
+		}
 		
 		return hv
 	}

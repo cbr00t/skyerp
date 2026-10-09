@@ -294,7 +294,7 @@ class EYonetici extends CObject {
 						let xml = $.parseXML(xmlData)
 						let docRefs = Array.from(xml.documentElement.querySelectorAll(`AdditionalDocumentReference`))
 						let xsltData
-						{
+						;{
 							let xbinDoc, subName = 'EmbeddedDocumentBinaryObject'
 							xbinDoc = docRefs.find(elm => elm.querySelector('DocumentType')?.innerHTML?.toUpperCase() == 'XSLT' && elm.querySelector(subName))
 							if (!xbinDoc)
@@ -339,7 +339,7 @@ class EYonetici extends CObject {
 						if (callback && keys(uuid2Result).length % 201 == 200)
 							getFuncValue.call(this, callback, e)
 						
-						if (!toplu && _container) {
+						if (!(toplu || e.internal) && _container) {
 							let html = `<html><body>${_container.innerHTML}</body></html>`
 							let url = URL.createObjectURL(new Blob([html], { type: 'text/html' }))
 							openNewWindow(url)
@@ -1200,26 +1200,26 @@ class EYonetici extends CObject {
 		if (empty(recs))
 			return recs ?? null
 		
-		let eIslAnaTip2PS2SayacListe = {}
+		let eIslTip2PS2SayacListe = {}
 		for (let rec of recs) {
 			if (!rec)
 				continue
 			
 			let psTip = rec.pstip ?? 'P'
 			let efAyrimTipi = rec.efayrimtipi ?? rec.efbelge
-			let { anaTip } = EIslemOrtak.getClass({ tip: efAyrimTipi, gelen }) ?? {}
-			if (!anaTip)
+			let { tip } = EIslemOrtak.getClass({ tip: efAyrimTipi, gelen }) ?? {}
+			if (!tip)
 				continue
 			
-			let ps2SayacListe = eIslAnaTip2PS2SayacListe[anaTip] ??= {}
+			let ps2SayacListe = eIslTip2PS2SayacListe[tip] ??= {}
 			;(ps2SayacListe[psTip] ??= [])
 				.push(rec.kaysayac ?? rec.fissayac)
 		}
 		
 		let eConf = e.eConf ??= MQEConf.instance
 		let result = []
-		for (let [anaTip, ps2SayacListe] of entries(eIslAnaTip2PS2SayacListe)) {
-			let eIslSinif = EIslemOrtak.getAnaClass({ anaTip, gelen })
+		for (let [tip, ps2SayacListe] of entries(eIslTip2PS2SayacListe)) {
+			let eIslSinif = EIslemOrtak.getClass({ tip, gelen })
 			result.push(new EYonetici({ eConf, eIslSinif, ps2SayacListe }))
 		}
 		return result
