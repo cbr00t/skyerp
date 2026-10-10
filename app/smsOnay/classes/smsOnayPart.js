@@ -500,6 +500,7 @@ class SMSOnayPart extends SimplePart {
 					 aria-hidden="true">${paths[name] || paths.shield}</svg>`
 	}
 	getLayout() {
+		let { kodUzunlugu } = this
 		return `<div class="sms-onay-shell">
 			<div class="sms-page">
 				<header class="sms-brand">
@@ -541,7 +542,7 @@ class SMSOnayPart extends SimplePart {
 							<label class="sms-code-label">
 								<span class="sms-sr-only">SMS onay kodu</span>
 								<input name="onayKodu" type="text" inputmode="numeric" autocomplete="one-time-code"
-									   autocapitalize="off" spellcheck="false" maxlength="6" placeholder="000000"
+									   autocapitalize="off" spellcheck="false" maxlength="${kodUzunlugu}" placeholder="000000"
 									   aria-label="SMS onay kodu" disabled>
 							</label>
 							<button type="button" class="sms-paste" data-action="paste" title="Onay kodunu panodan yapıştır" aria-label="Onay kodunu panodan yapıştır" disabled>
@@ -550,7 +551,7 @@ class SMSOnayPart extends SimplePart {
 							</button>
 						</div>
 						<p class="sms-code-help" data-field="code-help">
-							6 haneli kod · Baştaki sıfırlar dahil
+							${kodUzunlugu} haneli kod · Baştaki sıfırlar dahil
 						</p>
 						<div class="sms-time-track" aria-hidden="true"><div data-field="progress"></div></div>
 						<button type="submit" class="sms-send" data-action="send" disabled>
