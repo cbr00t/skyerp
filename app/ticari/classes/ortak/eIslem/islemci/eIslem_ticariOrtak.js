@@ -14,22 +14,6 @@ class EIslTicariOrtak extends EIslGiden {
 						.fis2TicCariBagla()
 						.fromIliski('degiskenadres dadr', 'fis.degiskenvknox = dadr.vknox')
 					wh.notDegerAta('IN', 'fis.ayrimtipi')
-					sahalar.add(
-						`(case
-							when fis.efayrimtipi = 'IR'
-								then
-									(case when fis.degiskenvknox <> ''
-										then dadr.efatgibalias
-										else dbo.emptycoalesce(car.eirsgibalias, car.efatgibalias)
-									end)
-								else
-									(case when fis.degiskenvknox <> ''
-										then dadr.efatgibalias
-										else car.efatgibalias
-									end)
-								end
-						 ) gibalias`
-					)
 				}
 			},
 			{
@@ -57,6 +41,7 @@ class EIslTicariOrtak extends EIslGiden {
 			sent
 				.fromAdd(`${table} fis`)
 				.fis2TicCariBagla()
+				.fromIliski('degiskenadres dadr', 'fis.degiskenvknox = dadr.vknox')
 			wh
 				.fisSilindiEkle()
 				.add(new MQOrClause([
@@ -70,6 +55,22 @@ class EIslTicariOrtak extends EIslGiden {
 				.add(`'${psTip}' pstip`)
 				.addWithAlias('fis',
 					'kaysayac fissayac', 'efatuuid uuid', 'efayrimtipi', 'tarih', 'fisnox')
+				.add(
+					`(case
+						when fis.efayrimtipi = 'IR'
+							then
+								(case when fis.degiskenvknox <> ''
+									then dadr.efatgibalias
+									else dbo.emptycoalesce(car.eirsgibalias, car.efatgibalias)
+								end)
+							else
+								(case when fis.degiskenvknox <> ''
+									then dadr.efatgibalias
+									else car.efatgibalias
+								end)
+							end
+					 ) gibalias`
+				)
 			if (sayaclar)
 				wh.inDizi(sayaclar, 'fis.kaysayac')
 			

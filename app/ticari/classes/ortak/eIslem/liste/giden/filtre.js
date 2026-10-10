@@ -18,7 +18,7 @@ class GidenEIslemFiltre extends EIslemFiltre {
 				return null
 			
 				/* e: { fisTablo psTipStr ifSql efAyrimTipiClause } */
-			let {fisTablo, alias, psTip, ifSql, efAyrimTipiClause} = _e
+			let { fisTablo, alias, psTip, ifSql, efAyrimTipiClause } = _e
 			let sent = new MQSent({
 				from: `${fisTablo} fis`,
 				where: { birlestir: wh },
@@ -29,10 +29,26 @@ class GidenEIslemFiltre extends EIslemFiltre {
 					(fisTablo == 'piffis' ? 'fis.zorunluguidstr' : `'' zorunluguidstr`),
 					`fis.efimzats`, `fis.efgonderimts`, `fis.efatonaydurumu`,
 					`fis.net sonucbedel`, `car.vkno vkn`, 'car.efatsenaryotipi',
-					'fis.efatuuid'
+					'fis.efatuuid',
+					`(case
+						when fis.efayrimtipi = 'IR'
+							then
+								(case when fis.degiskenvknox <> ''
+									then dadr.efatgibalias
+									else dbo.emptycoalesce(car.eirsgibalias, car.efatgibalias)
+								end)
+							else
+								(case when fis.degiskenvknox <> ''
+									then dadr.efatgibalias
+									else car.efatgibalias
+								end)
+							end
+					 ) gibalias`
 				]
 			})
-			sent.fis2TicCariBagla()
+			sent
+				.fis2TicCariBagla()
+				.fromIliski('degiskenadres dadr', 'fis.degiskenvknox = dadr.vknox')
 
 			let eConf = this.eConf ?? MQEConf.instance
 			if (eConf)
@@ -67,7 +83,9 @@ class GidenEIslemFiltre extends EIslemFiltre {
 			
 			let alias = 'fis', sent = new MQSent({
 				from: `stfis fis`,
-				fromIliskiler: [{ from: 'carmst car', iliski: 'fis.irsmust = car.must' }],
+				fromIliskiler: [
+					{ from: 'carmst car', iliski: 'fis.irsmust = car.must' }
+				],
 				where: [ { birlestir: wh } ],
 				sahalar: [
 					`'ST' pstip`, `fis.ozeltip piftipi`, `'IR' efayrimtipi`, `fis.kaysayac`, `'T' almsat`, `'' iade`, `fis.fisekayrim ayrimtipi`, `fis.tarih`, `fis.fisnox`,
@@ -77,6 +95,12 @@ class GidenEIslemFiltre extends EIslemFiltre {
 						else ${MQSQLOrtak.sqlServerDegeri(app.params.isyeri.vergiVeyaVKN || '')}
 					end) vkn`,
 					'car.efatsenaryotipi',
+					`(case
+						when fis.efayrimtipi = 'IR'
+							then dbo.emptycoalesce(car.eirsgibalias, car.efatgibalias)
+							else car.efatgibalias
+							end
+					 ) gibalias`
 				]
 			})
 			uni.add(sent)
@@ -95,13 +119,20 @@ class GidenEIslemFiltre extends EIslemFiltre {
 				sahalar:  [
 					`'SM' pstip`, `'' piftipi`, `'MS' efayrimtipi`, `fis.kaysayac`, `'T' almsat`, `'' iade`, `'' ayrimtipi`, `ust.tarih`, `fis.makbuznox fisnox`,
 					`fis.mustahsilkod mustkod`, `car.birunvan`, `fis.efatuuid`, `'' zorunluguidstr`, `fis.efimzats`, `fis.efgonderimts`,
-					`fis.efatonaydurumu`, `0 sonucbedel`, `car.vkno vkn`, 'car.efatsenaryotipi'
+					`fis.efatonaydurumu`, `0 sonucbedel`, `car.vkno vkn`, 'car.efatsenaryotipi',
+					`(case
+						when fis.efayrimtipi = 'IR'
+							then dbo.emptycoalesce(car.eirsgibalias, car.efatgibalias)
+							else car.efatgibalias
+							end
+					 ) gibalias`
 				]
 			})
 			uni.add(sent)
 		}
 		sentEkle({ fisTablo: 'piffis', psTip: 'SR', ifSql: `fis.piftipi`, efAyrimTipiClause: `'MS'` })
-		stm.orderBy.add('tarih DESC', 'efayrimtipi', 'pstip', 'fisnox DESC')
+		stm.orderBy
+			.add('tarih DESC', 'efayrimtipi', 'pstip', 'fisnox DESC')
 	}
 
 	static getBelgeTipText(e) {
