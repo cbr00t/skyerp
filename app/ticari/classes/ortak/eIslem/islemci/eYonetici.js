@@ -7,13 +7,14 @@ class EYonetici extends CObject {
 		return result
 	}
 	static set eIslTip2Token(value) { this._eIslTip2Token = value }
+	
 	constructor({ eConf = MQEConf.instance, eIslSinif, ps2SayacListe, whereDuzenleyici } = {}) {
 		super(e)
 		extend(this, { eConf, eIslSinif, ps2SayacListe, whereDuzenleyici })
 	}
-	/* api: mukellefDurumu */
 	static async mukellefSorgula(e = {}) {
-		let eYoneticiler = await this.getEYoneticiListe(e); delete e.eYoneticiler
+		let eYoneticiler = await this.getEYoneticiListe(e)
+		delete e.eYoneticiler
 		let uuid2Result = {}
 		for (let eYonetici of eYoneticiler ?? []) {
 			await eYonetici.mukellefSorgula(e)
@@ -66,9 +67,7 @@ class EYonetici extends CObject {
 	}
 	async eIslemGonder(e) {
 			/* nesV4 test = 068E86F50AFBEFEB3795FD9BDC17EDE0D65D62A4EA2911F80F5C59854C518420 */
-		e.internal = true
-		await this.eIslemXMLOlustur(e)
-		delete e.internal
+		await this.eIslemXMLOlustur({ internal: true })
 		let { eIslSinif: eIslAnaSinif } = this
 		let { gelenmi } = eIslAnaSinif
 		extend(e, {
@@ -692,11 +691,6 @@ class EYonetici extends CObject {
 	async eIslemXMLOlustur(e = {}) {
 		let {sender, callback, eConf = this.eConf} = e, {eIslSinif: eIslAnaSinif} = this
 		extend(e, { ps2SayacListe: this.ps2SayacListe ?? this.class.getPS2SayacListe(e) })
-		let stm = eIslAnaSinif.getUUIDStm(e)
-		for (let key of ['psTip2SayacListe', 'whereDuzenleyici'])
-			delete e[key]
-		if (!stm)
-			throw { isError: true, rc: 'bosUUIDStm', errorText: 'Filtre hatalı' }
 		let efAyrimTipi2Arastirilacaklar = {}, olusacakPS2Sayaclar = {}
 		let { recs } = e
 		if (!recs) {

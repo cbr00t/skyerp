@@ -1,11 +1,19 @@
 class GidenEIslemListePart extends EIslemListeBasePart {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get partName() { return 'gidenEIslemListe' } static get filtreSinif() { return GidenEIslemFiltre }
-	constructor(e) { e ??= {}; super(e); this.title = e.title == null ? ( 'Giden e-İşlem Listesi' ) : e.title || '' }
+	constructor(e) {
+		e ??= {}; super(e)
+		this.title = e.title ?? 'Giden e-İşlem Listesi' ?? ''
+	}
 	runDevam(e) {
-		e ??= {}; super.runDevam(e);
-		let {dbName} = config.session, {kural} = app.params.eIslem, {sadeceAdi2mi} = kural?.shAdi ?? {};
-		if (!sadeceAdi2mi && dbName?.toUpperCase().includes('BAKERMAN')) { setTimeout(() => hConfirm(`<b>BAKERMAN</b> veritabanı için e-İşlem Parametresi <b class="red">Stok Adı Gösterim</b> kuralı <u class="bold royalblue">2. Adı</u> olarak işaretlenmelidir`, 'UYARI'), 1000) }
+		e ??= {}
+		super.runDevam(e)
+		let { dbName } = config.session, { kural } = app.params.eIslem, { sadeceAdi2mi } = kural?.shAdi ?? {}
+		if (!sadeceAdi2mi && dbName?.toUpperCase().includes('BAKERMAN')) {
+			setTimeout(() =>
+				hConfirm(`<b>BAKERMAN</b> veritabanı için e-İşlem Parametresi <b class="red">Stok Adı Gösterim</b> kuralı <u class="bold royalblue">2. Adı</u> olarak işaretlenmelidir`, 'UYARI'),
+				1000)
+		}
 	}
 	islemTuslariDuzenle(e) {
 		super.islemTuslariDuzenle(e)
@@ -45,9 +53,9 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		return $.merge(super.defaultTabloKolonlari, [
 			new GridKolon({ belirtec: 'eIslTipText', text: 'e-İşlem', genislikCh: 11, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
 			new GridKolon({ belirtec: 'belgeTipText', text: 'Belge<br/>Tipi', filterType: 'checkedlist', genislikCh: 15, cellClassName: getCSSDuzenleyici() }),
-			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 11, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }).tipDate(),
-			new GridKolon({ belirtec: 'fisnox', text: 'Belge<br/>No', genislikCh: 20, cellClassName: getCSSDuzenleyici() }),
-			new GridKolon({ belirtec: 'akibetText', text: 'Akıbet', genislikCh: 12, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
+			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 13, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }).tipDate(),
+			new GridKolon({ belirtec: 'fisnox', text: 'Belge<br/>No', genislikCh: 21, cellClassName: getCSSDuzenleyici() }),
+			new GridKolon({ belirtec: 'akibetText', text: 'Akıbet', genislikCh: 13, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
 			new GridKolon({ belirtec: 'mustText', text: 'Müşteri', minWidth: 500, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
 			new GridKolon({ belirtec: 'efimzats', text: 'XML Oluş.<br/>Zamanı', genislikCh: 13, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
 			new GridKolon({ belirtec: 'efgonderimts', text: 'Gönderim<br/>Zamanı', genislikCh: 13, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),

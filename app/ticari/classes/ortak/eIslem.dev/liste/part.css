@@ -1,0 +1,85 @@
+.eIslemListe.part {
+}
+.eIslemListe.part .islemTuslari {
+}
+.eIslemListe.part .islemTuslari #eIslemGonder {
+	/* position: absolute; */
+	/* right: 8px; */
+	background-size: auto !important;
+	background-image: url(../../../../../../images/iletisim.png);
+}
+.eIslemListe.part .islemTuslari #eIslemGonder.jqx-fill-state-normal {
+	background-color: #979f97;
+}
+.eIslemListe.part .islemTuslari #eIslemIzle {
+	/* position: absolute; */
+	/* right: 8px; */
+	background-size: auto !important;
+	background-image: url(../../../../../../images/izle.png);
+}
+.eIslemListe.part .islemTuslari #eIslemIzle.jqx-fill-state-normal {
+	background-color: #979f97;
+}
+.eIslemListe.part .islemTuslari #eIslemSorgu {
+	/* position: absolute; */
+	/* right: 8px; */
+	background-size: auto !important;
+	background-image: url(../../../../../../images/soru.png);
+}
+.eIslemListe.part .islemTuslari #eIslemSorgu.jqx-fill-state-normal {
+}
+.eIslemListe.part .islemTuslari #eIslemIptal {
+	/* position: absolute; */
+	/* right: 8px; */
+	background-size: auto !important;
+	background-image: url(../../../../../../images/sil.png);
+}
+.eIslemListe.part .islemTuslari #eIslemIptal.jqx-fill-state-normal {
+	background-color: #9d9393;
+}
+.eIslemListe.part .jqx-grid .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header > div {
+	margin-top: 8px;
+}
+.eIslemListe.part .jqx-grid .jqx-clear > .jqx-widget-header > div > .jqx-grid-column-header > div > div {
+	line-height: 20px !important;
+}
+.eIslemListe.part .jqx-grid div[role=row] > div:not(.jqx-grid-cell-pinned) {
+	font-size: 85%;
+	line-height: 20px;
+	text-wrap: wrap !important;
+	word-break: break-word !important;
+}
+.eIslemListe.part .jqx-grid div[role=row] > div:not(.jqx-grid-cell-pinned) > * {
+	position: static !important;
+	width: var(--full) !important;
+	height: var(--full) !important;
+	margin-top: 2px !important;
+	padding: 0 8px 0 3px;
+}
+.eIslemListe.part .jqx-grid div[role=row] > div.eIslTipText.eIslTip-E:not(.jqx-grid-cell-selected) {
+	background-color: #dcbcc6;
+}
+.eIslemListe.part .jqx-grid div[role=row] > div.eIslTipText.eIslTip-A:not(.jqx-grid-cell-selected) {
+	background-color: lightgreen;
+}
+.eIslemListe.part .jqx-grid div[role=row] > div.akibetText.akibet-O:not(.jqx-grid-cell-selected) {
+	background-color: lightgreen;
+}
+.eIslemListe.part .jqx-grid div[role=row] > div.akibetText.akibet-R:not(.jqx-grid-cell-selected) {
+	background-color: red;
+}
+.eIslemListe.part .jqx-grid div[role=row] > div.akibetText.akibet-C:not(.jqx-grid-cell-selected) {
+	background-color: orangered;
+}
+.eIslemListe.part .jqx-grid div[role=row] > div.akibetText.akibet-\@:not(.jqx-grid-cell-selected) {
+	background-color: lightcyan;
+}
+.eIslemListe.part .jqx-grid div[role=row]:nth-child(odd) > div.efatuuid.hasUUID:not(.jqx-grid-cell-selected) {
+	background-color: #e2ecf4;
+}
+.eIslemListe.part .jqx-grid div[role=row]:nth-child(even) > div.efatuuid.hasUUID:not(.jqx-grid-cell-selected) {
+	background-color: #d6e4f3;
+}
+.eIslemListe.part .jqx-grid div[role=row] > div.efgonderimts.gonderildi:not(.jqx-grid-cell-selected) {
+	background-color: lightgreen;
+}
