@@ -377,23 +377,23 @@ class ProgressManager extends CObject {
 		return this
 	}
 	setProgressMin(value) {
-		this.progressMin = value;
+		this.progressMin = value
 		return this
 	}
 	setProgressMax(value) {
-		this.progressMax = value;
+		this.progressMax = value
 		return this
 	}
 	setProgressValue(value) {
-		this.progressValue = value;
+		this.progressValue = value
 		return this
 	}
 	setEkBilgiText(value) {
-		this.ekBilgiText = value;
+		this.ekBilgiText = value
 		return this
 	}
 	setEkBilgiVisible(value) {
-		this.isEkBilgiVisible = value;
+		this.isEkBilgiVisible = value
 		return this
 	}
 	setEkBilgHandler(value) {

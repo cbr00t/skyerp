@@ -250,165 +250,124 @@ class EYonetici extends CObject {
 				sender?.tazele?.()
 		}
 	}
-	static async eIslemIzle(e) {
-		let eYoneticiler = await this.getEYoneticiler({ ...e }) ?? []
-		let uuid2Result = {}
-		for (let eYon of eYoneticiler ?? []) {
-			let { uuid2Result: res } = await eYon.eIslemIzle(e) ?? {}
-			extend(uuid2Result, res)
-		}
-		return { eYoneticiler, uuid2Result }
-	}
+	static async eIslemIzle(e) { return this._eIslemYap('eIslemIzle', 'e-İşlem İZLE', e) }
 	async eIslemIzle(e) {
-		let gelenmi = asBool(e.gelen ?? e.gelenmi)
-		if (!gelenmi)
-			await this.eIslemXMLOlustur({ ...e, internal: true })
+		return await this._eIslemYap({
+			...e,
+			islemAdi: 'e-İşlem İZLE',
+			dirCheck: true, autoXML: true,
+			proc: async ({ parentPart, gelenmi, eConf, filtre, table2Recs, eIslSinif, efAyrimTipi, rootDir, callback, toplu, internal }) => {
+				let uuid2Result = {}
+				if (!empty(table2Recs)) {
+					if (!globalThis.XSLTProcessor) {
+						showProgress('XSLT İşleyicisi modülü yükleniyor...')
+						try { await loadLib_xslt() }
+						catch (ex) { cerr(ex) }
+						finally { hideProgress() }
+					}
+					let divContainer = toplu ? $(`<div/>`)[0] : null
+					let eDocCount = 0
+					for (let [tbl, recs] of entries(table2Recs)) {
+						for (let r of recs) {
+							let { uuid } = r
+							let fn = `${uuid}.xml`
+							let file = `${rootDir}\\${gelenmi ? 'ALINAN' : 'IMZALI'}\\${fn}`
+							let res = uuid2Result[uuid] ??= {}
+							extend(res, {
+								islemZamani: now(), isError: false, eIslSinif, efAyrimTipi,
+								rec: r, anaBolum: rootDir, xmlDosya: file
+							})
+							try {
+								let xmlData = uuid2Result[uuid]?.xmlData
+								if (!xmlData)
+									xmlData = uuid2Result[uuid].xmlData = await app.wsDownloadAsStream({ remoteFile: file, localFile: fn })
+								if (!xmlData)
+									throw { isError: true, rc: 'noXML', errorText: 'XML (e-İşlem Belge İçeriği) bilgisi belirlenemedi' }
+								
+								let xml = $.parseXML(xmlData)
+								let docRefs = Array.from(xml.documentElement.querySelectorAll(`AdditionalDocumentReference`))
+								
+								let xsltData
+								;{
+									let xbinDoc, subName = 'EmbeddedDocumentBinaryObject'
+									xbinDoc = docRefs.find(elm => elm.querySelector('DocumentType')?.innerHTML?.toUpperCase() == 'XSLT' && elm.querySelector(subName))
+									if (!xbinDoc)
+										xbinDoc = docRefs.find(elm => elm.querySelector(subName))
+									if (xbinDoc)
+										xsltData = xbinDoc.querySelector(subName)?.textContent
+								}
+								
+								if (!xsltData)
+									throw { isError: true, rc: 'noXSLT', errorText: 'XSLT (e-İşlem Görüntü) bilgisi belirlenemedi' }
+								if (Base64.isValid(xsltData))
+									xsltData = Base64.decode(xsltData)
+								
+								let xslt = $.parseXML(xsltData)
+								let xsltProcessor, eDoc
+								
+								try {
+									;(xsltProcessor = new XSLTProcessor()).importStylesheet(xslt)
+									eDoc = xsltProcessor.transformToFragment(xml, document)
+								}
+								catch (ex) {
+									xsltProcessor = 'api'
+									let xmlURL = remoteFile
+									let html = await app.wsXSLTTransformAsStream({ data: { xmlData, xsltData } })
+									if (html)
+										eDoc = $(html)
+								}
+								if (!eDoc) {
+									console.error({ isError: true, rc: 'xsltTransform', errorText: 'XSLT Görüntüsü oluşturulamadı', source: xsltProcessor })
+									continue
+								}
 		
-		let { filtre, parentPart, table2Sayaclar, eConf, eIslSinif } = this
-		let rootDir = eConf.getAnaBolumFor({ eIslSinif })
-		if (!rootDir)
-			throw { isError: true, errorText: 'e-İşlem için Ana Bölüm belirlenemedi' }
+								let _container = toplu ? divContainer : $(`<div/>`)[0]
+								if (toplu && eDocCount) {
+									let elmPageBreak = $(`<div style="float: none;"><div style="page-break-after: always;"></div></div>`)[0]
+									_container.lastElementChild.after(elmPageBreak)
+									_container.lastElementChild.after(eDoc.querySelector('div'))
+								}
+								else
+									_container.append(eDoc)
+								
+								eDocCount++
+								extend(res, { xmlData, xml, xsltData, xslt, xsltProcessor, eDoc, divContainer: _container })
+								globalThis.progressManager?.progressStep()
+								if (callback && keys(uuid2Result).length % 201 == 200)
+									getFuncValue.call(this, callback, e)
+								
+								if (!(toplu || e.internal) && _container) {
+									let html = `<html><body>${_container.innerHTML}</body></html>`
+									let url = URL.createObjectURL(new Blob([html], { type: 'text/html' }))
+									openNewWindow(url)
+								}
+							}
+							catch (ex) {
+								if (!ex.responseJSON && ex.responseText) {
+									try { ex = JSON.parse(ex.responseText) }
+									catch (_ex) { }
+								}
 		
-		let recs
-		;{
-			let stm = filtre.getQueryStm({ table2Sayaclar })
-			if (stm)
-				recs = await stm.execSelect()
-		}
-		if (empty(recs))
-			return null
-		
-		let { sender, callback, toplu, internal } = e
-		let table2Recs = {}
-		for (let r of recs) {
-			let { _table: tbl, uuid } = r
-			if (uuid)
-				(table2Recs[tbl] ??= []).push(r)
-		}
-		
-		let uuid2Result = {}
-		if (!empty(table2Recs)) {
-			if (!globalThis.XSLTProcessor) {
-				showProgress('XSLT İşleyicisi modülü yükleniyor...')
-				try { await loadLib_xslt() }
-				catch (ex) { cerr(ex) }
-				finally { hideProgress() }
-			}
-			let divContainer = toplu ? $(`<div/>`)[0] : null
-			let eDocCount = 0
-			for (let [tbl, recs] of entries(table2Recs)) {
-				for (let r of recs) {
-					let { uuid, eIslTip: efAyrimTipi } = r
-					efAyrimTipi ||= (gelenmi ? 'E' : 'A')
+								let errorText = getErrorText(ex)
+								extend(res, { isError: true, rc: ex?.rc ?? ex.code ?? '??', errorText, error: ex })
+								console.error(ex, errorText)
+							}
+						}
+					}
+					callback?.call?.(this, e)
 					
-					let fn = `${uuid}.xml`
-					let file = `${rootDir}\\${gelenmi ? 'ALINAN' : 'IMZALI'}\\${fn}`
-					let res = uuid2Result[uuid] ??= {}
-					extend(res, {
-						islemZamani: now(), isError: false, eIslSinif, efAyrimTipi,
-						rec: r, anaBolum: rootDir, xmlDosya: file
-					})
-					try {
-						let xmlData = uuid2Result[uuid]?.xmlData
-						if (!xmlData)
-							xmlData = uuid2Result[uuid].xmlData = await app.wsDownloadAsStream({ remoteFile: file, localFile: fn })
-						if (!xmlData)
-							throw { isError: true, rc: 'noXML', errorText: 'XML (e-İşlem Belge İçeriği) bilgisi belirlenemedi' }
-						
-						let xml = $.parseXML(xmlData)
-						let docRefs = Array.from(xml.documentElement.querySelectorAll(`AdditionalDocumentReference`))
-						
-						let xsltData
-						;{
-							let xbinDoc, subName = 'EmbeddedDocumentBinaryObject'
-							xbinDoc = docRefs.find(elm => elm.querySelector('DocumentType')?.innerHTML?.toUpperCase() == 'XSLT' && elm.querySelector(subName))
-							if (!xbinDoc)
-								xbinDoc = docRefs.find(elm => elm.querySelector(subName))
-							if (xbinDoc)
-								xsltData = xbinDoc.querySelector(subName)?.textContent
-						}
-						
-						if (!xsltData)
-							throw { isError: true, rc: 'noXSLT', errorText: 'XSLT (e-İşlem Görüntü) bilgisi belirlenemedi' }
-						if (Base64.isValid(xsltData))
-							xsltData = Base64.decode(xsltData)
-						
-						let xslt = $.parseXML(xsltData)
-						let xsltProcessor, eDoc
-						
-						try {
-							;(xsltProcessor = new XSLTProcessor()).importStylesheet(xslt)
-							eDoc = xsltProcessor.transformToFragment(xml, document)
-						}
-						catch (ex) {
-							xsltProcessor = 'api'
-							let xmlURL = remoteFile
-							let html = await app.wsXSLTTransformAsStream({ data: { xmlData, xsltData } })
-							if (html)
-								eDoc = $(html)
-						}
-						if (!eDoc) {
-							console.error({ isError: true, rc: 'xsltTransform', errorText: 'XSLT Görüntüsü oluşturulamadı', source: xsltProcessor })
-							continue
-						}
-
-						let _container = toplu ? divContainer : $(`<div/>`)[0]
-						if (toplu && eDocCount) {
-							let elmPageBreak = $(`<div style="float: none;"><div style="page-break-after: always;"></div></div>`)[0]
-							_container.lastElementChild.after(elmPageBreak)
-							_container.lastElementChild.after(eDoc.querySelector('div'))
-						}
-						else
-							_container.append(eDoc)
-						
-						eDocCount++
-						extend(res, { xmlData, xml, xsltData, xslt, xsltProcessor, eDoc, divContainer: _container })
-						globalThis.progressManager?.progressStep()
-						if (callback && keys(uuid2Result).length % 201 == 200)
-							getFuncValue.call(this, callback, e)
-						
-						if (!(toplu || e.internal) && _container) {
-							let html = `<html><body>${_container.innerHTML}</body></html>`
-							let url = URL.createObjectURL(new Blob([html], { type: 'text/html' }))
-							openNewWindow(url)
-						}
-					}
-					catch (ex) {
-						if (!ex.responseJSON && ex.responseText) {
-							try { ex = JSON.parse(ex.responseText) }
-							catch (_ex) { }
-						}
-
-						let errorText = getErrorText(ex)
-						extend(res, { isError: true, rc: ex?.rc ?? ex.code ?? '??', errorText, error: ex })
-						console.error(ex, errorText)
+					if (!internal && toplu && eDocCount) {
+						let newDocHTML = `<html><body>${divContainer.innerHTML}</body></html>`
+						let url = URL.createObjectURL(new Blob([newDocHTML], { type: 'text/html' }))
+						openNewWindow(url)
 					}
 				}
+		
+				return { uuid2Result }
 			}
-			if (callback)
-				getFuncValue.call(this, callback, e)
-			
-			if (!internal) {
-				if (toplu && eDocCount) {
-					let newDocHTML = `<html><body>${divContainer.innerHTML}</body></html>`
-					let url = URL.createObjectURL(new Blob([newDocHTML], { type: 'text/html' }))
-					openNewWindow(url)
-				}
-				if (parentPart?.tazele && !parentPart.isDestroyed)
-					parentPart.tazele()
-			}
-		}
-
-		return { uuid2Result }
+		})
 	}
-	static async eIslemSorgula(e) {
-		let eYoneticiler = await this.getEYoneticiler(e)
-		delete e.eYoneticiler
-		let promises = []
-		for (let eYonetici of eYoneticiler ?? [])
-			promises.push(eYonetici.eIslemSorgula(e))
-		await promiseAll(promises)
-	}
+	static async eIslemSorgula(e) { return this._eIslemYapAsync('eIslemSorgula', 'e-İşlem Sorgula', e) }
 	async eIslemSorgula(e) {
 		let { eIslSinif: eIslAnaSinif } = this
 		extend(e, {
@@ -1393,6 +1352,121 @@ class EYonetici extends CObject {
 		} , 600_000)
 		
 		return this
+	}
+
+	static async _eIslemYap(procOrSelector, islemAdi, ...args) {
+		let e = args?.[0] ?? {}
+		if (islemAdi !== undefined)
+			e.islemAdi = islemAdi
+		
+		let eYoneticiler = await this.getEYoneticiler({ ...e }) ?? []
+		let uuid2Result = {}
+		for (let eYon of eYoneticiler ?? []) {
+			let _e = { ...e, eYonetici: eYon }
+			let res = await (
+				isFunction(procOrSelector) ? procOrSelector.call(this, _e, ...args.slice(1)) :
+				isString(procOrSelector) ? eYon[procOrSelector](...args) :
+				procOrSelector
+			)
+			if (res == null)
+				return res
+
+			let { uuid2Result: _uuid2Result } = res
+			if (_uuid2Result)
+				extend(uuid2Result, _uuid2Result)
+		}
+		
+		return { eYoneticiler, uuid2Result }
+	}
+	static async _eIslemYapAsync(procOrSelector, islemAdi, ...args) {
+		let e = args?.[0] ?? {}
+		if (islemAdi !== undefined)
+			e.islemAdi = islemAdi
+		
+		let eYoneticiler = await this.getEYoneticiler(e) ?? []
+		let promises = []
+		for (let eYon of eYoneticiler) {
+			promises.push((async () => {
+				return await (
+					isFunction(procOrSelector) ? procOrSelector.call(this, ...args) :
+					isString(procOrSelector) ? this[procOrSelector](...args) :
+					procOrSelector
+				)
+			})())
+		}
+		
+		return await promiseAll(promises)
+	}
+	async _eIslemYap(e = {}) {
+		let { islemAdi, eConf = this.eConf, filtre = this.filtre, gelenmi = e.gelen, autoXML, dirCheck, stm, recs } = e
+		let { parentPart = this.parentPart, callback = this.callback, toplu, internal, groupBy, proc } = e
+		if (autoXML && !gelenmi)
+			await this.eIslemXMLOlustur({ ...e, internal: true })
+		
+		let { table2Sayaclar, eIslTip, eIslSinif } = this
+		let rootDir = eConf.getAnaBolumFor({ eIslSinif })
+		if (dirCheck && !rootDir)
+			throw { isError: true, errorText: 'e-İşlem için Ana Bölüm belirlenemedi' }
+		
+		;{
+			if (isFunction(stm))
+				stm = stm.call(this, { ...e, eYonetici: this, table2Sayaclar })
+			else if (stm == null)
+				stm = filtre.getQueryStm({ table2Sayaclar })
+		}
+		recs ??= stm ? await stm.execSelect() : null
+		if (empty(recs))
+			return null
+
+		if (groupBy === undefined)
+			groupBy = 'uuid'
+
+		let efAyrimTipi = eIslTip || (gelenmi ? 'E' : 'A')
+		let table2Recs = {}
+		for (let r of recs) {
+			if (groupBy) {
+				let uygunmu = true
+				if (isString(groupBy)) {
+					let k = groupBy, not = false
+					if (k[0] == '!') {
+						k = k.slice(1)
+						not = true
+					}
+					let v = r[groupBy]
+					let ok = Boolean(v) != not
+					if (!ok)
+						continue
+				}
+				else if (isFunction(groupBy) && !(await groupBy.call(this, { ...e, rec: r })))
+					continue
+				else if (isObject(groupBy)) {
+					let { key: k, not = false } = groupBy
+					let v = r[k]
+					let ok = Boolean(v) != not
+					if (!ok)
+						continue
+				}
+			}
+			
+			let { _table: tbl } = r
+			;(table2Recs[tbl] ??= []).push(r)
+		}
+
+		let vars = {
+			islemAdi, parentPart, gelenmi, filtre,
+			eConf, filtre, eIslTip, eIslSinif, efAyrimTipi,
+			stm, recs, table2Sayaclar, table2Recs,
+			rootDir, callback, toplu, internal,
+			dirCheck, autoXML, groupBy
+		}
+		let res = vars
+		if (proc)
+			res = await proc?.call(this, vars)
+		
+		if (!internal && parentPart?.tazele && !parentPart?.isDestroyed)
+			parentPart.tazele()
+
+		return res
 	}
 	
 	static async testShow(efayrimtipi = 'E', pstip = 'P', kaysayac = null, seri = null, fisno = null) {
