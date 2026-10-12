@@ -4,7 +4,7 @@ class GelenEIslemFiltre extends EIslemFiltre {
 	
 	getQueryStm(e = {}) {
 		let stm = new MQStm()
-		let _e = { ...e, stm, sent: stm.sent })
+		let _e = { ...e, stm, sent: stm.sent }
 		this.queryStmDuzenle(_e)
 		return _e.stm
 	}
@@ -12,7 +12,7 @@ class GelenEIslemFiltre extends EIslemFiltre {
 		super.queryStmDuzenle(e)
 		const wh = this.getTBWhereClause(e)
 		if (!wh) { return null }
-		const {eConf} = this, {stm, sent} = e;
+		const {eConf} = this, {stm, sent} = e
 		sent.fromAdd('efgecicialfatfis fis');
 		sent.fromIliski('carmst car', 'fis.mustkod = car.must');
 		sent.cari2IlBagla();

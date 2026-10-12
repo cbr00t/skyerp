@@ -4,6 +4,8 @@ class EIslemListeBasePart extends MasterListePart {
 	static get partName() { return this.rootPartName }
 	static get filtreSinif() { return null }
 	static get kolonFiltreKullanilirmi() { return false }
+	get gidenmi() { return this.class.gidenmi }
+	get gelenmi() { return this.class.gelenmi }
 	// static get isWindowPart() { return true }
 	// get wndDefaultIsModal() { return false }
 	

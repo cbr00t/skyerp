@@ -11,13 +11,12 @@ class EYonetici extends CObject {
 	
 	constructor(e = {}) {
 		super(e)
-		let { parentPart, filtre = e.secimler, gelenmi = e.gelen, eConf, callback, eIslSinif, table2Sayaclar, whereDuzenleyici } = e
-		filtre ??= parentPart?.secimler
-		gelenmi ??= filtre?.gelenmi
-		eConf ??= MQEConf.getInstance()
+		let { parentPart, eConf, gelenmi = e.gelen, filtre = e.secimler, callback, eIslSinif, table2Sayaclar, whereDuzenleyici } = e
+		gelenmi ??= filtre?.gelenmi ?? parentPart?.gelenmi
+		eConf ??= filtre?.eConf ?? parentPart?.eConf ?? MQEConf.getInstance()
+		filtre ??= EIslemFiltre[gelenmi ? 'gelenEmpty' : 'gidenEmpty']({ eConf })
 		extend(this, { parentPart, filtre, gelenmi, eConf, callback, eIslSinif, table2Sayaclar, whereDuzenleyici })
 	}
-
 
 	static async mukellefSorgula(e = {}) {
 		let eYoneticiler = await this.getEYoneticiler(e)
@@ -92,8 +91,8 @@ class EYonetici extends CObject {
 		let eYoneticiler = await this.getEYoneticiler({ ...e }) ?? []
 		let uuid2Result = {}
 		for (let eYon of eYoneticiler) {
-			await eYon.eIslemGonder(e)
-			extend(uuid2Result, uuid2Result)
+			let { uuid2Result: res } = await eYon.eIslemGonder(e) ?? {}
+			extend(uuid2Result, res)
 		}
 		e.uuid2Result = uuid2Result
 	}
@@ -130,7 +129,7 @@ class EYonetici extends CObject {
 			throw { isError: true, rc: 'bosUUIDStm', errorText: 'Filtre hatalı' }
 		
 		let param_eIslem = app.params.eIslem
-		let { sender, callback } = e
+		let { sender, callback, internal } = e
 		let { eConf } = this, { eIslEkArgs } = eConf
 		let oe = eConf.getValue('ozelEntegrator')
 		if (isObject(oe))
@@ -246,60 +245,49 @@ class EYonetici extends CObject {
 				}
 			}
 		}
-		if (!e.internal) {
+		if (!internal) {
 			if (sender && !sender.isDestroyed)
 				sender?.tazele?.()
 		}
 	}
 	static async eIslemIzle(e) {
-		let eYoneticiler = await this.getEYoneticiler(e)
-		delete e.eYoneticiler
+		let eYoneticiler = await this.getEYoneticiler({ ...e }) ?? []
 		let uuid2Result = {}
-		for (let eYonetici of eYoneticiler ?? []) {
-			await eYonetici.eIslemIzle(e)
-			let { uuid2Result: _uuid2Result } = e
-			if (!empty(_uuid2Result))
-				extend(uuid2Result, _uuid2Result)
+		for (let eYon of eYoneticiler ?? []) {
+			let { uuid2Result: res } = await eYon.eIslemIzle(e) ?? {}
+			extend(uuid2Result, res)
 		}
-		e.uuid2Result = uuid2Result
+		return { eYoneticiler, uuid2Result }
 	}
 	async eIslemIzle(e) {
 		let gelenmi = asBool(e.gelen ?? e.gelenmi)
-		if (!gelenmi) {
-			e.internal = true
-			await this.eIslemXMLOlustur(e)
-			delete e.internal
+		if (!gelenmi)
+			await this.eIslemXMLOlustur({ ...e, internal: true })
+		
+		let { filtre, parentPart, table2Sayaclar, eConf, eIslSinif } = this
+		let rootDir = eConf.getAnaBolumFor({ eIslSinif })
+		if (!rootDir)
+			throw { isError: true, errorText: 'e-İşlem için Ana Bölüm belirlenemedi' }
+		
+		let recs
+		;{
+			let stm = filtre.getQueryStm({ table2Sayaclar })
+			if (stm)
+				recs = await stm.execSelect()
+		}
+		if (empty(recs))
+			return null
+		
+		let { sender, callback, toplu, internal } = e
+		let table2Recs = {}
+		for (let r of recs) {
+			let { _table: tbl, uuid } = r
+			if (uuid)
+				(table2Recs[tbl] ??= []).push(r)
 		}
 		
-		let { eConf, eIslSinif: eIslAnaSinif } = this
-		if (!gelenmi) {
-			extend(e, {
-				ps2SayacListe: this.ps2SayacListe ?? (() => this.class.getPS2SayacListe(e))
-			})
-		}
-		
-		let { recs, toplu } = e
-		if (!recs) {
-			let stm = eIslAnaSinif.getUUIDStm(e)
-			deleteKeys(e, 'psTip2SayacListe', 'whereDuzenleyici')
-			if (!stm)
-				throw { isError: true, rc: 'bosUUIDStm', errorText: 'Filtre hatalı' }
-			recs = await stm.execSelect()
-		}
-		
-		let { sender, callback } = e
-		let ps2Recs = {}
-		for (let rec of recs) {
-			let { pstip = 'P', uuid = rec.efatuuid ?? rec.efuuid } = rec
-			if (!uuid)
-				continue
-
-			rec.uuid ??= uuid
-			;(ps2Recs[pstip] ??= []).push(rec)
-		}
-		
-		let uuid2Result = e.uuid2Result ??= {}
-		if (!empty(ps2Recs)) {
+		let uuid2Result = {}
+		if (!empty(table2Recs)) {
 			if (!globalThis.XSLTProcessor) {
 				showProgress('XSLT İşleyicisi modülü yükleniyor...')
 				try { await loadLib_xslt() }
@@ -308,26 +296,28 @@ class EYonetici extends CObject {
 			}
 			let divContainer = toplu ? $(`<div/>`)[0] : null
 			let eDocCount = 0
-			for (let psTip in ps2Recs) {
-				let _recs = ps2Recs[psTip]
-				for (let rec of _recs) {
-					let { uuid } = rec
-					let efAyrimTipi = ( rec.efayrimtipi ?? rec.eIslTip ) || (gelenmi ? 'E' : 'A')
-					let eIslSinif = EIslemOrtak.getClass({ tip: efAyrimTipi, gelenmi })
-					let eIslAltBolum = eConf.getAnaBolumFor({ eIslSinif })
-					if (!eIslAltBolum)
-						throw { isError: true, rc: 'eIslAnaBolumBelirsiz', errorText: 'e-İşlem için Ana Bölüm belirlenemedi' }
-					let xmlDosyaAdi = `${uuid}.xml`, xmlDosya = `${eIslAltBolum}\\${gelenmi ? 'ALINAN' : 'IMZALI'}\\${xmlDosyaAdi}`
-					let result = uuid2Result[uuid] ??= {}
-					extend(result, { islemZamani: now(), isError: false, eIslSinif, efAyrimTipi, rec, anaBolum: eIslAltBolum, xmlDosya })
+			for (let [tbl, recs] of entries(table2Recs)) {
+				for (let r of recs) {
+					let { uuid, eIslTip: efAyrimTipi } = r
+					efAyrimTipi ||= (gelenmi ? 'E' : 'A')
+					
+					let fn = `${uuid}.xml`
+					let file = `${rootDir}\\${gelenmi ? 'ALINAN' : 'IMZALI'}\\${fn}`
+					let res = uuid2Result[uuid] ??= {}
+					extend(res, {
+						islemZamani: now(), isError: false, eIslSinif, efAyrimTipi,
+						rec: r, anaBolum: rootDir, xmlDosya: file
+					})
 					try {
 						let xmlData = uuid2Result[uuid]?.xmlData
 						if (!xmlData)
-							xmlData = await app.wsDownloadAsStream({ remoteFile: xmlDosya, localFile: xmlDosyaAdi })
+							xmlData = uuid2Result[uuid].xmlData = await app.wsDownloadAsStream({ remoteFile: file, localFile: fn })
 						if (!xmlData)
 							throw { isError: true, rc: 'noXML', errorText: 'XML (e-İşlem Belge İçeriği) bilgisi belirlenemedi' }
+						
 						let xml = $.parseXML(xmlData)
 						let docRefs = Array.from(xml.documentElement.querySelectorAll(`AdditionalDocumentReference`))
+						
 						let xsltData
 						;{
 							let xbinDoc, subName = 'EmbeddedDocumentBinaryObject'
@@ -337,12 +327,15 @@ class EYonetici extends CObject {
 							if (xbinDoc)
 								xsltData = xbinDoc.querySelector(subName)?.textContent
 						}
+						
 						if (!xsltData)
 							throw { isError: true, rc: 'noXSLT', errorText: 'XSLT (e-İşlem Görüntü) bilgisi belirlenemedi' }
 						if (Base64.isValid(xsltData))
 							xsltData = Base64.decode(xsltData)
+						
 						let xslt = $.parseXML(xsltData)
 						let xsltProcessor, eDoc
+						
 						try {
 							;(xsltProcessor = new XSLTProcessor()).importStylesheet(xslt)
 							eDoc = xsltProcessor.transformToFragment(xml, document)
@@ -369,7 +362,7 @@ class EYonetici extends CObject {
 							_container.append(eDoc)
 						
 						eDocCount++
-						extend(result, { xmlData, xml, xsltData, xslt, xsltProcessor, eDoc, divContainer: _container })
+						extend(res, { xmlData, xml, xsltData, xslt, xsltProcessor, eDoc, divContainer: _container })
 						globalThis.progressManager?.progressStep()
 						if (callback && keys(uuid2Result).length % 201 == 200)
 							getFuncValue.call(this, callback, e)
@@ -387,7 +380,7 @@ class EYonetici extends CObject {
 						}
 
 						let errorText = getErrorText(ex)
-						extend(result, { isError: true, rc: ex?.rc ?? ex.code ?? '??', errorText, error: ex })
+						extend(res, { isError: true, rc: ex?.rc ?? ex.code ?? '??', errorText, error: ex })
 						console.error(ex, errorText)
 					}
 				}
@@ -395,17 +388,18 @@ class EYonetici extends CObject {
 			if (callback)
 				getFuncValue.call(this, callback, e)
 			
-			if (!e.internal) {
+			if (!internal) {
 				if (toplu && eDocCount) {
 					let newDocHTML = `<html><body>${divContainer.innerHTML}</body></html>`
 					let url = URL.createObjectURL(new Blob([newDocHTML], { type: 'text/html' }))
 					openNewWindow(url)
 				}
-				
-				if (sender && !sender.isDestroyed)
-					sender?.tazele()
+				if (parentPart?.tazele && !parentPart.isDestroyed)
+					parentPart.tazele()
 			}
 		}
+
+		return { uuid2Result }
 	}
 	static async eIslemSorgula(e) {
 		let eYoneticiler = await this.getEYoneticiler(e)
@@ -723,11 +717,11 @@ class EYonetici extends CObject {
 	}
 	async eIslemXMLOlustur(e = {}) {
 		let { internal } = e
-		let { filtre, eIslTip, table2Sayaclar, eConf, eIslSinif, parentPart, callback } = this
+		let { filtre, table2Sayaclar, eIslTip, eConf, eIslSinif, parentPart, callback } = this
 
 		let recs
 		;{
-			let stm = filtre.getQueryStm()
+			let stm = filtre.getQueryStm({ table2Sayaclar })
 			if (stm)
 				recs = await stm.execSelect()
 		}
@@ -745,8 +739,14 @@ class EYonetici extends CObject {
 		let arastirRecs = []
 		for (let r of recs) {
 			let { _table: tbl, fisSayac: sayac, uuid } = r
+			if (!empty(table2Sayaclar)) {
+				let sayaclar = table2Sayaclar[tbl] ?? []
+				if (!sayaclar.includes(sayac))
+					continue
+			}
+			
 			if (!uuid) {
-				;(yeniTable2Sayaclar[tbl] ??= []).push(fissayac)
+				;(yeniTable2Sayaclar[tbl] ??= []).push(sayac)
 				continue
 			}
 			arastirRecs.push(r)
@@ -764,13 +764,14 @@ class EYonetici extends CObject {
 			if (!empty(eksikDosyaAdiSet)) {
 				// toplu xml dosya kontrol
 				let fileNames = keys(eksikDosyaAdiSet)
-				let mask = `${'?'.repeat(newGUID().length)}.xml`
+				let pattern = `${'?'.repeat(newGUID().length)}.xml`
 				let args = {
-					dir: anaBolum, recursive: true,
-					includeDirs: false, fileNames, pattern
+					dir: rootDir, recursive: true,
+					includeDirs: false, fileNames,
+					pattern
 				}
 				let { recs } = await app.wsDosyaListe({ args }) ?? []
-				;recs.forEach(({ dosyaAdi: fn }) => {
+				;recs.forEach(({ name: fn }) => {
 					let uuid = fn.split('.')[0].trim()
 					delete eksikUUID2Dosya[uuid]
 					delete eksikDosyaAdiSet[fn]
@@ -830,15 +831,16 @@ class EYonetici extends CObject {
 			let BlockSize = 100
 			for (let tbl in table2Sayac2EFis) {
 				let sayac2EFis = table2Sayac2EFis[tbl]
-				let fisSayacListe = keys(sayac2EFis)
+				let fisSayacListe = keys(sayac2EFis).map(Number)
 				while (fisSayacListe.length) {
 					let subFisSayacListe = fisSayacListe.splice(0, BlockSize)
 					let uuid2SubResult = {}
 					let toplu = new MQToplu()
-					let updCallback = _e.updCallback = ({ query }) => {
+					let updCallback = args.updCallback = ({ query }) => {
 						if (query)
 							toplu.add(query)
 					}
+					
 					let promises = [], uploadList = []
 					let commit = async () => {
 						await promiseAll(promises)
@@ -852,30 +854,29 @@ class EYonetici extends CObject {
 							toplu.liste = []
 						}
 					}
+					
 					for (let fisSayac of subFisSayacListe) {
 						promises.push(defer(async p => {
-							let eFis = sayac2EFis[fisSayac], {baslik} = eFis, {efayrimtipi: efAyrimTipi} = baslik
-							let eIslSinif = EIslemOrtak.getClass({ tip: efAyrimTipi })
-							let anaBolum = eConf.getAnaBolumFor({ eIslSinif })
+							let eFis = sayac2EFis[fisSayac]
+							let { baslik } = eFis, { eIslTip } = baslik
 							let uuid
 							try {
-								if (!anaBolum)
-									throw { isError: true, rc: 'eIslAnaBolumBelirsiz', errorText: 'e-İşlem için Ana Bölüm belirlenemedi' }
-								let args = { ..._e }
-								let xmlStr = await eFis.xmlOlustur(args)
+								let xmlStr = await eFis.xmlOlustur({ ...args })
 								if (!xmlStr)
 									p.resolve()
+								
 								uuid = baslik.uuid
-								uuid2Result[uuid] ??= { islemZamani: now(), isError: false, eFis, rec: baslik, efAyrimTipi }
+								uuid2Result[uuid] ??= { islemZamani: now(), isError: false, eFis, rec: baslik, efAyrimTipi: eIslTip }
+								
 								// let uuid2XML = e.uuid2XML = e.uuid2XML || {}; uuid2XML[uuid] = xmlStr
-								let xmlDosya = `${anaBolum}\\IMZALI\\${uuid}.xml`
+								let xmlDosya = `${rootDir}\\IMZALI\\${uuid}.xml`
 								//await app.wsUpload({ remoteFile: xmlDosya, args: xmlStr })
 								uploadList.push({ name: xmlDosya, data: Base64.encode(xmlStr) })
 								//if (config.dev) { let url = URL.createObjectURL(new Blob([xmlStr], { type: 'application/xml' })); openNewWindow(url) }
 							}
 							catch (ex) {
 								uuid = baslik.uuid || uuid
-								let rec = uuid2Result[uuid] ??= { islemZamani: now(), eFis, baslik, efAyrimTipi }
+								let rec = uuid2Result[uuid] ??= { islemZamani: now(), eFis, baslik, efAyrimTipi: eIslTip }
 								extend(rec, { isError: true, message: getErrorText(ex) })
 								console.error(ex)
 							}
@@ -898,6 +899,8 @@ class EYonetici extends CObject {
 					parentPart.tazele()
 			}
 		}
+
+		return { uuid2Result }
 	}
 
 	

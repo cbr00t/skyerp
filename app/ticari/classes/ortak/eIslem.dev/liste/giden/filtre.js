@@ -5,7 +5,7 @@ class GidenEIslemFiltre extends EIslemFiltre {
 	getQueryStm(e = {}) {
 		let uni = new MQUnionAll()
 		let stm = new MQStm({ sent: uni })
-		let args = { ...e, stm, uni }
+		let args = { ...e, stm, uni, alias: 'fis' }
 		this.queryStmDuzenle(args)
 		return args.stm
 	}
@@ -26,8 +26,8 @@ class GidenEIslemFiltre extends EIslemFiltre {
 			if (!secWH)
 				return null
 			
-				/* e: { fisTablo psTipStr ifSql efAyrimTipiClause } */
-			let { fisTablo: table, oncelik, psTip, ifSql, efAyrimTipiClause } = args
+				/* e: { fisTable psTipStr ifSql efAyrimTipiClause } */
+			let { fisTable: table, oncelik, psTip, ifSql, efAyrimTipiClause } = args
 			oncelik ??= 10
 			let sent = new MQSent(), { where: wh, sahalar } = sent
 			;{
@@ -94,7 +94,7 @@ class GidenEIslemFiltre extends EIslemFiltre {
 		;{
 			if (!(
 				sentEkle({
-					fisTablo: 'piffis', oncelik: 10,
+					fisTable: 'piffis', oncelik: 10,
 					psTip: 'P', ifSql: 'fis.piftipi',
 					efAyrimTipiClause: eIslTipClause('A', cs => {
 						cs
@@ -103,7 +103,7 @@ class GidenEIslemFiltre extends EIslemFiltre {
 					})
 				}) &&
 				sentEkle({
-					fisTablo: 'sipfis', oncelik: 13,
+					fisTable: 'sipfis', oncelik: 13,
 					psTip: 'S', ifSql: `'F'`,
 					efAyrimTipiClause: eIslTipClause('')
 				})
@@ -111,11 +111,11 @@ class GidenEIslemFiltre extends EIslemFiltre {
 		}
 		
 		;{
-			let secWH = this.getTBWhereClause({ ...e, psTip: 'ST' })
+			let table = 'stfis'
+			let secWH = this.getTBWhereClause({ ...e, psTip: 'ST', fisTable: table })
 			if (!secWH)
 				return
 			
-			let table = 'stfis'
 			let sent = new MQSent(), { where: wh, sahalar } = sent
 			sent
 				.fromAdd(`${table} fis`)
@@ -165,7 +165,7 @@ class GidenEIslemFiltre extends EIslemFiltre {
 	
 		;{
 			let table = 'topmakbuzara'
-			let secWH = this.getTBWhereClause({ ...e, psTip: 'SM' })
+			let secWH = this.getTBWhereClause({ ...e, psTip: 'SM', fisTable: table })
 			if (!secWH)
 				return
 	
@@ -213,7 +213,7 @@ class GidenEIslemFiltre extends EIslemFiltre {
 			uni.add(sent)
 		}
 		
-		sentEkle({ fisTablo: 'piffis', psTip: 'SR', ifSql: `fis.piftipi`, efAyrimTipiClause: `'MS'` })
+		sentEkle({ fisTable: 'piffis', psTip: 'SR', ifSql: `fis.piftipi`, efAyrimTipiClause: `'MS'` })
 		
 		stm.orderBy
 			.add('tarih DESC', 'eIslTip', 'oncelik', 'fisNox DESC')
@@ -314,7 +314,7 @@ class GidenEIslemFiltre extends EIslemFiltre {
 					eIslKodlar.push('MS')
 			
 			if (eIslKodlar.length) {
-				let {kaDict} = EIslemTip
+				let { kaDict } = EIslemTip
 				liste.uyari_kisitEIslTip = new SecimText({
 					etiket: `Kısıtlanacak e-İşlem Tipleri:`,
 					value: `[ <b class="indianred">${eIslKodlar.map(eIslTip => kaDict[eIslTip] || eIslTip)}</b> ]`
@@ -410,8 +410,8 @@ class GidenEIslemFiltre extends EIslemFiltre {
 			this.tbWhereClauseDuzenle_ortak(e)
 	}
 	tbWhereClauseDuzenle_ortak(e = {}) {
-		let {alias, aliasVeNokta} = e, { where: wh } = e;
-		wh.add(`${aliasVeNokta}silindi = ''`, `${aliasVeNokta}ozelisaret <> '*'`);
+		let {alias, aliasVeNokta} = e, { where: wh } = e
+		wh.add(`${aliasVeNokta}silindi = ''`, `${aliasVeNokta}ozelisaret <> '*'`)
 		if (!this.uygunOlmayanlarGosterilirmiFlag.value) { wh.add(`LEN(${aliasVeNokta}seri) = 3`, `${aliasVeNokta}noyil > 0`) }
 		wh.birKismi(this.sube, `${aliasVeNokta}bizsubekod`); wh.basiSonu(this.tarih, `${aliasVeNokta}tarih`);
 		wh.basiSonu(this.seri, `${aliasVeNokta}seri`); wh.basiSonu(this.fisNo, `${aliasVeNokta}no`)

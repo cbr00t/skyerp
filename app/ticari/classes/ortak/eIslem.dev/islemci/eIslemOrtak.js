@@ -157,7 +157,7 @@ class EIslemOrtak extends CObject {
 			for (let sev of _recs) {
 				let rec = _e.rec = sev.orjBilgi ?? sev
 				let { detaylar } = sev
-				let { _table: tbl, fissayac: sayac } = rec
+				let { _table: tbl, fisSayac: sayac } = rec
 				
 				let args = { ..._e, sev, detaylar }
 				let sayac2EFis = table2Sayac2EFis[tbl]
@@ -171,7 +171,7 @@ class EIslemOrtak extends CObject {
 		}
 
 		;{
-			let args = { ...e, promises }
+			let args = { ...e, promises, yukleIslemi }
 			await this.tipIcinFislerEkDuzenlemeYapDevam(args)
 			promises = args.promises
 		}
@@ -298,19 +298,25 @@ class EIslemOrtak extends CObject {
 		
 		if (uuidOlustumu) {
 			let { updCallback: callback } = e
-			let { fisTable: from, fissayac: sayac, uuid } = baslik
+			let { _table: tbl, fisSayac: sayac, uuid } = baslik
 			delete e.updCallback
 			
-			let upd = e.query = new MQIliskiliUpdate({ from }), { where: wh, set } = upd
-			wh.degerAta(sayac, 'kaysayac')
-			set
-				.degerAta(uuid, 'efatuuid')
-				.degerAta(now(), 'efimzats')
+			let upd = e.query = new MQIliskiliUpdate()
+			;{
+				let { where: wh, set } = upd
+				upd.fromAdd(tbl)
+				wh.degerAta(sayac, 'kaysayac')
+				set
+					.degerAta(uuid, 'efatuuid')
+					.degerAta(now(), 'efimzats')
+			}
+			
 			if (callback)
 				await callback.call(this, e)
 			else
 				await query.execute()
 		}
+		
 		return result
 	}
 	async xmlDuzenle(e) {

@@ -10,22 +10,28 @@ class EIslFaturaArsivOrtak extends EIslTicariOrtak {
 		promises.push(
 			yukleIslemi({
 				stm: e => this.getOncekiIrsTSNStm(e),
-				seviyelendirici: ({ recs: source }) => seviyelendirAttrGruplari({ source, attrGruplari: [['pstip', 'fissayac']] }),
+				seviyelendirici: ({ recs: source }) => seviyelendirAttrGruplari({ source, attrGruplari: [['_table', 'fisSayac']] }),
 				yukleyici: ({ eFis, detaylar: recs, ...e }) => eFis.oncekiIrsTSNYukle({ ...e, recs })
 			})
 		)
 	}
-	static getOncekiIrsTSNStm({ ps2SayacListe } = {}) {
+	static getOncekiIrsTSNStm({ table2Sayaclar } = {}) {
 		let uni = new MQUnionAll()
 		let stm = new MQStm({ sent: uni })
 		let { orderBy } = stm
 		;{
-			let { P: fisSayaclar } = ps2SayacListe
-			if (fisSayaclar) {
+			let fisTable = 'piffis', sayaclar = table2Sayaclar[fisTable]
+			if (!empty(sayaclar)) {
 				let sent = new MQSent({
-					from: 'irs2fat don', where: { inDizi: fisSayaclar, saha: 'don.fatsayac' },
-					fromIliskiler: [ { from: 'piffis irs', iliski: 'don.irssayac = irs.kaysayac' } ],
-					sahalar: [`'P' pstip`, `don.fatsayac fissayac`, 'irs.tarih', 'irs.fisnox nox']
+					from: 'irs2fat don',
+					where: { inDizi: sayaclar, saha: 'don.fatsayac' },
+					fromIliskiler: [
+						{ from: 'piffis irs', iliski: 'don.irssayac = irs.kaysayac' }
+					],
+					sahalar: [
+						`${fisTable.sqlServerDegeri()} _table`, `don.fatsayac fisSayac`,
+						'irs.tarih', 'irs.fisnox nox'
+					]
 				})
 				uni.add(sent)
 			}
@@ -33,7 +39,7 @@ class EIslFaturaArsivOrtak extends EIslTicariOrtak {
 		if (empty(uni.liste))
 			return null
 		
-		orderBy.addAll('pstip', 'fissayac', 'tarih', 'nox')
+		orderBy.addAll('_table', 'fisSayac', 'tarih', 'nox')
 		return stm
 	}
 	oncekiIrsTSNYukle({ _detaylar: d } = {}) {

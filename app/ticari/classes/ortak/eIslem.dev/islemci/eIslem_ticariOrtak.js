@@ -214,7 +214,7 @@ class EIslTicariOrtak extends EIslGiden {
 				'har.ekaciklama', 'har.detkdvekvergitipi', 'har.detistisnakod', 'har.perkdv', 'kver.kdvorani', 'har.perstopaj', 'sver.stopajorani',
 				'har.dettevhesapkod', 'tevver.kdvtevoranx', 'tevver.kdvtevoranpay', 'tevver.tevislemturu', 'har.pertevkifat', 'har.satiriskonto', 'har.sonuciskoran'
 			])
-			let args = { ...e, psTip, sayacListe, fisTable, harTable, uni, sent, where: wh }
+			let args = { ...e, sayacListe, fisTable, harTable, uni, sent, where: wh }
 			;{
 				if (this.eFisBaslikVeDetayStm_araSentDuzenle(args) === false)
 					return null
@@ -224,7 +224,6 @@ class EIslTicariOrtak extends EIslGiden {
 			uni.add(sent)
 			return sent
 		}
-		
 		let stokBagla = ({ sent, sent: { sahalar, where: wh } }) => {
 			sent.har2StokBagla()
 			sent.stok2BarkodBagla()
@@ -262,6 +261,7 @@ class EIslTicariOrtak extends EIslGiden {
 			if (!empty(sayacListe)) {
 				;{
 					let sent = fhBagla({ fisTable, harTable: 'pifstok', sayacListe })
+
 					if (sent) {
 						sent.where.add(`fis.ayrimtipi NOT IN ('FS', 'FY', 'IN')`)				// PR -magaza da alinir
 						stokBagla({ sent })
@@ -289,7 +289,7 @@ class EIslTicariOrtak extends EIslGiden {
 			if (!empty(sayacListe)) {
 				let sent = fhBagla({ fisTable, harTable: 'sipstok', sayacListe })
 				if (sent) {
-					sent.where.addAll(`fis.ayrimtipi = 'EM'`, `fis.ozeltip = 'E'`)
+					sent.where.add(`NOT (fis.ayrimtipi = 'EM' OR fis.ozeltip = 'E')`)
 					stokBagla({ sent })
 				}
 			}
@@ -301,7 +301,7 @@ class EIslTicariOrtak extends EIslGiden {
 		
 		return new MQStm({ sent: uni, orderBy })
 	}
-	static eFisBaslikVeDetayStm_araSentDuzenle({ psTip, fisTable, harTable, uni, sent, where: wh }) { }
+	static eFisBaslikVeDetayStm_araSentDuzenle({ fisTable, harTable, uni, sent, where: wh }) { }
 	static tipIcinFislerEkDuzenlemeYapDevam({ yukleIslemi, promises }) {
 		super.tipIcinFislerEkDuzenlemeYapDevam(...arguments)
 		promises.push(
@@ -330,24 +330,23 @@ class EIslTicariOrtak extends EIslGiden {
 			})
 		)
 	}
-	static getDetayAciklamaStm({ table2Sayac2EFis }) {
-		let stm, uni
+	static getDetayAciklamaStm({ table2Sayaclar }) {
+		let uni = new MQUnionAll()
 		let fhBagla = ({ fisTable, ackTable, fisSayaclar }) => {
 			let sent = new MQSent(), { where: wh, sahalar } = sent
-			sent.fromAdd(harTable)
+			sent.fromAdd(ackTable)
 			wh.inDizi(fisSayaclar, 'fissayac')
 			sahalar.add(
-				`${fisTable.sqlServerDegeri()} _table`,
-				'fissayac fisSayac', 'seq', 'aciklama'
+				`${fisTable.sqlServerDegeri()} _table`, 'fissayac fisSayac',
+				'seq', 'aciklama'
 			)
 			uni.add(sent)
 		}
 		
-		uni = new MQUnionAll()
-		stm = new MQStm({ sent: uni }), { orderBy } = stm
+		let stm = new MQStm({ sent: uni })
+		let { orderBy } = stm
 		let ekle = (fisTable, ackTable) => {
-			let { [fisTable]: sayac2EFis } = table2Sayac2EFis
-			let fisSayaclar = keys(sayac2EFis) ?? []
+			let fisSayaclar = table2Sayaclar[fisTable]
 			if (!empty(fisSayaclar))
 				fhBagla({ fisTable, ackTable, fisSayaclar })
 		}
@@ -377,71 +376,89 @@ class EIslTicariOrtak extends EIslGiden {
 				seq2Detay[maxSeq].aciklamaEkle({ aciklama })
 		}
 	}
-	static getDipAciklamaStm(e) {
+	static getDipAciklamaStm({ table2Sayaclar }) {
 		// ** TODO: getDetayAciklamaStm(e)  kısmındaki gibi düzenlenecek
-		
-		let stm, uni;
+		let uni = new MQUnionAll()
 		let fhBagla_baslik = _e => {
-			let {harTable, fisSayaclar, psTip} = _e;
+			let { fisTable, ackTable, fisSayaclar } = _e
 			let sent = new MQSent({
-				from: harTable, where: [{ inDizi: fisSayaclar, saha: 'fissayac' }],
-				sahalar: [`${MQSQLOrtak.sqlServerDegeri(psTip)} pstip`, `'B' alttip`, `0 kayitno`, 'fissayac', 'basaciklama aciklama']
+				from: ackTable,
+				where: { inDizi: fisSayaclar, saha: 'fissayac' },
+				sahalar: [
+					`${fisTable.sqlServerDegeri()} _table`, 'fissayac fisSayac',
+					`'B' alttip`, `0 kayitno`, 'basaciklama aciklama'
+				]
 			})
 			uni.add(sent)
-		};
+		}
 		let fhBagla_dip = _e => {
-			let {harTable, fisSayaclar, psTip} = _e;
+			let { fisTable, ackTable, fisSayaclar } = _e
 			let sent = new MQSent({
-				from: harTable,where: [{ inDizi: fisSayaclar, saha: 'fissayac' }],
-				sahalar: [`${MQSQLOrtak.sqlServerDegeri(psTip)} pstip`, `'D' alttip`, `0 kayitno`, 'fissayac', 'aciklama']
+				from: ackTable,
+				where: { inDizi: fisSayaclar, saha: 'fissayac' },
+				sahalar: [
+					`${fisTable.sqlServerDegeri()} _table`, 'fissayac fisSayac',
+					`'D' alttip`, `0 kayitno`, 'aciklama'
+				]
 			})
 			uni.add(sent)
-		};
+		}
 		let fhBagla_ekBilgi = _e => {
-			let {harTable, fisSayaclar, psTip} = _e;
+			let { fisTable, ackTable, fisSayaclar } = _e
 			let sent = new MQSent({
-				from: harTable, where: [{ inDizi: fisSayaclar, saha: 'fissayac' }, `kayittipi IN ('E1', 'E2')` ],
-				sahalar: [`${MQSQLOrtak.sqlServerDegeri(psTip)} pstip`, 'kayittipi alttip', 'kayitno', 'fissayac', 'ekbilgi aciklama']
+				from: ackTable,
+				where: [
+					{ inDizi: fisSayaclar, saha: 'fissayac' },
+					`kayittipi IN ('E1', 'E2')`
+				],
+				sahalar: [
+					`${fisTable.sqlServerDegeri()} _table`, 'fissayac fisSayac',
+					'kayittipi alttip', 'kayitno', 'ekbilgi aciklama'
+				]
 			})
 			uni.add(sent)
-		};
-		uni = new MQUnionAll(); stm = new MQStm({ sent: uni });
-		let {ps2SayacListe} = e
-		let psTip = 'P', fisSayaclar = ps2SayacListe[psTip];
-		if (fisSayaclar) {
-			fhBagla_baslik(({ harTable: 'pifbasekaciklama', fisSayaclar, psTip }));
-			fhBagla_dip(({ harTable: 'pifdipaciklama', fisSayaclar, psTip }));
-			fhBagla_ekBilgi(({ harTable: 'pifdipekbilgi', fisSayaclar, psTip }))
 		}
-		psTip = 'S';
-		fisSayaclar = ps2SayacListe[psTip];
-		if (fisSayaclar) {
-			fhBagla_baslik(({ harTable: 'sipbasekaciklama', fisSayaclar, psTip }));
-			fhBagla_dip(({ harTable: 'sipdipaciklama', fisSayaclar, psTip }));
-			fhBagla_ekBilgi(({ harTable: 'sipdipekbilgi', fisSayaclar, psTip }))
+		
+		let stm = new MQStm({ sent: uni })
+		let { orderBy } = stm
+		;{
+			let fisTable = 'piffis', fisSayaclar = table2Sayaclar[fisTable]
+			if (!empty(fisSayaclar)) {
+				fhBagla_baslik(({ fisTable, ackTable: 'pifbasekaciklama', fisSayaclar }))
+				fhBagla_dip(({ fisTable, ackTable: 'pifdipaciklama', fisSayaclar }))
+				fhBagla_ekBilgi(({ fisTable, ackTable: 'pifdipekbilgi', fisSayaclar }))
+			}
 		}
-		if (empty(uni.liste)) { return null }
-		stm.orderBy.addAll('pstip', 'fissayac', 'alttip', 'kayitno');
+		;{
+			let fisTable = 'sipfis', fisSayaclar = table2Sayaclar[fisTable]
+			if (!empty(fisSayaclar)) {
+				fhBagla_baslik(({ fisTable, ackTable: 'sipbasekaciklama', fisSayaclar }))
+				fhBagla_dip(({ fisTable, ackTable: 'sipdipaciklama', fisSayaclar }))
+				fhBagla_ekBilgi(({ fisTable, ackTable: 'sipdipekbilgi', fisSayaclar }))
+			}
+		}
+		if (empty(uni.liste))
+			return null
+		
+		orderBy.addAll('_table', 'fisSayac', 'alttip', 'kayitno')
 		return stm
 	}
 	dipAciklamaYukle({ recs }) {
 		let dipNotlar = this.dipNotlar = []
 		dipNotlar.push(...recs.map(r => r?.aciklama?.trimEnd() ?? ''))
 	}
-	static getDipEIcmalStm({ ps2SayacListe } = {}) {
-		// ** TODO: getDetayAciklamaStm(e)  kısmındaki gibi düzenlenecek
-		
-		let fhBagla = ({ fisSayaclar, psTip }) => {
+	static getDipEIcmalStm({ table2Sayaclar } = {}) {
+		let uni = new MQUnionAll()
+		let fhBagla = ({ fisTable, fisSayacSaha, fisSayaclar }) => {
 			if (!fisSayaclar)
 				return
 			
-			let fisSayacSaha = psTip == 'S' ? 'sipsayac' : 'pifsayac'
 			let sent = new MQSent({
 				from: 'dipebilgi',
 				where: { inDizi: fisSayaclar, saha: fisSayacSaha },
 				sahalar: [
-					`${MQSQLOrtak.sqlServerDegeri(psTip)} pstip`,
-					`${fisSayacSaha} fissayac`, 'seq', 'xadi', 'xkod',
+					`${fisTable.sqlServerDegeri()} _table`, `${fisSayacSaha} fisSayac`,
+					'seq', 'xadi', 'xkod',
 					'hvtip', 'anatip', 'alttip', 'ustoran', 'oran',
 					'matrah', 'dvmatrah', 'bedel', 'dvbedel'
 				]
@@ -449,15 +466,22 @@ class EIslTicariOrtak extends EIslGiden {
 			uni.add(sent)
 		}
 		
-		let uni = new MQUnionAll()
 		let stm = new MQStm({ sent: uni })
 		let { orderBy } = stm
-		fhBagla({ fisSayaclar: ps2SayacListe.P, psTip: 'P' })
-		fhBagla({ fisSayaclar: ps2SayacListe.S, psTip: 'S' })
+		;{
+			let fisTable = 'piffis', fisSayacSaha = 'pifsayac'
+			let fisSayaclar = table2Sayaclar[fisTable]
+			fhBagla({ fisTable, fisSayacSaha, fisSayaclar })
+		}
+		;{
+			let fisTable = 'sipfis', fisSayacSaha = 'sipsayac'
+			let fisSayaclar = table2Sayaclar[fisTable]
+			fhBagla({ fisTable, fisSayacSaha, fisSayaclar })
+		}
 		if (empty(uni.liste))
 			return null
 		
-		orderBy.add('pstip', 'fissayac', 'seq')
+		orderBy.add('_table', 'fisSayac', 'seq')
 		return stm
 	}
 	dipEIcmalYukle(e) {

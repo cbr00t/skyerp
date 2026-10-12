@@ -2,6 +2,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
     static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get partName() { return 'gidenEIslemListe' }
 	static get filtreSinif() { return GidenEIslemFiltre }
+	static get gidenmi() { return true }
 	
 	constructor(e = {}) {
 		super(e)
@@ -296,7 +297,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 			await EYonetici.eIslemIzle(args)
 		}
 		catch (ex) {
-			console.error(ex)
+			//console.error(ex)
 			throw ex
 		}
 		finally { this.uiIslemiSonrasi({ silent: true }) }
@@ -348,7 +349,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		catch (ex) {
 			_e.error = ex
 			// hConfirm(getErrorText(ex), islemAdi)
-			console.error(ex)
+			// console.error(ex)
 			throw ex
 		}
 		finally { this.uiIslemiSonrasi(_e) }
@@ -364,17 +365,17 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		if (ctrl)
 			await this.xmlKaldirIstendi({ ...e, silent: true, recs })
 		try {
-			extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
-			this.showProgress(_e)
-			await EYonetici.eIslemXMLOlustur(_e)
+			extend(e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
+			this.showProgress(e)
+			await EYonetici.eIslemXMLOlustur(e)
 		}
 		catch (ex) {
-			_e.error = ex
+			e.error = ex
 			// hConfirm(getErrorText(ex), islemAdi)
-			console.error(ex)
+			// console.error(ex)
 			throw ex
 		}
-		finally { this.uiIslemiSonrasi(_e) }
+		finally { this.uiIslemiSonrasi(e) }
 	}
 	async eIslemIptalIstendi(e = {}) {
 		let parentPart = this, { eConf } = this
@@ -391,7 +392,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		catch (ex) {
 			_e.error = ex
 			// hConfirm(getErrorText(ex), islemAdi)
-			console.error(ex)
+			// console.error(ex)
 			throw ex
 		}
 		finally { this.uiIslemiSonrasi(_e) }
@@ -406,19 +407,19 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		
 		try {
 			let callback = silent ? null : new EIslemAkibet_Callback({ islemAdi })
-			extend(_e, { eConf, callback })
-			this.showProgress(_e)
-			await EYonetici.xmlKaldir(_e)
+			extend(e, { eConf, callback })
+			this.showProgress(e)
+			await EYonetici.xmlKaldir(e)
 		}
 		catch (ex) {
-			_e.error = ex
+			e.error = ex
 			if (!silent) {
 				// hConfirm(getErrorText(ex), islemAdi)
-				console.error(ex)
+				// console.error(ex)
 				throw ex
 			}
 		}
-		finally { this.uiIslemiSonrasi(_e) }
+		finally { this.uiIslemiSonrasi(e) }
 	}
 }
 

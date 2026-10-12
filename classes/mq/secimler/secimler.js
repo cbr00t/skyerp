@@ -11,17 +11,44 @@ class Secimler extends CIO {
 	}
 	
 	constructor(e) {
-		e = e || {}; super(e); let {eConf} = e; if (eConf != null) { this.eConf = eConf }
-		if ($.isArray(e)) { e = { liste: e } } else { this.uiSinif = e.uiSinif; this.duzenlemeUISinif = e.duzenlemeUISinif || this.uiSinif }
-		this.uiSinif = this.uiSinif || this.class.uiSinif; this.duzenlemeUISinif = this.duzenlemeUISinif || this.class.duzenlemeUISinif;
-		this.secimleriTemizle(); let {liste} = this; this.listeOlustur({ liste }); this.readFrom(e)
-		if (this.afterRun) { this.afterRun(e) }
+		super(e)
+		let { eConf } = e
+		if (eConf != null)
+			this.eConf = eConf
+		
+		if (isArray(e))
+			e = { liste: e }
+		else {
+			this.uiSinif = e.uiSinif
+			this.duzenlemeUISinif = e.duzenlemeUISinif ?? this.uiSinif
+		}
+		this.uiSinif = this.uiSinif ?? this.class.uiSinif
+		this.duzenlemeUISinif = this.duzenlemeUISinif ?? this.class.duzenlemeUISinif
+		this.secimleriTemizle()
+		
+		let { liste } = this
+		this.listeOlustur({ liste })
+		this.readFrom(e)
+		this.afterRun?.(e)
 	}
 	static getClass(e) { return this }	
 	static from(e) {
-		if (!e) { return null } let cls = this.getClass(e); if (!cls) { return null }
-		let result = new cls(e); if (!result.readFrom(e)) { return null }
+		if (!e)
+			return null
+		
+		let cls = this.getClass(e)
+		if (!cls)
+			return null
+		
+		let result = new cls(e)
+		if (!result.readFrom(e))
+			return null
 		return result
+	}
+	static empty(e) {
+		let res = new this(e)
+		res.temizle()
+		return res
 	}
 	duzenlemeEkraniAc(e = {}) {
 		let uiSinif = e.uiSinif || this.duzenlemeUISinif
