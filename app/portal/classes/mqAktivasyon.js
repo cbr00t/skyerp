@@ -140,7 +140,8 @@ class MQAktivasyon extends MQDetayliMaster {
 		if (!rec.baktifmi) { result.push('bg-lightgray', 'iptal', 'firebrick') }
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
-		super.orjBaslikListesiDuzenle(...arguments); let {tableAlias: alias} = this;
+		super.orjBaslikListesiDuzenle(...arguments)
+		let { tableAlias: alias } = this
 		liste.push(...[
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 15 }).tipDate(),
 			new GridKolon({ belirtec: 'baktifmi', text: 'Aktif?', genislikCh: 8 }).tipBool(),
@@ -148,7 +149,7 @@ class MQAktivasyon extends MQDetayliMaster {
 				new GridKolon({ belirtec: 'mustkod', text: 'Müşteri', genislikCh: 16 }),
 				new GridKolon({ belirtec: 'mustadi', text: 'Müşteri Adı', genislikCh: 45, sql: 'mus.aciklama' })
 			),
-			new GridKolon({ belirtec: 'surumtext', text: 'Sürüm', genislikCh: 13, sql: VIOSurum.getClause(`${alias}.surum`) }).alignCenter(),
+			new GridKolon({ belirtec: 'surumtext', text: 'Sürüm', genislikCh: 13, sql: VIOSurum.getClause(`${alias}.surum`) }).checkedList().alignCenter(),
 			...this.getKAKolonlar(
 				new GridKolon({ belirtec: 'bayikod', text: 'Bayi', genislikCh: 10, sql: 'mus.bayikod', filterType: 'checkedlist' }),
 				new GridKolon({ belirtec: 'bayiadi', text: 'Bayi Adı', genislikCh: 25, sql: 'bay.aciklama', filterType: 'checkedlist' })

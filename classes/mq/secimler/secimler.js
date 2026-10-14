@@ -10,7 +10,7 @@ class Secimler extends CIO {
 		return _e.grup2Info
 	}
 	
-	constructor(e) {
+	constructor(e = {}) {
 		super(e)
 		let { eConf } = e
 		if (eConf != null)
