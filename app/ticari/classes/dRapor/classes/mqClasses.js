@@ -32,7 +32,8 @@ class DMQYer extends DMQKA {
 	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.yer2GrupBagla() }
 }
 class DMQStok extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok' } static get zeminRenkDesteklermi() { return true }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get sinifAdi() { return 'Stok' } static get zeminRenkDesteklermi() { return true }
 	static get kodListeTipi() { return 'STK' } static get table() { return 'stkmst' } static get tableAlias() { return 'stk' }
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e; liste.push(

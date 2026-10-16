@@ -9,8 +9,10 @@ class DRapor_Ticari extends DRapor_Donemsel {
 }
 class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get toplamPrefix() { return '' } get shd() { return this.rapor?.shd }
-	get stokmu() { return this.rapor?.stokmu } get hizmetmi() { return this.rapor?.hizmetmi }
+	static get toplamPrefix() { return '' }
+	get shd() { return this.rapor?.shd }
+	get stokmu() { return this.rapor?.stokmu }
+	get hizmetmi() { return this.rapor?.hizmetmi }
 	tabloYapiDuzenle({ result }) {
 		let e = arguments[0]; super.tabloYapiDuzenle(e)
 		result.addKAPrefix('althesap')
@@ -356,8 +358,12 @@ class DRapor_Sevkiyat_Main extends DRapor_Ticari_Main {
 }
 
 class DRapor_TicariStok extends DRapor_Ticari {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get shd() { return 'stok' } static get kategoriKod() { return `${super.kategoriKod}-STOK` }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get shd() { return 'stok' }
+	static get kategoriKod() { return `${super.kategoriKod}-STOK` }
 }
 class DRapor_TicariHizmet extends DRapor_Ticari {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get shd() { return 'hizmet' } static get kategoriKod() { return `${super.kategoriKod}-HIZMET` }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get shd() { return 'hizmet' }
+	static get kategoriKod() { return `${super.kategoriKod}-HIZMET` }
 }

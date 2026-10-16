@@ -132,8 +132,10 @@ class DRapor_StokSiparisler_Main extends DRapor_Donemsel_Main {
 
 class DRapor_StokSatisSiparisler extends DRapor_StokSiparisler {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kategoriKod() { return 'SATIS' } static get kategoriAdi() { return 'Satışlar' }
-	static get kod() { return 'STSSIP' } static get aciklama() { return 'ESKİ Satış Siparişler' }
+	static get kategoriKod() { return DRapor_StokSatislar.kategoriKod }
+	static get kategoriAdi() { return DRapor_StokSatislar.kategoriAdi }
+	static get kod() { return 'STSSIP' }
+	static get aciklama() { return 'ESKİ Satış Siparişler' }
 	static get vioAdim() { return 'SA-RST' }
 }
 class DRapor_StokSatisSiparisler_Main extends DRapor_StokSiparisler_Main {
@@ -144,7 +146,8 @@ class DRapor_StokSatisSiparisler_Main extends DRapor_StokSiparisler_Main {
 
 class DRapor_AlimSatisSiparisler extends DRapor_StokSiparisler {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get kategoriKod() { return 'ALIM' } static get kategoriAdi() { return 'Alımlar' }
+	static get kategoriKod() { return DRapor_StokAlimlar.kategoriKod }
+	static get kategoriAdi() { return DRapor_StokAlimlar.kategoriAdi }
 	static get kod() { return 'SASSIP' } static get aciklama() { return 'ESKİ Alım Siparişler' }
 	static get vioAdim() { return 'SA-RST' }
 }

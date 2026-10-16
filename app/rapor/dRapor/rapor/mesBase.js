@@ -1,5 +1,7 @@
 class DRapor_MES extends DRapor_Donemsel {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get kategoriKod() { return 'MES' }
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kategoriKod() { return 'MES' }
+	static get kategoriAdi() { return '<div class="menu-icon">📡</div> MES' }
 	static get uygunmu() { return app.params.operGenel?.kullanim?.mesVeriToplama && !!app.sqlTables?.operemri }
 }
 class DRapor_MES_Main extends DRapor_Donemsel_Main {
@@ -7,7 +9,8 @@ class DRapor_MES_Main extends DRapor_Donemsel_Main {
 	tabloYapiDuzenle(e) { super.tabloYapiDuzenle(e) }
 	loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); let {stm, attrSet} = e, {sent} = stm, {where: wh} = sent;
-		$.extend(e, { sent }); this.loadServerData_queryDuzenle_ek(e)
+		extend(e, { sent })
+		this.loadServerData_queryDuzenle_ek(e)
 	}
 	loadServerData_queryDuzenle_ek(e) { super.loadServerData_queryDuzenle_ek(e) }
 }

@@ -2,9 +2,9 @@ class DRapor_KarZararTablosu extends DRaporMQ {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return DRapor_EldekiVarliklar.oncelik + 1 }
 	static get kategoriKod() { return 'FINANLZ' }
-	static get kategoriAdi() { return 'Finansal Analiz' }
+	static get kategoriAdi() { return '<div class="menu-icon">📈</div> Finansal Analiz' }
 	static get kod() { return 'KARZARAR' }
-	static get aciklama() { return 'Kar/Zarar Tablosu' }
+	static get aciklama() { return '<div class="menu-icon">📊</div> Kar/Zarar Tablosu' }
 	static get uygunmu() { return true }
 	static get secimSinif() { return DonemselSecimler }
 	static get sadeceTanimmi() { return true }

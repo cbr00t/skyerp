@@ -1,7 +1,8 @@
 class DRapor_StokAlimlar extends DRapor_TicariStok {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get uygunmu() { return false }
-	static get kategoriKod() { return 'ALIM' } static get kategoriAdi() { return 'Alımlar' }
+	static get kategoriKod() { return DRapor_Hareketci_Alimlar.kategoriKod }
+	static get kategoriAdi() { return DRapor_Hareketci_Alimlar.kategoriAdi }
 	static get altRaporClassPrefix() { return 'DRapor_StokAlimlar' } static get vioAdim() { return 'AL-RCF' }
 	static get kod() { return 'STALIM' } static get aciklama() { return 'ESKİ Alımlar (<span class=royalblue>Stok</span>)' }
 }

@@ -3,7 +3,9 @@ class PratikSatisHareketci extends Hareketci {
 	static get oncelik() { return 170 } static get sadeceTotalmi() { return true }
 	static get uygunmu() { return app.params.aktarim?.kullanim?.pratikSatis }
 	// static get kategoriKod() { return '' } static get kategoriAdi() { return '' }
-	static get kisaKod() { return 'PR' } static get kod() { return 'PRASATIS' } static get aciklama() { return 'Pratik Satış' }
+	static get kisaKod() { return 'PR' }
+	static get kod() { return 'PRASATIS' }
+	static get aciklama() { return '<div class="menu-icon">⚡</div> Pratik Satış' }
 	static get maliTabloIcinUygunmu() { return false } static get donemselIslemlerIcinUygunmu() { return false }
 	static get eldekiVarliklarIcinUygunmu() { return this.donemselIslemlerIcinUygunmu }
 

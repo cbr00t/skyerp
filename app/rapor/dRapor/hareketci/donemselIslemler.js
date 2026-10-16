@@ -2,8 +2,10 @@ class DRapor_DonemselIslemler extends DRapor_Donemsel {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return 3 } static get uygunmu() { return true } static get araSeviyemi() { return false }
 	static get sabitmi() { return true } static get vioAdim() { return 'FN-RD' } static get konsolideKullanilirmi() { return true }
-	static get kategoriKod() { return 'FINANLZ' } static get kategoriAdi() { return 'Finansal Analiz' }
-	static get kod() { return 'DONISL' } static get aciklama() { return 'Dönemsel İşlemler' }
+	static get kategoriKod() { return 'FINANLZ' }
+	static get kategoriAdi() { return '<div class="menu-icon">📈</div> Finansal Analiz' }
+	static get kod() { return 'DONISL' }
+	static get aciklama() { return '<div class="menu-icon">🧾</div> Dönemsel İşlemler' }
 	static get mstEtiket() { return this.aciklama }
 	static get otoTazeleYapilirmi() { return true }
 

@@ -3,8 +3,10 @@ class DRapor_Hareketci extends DRapor_Donemsel {
 	static get araSeviyemi() { return this == DRapor_Hareketci } static get hareketciSinif() { return null }
 	// static get oncelik() { return 20 }
 	static get hareketcimi() { return true }
-	static get oncelik() { return this.hareketciSinif.oncelik } static get uygunmu() { return this.mainClass?.hareketciSinif?.uygunmu ?? true }
-	static get yatayAnalizVarmi() { return this.totalmi } static get ozetVarmi() { return this.totalmi } static get chartVarmi() { return this.totalmi }
+	static get oncelik() { return this.hareketciSinif.oncelik }
+	static get uygunmu() { return this.mainClass?.hareketciSinif?.uygunmu ?? true }
+	static get yatayAnalizVarmi() { return this.totalmi }
+	static get ozetVarmi() { return this.totalmi } static get chartVarmi() { return this.totalmi }
 	static get totalmi() { return !(this.hareketmi || this.envantermi) }
 	static get hareketmi() { return false }
 	static get envantermi() { return false }
@@ -24,7 +26,14 @@ class DRapor_Hareketci extends DRapor_Donemsel {
 	static get _kod() { return `${this.hareketciSinif?.kod?.toUpperCase()}HAR` }
 	static get _aciklama() { return this.hareketciSinif?.aciklama || super.aciklama }
 	static get kategoriKod() { return `FIN${this.totalmi ? '' : `-${this.kodEk}`}` }
-	static get kategoriAdi() { return `<b class=royalblue>${this.aciklamaEk}</b>` }
+	static get kategoriAdi() {
+		let icon = `<div class="menu-icon">${
+			this.hareketmi ? '🔄' :
+			this.envantermi ? '📦' :
+			'📊'
+		}</div>`
+		return `${icon} <b class=royalblue>${this.aciklamaEk}</b>`
+	}
 	static get kodEk() {
 		let {hareketmi, envantermi} = this
 		return hareketmi ? 'HAR' : envantermi ? 'ENV' : ''
@@ -54,7 +63,9 @@ class DRapor_Hareketci extends DRapor_Donemsel {
 	}
 	
 	static autoGenerateSubClasses(e) {
-		let subNames = ['Hareket', 'Envanter'];
+		// let subNames = ['Hareket', 'Envanter']
+		let subNames = ['Hareket']
+		
 		let { raporBilgiler } = this
 		let evalList = []
 		for (let { kod, cls } of raporBilgiler) {
@@ -92,11 +103,13 @@ class DRapor_Hareketci extends DRapor_Donemsel {
 class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this }
 	static get hareketcimi() { return true } 
-	static get hareketciSinif() { return this.raporClass?.hareketciSinif } static get secimWhereBaglanirmi() { return false }
+	static get hareketciSinif() { return this.raporClass?.hareketciSinif }
+	static get secimWhereBaglanirmi() { return false }
 	static get totalmi() { return this.raporClass?.totalmi ?? true }
 	static get hareketmi() { return this.raporClass?.hareketmi ?? false }
 	static get envantermi() { return this.raporClass?.envantermi ?? false }
 	static get ticarimi() { return false }
+	static get bedelKullanilirmi() { return this.ticarimi }
 
 	async onGridInit(e) {
 		let result = await super.onGridInit(e)
@@ -191,7 +204,7 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 	tabloYapiDuzenle({ result }) {
 		let e = arguments[0]
 		super.tabloYapiDuzenle(e)
-		let { ticarimi, muhasebemi, totalmi } = this.class
+		let { bedelKullanilirmi, ticarimi, muhasebemi, totalmi } = this.class
 		result.addKAPrefix('isl')
 		if (ticarimi)
 			result.addKAPrefix('althesap', 'ref')
@@ -208,9 +221,14 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		if (ticarimi) {
 			this.tabloYapiDuzenle_plasiyer(e)
 			this.tabloYapiDuzenle_takip(e)
+		}
+		if (ticarimi || bedelKullanilirmi) {
 			result
 				.addGrupBasit('DVKOD', 'Dv.Kod', 'dvkod')
 				.addGrupBasit('DVKUR', 'Dv.Kur', 'dvkur', null, null, ({ item, colDef }) => { item.noOrderBy(); colDef.tipDecimal() })
+		}
+		if (ticarimi) {
+			result
 				.addGrupBasit('KDVKOD', 'Kdv Kod', 'kdvkod', null, 8, ({ item }) => item.setSql_hv())
 				.addGrupBasit_numerik('KDVORANI', 'Kdv%', 'kdvorani', null, 8, ({ item }) => {
 					item
@@ -225,13 +243,14 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 				})
 				.addToplamBasit('TOPKDV', 'KDV', 'topkdv', null, null, ({ item }) => item.setSql_hvSum())
 				.addToplamBasit('KDVLINETCIRO', `KDV'li Net Ciro`, 'kdvlinetciro', null, null, ({ item }) => item.setSql_hvSum())
+		}
+		if (bedelKullanilirmi) {
 			this.tabloYapiDuzenle_baBedel(e)
 			this.tabloYapiDuzenle_baBakiye(e)
 			this.tabloYapiDuzenle_dovizli_baBedel(e)
 			this.tabloYapiDuzenle_dovizli_baBakiye(e)
-			//if (!totalmi)
-			result.addGrupBasit('ACIKLAMA', 'Açıklama', 'aciklama', null, null, ({ item }) => item.setSql_hv())
 		}
+		result.addGrupBasit('ACIKLAMA', 'Açıklama', 'aciklama', null, null, ({ item }) => item.setSql_hv())
 	}
 	super_tabloYapiDuzenle(e) { super.tabloYapiDuzenle(e) }
 	superSuper_tabloYapiDuzenle(e) { super.super_tabloYapiDuzenle(e) }

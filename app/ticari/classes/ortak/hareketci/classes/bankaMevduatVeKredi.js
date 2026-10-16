@@ -1,18 +1,19 @@
 class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
     static { window[this.name] = this; this._key2Class[this.name] = this }
-	static get oncelik() { return 25 } static get maliTabloIcinUygunmu() { return this.uygunmu }
+	static get oncelik() { return 25 }
+	static get maliTabloIcinUygunmu() { return this.uygunmu }
 	static get araSeviyemi() { return this == BankaMevduatKrediOrtakHareketci }
 	static get gecerliBankaHesapTipleri() { return [] }
 	
 	// static altTipYapilarDuzenle(e) { super.altTipYapilarDuzenle(e); e.def.sol() }
     static hareketTipSecim_kaListeDuzenle({ kaListe }) {
         super.hareketTipSecim_kaListeDuzenle(...arguments)
-		let {bankaGenel: { kullanim: { yatirim, arbitraj, teminatMektubu, akreditif, taksitliKredi } = {} } = {}} = app.params ?? {}
+		let { yatirim, arbitraj, teminatMektubu, akreditif, taksitliKredi } = app.params?.bankaGenel?.kullanim ?? {}
 		kaListe.push(...[
             new CKodVeAdi(['devir', 'Devir']),
 			new CKodVeAdi(['kasa', 'Kasa Yatan/Çekilen']),
-            (yatirim ? new CKodVeAdi(['yatirim', 'Yatırım']) : null),
-			(arbitraj ? new CKodVeAdi(['arbitraj', 'Arbitraj']) : null),
+            ( yatirim ? new CKodVeAdi(['yatirim', 'Yatırım']) : null) ,
+			( arbitraj ? new CKodVeAdi(['arbitraj', 'Arbitraj']) : null ),
 			new CKodVeAdi(['hizmet', 'Banka Hizmet']),
             new CKodVeAdi(['havaleEFT', 'Havale/EFT']),
 			new CKodVeAdi(['tahsilSekli', 'Fatura ve Cari Tahsil']),
@@ -27,10 +28,10 @@ class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
             new CKodVeAdi(['virman', 'Banka Hesap Virman']),
 			new CKodVeAdi(['alimSatis', 'Fatura Nakit']),
 			new CKodVeAdi(['akreditif', 'Akreditif']),
-			(teminatMektubu ? new CKodVeAdi(['teminatMektup', 'Teminat Mektubu']) : null),
+			( teminatMektubu ? new CKodVeAdi(['teminatMektup', 'Teminat Mektubu']) : null ),
 			// (akreditif ? new CKodVeAdi(['akreditif', 'Akreditif']) : null),
-			(taksitliKredi ? new CKodVeAdi(['krediAlim', 'Kredi Alımı']) : null)
-        ].filter(x => !!x))
+			( taksitliKredi ? new CKodVeAdi(['krediAlim', 'Kredi Alımı']) : null )
+        ].filter(Boolean))
     }
 	uniOrtakSonIslem({ sender, hv, sent, sent: { from, where: wh } }) {
 		super.uniOrtakSonIslem(...arguments)
@@ -513,10 +514,15 @@ class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
 		wh.basiSonu(detSec.muhHesapKod, 'bhes.muhhesap').ozellik(detSec.muhHesapAdi, 'mhes.aciklama')
 	}
 }
+
 class BankaMevduatHareketci extends BankaMevduatKrediOrtakHareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get kisaKod() { return 'BM' }
-    static get kod() { return 'bankaMevduat' } static get aciklama() { return 'Banka Mevduat' }
-	static get gecerliBankaHesapTipleri() { return [...super.gecerliBankaHesapTipleri, ''] }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kisaKod() { return 'BM' }
+    static get kod() { return 'bankaMevduat' }
+	static get aciklama() { return 'Banka Mevduat' }
+	static get gecerliBankaHesapTipleri() {
+		return [...super.gecerliBankaHesapTipleri, '']
+	}
 	static getAltTipAdiVeOncelikClause({ hv }) {
 		return {
 			...super.getAltTipAdiVeOncelikClause(...arguments),
@@ -524,17 +530,41 @@ class BankaMevduatHareketci extends BankaMevduatKrediOrtakHareketci {
 		}
 	}
 }
+
 class BankaKrediHareketci extends BankaMevduatKrediOrtakHareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get kisaKod() { return 'KR' }
-    static get kod() { return 'bankaKredi' } static get aciklama() { return 'Banka Kredi' }
+    static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get kisaKod() { return 'KR' }
+    static get kod() { return 'bankaKredi' }
+	static get aciklama() { return 'Banka Kredi' }
 	static get gecerliBankaHesapTipleri() {
-		// IP: İpotek Karşılığı | TM: Çek/Senet Teminat | RK: Rotatif Kredi
-		return [...super.gecerliBankaHesapTipleri, 'IP', 'TM', 'RK']
+		// IP: İpotek Karşılığı | TM: Çek/Senet Teminat
+		// SP: ??
+		// KR: Kredi                                          (iptal)
+		// RK: Rotatif Kredi                                  (iptal)
+		return [
+			...super.gecerliBankaHesapTipleri,
+			'IP', 'TM',
+			'DB', 'SP',
+			// 'KR'
+			// 'RK'
+		]
 	}
+
+	static hareketTipSecim_kaListeDuzenle(e) {
+        super.hareketTipSecim_kaListeDuzenle(e)
+		let uygunKeySet = asSet([
+			'devir', 'kasa', 'genelDekont',
+			'virman', 'havaleEFT'
+		])
+		e.kaListe = e.kaListe.filter(ka =>
+			uygunKeySet[ka.kod])
+    }
+
 	static getAltTipAdiVeOncelikClause({ hv }) {
 		return {
 			...super.getAltTipAdiVeOncelikClause(...arguments),
 			yon: `'sag'`
 		}
 	}
+	
 }

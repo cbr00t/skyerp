@@ -4,8 +4,10 @@ class DRapor_EldekiVarliklar extends DRapor_AraSeviye {
 	static get uygunmu() { return true } static get araSeviyemi() { return false }
 	static get sabitmi() { return true } static get vioAdim() { return 'FN-RE' }
 	static get konsolideKullanilirmi() { return true } static get yataymi() { return true }
-	static get kategoriKod() { return 'FINANLZ' } static get kategoriAdi() { return 'Finansal Analiz' }
-	static get kod() { return 'ELDVAR' } static get aciklama() { return 'Eldeki Varlıklar' }
+	static get kategoriKod() { return 'FINANLZ' }
+	static get kategoriAdi() { return '<div class="menu-icon">📈</div> Finansal Analiz' }
+	static get kod() { return 'ELDVAR' }
+	static get aciklama() { return '<div class="menu-icon">💎💵📜</div> Eldeki Varlıklar' }
 	static get tekilBuildCount() { return super.tekilBuildCount /* + 1 */ }
 	// static get otoTazeleYapilirmi() { return true }
 
@@ -313,7 +315,7 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 					let farkTL = roundToBedelFra(getTotal(main) - getTotal(sag))
 					let veri = toStringWithFra(farkTL, 2)
 					let colorCSS = farkTL > 0 ? 'forestgreen' : farkTL < 0 ? 'firebrick' : 'royalblue'
-					$(`<div class="${cssSelector} absolute" style="left: 15px; bottom: 8px; z-index: 25">
+					$(`<div class="${cssSelector} absolute" style="left: 15px; bottom: 25px; z-index: 25">
 							<span class="etiket">Fark: </span>
 							<span class="veri bold ${colorCSS}">${veri}</span>
 							<span class="ek-bilgi bold"> TL</span>

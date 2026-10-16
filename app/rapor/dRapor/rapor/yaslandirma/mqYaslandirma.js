@@ -4,7 +4,7 @@ class MQYaslandirma extends DRaporMQ {
 	static get kategoriKod() { return DRapor_DonemselIslemler.kategoriKod }
 	static get kategoriAdi() { return DRapor_DonemselIslemler.kategoriAdi }
 	static get kod() { return 'YASL' }
-	static get aciklama() { return 'Yaşlandırma Analizi' }
+	static get aciklama() { return '<div class="menu-icon">🗓️</div> Yaşlandırma Analizi' }
 	static get uygunmu() { return true }
 	get uygunmu() { return this.class.uygunmu }
 	static get tanimUISinif() { return null }

@@ -23,7 +23,7 @@ class SkyRaporApp extends TicariApp {
 				'TICARI-STOK': 'Ticari<br/><b class="royalblue">Stok</b>',
 				'TICARI-HIZMET': 'Ticari<br/><b class="orangered">Hizmet</b>)',
 				FINANSAL: 'Finansal',
-				FINANLZ: 'Finansal Analiz'
+				FINANLZ: '<div class="menu-icon">📈</div> Finansal Analiz'
 			}
 			let { kod2Sinif } = DRapor
 			let e = { liste: result }
@@ -294,7 +294,7 @@ class SkyRaporApp extends TicariApp {
 			if (!empty(favItems)) {
 				let favParent = new FRMenuCascade({
 					mne: 'FAV',
-					text: '❤️ Favori<br/>Raporlarım',
+					text: '<div class="menu-icon">❤️</div> Favori Raporlarım',
 					items: favItems
 				})
 				items = [favParent, ...items]
