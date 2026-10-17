@@ -39,8 +39,8 @@ class DRapor_PratikSatis extends DRaporMQ {
 		return await super.uiGirisOncesiIslemler(e)
 	}
 	destroyPart(e = {}) {
-		let { tanimPart = e.sender } = e
-		e.sender = this
+		let { tanimPart = e.parentPart } = e
+		e.parentPart = this
 		app.appTitleBar?.removeClass('jqx-hidden')
 		tanimPart?.acc?.destroyPart?.()
 		this.otoTazele_stopTimer(e)
@@ -74,11 +74,11 @@ class DRapor_PratikSatis extends DRaporMQ {
 		fbd.addStyle(...[
 			`$elementCSS {
 				--width-sag: 250px !important;
-				--button-width: 40px !important;
-				--button-height: 35px !important;
+				--button-width: 60px !important;
+				--button-height: 50px !important;
 				position: fixed !important;
 				top: 110px !important;
-				right: 15px !important;
+				right: 40px !important;
 				pointer-events: none !important
 			}
 			$elementCSS > .sag {
@@ -95,7 +95,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 	}
 	static tanimPart_islemTuslariDuzenle(e) {
 		super.tanimPart_islemTuslariDuzenle(e)
-		let { sender: tanimPart, liste, part: { ekSagButonIdSet: sagSet } } = e
+		let { parentPart: tanimPart, liste, part: { ekSagButonIdSet: sagSet } } = e
 		let { inst } = tanimPart
 		extend(e, { tanimPart, inst })
 		liste = e.liste = liste.filter(_ => _.id != 'tamam')
@@ -244,7 +244,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 	}
 
 	async tazeleIstendi(e = {}) {
-		let { tanimPart = e.sender ?? {} } = e
+		let { tanimPart = e.parentPart ?? {} } = e
 		let { acc = tanimPart.acc ?? {} } = tanimPart
 		let { item } = acc.activePanel ?? {}
 
@@ -268,7 +268,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 	}
 	otoTazele_startTimer(e) {
 		let { class: { otoTazele_minDk } } = this
-		let { tanimPart = e.sender } = e
+		let { tanimPart = e.parentPart } = e
 		let { _timer_otoTazele: timer, _otoTazeleDk: otoTazeleDk } = tanimPart
 		if (otoTazeleDk)
 			otoTazeleDk = max(otoTazeleDk, otoTazele_minDk)
@@ -284,7 +284,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 		)
 	}
 	otoTazele_stopTimer(e = {}) {
-		let { tanimPart = e.sender } = e
+		let { tanimPart = e.parentPart } = e
 		let { _timer_otoTazele: timer } = tanimPart
 		if (timer) {
 			clearInterval(timer)
@@ -294,7 +294,7 @@ class DRapor_PratikSatis extends DRaporMQ {
 	}
 	async otoTazele_timerProc(e = {}) {
 		let { class: { otoTazele_minDk } } = this
-		let { tanimPart = e.sender, acc: { hasActivePanel } = {} } = e
+		let { tanimPart = e.parentPart, acc: { hasActivePanel } = {} } = e
 		let { _otoTazeleDk: otoTazeleDk, _inTazeleProc, _otoTazeleDisabled } = tanimPart
 		let { activeWndPart } = app, { appActivatedFlag } = window
 		if (_otoTazeleDisabled || activeWndPart != tanimPart)
@@ -422,8 +422,8 @@ class DRapor_PratikSatis extends DRaporMQ {
 			tanimPart.db2SubeKod2Param = result
 		}
 
-		if (empty(result))
-			debugger
+		//if (empty(result))
+		//	debugger
 
 		return result
 	}

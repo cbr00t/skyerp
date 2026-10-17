@@ -26,6 +26,16 @@ class MQYaslandirma extends DRaporMQ {
 		super.secimlerDuzenle(...arguments)
 		let { liste: l } = sec
 		deleteKeys(l, 'instKod', 'instAdi')
+
+		let { kademeler } = Yaslandirma
+		let oncesiKAListe = [
+			ka('', ''),
+			ka('G', 'Gecikmiş'),
+			...kademeler
+				.filter(Boolean)    // 0 olmayanlar
+				.map(v => ka(v.toString(), `Gecikme > ${v}`))
+		]
+		
 		;{
 			let grupKod = 'genel'
 			sec
@@ -33,7 +43,17 @@ class MQYaslandirma extends DRaporMQ {
 				.secimTopluEkle({
 					bakiyesizleriGoster: new SecimBool({ grupKod, etiket: 'Bakiyesizleri de göster' }),
 					sadecePlasiyereBagliOlanlar: new SecimBool({ grupKod, etiket: 'Plasiyere bağlı olanlar' }),
-					smTipi: new SecimTekSecim({ grupKod, etiket: 'Satıcı/Müşteri', tekSecim: new BuDigerVeHepsi(['Satıcılar', 'Müşteriler']).hepsi() })
+					smTipi: new SecimTekSecim({
+						grupKod, default: null,
+						etiket: 'Satıcı/Müşteri',
+						tekSecim: new BuDigerVeHepsi(['Satıcılar', 'Müşteriler']).hepsi()
+					}),
+					// oncesiGosterilmez: new SecimBool({ grupKod, etiket: 'Öncesi (Zamanı Gelmeyenler) gösterilmez' })
+					gecikmeDurumu: new SecimTekSecim({
+						grupKod, default: '',
+						etiket: 'Gecikme Durumu',
+						kaListe: oncesiKAListe
+					})
 				})
 		}
 		sec
@@ -80,7 +100,7 @@ class MQYaslandirma extends DRaporMQ {
 	}
 	static ekCSSDuzenle({ dataField: k, value: v, rec: r, result: res }) {
 		super.ekCSSDuzenle(...arguments)
-		if (k == 'bakiye' || k == 'oncesi' || k.startsWith('kademe')) {
+		if (k == 'bakiye' || k == 'oncesi' || k?.startsWith('kademe')) {
 			//if (!v && k == 'bakiye')
 			//	v = r._bakiye
 			res.push(
@@ -97,7 +117,8 @@ class MQYaslandirma extends DRaporMQ {
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
 		let { kademeler } = Yaslandirma
-		liste.push(
+		
+		liste.push(...[
 			new GridKolon({ belirtec: 'dengesizmi', text: 'Dengesiz?', genislikCh: 9 }).checkedList().bool(),
 			//...MQCogul.getKAKolonlar(
 			new GridKolon({ belirtec: 'mustKod', text: 'Müşteri', genislikCh: 13 }).input(),
@@ -121,7 +142,7 @@ class MQYaslandirma extends DRaporMQ {
 				new GridKolon({ belirtec: 'plasiyerKod', text: 'Plasiyer', genislikCh: 13 }).input(),
 				new GridKolon({ belirtec: 'plasiyerAdi', text: 'Plasiyer Adı', genislikCh: 45 }).input()
 			)
-		)
+		])
 	}
 	static async loadServerData(e = {}) {
 		showProgress()
@@ -137,6 +158,7 @@ class MQYaslandirma extends DRaporMQ {
 		let { bakiyesizleriGoster: { value: bakiyesizleriGoster } } = sec
 		let { sadecePlasiyereBagliOlanlar: { value: sadecePlasiyereBagliOlanlar } } = sec
 		let { smTipi } = sec
+		let { gecikmeDurumu: { value: gecikmeDurumu } } = sec
 		let { plasiyerKod: { value: plasiyer } } = sec
 		let { mustKod: { value: must } } = sec
 		let { cariTipKod: { value: tip } } = sec
@@ -148,6 +170,8 @@ class MQYaslandirma extends DRaporMQ {
 			smTipi?.digermi ? 'M' :
 			isString(smTipi) ? smTipi : null
 		)
+
+		gecikmeDurumu = gecikmeDurumu?.trimEnd?.() ?? undefined
 		
 		//if (!(isArray(plasiyerKodArr) && plasiyerKodArr.length == 1))
 		//	plasiyerKodArr = null
@@ -156,7 +180,7 @@ class MQYaslandirma extends DRaporMQ {
 
 		let args = {
 			sadecePlasiyereBagliOlanlar,
-			smTipi,
+			smTipi, gecikmeDurumu,
 			filtre: { plasiyer, must, bolge, tip }
 		}
 		let data = {
@@ -223,9 +247,17 @@ class MQYaslandirma extends DRaporMQ {
 		
 		return recs
 	}
-	static async gridVeriYuklendi({ gridPart } = {}) {
+	static async gridVeriYuklendi({ gridPart: listePart } = {}) {
 		await super.gridVeriYuklendi(...arguments)
-		//let { boundRecs: recs } = gridPart
+		let { secimler: sec } = listePart
+		let { value: gecikmeDurumu } = sec.gecikmeDurumu ?? {}
+		gecikmeDurumu = gecikmeDurumu?.trimEnd() ?? ''
+		
+		let oncesiGosterilmez = Boolean(gecikmeDurumu)
+		delay(0).then(() =>
+			listePart[oncesiGosterilmez ? 'hideColumn' : 'showColumn']('oncesi'))
+		
+		//let { boundRecs: recs } = listePart
 	}
 	static orjBaslikListesi_satirCiftTiklandi({ event: { args = {} } }) {
 		let { row: { bounddata: rec } = {} } = args

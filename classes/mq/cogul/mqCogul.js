@@ -576,7 +576,7 @@ class MQCogul extends MQYapi {
 		for (let colDef of liste) {
 			let {cellClassName: savedCellClassName} = colDef /*, savedCellsRenderer = colDef.cellsRenderer*/;
 			colDef.cellClassName = (sender, rowIndex, belirtec, value, rec) => {
-				let prefix = savedCellClassName ? getFuncValue.call(this, savedCellClassName, sender, rowIndex, belirtec, value, rec) : null;
+				let prefix = savedCellClassName ? getFuncValue.call(this, savedCellClassName, sender, rowIndex, belirtec, value, rec) : null
 				return getFuncValue.call(this, getCellClassName, sender, rowIndex, belirtec, value, rec, prefix)
 			}
 			/*colDef.cellsRenderer = (colDef, rowIndex, belirtec, value, html, jqxCol, rec) => {

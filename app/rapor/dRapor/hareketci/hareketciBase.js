@@ -206,22 +206,18 @@ class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
 		super.tabloYapiDuzenle(e)
 		let { bedelKullanilirmi, ticarimi, muhasebemi, totalmi } = this.class
 		result.addKAPrefix('isl')
-		if (ticarimi)
-			result.addKAPrefix('althesap', 'ref')
+		//if (ticarimi)
+		result.addKAPrefix('ref')
 		this.tabloYapiDuzenle_ozelIsaret(e)
 		this.tabloYapiDuzenle_sube(e)
-		result.addGrupBasit('FISNOX', 'Fis No', 'fisnox', null, null, ({ item }) => item.secimKullanilir())
-		if (ticarimi) {
-			result.addGrupBasit('ALTHESAP', 'Alt Hesap', 'althesap', DMQAltHesap)
-			result.addGrupBasit('REF', 'Referans', 'ref', null, null, ({ item }) => item.setOrderBy('refadi'))
-		}
-		result.addGrupBasit('ANAISLEM', 'Ana İşlem', 'anaislemadi')
-		result.addGrupBasit('ISL', 'İşlem', 'isl', (muhasebemi ? DMQMuhIslem : DMQStokIslem))
-		
-		if (ticarimi) {
-			this.tabloYapiDuzenle_plasiyer(e)
-			this.tabloYapiDuzenle_takip(e)
-		}
+		result
+			.addGrupBasit('FISNOX', 'Fis No', 'fisnox', null, null, ({ item }) => item.secimKullanilir())
+			.addGrupBasit('REF', 'Referans', 'ref', null, null, ({ item }) => item.setOrderBy('refadi'))
+			.addGrupBasit('ANAISLEM', 'Ana İşlem', 'anaislemadi')
+			.addGrupBasit('ISL', 'İşlem', 'isl', (muhasebemi ? DMQMuhIslem : DMQStokIslem))
+		//if (ticarimi)
+		//	this.tabloYapiDuzenle_plasiyer(e)
+		this.tabloYapiDuzenle_takip(e)
 		if (ticarimi || bedelKullanilirmi) {
 			result
 				.addGrupBasit('DVKOD', 'Dv.Kod', 'dvkod')

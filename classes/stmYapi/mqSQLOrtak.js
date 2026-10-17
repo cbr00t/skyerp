@@ -401,13 +401,13 @@ class MQAliasliYapi extends MQSQLOrtak {
 			e.deger = e.alias = text
 			e.aliaslimi = false
 		}
-		else {																								/* bosluk var -- substring (from, end) => end index dahil değil */
+		else {
 			let asLiteralSet = { ' AS': true, ' as': true, ' As': true, ' aS': true };
-			let tabloAdi = text.substring(0, sonBosInd).trim()
+			let tabloAdi = text.slice(0, sonBosInd).trim()
 			if (tabloAdi[0] != '(' && asLiteralSet[tabloAdi.slice(-3)])
 				tabloAdi = tabloAdi.slice(0, -3)
 			e.deger = tabloAdi
-			e.alias = text.substring(sonBosInd + 1).trim()
+			e.alias = text.slice(sonBosInd + 1).trim()
 			e.aliaslimi = true
 		}
 		return new this(e)
@@ -420,23 +420,40 @@ class MQAliasliYapi extends MQSQLOrtak {
 				- '(case when ... end) tipText'
 		*/
 		text = text?.toString()?.trim() ?? ''
-		let e = {}, sonBosInd = text.lastIndexOf(' '), sonNoktaInd = text.lastIndexOf('.')
-		if (sonBosInd < 0) {																														/* bosluk yok */
-			if (sonNoktaInd < 0) { e.deger = e.alias = text; e.aliaslimi = false }																	/* nokta yok */
-			else { e.deger = text; e.alias = text.substring(sonNoktaInd + 1).trim(); e.aliaslimi = false }											/* nokta var */
+		let e = {}
+		let sonBosInd = text.lastIndexOf(' ')
+		let sonNoktaInd = text.lastIndexOf('.')
+		if (sonNoktaInd > -1 && text.slice(0, -4).toLowerCase() == 'end)')
+			sonNoktaInd = -1
+		
+		if (sonBosInd < 0) {
+			if (sonNoktaInd < 0) {
+				e.deger = e.alias = text
+				e.aliaslimi = false
+			}
+			else {
+				e.deger = text
+				e.alias = text.slice(sonNoktaInd + 1).trim()
+				e.aliaslimi = false
+			}
 		}
-		else {																																		/* bosluk var -- substring (from, end) => end index dahil değil */
-			let deger = e.deger = text.substring(0, sonBosInd).trim()
-			let alias = e.alias = text.substring(sonBosInd + 1).trim()
+		else {
+			let deger = e.deger = text.slice(0, sonBosInd).trim()
+			let alias = e.alias = text.slice(sonBosInd + 1).trim()
 			for (let ch of ['.', ',', '(', ')']) {
 				if (alias.includes(ch)) {
-					console.warn('newForSahaText', 'alias hatası', { text, deger, alias });
+					console.warn('newForSahaText', 'alias hatası', { text, deger, alias })
 					break
 				}
 			}
-			if (deger && deger.split('.').slice(-1)[0] == alias) { alias = e.alias = null; e.aliaslimi = false }
-			else { e.aliaslimi = true }
+			if (deger && deger.split('.').slice(-1)[0] == alias) {
+				alias = e.alias = null
+				e.aliaslimi = false
+			}
+			else
+				e.aliaslimi = true
 		}
+		
 		return new this(e)
 	}
 	static newForIliskiText(text) {
@@ -447,12 +464,14 @@ class MQAliasliYapi extends MQSQLOrtak {
 		text = text?.toString()?.trim()
 		if (!text)
 			return new this()
+		
 		let noktaInd = text.lastIndexOf('.')
 		let result = noktaInd < 0 || (text.includes('(') || text.includes(')'))
 			? new this({ deger: text, alias: '', aliaslimi: false })
 			: new this({ deger: text, alias: text.substring(0, noktaInd), aliaslimi: true })		/* to dahil degil substring'de  -  fis.islkod = ''  */
-		{
-			let {deger, alias} = result
+		
+		;{
+			let { deger, alias } = result
 			for (let ch of ['.', ',', '(', ')']) {
 				if (alias?.includes(ch)) {
 					console.warn('newForIliskiText', 'alias hatası', { text, deger, alias })
@@ -460,6 +479,7 @@ class MQAliasliYapi extends MQSQLOrtak {
 				}
 			}
 		}
+		
 		return result
 	}
 	static gerekirseAliasli(clause, alias) {

@@ -386,7 +386,8 @@ class TicariApp extends App {
 	}
 	wsTicQueryRun(e = {}) {
 		let {
-			smTipi,    // smTipi: { null: Hepsi | 'S': Sadece Satıcı | 'M': Sadece Müşteri }
+			smTipi,                                                          // smTipi: { null: Hepsi | 'S': Sadece Satıcı | 'M': Sadece Müşteri }
+			gecikmeDurumu,
 			method,
 			plasiyereBagliOlanlar = e.sadecePlasiyereBagliOlanlar,
 			filtre = {}
@@ -395,7 +396,8 @@ class TicariApp extends App {
 			filtre[k] = makeArray(v)
 
 		let { plasiyer } = filtre
-		smTipi ||= null
+		smTipi = smTipi?.trimEnd?.() ?? undefined
+		gecikmeDurumu = gecikmeDurumu?.trimEnd?.() ?? undefined
 		plasiyereBagliOlanlar ??= !empty(plasiyer)
 		
 		function getFilterParam(k) {
@@ -413,8 +415,10 @@ class TicariApp extends App {
 			getFilterParam('Must'),
 			getFilterParam('Tip'),
 			getFilterParam('Bolge'),
-			( plasiyereBagliOlanlar != null ? { name: '@argSadecePlasiyereBagliOlanlar', type: 'bit', value: bool2Int(plasiyereBagliOlanlar) } : null ),
+			( plasiyereBagliOlanlar != null ?
+				 { name: '@argSadecePlasiyereBagliOlanlar', type: 'bit', value: bool2Int(plasiyereBagliOlanlar) } : null ),
 			( smTipi ? { name: '@argSMTipi', type: 'char', size: 1, value: smTipi } : null ),
+			( gecikmeDurumu ? { name: '@argGecikmeTipi', type: 'varchar', size: 5, value: gecikmeDurumu } : null ),
 			( method ? { name: '@argRutin', type: 'nvarchar', value: method } : null )
 		].filter(Boolean)
 		return this.sqlExecSP({ query: 'tic_queryRun', params })
@@ -444,7 +448,7 @@ class TicariApp extends App {
 			method: 'tic_kapanmayanHesap2',
 			filtre: { plasiyer: plasiyerKod, must: mustKod },
 			...arguments[0]
-		}).catch(() => {
+		})/*.catch(() => {
 			let { params: par } = app
 			let { yaslandirmaTarihmi } = par.finans ?? {}
 			let params = [
@@ -454,7 +458,7 @@ class TicariApp extends App {
 				( yaslandirmaTarihmi ? { name: '@argGecikmeTarihten', type: 'bit', value: bool2Int(yaslandirmaTarihmi) } : null )
 			].filter(Boolean)
 			return this.sqlExecSP({ query: 'tic_kapanmayanHesap', params })
-		})
+		})*/
 	}
 	wsTicCariEkstre({ plasiyerKod, mustKod } = {}) {
 		return this.wsTicQueryRun({
@@ -462,14 +466,14 @@ class TicariApp extends App {
 			method: 'tic_cariEkstre2',
 			filtre: { plasiyer: plasiyerKod, must: mustKod },
 			...arguments[0]
-		}).catch(() => {
+		})/*.catch(() => {
 			let params = [
 				(plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null),
 				(mustKod ? { name: '@argMustKod', value: mustKod } : null),
 				{ name: '@argSadecePlasiyereBagliOlanlar', value: bool2Int(!!plasiyerKod) }
 			].filter(Boolean)
 			return this.sqlExecSP({ query: 'tic_cariEkstre', params })
-		})
+		})*/
 	}
 	wsTicCariEkstre_icerik({ plasiyerKod, mustKod, cariTipKod } = {}) {
 		return this.wsTicQueryRun({
@@ -477,14 +481,14 @@ class TicariApp extends App {
 			method: 'tic_ticariIcerik2',
 			filtre: { plasiyer: plasiyerKod, must: mustKod, tip: cariTipKod },
 			...arguments[0]
-		}).catch(() => {
+		})/*.catch(() => {
 			let params = [
 				( plasiyerKod ? { name: '@argPlasiyerKod', value: plasiyerKod } : null ),
 				( mustKod ? { name: '@argMustKod', value: mustKod } : null ),
 				{ name: '@argSadecePlasiyereBagliOlanlar', value: bool2Int(!!plasiyerKod) }
 			].filter(Boolean)
 			return this.sqlExecSP({ query: 'tic_ticariIcerik', params })
-		})
+		})*/
 	}
 	wsCariEkstre_normal(e = {}) {
 		deleteKeys(e, 'data', 'args')

@@ -212,7 +212,7 @@ extend(DRapor_PratikSatis.prototype, {
 						.setUserData({ keyFields: ['stokKod', 'stokAdi', 'grupKod', 'grupAdi'] })
 						.setToplamBelirtec('stokAdi')
 						.widgetArgsDuzenleIslemi(({ args }) =>
-							extend(args, { showGroupsHeader: true, showGroupAggregates: true, rowsHeight: 40 }))
+							extend(args, { showGroupsHeader: true, showGroupAggregates: true, rowsHeight: 45 }))
 						.setTabloKolonlari(_e => [
 							new GridKolon({ belirtec: 'stokAdi', text: 'Stok', genislikCh: 23 }).checkedList(),
 							new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 10 }).tipDecimal().checkedList().sum(),

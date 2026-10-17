@@ -1158,6 +1158,9 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 			.addGrupBasit('CRISTGRP', 'Cari İst. Grup', 'cistgrup', DMQCariIstGrup)
 			.addGrupBasit('CARI', 'Cari', 'cari', DMQCari)
 			.addGrupBasit('CRIL', 'Cari İl', 'il', DMQIl).addGrupBasit('CRULKE', 'Ülke', 'ulke', DMQUlke)
+		this
+			.tabloYapiDuzenle_plasiyer(...arguments)
+			.tabloYapiDuzenle_altHesap(...arguments)
 
 		let { rapor } = this
 		let { tip2OzelSahalar } = rapor ?? {}
@@ -1208,6 +1211,9 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				case 'CRULKE': sent.cari2UlkeBagla(); sent.sahalar.add('car.ulkekod', 'ulk.aciklama ulkeadi'); wh.icerikKisitDuzenle_cariUlke({ ...e, saha: 'car.ulkekod' }); break
 			}
 		}
+		this
+			.loadServerData_queryDuzenle_altHesap(e)
+			.loadServerData_queryDuzenle_plasiyer(e)
 		return this
 	}
 	tabloYapiDuzenle_plasiyer({ result }) {
@@ -1246,6 +1252,32 @@ class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
 				case 'TAVSIYEPLASIYER': {
 					sahalar.add(`csat.tavsiyeplasiyerkod tavsiyeplasiyerkod`, 'tpls.birunvan tavsiyeplasiyeradi')
 					wh.icerikKisitDuzenle_plasiyer({ ...e, saha: 'csat.tavsiyeplasiyerkod' })
+					break
+				}
+			}
+		}
+		return this
+	}
+	tabloYapiDuzenle_altHesap({ result }) {
+		result
+			.addKAPrefix('althesap')
+			.addGrupBasit('ALTHESAP', 'Alt Hesap', 'althesap', DMQAltHesap)
+		return this
+	}
+	loadServerData_queryDuzenle_altHesap(e = {}) {
+		let { stm, sent, attrSet, kodClause } = e
+		if (!kodClause)
+			return this
+		
+		sent ??= stm.sent
+		let { from, where: wh, sahalar } = sent
+		if (attrSet.ALTHESAP)
+			sent.fromIliski('cariitn alth', `${kodClause} = alth.kod`)
+		
+		for (let key in attrSet) {
+			switch (key) {
+				case 'ALTHESAP': {
+					sahalar.add(`${kodClause} althesapkod`, 'alth.aciklama althesapadi')
 					break
 				}
 			}

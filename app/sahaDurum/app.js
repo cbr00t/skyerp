@@ -65,8 +65,8 @@ class SahaDurumApp extends App {
 	getAnaMenu(e) {
 		// let disabledMenuIdSet = this.disabledMenuIdSet ?? {}
 		let items = [
-			new FRMenuChoice({ mne: 'BILGI-YUKLE', text: 'Bilgi Yükle', block: e => this.bilgiYukleIstendi(e) }),
-			new FRMenuChoice({ mne: 'MUSTERILER', text: 'Müşteriler', block: e => MQMustBilgi.listeEkraniAc(e) }),
+			new FRMenuChoice({ mne: 'BILGI-YUKLE', text: '<div class="menu-icon">⬇️</div> Bilgi Yükle', block: e => this.bilgiYukleIstendi(e) }),
+			new FRMenuChoice({ mne: 'MUSTERILER', text: '<div class="menu-icon">👥</div> Müşteriler', block: e => MQMustBilgi.listeEkraniAc(e) }),
 			( config.dev ? new FRMenuCascade({
 				mne: 'PARAM', text: 'Parametreler', items: [
 					new FRMenuChoice({ mne: 'TABLET', text: 'Tablet', block: e => app.params.tablet.tanimla(e) }),

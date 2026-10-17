@@ -311,7 +311,8 @@ class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
 						refsubekod: 'fis.bizsubekod', kaysayac: 'har.kaysayac', kayittipi: `'BNVIR'`,
 						banhesapkod: 'har.banhesapkod', oncelik: '61' , ba: 'har.ba', islemadi: `'Banka Hesap Virmanı'`,
 						dvkur: 'har.dvkur', bedel: 'har.bedel', dvbedel: 'har.dvbedel',
-						takipno: 'har.takipno', refkod: 'cik.banhesapkod', refadi: 'ches.aciklama',
+						takipno: 'har.takipno',
+						refkod: 'cik.banhesapkod', refadi: 'ches.aciklama',
 						detaciklama: 'har.aciklama'
                     })
                 })
@@ -331,7 +332,8 @@ class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
 					wh.fisSilindiEkle().degerAta('ND', 'fis.fistipi').add(or)
                 }).hvDuzenleIslemi(({ hv }) => {
                     extend(hv, {
-                        kaysayac: 'har.kaysayac', kayittipi: `'NDON'`, banhesapkod: `(case when fis.almsat = 'T' then har.banhesapkod else har.refmevduatkod end)`,
+                        kaysayac: 'har.kaysayac', kayittipi: `'NDON'`,
+						banhesapkod: `(case when fis.almsat = 'T' then har.banhesapkod else har.refmevduatkod end)`,
 						oncelik: '70', ba: `(case when fis.almsat = 'T' then 'B' else 'A' end)`,
 						islemadi: `(case when fis.almsat = 'T' then 'Pos Nakde Dönüşüm' else 'Kredi Kart Ödeme' end)`, anaislemadi: ({ hv }) => hv.islemadi,
 						detaciklama: 'har.aciklama', dvkur: 'har.dvkur', bedel: 'har.brutbedel', dvbedel: 'har.dvbedel',
@@ -410,7 +412,8 @@ class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
 						wh.fisSilindiEkle().degerAta('BN', 'fis.fistipi').degerAta('BC', 'fis.belgetipi')
 	                }).hvDuzenleIslemi(({ hv }) => {
 	                    extend(hv, {
-	                        kaysayac: 'bel.kaysayac', kayittipi: `(fis.belgetipi + 'CSILK')`, banhesapkod: 'bel.banhesapkod', oncelik: '80',
+	                        kaysayac: 'bel.kaysayac', kayittipi: `(fis.belgetipi + 'CSILK')`,
+							banhesapkod: 'bel.banhesapkod', oncelik: '80',
 							islemadi: `'Borç Çek İle Çekilen'`, detaciklama: `('Çek:' + LTRIM(STR(bel.belgeno)))`,
 							ba: `'A'`, dvkur: 'fis.dvkur', bedel: 'bel.bedel', dvbedel: 'bel.dvbedel',
 							takipno: 'fis.takipno', refkod: 'fis.kasakod', refadi: 'kas.aciklama'
@@ -448,7 +451,8 @@ class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
 					        dvkur: 'fis.dvkur',
 							bedel: '(case when har.bedel = 0 then bel.bedel else har.bedel end)',
 					        dvbedel: `(case when har.dvbedel = 0 then bel.dvbedel else har.dvbedel end)`,
-					        takipno: 'fis.takipno', refkod: 'car.must', refadi: 'car.birunvan'
+					        takipno: 'fis.takipno',
+							refkod: 'car.must', refadi: 'car.birunvan'
 	                    })
 	                })
             ]

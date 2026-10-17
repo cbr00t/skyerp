@@ -25,33 +25,34 @@ class DRapor_EldekiVarliklar extends DRapor_AraSeviye {
 	}
 }
 
-class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
+;class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 	static { window[this.name] = this; this._key2Class[this.name] = this } static get eldekiVarliklarmi() { return true } 
 	static get mstEtiket() { return '' } static get borderColor() { return '' }
 	static get aciklama() { return `<div class="full-wh" style="background-color: ${this.borderColor}">${this.mstEtiket}</div>` }
 	static get raporClass() { return DRapor_EldekiVarliklar } get width() { return '49.5%' }
 	static get yon() { return 'sol' } static get solmu() { return true }
 	get tazeleHideProgress_minCount() { return 2 }
+	get sabitRaporTanim_cacheFlag() { return false }
 
 	secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments)
 		let { eldekiVarlikStokDegerlemesiKDVlidir: degKDVlimi } = app?.params?.finans
-		{
+		;{
 			let harClasses = values(Hareketci.kod2Sinif)
 				.filter(cls => cls.eldekiVarliklarIcinUygunmu)
-			let anaTip_kaListe = []
-			for (let {kod, aciklama} of harClasses)
-				anaTip_kaListe.push(new CKodVeAdi([kod, aciklama]))
+			let anaTip_kaListe = harClasses.map(ka  => new CKodVeAdi([ ka.kod, ka.aciklama ]))
+			
 			let grupKod = 'donemVeTarih'
 			sec.grupEkle(grupKod, 'Tarih ve Bilgiler')
 			sec.secimTopluEkle({
 				tarih: new SecimTekilDate({ grupKod, etiket: '... Tarihdeki Durum', placeHolder: 'Bugünkü Durum' }),
-				anaTip: new SecimBirKismi({ grupKod, etiket: 'Gösterilecek Bilgiler', kaListe: anaTip_kaListe }).birKismi().autoBind()
+				anaTip: new SecimBirKismi({ grupKod, etiket: 'Gösterilecek Bilgiler', kaListe: anaTip_kaListe }).birKismi().autoBind(),
 				// tipeUymayanBakiyelerAlinmaz: new SecimBool({ grupKod, etiket: `Satıcı/Müşteri Tip'e uymayan bakiyeler alınmasın` }).setTrue()
 				// uyari1: new SecimText({ grupKod, value: `!! Satıcı/Müşteri Tip'e uymayan bakiyeler de <u class="bold firebrick">ALINIR</u>` })
 			})
 		}
-		{
+		
+		;{
 			let cariGosterim_tSec = new TekSecim({
 				char: '',
 				kaListe: [
@@ -81,9 +82,11 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 					new CKodVeAdi(['CN', 'Dem. Cinsi', 'cinsimi'])
 				]
 			})
+			
 			let grupKod = 'gosterim'
 			sec.grupEkle(grupKod, 'Gösterim')
 			sec.secimTopluEkle({
+				miktarKullanilir: new SecimBool({ grupKod, etiket: 'Miktar Kullanılır' }),
 				cariGosterim: new SecimTekSecim({ grupKod, etiket: 'Cari Gösterim', tekSecim: cariGosterim_tSec }).autoBind(),
 				stokTipi: new SecimTekSecim({ grupKod, etiket: 'Stok Tipi', tekSecim: stokTipi_tSec }).autoBind(),
 				demirbasTipi: new SecimTekSecim({ grupKod, etiket: 'Demirbaş Tipi', tekSecim: demirbasTipi_tSec }).autoBind()
@@ -93,8 +96,12 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 					new SecimText({ grupKod, etiket: ' ', value: `<span class=fs-120>Stok Değerlemesi <b class=firebrick>KDV'li</b>dir</span>` }))
 			}
 		}
-		sec.addKA('sube', DMQSube, ({ hv }) => hv.bizsubekod, 'sub.aciklama')
-		sec.addKA('subeGrup', DMQSubeGrup, 'sub.isygrupkod', 'igrp.aciklama')
+		
+		;{
+			sec
+				.addKA('sube', DMQSube, ({ hv }) => hv.bizsubekod, 'sub.aciklama')
+				.addKA('subeGrup', DMQSubeGrup, 'sub.isygrupkod', 'igrp.aciklama')
+		}
 	}
 	tabloYapiDuzenle({ result }) {
 		result.addKAPrefix('hartip', 'mst')
@@ -109,6 +116,8 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		result.addToplamBasit('MIKTAR', 'Miktar', 'miktar', null, 15)
 	}
 	sabitRaporTanimDuzenle({ result }) {
+		let { secimler: sec = {} } = this
+		let { value: miktarKullanilir } = sec.miktarKullanilir ?? {}
 		super.sabitRaporTanimDuzenle(...arguments)
 		result.resetSahalar()
 			// .addGrup('ONCELIK').addGrup('GRUPONCELIK')
@@ -116,7 +125,8 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		for (let kod of this.dvKodListe)
 			result.addIcerik(`BEDEL_${kod}`)
 		result.addIcerik('BEDEL')
-		result.addIcerik('MIKTAR')
+		if (miktarKullanilir)
+			result.addIcerik('MIKTAR')
 	}
 	tazele(e) {
 		let {rapor, raporTanim, konsolideVarmi} = this
@@ -125,7 +135,7 @@ class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
 		if (!kullanim)
 			debugger
 		kullanim.yatayAnaliz = konsolideVarmi ? 'DB' : null
-		{
+		;{
 			let cssSelector = 'status-ekBilgi'
 			grid?.children(`.${cssSelector}`)?.remove()
 		}

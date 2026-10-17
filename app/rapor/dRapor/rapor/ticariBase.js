@@ -15,11 +15,11 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 	get hizmetmi() { return this.rapor?.hizmetmi }
 	tabloYapiDuzenle({ result }) {
 		let e = arguments[0]; super.tabloYapiDuzenle(e)
-		result.addKAPrefix('althesap')
+		//result.addKAPrefix('althesap')
 		this.tabloYapiDuzenle_sube(e)
 		result.addGrupBasit('FISNOX', 'Fis No', 'fisnox', null, null, ({ item }) => item.secimKullanilir().noOrderBy())
 		this.tabloYapiDuzenle_cari(e)
-		result.addGrupBasit('ALTHESAP', 'Alt Hesap', 'althesap', DMQAltHesap)
+		//result.addGrupBasit('ALTHESAP', 'Alt Hesap', 'althesap', DMQAltHesap)
 		this.tabloYapiDuzenle_plasiyer(e)
 		this.tabloYapiDuzenle_takip(e)
 		this.tabloYapiDuzenle_shd(e)
@@ -50,7 +50,7 @@ class DRapor_Ticari_Main extends DRapor_Donemsel_Main {
 		for (let key in attrSet) {
 			switch (key) {
 				case 'FISNOX': sahalar.add('fis.fisnox'); break
-				case 'ALTHESAP': sahalar.add('fis.cariitn', 'alth.aciklama althesapadi'); break
+				case 'ALTHESAP': sahalar.add('fis.cariitn althesapkod', 'alth.aciklama althesapadi'); break
 				case 'FIYAT': sahalar.add(`har.fiyat`); break
 				case 'DVFIYAT': sahalar.add(`har.dvfiyat`); break
 				case 'DVKOD': sahalar.add(this.getRevizeDvKodClause('fis.dvkod')); break

@@ -3,7 +3,7 @@ class MQMustBilgi extends MQKAOrtak {
 	static get dataKey() { return 'mustBilgi' }
 	static get tableAlias() { return 'mbil' }
 	static kodListeTipi() { return 'MUST' }
-	static get sinifAdi() { return 'Plasiyer için Müşteriler' }
+	static get sinifAdi() { return '<div class="menu-icon">👥</div> Müşteriler' }
 	static get tanimUISinif() { return ModelTanimPart }
 	static get secimSinif() { return null }
 	static get tekilOkuYapilazmi() { return true }

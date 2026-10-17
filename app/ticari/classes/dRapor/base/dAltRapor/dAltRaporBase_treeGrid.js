@@ -4,6 +4,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	static get raporClass() { return null } static get kod() { return 'main' } static get aciklama() { return this.raporClass?.aciklama }
 	get noAutoColumns() { return false } get sabitmi() { return this.class.raporClass?.sabitmi }
 	get ozetVarmi() { return this.class.raporClass?.ozetVarmi } get chartVarmi() { return this.class.raporClass?.chartVarmi }
+	get sabitRaporTanim_cacheFlag() { return true }
 	get width() {
 		if (!(this.ozetVarmi || this.chartVarmi))
 			return'var(--full)'
@@ -13,12 +14,14 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	get tazeleHideProgress_waitMS() { return 100 }
 	get tazeleHideProgress_minCount() { return 1 }
 	get sabitRaporTanim() {
-		let {_sabitRaporTanim: result} = this
+		let { _sabitRaporTanim: result, sabitRaporTanim_cacheFlag } = this
 		if (result == null) {
 			let rapor = this, {raporTanimSinif} = this.class
 			let e = { result: new raporTanimSinif({ rapor }) }
 			this.sabitRaporTanimDuzenle(e); this.sabitRaporTanimDuzenle_son(e)
-			result = this._sabitRaporTanim = e.result
+			result = e.result
+			if (sabitRaporTanim_cacheFlag)
+				this._sabitRaporTanim = result
 		}
 		return result
 	}
@@ -255,13 +258,28 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		}
 		
 	}
+	async tazeleOncesi(e = {}) {
+		let { rapor, sabitmi, sabitRaporTanim_cacheFlag: cacheable, gridPart, class: { raporTanimSinif } } = this
+		rapor?.signal('tazeleOncesi', e)
+		
+		if (!cacheable) {
+			let _e = { ...e, rapor: this }
+			let raporTanim = this.raporTanim = sabitmi
+				? this.sabitRaporTanim
+				: await rapor?.signal('raporTanim', _e) ?? await raporTanimSinif?.getDefault?.(_e)
+			if (raporTanim)
+				raporTanim.rapor = this
+		}
+	}
 	async tazele(e = {}) {
 		if (await this._promise_wait == true)
 			return
+		
 		await super.tazele(e)
-		let {grid} = this.gridPart || {}
+		let { grid } = this.gridPart ?? {}
 		if (!grid)
 			return
+		
 		this._notify?.close?.()
 		let da = this.tazele_ozel?.(e)
 		if (!da)
@@ -277,9 +295,6 @@ class DAltRapor_TreeGrid extends DAltRapor {
 		}
 	}
 	super_tazele(e) { super.tazele(e) }
-	tazeleOncesi(e) {
-		this.rapor?.signal('tazeleOncesi', e)
-	}
 	tazeleSonrasi(e) {
 		let { etiket: raporAdi, rapor = {}, raporTanim = {}, fbd_grid: { parent: layout } = {}, _notify } = this
 		let { part: parentPart, isPanelItem, builder: { id2Builder } } = rapor
@@ -942,9 +957,10 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 		if (await this._promise_wait == true)
 			return
 		
-		let {tazeleHideProgress_minCount, rapor: { isPanelItem, part }, class: mainClass } = this
+		let { tazeleHideProgress_minCount, rapor: { isPanelItem, part }, class: mainClass } = this
 		if (part?.isDestroyed)
 			return
+		
 		let e = arguments[0] ?? {}
 		try {
 			if (!isPanelItem) {
@@ -1105,7 +1121,7 @@ class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
 					let savedColDefs = colDefs; colDefs = [savedColDefs[0], ...sortColDefs, ...savedColDefs.slice(1).filter(colDef => !sortBelirtecSet[colDef.belirtec])]
 				}*/
 			}
-			globalThis.progressManager?.progressStep(1);
+			globalThis.progressManager?.progressStep(1)
 			for (let tip in attrSet) {
 				if (ozetBilgi.grupTipKod && ozetBilgi.icerikTipKod)
 					break

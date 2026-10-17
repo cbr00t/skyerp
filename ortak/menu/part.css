@@ -227,6 +227,7 @@ main #anaMenu {
 body.dark-theme .menu.part .items button .menu-icon {
 	filter: invert(1) hue-rotate(180deg)
 }
+.nav-item .menu-icon { display: inline-block }
 
 @media (max-width: 1800px) {
 	main #anaMenu {
