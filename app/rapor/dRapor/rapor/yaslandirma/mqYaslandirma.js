@@ -180,7 +180,8 @@ class MQYaslandirma extends DRaporMQ {
 
 		let args = {
 			sadecePlasiyereBagliOlanlar,
-			smTipi, gecikmeDurumu,
+			smTipi,
+			// gecikmeDurumu,
 			filtre: { plasiyer, must, bolge, tip }
 		}
 		let data = {
@@ -197,7 +198,7 @@ class MQYaslandirma extends DRaporMQ {
 		;{
 			;kapanmayanHesap.forEach(rec => {
 				let k = MustBilgi.getKey(rec)
-				let m = k2m[k] ??= new MustBilgi({ rec })
+				let m = k2m[k] ??= new MustBilgi({ gecikmeDurumu, rec })
 				if (smTipi == 'S') {
 					;['orjbedel', 'acikkisim'].forEach(_k => {
 						let v = rec[_k]
@@ -254,13 +255,30 @@ class MQYaslandirma extends DRaporMQ {
 		gecikmeDurumu = gecikmeDurumu?.trimEnd() ?? ''
 		
 		let oncesiGosterilmez = Boolean(gecikmeDurumu)
-		delay(0).then(() =>
-			listePart[oncesiGosterilmez ? 'hideColumn' : 'showColumn']('oncesi'))
+		let gecikmeOncesi = gecikmeDurumu == 'G' ? 0 : asInteger(gecikmeDurumu)
+		let { kademeler } = Yaslandirma
+		delay(0).then(() => {
+			let hideCols = []
+			if (oncesiGosterilmez)
+				hideCols.push('oncesi')
+
+			;kademeler.forEach((gun, i) => {
+				if (gun <= gecikmeOncesi)
+					hideCols.push(`kademe${i}Bedel`)
+			})
+			
+			;hideCols.forEach(k =>
+				listePart.hideColumn(k))
+		})
 		
 		//let { boundRecs: recs } = listePart
 	}
-	static orjBaslikListesi_satirCiftTiklandi({ event: { args = {} } }) {
-		let { row: { bounddata: rec } = {} } = args
+	static orjBaslikListesi_satirCiftTiklandi(e = {}) {
+		let { gridPart = e.parentPart ?? e.sender } = e
+		let mfSinif = MQKapanmayanHesap
+		let { row: { bounddata: rec } = {} } = e.event?.args ?? {}
+		delay(0).then(() =>
+			this.detayGoster({ ...e, gridPart, mfSinif, rec }))
 	}
 	
 	static detayGoster(e = {}) {
@@ -273,11 +291,26 @@ class MQYaslandirma extends DRaporMQ {
 		if (!parentRec)
 			return
 
+		let uyari = parentRec.uyari?.[dataKey]
 		let _recs = parentRec[dataKey]
 		if (!_recs)
 			return
 
 		let args = { parentRec, _recs }
-		return mfSinif.listeEkraniAc({ args })
+		let { part } = mfSinif.listeEkraniAc({ args })
+		if (uyari && part) {
+			delay(10).then(() => {
+				let { isDestroyed, divEkBilgi: ekBilgi } = part
+				if (isDestroyed || !ekBilgi?.length)
+					return
+
+				ekBilgi.html(
+					ekBilgi.html() +
+					`<div class="uyari orangered">${uyari}</div>`
+				)
+			})
+		}
+		
+		return part
 	}
 }

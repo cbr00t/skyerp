@@ -37,6 +37,8 @@ class MQYaslandirmaEk_Base extends DMQCogul {
 				.addStyle_fullWH('calc(var(--full) - 300px)')
 				.addCSS('fs-120 bold royalblue')
 				.addStyle(`$elementCSS { margin: 5px 0 0 20px }`)
+				.onAfterRun(({ builder: { rootPart, layout } }) =>
+					rootPart.divEkBilgi = layout)
 		}
 		
 	}
@@ -148,7 +150,12 @@ class MQKapanmayanHesap extends MQYaslandirmaEk_Base {
 	static getEkBilgiHTML({ gridPart, rec: { dengesizmi } }) {
 		return [
 			...super.getEkBilgiHTML(...arguments),
-			( dengesizmi ? `<div class="fs-120 bold firebrick">!!</div>` : null )
+			( dengesizmi ? 
+				 `<div class="fs-130 bold firebrick invert-black"
+						 style="margin-top: -.5rem"
+						 title="Kapanmayan Hesaplarda tutarsızlık vardı">
+					⚠️
+				</div>` : null )
 		].filter(Boolean)
 	}
 }

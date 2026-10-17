@@ -15,10 +15,15 @@ MustBilgi: class MustBilgi extends CObject {
 	
 	constructor(e = {}) {
 		super(e)
-		let { rec = e ?? {} } = e
+		let { gecikmeDurumu, rec = e ?? {} } = e
 		let { mustKod = rec.mustkod ?? rec.must } = rec
 		let { altHesapKod = rec.althesapkod, yaslandirmalar } = rec
-		extend(this, { mustKod, altHesapKod, yaslandirmalar })
+		gecikmeDurumu = gecikmeDurumu?.trimEnd?.()
+		let uyari = e.uyari ?? {
+			kapanmayanHesap: undefined,
+			cariEkstre: undefined
+		}
+		extend(this, { mustKod, altHesapKod, yaslandirmalar, gecikmeDurumu, uyari })
 		;['kapanmayanHesap', 'cariEkstre'].forEach(k =>
 			this[k] ??= [])
 		;{
@@ -37,11 +42,12 @@ MustBilgi: class MustBilgi extends CObject {
 			.join(delimWS)
 	}
 	calc() {
-		let { kapanmayanHesap = [], cariEkstre = [] } = this
+		let { kapanmayanHesap = [], cariEkstre = [], gecikmeDurumu } = this
 		let { kademeler } = Yaslandirma
 		
 		let bakiye = roundToFra2(topla(_ => _.acikkisim || 0, kapanmayanHesap))
 		let dengesizmi = false
+		let uyari = { kapanmayanHesap: null, cariEkstre: null }
 
 		// 1) Kapanmayan Hesaplar ile Cari Ekstre dengeli mi kontrolü kapanmayanHesap
 		;{
@@ -138,12 +144,27 @@ MustBilgi: class MustBilgi extends CObject {
 			bakiye = roundToFra2(topla(_ => _.acikkisim || 0, kapanmayanHesap))
 		}
 
-		// 5) Sabit Yaşlandırma dizisini oluştur
+		// 5) gecikmeDurumu
+		let gecikmeOncesi = (
+			!gecikmeDurumu ? null :
+			gecikmeDurumu == 'G' ? 0 :
+			Number(gecikmeDurumu)
+		)
+		if (gecikmeOncesi != null) {
+			kapanmayanHesap = kapanmayanHesap.filter(r =>
+				r.isaretligecikmegun > gecikmeOncesi)
+			uyari.kapanmayanHesap = (
+				gecikmeOncesi ? `Gecikme > ${gecikmeOncesi}` :
+				'Gecikenler'
+			)
+		}
+
+		// 6) Sabit Yaşlandırma dizisini oluştur
 		let yaslandirmalar = []
 		;kademeler.forEach((_, index) =>
 			yaslandirmalar[index] = new Yaslandirma({ index, gecmis: 0, gelecek: 0 }))
 
-		// 6) Kapanmayan Hesap için Gecikme Gün Hesapla ve Yaşlandırmaları oluştur
+		// 7) Kapanmayan Hesap için Gecikme Gün Hesapla ve Yaşlandırmaları oluştur
 		;kapanmayanHesap.forEach(r => {
 			// 6.a) İşaretli Gecikme Gün -> Gecikme/Gelecek Gün ayrımını netleştir
 			let { isaretligecikmegun: gun, acikkisim: acik = 0 } = r
@@ -172,15 +193,16 @@ MustBilgi: class MustBilgi extends CObject {
 			}
 		})
 
-		// 7) Yaşlandırma Kademelerinden Öncesi ve Kademe Bedellerini inst içinde sakla
+		// 8) Yaşlandırma Kademelerinden Öncesi ve Kademe Bedellerini inst içinde sakla
+		let oncesi
 		;{
-			this.oncesi = roundToFra2(topla(_ => _.gelecek || 0, yaslandirmalar))
+			oncesi = roundToFra2(topla(_ => _.gelecek || 0, yaslandirmalar))
 			for (let i = 1; i <= kademeler.length + 1; i++)
 				this[`kademe${i}Bedel`] = yaslandirmalar[i - 1]?.gecmis ?? 0
 		}
 
-		// 7) Diğer hesap sonuçlarını inst içinde sakla
-		extend(this, { dengesizmi, bakiye, kapanmayanHesap, yaslandirmalar })
+		// 9) Diğer hesap sonuçlarını inst içinde sakla
+		extend(this, { dengesizmi, bakiye, kapanmayanHesap, oncesi, yaslandirmalar, uyari })
 		
 		return this
 	}

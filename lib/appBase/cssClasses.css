@@ -151,3 +151,6 @@
 .i-pl-18 > div { padding-left: 18px !important }
 .i-pl-20 > div{ padding-left: 20px !important }
 
+
+.invert,
+	body.dark-theme .invert { filter: invert(1) hue-rotate(180deg) !important }
