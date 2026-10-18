@@ -121,12 +121,14 @@ class PortalApp extends TicariApp {
 			new FRMenuCascade({
 				mne: 'KMD', text: 'Kontör<br/><b class=forestgreen>Müşteri Durumu</b>',
 				items: (
-					[MQKontor, ...MQKontor.kaListe.map(ka => ka.ekBilgi)].map(cls => {
-						let { kodListeTipi: mne, sinifAdi: text } = cls
-						return new FRMenuChoice({
-							mne, text,
-							block: e => cls.listeEkraniAc(e)
-						})
+					[MQKontor, ...MQKontor.kaListe.map(ka => ka.ekBilgi)]
+						.filter(Boolean)
+						.map(cls => {
+							let { kodListeTipi: mne, sinifAdi: text } = cls
+							return new FRMenuChoice({
+								mne, text,
+								block: e => cls.listeEkraniAc(e)
+							})
 					})
 				)
 			}),

@@ -13,9 +13,12 @@ class KontorYonetimPart extends SimplePart {
 	constructor(e = {}) {
 		super(e)
 		extend(this, {
-			grids: {}, mustKod: e.mustKod ?? this.mustKod ?? '',
-			tip: e.tip ?? '', durum: e.durum ?? 'tumu',
-			ozetFisIDListe: [], filtreTokens: []
+			grids: {},
+			mustKod: e.mustKod ?? qs.mustKod ?? this.mustKod ?? '',
+			tip: e.tip ?? qs.tip ?? '',
+			durum: e.durum ?? qs.durum ?? 'tumu',
+			ozetFisIDListe: [],
+			filtreTokens: []
 		})
 	}
 	rfbDuzenle() {
@@ -334,7 +337,11 @@ class KontorYonetimPart extends SimplePart {
 		this._islem = islem
 		this.butonlariGuncelle()
 		try { return await this[islem]({ rec }) }
-		catch (ex) { cerr(ex); hConfirm(getErrorText(ex), 'Kontör Yönetimi'); return false }
+		catch (ex) {
+			cerr(ex)
+			hConfirm(getErrorText(ex), 'Kontör Yönetimi')
+			return false
+		}
 		finally { delete this._islem; this.butonlariGuncelle() }
 	}
 	harHucreTiklandi({ event: evt }) {

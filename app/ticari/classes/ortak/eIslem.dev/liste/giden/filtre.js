@@ -214,6 +214,9 @@ class GidenEIslemFiltre extends EIslemFiltre {
 		}
 		
 		sentEkle({ fisTable: 'piffis', psTip: 'SR', ifSql: `fis.piftipi`, efAyrimTipiClause: `'MS'` })
+
+		for (let sent of stm)
+			this.sayaclarBagla({ ...e, sent })
 		
 		stm.orderBy
 			.add('tarih DESC', 'eIslTip', 'oncelik', 'fisNox DESC')

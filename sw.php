@@ -1,3 +1,7 @@
+<?php
+	header('Content-Type: text/javascript');
+	require_once('config.php')
+?>
 const APP_NAME = 'SkyERP', VERSION = '1.41.51'
 const CACHE_NAME = `cache-${APP_NAME}-${VERSION}`
 const StreamHeaders = { 'text/event-stream': true, 'application/x-ndjson': true }

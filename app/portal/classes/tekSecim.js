@@ -7,7 +7,7 @@ class KontorTipBasit extends TekSecim {
 		super.kaListeDuzenle(...arguments)
 		kaListe.push(
 			...entries(MQKontor.key2SubClasses)
-				.filter(([, c]) => c.uygunmu)
+				.filter(([, c]) => c?.uygunmu)
 				.map(([, c]) => {
 					let { tip: t, tipAdi: a } = c
 					let tlw = t?.toLowerCase() ?? null

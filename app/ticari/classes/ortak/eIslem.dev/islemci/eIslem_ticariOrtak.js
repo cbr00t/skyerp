@@ -513,6 +513,7 @@ class EIslTicariOrtak extends EIslGiden {
 			result[rec.kod] = rec
 	}
 
+	
 	// xmlGetProfileID(e) { }
 	xmlGetBelgeTipKodu(e) { return 'SATIS' }
 

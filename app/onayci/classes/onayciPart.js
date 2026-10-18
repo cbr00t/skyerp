@@ -485,7 +485,8 @@ class OnayciPart extends SimplePart {
 	}
 
 	getHTML({ rec: r }) {
-		let esc = v => this.escapeHTML(v), users = app.user2Adi ?? {}
+		let esc = v => this.escapeHTML(v)
+		let users = app.user2Adi ?? {}
 		let state = r.onayDurum == 'O' ? 'onayli' : r.onayDurum == 'R' ? 'red' : 'bekleyen'
 		let status = ({
 			onayli: 'Onaylandı',
@@ -508,25 +509,52 @@ class OnayciPart extends SimplePart {
 			r.proformaId ? '<span class="ony-tag ony-proforma">Proforma bağlı</span>' : ''
 		].join('')
 
+		let { kisaNot } = r
+
 		return (
 			`<article class="ony-card ony-${state}" data-id="${esc(this.recordKey(r))}">
-				<div class="ony-main"><div class="ony-type-icon">${this.icon('file')}</div><div class="ony-description">
-					<div class="ony-type">${esc(this.tip2Yapi[r.tip]?.tipText || r.tip)} <span>${esc(r._db)}</span></div>
-					<h3 title="${esc(r.mustUnvan)}">${esc(r.mustUnvan || 'Cari unvanı yok')}</h3>
-					<div class="ony-reference" title="${esc(r.ekBilgi)}">${esc(r.fisNox)}${r.ekBilgi ? ' · ' + esc(r.ekBilgi) : ''}</div>
-					<div class="ony-flags">${flags}</div>
-				</div></div>
-				<div class="ony-date">${this.icon('calendar')}<div><span>${esc(date(r.tarih))}</span>
-					<strong>${esc(bedelToString(r.bedel))}</strong><small>Belge tutarı</small></div></div>
-				<div class="ony-info"><div class="ony-status">${this.icon(state == 'bekleyen' ? 'clock' : state == 'red' ? 'reject' : 'check')}
+				<div class="ony-main">
+					<div class="ony-type-icon">
+						${this.icon('file')}
+					</div>
+					<div class="ony-description">
+						<div class="ony-type">
+							${esc(this.tip2Yapi[r.tip]?.tipText || r.tip)}
+							<span>${esc(r._db)}</span>
+						</div>
+						<h3 title="${esc(r.mustUnvan)}">
+							${esc(r.mustUnvan || 'Cari unvanı yok')}
+						</h3>
+						<div class="ony-reference" title="${esc(r.ekBilgi)}">
+							${esc(r.fisNox)}${r.ekBilgi ? ' · ' + esc(r.ekBilgi) : ''}
+						</div>
+						<div class="ony-flags">${flags}</div>
+					</div>
+				</div>
+				<div class="ony-date">
+					${this.icon('calendar')}
 					<div>
-						<strong>${status}</strong><small>${esc(r.onayNo)}. onay kademesi${time ? ' · ' + esc(time) : ''}</small></div>
+						<span>${esc(date(r.tarih))}</span>
+						<strong>${esc(bedelToString(r.bedel))}</strong>
+						${ kisaNot ? `<span class="kisa-not">${kisaNot}</span>` : '' }
+						<small>Belge tutarı</small>
+					</div>
+				</div>
+				<div class="ony-info"><div class="ony-status">
+					${this.icon(state == 'bekleyen' ? 'clock' : state == 'red' ? 'reject' : 'check')}
+					<div>
+						<strong>${status}</strong>
+						<small>${esc(r.onayNo)}. onay kademesi${time ? ' · ' + esc(time) : ''}</small></div>
 					</div>
 					<div class="ony-approvers">
 						<span title="${esc(users[r.onceUser] || r.onceUser)}">Önceki: <b>${esc(users[r.onceUser] || r.onceUser || '—')}</b></span>
 						<span title="${esc(users[r.sonraUser] || r.sonraUser)}">Sonraki: <b>${esc(users[r.sonraUser] || r.sonraUser || '—')}</b></span>
 					</div>
-					${reason ? `<div class="ony-note" title="${esc(reason)}">${r.onayRedNedeni ? 'Neden' : 'Önceki not'}: ${esc(reason)}</div>` : ''}
+					${ !reason ? '' :
+						`<div class="ony-note" title="${esc(reason)}">
+							<span>${r.onayRedNedeni ? 'Neden' : 'Önceki not'}:</span>
+							<span class="text">${esc(reason)}</span>
+						</div>` }
 				</div>
 				<div class="ony-actions">
 					${button('view', 'Belgeyi görüntüle', 'eye')}
@@ -577,107 +605,110 @@ class OnayciPart extends SimplePart {
 		return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg>`
 	}
 	getStyle() {
-		return `$elementCSS { --ony-border: #dce5ef; color: #24334a; background: #f3f6fa; font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden }
-		$elementCSS .ony-shell { position: absolute; inset: 0; padding: 0 !important; display: flex !important; flex-direction: column; container-type: inline-size }
-		$elementCSS .ony-header { flex: 0 0 auto; padding: 22px 26px 12px; box-sizing: border-box; width: 100% }
-		$elementCSS .ony-heading, $elementCSS .ony-controls, $elementCSS .ony-toolbar, $elementCSS .ony-tabs { display: flex; align-items: center; gap: 10px }
-		$elementCSS .ony-heading { justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap }
-		$elementCSS .ony-eyebrow { color: #7b8ca4; font-size: 10px; font-weight: 700; letter-spacing: 2px }
-		$elementCSS h2 { margin: 4px 0 0; font-size: 25px; font-weight: 650; color: #1e2b40 }
-		$elementCSS button { cursor: pointer; font-family: inherit }
-		$elementCSS button:disabled { opacity: .45; cursor: default }
-		$elementCSS button:focus-visible, $elementCSS input:focus-visible { outline: 2px solid #2472d8; outline-offset: 2px }
-		$elementCSS svg { width: 20px; height: 20px; flex: 0 0 auto; vertical-align: middle }
-		$elementCSS .ony-toolbar button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid #d6dfeb; border-radius: 9px; background: white; padding: 9px 13px; color: #40536e; font-weight: 600 }
-		$elementCSS .ony-toolbar .ony-primary { background: #206bd0; border-color: #206bd0; color: white }
-		$elementCSS .ony-controls { flex-wrap: wrap }
-		$elementCSS .ony-tabs { gap: 4px; padding: 4px; border: 1px solid #dce5ef; border-radius: 10px; background: #eaf0f7 }
-		$elementCSS .ony-tabs button { border: 0; border-radius: 7px; padding: 8px 11px; background: transparent; color: #5d6c80; font-size: 12px; font-weight: 600 }
-		$elementCSS .ony-tabs button[aria-pressed=true] { background: white; color: #165daf; box-shadow: 0 1px 4px #22334a16 }
-		$elementCSS [data-count] { margin-left: 5px; opacity: .75 }
-		$elementCSS .ony-closed { display: flex; align-items: center; gap: 6px; color: #62738c; font-size: 12px; white-space: nowrap }
-		$elementCSS .ony-search { margin-left: auto; min-width: 140px; width: 210px; border: 1px solid #dce5ef; border-radius: 9px; padding: 10px 12px; font: inherit; font-size: 12px; background: white }
-		$elementCSS .ony-summary { margin-top: 12px; color: #76869a; font-size: 12px; min-height: 16px }
-		$elementCSS .ony-grid { flex: 1 1 0; min-height: 0; width: calc(100% - 36px) !important; margin: 0 18px 18px; position: relative }
-		$elementCSS .ony-grid > .grid { height: 100% !important; width: 100% !important; border: 0; background: transparent }
-		$elementCSS .ony-grid .jqx-grid-content, $elementCSS .ony-grid .jqx-grid-cell { background: #f3f6fa; border-color: transparent !important }
-		/*$elementCSS .ony-grid .jqx-grid-cell-selected { background: #e5eefc !important }*/
-		$elementCSS .ony-grid .ony-card-cell > div { margin: 0 !important; padding: 0 !important; height: 100%; overflow: hidden }
-		$elementCSS .ony-card { --ony-accent: #239e78; box-sizing: border-box; height: calc(100% - 12px); margin: 3px 10px 9px 4px; padding: 0px 20px 10px 18px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(170px, .8fr) minmax(260px, 1.15fr) 32px; align-items: center; gap: 18px; background: white; border: 1px solid var(--ony-border); border-left: 5px solid var(--ony-accent); border-radius: 11px; box-shadow: 0 3px 8px #20314f08; white-space: normal; font-family: 'Segoe UI', Arial, sans-serif }
-		$elementCSS .ony-red { --ony-accent: #ed5265 }
-		$elementCSS .ony-bekleyen { --ony-accent: #e9a23b }
-		$elementCSS .jqx-grid-cell-selected { background: #e5eefc }
-		$elementCSS .jqx-grid-cell-selected .ony-bekleyen { background: #d2e1f6 !important }
-		$elementCSS .ony-kapandi { --ony-accent: #9aa7b7 }
-		$elementCSS .ony-main { display: flex; align-items: center; gap: 15px; min-width: 0 }
-		$elementCSS .ony-type-icon { display: grid; place-items: center; flex: 0 0 54px; height: 54px; border-radius: 18px; color: #3678c9; background: #eaf3ff }
-		$elementCSS .ony-type-icon svg { width: 27px; height: 27px }
-		$elementCSS .ony-description { min-width: 0 }
-		$elementCSS .ony-type { color: #1d72d1; font-weight: 700; font-size: 11px; margin-bottom: 7px }
-		$elementCSS .ony-type span { color: #8a98aa; font-weight: 500; margin-left: 4px }
-		$elementCSS h3 { color: #263348; font-size: 17px; font-weight: 650; margin: 0 0 7px; white-space: normal; overflow: hidden; text-overflow: ellipsis }
-		$elementCSS .ony-reference { font-size: 12px; line-height: 1.5; color: #63758f; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere }
-		$elementCSS .ony-plate { display: inline-block; border: 1px solid #c9d7e8; border-left: 5px solid #206bd0; border-radius: 4px; padding: 2px 8px; font-weight: 650; letter-spacing: 1px }
-		$elementCSS .ony-note { font-size: 11px; color: #8894a5; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 4px }
-		$elementCSS .ony-date { display: flex; align-items: center; gap: 12px; border-left: 1px solid #e5ebf3; padding-left: 20px; color: #71839c; min-height: 50px }
-		$elementCSS .ony-date span, $elementCSS .ony-date small { display: block; font-size: 12px }
-		$elementCSS .ony-date strong { display: block; color: #3d506d; font-size: 17px; margin: 6px 0 }
-		$elementCSS .ony-info { border-left: 1px solid #e5ebf3; padding-left: 18px; min-width: 0 }
-		$elementCSS .ony-status { display: flex; align-items: center; gap: 11px; padding: 12px; border-radius: 9px; background: #eaf7f1; color: #198162 }
-		$elementCSS .ony-status strong { font-size: 14px; display: block }
-		$elementCSS .ony-status small { font-size: 11px; display: block; opacity: .8; margin-top: 4px }
-		$elementCSS .ony-red .ony-status { color: #c23349; background: #fff0f2 }
-		$elementCSS .ony-bekleyen .ony-status { color: #a26b15; background: #fff6e7 }
-		$elementCSS .ony-kapandi .ony-status { color: #69798f; background: #f0f3f7 }
-		$elementCSS .ony-people { display: flex; gap: 5px; align-items: center; margin-top: 10px; min-height: 28px }
-		$elementCSS .ony-people > span:first-child { color: #7c8aa0; font-size: 11px; margin-right: 5px }
-		$elementCSS .ony-avatar { display: inline-flex; align-items: center; justify-content: center; width: 27px; height: 27px; border-radius: 50%; color: white; background: #3479c9; font-weight: 600; font-size: 10px; flex-shrink: 0 }
-		$elementCSS .ony-owner { background: #253f65; box-shadow: 0 0 0 2px #c7d9f0 }
-		$elementCSS .ony-extra { color: #5c7290; background: #eaf0f8 }
-		$elementCSS .ony-people button, $elementCSS .ony-actions button { display: inline-grid; place-items: center; border: 0; background: #f0f4fa; color: #59718e; border-radius: 8px; width: 29px; height: 25px; padding: 5px }
-		$elementCSS .ony-people button { border-radius: 50% }
-		$elementCSS .ony-actions { display: flex; flex-direction: column; gap: 4px }
-		$elementCSS .ony-actions button:hover, $elementCSS .ony-people button:hover { color: #1764bf; background: #dfedff }
-		$elementCSS .ony-toolbar .ony-primary { background: #168565; border-color: #168565 }
-		$elementCSS .ony-toolbar .ony-danger { color: #c23349; background: #fff0f2; border-color: #f0c9d0 }
-		$elementCSS .ony-approvers { display: flex; flex-wrap: wrap; gap: 5px 12px; font-size: 11px; color: #71839c; margin-top: 10px }
-		$elementCSS .ony-approvers span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
-		$elementCSS .ony-flags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px }
-		$elementCSS .ony-tag { font-size: 10px; padding: 3px 5px; background: #eaf7f1; color: #198162; border-radius: 4px }
-		$elementCSS .ony-warning { color: #c23349; background: #fff0f2 }
-		$elementCSS .ony-proforma { color: #7752b8; background: #f3ecff }
-		$elementCSS .ony-actions [data-action=approve] { color: #198162; background: #eaf7f1 }
-		$elementCSS .ony-actions [data-action=reject] { color: #c23349; background: #fff0f2 }
-		@container (max-width: 1049px) {
-			$elementCSS .ony-card { grid-template-columns: minmax(0, 1fr) minmax(250px, .9fr) 30px; gap: 12px; padding: 8px }
-			$elementCSS .ony-main { grid-column: 1; grid-row: 1 }
-			$elementCSS .ony-date { grid-column: 1; grid-row: 2; min-height: 0; border: 0; padding-left: 69px }
-			$elementCSS .ony-date svg, $elementCSS .ony-date small { display: none }
-			$elementCSS .ony-date strong { display: inline; font-size: 14px; margin-left: 8px }
-			$elementCSS .ony-date span { display: inline }
-			$elementCSS .ony-info { grid-column: 2; grid-row: 1 / 3 }
-			$elementCSS .ony-actions { grid-column: 3; grid-row: 1 / 3 }
-		}
-		@container (max-width: 679px) {
-			$elementCSS .ony-header { padding: 15px 12px 10px }
-			$elementCSS .ony-heading { gap: 15px; margin-bottom: 12px }
-			$elementCSS .ony-toolbar { gap: 5px; flex-wrap: wrap }
-			$elementCSS .ony-toolbar button { padding: 8px; font-size: 11px }
-			$elementCSS .ony-search { margin-left: 0; flex: 1; width: 130px }
-			$elementCSS .ony-tabs { gap: 0 }
-			$elementCSS .ony-tabs button { padding: 8px; font-size: 11px }
-			$elementCSS .ony-grid { width: calc(100% - 12px) !important; margin: 0 2px 8px }
-			$elementCSS .ony-card { grid-template-columns: minmax(0, 1fr) 30px; grid-template-rows: auto auto auto; gap: 0; padding: 4px 12px; margin-right: 5px }
-			$elementCSS .ony-type-icon { flex-basis: 38px; height: 42px; border-radius: 12px }
-			$elementCSS .ony-main { gap: 10px }
-			$elementCSS h3 { font-size: 14px }
-			$elementCSS .ony-date { padding-left: 48px }
-			$elementCSS .ony-info { grid-column: 1 / 3; grid-row: 3; border: 0; padding: 0 }
-			$elementCSS .ony-actions { grid-column: 2; grid-row: 1 / 3; padding-top: 0 !important }
-			$elementCSS .ony-status { padding: 3px 5px }
-			$elementCSS .ony-shell { gap: 0 important; padding: 0 8px !important }
-		}`
+	return `$elementCSS { --ony-border: #dce5ef; color: #24334a; background: #f3f6fa; font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden }
+	$elementCSS .ony-shell { font-size: 100%; position: absolute; inset: 0; padding: 0 !important; display: flex !important; flex-direction: column; container-type: inline-size }
+	$elementCSS .ony-header { flex: 0 0 auto; padding: 22px 26px 12px; box-sizing: border-box; width: 100% }
+	$elementCSS .ony-heading, $elementCSS .ony-controls, $elementCSS .ony-toolbar, $elementCSS .ony-tabs { display: flex; align-items: center; gap: 10px }
+	$elementCSS .ony-heading { justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap }
+	$elementCSS .ony-eyebrow { color: #7b8ca4; font-size: 65%; font-weight: 700; letter-spacing: 2px }
+	$elementCSS h2 { margin: 4px 0 0; font-size: 135.42%; font-weight: 650; color: #1e2b40 }
+	$elementCSS button { cursor: pointer; font-family: inherit; font-size: 100% }
+	$elementCSS button:disabled { opacity: .45; cursor: default }
+	$elementCSS button:focus-visible, $elementCSS input:focus-visible { outline: 2px solid #2472d8; outline-offset: 2px }
+	$elementCSS svg { width: 20px; height: 20px; flex: 0 0 auto; vertical-align: middle }
+	$elementCSS .ony-toolbar button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid #d6dfeb; border-radius: 9px; background: white; padding: 9px 13px; color: #40536e; font-weight: 600 }
+	$elementCSS .ony-toolbar .ony-primary { background: #206bd0; border-color: #206bd0; color: white }
+	$elementCSS .ony-controls { flex-wrap: wrap }
+	$elementCSS .ony-tabs { gap: 4px; padding: 4px; border: 1px solid #dce5ef; border-radius: 10px; background: #eaf0f7 }
+	$elementCSS .ony-tabs button { border: 0; border-radius: 7px; padding: 8px 11px; background: transparent; color: #5d6c80; font-size: 65%; font-weight: 600 }
+	$elementCSS .ony-tabs button[aria-pressed=true] { background: white; color: #165daf; box-shadow: 0 1px 4px #22334a16 }
+	$elementCSS [data-count] { margin-left: 5px; opacity: .75 }
+	$elementCSS .ony-closed { display: flex; align-items: center; gap: 6px; color: #62738c; font-size: 65%; white-space: nowrap }
+	$elementCSS .ony-search { margin-left: auto; min-width: 140px; width: 210px; border: 1px solid #dce5ef; border-radius: 9px; padding: 10px 12px; font: inherit; font-size: 65%; background: white }
+	$elementCSS .ony-summary { margin-top: 12px; color: #76869a; font-size: 65%; min-height: 16px }
+	$elementCSS .ony-grid { flex: 1 1 0; min-height: 0; width: calc(100% - 36px) !important; margin: 0 18px 18px; position: relative }
+	$elementCSS .ony-grid > .grid { height: 100% !important; width: 100% !important; border: 0; background: transparent }
+	$elementCSS .ony-grid .jqx-grid-content, $elementCSS .ony-grid .jqx-grid-cell { background: #f3f6fa; border-color: transparent !important }
+	/*$elementCSS .ony-grid .jqx-grid-cell-selected { background: #e5eefc !important }*/
+	$elementCSS .ony-grid .ony-card-cell > div { margin: 0 !important; padding: 0 !important; height: 100%; overflow: hidden }
+	$elementCSS .ony-card { --ony-accent: #239e78; box-sizing: border-box; height: calc(100% - 12px); margin: 3px 10px 9px 4px; padding: 0px 20px 10px 18px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(170px, .8fr) minmax(260px, 1.15fr) 32px; align-items: center; gap: 18px; background: white; border: 1px solid var(--ony-border); border-left: 5px solid var(--ony-accent); border-radius: 11px; box-shadow: 0 3px 8px #20314f08; white-space: normal; font-family: 'Segoe UI', Arial, sans-serif }
+	$elementCSS .ony-red { --ony-accent: #ed5265 }
+	$elementCSS .ony-bekleyen { --ony-accent: #e9a23b }
+	$elementCSS .jqx-grid-cell-selected { background: #e5eefc }
+	$elementCSS .jqx-grid-cell-selected .ony-bekleyen { background: #d2e1f6 !important }
+	$elementCSS .ony-kapandi { --ony-accent: #9aa7b7 }
+	$elementCSS .ony-main { display: flex; align-items: center; gap: 15px; min-width: 0 }
+	$elementCSS .ony-type-icon { display: grid; place-items: center; flex: 0 0 54px; height: 54px; border-radius: 18px; color: #3678c9; background: #eaf3ff }
+	$elementCSS .ony-type-icon svg { width: 27px; height: 27px }
+	$elementCSS .ony-description { min-width: 0 }
+	$elementCSS .ony-type { color: #1d72d1; font-weight: 700; font-size: 65%; margin-bottom: 7px }
+	$elementCSS .ony-type span { color: #8a98aa; font-weight: 500; margin-left: 4px }
+	$elementCSS h3 { color: #263348; font-size: 92.08%; font-weight: 650; margin: 0 0 7px; white-space: normal; overflow: hidden; text-overflow: ellipsis }
+	$elementCSS .ony-reference { font-size: 65%; line-height: 1.5; color: #63758f; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere }
+	$elementCSS .ony-plate { display: inline-block; border: 1px solid #c9d7e8; border-left: 5px solid #206bd0; border-radius: 4px; padding: 2px 8px; font-weight: 650; letter-spacing: 1px }
+	$elementCSS .ony-note { font-size: 70%; color: #888; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 3px }
+	$elementCSS .ony-note > .text { font-size: 135%; font-weight: bold; color: slateblue }
+	/*body.dark-theme $elementCSS .ony-note > .text { color: #333 }*/
+	$elementCSS .ony-date { display: flex; align-items: center; gap: 12px; border-left: 1px solid #e5ebf3; padding-left: 20px; color: #71839c; min-height: 50px }
+	$elementCSS .ony-date span, $elementCSS .ony-date small { display: block; font-size: 65% }
+	$elementCSS .ony-date strong { display: inline-block; color: #3d506d; font-size: 92.08%; margin: 6px 0 }
+	$elementCSS .ony-date .kisa-not { display: inline-block; color: #ddd; font-weight: bold; font-size: 90%; margin-left: 1rem; padding: 3px 10px; border-radius: 10px; backdrop-filter: invert(.9) hue-rotate(180deg) }
+	$elementCSS .ony-info { border-left: 1px solid #e5ebf3; padding-left: 18px; min-width: 0 }
+	$elementCSS .ony-status { display: flex; align-items: center; gap: 11px; padding: 12px; border-radius: 9px; background: #eaf7f1; color: #198162 }
+	$elementCSS .ony-status strong { font-size: 75.83%; display: block }
+	$elementCSS .ony-status small { font-size: 65%; display: block; opacity: .8; margin-top: 4px }
+	$elementCSS .ony-red .ony-status { color: #c23349; background: #fff0f2 }
+	$elementCSS .ony-bekleyen .ony-status { color: #a26b15; background: #fff6e7 }
+	$elementCSS .ony-kapandi .ony-status { color: #69798f; background: #f0f3f7 }
+	$elementCSS .ony-people { display: flex; gap: 5px; align-items: center; margin-top: 5px; min-height: 28px }
+	$elementCSS .ony-people > span:first-child { color: #7c8aa0; font-size: 65%; margin-right: 5px }
+	$elementCSS .ony-avatar { display: inline-flex; align-items: center; justify-content: center; width: 27px; height: 27px; border-radius: 50%; color: white; background: #3479c9; font-weight: 600; font-size: 54.17%; flex-shrink: 0 }
+	$elementCSS .ony-owner { background: #253f65; box-shadow: 0 0 0 2px #c7d9f0 }
+	$elementCSS .ony-extra { color: #5c7290; background: #eaf0f8 }
+	$elementCSS .ony-people button, $elementCSS .ony-actions button { display: inline-grid; place-items: center; border: 0; background: #f0f4fa; color: #59718e; border-radius: 8px; width: 29px; height: 25px; padding: 5px }
+	$elementCSS .ony-people button { border-radius: 50% }
+	$elementCSS .ony-actions { display: flex; flex-direction: column; gap: 4px }
+	$elementCSS .ony-actions button:hover, $elementCSS .ony-people button:hover { color: #1764bf; background: #dfedff }
+	$elementCSS .ony-toolbar .ony-primary { background: #168565; border-color: #168565 }
+	$elementCSS .ony-toolbar .ony-danger { color: #c23349; background: #fff0f2; border-color: #f0c9d0 }
+	$elementCSS .ony-approvers { display: flex; flex-wrap: wrap; gap: 5px 12px; font-size: 65%; color: #71839c; margin-top: 2px }
+	$elementCSS .ony-approvers span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+	$elementCSS .ony-flags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px }
+	$elementCSS .ony-tag { font-size: 54.17%; padding: 3px 5px; background: #eaf7f1; color: #198162; border-radius: 4px }
+	$elementCSS .ony-warning { color: #c23349; background: #fff0f2 }
+	$elementCSS .ony-proforma { color: #7752b8; background: #f3ecff }
+	$elementCSS .ony-actions [data-action=approve] { color: #198162; background: #eaf7f1 }
+	$elementCSS .ony-actions [data-action=reject] { color: #c23349; background: #fff0f2 }
+	@container (max-width: 1049px) {
+		$elementCSS .ony-card { grid-template-columns: minmax(0, 1fr) minmax(250px, .9fr) 30px; gap: 12px; padding: 8px }
+		$elementCSS .ony-main { grid-column: 1; grid-row: 1 }
+		$elementCSS .ony-date { grid-column: 1; grid-row: 2; min-height: 0; border: 0; padding-left: 69px }
+		$elementCSS .ony-date svg, $elementCSS .ony-date small { display: none }
+		$elementCSS .ony-date strong { display: inline; font-size: 75.83%; margin-left: 8px }
+		$elementCSS .ony-date span { display: inline }
+		$elementCSS .ony-info { grid-column: 2; grid-row: 1 / 3 }
+		$elementCSS .ony-actions { grid-column: 3; grid-row: 1 / 3 }
 	}
+	@container (max-width: 679px) {
+		$elementCSS .ony-header { padding: 15px 12px 10px }
+		$elementCSS .ony-heading { gap: 15px; margin-bottom: 12px }
+		$elementCSS .ony-toolbar { gap: 5px; flex-wrap: wrap }
+		$elementCSS .ony-toolbar button { padding: 8px; font-size: 65% }
+		$elementCSS .ony-search { margin-left: 0; flex: 1; width: 130px }
+		$elementCSS .ony-tabs { gap: 0 }
+		$elementCSS .ony-tabs button { padding: 8px; font-size: 65% }
+		$elementCSS .ony-grid { width: calc(100% - 12px) !important; margin: 0 2px 8px }
+		$elementCSS .ony-card { grid-template-columns: minmax(0, 1fr) 30px; grid-template-rows: auto auto auto; gap: 0; padding: 4px 12px; margin-right: 5px }
+		$elementCSS .ony-type-icon { flex-basis: 38px; height: 42px; border-radius: 12px }
+		$elementCSS .ony-main { gap: 10px }
+		$elementCSS h3 { font-size: 75.83% }
+		$elementCSS .ony-date { padding-left: 48px }
+		$elementCSS .ony-info { grid-column: 1 / 3; grid-row: 3; border: 0; padding: 0 }
+		$elementCSS .ony-actions { grid-column: 2; grid-row: 1 / 3; padding-top: 0 !important }
+		$elementCSS .ony-status { padding: 3px 5px }
+		$elementCSS .ony-shell { gap: 0 important; padding: 0 8px !important }
+	}`
+}
 
 	async loadServerData(e = {}) {
 		await app._promise_ilkBilgiler
@@ -743,15 +774,19 @@ class OnayciPart extends SimplePart {
 				}
 			}
 
+			let db2Table2ColDefs = app._db2Table2ColDefs ??= {}
 			;{
 				// Eksik tablolu DB'leri listeden at.
 				let dbListe = keys(dbSet)
+				let tbl = 'webonay'
 				for (let db of dbListe) {
-					let res = await app.setCurrentDBAndDo({
+					let tbl2ColDefs = db2Table2ColDefs[db] ??= {}
+					let colDefs = tbl2ColDefs[tbl] = await app.setCurrentDBAndDo({
 						db,
-						block: () => app.sqlHasColumn(`${db}..webonay`, 'id')
+						block: () => app.sqlGetColumns(`${db}..${tbl}`)
+						// block: () => app.sqlHasColumn(`${db}..webonay`, 'id')
 					})
-					if (!res)
+					if (!colDefs?.id)
 						delete dbSet[db]
 				}
 			}
@@ -766,11 +801,13 @@ class OnayciPart extends SimplePart {
 		let orderBy = ['onayDurumText', '_db', 'oncelik']
 		let stm = new MQStm({ orderBy }), { with: $with } = stm
 
+		let db2Table2ColDefs = app._db2Table2ColDefs ?? {}
 		for (let db in dbSet) {
 			let uni = new MQUnionAll()
 			let basi = aktifOnayNo || 1
 			let sonu = aktifOnayNo || onayMax
 
+			let colDefs = db2Table2ColDefs[db]?.webonay ?? {}
 			for (let i = basi; i <= sonu; i++) {
 				let ilkmi = i == 1, sonmu = i == onayMax
 				let sent = new MQSent(), { where: wh, sahalar } = sent
@@ -815,7 +852,8 @@ class OnayciPart extends SimplePart {
 							`${i.sqlServerDegeri()} onayNo`,
 							`${cl.once.text} onceText`,
 							`${cl.once.user} onceUser`,
-							`${cl.sonra.user} sonraUser`
+							`${cl.sonra.user} sonraUser`,
+							`${colDefs.kisanot ? 'ony.kisanot' : sqlNull} kisaNot`
 						])
 
 					if (proformaKullanilir)
@@ -892,6 +930,7 @@ class OnayciPart extends SimplePart {
 						.addWithAlias('ony', ...[
 							'_table', 'tip', 'onayId', 'sayac', 'id', 'onayNo', 'onayDurum',
 							'onayTS', 'onayRedNedeni', 'onceText', 'onceUser', 'sonraUser',
+							'kisaNot',
 							(proformaKullanilir ? 'proformaId' : null)
 						].filter(Boolean))
 						.add(

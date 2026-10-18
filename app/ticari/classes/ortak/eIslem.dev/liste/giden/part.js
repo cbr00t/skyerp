@@ -34,7 +34,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 			{ id: 'eIslemSorgu', toolTip: 'e-İşlem Durum Sorgula', handler: _e => this.eIslemSorguIstendi({ ...e, ..._e }) },
 			{ id: 'eIslemXMLOlustur', toolTip: 'e-İşlem XML Oluştur', handler: _e => this.eIslemXMLOlusturIstendi({ ...e, ..._e }) },
 			{ id: 'eIslemIptal', toolTip: 'e-İşlem İPTAL', handler: _e => this.eIslemIptalIstendi({ ...e, ..._e }) },
-			{ id: 'xmlKaldir', toolTip: 'XML Kaldır', handler: _e => this.xmlKaldirIstendi({ ...e, ..._e }) }
+			{ id: 'eIslemXMLKaldir', toolTip: 'XML Kaldır', handler: _e => this.eIslemXMLKaldirIstendi({ ...e, ..._e }) }
 		])
 		liste.push({
 			id: 'gonderildiDurumAyarla', text: 'GND', toolTip: 'Gönderim Durum Ayarla',
@@ -42,7 +42,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		})
 		extend(sagButonIdSet, asSet([
 			'eIslemGonder', 'eIslemIzle', 'eIslemYazdir', 'eIslemSorgu',
-			'eIslemXMLOlustur', 'eIslemIptal', 'xmlKaldir'
+			'eIslemXMLOlustur', 'eIslemIptal', 'eIslemXMLKaldir'
 		]))
 	}
 	get defaultTabloKolonlari() {
@@ -244,7 +244,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		
 		let { event: { ctrlKey: ctrl } = {} } = e
 		if (ctrl)
-			await this.xmlKaldirIstendi({ ...e, recs })
+			await this.eIslemXMLKaldirIstendi({ ...e, recs })
 		
 		try {
 			extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
@@ -279,26 +279,23 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 	}
 	async eIslemIzleIstendi(e = {}) {
 		let islemAdi = 'e-İşlem İZLE'
-		let { toplu, event: { ctrlKey: ctrl } = {} } = e
-		let recs = await this.getSecilenSatirlar_mesajli({ islemAdi })
+		let { toplu, silent, event: { ctrlKey: ctrl } = {} } = e
+		let mesajli = !silent
+		let recs = await this.getSecilenSatirlar({ islemAdi, mesajli }) ?? {}
 		if (empty(recs))
 			return
 
 		let parentPart = this, { eConf } = this
 		if (ctrl)
-			await this.xmlKaldirIstendi({ ...e, silent: true, recs })
+			await this.eIslemXMLKaldirIstendi({ ...e, silent: true, internal: true, recs })
 		
 		try {
-			let args = { ...e, islemAdi, recs, eConf, toplu, callback: new EIslemAkibet_Callback({ islemAdi }) }
+			let args = { ...e, islemAdi, recs, eConf, toplu, silent, callback: new EIslemAkibet_Callback({ islemAdi }) }
 			this.showProgress(args)
 
-			args.tip2Table2Sayaclar = EYonetici.getTip2Table2Sayaclar(recs)
-			await EYonetici.eIslemXMLOlustur({ ...args, internal: true })
+			// args.tip2Table2Sayaclar = EYonetici.getTip2Table2Sayaclar(recs)
+			await EYonetici.eIslemXMLOlustur({ ...args, silent: true, internal: true })
 			await EYonetici.eIslemIzle(args)
-		}
-		catch (ex) {
-			//console.error(ex)
-			throw ex
 		}
 		finally { this.uiIslemiSonrasi({ silent: true }) }
 	}
@@ -307,7 +304,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		let islemAdi = 'e-İşlem Sorgu'
 		
 		let { silent, event: { ctrlKey: ctrl } = {} } = e
-		let mesajli = !(silent || ctrl)
+		let mesajli = !silent
 		let recs = await this.getSecilenSatirlar({ islemAdi, mesajli }) ?? {}
 		if (empty(recs))
 			return
@@ -355,71 +352,63 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		finally { this.uiIslemiSonrasi(_e) }
 	}
 	async eIslemXMLOlusturIstendi(e = {}) {
-		let parentPart = this, { eConf } = this
 		let islemAdi = 'e-İşlem XML Oluştur'
-		let recs = await this.getSecilenSatirlar_mesajli({ islemAdi })
+		let { toplu, silent, event: { ctrlKey: ctrl } = {} } = e
+		let mesajli = !silent
+		let recs = await this.getSecilenSatirlar({ islemAdi, mesajli }) ?? {}
 		if (empty(recs))
 			return
-		
-		let { event: { ctrlKey: ctrl } = {} } = e
+
+		let parentPart = this, { eConf } = this
 		if (ctrl)
-			await this.xmlKaldirIstendi({ ...e, silent: true, recs })
+			await this.eIslemXMLKaldirIstendi({ ...e, silent: true, internal: true, recs })
+		
 		try {
-			extend(e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
-			this.showProgress(e)
-			await EYonetici.eIslemXMLOlustur(e)
+			let args = { ...e, islemAdi, recs, eConf, toplu, silent, callback: new EIslemAkibet_Callback({ islemAdi }) }
+			this.showProgress(args)
+			await EYonetici.eIslemXMLOlustur(args)
 		}
-		catch (ex) {
-			e.error = ex
-			// hConfirm(getErrorText(ex), islemAdi)
-			// console.error(ex)
-			throw ex
-		}
-		finally { this.uiIslemiSonrasi(e) }
+		finally { this.uiIslemiSonrasi({ silent: true }) }
 	}
 	async eIslemIptalIstendi(e = {}) {
-		let parentPart = this, { eConf } = this
 		let islemAdi = 'e-İşlem İPTAL'
-		let recs = await this.getSecilenSatirlar_mesajli({ islemAdi })
+		let { toplu, silent, event: { ctrlKey: ctrl } = {} } = e
+		let mesajli = !silent
+		let recs = await this.getSecilenSatirlar({ islemAdi, mesajli }) ?? {}
 		if (empty(recs))
 			return
-		
+
+		let parentPart = this, { eConf } = this
 		try {
-			extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
-			this.showProgress(_e)
-			await EYonetici.eIslemIptal(_e)
+			let args = { ...e, islemAdi, recs, eConf, toplu, silent, callback: new EIslemAkibet_Callback({ islemAdi }) }
+			this.showProgress(args)
+			await EYonetici.eIslemIptal(args)
 		}
 		catch (ex) {
-			_e.error = ex
-			// hConfirm(getErrorText(ex), islemAdi)
-			// console.error(ex)
+			//console.error(ex)
 			throw ex
 		}
-		finally { this.uiIslemiSonrasi(_e) }
+		finally { this.uiIslemiSonrasi({ silent: true }) }
 	}
-	async xmlKaldirIstendi(e = {}) {
+	async eIslemXMLKaldirIstendi(e = {}) {
 		let islemAdi = 'e-İşlem XML Kaldır'
-		let parentPart = this, { eConf } = this
-		let { silent } = e
-		let recs = e.recs ?? await this.getSecilenSatirlar({ islemAdi, mesajli: !silent })
-		if (empty(recs)) 
+		let { toplu, silent, event: { ctrlKey: ctrl } = {} } = e
+		let mesajli = !(silent || ctrl)
+		let recs = await this.getSecilenSatirlar({ islemAdi, mesajli }) ?? {}
+		if (empty(recs))
 			return
-		
+
+		let parentPart = this, { eConf } = this
 		try {
-			let callback = silent ? null : new EIslemAkibet_Callback({ islemAdi })
-			extend(e, { eConf, callback })
-			this.showProgress(e)
-			await EYonetici.xmlKaldir(e)
+			let args = { ...e, islemAdi, recs, eConf, toplu, callback: new EIslemAkibet_Callback({ islemAdi }) }
+			this.showProgress(args)
+			await EYonetici.eIslemXMLKaldir(args)
 		}
 		catch (ex) {
-			e.error = ex
-			if (!silent) {
-				// hConfirm(getErrorText(ex), islemAdi)
-				// console.error(ex)
-				throw ex
-			}
+			//console.error(ex)
+			throw ex
 		}
-		finally { this.uiIslemiSonrasi(e) }
+		finally { this.uiIslemiSonrasi({ silent: true }) }
 	}
 }
 

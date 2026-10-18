@@ -21,16 +21,19 @@ class EIslemFiltre extends Secimler {
 	queryStmDuzenle(e) { }
 	tbWhereClauseDuzenle(e = {}) {
 		super.tbWhereClauseDuzenle(e)
-		let { stm, table2Sayaclar = this.table2Sayaclar, alias = 'fis' } = e
-		if (!empty(table2Sayaclar)) {
-			for (let { from, where: wh } of stm) {
-				let aMQTable = from.aliasIcinTable(alias)
-				if (aMQTable) {
-					let { deger: tbl } = aMQTable
-					let sayaclar = table2Sayaclar[tbl] ?? []
-					wh.inDizi(sayaclar, `${alias}.kaysayac`)
-				}
-			}
+	}
+	sayaclarBagla(e = {}) {
+		let { table2Sayaclar = this.table2Sayaclar, alias = 'fis' } = e
+		if (empty(table2Sayaclar))
+			return
+
+		let { sent } = e
+		let { from, where: wh } = sent
+		let aMQTable = from.aliasIcinTable(alias)
+		if (aMQTable) {
+			let { deger: tbl } = aMQTable
+			let sayaclar = table2Sayaclar[tbl] ?? []
+			wh.inDizi(sayaclar, `${alias}.kaysayac`)
 		}
 	}
 	
