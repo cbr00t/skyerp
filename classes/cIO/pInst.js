@@ -1,5 +1,5 @@
 class PInst extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get deepCopyAlinmayacaklar() { return [...(super.deepCopyAlinmayacaklar || []), 'events', 'value'] }	
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get deepCopyAlinmayacaklar() { return [...(super.deepCopyAlinmayacaklar || []), 'events', 'value'] }	
 	get initValue() { const {initBlock} = this; if (initBlock) { return getFuncValue.call(this, initBlock, { sender: this }) } return this.getValue(undefined) }
 	constructor(e) {
 		e = e || {}; super(e); this.events = {};
@@ -74,34 +74,34 @@ class PInst extends CObject {
 	}
 }
 class PInstStr extends PInst {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	getValueDevam(value) { return value ?? '' }
 }
 class PInstGuid extends PInst {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get hostVarsDegeri() { return super.hostVarsDegeri || null }
 	getValueDevam(value) { return value || null }
 }
 class PInstNum extends PInst {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	getValueDevam(value) { return typeof value == 'number' ? (value || 0) : (asFloat(value) || 0) }
 }
 class PInstDate extends PInst {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	getValueDevam(value) { value = asDate(value); return isInvalidDate(value) ? null : value }
 	get hostVarsDegeri() { let value = super.hostVarsDegeri; return value ? asDate(value) : null }
 	setValues(e) { let value = this.getValue(e.value); this.value = value }
 }
 class PInstDateToday extends PInstDate {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	getValueDevam(value) { return super.getValueDevam(value === undefined ? today() : value) }
 }
 class PInstDateNow extends PInstDate {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	getValueDevam(value) { return super.getValueDevam(value === undefined ? now() : value) }
 }
 class PInstDateTime extends PInst {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	getValueDevam(value) { value = asDate(value); return isInvalidDate(value) ? null : value }
 	get hostVarsDegeri() { let value = super.hostVarsDegeri; return value ? asDate(value) : null }
 	setValues(e) { let value = this.getValue(e.value); this.value = value }
@@ -130,30 +130,30 @@ class PInstDateTime extends PInst {
 	}
 }
 class PInstDateTimeNow extends PInstDateTime {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	getValueDevam(value) { return super.getValueDevam(value === undefined ? now() : value) }
 }
 class PInstBool extends PInst {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	getValueDevam(value) { return asBool(value) }
 
 	get hostVarsDegeri() { return bool2FileStr(super.hostVarsDegeri) }
 	get superHostVarsDegeri() { return super.hostVarsDegeri }
 }
 class PInstTrue extends PInstBool {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	getValueDevam(value) { return value == null ? true : super.getValueDevam(value) }
 }
 class PInstBitBool extends PInstBool {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get hostVarsDegeri() { return bool2Int(super.superHostVarsDegeri) }
 }
 class PInstBitTrue extends PInstBitBool {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	getValueDevam(value) { return super.getValueDevam(value == null ? true : value) }
 }
 class PInstClass extends PInst {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get pInstClassmi() { return true }
 	constructor(e = {}, _sinif) {
 		if (!isPlainObject(e))
@@ -172,7 +172,7 @@ class PInstClass extends PInst {
 }
 class PInstTekSecim extends PInstClass {
 	static get pInstClassmi() { return false }
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get hostVarsDegeri() { return this.value.char }
 	
 	getValueDevam(value) {

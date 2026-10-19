@@ -1,5 +1,5 @@
 class Posta extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); const {kaListe} = e; kaListe.push(
 			new CKodVeAdi(['F', 'Şafak']),
@@ -12,7 +12,7 @@ class Posta extends TekSecim {
 	}
 }
 class RotaTipi extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return 'TN' }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); const {kaListe} = e; kaListe.push(

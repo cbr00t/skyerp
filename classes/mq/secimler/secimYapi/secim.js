@@ -1,5 +1,5 @@
 class Secim extends CIO {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static _tip2Sinif = {}; static get anaTip() { return null } static get tip() { return null }
 	get parentPart() { return this._parentPart ?? app.activePart } set parentPart(value) { this._parentPart = value }
 	get builder() { return this._builder ?? this.parentPart?.builder } set builder(value) { this._builder = value }

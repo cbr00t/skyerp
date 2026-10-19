@@ -1,8 +1,8 @@
 class DRapor_Donemsel extends DRapor_AraSeviye {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 class DRapor_Donemsel_Main extends DRapor_AraSeviye_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get secimSinif() { return DonemselSecimler }
 	secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments)

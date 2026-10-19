@@ -1,5 +1,5 @@
 class MQCogul extends MQYapi {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static _altYapiDictOlustuSet = {}; static _extYapiOlustuSet = {}; static get mqCogulmu() { return true }
 	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, 'parentItem'] }
 	static get parentMFSinif() { return null } static get listeSinifAdi() { return null }
@@ -184,7 +184,7 @@ class MQCogul extends MQYapi {
 				parentBuilder.addCSS('flex-row'); let {sinifAdi, tableAlias, ayrimTable, ayrimTableAlias} = this;
 				for (let i = 0; i < ayrimIsimleri.length; i++) {
 					let seq = i + 1, id = seq, ayrimAdi = ayrimIsimleri[i], ayrMFSinif = class extends MQKA {
-					    static { window[this.name] = this; this._key2Class[this.name] = this }
+					    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 						static get sinifAdi() { return ayrimAdi } static get table() { return `${ayrimTable}${seq}` } static get tableAlias() { return `${ayrimTableAlias}${seq}` }
 						static get kodSaha() { return this.sayacSaha } static get sayacSaha() { return 'sayac' }
 					};

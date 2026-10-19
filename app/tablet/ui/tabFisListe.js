@@ -1,5 +1,5 @@
 class TabFisListe extends TabFisListeOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'FIS' } static get sinifAdi() { return 'Fiş' }
 
 	static listeEkrani_afterRun(e = {}) {

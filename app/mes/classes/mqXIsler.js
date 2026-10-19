@@ -1,5 +1,5 @@
 class MQXIsler extends MQMasterOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get parentMFSinif() { return MQXIsler } static get noAutoFocus() { return true }
 	static get menuyeAlinmazmi() { return true }
 	static get sinifAdi() { return 'X İşler' }
@@ -163,7 +163,7 @@ class MQXIsler extends MQMasterOrtak {
 	static yeniOperIstendi_ek(e) { }
 }
 class MQSiradakiIsler extends MQXIsler {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'SIRADAKI_ISLER' } static get sinifAdi() { return 'Sıradaki İşler' }
 	static get switchPartClass() { return MQBekleyenIsler } static get switchButtonText() { return 'B' }
 	static listeEkrani_init(e) {
@@ -382,7 +382,7 @@ class MQSiradakiIsler extends MQXIsler {
 	}
 }
 class MQBekleyenIsler extends MQXIsler {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'BEKLEYEN_ISLER' } static get sinifAdi() { return 'Bekleyen İşler' }
 	static get switchPartClass() { return MQSiradakiIsler } static get switchButtonText() { return 'S' }
 	static listeEkrani_init(e) { super.listeEkrani_init(e); let gridPart = e.gridPart ?? e.sender; $.extend(gridPart, { sadeceUygunAsamami: true }) }

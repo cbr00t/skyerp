@@ -1,5 +1,5 @@
 class MQEIslem_Gelen extends MQCogul {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
     static get kodListeTipi() { return 'EG' }
     static get sinifAdi() { return 'Gelen e-İşlem' }
     static get secimSinif() { return DonemselSecimler }

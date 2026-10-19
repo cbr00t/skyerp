@@ -1,5 +1,5 @@
 class MQYaslandirmaEk_Base extends DMQCogul {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'YASL_KH' }
 	static get aciklama() { return 'Kapanmayan Hesaplar' }
 	static get tanimUISinif() { return null }
@@ -95,7 +95,7 @@ class MQYaslandirmaEk_Base extends DMQCogul {
 }
 
 class MQKapanmayanHesap extends MQYaslandirmaEk_Base {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'KAPHES' }
 	static get sinifAdi() { return 'Kapanmayan Hesaplar' }
 	static get dataKey() { return 'kapanmayanHesap' }
@@ -161,7 +161,7 @@ class MQKapanmayanHesap extends MQYaslandirmaEk_Base {
 }
 
 class MQCariEkstre extends MQYaslandirmaEk_Base {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'CARIEKSTRE' }
 	static get sinifAdi() { return 'Cari Ekstre' }
 	static get dataKey() { return 'cariEkstre' }

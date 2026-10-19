@@ -1,5 +1,5 @@
 class MQDurumDegerlendirme extends MQMasterOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Durum Değerlendirme' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Durum Değerlendirme' }
 	static get kodListeTipi() { return 'CRMMUSDURUMDEG' } static get silinebilirmi() { return false }
 	static rootFormBuilderDuzenle(e) {
 		super.rootFormBuilderDuzenle(e); const {sinifAdi} = this, {rootBuilder: rfb, tanimFormBuilder: tanimForm} = e, grids = {}, gridSources = {};

@@ -1,5 +1,5 @@
 class TSDetay extends MQDetay {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get mfSinif() { return null } static get tip() { return null } static get tipText() { return null }
 	get tip() { return this.class.tip } get tipText() { return this.class.tipText }
 	static get shSahaPrefix() { return null } static get shEtiket() { return null }
@@ -34,7 +34,7 @@ class TSDetay extends MQDetay {
 }
 
 class TSSHDDetay extends TSDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get shdDetaymi() { return true } static get shTable() { return null } static get shAlias() { return null }
 	static get shKodSaha() { let {shSahaPrefix} = this; return shSahaPrefix ? shSahaPrefix + 'kod' : null; }
 	static get shAdiSaha() { let {shSahaPrefix} = this; return shSahaPrefix ? shSahaPrefix + 'adi' : null; }
@@ -436,7 +436,7 @@ class TSSHDDetay extends TSDetay {
 }
 
 class TSStokHizmetDetay extends TSSHDDetay {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get shdmi() { return true }
 	static getOrjStopajKodClause(e) { return null }
 	static getAdiDegisirmiClause(e) { let {shAlias} = this; return `${shAlias}.adidegisir` }
@@ -488,7 +488,7 @@ class TSStokHizmetDetay extends TSSHDDetay {
 }
 
 class TSStokDetayOrtak extends TSStokHizmetDetay {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get mfSinif() { return MQStok }
 	static get stokGibimi() { return true }
 	static get tip() { return 'stok' }
@@ -622,14 +622,14 @@ class TSStokDetayOrtak extends TSStokHizmetDetay {
 }
 
 class TSStokDetay extends TSStokDetayOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get stokmu() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get stokmu() { return true }
 	static getDetayTable(e) { let fisSinif = e.fisSinif ?? e.fis?.class; return fisSinif.tsStokDetayTable }
 	static get sipDonusumTable() { return 'sip2ifstok' }
 	static get stDonusumTable() { return 'sip2trfstok' }
 }
 
 class TSFormulDetay extends TSStokDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'formul' } static get tipText() { return 'Formül' }
 	static get formulmu() { return true }
 	static get uygunmu() { return app.params.uretim?.formulRevizyon }
@@ -711,7 +711,7 @@ class TSFormulDetay extends TSStokDetay {
 }
 
 class TSHizmetDetay extends TSStokHizmetDetay {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get mfSinif() { return MQHizmet } static get hizmetmi() { return true }
 	static get tip() { return 'hizmet' } static get tipText() { return 'Hizmet' }
 	static get shSahaPrefix() { return 'hizmet' } static get table() { return 'pifhizmet' }
@@ -748,7 +748,7 @@ class TSHizmetDetay extends TSStokHizmetDetay {
 	}
 }
 class TSDemirbasDetay extends TSSHDDetay {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get mfSinif() { return MQDemirbas } static get demirbasmi() { return true }
 	static get tip() { return 'demirbas' } static get tipText() { return 'Demirbaş' } static get shSahaPrefix() { return 'demirbas' }
 	static get table() { return 'pifdemirbas' } static get shTable() { return 'demmst' } static get shAlias() { return 'dem' } static get shEtiket() { return 'Demirbaş' }
@@ -769,7 +769,7 @@ class TSDemirbasDetay extends TSSHDDetay {
 	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); let {sent} = e; sent.sahalar.add(`NULL miktar2`, `NULL brm2`, `NULL brmorani`) }
 }
 class TSAciklamaDetay extends TSDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this } get gridKADesteklenmezmi() { return true }		/* grid hucre deger degisti kontrolu yapmasın */
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } get gridKADesteklenmezmi() { return true }		/* grid hucre deger degisti kontrolu yapmasın */
 	static get ekBilgimi() { return true } static get aciklamami() { return true } static get tip() { return 'aciklama' } static get tipText() { return 'Açıklama' }
 	static getDetayTable(e) { let fisSinif = e.fisSinif ?? e.fis?.class; return fisSinif.tsAciklamaDetayTable }
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { aciklama: new PInstStr('aciklama') }) }

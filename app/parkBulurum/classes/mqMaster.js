@@ -1,9 +1,9 @@
 class MQMasterOrtakAyarlar extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static orjBaslikListesi_argsDuzenle(e) { const {args, sender} = e; $.extend(args, { showFilterRow: true, groupsExpandedByDefault: true, rowsHeight: 45, groupIndentWidth: 25 }) }
 }
 class MQUcretlendirme extends MQGuidVeAdi {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ücretlendirme' } static get sonraSaatSayi() { return 3 }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ücretlendirme' } static get sonraSaatSayi() { return 3 }
 	static get table() { return 'oucretlendirme' } static get tableAlias() { return 'ucr' } static get kodSaha() { return 'id' } static get tumKolonlarGosterilirmi() { return true }
 	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); MQMasterOrtakAyarlar.orjBaslikListesi_argsDuzenle(e) }
 	static pTanimDuzenle(e) {
@@ -82,12 +82,12 @@ class MQUcretlendirme extends MQGuidVeAdi {
 	}
 }
 class MQArizaNedeni extends MQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Arıza Nedeni' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Arıza Nedeni' }
 	static get table() { return 'oneden' } static get tableAlias() { return 'ned' } static get tumKolonlarGosterilirmi() { return true }
 	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); MQMasterOrtakAyarlar.orjBaslikListesi_argsDuzenle(e) }
 }
 class MQSozlesme extends MQTakipNo {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Sözleşme' } static get tableAlias() { return 'soz' } static get tumKolonlarGosterilirmi() { return true }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e;
@@ -144,7 +144,7 @@ class MQSozlesme extends MQTakipNo {
 	}
 }
 class MQParkBolum extends MQGuidVeAdi {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Park Bölüm' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Park Bölüm' }
 	static get table() { return 'oparkbolum' } static get tableAlias() { return 'pbol' } static get kodSaha() { return 'id' } static get tumKolonlarGosterilirmi() { return true }
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e); const {pTanim} = e; $.extend(pTanim, { parkAlanId: new PInstGuid('parkalanid') }) }
 	static rootFormBuilderDuzenle(e) {
@@ -170,7 +170,7 @@ class MQParkBolum extends MQGuidVeAdi {
 	}
 }
 class MQAlan extends MQGuidVeAdi {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Alan' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Alan' }
 	static get table() { return 'oparkalani' } static get tableAlias() { return 'aln' } static get kodSaha() { return 'id' } static get tumKolonlarGosterilirmi() { return true }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e;
@@ -253,7 +253,7 @@ class MQAlan extends MQGuidVeAdi {
 	}
 }
 class MQYerlesim extends MQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Yerleşim' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Yerleşim' }
 	static get table() { return 'oyerlesim' } static get tableAlias() { return 'yer' } static get tumKolonlarGosterilirmi() { return true }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e;
@@ -287,7 +287,7 @@ class MQYerlesim extends MQKA {
 	}
 }
 class MQCihaz extends MQGuidVeAdi {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Cihaz (Bariyer)' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Cihaz (Bariyer)' }
 	static get table() { return 'ocihaz' } static get tableAlias() { return 'cih' } static get kodSaha() { return 'id' } static get tumKolonlarGosterilirmi() { return true }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e; $.extend(pTanim, {
@@ -389,7 +389,7 @@ class MQCihaz extends MQGuidVeAdi {
 	}
 }
 class MQMobil extends MQGuidVeAdi {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Mobil Cihaz' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Mobil Cihaz' }
 	static get table() { return 'omobil' } static get tableAlias() { return 'mob' } static get kodSaha() { return 'id' } static get tumKolonlarGosterilirmi() { return true }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e;
@@ -450,7 +450,7 @@ class MQMobil extends MQGuidVeAdi {
 	}
 }
 class MQMobilKart extends MQGuidVeAdi {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Mobil Kart' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Mobil Kart' }
 	static get table() { return 'omobilkart' } static get tableAlias() { return 'mkar' } static get kodSaha() { return 'id' } static get tumKolonlarGosterilirmi() { return true }
 	static get adiSaha() { return 'krisim'} static get adiEtiket() { return 'İsim' }
 	static pTanimDuzenle(e) {
@@ -518,7 +518,7 @@ class MQMobilKart extends MQGuidVeAdi {
 	}
 }
 class MQRezervasyon extends MQGuid {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return `Rezervasyon` }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return `Rezervasyon` }
 	static get table() { return 'ocagri' } static get tableAlias() { return 'cag' } static get kodSaha() { return 'id' } static get tumKolonlarGosterilirmi() { return true }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e;
@@ -570,7 +570,7 @@ class MQRezervasyon extends MQGuid {
 	}
 }
 class MQParkIslem extends MQGuid {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Park İşlem' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Park İşlem' }
 	static get table() { return 'oparkislem' } static get tableAlias() { return 'prk' } static get kodSaha() { return 'id' } static get tumKolonlarGosterilirmi() { return true }
 	get kayitTarih() { let value = asDate(this.kayitTS); return isInvalidDate(value) ? null : value.clone().clearTime() } set kayitTarih(value) { this.kayitTS = asDate(value) }
 	get kayitZamani() { return timeToString(asDate(this.kayitTS)) || '' } set kayitZamani(value) { this.kayitTS = setTime(this.kayitTS, value) }

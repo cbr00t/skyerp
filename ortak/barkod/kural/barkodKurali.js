@@ -1,5 +1,5 @@
 class BarkodKurali extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get parserAdi() { return (this.parserSinif || {}).aciklama }
 	constructor(e) { e = e || {}; super(e); if (!$.isEmptyObject(e)) { $.extend(this, e) } }
 	async parseSonucu(e) {

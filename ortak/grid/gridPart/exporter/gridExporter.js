@@ -1,5 +1,5 @@
 class GridExporter extends CObject {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get mimeType() { return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
 	get grid() { return this.gridPart.grid }
 	get gridWidget() { return this.gridPart.gridWidget }

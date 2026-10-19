@@ -1,5 +1,5 @@
 class RRaporDetay extends MQDetay {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tip2Sinif() {
 		let result = this._tip2Sinif;
 		if (result == null) {
@@ -17,7 +17,7 @@ class RRaporDetay extends MQDetay {
 	}
 }
 class RRSahaOrtak extends RRaporDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get tipBelirtec() { return this.tip?.anaTip }
 	constructor(e) {
 		super(e); e = this.getConstructorArgs(e) || {}; const _baslikDizi = e.baslik || e.baslikDizi;

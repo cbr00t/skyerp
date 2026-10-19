@@ -1,5 +1,5 @@
 class CariTopluIslemFis extends FinansFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'CRTOP' } static get sinifAdi() { return 'Cari Toplu İşlem' }
 	static get detaySinif() { return CariTopluIslemDetay }
 	static get gridKontrolcuSinif() { return CariTopluIslemGridci }
@@ -54,7 +54,7 @@ class CariTopluIslemFis extends FinansFis {
 	}
 }
 class CariTopluIslemDetay extends FinansDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get mustSaha() { return 'must' }
 
 	static extYapilarDuzenle({ liste }) {
@@ -68,7 +68,7 @@ class CariTopluIslemDetay extends FinansDetay {
 	}
 }
 class CariTopluIslemGridci extends FinansGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	tabloKolonlariDuzenle_ilk({ tabloKolonlari }) {
 		super.tabloKolonlariDuzenle_ilk(...arguments)
 		tabloKolonlari.push(...[
@@ -96,7 +96,7 @@ class CariTopluIslemGridci extends FinansGridci {
 }
 
 class CariTahsilatOdemeOrtakFis extends FinansFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'carifis' } static get noSaha() { return 'fisno' }
 	static get mustSaha() { return 'mustkod' }
 	static get altHesapSaha() { return 'althesapkod' }
@@ -178,19 +178,19 @@ class CariTahsilatOdemeOrtakFis extends FinansFis {
 	}
 }
 class CariTahsilatFis extends CariTahsilatOdemeOrtakFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'CARITAH' } static get sinifAdi() { return 'Cari Tahsilat' }
 	static get numTipKod() { return 'CRTAH' } static get ba() { return 'A' }
 }
 class CariOdemeFis extends CariTahsilatOdemeOrtakFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'CARIODE' } static get sinifAdi() { return 'Cari Ödeme' }
 	static get numTipKod() { return 'CRODE' }
 	static get ba() { return 'B' }
 }
 
 class CariTahsilatOdemeDetay extends FinansDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'carihar' }
 	static get altHesapSaha() { return 'detalthesapkod' }
 	static pTanimDuzenle({ pTanim }) {
@@ -252,7 +252,7 @@ class CariTahsilatOdemeDetay extends FinansDetay {
 	}
 }
 class CariTahsilatOdemeGridci extends FinansGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	tabloKolonlariDuzenle_ilk({ tabloKolonlari }) {
 		super.tabloKolonlariDuzenle_ilk(...arguments);
 		tabloKolonlari.push(...[
@@ -288,7 +288,7 @@ class CariTahsilatOdemeGridci extends FinansGridci {
 
 
 class CariDevirFis extends CariTopluIslemFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'CARDEV' }  static get sinifAdi() { return 'Cari Devir' }
 	static get numTipKod() { return 'CDEV' } static get ozelTip() { return 'D' }
 	static get devirmi() { return true }
@@ -296,7 +296,7 @@ class CariDevirFis extends CariTopluIslemFis {
 
 
 class KasaCariFis extends FinansFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'KSCAR' }
 	static get sinifAdi() { return 'Kasa Tahsilat/Ödeme' }
 	static get detaySinif() { return KasaCariDetay }
@@ -383,7 +383,7 @@ class KasaCariFis extends FinansFis {
 	}
 }
 class KasaCariDetay extends FinansDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get mustSaha() { return 'must' }
 
 	static extYapilarDuzenle({ liste }) {
@@ -400,7 +400,7 @@ class KasaCariDetay extends FinansDetay {
 	}
 }
 class KasaCariGridci extends FinansGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	tabloKolonlariDuzenle_ilk({ tabloKolonlari }) {
 		super.tabloKolonlariDuzenle_ilk(...arguments)
 		tabloKolonlari.push(...[

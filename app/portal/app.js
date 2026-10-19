@@ -1,5 +1,5 @@
 class PortalApp extends TicariApp {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get configParamSinif() { return MQYerelParamConfig_App }
 	get yerelParamSinif() { return MQYerelParam_App }
 	get dataKey() { return 'portal' }

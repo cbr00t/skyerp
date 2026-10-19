@@ -1,5 +1,5 @@
 class SkyApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	async runDevam(e) { await super.runDevam(e); await this.anaMenuOlustur(e); await this.initLayout(e) }
 	initLayout(e) { } getAnaMenu(e) { return new FRMenu() }
 

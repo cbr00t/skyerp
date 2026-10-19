@@ -1,10 +1,10 @@
 class DRapor_PerTahakkukRaporuOrtak extends DRapor_BDRaporBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get araSeviyemi() { return this == DRapor_PerTahakkukRaporuOrtak }
 	static get vioAdim() { return null }
 }
 class DRapor_PerTahakkukRaporuOrtak_Main extends DRapor_BDRaporBase_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_PerTahakkukRaporuOrtak }
 	static get raporDosyaTanimlar() {
 		return [
@@ -246,12 +246,12 @@ class DRapor_PerTahakkukRaporuOrtak_Main extends DRapor_BDRaporBase_Main {
 }
 
 class DRapor_PerTahakkukRaporu extends DRapor_PerTahakkukRaporuOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kod() { return 'PERTAH' } static get aciklama() { return 'Personel Tahakkuk' }
 	static get vioAdim() { return null }
 }
 class DRapor_PerTahakkukRaporu_Main extends DRapor_PerTahakkukRaporuOrtak_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_PerTahakkukRaporu }
 	static get raporDosyaTanimlar() {
 		return [...super.raporDosyaTanimlar]
@@ -263,13 +263,13 @@ class DRapor_PerTahakkukRaporu_Main extends DRapor_PerTahakkukRaporuOrtak_Main {
 }
 
 class DRapor_PerTarimTahakkukRaporu extends DRapor_PerTahakkukRaporuOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kod() { return 'TARTAH' } static get aciklama() { return 'Tarım Tahakkuk' }
 	static get uygunmu() { return app.params?.bGenel?.guleryuzOzel }
 	static get vioAdim() { return null }
 }
 class DRapor_PerTarimTahakkukRaporu_Main extends DRapor_PerTahakkukRaporuOrtak_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_PerTarimTahakkukRaporu }
 	static get raporDosyaTanimlar() {
 		return [

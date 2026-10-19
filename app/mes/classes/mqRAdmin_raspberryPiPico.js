@@ -1,5 +1,5 @@
 class MQRAdmin_RaspberryPiPico extends MQMasterOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get tumKolonlarGosterilirmi() { return true } 
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tumKolonlarGosterilirmi() { return true } 
 	static get kodListeTipi() { return 'RADMIN_RASP' } static get sinifAdi() { return 'Cihaz Yönetimi: Raspberry Pi Pico' }
 	static get tanimlanabilirmi() { return true } static get silinebilirmi() { return true }
 	static get tanimUISinif() { return ModelTanimPart } static get ozelTanimIslemi() { return (e => this.ozelTanimla(e)) }

@@ -1,5 +1,5 @@
 class MQHesnaStok extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { const {resimlimi} = this; return `STOK_${resimlimi == null ? '' : `${resimlimi ? 'RESIMLI' : 'RESIMSIZ'}`}` }
 	static get sinifAdi() { const {resimlimi} = this; return `Hesna Ürünler${resimlimi == null ? '' : ` (${resimlimi ? 'Resimli' : 'Resimsiz'})`}` }
 	static get table() { return 'stkmst' } static get tableAlias() { return 'stk' }
@@ -53,21 +53,21 @@ class MQHesnaStok extends MQKAOrtak {
 	}
 }
 class MQHesnaStok_Resimli extends MQHesnaStok {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get resimlimi() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get resimlimi() { return true }
 	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); $.extend(e.args, { rowsHeight: 200 }) }
 }
-class MQHesnaStok_Resimsiz extends MQHesnaStok { static { window[this.name] = this; this._key2Class[this.name] = this } static get resimlimi() { return false } }
+class MQHesnaStok_Resimsiz extends MQHesnaStok { static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get resimlimi() { return false } }
 
 
 class MQHesnaStokGrup extends MQStokGrup {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false } static get raporKullanilirmi() { return false }
 }
 class MQHesnaStokAnaGrup extends MQStokAnaGrup {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false } static get raporKullanilirmi() { return false }
 }
 class MQHesnaStokIstGrup extends MQStokIstGrup {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false } static get raporKullanilirmi() { return false }
 }

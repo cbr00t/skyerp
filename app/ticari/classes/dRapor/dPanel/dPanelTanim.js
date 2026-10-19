@@ -1,5 +1,5 @@
 class DPanelTanim extends MQDetayliGUIDVeAdi {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, 'panel', 'rapor', 'inst', 'part'] }
 	static get kodListeTipi() { return 'DPANEL' } static get sinifAdi() { return 'Panel Rapor' }
 	static get kod() { return this.kodListeTipi } static get aciklama() { return this.sinifAdi }
@@ -317,7 +317,7 @@ class DPanelTanim extends MQDetayliGUIDVeAdi {
 }
 
 class DPanelTanim_Local extends DPanelTanim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static async loadServerDataDogrudan() {
 		let {localData: d} = this; await d._promise
 		let recs = Array.from(await d.values())
@@ -406,7 +406,7 @@ class DPanelTanim_Local extends DPanelTanim {
 }
 
 class DPanelDetay extends MQDetayGUID {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, 'panel', 'rapor', 'inst', 'part'] }
 	static get table() { return 'wpaneldetay' } static get adiSaha() { return 'value' }
 	get id() { return this.sayac } set id(value) { this.sayac = value }
@@ -513,7 +513,7 @@ class DPanelDetay extends MQDetayGUID {
 }
 
 class DPanelGridci extends GridKontrolcu {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	tabloKolonlariDuzenle_ara({ liste }) {
 		super.tabloKolonlariDuzenle_ara(...arguments)
 	}

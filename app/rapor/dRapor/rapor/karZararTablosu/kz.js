@@ -1,5 +1,5 @@
 class DRapor_KarZararTablosu extends DRaporMQ {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return DRapor_EldekiVarliklar.oncelik + 1 }
 	static get kategoriKod() { return 'FINANLZ' }
 	static get kategoriAdi() { return '<div class="menu-icon">📈</div> Finansal Analiz' }

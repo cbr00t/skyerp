@@ -1,5 +1,5 @@
 class GridKolon extends GridKolonVeGrupOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static colEventNames = [
 		'cellClassName', 'renderer', 'rendered', 'cellsRenderer', 'createEditor', 'initEditor', 'getEditorValue', 'destroyEditor',
 		'cellValueChanging', 'createFilterPanel', 'createFilterWidget', 'cellBeginEdit', 'cellEndEdit', 'validation', 'aggregatesRenderer',

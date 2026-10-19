@@ -1,5 +1,5 @@
 class MQMasterOrtak extends MQCogul {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get dataKey() { return this.classKey } static get raporKullanilirmi() { return false }
 
 	static orjBaslikListesi_argsDuzenle(e) {
@@ -121,7 +121,7 @@ class MQMasterOrtak extends MQCogul {
 	}
 }
 class MQKAOrtak extends MQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get dataKey() { return this.classKey } static get raporKullanilirmi() { return MQMasterOrtak.raporKullanilirmi }
 	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); MQMasterOrtak.orjBaslikListesi_argsDuzenle(e) }
 	static standartGorunumListesiDuzenle(e) {

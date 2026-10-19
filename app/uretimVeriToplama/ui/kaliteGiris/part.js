@@ -1,5 +1,5 @@
 class KaliteGirisPart extends GerceklemeIcinAltGridliGirisPart {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get partName() { return 'kaliteGiris' }
 	static get maxNumuneSayisi() { return 40 }
 

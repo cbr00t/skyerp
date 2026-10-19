@@ -1,5 +1,5 @@
 class TabFiyatGor extends MQMasterOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'FIYATGOR' } static get sinifAdi() { return 'Fiyat Gör' }
 	static get uygunmu() { return true } static get noAutoFocus() { return true }
 	static get tanimUISinif() { return ModelTanimPart }

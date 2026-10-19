@@ -1,5 +1,5 @@
 class MQYerelParamConfig_Uretim extends MQYerelParamConfig {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static paramAttrListeDuzenle(e) { super.paramAttrListeDuzenle(e); const {liste} = e; liste.push('hatKod') }
 	static async rootFormBuilderDuzenle(e) {
 		await super.rootFormBuilderDuzenle(e); const rfb = e.rootBuilder;

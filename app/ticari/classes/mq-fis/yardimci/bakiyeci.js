@@ -1,5 +1,5 @@
 class Bakiyeci extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static { this.delim = delimWS }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static { this.delim = delimWS }
 	static get tipKod() { return null } static get table() { return null } get table() { return this.class.table }
 	static get anahtarSahalar() { return [] } static get sumSahalar() { return [] }
 	static get anahNumSet() { return {} } static get defaultBakiyeSqlDuzenleSelector() { return null }
@@ -72,14 +72,14 @@ class Bakiyeci extends CObject {
 	setSqlDuzenleyici(value) { this.sqlDuzenleyici = value; return this }
 }
 class CariBakiyeci extends Bakiyeci {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tipKod() { return 'CR' } static get table() { return 'carbakiye' }
 	static get anahtarSahalar() { return [...super.anahtarSahalar, 'must', 'ozelisaret', 'althesapkod'] }
 	static get sumSahalar() { return [...super.sumSahalar, 'bakiye', 'dvbakiye'] }
 	static get defaultBakiyeSqlDuzenleSelector() { return 'cariBakiyeSqlEkDuzenle' }
 }
 class StokBakiyeci extends Bakiyeci {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tipKod() { return 'ST' } static get table() { return 'sonstok' }
 	static get anahtarSahalar() { return [...super.anahtarSahalar, 'stokkod', 'yerkod', 'ozelisaret', 'opno', ...HMRBilgi.rowAttrListe] }
 	static get anahNumSet() { return { ...super.anahNumSet, opno: true, ...asSet(Object.values(HMRBilgi.belirtec2Bilgi).filter(rec => rec.numerikmi).map(rec => rec.rowAttr)) } }
@@ -87,14 +87,14 @@ class StokBakiyeci extends Bakiyeci {
 	static get defaultBakiyeSqlDuzenleSelector() { return 'stokBakiyeSqlEkDuzenle' }
 }
 class KasaBakiyeci extends Bakiyeci {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tipKod() { return 'KS' } static get table() { return 'kasabakiye' }
 	static get anahtarSahalar() { return [...super.anahtarSahalar, 'kasakod', 'ozelisaret'] }
 	static get sumSahalar() { return [...super.sumSahalar, 'bakiye', 'dvbakiye'] }
 	static get defaultBakiyeSqlDuzenleSelector() { return 'kasaBakiyeSqlEkDuzenle' }
 }
 class MevduatBakiyeci extends Bakiyeci {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tipKod() { return 'MV' } static get table() { return 'mevduathesapbakiye' }
 	static get anahtarSahalar() { return [...super.anahtarSahalar, 'banhesapkod', 'ozelisaret'] }
 	static get sumSahalar() { return [...super.sumSahalar, 'bakiye', 'dvbakiye'] }

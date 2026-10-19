@@ -1,5 +1,5 @@
 class ModelTanimAltFormPart extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get isSubPart() { return true }
 	static get rootPartName() { return 'modelTanim-altForm' }
 	static get partName() { return this.rootPartName }

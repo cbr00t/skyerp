@@ -1,5 +1,5 @@
 class SablonluSiparisListeOrtakFis extends MQOrtakFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Sipariş' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Sipariş' }
 	get fisSinif() { return this._fisSinif } static get tanimUISinif() { return FisGirisPart }
 	static get detaySinif() { return SablonluSiparisListeOrtakDetay } static get gridKontrolcuSinif() { return SablonluSiparisListeOrtakGridci }
 	static get tumKolonlarGosterilirmi() { return true } static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false }
@@ -321,7 +321,7 @@ class SablonluSiparisListeOrtakFis extends MQOrtakFis {
 	uiDuzenle_fisGirisIslemTuslari(e) { /* super yok */ }
 }
 class SablonluSiparisListeFis extends SablonluSiparisListeOrtakFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'SSIP' } get fisSinif() { return super.fisSinif ?? SablonluSatisSiparisFis }
 	static get detaySinif() { return SablonluSiparisListeDetay } static get gridKontrolcuSinif() { return SablonluSiparisListeGridci }
 	static loadServerData_queryDuzenle(e) {
@@ -352,7 +352,7 @@ class SablonluSiparisListeFis extends SablonluSiparisListeOrtakFis {
 	}
 }
 class SablonluKonsinyeSiparisListeFis extends SablonluSiparisListeOrtakFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return `Konsinye ${super.sinifAdi}` }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return `Konsinye ${super.sinifAdi}` }
 	static get kodListeTipi() { return 'KSSIP' } get fisSinif() { return super.fisSinif ?? SablonluKonsinyeSiparisOrtakFis } static get konsinyemi() { return true }
 	static get detaySinif() { return SablonluKonsinyeSiparisListeDetay } static get gridKontrolcuSinif() { return SablonluKonsinyeSiparisListeGridci }
 	static loadServerData_queryDuzenle(e) {
@@ -436,7 +436,7 @@ class SablonluKonsinyeSiparisListeFis extends SablonluSiparisListeOrtakFis {
 }
 
 class SablonluSiparisListeOrtakDetay extends MQDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'hizlisablondetay' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'hizlisablondetay' }
 	static get fisSayacSaha() { return 'grupsayac' } get listemi() { return true }
 	constructor(e) {
 		e = e ?? {}; super(e); let {grupSayac, grupAdi, stokKod, stokAdi, stokText, brm} = e;
@@ -460,14 +460,14 @@ class SablonluSiparisListeOrtakDetay extends MQDetay {
 	}
 }
 class SablonluSiparisListeDetay extends SablonluSiparisListeOrtakDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 class SablonluKonsinyeSiparisListeDetay extends SablonluSiparisListeOrtakDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 
 class SablonluSiparisListeOrtakGridci extends GridKontrolcu {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	gridArgsDuzenle(e) {
 		super.gridArgsDuzenle(e); let gridPart = e.gridPart ?? e.sender, {args} = e; gridPart.sabit();
 		$.extend(args, { rowsHeight: 45, groupsExpandedByDefault: true, editMode: 'click', selectionMode: 'singlecell' })
@@ -544,8 +544,8 @@ class SablonluSiparisListeOrtakGridci extends GridKontrolcu {
 	}
 }
 class SablonluSiparisListeGridci extends SablonluSiparisListeOrtakGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 class SablonluKonsinyeSiparisListeGridci extends SablonluSiparisListeOrtakGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }

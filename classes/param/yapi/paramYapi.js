@@ -1,5 +1,5 @@
 class ParamBuilder extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get copyOzelKeys() { return [
 		'_id2Item', 'builder', '_root', '_parent', '_inst', '_altInst', 'converter', 'initValue', '_layout', 'part', '_temps', '_paramHostVarsDuzenle', '_paramSetValues',
 		'_tanimUIArgsDuzenle', '_kaydetOncesi', '_kaydedince', '_formBuilderDuzenle', 'fbd_ekIslemler', 'mfSinif', 'source', 'ozelQueryDuzenle', 'veriYuklenince'
@@ -380,7 +380,7 @@ class ParamBuilder extends CObject {
 	[Symbol.iterator](e) { return this.getItems(e) }
 }
 class RootParamBuilder extends ParamBuilder {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get formBuilderClass() { return RootFormBuilder }
 	formBuilderDuzenle(e) {
 		e = e ?? {};
@@ -397,11 +397,11 @@ class RootParamBuilder extends ParamBuilder {
 	}
 }
 class ParamBuilderAlt extends ParamBuilder {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get altSeviyemi() { return true }
 }
 class ParamBuilder_AltInst extends ParamBuilderAlt {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get altInstmi() { return true }
 	get defaultNewInst() { return undefined }
 	get newInst() {
@@ -437,7 +437,7 @@ class ParamBuilder_AltArray extends ParamBuilder_AltInst {
 	get defaultNewInst() { return [] }
 }
 class ParamBuilder_Kullanim extends ParamBuilder_AltObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get kullanimmi() { return true } get defaultId() { return 'kullanim' }
 	get defaultAltInst() {
 		super.defaultAltInst
@@ -445,14 +445,14 @@ class ParamBuilder_Kullanim extends ParamBuilder_AltObject {
 	}
 }
 class ParamBuilder_UIElement extends ParamBuilderAlt {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get uiElementmi() { return true }
 	degisince(handler) { this.fbdEkIslem(e => e.builder.degisince(handler)); return this }
 	onChange(handler) { this.fbdEkIslem(e => e.builder.onChange(handler)); return this }
 	widgetArgsDuzenleIslemi(handler) { this.fbdEkIslem(e => e.builder.widgetArgsDuzenleIslemi(handler)); return this }
 }
 class ParamBuilder_Form extends ParamBuilder_UIElement {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get formmu() { return true }
 	formBuilderDuzenleInternal(e) {
 		super.formBuilderDuzenleInternal(e);
@@ -462,7 +462,7 @@ class ParamBuilder_Form extends ParamBuilder_UIElement {
 	super_formBuilderDuzenleInternal(e) { super.formBuilderDuzenleInternal(e) }
 }
 class ParamBuilder_FormWithParent extends ParamBuilder_Form {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get formmu() { return true }
 	formBuilderDuzenleInternal(e) {
 		super.super_formBuilderDuzenleInternal(e);
@@ -473,7 +473,7 @@ class ParamBuilder_FormWithParent extends ParamBuilder_Form {
 	}
 }
 class ParamBuilder_TabPage extends ParamBuilder_UIElement {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get tabPagemi() { return true }
 	formBuilderDuzenleInternal(e) {
 		super.formBuilderDuzenleInternal(e); let {builder} = e, {id} = this;
@@ -492,7 +492,7 @@ class ParamBuilder_TabPage extends ParamBuilder_UIElement {
 	}
 }
 class ParamBuilder_Grup extends ParamBuilder_UIElement {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get grupmu() { return true }
 	formBuilderDuzenleInternal(e) {
 		super.formBuilderDuzenleInternal(e);
@@ -503,7 +503,7 @@ class ParamBuilder_Grup extends ParamBuilder_UIElement {
 	}
 }
 class ParamBuilder_CheckBox extends ParamBuilder_UIElement {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	formBuilderDuzenleInternal(e) {
 		super.formBuilderDuzenleInternal(e);
 		let {id, etiket, value} = this;
@@ -523,7 +523,7 @@ class ParamBuilder_CheckBox extends ParamBuilder_UIElement {
 	convertedValue_setValues(value) { return asBoolQ(super.convertedValueInternal(value)) }
 }
 class ParamBuilder_SwitchButton extends ParamBuilder_CheckBox {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	formBuilderDuzenleInternal(e) {
 		super.formBuilderDuzenleInternal(e);
 		let {id, etiket, value} = this;
@@ -531,7 +531,7 @@ class ParamBuilder_SwitchButton extends ParamBuilder_CheckBox {
 	}
 }
 class ParamBuilder_Button extends ParamBuilder_UIElement {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) {
 		e = e ?? {}; super(e);
 		this.handler = e.handler ?? e.onClick ?? e.onClickEvent
@@ -547,7 +547,7 @@ class ParamBuilder_Button extends ParamBuilder_UIElement {
 	tiklayinca(handler) { return this.setHandler(handler) }
 }
 class ParamBuilder_Info extends ParamBuilder_UIElement {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) {
 		e = e ?? {}; super(e);
 		this.section = e.section; this.modulAdi = e.modulAdi ?? e.modul
@@ -580,7 +580,7 @@ class ParamBuilder_Info extends ParamBuilder_UIElement {
 	}
 }
 class ParamBuilder_TextInput extends ParamBuilder_UIElement {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e = {}) {
 		super(e)
 		this.maxLength = e.maxLength
@@ -600,7 +600,7 @@ class ParamBuilder_TextInput extends ParamBuilder_UIElement {
 	setMaxLength(value) { this.maxLength = value; return this }
 }
 class ParamBuilder_PassInput extends ParamBuilder_TextInput {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	formBuilderDuzenleInternal(e) {
 		super.super_formBuilderDuzenleInternal(e);
 		let {id, etiket, value, maxLength} = this;
@@ -608,7 +608,7 @@ class ParamBuilder_PassInput extends ParamBuilder_TextInput {
 	}
 }
 class ParamBuilder_TextArea extends ParamBuilder_TextInput {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) { e = e ?? {}; super(e); this.rowCount = e.rowCount }
 	formBuilderDuzenleInternal(e) {
 		super.super_formBuilderDuzenleInternal(e); let {id, etiket, value, maxLength, rowCount} = this;
@@ -618,7 +618,7 @@ class ParamBuilder_TextArea extends ParamBuilder_TextInput {
 	setRowCount(value) { this.rowCount = value; return this }
 }
 class ParamBuilder_NumberInput extends ParamBuilder_TextInput {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) {
 		e = e ?? {}; super(e);
 		$.extend(this, { min: e.min, max: e.max, step: e.step, fra: e.fra })
@@ -635,7 +635,7 @@ class ParamBuilder_NumberInput extends ParamBuilder_TextInput {
 	setFra(value) { this.fra = value; return this }
 }
 class ParamBuilder_DateInput extends ParamBuilder_UIElement {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	formBuilderDuzenleInternal(e) {
 		super.formBuilderDuzenleInternal(e); let {id, etiket, value} = this;
 		this.builder = e.builder.addDateInput(id, etiket, value)
@@ -643,7 +643,7 @@ class ParamBuilder_DateInput extends ParamBuilder_UIElement {
 	convertedValueInternal(value) { return asDate(super.convertedValueInternal(value)) }
 }
 class ParamBuilder_ModelKullan extends ParamBuilder_UIElement {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e = {}) {
 		super(e)
 		extend(this, {
@@ -674,7 +674,7 @@ class ParamBuilder_ModelKullan extends ParamBuilder_UIElement {
 	setKodAttr(value) { this.kodAttr = value; return this } setAdiAttr(value) { this.adiAttr = value; return this }
 }
 class ParamBuilder_TekSecim extends ParamBuilder_ModelKullan {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get value() { let result = super.value; /*if (result && result.char !== undefined) result = result.char*/ return result }
 	set value(value) {
 		let {altInst, id} = this; if (altInst == null) { return }
@@ -710,7 +710,7 @@ class ParamBuilder_TekSecim extends ParamBuilder_ModelKullan {
 	}
 }
 class ParamBuilder_SelectElement extends ParamBuilder_UIElement {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e = {}) {
 		super(e)
 		this.args = e
@@ -732,7 +732,7 @@ class ParamBuilder_SelectElement extends ParamBuilder_UIElement {
 	// onAfterRun() { return this.fbdEkIslem(({ builder: fbd }) => fbd.onAfterRun(...arguments)) }
 }
 class ParamBuilder_Grid extends ParamBuilder_UIElement {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) {
 		e = e ?? {}; super(e);
 		$.extend(this, {

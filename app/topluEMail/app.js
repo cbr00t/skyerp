@@ -1,5 +1,5 @@
 class TopluEMailApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'CARI' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'CARI' }
 	constructor(e) { e = e || {}; super(e) }
 	async runDevam(e) { await super.runDevam(e); await this.anaMenuOlustur(e) }
 	paramsDuzenle(e) {

@@ -1,10 +1,10 @@
 class MQTabStokAnaGrup extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'STOKANAGRUP' } static get sinifAdi() { return 'Stok Ana Grup' }
 	static get table() { return 'stkanagrup' } static get tableAlias() { return 'agrp' }
 }
 class MQTabStokGrup extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'STOKGRUP' } static get sinifAdi() { return 'Stok Grup' }
 	static get table() { return 'stkgrup' } static get tableAlias() { return 'grp' }
 
@@ -31,13 +31,13 @@ class MQTabStokGrup extends MQKAOrtak {
 	}
 }
 class MQTabStokMarka extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'STOKMARKA' } static get sinifAdi() { return 'Stok Marka' }
 	static get table() { return 'stokmarka' } static get tableAlias() { return 'smar' }
 }
 
 class MQTabBolge extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'BOLGE' } static get sinifAdi() { return 'Bölge' }
 	static get table() { return 'carbolge' } static get tableAlias() { return 'bol' }
 	static pTanimDuzenle({ pTanim }) {
@@ -67,22 +67,22 @@ class MQTabBolge extends MQKAOrtak {
 	}
 }
 class MQTabIl extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'IL' } static get sinifAdi() { return 'İl' }
 	static get table() { return 'caril' } static get tableAlias() { return 'il' }
 }
 class MQTabCariTip extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'CTIP' } static get sinifAdi() { return 'Cari Tip' }
 	static get table() { return 'cartip' } static get tableAlias() { return 'ctip' }
 }
 class MQTabUlke extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'ULKE' } static get sinifAdi() { return 'Ülke' }
 	static get table() { return 'ulke' } static get tableAlias() { return 'ulk' }
 }
 class MQTabSube extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'SUBE' } static get sinifAdi() { return 'Şube' }
 	static get table() { return 'isyeri' } static get tableAlias() { return 'sub' }
 	static get bosKodAlinirmi() { return true }
@@ -114,12 +114,12 @@ class MQTabSube extends MQKAOrtak {
 	}
 }
 class MQTabSubeGrup extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'SGRP' } static get sinifAdi() { return 'Şube Grup' }
 	static get table() { return 'isygrup' } static get tableAlias() { return 'igrp' }
 }
 class MQTabYer extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'YER' } static get sinifAdi() { return 'Yer (Depo)' }
 	static get table() { return 'stkyer' } static get tableAlias() { return 'yer' }
 	static pTanimDuzenle({ pTanim }) {
@@ -195,12 +195,12 @@ class MQTabYer extends MQKAOrtak {
 }
 
 class MQTabNakliyeSekli extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'NAKLIYE' } static get sinifAdi() { return 'Nakliye Şekli' }
 	static get table() { return 'naksekli' } static get tableAlias() { return 'nak' }
 }
 class MQTabTahsilSekli extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'TAHSEKLI' } static get sinifAdi() { return 'Tahsilat Şekli' }
 	static get table() { return 'tahsilsekli' } static get tableAlias() { return 'tsek' }
 	static get kodSaha() { return 'kodno' } static get emptyKodValue() { return 0 }
@@ -240,7 +240,7 @@ class MQTabTahsilSekli extends MQKAOrtak {
 	}
 }
 class MQTabTahsilSekliVeKarmaTahsilat extends MQTabTahsilSekli {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return `${super.kodListeTipi}_K` }
 	static async loadServerDataDogrudan(e) {
 		let recs = await super.loadServerDataDogrudan(e)
@@ -255,7 +255,7 @@ class MQTabTahsilSekliVeKarmaTahsilat extends MQTabTahsilSekli {
 }
 
 class MQPaket extends MQSayacliKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'PAKET' } static get sinifAdi() { return 'Paket' }
 	static get table() { return 'paket' } static get tableAlias() { return 'pak' }
 	// static get zeminRenkDesteklermi() { return true }
@@ -270,7 +270,7 @@ class MQPaket extends MQSayacliKAOrtak {
 	}
 }
 class MQUrunPaket extends MQSayacliOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'UPAK' } static get sinifAdi() { return 'Ürün Paket' }
 	static get table() { return 'urunpaket' } static get tableAlias() { return 'upak' }
 	static get offlineGonderYapilirmi() { return false }
@@ -288,7 +288,7 @@ class MQUrunPaket extends MQSayacliOrtak {
 	}
 }
 class MQCariSatis extends MQMasterOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'CSAT' } static get sinifAdi() { return 'Cari Satış' }
 	static get table() { return 'carisatis' } static get tableAlias() { return 'csat' }
 	static get offlineGonderYapilirmi() { return false }
@@ -364,19 +364,19 @@ class MQCariSatis extends MQMasterOrtak {
 }
 
 class MQTabKasa extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'KASA' } static get sinifAdi() { return 'Kasa' }
 	static get table() { return 'kasmst' } static get tableAlias() { return 'kas' }
 }
 
 class MQTabUgramaNeden extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'UGRNEDEN' } static get sinifAdi() { return 'Uğrama Nedeni' }
 	static get table() { return 'ssugramasebep' } static get tableAlias() { return 'ned' }
 }
 
 class MQTabSevkAdres extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListetipi() { return 'SEVKADRES' } static get sinifAdi() { return 'Sevk Adresi' }
 	static get table() { return 'carsevkadres' } static get tableAlias() { return 'sadr' }
 	get unvan() { return birlestirBosluk(this.unvan1, this.unvan2) }
@@ -413,7 +413,7 @@ class MQTabSevkAdres extends MQKAOrtak {
 }
 
 class MQTabSutSira extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'SUTSIRA' } static get sinifAdi() { return 'Süt' }
 	static get table() { return 'sutsira' } static get tableAlias() { return 'sut' }
 	static get kodEtiket() { return 'Süt' } static get adiEtiket() { return 'Süt Adı' }

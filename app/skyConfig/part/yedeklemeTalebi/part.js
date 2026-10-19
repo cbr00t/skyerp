@@ -1,5 +1,5 @@
 class YedeklemeTalebiPart extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get partName() { return 'yedeklemeTalebi' }
 	static get isWindowPart() { return true } static get recClass() { return YedeklemeTalebiRec }
 

@@ -1,5 +1,5 @@
 class MQAltHesapGrup extends MQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Alt Hesap Grup' }
 	static get table() { return 'ahgrup' }
 	static get tableAlias() { return 'ahgrp' }

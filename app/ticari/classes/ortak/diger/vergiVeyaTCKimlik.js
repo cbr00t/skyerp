@@ -1,5 +1,5 @@
 class VergiVeyaTCKimlik extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get perakendeVKN() { return '1'.repeat(this.haneSayisi) }
 	static get yurtDisiVKN() { return '2'.repeat(this.haneSayisi) }
 	static uygunmu(value) {
@@ -12,7 +12,7 @@ class VergiVeyaTCKimlik extends CObject {
 	}
 }
 class VergiNo extends VergiVeyaTCKimlik {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get haneSayisi() { return 10 }
 	static uygunmu(value) {
 		if (!/^\d{10}$/.test(value)) { return false }
@@ -29,7 +29,7 @@ class VergiNo extends VergiVeyaTCKimlik {
 	}
 }
 class TCKimlik extends VergiVeyaTCKimlik {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get haneSayisi() { return 11 }
 	static uygunmu(value) {
 		if (!/^\d{11}$/.test(value)) { return false }

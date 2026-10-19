@@ -1,5 +1,5 @@
 class TabUgramaFis extends TabFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'UGR' } static get sinifAdi() { return 'Uğrama' }
 	static get numTipKod() { return 'U' }
 	static get onlineFisSinif() { return TabUgramaOnlineFis }
@@ -153,7 +153,7 @@ class TabUgramaFis extends TabFis {
 
 
 class TabUgramaOnlineFis extends MQDetayliOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	// fis: plasiyersonuc  =>  har: plas2musugramasonuc
 	static get table() { return 'plasiyersonuc' }
 	static get tableAlias() { return 'fis' }
@@ -178,7 +178,7 @@ class TabUgramaOnlineFis extends MQDetayliOrtak {
 }
 
 class TabUgramaOnlineDetay extends MQDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'plas2musugramasonuc' }
 	static get seqSaha() { return null }
 	

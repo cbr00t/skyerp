@@ -1,6 +1,6 @@
 
 class DRapor_HizmetMuhKontrol extends DRaporMQ {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return 98 }
 	static get kategoriKod() { return 'MUH' } static get kategoriAdi() { return 'Muhasebe' }
 	static get kod() { return 'HIZMUHKONT' } static get aciklama() { return 'Hizmet Muhasebeleşme Kontrolü' }

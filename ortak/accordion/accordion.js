@@ -1,5 +1,5 @@
 class AccordionPart extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get isSubPart() { return true } static get partName() { return 'accordion' }
 	get id2Elm() {
 		let {layout, panels} = this

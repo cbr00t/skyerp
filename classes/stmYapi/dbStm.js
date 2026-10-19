@@ -1,5 +1,5 @@
 class MQStm extends MQDbCommand {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get toplamTable() { return 'toplam' }
 	get unionSahaListe() { return this.sent.unionSahaListe } get unionAliasListe() { return this.sent.unionAliasListe }
 	get siraliSahaVeDegerler() { let result = []; for (let sent of this.getSentListe()) { result.push(sent.alias2Deger) }; return result }
@@ -91,7 +91,7 @@ class MQStm extends MQDbCommand {
 	}
 }
 class MQTmpTable extends MQDbCommand {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) {
 		e = e || {}; super(e);
 		if (isArray(e)) { e = { sahalar: e } } else if (typeof e != 'object') { e = { sahalar: [e] } }

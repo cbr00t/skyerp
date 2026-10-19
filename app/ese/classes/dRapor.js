@@ -1,10 +1,10 @@
 class DRapor_ESETest extends DRapor_Donemsel {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get kategoriKod() { return 'ESE' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get kategoriKod() { return 'ESE' }
 	static get kod() { return 'TEST' } static get aciklama() { return 'Test Sonuçları' } static get mainClass() { return DRapor_ESETest_Main }
 	altRaporlarDuzenle(e) { this.add(this.class.mainClass); super.altRaporlarDuzenle(e) }
 }
 class DRapor_ESETest_Main extends DRapor_Donemsel_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_ESETest }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_ESETest }
 	static get table() { return 'esetest' } static get detayVeyaGrupTable() { return null } get tazeleYapilirmi() { return true }
 	onInit(e) {
 		super.onInit(e)

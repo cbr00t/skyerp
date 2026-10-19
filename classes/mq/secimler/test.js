@@ -1,5 +1,5 @@
 class TestSecimler extends Secimler {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	listeOlustur(e) {
 		super.listeOlustur(e); const {liste} = e; this.grupTopluEkle([ { kod: 'diger', aciklama: 'Diger', zeminRenk: '#aaa', kapali: true } ])
 		const serbestListe = ['item1', 'item2', 'item3', 'x1', 'x2', 'y1', 'y2'];

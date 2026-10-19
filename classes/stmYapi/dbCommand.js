@@ -1,8 +1,8 @@
 class MQDbCommand extends MQSQLOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 class MQSentVeIliskiliYapiOrtak extends MQDbCommand {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get unionSahaListe() {
 		let result = []; for (let {sahalar} of this) {
 			result.push(sahalar.liste.flat()) }
@@ -96,7 +96,7 @@ class MQSentVeIliskiliYapiOrtak extends MQDbCommand {
 	}
 }
 class MQSelect2Insert extends MQDbCommand {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get onEk() { return `INSERT INTO ` } get isDBWriteClause() { return true }
 	constructor(e = {}) {
 		super(e)
@@ -121,7 +121,7 @@ class MQSelect2Insert extends MQDbCommand {
 	}
 }
 class MQInsertBase extends MQDbCommand {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get onEk() { return 'INSERT INTO ' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get onEk() { return 'INSERT INTO ' }
 	get isTableInsert() { return this.tableInsertFlag } get isDBWriteClause() { return true }
 	constructor(e = {}) {
 		super(e)
@@ -186,18 +186,18 @@ class MQInsertBase extends MQDbCommand {
 	insertIgnore() { this.insertOnlyFlag = false; return this }
 }
 class MQInsert extends MQInsertBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) { e = e || {}; super(e); this.tableInsertFlag = asBoolQ(e.tableInsert); }
 	tableInsert() { this.tableInsertFlag = true; return this } queryInsert() { this.tableInsertFlag = false; return this }
 }
 class MQTableInsert extends MQInsertBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this } get isTableInsert() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } get isTableInsert() { return true }
 }
 class MQQueryInsert extends MQInsertBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this } get isTableInsert() { return false }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } get isTableInsert() { return false }
 }
 class MQInsertOrUpdate extends MQDbCommand {
-	static { window[this.name] = this; this._key2Class[this.name] = this } get isDBWriteClause() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } get isDBWriteClause() { return true }
 	constructor(e) {
 		super(e)
 		extend(this, {

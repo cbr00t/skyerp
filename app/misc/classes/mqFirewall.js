@@ -1,5 +1,5 @@
 class MQFirewall extends MQKA {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporKullanilirmi() { return false }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get raporKullanilirmi() { return false }
 	static get kodListeTipi() { return 'FIREWALL' } static get sinifAdi() { return 'Firewall' }
 	static get kodKullanilirmi() { return false } static get kodSaha() { return 'name' }
 	static get adiSaha() { return 'name' } static get adiEtiket() { return 'Kural Adı' }
@@ -219,7 +219,7 @@ class MQFirewall extends MQKA {
 }
 
 class MQFirewall_Direction extends TekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return 'inbound' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments); kaListe.push(
@@ -229,7 +229,7 @@ class MQFirewall_Direction extends TekSecim {
 	}
 }
 class MQFirewall_Action extends TekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return 'deny' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments); kaListe.push(

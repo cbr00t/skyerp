@@ -1,5 +1,5 @@
 class MQYerelParamConfig extends MQYerelParamApp {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get paramKod() { return `${super.paramKod}.config` } static get tanimUISinif() { return MQYerelParamConfigTanimPart }
 	constructor(e) { e = e || {}; super(e) }
 	static paramAttrListeDuzenle(e) {

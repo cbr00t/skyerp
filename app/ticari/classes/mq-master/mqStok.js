@@ -1,5 +1,5 @@
 class MQStok extends MQKA {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Stok' } static get table() {return 'stkmst'} static get tableAlias() { return 'stk' } static get stokmu() { return true }
 	static get kodListeTipi() { return 'STK' } static get ayrimTipKod() { return 'STAYR' } static get ayrimTableAlias() { return 'sayr' } static get ozelSahaTipKod() { return 'STK' }
 	static get zeminRenkDesteklermi() { return true } static get vergiBelirtecler() { return ['kdv', 'otv', 'stopaj'] }
@@ -58,10 +58,10 @@ class MQStok extends MQKA {
 	}
 }
 class MQStokAlt extends MQAlt {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 class MQStokGenel extends MQStokAlt {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) { e = e || {}; super(e); this.birim = e.birim || 'AD' }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e;
@@ -237,7 +237,7 @@ class MQStokGenel extends MQStokAlt {
 	}
 }
 class MQStokDiger extends MQStokAlt {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e;
 		$.extend(pTanim, {
@@ -271,7 +271,7 @@ class MQStokDiger extends MQStokAlt {
 	}
 }
 class MQStokDiger2 extends MQStokAlt {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e;
 		$.extend(pTanim, {
@@ -327,7 +327,7 @@ class MQStokDiger2 extends MQStokAlt {
 	}
 }
 class MQStokBarkodMuh extends MQStokAlt {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) {
 		e = e || {}; super(e);
 		this.barkodReferanslari = e.barkodReferanslari || []
@@ -430,7 +430,7 @@ class MQStokBarkodMuh extends MQStokAlt {
 	}
 }
 class MQStokUretim extends MQStokAlt {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e;
 		$.extend(pTanim, {

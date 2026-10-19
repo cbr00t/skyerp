@@ -1,7 +1,7 @@
-class MQYerelParam extends MQYerelParamTicari { static { window[this.name] = this; this._key2Class[this.name] = this } }
-class MQYerelParamConfig_App extends MQYerelParamConfig { static { window[this.name] = this; this._key2Class[this.name] = this } }
+class MQYerelParam extends MQYerelParamTicari { static { globalThis[this.name] = this; this._key2Class[this.name] = this } }
+class MQYerelParamConfig_App extends MQYerelParamConfig { static { globalThis[this.name] = this; this._key2Class[this.name] = this } }
 class MQParam_Misc extends MQParam {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Ek İşlemler Parametreleri' } static get paramKod() { return 'MISCPARAM' }
 	/*constructor(e) { e = e || {}; super(e); $.extend(this, { sablon: e.sablon }); this.fix(e) }
 	static paramYapiDuzenle(e) {

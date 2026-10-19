@@ -1,5 +1,5 @@
 class MQYerelParam extends MQYerelParamTicari {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static paramAttrListeDuzenle({ liste }) {
 		super.paramAttrListeDuzenle(...arguments)
 		liste.push('lastSession')
@@ -14,7 +14,7 @@ class MQYerelParam extends MQYerelParamTicari {
 	}
 }
 class MQYerelParamConfig_App extends MQYerelParamConfig {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static paramAttrListeDuzenle(e) { super.paramAttrListeDuzenle(e); let {liste} = e; liste.push('postaKod') }
 	static async rootFormBuilderDuzenle(e) {
 		await super.rootFormBuilderDuzenle(e)

@@ -1,5 +1,5 @@
 class MQYerelParamBase extends CIO {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ozelCopyKeys() { return ['_promise', '_paramci', '_builder'] }
 	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, ...this.ozelCopyKeys] }
 	static get paramKod() { return null } get paramKod() { return this.class.paramKod }

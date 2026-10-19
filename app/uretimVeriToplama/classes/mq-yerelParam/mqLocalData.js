@@ -1,5 +1,5 @@
 class MQLocalData_App extends MQYerelParamApp {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get QueryCacheTimeoutSecs() { return .5 } static get DelimAnah() { return '$' } static get paramKod() { return `${super.paramKod}.localData` }
 	get data() { return this._data = this._data || {} } set data(value) { this._data = value }
 	

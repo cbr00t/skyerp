@@ -1,5 +1,5 @@
 class MQTabNum extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'TABNUM' } static get sinifAdi() { return 'Numaratör' }
 	static get table() { return 'tnumara' } static get tableAlias() { return 'num' }
 	static get idSaha() { return 'id' }

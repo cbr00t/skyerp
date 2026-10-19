@@ -1,5 +1,5 @@
 class MQCari extends MQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get cioClasses() { return [MQCariAlt_UnvanVeAdres, MQCariAlt_Vergi] }
 	static get cioClassKeys() { return ['unvanVeAdres', 'vergi'] }
 	
@@ -209,7 +209,7 @@ class MQCari extends MQKA {
 
 
 class MQCariAlt extends MQAlt {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get mfSinif() { return MQCari }
 	static rootFormBuilderDuzenle(e) { }
 	static secimlerDuzenle(e) { }
@@ -222,7 +222,7 @@ class MQCariAlt extends MQAlt {
 }
 
 class MQCariAlt_UnvanVeAdres extends MQCariAlt {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get unvan() { return [this.unvan1, this.unvan2].map(x => !!x).join(' ') }
 	set unvan(value) { 
 		const max = 50;
@@ -336,7 +336,7 @@ class MQCariAlt_UnvanVeAdres extends MQCariAlt {
 }
 
 class MQCariAlt_Vergi extends MQCariAlt {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get vkn() { return this[this.sahismi ? 'tckimlikno' : 'vergiNo'] }
 	set vkn(value) { this[this.sahismi ? 'tckimlikno' : 'vergiNo'] = value }
 	

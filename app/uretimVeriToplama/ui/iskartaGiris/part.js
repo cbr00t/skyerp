@@ -1,5 +1,5 @@
 class IskartaGirisPart extends GerceklemeIcinAltGridliGirisPart {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get partName() { return 'iskartaGiris' }
 
 	constructor(e) {

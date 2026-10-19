@@ -1,5 +1,5 @@
 class Rapor_Satislar extends DMQRapor {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get secimSinif() { return null }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get secimSinif() { return null }
 	static get kod() { return 'SATISLAR' } static get aciklama() { return 'Satışlar' }
 	static get gruplamaKAListe() {
 		let result = this._gruplamaKAListe; if (result == null) {
@@ -99,7 +99,7 @@ class Rapor_Satislar extends DMQRapor {
 }
 
 class DRapor_TEST extends DPanelRapor {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kod() { return 'TEST' } static get aciklama() { return 'Test' }
 	altRaporlarDuzenle(e) { super.altRaporlarDuzenle(e); this.add(DAltRapor_TEST1, DAltRapor_TEST2, DAltRapor_TEST3) }
 }

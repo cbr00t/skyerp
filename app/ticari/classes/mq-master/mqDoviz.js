@@ -1,5 +1,5 @@
 class MQDoviz extends MQKA {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() {return 'Doviz' } static get kodListeTipi() { return 'DOVIZ' }
 	static get table() { return 'ORTAK..dvmst' } static get tableAlias() { return 'dvz' }
 

@@ -1,5 +1,5 @@
 class TestPart extends Part {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get partName() { return 'test' } static get isWindowPart() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get partName() { return 'test' } static get isWindowPart() { return true }
 	get state() { return this.states?.[this.pageIndex] }
 	get adimText() { return this.headerLayouts.adimText?.html() } set adimText(value) { this.headerLayouts.adimText?.html(value ?? '') }
 	get progressText() { return this.headerLayouts.progressText?.html() } set progressText(value) { this.headerLayouts.progressText?.html(value ?? '') }

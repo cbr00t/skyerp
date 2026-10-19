@@ -1,5 +1,5 @@
 class IPC2App extends TicariApp {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get isLoginRequired() { return false }
 	get autoExecMenuId() { return null }
 

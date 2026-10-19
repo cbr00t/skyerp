@@ -1,5 +1,5 @@
 class TicariGridKontrolcu extends TSGridKontrolcu {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	gridArgsDuzenle({ sender: gridPart, args }) {
 		super.gridArgsDuzenle(...arguments)
 		let { inst = gridPart?.fis } = gridPart ?? {}
@@ -368,7 +368,7 @@ class TicariGridKontrolcu extends TSGridKontrolcu {
 }
 
 class EIslAlimGridKontrolcu extends TicariGridKontrolcu {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	tabloKolonlariDuzenle({ tabloKolonlari: liste }) {
 		super.tabloKolonlariDuzenle(...arguments)
 		let { fis } = this

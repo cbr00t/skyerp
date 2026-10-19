@@ -1,5 +1,5 @@
 class CDBTable extends CDBLocalData_Base {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get tablemi() { return true } get dbName() { return this.db?.name } get lastKey() { return this._lastKey } get size() { return this.data?.size ?? this.data?.length }
 	get fsRootDirPaths() { return [...super.fsRootDirPaths, ...(this.dbName ? ['db', this.dbName] : ['tables']), this.fsFileName] }
 	constructor(e) {

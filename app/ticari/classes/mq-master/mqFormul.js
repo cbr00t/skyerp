@@ -1,5 +1,5 @@
 class MQFormul extends MQKA {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'UFRM' }
 	static get sinifAdi() { return 'Formül' } 
 	static get formulmu() { return true }

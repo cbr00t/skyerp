@@ -1,5 +1,5 @@
 class AIApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get isLoginRequired() { return false } // Login istenmiyor ve zaten LoginPart için referans da mevcut değil
     get autoExecMenuId() { return 'AI'; }  // uygulama açılır açılmaz 'AI' menü komutunu çalıştırır
 	async runDevam(e) { await super.runDevam(e); await this.anaMenuOlustur(e); this.show() }

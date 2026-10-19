@@ -1,5 +1,5 @@
 class MQSecim extends MQCogul {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Seçim Tanımları' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Seçim Tanımları' }
 	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return true } static get secimSinif() { return null }
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { tipBelirtec: new PInstStr(), aciklama: new PInstStr(), icerik: new PInstStr() }) }
 	static orjBaslikListesi_argsDuzenle(e) {

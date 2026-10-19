@@ -1,5 +1,5 @@
 class SonStokRapor extends StokRapor {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get raporGrup() { return 'SSON' }	
 	constructor(e) { e = e || {}; super(e); }
 	listeOlustur(e) {

@@ -1,5 +1,5 @@
 class MQEConf extends MQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'e-İşlem Konfigurasyon' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'e-İşlem Konfigurasyon' }
 	static get table() { return 'efatconf' } static get tableAlias() { return 'efc' }
 	static get kodListeTipi() { return 'EFCONF' } static get bosKodAlinirmi() { return true } static get tumKolonlarGosterilirmi() { return true }
 	/* static getInstance() { let result = this._instance; if (!result) { result = this._instance = new this() } return result } */
@@ -153,9 +153,9 @@ class MQEConf extends MQKA {
 		return result
 	}
 }
-class MQEConfAlt extends MQAlt { static { window[this.name] = this; this._key2Class[this.name] = this } }
+class MQEConfAlt extends MQAlt { static { globalThis[this.name] = this; this._key2Class[this.name] = this } }
 class MQEConfAlt_Kisit extends MQEConfAlt {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kisitKeys() { return ['fatura', 'irsaliye', 'magaza', 'musMakbuz'] }
 	static get kisitKeysSet() { let result = this._kisitKeysSet; if (result === undefined) { result = this._kisitKeysSet = asSet(this.kisitKeys) } return result }
 	static pTanimDuzenle(e) {

@@ -1,5 +1,5 @@
 class MQSablon extends MQDetayliGUIDVeAdiOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return null } static get sinifAdi() { return 'Şablon' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tip() { return null } static get sinifAdi() { return 'Şablon' }
 	static get kod() { return this.tip } static get aciklama() { return null } static get maxSayi() { return 1 }
 	static get kodListeTipi() { return 'SABLON' } static get tableAlias() { return 'sab' } static get detaySinif() { return MQSablonDetay }
 	static get tip2Sinif() {
@@ -12,14 +12,14 @@ class MQSablon extends MQDetayliGUIDVeAdiOrtak {
 	static getClass(e) { const tip = typeof e == 'object' ? e.tip : e; return this.tip2Sinif[tip] }
 	static newFor(e) { if (typeof e != 'object') { e = { tip: e } } const cls = this.getClass(e); return cls ? new cls(e) : null }
 }
-class MQSablonDetay extends MQDetayGUID { static { window[this.name] = this; this._key2Class[this.name] = this } }
+class MQSablonDetay extends MQDetayGUID { static { globalThis[this.name] = this; this._key2Class[this.name] = this } }
 class MQSablonGridci extends GridKontrolcu {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	/*gridArgsDuzenle(e) { super.gridArgsDuzenle(e); const {args} = e; $.extend(args, { selectionMode: 'none' }) }*/
 }
 
 class MQSablonCPT extends MQSablon {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'CPT Şablon' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'CPT Şablon' }
 	static get tip() { return 'cpt' } static get aciklama() { return 'CPT' } static get kodListeTipi() { return 'SABCPT' } static get table() { return 'esecptsablon' }
 	static get detaySinif() { return MQSablonCPTDetay } static get gridKontrolcuSinif() { return MQSablonCPTGridci } get resimSayisi() { return this.detaylar?.length }
 	static get gecerliTekrarSayi() { return 40 } static get digerTekrarSayi() { return 160 } static get toplamTekrarSayi() { return this.gecerliTekrarSayi + this.digerTekrarSayi }
@@ -54,7 +54,7 @@ class MQSablonCPT extends MQSablon {
 	hostVarsDuzenle(e) { super.hostVarsDuzenle(e); const {hv} = e; $.extend(hv, { resimsayisi: this.resimSayisi }) }
 }
 class MQSablonCPTDetay extends MQSablonDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'esecptsablondetay' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'esecptsablondetay' }
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { resimLink: new PInstStr('resimlink') }) }
 	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); const {args} = e; $.extend(args, { rowsHeight: 50 }) }
 	static orjBaslikListesiDuzenle(e) {
@@ -80,7 +80,7 @@ class MQSablonCPTDetay extends MQSablonDetay {
 	}
 }
 class MQSablonCPTGridci extends MQSablonGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	gridArgsDuzenle(e) { super.gridArgsDuzenle(e); const {args} = e; $.extend(args, { rowsHeight: 60, selectionMode: 'none' }) }
 	tabloKolonlariDuzenle(e) {
 		super.tabloKolonlariDuzenle(e); e.tabloKolonlari.push(
@@ -144,7 +144,7 @@ class MQSablonCPTGridci extends MQSablonGridci {
 }
 
 class MQSablonAnket extends MQSablon {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Anket Şablon' } static get maxSayi() { return 3 }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Anket Şablon' } static get maxSayi() { return 3 }
 	static get tip() { return 'anket' } static get aciklama() { return 'Anket' } static get kodListeTipi() { return 'SABANKET' } static get table() { return 'eseanketsablon' }
 	static get detaySinif() { return MQSablonAnketDetay } static get gridKontrolcuSinif() { return MQSablonAnketGridci }
 	static pTanimDuzenle(e) {
@@ -177,13 +177,13 @@ class MQSablonAnket extends MQSablon {
 	setValues(e) { super.setValues(e); const {rec} = e; $.extend(this, { yanitAdi: rec.yanitadi }) }
 }
 class MQSablonAnketDetay extends MQSablonDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'eseanketsablondetay' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'eseanketsablondetay' }
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { soru: new PInstStr('soru') }) }
 	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); const {args} = e; $.extend(args, { rowsHeight: 45 }) }
 	static orjBaslikListesiDuzenle(e) { super.orjBaslikListesiDuzenle(e); e.liste.push(new GridKolon({ belirtec: 'soru', text: 'Soru', genislikCh: 130 })) }
 }
 class MQSablonAnketGridci extends MQSablonGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	gridArgsDuzenle(e) { super.gridArgsDuzenle(e); const {args} = e; $.extend(args, { rowsHeight: 45 }) }
 	tabloKolonlariDuzenle(e) { super.tabloKolonlariDuzenle(e); e.tabloKolonlari.push(new GridKolon({ belirtec: 'soru', text: 'Soru', genislikCh: 130 }).tipString(512)) }
 	fis2Grid(e) {

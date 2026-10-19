@@ -1,5 +1,5 @@
 class SGKEmeklilikApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'MAIN' } get isLoginRequired() { return false }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'MAIN' } get isLoginRequired() { return false }
 	get sgkWSPath() { return 'ws/sgk' } get sgkWSURL() { return qs.sgkWSURL || `https://${config.class.DefaultWSHostName_SkyServer}:9202` }
 	static get yerelParamSinif() { return MQYerelParam_App } get configParamSinif() { return MQYerelParamConfig_App }
 	async runDevam(e) { await super.runDevam(e); await this.anaMenuOlustur(e); this.show() }

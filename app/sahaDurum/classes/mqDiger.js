@@ -1,5 +1,5 @@
 class MQCari extends MQKAOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get dataKey() { return 'cari' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get dataKey() { return 'cari' }
 	static get sinifAdi() { return 'Müşteriler' } static get tableAlias() { return 'car' }
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); let {liste} = e;
@@ -25,7 +25,7 @@ class MQCari extends MQKAOrtak {
 }
 
 class MQKapanmayanHesaplar extends MQMasterOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get dataKey() { return 'kapanmayanHesap' } static get sinifAdi() { return 'Kapanmayan Hesaplar' }
 	get tableAlias() { return 'khes' }
 
@@ -185,7 +185,7 @@ class MQKapanmayanHesaplar extends MQMasterOrtak {
 }
 
 class MQKapanmayanHesaplar_Yaslandirma extends MQMasterOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get dataKey() { return MustBilgi.yaslandirmaKey }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get dataKey() { return MustBilgi.yaslandirmaKey }
 	static get sinifAdi() { return 'Kapanmayan Hesaplar (Total Bilgi)' }
 	get tableAlias() { return 'ktot' }
 
@@ -258,7 +258,7 @@ class MQKapanmayanHesaplar_Yaslandirma extends MQMasterOrtak {
 	}
 }
 class MQKapanmayanHesaplar_Dip extends MQMasterOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get dataKey() { return 'dip' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get dataKey() { return 'dip' }
 	static get sinifAdi() { return 'Dip' } get tableAlias() { return 'dip' }
 	static orjBaslikListesi_argsDuzenle({ args }) {
 		super.orjBaslikListesi_argsDuzenle(...arguments);
@@ -313,7 +313,7 @@ class MQKapanmayanHesaplar_Dip extends MQMasterOrtak {
 }
 
 class MQCariEkstre extends MQMasterOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get dataKey() { return 'cariEkstre' } static get sinifAdi() { return 'Cari Ekstreler' }
 	get tableAlias() { return 'ceks' } static get gridDetaylimi() { return true }
 	static get detaySinif() { return MQCariEkstre_Detay }
@@ -401,7 +401,7 @@ class MQCariEkstre extends MQMasterOrtak {
 	}
 }
 class MQCariEkstre_Detay extends MQMasterOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get dataKey() { return 'cariEkstre_detay' }
 	static get sinifAdi() { return 'Cari Ekstre (Detay)' }
 	get tableAlias() { return 'har' }

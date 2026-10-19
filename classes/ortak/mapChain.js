@@ -1,5 +1,5 @@
 class CMapChain extends Map {
-    /*static { window[this.name] = this; this._key2Class[this.name] = this }*/
+    /*static { globalThis[this.name] = this; this._key2Class[this.name] = this }*/
 	static NullKey = '\x00'; get class() { return this.constructor ?? this.__proto__.constructor }
 	get(keys) {
 		const {NullKey} = this.class; let current = this;

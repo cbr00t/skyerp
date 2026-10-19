@@ -1,5 +1,5 @@
 class BarkodParser extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get aciklama() { return '' } 
 	static get cache() { return this._cache ??= {} }
 	static set cache(value) { this._cache ??= value }

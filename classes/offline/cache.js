@@ -1,5 +1,5 @@
 class LocalCache extends MQLocalTable {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultName() { return 'local-cache' }
 	get recording() { return this._recording }
 	set recording(value) { this._recording = value }
@@ -71,7 +71,7 @@ class LocalCache extends MQLocalTable {
 	}
 }
 class QueryCache extends LocalCache {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultName() { return 'query-cache' }
 	async onExec({ execTip, queryYapi, result }) {
 		if (await super.onExec(...arguments) === false) { return false }
@@ -86,7 +86,7 @@ class QueryCache extends LocalCache {
 	}
 }
 class ReqCache extends LocalCache {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static CacheLimitBytes = 1_000_000
 	static get defaultName() { return 'req-cache' }
 	async onExec({ result }) {

@@ -1,5 +1,5 @@
 class BarkodluGerceklemePart extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get partName() { return 'barkodluGercekleme' } static get isWindowPart() { return true }
 	get barkodRec() { return this._barkodRec } set barkodRec(value) { this._barkodRec = value }
 	constructor(e) {

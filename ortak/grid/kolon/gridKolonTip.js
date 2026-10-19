@@ -1,5 +1,5 @@
 class GridKolonTip extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static colEventNames = GridKolon.colEventNames; static globalEventNames = GridKolon.globalEventNames;
 	static get anaTip() { return null } static get tip() { return this.anaTip } get anaTip() { return this.class.anaTip } get tip() { return this.class.tip }
 	get defaultAlign() { return null } static get isEditable() { return null } get jqxColumnType() { return 'textbox' } get jqxCellsFormat() { return '' }
@@ -229,12 +229,12 @@ class GridKolonTip extends CObject {
 	listedenSecilmez() { return this.listedenSecilemez() }
 }
 class GridKolonTip_String extends GridKolonTip {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get anaTip() { return 'string' } static get stringmi() { return true }
 	get jqxCellsFormat() { return '' }
 }
 class GridKolonTip_Number extends GridKolonTip {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get anaTip() { return 'number' } static get mfbmi() { return true }
 	get jqxColumnType() { return 'custom' } /* get jqxColumnType() { return 'numberinput' } */
 	get defaultAlign() { return 'right' } get jqxCellsFormat() { return super.jqxCellsFormat }
@@ -371,7 +371,7 @@ class GridKolonTip_Number extends GridKolonTip {
 }
 
 class GridKolonTip_Decimal extends GridKolonTip_Number {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'decimal' } /*get jqxColumnType() { return 'numberinput' }*/ get jqxCellsFormat() { return super.jqxCellsFormat }
 	// get jqxCellsFormat() { return 'n' }
 
@@ -414,7 +414,7 @@ class GridKolonTip_Decimal extends GridKolonTip_Number {
 }
 
 class GridKolonTip_Date extends GridKolonTip {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get anaTip() { return 'date' } /* get jqxColumnType() { return 'date' } */ get jqxColumnType() { return 'custom' }
 	get jqxFilterType() { return 'checkedlist' } static get jqxFilterAnaTip() { return 'datefilter' } get jqxFilterCondition() { return 'CONTAINS' }
 	/* get jqxCellsFormat() { return DateFormat } */ get jqxCellsFormat() { return super.jqxCellsFormat }
@@ -478,7 +478,7 @@ class GridKolonTip_Date extends GridKolonTip {
 	}
 }
 class GridKolonTip_Time extends GridKolonTip_String {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get anaTip() { return 'time' } /* get jqxColumnType() { return 'time' } */
 
 	readFrom(e) {
@@ -501,7 +501,7 @@ class GridKolonTip_Time extends GridKolonTip_String {
 	}
 }
 class GridKolonTip_TekSecim extends GridKolonTip {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'tekSecim' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'tekSecim' }
 	static get tekSecimmi() { return true } static get birKismimi() { return false }
 	get jqxColumnType() { return 'custom' } get jqxFilterType() { return 'checkedlist' }
 	get source() { return this._source } set source(value) { this._source = value }
@@ -742,13 +742,13 @@ class GridKolonTip_TekSecim extends GridKolonTip {
 	comboBox() { this.comboBoxmi = true; return this }
 }
 class GridKolonTip_BirKismi extends GridKolonTip_TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get anaTip() { return 'tekSecim' }
 	static get tip() { return 'birKismi' }
 	static get birKismimi() { return true }
 }
 class GridKolonTip_Ozel extends GridKolonTip {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get anaTip() { return 'ozel' }
 	static get ozelmi() { return true }
 	static get isEditable() { return false }
@@ -777,7 +777,7 @@ class GridKolonTip_Ozel extends GridKolonTip {
 	setValue(value) { this.value = value; return this }
 }
 class GridKolonTip_Button extends GridKolonTip_Ozel {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'button' }
 	static get butonmu() { return true }
 	static get buttonmu() { return this.butonmu }
@@ -848,7 +848,7 @@ class GridKolonTip_Button extends GridKolonTip_Ozel {
 	}
 }
 class GridKolonTip_Image extends GridKolonTip_Button {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'image' } static get resimmi() { return true } static get imagemi() { return this.resimmi }
 	static get butonmu() { return false } get jqxColumnType() { return 'image' }
 	get cellsRenderer() {
@@ -876,7 +876,7 @@ class GridKolonTip_Image extends GridKolonTip_Button {
 	}
 }
 class GridKolonTip_Bool extends GridKolonTip_Ozel {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'bool' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'bool' }
 	get jqxColumnType() { return 'checkbox' } get jqxFilterType() { return 'checkedlist' }
 	get createEditor_ozel() {
 		return ((colDef, rowIndex, value, editor, cellText, cellWidth, cellHeight) => {

@@ -1,5 +1,5 @@
 class MQSubeParam extends MQKodOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tableAlias() { return 'par' }
 	static get offlineGonderYapilirmi() { return false }
 	static get bosKodAlinirmi() { return true }    // !! wh clause (kod <> '') eklemesin !!
@@ -34,7 +34,7 @@ class MQSubeParam extends MQKodOrtak {
 }
 
 class MQTabSubeParam extends MQSubeParam {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'TABSUB' }
 	static get sinifAdi() { return 'Tablet Şube Param' }
 	static get table() { return 'elterparam' }

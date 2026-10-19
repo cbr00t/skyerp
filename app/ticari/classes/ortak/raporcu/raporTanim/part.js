@@ -1,5 +1,5 @@
 class RaporTanimPart extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get partName() { return 'raporTanim' } static get isWindowPart() { return true } get wndDefaultIsModal() { return false }
 	get yenimi() { return this.islem == 'yeni' } get degistirmi() { return this.islem == 'degistir' } get silmi() { return this.islem == 'silmi' }
 	get kopyami() { return this.islem == 'kopya' } get yeniVeyaKopyami() { return this.yenimi || this.kopyami } get degistirVeyaSilmi() { return this.degistirmi || this.silmi }

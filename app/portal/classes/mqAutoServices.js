@@ -1,5 +1,5 @@
 class MQAutoServices extends MQCogul {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'MCFG' }
 	static get sinifAdi() { return 'Müşteri Servis Yönetimi' }
 	static get tanimUISinif() { return MQKod.tanimUISinif }

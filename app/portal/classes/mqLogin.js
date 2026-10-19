@@ -1,5 +1,5 @@
 class MQLogin extends MQKA {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get tableAlias() { return 'usr' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tableAlias() { return 'usr' }
 	static get yetkiSelectors() { return [] } static get yetkiRowAttrPrefix() { return 'b' } static get uygunmu() { return this != MQLogin }
 	static get current() { return this._current } static set current(value) { this._current = value }
 	static get tumKolonlarGosterilirmi() { return true } static get raporKullanilirmi() { return false } static get kolonFiltreKullanilirmi() { return false }
@@ -134,7 +134,7 @@ class MQLogin extends MQKA {
 }
 
 class MQLogin_Admin extends MQLogin {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return MQLogin.current.adminmi }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return MQLogin.current.adminmi }
 	static get kodListeTipi() { return 'USRADMIN' } static get sinifAdi() { return 'Ana Kullanıcı' }
 	static get table() { return 'yonetici' } static get adminmi() { return true }
 	static loadServerData_queryDuzenle({ gridPart, sender, stm, sent, basit }) {
@@ -144,7 +144,7 @@ class MQLogin_Admin extends MQLogin {
 }
 
 class MQLogin_Bayi extends MQLogin {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return !MQLogin.current.musterimi }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return !MQLogin.current.musterimi }
 	static get kodListeTipi() { return 'USRBAYI' } static get sinifAdi() { return 'Bayi' } static get bayimi() { return true }
 	static get table() { return 'bayi' } static get yetkiRowAttrPrefix() { return 'byetki' }
 	static get yetkiSelectors() { return [...super.yetkiSelectors, 'aktivasyonYap', 'aktivasyonSil', 'anahtarVer', 'demoSureSifirla'] }
@@ -217,7 +217,7 @@ class MQLogin_Bayi extends MQLogin {
 }
 
 class MQLogin_Musteri extends MQLogin {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'USRMUST' } static get sinifAdi() { return 'Müşteri' }
 	static get table() { return 'musteri' } static get musterimi() { return true }
 	static get sifreGirilirmi() { return false }

@@ -1,5 +1,5 @@
 class MQCari extends MQKA {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Cari Hesap' } static get table() { return 'carmst' } static get tableAlias() { return 'car' }
 	static get kodSaha() { return 'must' } static get adiSaha() { return 'birunvan' } static get adiEtiket() { return 'Ünvan' }
 	static get kodListeTipi() { return 'CAR' } static get ayrimTipKod() { return 'CRAYR' } static get ayrimTableAlias() { return 'cayr' }
@@ -220,11 +220,11 @@ class MQCari extends MQKA {
 }
 
 class MQCariAlt extends MQAlt {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	__old__alimEIslIcinSetValues(e) { return this }
 }
 class MQCari_Genel extends MQCariAlt {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); $.extend(e.pTanim, {
 			unvan1: new PInstStr('unvan1'), unvan2: new PInstStr('unvan2'),
@@ -355,7 +355,7 @@ class MQCari_Genel extends MQCariAlt {
 	}
 }
 class MQCari_Iletisim extends MQCariAlt {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get tel() { return this.tel1 } set tel(v) { this.tel1 = v }
 	get faks() { return this.fax } set faks(v) { this.fax = v }
 	
@@ -421,7 +421,7 @@ class MQCari_Iletisim extends MQCariAlt {
 	}
 }
 class MQCari_Vergi extends MQCariAlt {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get vkn() { let {sahismi} = this; return this[sahismi ? 'tcKimlikNo' : 'vergiNo'] }
 	set vkn(value) {
 		let sahismi = value?.length == 11 ? true : value.length == 10 ? false : null;
@@ -474,7 +474,7 @@ class MQCari_Vergi extends MQCariAlt {
 	}
 }
 class MQCari_Finans extends MQCariAlt {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e);
 		let {pTanim} = e;
@@ -563,7 +563,7 @@ class MQCari_Finans extends MQCariAlt {
 	}
 }
 class MQCari_Ticari extends MQCariAlt {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); let {pTanim} = e;
 		$.extend(pTanim, {
@@ -800,7 +800,7 @@ class MQCari_Ticari extends MQCariAlt {
 	}
 }
 class MQCari_EIslem extends MQCariAlt {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); let {pTanim} = e; $.extend(pTanim, {
 			eFaturaKullanirmi: new PInstBool('efaturakullanirmi'), senaryoTipi: new PInstTekSecim('efatsenaryotipi', SenaryoTipi),
@@ -908,5 +908,5 @@ class MQCari_EIslem extends MQCariAlt {
 	}
 }
 class MQCiranta extends MQCari {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ciranta' } static get tableAlias() { return 'cir' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ciranta' } static get tableAlias() { return 'cir' }
 }

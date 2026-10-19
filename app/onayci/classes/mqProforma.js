@@ -1,5 +1,5 @@
 class MQProforma extends MQGuid {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'PROFORMA' }
 	static get sinifAdi() { return 'Proforma Gösterimi' }
 	static get table() { return 'alimproforma' }

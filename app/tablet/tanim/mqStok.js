@@ -1,5 +1,5 @@
 class MQTabStok extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'STOK' } static get sinifAdi() { return 'Stok' }
 	static get table() { return 'stkmst' } static get tableAlias() { return 'stk' }
 	static get tanimlanabilirmi() { return true } static get zeminRenkDesteklermi() { return true }

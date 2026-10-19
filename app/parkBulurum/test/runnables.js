@@ -1,11 +1,11 @@
 class ParkBulurum_RunnableBase extends Runnable {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get rootTip() { return 'parkBulurum'} static get DefaultWSHost() { return 'cloud.vioyazilim.com.tr' }
 	static get DefaultWSPath() { return 'parkBulurum' } static get DefaultLoginTipi() { return 'mobilLogin' }
 	runInternal(e) { super.runInternal(e) /*; const {tip} = this.class; this.callback({ message: 'in test', tip })*/ }
 }
 class ParkBulurum_TopluAlanOlustur extends ParkBulurum_RunnableBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get altTip() { return 'topluCihazOlustur' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get altTip() { return 'topluCihazOlustur' }
 	static get table() { return 'oparkalani' } static get TestAciklama() { return 'WS-TEST' };
 	async runInternal(e) {
 		super.runInternal(e); const {iterCount} = this, {table} = this.class, hvListe = [], aciklama = this.class.TestAciklama, parksayisi = 5;
@@ -15,14 +15,14 @@ class ParkBulurum_TopluAlanOlustur extends ParkBulurum_RunnableBase {
 	}
 }
 class ParkBulurum_TopluAlanSil extends ParkBulurum_RunnableBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get altTip() { return 'topluCihazSil' } static get olusturClass() { return ParkBulurum_TopluAlanOlustur }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get altTip() { return 'topluCihazSil' } static get olusturClass() { return ParkBulurum_TopluAlanOlustur }
 	runInternal(e) {
 		super.runInternal(e); const {olusturClass} = this.class, {table} = olusturClass, aciklama = ParkBulurum_TopluAlanOlustur.TestAciklama;
 		return app.sqlExecNone(new MQIliskiliDelete({ from: table, where: [`bdevredisi = 0`, { degerAta: aciklama, saha: 'aciklama' }] }))
 	}
 }
 class ParkBulurum_TopluCihazOlustur extends ParkBulurum_RunnableBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get altTip() { return 'topluCihazOlustur' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get altTip() { return 'topluCihazOlustur' }
 	static get table() { return 'ocihaz' } static get TestAciklama() { return 'WS-TEST' };
 	async runInternal(e) {
 		super.runInternal(e); const {iterCount} = this, {table} = this.class, hvListe = [], aciklama = this.class.TestAciklama;
@@ -32,7 +32,7 @@ class ParkBulurum_TopluCihazOlustur extends ParkBulurum_RunnableBase {
 	}
 }
 class ParkBulurum_TopluCihazSil extends ParkBulurum_RunnableBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get altTip() { return 'topluCihazSil' } static get olusturClass() { return ParkBulurum_TopluCihazOlustur }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get altTip() { return 'topluCihazSil' } static get olusturClass() { return ParkBulurum_TopluCihazOlustur }
 	runInternal(e) {
 		super.runInternal(e); const {olusturClass} = this.class, {table} = olusturClass, aciklama = olusturClass.TestAciklama;
 		return app.sqlExecNone(new MQIliskiliDelete({ from: table, where: [`bdevredisi = 0`, { degerAta: aciklama, saha: 'aciklama' }] }))

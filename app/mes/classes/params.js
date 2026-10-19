@@ -1,9 +1,9 @@
 class MQYerelParam extends MQYerelParamTicari {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 
 class MQYerelParamConfig_MES extends MQYerelParamConfig {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static paramAttrListeDuzenle({ liste }) {
 		super.paramAttrListeDuzenle(...arguments)
 		liste.push('hatKodListe')
@@ -22,7 +22,7 @@ class MQYerelParamConfig_MES extends MQYerelParamConfig {
 }
 
 class MQParam_MES extends MQParam {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'MES Parametreleri' }
 	static get paramKod() { return 'MAKVERI' }
 	static paramYapiDuzenle({ paramci }) {

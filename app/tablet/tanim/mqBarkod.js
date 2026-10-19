@@ -1,5 +1,5 @@
 class MQTabBarkodReferans extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'BARREF' } static get sinifAdi() { return 'Barkod Referans' }
 	static get table() { return 'sbarref' } static get tableAlias() { return 'bref' }
 	static get kodSaha() { return 'refkod' } static get kodEtiket() { return 'Barkod' }
@@ -60,7 +60,7 @@ class MQTabBarkodReferans extends MQKAOrtak {
 }
 
 class MQTabBarkodAyrisim extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'BARAYR' } static get sinifAdi() { return 'Ayrışım Barkod' }
 	static get table() { return 'barayrim' } static get tableAlias() { return 'ayr' }
 	static get offlineGonderYapilirmi() { return false }

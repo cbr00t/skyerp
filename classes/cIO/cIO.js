@@ -1,5 +1,5 @@
 class CIO extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static _cls2PTanim = {}; static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, '_p'] }	
 	constructor(e) { e = e || {}; super(e); this.pTanim2Inst(e) }
 	static get pTanim() {
@@ -86,6 +86,6 @@ class CIO extends CObject {
 }
 
 /*class CIO_Test extends CIO {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) { e.pTanim.miktar = new PInstNum('miktar') e.pTanim.bedel = new PInstNum('belgebedel') }
 }*/

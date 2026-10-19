@@ -1,5 +1,5 @@
 class TabletSicakApp extends TabletApp {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
     get sicakmi() { return true }
     get yerKod() {
 		let { cache, cache: { _yerKod: result } } = this

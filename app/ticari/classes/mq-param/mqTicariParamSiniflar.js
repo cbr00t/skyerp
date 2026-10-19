@@ -1,5 +1,5 @@
 class MQTicariParamBase extends MQParam {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e) /* let {pTanim} = e; pTanim.testX = new PInstStr()*/ }
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e) /* let {paramci} = e; let kullanim = paramci.addKullanim();
@@ -9,7 +9,7 @@ class MQTicariParamBase extends MQParam {
 	}
 }
 class MQZorunluParam extends MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Zorunlu Parametreler' } static get paramKod() { return 'FGZT' }
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e); let {paramci} = e; paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 10px !important }`);
@@ -22,7 +22,7 @@ class MQZorunluParam extends MQTicariParamBase {
 	paramSetValues({ rec }) { super.paramSetValues(...arguments) }
 }
 class MQOrtakMailParam extends MQOrtakParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static DefaultPort = 25; static get sinifAdi() { return 'Mail Parametreleri (ORTAK)' } static get paramKod() { return 'MAIL' }
 	static get eMailKeys() { return MQEMailUst.eMailKeys }
 	get sslmi() { return this.ssl } set sslmi(value) { this.ssl = value } get defaultPort() { return MQEMailUst.getDefaultPort(sslFlag) }
@@ -45,7 +45,7 @@ class MQOrtakMailParam extends MQOrtakParamBase {
 	wsEMailArgsDuzenle(e) { return MQEMailUst.wsEMailArgsDuzenle({ ...e, inst: this }) }
 }
 class MQVTMailParam extends MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Mail Parametreleri (Bu Firma)' } static get paramKod() { return MQOrtakMailParam.paramKod }
 	get sslmi() { return this.ssl } set sslmi(value) { this.ssl = value } get defaultPort() { return MQEMailUst.getDefaultPort(sslFlag) }
 	get asWSEMailArgs() { let args = {}; this.wsEMailArgsDuzenle({ args }); return args }
@@ -54,7 +54,7 @@ class MQVTMailParam extends MQTicariParamBase {
 	wsEMailArgsDuzenle(e) { return MQEMailUst.wsEMailArgsDuzenle({ ...e, inst: this }) }
 }
 class MQLogocu extends MQOrtakParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Logocu' } static get paramKod() { return 'LOGOCU' }
 	getLogoData(e) {
 		let result = this._logoData;		/* tip2Rec.RLOGO = { ext, data } */
@@ -64,7 +64,7 @@ class MQLogocu extends MQOrtakParamBase {
 	globalleriSil(e) { for (let key of ['_logoData']) { delete this[key] } return this }
 }
 class MQTicariGenelParam extends MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Ticari Genel Parametreleri' } static get paramKod() { return 'CGEN' }
 	get ayrimIsimleri() { 
 		let {_ayrimIsimleri: result} = this; if (!result) { result = this.ayrimIsimleri = {} }
@@ -104,7 +104,7 @@ class MQTicariGenelParam extends MQTicariParamBase {
 	}
 }
 class MQCariGenelParam extends MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Cari Genel Parametreleri' } static get paramKod() { return 'XCGEN' }
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e); let {paramci} = e;
@@ -120,7 +120,7 @@ class MQCariGenelParam extends MQTicariParamBase {
 	}
 }
 class MQStokGenelParam extends MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Stok Genel Parametreler' } static get paramKod() { return 'SGN' }
 	static get tip2BrmListe() {
 		let result = this._tip2BrmListe; if (result == null) {
@@ -282,7 +282,7 @@ class MQStokGenelParam extends MQTicariParamBase {
 	}
 }
 class MQStokBirimParam extends MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Stok Birim Parametreleri' } static get paramKod() { return 'SOB' }
 	get brmColl() { return this._brmColl } set brmColl(value) { this._brmColl = value; delete this._brmDict }
 	get brmDict() { let result = this._brmDict; if (!result) { result = {}; for (let ka of this.brmColl || []) { result[ka.kod] = ka } this._brmDict = result } return result } set brmDict(value) { this._brmDict = value }
@@ -310,15 +310,15 @@ class MQStokBirimParam extends MQTicariParamBase {
 	}
 }
 class MQHizmetGenelParam extends MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Hizmet Genel Parametreleri' } static get paramKod() { return 'XHIZ' }
 }
 class MQDemirbasGenelParam extends MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Demirbaş Parametreleri' } static get paramKod() { return 'XDEM' }
 }
 class MQFiyatVeIskontoParam extends MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Fiyat ve İskonto Parametreleri' }
 	static get paramKod() { return 'ISK' }
 	constructor(e = {}) {
@@ -377,7 +377,7 @@ class MQFiyatVeIskontoParam extends MQTicariParamBase {
 	}
 }
 class MQAlimSatisParamOrtak extends MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e); let {paramci} = e; let temps = e.temps = e.temps || {};
 		let form = temps.siparis_kullanim = paramci.addGrup({ etiket: 'Sipariş Kullanımı' }).addFormWithParent();
@@ -400,7 +400,7 @@ class MQAlimSatisParamOrtak extends MQTicariParamBase {
 	}
 }
 class MQAlimParam extends MQAlimSatisParamOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get paramKod() { return 'SFAL' }
 	static get sinifAdi() { return 'Alım Genel Parametreleri' }
 	static paramYapiDuzenle(e){
@@ -414,7 +414,7 @@ class MQAlimParam extends MQAlimSatisParamOrtak {
 	}
 }
 class MQSatisParam extends MQAlimSatisParamOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get paramKod() { return 'SFST' }
 	static get sinifAdi() { return 'Satış Genel Parametreleri' }
 	static paramYapiDuzenle(e){
@@ -437,7 +437,7 @@ class MQSatisParam extends MQAlimSatisParamOrtak {
 	}
 }
 class MQBankaGenelParam extends MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get paramKod() { return 'BANGP' } static get sinifAdi() { return 'Banka Genel Parametreleri' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get paramKod() { return 'BANGP' } static get sinifAdi() { return 'Banka Genel Parametreleri' }
 	static paramYapiDuzenle({ paramci }) {
 		super.paramYapiDuzenle(...arguments)
 		let form = paramci.addKullanim().addFormWithParent()
@@ -452,7 +452,7 @@ class MQBankaGenelParam extends MQTicariParamBase {
 	}*/
 }
 class MQUretimParam extends MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get paramKod() { return 'URGEN' }
 	static get sinifAdi() { return 'Üretim Parametreleri' }
 	static paramYapiDuzenle({ paramci }) {
@@ -491,7 +491,7 @@ class MQUretimParam extends MQTicariParamBase {
 	}
 }
 class MQOperGenelParam extends MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get paramKod() { return 'MALG' }
 	static get sinifAdi() { return 'Operasyon Genel Parametreleri' }
 	get _hmr() { let hmr = asSet(this.hmr) || {}; return Object.keys(hmr).join('\r\n') }
@@ -534,7 +534,7 @@ class MQOperGenelParam extends MQTicariParamBase {
 	}
 }
 class MQKaliteParam extends MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get paramKod() { return 'KALITE' } static get sinifAdi() { return 'Kalite Parametreleri' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get paramKod() { return 'KALITE' } static get sinifAdi() { return 'Kalite Parametreleri' }
 	constructor(e) { e = e || {}; super(e); this.uretimNumuneSayisi = e.uretimNumuneSayisi ?? 5 }
 	static paramYapiDuzenle(e) { super.paramYapiDuzenle(e); let {paramci} = e; paramci.addNumber('uretimNumuneSayisi', 'Üretim Numune Sayısı') }
 	paramSetValues(e) {
@@ -543,7 +543,7 @@ class MQKaliteParam extends MQTicariParamBase {
 	}
 }
 class MQAktarimParam extends MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Ticari Aktarım Parametreleri' } static get paramKod() { return 'CAKT' }
 	static paramYapiDuzenle({ paramci }) {
 		super.paramYapiDuzenle(...arguments);
@@ -560,7 +560,7 @@ class MQAktarimParam extends MQTicariParamBase {
 	}
 }
 class MQMaliyetParam extends MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Maliyet Parametreleri' } static get paramKod() { return 'STML' }
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e); let {paramci} = e; paramci.addStyle(e => `$elementCSS > .parent { padding-block-end: 10px !important }`);
@@ -572,7 +572,7 @@ class MQMaliyetParam extends MQTicariParamBase {
 }
 
 class MQMuhasebeParam extends MQTicariParamBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Muhasebe Parametreleri' } static get paramKod() { return 'MHGN' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Muhasebe Parametreleri' } static get paramKod() { return 'MHGN' }
 	constructor(e = {}) {super(e); $.extend(this, { maliYil: e.maliYil ?? new Date().yil }) }
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e); let {paramci} = e;
@@ -586,7 +586,7 @@ class MQMuhasebeParam extends MQTicariParamBase {
 }
 
 class MQFinansParam extends MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Finans Parametreleri' }
 	static get paramKod() { return 'PFINPAR' }
 	get yaslandirmaGunleriStr() { return array2MLStr(makeArray(this.yaslandirmaGunleri).map(String)) }
@@ -642,7 +642,7 @@ class MQFinansParam extends MQTicariParamBase {
 }
 
 class MQWebParam extends MQTicariParamBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Web Parametreleri' } static get paramKod() { return 'TICWEB' }
 	get ekOzellikKodlariStr() { return array2MLStr(this.ekOzellikKodlari) }
 	set ekOzellikKodlariStr(value) { this.ekOzellikKodlari = mlStr2Array(value) }
@@ -742,7 +742,7 @@ class MQWebParam extends MQTicariParamBase {
 }
 
 class MQTabletParam extends MQTicariParamBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Sky Tablet Parametreleri' }
 	static get paramKod() { return 'TABLET' }
 
@@ -810,7 +810,7 @@ class MQTabletParam extends MQTicariParamBase {
 }
 
 class MQVergiParam extends MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get paramKod() { return 'FNVRG' }
 	static get sinifAdi() { return 'Vergi Parametreleri' }
 	static get genelKdvOrani() { return 20 }
@@ -845,7 +845,7 @@ class MQVergiParam extends MQTicariParamBase {
 }
 
 class MQProformaParam extends MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get paramKod() { return 'PROPARAM' }
 	static get sinifAdi() { return 'Proforma Parametreleri' }
 

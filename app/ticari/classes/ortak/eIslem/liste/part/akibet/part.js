@@ -1,5 +1,5 @@
 class EIslemAkibetPart extends MasterListePart {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get partName() { return 'eIslemAkibet' }
 	constructor(e = {}) {
 		super(e)

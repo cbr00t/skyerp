@@ -1,5 +1,5 @@
 class TahsilatHareketci extends Hareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kisaKod() { return 'TH' } static get kod() { return 'tahsilat' } static get aciklama() { return 'Tahsilat' }
 	static get uygunmu() { return true }  static get oncelik() { return 90 }
 	static get maliTabloIcinUygunmu() { return true } static get donemselIslemlerIcinUygunmu() { return true }

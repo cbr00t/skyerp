@@ -1,5 +1,5 @@
 class MQYaslandirma extends DRaporMQ {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return DRapor_DonemselIslemler.oncelik + 10 }
 	static get kategoriKod() { return DRapor_DonemselIslemler.kategoriKod }
 	static get kategoriAdi() { return DRapor_DonemselIslemler.kategoriAdi }

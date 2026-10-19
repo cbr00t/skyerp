@@ -1,5 +1,5 @@
 class __DAltRapor_Satislar_Main extends DAltRapor_GridGruplu {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_Satislar } static get kod() { return 'main' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_Satislar } static get kod() { return 'main' }
 	static get sortAttr() { return 'Column1' } static get gridGrupAttrListe() { return [...(super.gridGrupAttrListe || []), 'YILAY', 'STGRP', 'CRIL', 'CRTIP', 'CRBOL'] }
 	static get kaPrefixes() { return [...(super.kaPrefixes || []), 'stok', 'grup', 'cari', 'tip', 'bolge', 'il'] }
 	static get gruplamaKAListe() {
@@ -38,7 +38,7 @@ class __DAltRapor_Satislar_Main extends DAltRapor_GridGruplu {
 	}
 }
 class __iptal__DAltRapor_Satislar_Diagram extends DAltRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_Satislar }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_Satislar }
 	static get kod() { return 'x2' } static get aciklama() { return 'Diagram' }
 	get width() { return `calc(var(--full) - ${DAltRapor_Satislar_Main.width})` } get height() { return '300px' }
 	subFormBuilderDuzenle(e) { super.subFormBuilderDuzenle(e); const parentBuilder = e.builder; parentBuilder.addForm('diagram').setLayout(e => this.getLayout(e)).addStyle_fullWH() }

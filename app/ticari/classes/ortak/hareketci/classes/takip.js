@@ -1,5 +1,5 @@
 class TakipHareketci extends Hareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return 45 } static get kod() { return 'takip' } static get aciklama() { return 'Takip No' }
 	static get kisaKod() { return 'TK' } static get maliTabloIcinUygunmu() { return true }
 

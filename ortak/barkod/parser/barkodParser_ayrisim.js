@@ -1,5 +1,5 @@
 class BarkodParser_Ayrisim extends BarkodParser_Kuralli {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get aciklama() { return 'Ayrışım' } static get ayrisimmi() { return true }
 	get ayrisimAyiraclimi() { return this.formatAyiraclimi } get zVarmi() { return (this.kural || {}).zVarmi /* && !!this.zSeq */ }
 	constructor(e) { e = e || {}; super(e); }

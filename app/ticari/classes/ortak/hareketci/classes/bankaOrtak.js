@@ -1,5 +1,5 @@
 class BankaOrtakHareketci extends Hareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static mstYapiDuzenle({ result }) {
 		super.mstYapiDuzenle(...arguments)
 		result.set('banhesapkod', ({ sent, kodClause, mstAlias, mstAdiAlias }) =>

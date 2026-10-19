@@ -1,5 +1,5 @@
 class MQBarkodGiris extends MQCogul {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'BARKOD' } static get sinifAdi() { return 'Barkod Giriş' }
 	static get tanimUISinif() { return null } static get secimSinif() { return null }
 	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return true }

@@ -1,5 +1,5 @@
 class FormBuilder_SubPart extends FBuilderWithInitLayout {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultYanYanami() { return true } static get defaultHeight() { return 45 } static get defaultHeightCSS() { return `${this.defaultHeight}px` }
 	get input() {
 		let result = this._input;
@@ -178,7 +178,7 @@ class FormBuilder_SubPart extends FBuilderWithInitLayout {
 	setPlaceholder(value) { return this.setPlaceHolder(value) }
 }
 class FBuilder_SimpleElement extends FormBuilder_SubPart {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get inputTagName() { return null }
 	constructor(e = {}) {
 		super(e)
@@ -273,15 +273,15 @@ class FBuilder_SimpleElement extends FormBuilder_SubPart {
 	clearKeyUpEvents() { this.onKeyUpEvent = null; return this }
 }
 class FBuilder_DivOrtak extends FBuilder_SimpleElement {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get inputTagName() { return 'div' }
 }
 class FBuilder_Span extends FBuilder_DivOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get inputTagName() { return 'span' }
 }
 class FBuilder_InputOrtak extends FBuilder_DivOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get inputTagName() { return 'input' } static get noAutoChangeEvent() { return false }
 	constructor(e = {}) {
 		super(e)
@@ -346,7 +346,7 @@ class FBuilder_InputOrtak extends FBuilder_DivOrtak {
 	readOnly() { this.isReadOnly = true; return this }
 }
 class FBuilder_LabelBase extends FBuilder_DivOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get inputTagName() { return 'div' }
 	static get inputCSSClass() { return null }
 	
@@ -364,7 +364,7 @@ class FBuilder_LabelBase extends FBuilder_DivOrtak {
 	}
 }
 class FBuilder_Label extends FBuilder_LabelBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get inputTagName() { return 'label' }
 	static get inputCSSClass() { return 'label' }
 	
@@ -376,7 +376,7 @@ class FBuilder_Label extends FBuilder_LabelBase {
 	}
 }
 class FBuilder_Baslik extends FBuilder_LabelBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get inputTagName() { return 'div' }
 	static get inputCSSClass() { return 'baslik' }
 
@@ -389,7 +389,7 @@ class FBuilder_Baslik extends FBuilder_LabelBase {
 	}
 }
 class FBuilder_GroupBox extends FBuilder_LabelBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get inputCSSClass() { return 'groupbox' }
 	buildDevam(e) {
 		super.buildDevam(e);
@@ -406,13 +406,13 @@ class FBuilder_GroupBox extends FBuilder_LabelBase {
 	}
 }
 class FBuilder_TextInput extends FBuilder_InputOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get inputType() { return 'textbox' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get inputType() { return 'textbox' }
 }
 class FBuilder_PassInput extends FBuilder_InputOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get inputType() { return 'password' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get inputType() { return 'password' }
 }
 class FBuilder_TextArea extends FBuilder_InputOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get inputTagName() { return 'textarea' } static get inputType() { return null }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get inputTagName() { return 'textarea' } static get inputType() { return null }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { rows: e.rows || 1, cols: e.cols ?? e.columns, maxRows: e.maxRows }) }
 	buildDevam(e) {
 		super.buildDevam(e); let {input} = this; if (input?.length) {
@@ -435,7 +435,7 @@ class FBuilder_TextArea extends FBuilder_InputOrtak {
 	setRows(value) { this.rows = value; return this } setCols(value) { this.cols = value; return this } setMaxRows(value) { this.maxRows = value; return this }
 }
 class FBuilder_NumberInput extends FBuilder_InputOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get inputType() { return 'number' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get inputType() { return 'number' }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { min: e.min, max: e.max, step: e.step, fra: e.fra }) }
 	buildDevam(e) {
 		super.buildDevam(e); let {input} = this;
@@ -468,7 +468,7 @@ class FBuilder_NumberInput extends FBuilder_InputOrtak {
 	}
 }
 class FBuilder_DateInput extends FBuilder_TextInput {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get maxLength() { return 12 } static get noAutoChangeEvent() { return true }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get maxLength() { return 12 } static get noAutoChangeEvent() { return true }
 	buildDevam(e) {
 		super.buildDevam(e); let {input, styles} = this; input.addClass('tarih');
 		let part = this.part = new TarihUIPart({ layout: input }); part.change(e => {
@@ -482,7 +482,7 @@ class FBuilder_DateInput extends FBuilder_TextInput {
 	defaultSetValue(e) { let {part} = this; if (part && !part.isDestroyed) { part.value = e.value; return } return super.defaultSetValue(e) }
 }
 class FBuilder_TimeInput extends FBuilder_TextInput {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get inputType() { return 'time' } static get maxLength() { return null }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get inputType() { return 'time' } static get maxLength() { return null }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { saniyesizmi: e.saniyesiz ?? e.saniyesizmi ?? true }) }
 	preBuild(e) { super.preBuild(e); this.maxLength = this.maxLength || (this.saniyesizmi ? 5 : 7) }
 	buildDevam(e) {
@@ -508,7 +508,7 @@ class FBuilder_TimeInput extends FBuilder_TextInput {
 	getConverted_getValue(e) { return asDate(super.getConverted_getValue(e)) }
 }
 class FBuilder_ToggleButton extends FBuilder_DivOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) {
 		e = e || {}; super(e);
 		if (this.etiketGosterim == null) { this.etiketGosterim_placeholder() }
@@ -528,7 +528,7 @@ class FBuilder_ToggleButton extends FBuilder_DivOrtak {
 	readOnly() { this.isReadOnly = true; return this }
 }
 class FBuilder_CheckBox extends FBuilder_ToggleButton {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get inputTagName() { return 'input' }
 	constructor(e = {}) {
 		super(e)
@@ -595,7 +595,7 @@ class FBuilder_CheckBox extends FBuilder_ToggleButton {
 	bottom() { this.bottomFlag = true; return this }
 }
 class FBuilder_SwitchButton extends FBuilder_ToggleButton {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e = {}) {
 		super(e); this.etiketGosterim_yok()
 		;['onLabel', 'offLabel'].forEach(k =>
@@ -631,7 +631,7 @@ class FBuilder_SwitchButton extends FBuilder_ToggleButton {
 	setOffLabel(v) { this.offLabel = v; return this }
 }
 class FBuilder_OptionBase extends FBuilder_DivOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get inputTagName() { return null }
 	get source() { return super.source }
 	set source(value) {
@@ -690,7 +690,7 @@ class FBuilder_OptionBase extends FBuilder_DivOrtak {
 	bosKodEklenir() { return this } bosKodEklenmez() { return this }
 }
 class FBuilder_SelectElement extends FBuilder_OptionBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get inputTagName() { return 'select' }
 	
 	buildDevam(e) {
@@ -733,7 +733,7 @@ class FBuilder_SelectElement extends FBuilder_OptionBase {
 	}
 }
 class FBuilder_RadioButton extends FBuilder_OptionBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get inputTagName() { return 'div' }
 	
 	buildDevam(e) {
@@ -822,7 +822,7 @@ class FBuilder_RadioButton extends FBuilder_OptionBase {
 	}
 }
 class FBuilder_Button extends FBuilder_InputOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get inputTagName() { return 'button' }
 	constructor(e = {}) {
 		super(e)
@@ -887,7 +887,7 @@ class FBuilder_Button extends FBuilder_InputOrtak {
 	clearClickEvents() { this.onClickEvent = null; return this }
 }
 class FBuilder_Color extends FBuilder_InputOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get inputType() { return 'color' }
 	buildDevam(e) {
 		super.buildDevam(e); let {input} = this;
@@ -900,7 +900,7 @@ class FBuilder_Color extends FBuilder_InputOrtak {
 	getConverted_setValue(e) { return super.getConverted_setValue(e) || '#000000' }
 }
 class FBuilder_ModelKullan extends FBuilder_DivOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) {
 		e = e || {}; super(e);
 		$.extend(this, {
@@ -991,7 +991,7 @@ class FBuilder_ModelKullan extends FBuilder_DivOrtak {
 	setEkDuzenleyici(value) { this.ekDuzenleyici = value; return this } veriYukleninceBlock(handler) { this.veriYuklenince = handler; return this }
 }
 class FBuilder_Grid extends FBuilder_DivOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get gridSinif() {
 		let result = this._gridSinif; if (result === undefined) { result = this._gridSinif = e => { e.temp(); let {rootPart} = this; if (rootPart) return rootPart.gridSinif ?? rootPart.gridPart?.class } }
 		if (result != null && !result.prototype && isFunction(result)) {
@@ -1152,7 +1152,7 @@ class FBuilder_Grid extends FBuilder_DivOrtak {
 }
 
 class FBuilder_IslemTuslari extends FBuilder_DivOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get islemTuslarimi() { return true }
 	constructor(e = {}) {
 		super(e)
@@ -1196,7 +1196,7 @@ class FBuilder_IslemTuslari extends FBuilder_DivOrtak {
 }
 
 class FBuilder_AccordionPart extends FBuilder_DivOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
     constructor({ panels, coklu, coklumu, fullScreen, fullScreenFlag, defaultCollapsed, events, userData, ...e } = {}) {
         super(e)
 		panels ??= []
@@ -1258,7 +1258,7 @@ class FBuilder_AccordionPart extends FBuilder_DivOrtak {
 }
 
 class FBuilder_SimpleComboBox extends FBuilder_TextInput {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get placeHolder() { return this.placeholder }
 	set placeHolder(v) { this.placeholder = v }
 	

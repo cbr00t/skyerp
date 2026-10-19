@@ -1,5 +1,5 @@
 class MQVergiGrup extends MQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Vergi Grup' }
 	static get table() { return 'vergigrup' }
 	static get tableAlias() { return 'vgrp' }

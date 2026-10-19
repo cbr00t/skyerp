@@ -1,5 +1,5 @@
 class SahaDurumApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get autoExecMenuId() { return 'DEF' }
 	get defaultLoginTipi() { return 'plasiyerLogin' }
 	get configParamSinif() { return MQYerelParamConfig_SahaDurum }

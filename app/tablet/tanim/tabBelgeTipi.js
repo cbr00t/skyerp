@@ -1,5 +1,5 @@
 class MQTabBelgeTipi extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false }
 	static get tekSecimSinif() { return TabBelgeTipi } static get kodKullanilirmi() { return false } 
 	static get kodListeTipi() { return this.tekSecimSinif.kodListeTipi }
@@ -10,7 +10,7 @@ class MQTabBelgeTipi extends MQKAOrtak {
 }
 
 class TabBelgeTipi extends TekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'TABBELTIP' }
 	static get sinifAdi() { return 'Belge Tipi' }
 	

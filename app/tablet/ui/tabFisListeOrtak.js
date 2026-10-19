@@ -1,5 +1,5 @@
 class TabFisListeOrtak extends TabFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get uygunmu() { return true } static get notCacheable() { return true }
 	static get araSeviyemi() { return true } static get fisTipi() { return null }
 	static get detaySinif() { return TabFisListeDetayOrtak }
@@ -75,6 +75,6 @@ class TabFisListeOrtak extends TabFis {
 }
 
 class TabFisListeDetayOrtak extends TabDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 

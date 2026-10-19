@@ -1,5 +1,5 @@
 class MQOEM extends MQMasterOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Operasyon Emirleri' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Operasyon Emirleri' }
 	static oemHTMLDuzenle(e) {
 		e = e || {}; let {parent, rec} = e; if (!rec) { return }
 		return $(`<table class="oemBilgi full-wh">
@@ -17,7 +17,7 @@ class MQOEM extends MQMasterOrtak {
 	}
 }
 class MQPersonel extends MQKAOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'PERSONEL' } static get sinifAdi() { return 'Personel' }
 	static get table() { return 'personel' } static get tableAlias() { return 'per' }
 	static get secimSinif() { return MQKA.secimSinif }
@@ -58,17 +58,17 @@ class MQPersonel extends MQKAOrtak {
 	}
 }
 class MQDepartman extends MQKAOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'MALDEP' } static get sinifAdi() { return 'Departman' }
 	static get table() { return 'maldepartman' } static get tableAlias() { return 'dep' }
 }
 class MQGorev extends MQKAOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'GOREV' } static get sinifAdi() { return 'Görev' }
 	static get table() { return 'pergorev' } static get tableAlias() { return 'gor' }
 }
 class MQHat extends MQKAOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Hat' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Hat' }
 	static get table() { return 'ismerkezi' } static get tableAlias() { return 'hat' }
 	static rootFormBuilderDuzenle_listeEkrani(e) {
 		super.rootFormBuilderDuzenle_listeEkrani(e); let {rootBuilder: rfb} = e, {config} = app.params;
@@ -92,11 +92,11 @@ class MQHat extends MQKAOrtak {
 	}
 }
 class MQTezgah extends MQKAOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Tezgah' } static get table() { return 'tekilmakina' } static get tableAlias() { return 'tez' }
 }
 class MQOperasyon extends MQKAOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Operasyon' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Operasyon' }
 	static get table() { return 'operasyon' } static get tableAlias() { return 'op' }
 	static get kodSaha() { return 'opno' } static get adiSaha() { return 'aciklama' }  static get kodEtiket() { return 'Op. No' } static get adiEtiket() { return 'Op. Adı' }
 	static rootFormBuilderDuzenle_listeEkrani(e) {
@@ -126,11 +126,11 @@ class MQOperasyon extends MQKAOrtak {
 	}*/
 }
 class MQDurNeden extends MQKAOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Duraksama Nedeni' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Duraksama Nedeni' }
 	static loadServerData(e) { return app.wsDuraksamaNedenleri() }
 }
 class MQBekleyenIsEmirleri extends MQMasterOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Bekleyen İş Emirleri' } static get detaySinif() { return MQOperasyon } static get gridDetaylimi() { return true }
 	static orjBaslikListesi_argsDuzenle(e) { super.orjBaslikListesi_argsDuzenle(e); let {args} = e; $.extend(args, { showStatusBar: true, showAggregates: true, showGroupAggregates: true }) }
 	static orjBaslikListesi_argsDuzenle_detaylar(e) { super.orjBaslikListesi_argsDuzenle_detaylar(e); let {args} = e; $.extend(args, { showStatusBar: true, showAggregates: true, showGroupAggregates: true }) }
@@ -172,7 +172,7 @@ class MQBekleyenIsEmirleri extends MQMasterOrtak {
 	}
 }
 class MQSureSayi extends MQMasterOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Süre/Sayı Düzenle' } static get tanimUISinif() { return ModelTanimPart }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Süre/Sayı Düzenle' } static get tanimUISinif() { return ModelTanimPart }
 	constructor(e) {
 		e = e || {}; super(e); let rec = this.rec = e.rec;
 		if (rec) {
@@ -191,7 +191,7 @@ class MQSureSayi extends MQMasterOrtak {
 	}
 }
 class MQZamanEtudu extends MQMasterOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Zaman Etüdü' } static get tanimUISinif() { return ModelTanimPart }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Zaman Etüdü' } static get tanimUISinif() { return ModelTanimPart }
 	constructor(e) {
 		e = e || {}; super(e); let rec = this.rec = e.rec, zamanEtuduRec = this.zamanEtuduRec = e.zamanEtuduRec;
 		if (zamanEtuduRec) {
@@ -283,7 +283,7 @@ class MQZamanEtudu extends MQMasterOrtak {
 	}
 }
 class MQSinyal extends MQMasterOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get kodListeTipi() { return 'SINYAL' } static get menuyeAlinmazmi() { return false }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get kodListeTipi() { return 'SINYAL' } static get menuyeAlinmazmi() { return false }
 	static get tanimUISinif() { return ModelTanimPart } static get secimSinif() { return MQCogul.secimSinif }
 	static get sinifAdi() { return 'MES Sinyal' } static get table() { return 'messinyal' } static get tableAlias() { return 'sny' }
 	static get tanimlanabilirmi() { return !!config.dev } static get silinebilirmi() { return !!config.dev }
@@ -408,7 +408,7 @@ class MQSinyal extends MQMasterOrtak {
 	keySetValues(e) { super.keySetValues(e); let {rec} = e, {tezgahkod: tezgahKod, ts} = rec; $.extend(this, { tezgahKod, ts }) }
 }
 class MQLEDDurum extends MQCogul {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get menuyeAlinmazmi() { return false }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get menuyeAlinmazmi() { return false }
 	static get kodListeTipi() { return 'LEDDURUM' } static get sinifAdi() { return 'LED Durum' } static get silinebilirmi() { return false }
 	static get ledDurum2Color() {
 		let result = this._ledDurum2Color; if (result == null) {

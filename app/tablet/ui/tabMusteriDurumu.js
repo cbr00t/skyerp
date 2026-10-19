@@ -1,5 +1,5 @@
 class TabMusteriDurumu extends TabFisListeOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'MUSDUR' } static get sinifAdi() { return 'Müşteri Durumu' }
 	static get uygunmu() { return !!app.params?.tablet?.depoMusteriDurumu }
 	static get merkezKayitlarAlinirmi() { return true } static get noAutoFocus() { return true }

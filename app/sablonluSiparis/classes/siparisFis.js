@@ -1,5 +1,5 @@
 class SablonluSatisSiparisFis extends SatisSiparisFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get konsinyemi() { return false }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get konsinyemi() { return false }
 	static get sablonSinif() { return MQSablonOrtak } static get templateSinif() { return SablonluSiparisFisTemplate }
 	get templateSinif() { return this.class.templateSinif }
 	static get detaySinif() { return SablonluSatisSiparisDetay } static get gridKontrolcuSinif() { return SablonluSatisSiparisGridci }
@@ -60,7 +60,7 @@ class SablonluSatisSiparisFis extends SatisSiparisFis {
 	uiDuzenle_fisGirisIslemTuslari(e) { e = e ?? {}; e.fis = this; return this.templateSinif.uiDuzenle_fisGirisIslemTuslari(e) }
 }
 class SablonluKonsinyeAlimSiparisFis extends AlimSiparisFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get konsinyemi() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get konsinyemi() { return true }
 	static get sablonSinif() { return MQKonsinyeSablon } static get templateSinif() { return SablonluSiparisFisTemplate } get templateSinif() { return this.class.templateSinif }
 	static get detaySinif() { return SablonluKonsinyeAlimSiparisDetay } static get gridKontrolcuSinif() { return SablonluKonsinyeAlimSiparisGridci }
 	static get numaratorGosterilirmi() { return this.templateSinif.numaratorGosterilirmi } static get dipGirisYapilirmi() { return this.templateSinif.dipGirisYapilirmi }
@@ -119,7 +119,7 @@ class SablonluKonsinyeAlimSiparisFis extends AlimSiparisFis {
 	uiDuzenle_fisGirisIslemTuslari(e) { e = e ?? {}; e.fis = this; return this.templateSinif.uiDuzenle_fisGirisIslemTuslari(e) }
 }
 class SablonluKonsinyeTransferFis extends TransferSiparisFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get konsinyemi() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get konsinyemi() { return true }
 	static get sablonSinif() { return MQKonsinyeSablon } static get templateSinif() { return SablonluSiparisFisTemplate }
 	get templateSinif() { return this.class.templateSinif }
 	static get detaySinif() { return SablonluKonsinyeTransferDetay } static get gridKontrolcuSinif() { return SablonluKonsinyeTransferGridci }
@@ -180,7 +180,7 @@ class SablonluKonsinyeTransferFis extends TransferSiparisFis {
 }
 
 class SablonluSiparisDetayOrtak extends TSStokDetay {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get templateSinif() { return SablonluSiparisDetayTemplate } get templateSinif() { return this.class.templateSinif }
 	constructor(e) { e = e ?? {}; super(e); e.det = this; this.templateSinif.constructor(e) }
 	static pTanimDuzenle(e) { e.detSinif = this; super.pTanimDuzenle(e); this.templateSinif.pTanimDuzenle(e) }
@@ -192,12 +192,12 @@ class SablonluSiparisDetayOrtak extends TSStokDetay {
 	hostVarsDuzenle(e) { e.det = this; super.hostVarsDuzenle(e); this.templateSinif.hostVarsDuzenle(e) }
 	setValues(e) { e.det = this; super.setValues(e); this.templateSinif.setValues(e) }
 }
-class SablonluSatisSiparisDetay extends SablonluSiparisDetayOrtak { static { window[this.name] = this; this._key2Class[this.name] = this } }
-class SablonluKonsinyeAlimSiparisDetay extends SablonluSiparisDetayOrtak { static { window[this.name] = this; this._key2Class[this.name] = this } }
-class SablonluKonsinyeTransferDetay extends SablonluSiparisDetayOrtak { static { window[this.name] = this; this._key2Class[this.name] = this } }
+class SablonluSatisSiparisDetay extends SablonluSiparisDetayOrtak { static { globalThis[this.name] = this; this._key2Class[this.name] = this } }
+class SablonluKonsinyeAlimSiparisDetay extends SablonluSiparisDetayOrtak { static { globalThis[this.name] = this; this._key2Class[this.name] = this } }
+class SablonluKonsinyeTransferDetay extends SablonluSiparisDetayOrtak { static { globalThis[this.name] = this; this._key2Class[this.name] = this } }
 
 class SablonluSiparisGridciOrtak extends TicariGridKontrolcu {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get templateSinif() { return SablonluSiparisGridciTemplate } get templateSinif() { return this.class.templateSinif }
 	gridArgsDuzenle(e) { super.gridArgsDuzenle(e); e.gridci = this; this.templateSinif.gridArgsDuzenle(e) }
 	tabloKolonlariDuzenle(e) { e.gridci = this; this.tabloKolonlariDuzenle_ortak(e) }
@@ -211,6 +211,6 @@ class SablonluSiparisGridciOrtak extends TicariGridKontrolcu {
 	miktarFiyatDegisti(e) { e.gridci = this; super.miktarFiyatDegisti(e); this.templateSinif.miktarFiyatDegisti(e) }
 	bedelHesapla(e) { e.gridci = this; super.bedelHesapla(e); this.templateSinif.bedelHesapla(e) }
 }
-class SablonluSatisSiparisGridci extends SablonluSiparisGridciOrtak { static { window[this.name] = this; this._key2Class[this.name] = this } }
-class SablonluKonsinyeAlimSiparisGridci extends SablonluSiparisGridciOrtak { static { window[this.name] = this; this._key2Class[this.name] = this } }
-class SablonluKonsinyeTransferGridci extends SablonluSiparisGridciOrtak { static { window[this.name] = this; this._key2Class[this.name] = this } }
+class SablonluSatisSiparisGridci extends SablonluSiparisGridciOrtak { static { globalThis[this.name] = this; this._key2Class[this.name] = this } }
+class SablonluKonsinyeAlimSiparisGridci extends SablonluSiparisGridciOrtak { static { globalThis[this.name] = this; this._key2Class[this.name] = this } }
+class SablonluKonsinyeTransferGridci extends SablonluSiparisGridciOrtak { static { globalThis[this.name] = this; this._key2Class[this.name] = this } }

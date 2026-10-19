@@ -1,5 +1,5 @@
 class DipIslemci extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, 'fis', '_detaylar', '_promise_dipSatirlari'] }
 	get detaylar() { let {fis, _detaylar} = this; return (getFuncValue.call(this, _detaylar, { sender: this, fis }) ?? fis?.detaylar) }
 	set detaylar(value) { this._detaylar = value }

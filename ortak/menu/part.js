@@ -1,5 +1,5 @@
 class MenuPart extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get partName() { return 'menu' } static get isSubPart() { return true } static get delimMenuId() { return ' ' }
 	get filter() {
 		let result = this._filter; if (result && $.isFunction(result)) { let _e = { sender: this }; result = getFuncValue.call(this, result, _e) }

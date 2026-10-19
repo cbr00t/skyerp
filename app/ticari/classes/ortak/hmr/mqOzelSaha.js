@@ -1,6 +1,6 @@
 
 class MQOzelSahaGrup extends MQSayacliKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'OSahaGrup' }
 	static get tableAlias() { return 'ogrp' }
 	
@@ -90,7 +90,7 @@ class MQOzelSahaGrup extends MQSayacliKA {
 
 
 class MQOzelSahaDetay extends MQDetay {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get prefix() { return 'OZ' }
 	static get table() { return 'OSahaTanim' }
 	static get tableAlias() { return 'osaha' }
@@ -151,7 +151,7 @@ class MQOzelSahaDetay extends MQDetay {
 
 
 class OzelSahaTipi extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return 'TX' }
 	
 	kaListeDuzenle({ kaListe }) {

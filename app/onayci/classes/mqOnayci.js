@@ -1,5 +1,5 @@
 class MQOnayci extends MQCogul {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'ONAYCI' }
 	static get sinifAdi() { return 'Onay İşlemleri' }
 	static get tanimlanabilirmi() { return false }

@@ -1,5 +1,5 @@
 class MQTest extends MQGuidOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Test' } static get kodListeTipi() { return 'TEST' }
 	static get tip() { return this.sablonTip } static get kod() { return this.tip } static get aciklama() { return this.sablonSinif?.aciklama }
 	static get table() { return 'esetest' } static get tableAlias() { return 'tst' } static get tanimUISinif() { return ModelTanimPart } static get raporSinif() { return DRapor_ESETest }
@@ -620,7 +620,7 @@ class MQTest extends MQGuidOrtak {
 	testUI_kaydetOncesi(e) { } testUI_kaydet(e) { } testUI_kaydetSonrasi(e) { }
 }
 class MQTestCPT extends MQTest {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get intervalKatSayi() { return config.dev ? .5: 1 }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get intervalKatSayi() { return config.dev ? .5: 1 }
 	static get sinifAdi() { return 'CPT Test' }  static get testSonucSinif() { return TestSonucCPT } static get testGenelSonucSinif() { return TestGenelSonucCPT }
 	static get kodListeTipi() { return 'TSTCPT' } static get sablonSinif() { return MQSablonCPT }
 	static get testUyariText() { return `Bu testi <span class="orangered">Çocuk</span> uygulayacaktır` }
@@ -737,7 +737,7 @@ class MQTestCPT extends MQTest {
 	}
 }
 class MQTestAnket extends MQTest {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Anket Test' } static get testSonucSinif() { return TestSonucAnket } static get testGenelSonucSinif() { return TestGenelSonucAnket }
 	static get kodListeTipi() { return 'TSTANKET' } static get sablonSinif() { return MQSablonAnket }
 	static get testUyariText() { return `Bu testi <span class="orangered">Ebeveyn</span> uygulayacaktır` }

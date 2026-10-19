@@ -1,5 +1,5 @@
 class Hareketci_UniBilgi extends CObject {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ortakArgs() {
 		let {_ortakArgs: result} = this
 		if (result == null)
@@ -61,7 +61,7 @@ class Hareketci_UniBilgi extends CObject {
 	hvDuzenleIslemi(value) { this.hvDuzenleyici = value; return this }
 }
 class Hareketci_MstYapi extends CObject {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tableAlias() { return 'mst' } static get aliasVeNokta() { return [this.tableAlias, ''].join('.') }
 	constructor(e) {
 		e ??= {}; super(e)
@@ -96,7 +96,7 @@ class Hareketci_MstYapi extends CObject {
 	setDuzenleyici(handler) { this.duzenleyici = handler; return this }
 }
 class DRapor_DuzenleyiciliKAYapi extends CKodVeAdi {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) {
 		e = e ?? {}; super(e);
 		if ($.isArray(e)) { $.extend(this, { duzenleyici: e[2] }) }
@@ -123,7 +123,7 @@ class DRapor_DuzenleyiciliKAYapi extends CKodVeAdi {
 	setDuzenleyici(value) { this.duzenleyici = value; return this }
 }
 class DRapor_AltTipYapi extends DRapor_DuzenleyiciliKAYapi {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get ortakmi() { return !this.target } get solmu() { return this.target == 'sol' } get sagmi() { return this.target == 'sag' }
 	constructor(e) {
 		e = e ?? {}; super(e);
@@ -138,7 +138,7 @@ class DRapor_AltTipYapi extends DRapor_DuzenleyiciliKAYapi {
 	setKosul(value) { this.kosul = value; return this }
 }
 class DRapor_HarYapi extends DRapor_DuzenleyiciliKAYapi {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get sinif() {
 		let e = { harYapi: this };
 		return getFuncValue.call(this, this._sinif, e)

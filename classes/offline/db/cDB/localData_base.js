@@ -1,5 +1,5 @@
 class CDBLocalData_Base extends CObject {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get DelimIndex() { return '\x01' } static get NullKey() { return '\x00' } static get defaultDeferSaveMS() { return 2000 }
 	static get defaultVersion() { return 1 } get shadow() { return this.transaction ?? this } get hasTransaction() { return !!this.transaction }
 	get fsRootDirPaths() { return [app.rootName, app.appName] } get fsRootDir() { return '/' + this.fsRootDirPaths.filter(x => !!x).join('/') } get fsFileName() { return this.name || 'main' }

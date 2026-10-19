@@ -1,5 +1,5 @@
 class GrafikPart extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get rootPartName() { return 'grafik' } static get partName() { return null } static get isSubPart() { return true }
 	constructor(e) {
 		e = e || {}; super(e);
@@ -11,7 +11,7 @@ class GrafikPart extends Part {
 	setValue(value) { this.value = value; return this }
 }
 class GaugeGrafikPart extends GrafikPart {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get partName() { return 'gauge' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get partName() { return 'gauge' }
 	constructor(e) {
 		e = e || {}; super(e); const {colors} = this; $.extend(this, {
 			kucult: e.kucult || 23, thickness: e.thickness || 10, fillColor: e.fillColor, backColor: e.backColor || 'lightgray',

@@ -1,5 +1,5 @@
 class GridliGirisWindowPart extends GridliGirisPart {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get isSubPart() { return false }
 	static get isWindowPart() { return true }
 	static get partName() { return 'gridliGirisWindow' }

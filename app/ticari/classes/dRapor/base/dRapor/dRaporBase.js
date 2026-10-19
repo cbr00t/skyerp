@@ -1,5 +1,5 @@
 class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları için gerekli inherit desteği için DMQDetayli'dan getirildi */
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get partName() { return 'dRapor' } get partName() { return this.class.partName }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get partName() { return 'dRapor' } get partName() { return this.class.partName }
 	static get anaTip() { return null } static get sinifAdi() { return this.aciklama }
 	static get kategoriKod() { return null } static get kod() { return null }
 	static get aciklama() { return null }
@@ -89,7 +89,7 @@ class DRapor extends DMQDetayli {					/* MQCogul tabanlı rapor sınıfları iç
 }
 
 class DRaporMQ extends DRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get anaTip() { return 'mq' } static get dMQRapormu() { return true }
 	static get kodListeTipi() { return this.kod } static get sinifAdi() { return this.aciklama }
 	static get tanimUISinif() { return ModelTanimPart } static get sadeceTanimmi() { return false }
@@ -143,7 +143,7 @@ class DRaporMQ extends DRapor {
 }
 
 class DRaporOzel extends DRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get anaTip() { return 'ozel' } static get dOzelRapormu() { return true }
 	async goster(e = {}) {
 		let inst = this, { partName, isPanelItem, class: { aciklama } } = this
@@ -348,7 +348,7 @@ class DRaporOzel extends DRapor {
 }
 
 class DPanelRapor extends DRaporOzel {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get dPanelRapormu() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get dPanelRapormu() { return true }
 	static get anaTip() { return 'panel' } static get sabitmi() { return false } static get yatayAnalizVarmi() { return !this.sabitmi }
 	static get ozetVarmi() { return !this.sabitmi } static get chartVarmi() { return !this.sabitmi } static get yataymi() { return false }
 	static get altRaporClassPrefix() { return this.name } static get noOverflowFlag() { return true }
@@ -518,7 +518,7 @@ class DPanelRapor extends DRaporOzel {
 	ozelID_chart() { return this.setOzelIDListe('chart') }
 }
 class DGrupluPanelRapor extends DPanelRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get dGrupluPanelRapormu() { return true }
 	islemTuslariArgsDuzenle({ liste, part: butonPart }) {
 		super.islemTuslariArgsDuzenle(...arguments)

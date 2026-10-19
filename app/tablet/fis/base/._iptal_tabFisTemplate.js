@@ -1,5 +1,5 @@
 class $TabFisTemplate extends CObject {
-	// static { window[this.name] = this; this._key2Class[this.name] = this }
+	// static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tanimUISinif() { return TabFisGirisPart }
 	static get secimSinif() { return null }
 	static get tumKolonlarGosterilirmi() { return true }

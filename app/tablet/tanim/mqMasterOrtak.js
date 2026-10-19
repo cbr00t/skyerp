@@ -1,5 +1,5 @@
 class MQMasterOrtak extends MQMasterOrtakBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	// static get gridIslemTuslariKullanilirmi() { return false }
 	static get kolonFiltreKullanilirmi() { return false }
 	static get raporKullanilirmi() { return false }

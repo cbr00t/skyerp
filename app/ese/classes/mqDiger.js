@@ -1,5 +1,5 @@
 class MQSablonAnketYanit extends MQGuidVeAdiOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'ANKETYANIT' } static get sinifAdi() { return 'Anket Yanıt' }
 	static get table() { return 'eseanketyanit' } static get tableAlias() { return 'ynt' }
 	static get maxSecenekSayisi() { return 5 }

@@ -1,5 +1,5 @@
 class MQDegerlendirmeEkOrtak extends MQApiOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static async loadServerData(e) {
 		e = e || {}; let {mustKod} = e, recs = await super.loadServerData(e);
 		if (recs && mustKod) { recs = recs.filter(rec => (rec.must ?? rec.mustkod ?? rec.mustKod) == mustKod) }
@@ -7,7 +7,7 @@ class MQDegerlendirmeEkOrtak extends MQApiOrtak {
 	}
 }
 class MQKapanmayanHesaplar extends MQDegerlendirmeEkOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Kapanmayan Hesaplar' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Kapanmayan Hesaplar' }
 	static get kodListeTipi() { return 'KAPHES' } static get table() { return 'kapanmayan_hesaplar' } static get tableAlias() { return 'khes' }
 	static ekCSSDuzenle(e) {
 		super.ekCSSDuzenle(e); const {rec, dataField: belirtec, result} = e;
@@ -60,7 +60,7 @@ class MQKapanmayanHesaplar extends MQDegerlendirmeEkOrtak {
 	}
 }
 class MQCariEkstre extends MQDegerlendirmeEkOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Cari Ekstre' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Cari Ekstre' }
 	static get gridDetaylimi() { return true } static get detaySinif() { return MQCariEkstre_Icerik }
 	static get kodListeTipi() { return 'CARIEKSTRE' } static get table() { return 'cari_ekstre' } static get tableAlias() { return 'ceks' }
 	static get offlineSahaListe() { return [...super.offlineSahaListe, 'iceriktablotipi', 'icerikfissayac'] }
@@ -108,7 +108,7 @@ class MQCariEkstre extends MQDegerlendirmeEkOrtak {
 	}
 }
 class MQCariEkstre_Icerik extends MQApiOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Cari Ekstre (İçerik)' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Cari Ekstre (İçerik)' }
 	static get kodListeTipi() { return 'CARIEKSTREICERIK' } static get table() { return 'cari_ekstre_icerik' } static get tableAlias() { return 'har' }
 	static get offlineSahaListe() { return [...super.offlineSahaListe, 'iceriktipi', 'icerikfissayac'] }
 	static ekCSSDuzenle(e) {

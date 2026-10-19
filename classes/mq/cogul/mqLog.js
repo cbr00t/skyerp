@@ -1,5 +1,5 @@
 class MQLog extends MQCogul {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'VTLOG' } static get sinifAdi() { return 'Log Kayıtları' }
 	static get table() { return 'vtlog' } static get tableAlias() { return 'log' } 
 	static pTanimDuzenle({ pTanim }) {

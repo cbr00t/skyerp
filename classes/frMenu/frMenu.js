@@ -1,5 +1,5 @@
 class FRMenu extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) {
 		super(e); e = e || {}; let _items = e.items?.items ?? e.items ?? e;
 		if (_items && !$.isArray(_items)) { _items = Object.values(_items) }

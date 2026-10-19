@@ -1,5 +1,5 @@
 class MustBilgi extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ilkKademe() { return 0 }
 	static {
 		extend(this, {
@@ -113,7 +113,7 @@ class MustBilgi extends CObject {
 }
 
 class Yaslandirma extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get bedel() { return (this.gecmis || 0) + (this.gelecek || 0) }
 	get kademe() { return MustBilgi.kademeler[this.index] || 0 }
 	get kademeText() {

@@ -1,5 +1,5 @@
 class MakineYonetimiPart extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get isWindowPart() { return true } static get partName() { return 'makineYonetimi' } static get sinifAdi() { return 'Makine Yönetimi' }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { tezgahKod: (e.tezgahKod ?? e.tezgahId)?.trimEnd() }); let {tezgahKod} = this }
 	init(e = {}) {

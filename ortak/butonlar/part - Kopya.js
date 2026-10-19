@@ -1,5 +1,5 @@
 class ButonlarPart extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get partName() { return 'butonlar' } static get isSubPart() { return true }
 	static get templates() { let result = this._templates; if (!result) { result = this._templates = {}; this.templatesOlustur({ result }) } return result }
 

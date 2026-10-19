@@ -1,5 +1,5 @@
 class PsKrOrtakHareketci extends BankaOrtakHareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get posmu() { return null }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get posmu() { return null }
 	static get maliTabloIcinUygunmu() { return true } static get araSeviyemi() { return this == PsKrOrtakHareketci }
     static get almSat() { return this.posmu ? 'T' : 'A' } static get almSatClause() { return `fis.almsat = '${this.almSat}'` }
 	/* Hareket tiplerini (işlem türlerini) belirleyen seçim listesi */
@@ -205,7 +205,7 @@ class PsKrOrtakHareketci extends BankaOrtakHareketci {
 }
 
 class POSHareketci extends PsKrOrtakHareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 22 }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 22 }
     static get kod() { return 'pos' } static get aciklama() { return 'POS İşlemleri' }
 	static get kisaKod() { return 'PS' } static get posmu() { return true }
 	static getAltTipAdiVeOncelikClause({ hv }) {
@@ -252,7 +252,7 @@ class POSHareketci extends PsKrOrtakHareketci {
 }
 
 class KrediKartiHareketci extends PsKrOrtakHareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 23 }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 23 }
     static get kod() { return 'krediKart' } static get aciklama() { return 'Kredi Kartı İşlemleri' }
 	static get kisaKod() { return 'KR' } static get krediKartimi() { return true }
 	static getAltTipAdiVeOncelikClause({ hv }) {

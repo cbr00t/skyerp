@@ -1,5 +1,5 @@
 class GridState extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get sender() { return this._sender ?? this.gridPart } set sender(value) { this._sender = value }
 	get activePart() { return app.activePart } get isSubPart() { return this.gridPart?.isSubPart }
 	get builder() { return this.gridPart?.builder } get eventTS() { return this.event?.timeStamp ?? now() }
@@ -73,7 +73,7 @@ class GridState extends CObject {
 }
 
 class GridKeyState extends GridState {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get canHandleEvents() { return super.canHandleEvents && this.hasFocus }
 	get isKeyDown() { return this.eventType == 'keydown' }
 	get key() {

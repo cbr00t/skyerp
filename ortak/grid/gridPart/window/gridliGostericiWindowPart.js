@@ -1,5 +1,5 @@
 class GridliGostericiWindowPart extends GridliGostericiPart {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get isSubPart() { return false } static get isWindowPart() { return true } static get partName() { return 'gridliGostericiWindow' }
 	get secince() { return (this.secimBilgi || {}).secince } set secince(value) { (this.secimBilgi || {}).secince = value }
 	get vazgecince() { return (this.secimBilgi || {}).vazgecince } set vazgecince(value) { (this.secimBilgi || {}).vazgecince = value }

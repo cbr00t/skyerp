@@ -1,5 +1,5 @@
 class HatYonetimiPart extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'HATYONETIMI-YENI' } static get sinifAdi() { return 'Hat Yönetimi (<span class="cyan">Yeni</span>)' }
 	static get isWindowPart() { return true } static get partName() { return 'hatYonetimi' }
 	get boxSize() {

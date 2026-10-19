@@ -1,5 +1,5 @@
 class GridKontrolcu extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get fis() { let {parentPart} = this; return parentPart?.fis ?? parentPart?.inst }
 	get grid() { return this.parentPart?.grid } get gridWidget() { return this.parentPart?.gridWidget }
 	get bilgiGirisiZorunlumu() { return true }

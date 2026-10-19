@@ -1,5 +1,5 @@
 class MQAltHesap extends MQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get kodListeTipi() { return 'ALTHESAP' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get kodListeTipi() { return 'ALTHESAP' }
 	static get sinifAdi() { return 'Alt Hesap' } static get table() { return 'althesap' } static get tableAlias() { return 'alth' }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments); $.extend(pTanim, {

@@ -1,5 +1,5 @@
 class MQNumarator extends MQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, 'fis'] }
 	static get numaratorPartSinif() { return NumaratorPart }
 	static get fisGirisLayoutSelector() { return '.numarator' }

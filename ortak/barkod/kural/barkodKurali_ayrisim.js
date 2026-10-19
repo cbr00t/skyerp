@@ -1,8 +1,8 @@
 class BarkodKurali_Ayrisim extends BarkodKurali {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 class BarkodKurali_AyrisimAyiracli extends BarkodKurali_Ayrisim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get hmrBelirtec2Bilgi() {
 		let {_hmrBelirtec2Bilgi: result} = this
 		if (result == null) {

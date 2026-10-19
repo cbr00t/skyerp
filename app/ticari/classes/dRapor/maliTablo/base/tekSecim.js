@@ -1,5 +1,5 @@
 class SBTabloYatayAnaliz_EkBilgi extends CObject {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	hvKA; ekKodAttrListe = [];
 	get kodAttr() { return this.hvKA?.kod } get adiAttr() { return this.hvKA?.aciklama }
 	get zorunluKodAttrListe() { return [...this.ekKodAttrListe, ...this.kodAttr].filter(x => !!x) }
@@ -7,7 +7,7 @@ class SBTabloYatayAnaliz_EkBilgi extends CObject {
 	sentDuzenle() { }
 }
 class SBTabloYatayAnaliz extends TekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return ' ' }
 	kaListeDuzenle({ kaListe }) {
 		let { konsolideCikti: konsolide, ekDBListe } = app.params.dRapor ?? {}
@@ -244,7 +244,7 @@ class SBTabloYatayAnaliz extends TekSecim {
 }
 
 class SBTabloSeviye extends TekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '1' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments); kaListe.push(
@@ -255,7 +255,7 @@ class SBTabloSeviye extends TekSecim {
 	}
 }
 class SBTabloHesapTipi extends TekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
 	get formulGibimi() {
 		let { satirlarToplamimi, altSeviyeToplamimi, formulmu } = this
@@ -292,7 +292,7 @@ class SBTabloHesapTipi extends TekSecim {
 	}
 }
 class SBTabloVeriTipi extends TekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return '' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return '' }
 	get donemBasimi() { return this.ekBilgi?.donemBasimi ?? false } get donemSonumu() { return this.ekBilgi?.donemSonumu ?? false }
 	get donemTipi() { return this.donemBasimi ? 'B' : this.donemSonumu ? 'S' : null }
 	kaListeDuzenle(e) {
@@ -567,7 +567,7 @@ class SBTabloVeriTipi extends TekSecim {
 	}
 }
 class SBTabloStokHizmet extends TekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return ' ' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments); kaListe.push(
@@ -578,7 +578,7 @@ class SBTabloStokHizmet extends TekSecim {
 	}
 }
 class SBTabloAyrimTipi extends TekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return 'X' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments); kaListe.push(

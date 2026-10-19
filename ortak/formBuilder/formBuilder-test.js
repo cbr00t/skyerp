@@ -1,6 +1,6 @@
 
 class TestButton extends SubPartBuilder {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	build(e) {
 		super.build(e);
 
@@ -26,7 +26,7 @@ class TestButton extends SubPartBuilder {
 
 
 class TestButtonFormBuilder extends FormBuilder {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	build(e) {
 		super.build(e);
 
@@ -159,7 +159,7 @@ class TestButtonFormBuilder extends FormBuilder {
 
 
 class FormBuilderTest2 extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 
 	static async run(e) {
 		e = e || {};
@@ -269,7 +269,7 @@ class FormBuilderTest2 extends CObject {
 
 
 class FormBuilderTest3 extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 
 	static async run(e) {
 		e = e || {};

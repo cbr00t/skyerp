@@ -1,10 +1,10 @@
 
 class SBRapor_Default extends SBRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get kategoriKod() { return null }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get kategoriKod() { return null }
 	static get kod() { return 'MALI' } static get aciklama() { return super.aciklama }
 }
 class SBRapor_Default_Main extends SBRapor_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return SBRapor_Default }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return SBRapor_Default }
 	tabloKolonlariDuzenle({ liste, recs /*, flatRecs*/ }) {
 		super.tabloKolonlariDuzenle(...arguments)
 	}

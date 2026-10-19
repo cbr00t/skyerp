@@ -1,5 +1,5 @@
 class MESApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'HATYONETIMI-YENI' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'HATYONETIMI-YENI' }
 	get configParamSinif() { return MQYerelParamConfig_MES }
 	get yerelParamSinif() { return MQYerelParam } get isLoginRequired() { return false }
 	get defaultWSPath() { return `ws/skyMES` } get useCloseAll() { return true }

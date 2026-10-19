@@ -1,5 +1,5 @@
 class FRMenuItem extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar || [], 'parentItem', 'parentIDListe'] }
 	static get tip() { return null } get cascademi() { return false } get choicemi() { return false }
 	constructor(e) {
@@ -90,7 +90,7 @@ class FRMenuItem extends CObject {
 	}
 }
 class FRMenuCascade extends FRMenuItem {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'cascade' } get cascademi() { return true }
 	constructor(e) { super(e); e = e || {}; this.items = e.items || []; this.id2Item = e.id2Item }
 	readFrom(obj) {
@@ -135,7 +135,7 @@ class FRMenuCascade extends FRMenuItem {
 	}
 }
 class FRMenuChoice extends FRMenuItem {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'choice' } get choicemi() { return true }
 	get block() {
 		let result = this._block

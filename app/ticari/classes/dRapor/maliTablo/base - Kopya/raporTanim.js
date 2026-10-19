@@ -1,5 +1,5 @@
 class SBTablo extends MQDetayliGUIDVeAdi {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sabitTablomu() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sabitTablomu() { return true }
 	static get kodListeTipi() { return 'SBTABLO' } static get sinifAdi() { return 'Mali Tablo' }
 	static get table() { return 'sbtablo' } static get tableAlias() { return 'fis' }
 	static get detaySinif() { return SBTabloDetay } static get gridKontrolcuSinif() { return SBTabloGridci }
@@ -215,7 +215,7 @@ class SBTablo extends MQDetayliGUIDVeAdi {
 }
 
 class SBTabloDetay extends MQDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'sbtablodetay' }
 	static get fisSayacSaha() { return 'fisid' }
 	static get sayacSaha() { return 'id' }
@@ -999,7 +999,7 @@ class SBTabloDetay extends MQDetay {
 }
 
 class SBTabloGridci extends GridKontrolcu {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	gridArgsDuzenle({ args }) {
 		super.gridArgsDuzenle(...arguments)
 		extend(args, { selectionMode: 'checkbox', groupable: false, sortable: false, filterable: false })

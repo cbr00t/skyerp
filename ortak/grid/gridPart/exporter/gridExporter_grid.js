@@ -1,5 +1,5 @@
 class GridExporter_Grid extends GridExporter {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	checkLoaded() {
 		// Eksik uzak sayfaları tam çıktı gibi sunmayız.
 		let w = this.widget

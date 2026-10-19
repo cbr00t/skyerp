@@ -1,5 +1,5 @@
 class CariRapor extends ModelRapor {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) { e = e || {}; super(e); }
 	listeOlustur(e) { super.listeOlustur(e); MQCari.secimlerDuzenle({ secimler: this }) }
 	async kategorileriOlustur(e) { await super.kategorileriOlustur(e); await this.cariKategorileriOlustur(e) }

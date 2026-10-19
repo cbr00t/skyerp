@@ -1,5 +1,5 @@
 class SecimBilgi extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) {
 		e = e || {}; super(e);
 		$.extend(this, {
@@ -16,7 +16,7 @@ class SecimBilgi extends CObject {
 	}
 }
 class GridPanelDuzenleyici extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get mfSinif() { return this.gridPart?.mfSinif } get duzTabloKolonlari() { return this.gridPart?.duzTabloKolonlari }
 	get tabloKolonlari() { return this.gridPart?.tabloKolonlari } get belirtec2Kolon() { return this.gridPart?.belirtec2Kolon }
 	get grid() { return this.gridPart?.grid } get gridWidget() { return this.gridPart?.gridWidget }

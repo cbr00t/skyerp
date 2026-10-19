@@ -1,5 +1,5 @@
 class IK_MQTicariParamBase extends MQParam {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e)
 		/* const {pTanim} = e;
@@ -10,7 +10,7 @@ class IK_MQTicariParamBase extends MQParam {
 	}
 }
 class IK_MQZorunluParam extends IK_MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Zorunlu Parametreler' }
 	static get paramKod() { return 'FGZT' }
 	static paramYapiDuzenle(e) {
@@ -52,7 +52,7 @@ class IK_MQZorunluParam extends IK_MQTicariParamBase {
 	}
 }
 class IK_MQTicariGenelParam extends IK_MQTicariParamBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Ticari Genel Parametreleri' }
 	static get paramKod() { return 'CGEN' }
 	constructor(e) {
@@ -116,7 +116,7 @@ class IK_MQTicariGenelParam extends IK_MQTicariParamBase {
 
 }
 class IK_MQCariGenelParam extends IK_MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Cari Genel Parametreleri' }
 	static get paramKod() { return 'XCGEN' }
 	static paramYapiDuzenle(e) {
@@ -136,7 +136,7 @@ class IK_MQCariGenelParam extends IK_MQTicariParamBase {
 	}
 }
 class IK_MQStokGenelParam extends IK_MQTicariParamBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Stok Genel Parametreleri' }
 	static get paramKod() { return 'SGN' }
 	static get hmrYapi() {
@@ -288,7 +288,7 @@ class IK_MQStokGenelParam extends IK_MQTicariParamBase {
 	}
 }
 class IK_MQAlimSatisParam extends IK_MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static paramYapiDuzenle(e) {
 		super.paramYapiDuzenle(e); const {paramci} = e; const temps = e.temps = e.temps || {};
 		let form = temps.siparis_kullanim = paramci.addGrup({ etiket: 'Sipariş Kullanımı' }).addFormWithParent();
@@ -330,12 +330,12 @@ class IK_MQAlimSatisParam extends IK_MQTicariParamBase {
 	}
 }
 class IK_MQAlimGenelParam extends IK_MQAlimSatisParam {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Alım Genel Parametreleri' }
 	static get paramKod() { return 'SFAL' }
 }
 class IK_MQSatisGenelParam extends IK_MQAlimSatisParam {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Satış Genel Parametreleri' }
 	static get paramKod() { return 'SFST' }
 	

@@ -1,5 +1,5 @@
 class AIBarkodluSonStokApp extends MiscApp {
-	static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return AIBarkodluSonStok.kodListeTipi }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return AIBarkodluSonStok.kodListeTipi }
 	paramsDuzenle(e) {
 		super.paramsDuzenle(e); const {params} = e;
 		$.extend(params, {
@@ -20,11 +20,11 @@ class AIBarkodluSonStokApp extends MiscApp {
 	}
 }
 class MQBarkodluStok extends MQStok {
-	static { window[this.name] = this; this._key2Class[this.name] = this } /* static get table() { return 'stkmst' } */ static get kolonDuzenlemeYapilirmi() { return false }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } /* static get table() { return 'stkmst' } */ static get kolonDuzenlemeYapilirmi() { return false }
 	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false } static get secimSinif() { return null }
 }
 class AIBarkodluSonStok extends MQMasterOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'AI_BARKODLU_SONSTOK' } static get sinifAdi() { return 'Barkodlu Son Stok' }
 	static get table() { return 'sonstok' } static get tableAlias() { return 'son' }
 	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false } static get secimSinif() { return null }

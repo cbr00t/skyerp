@@ -1,5 +1,5 @@
 class DipSatir extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, '_dipIslemci'] }
 	get satirBelirtec() { return null } get satirEtiket() { return this.satirBelirtec }
 	get revizeAdi() { let revizeAdi = this.etiket; if (revizeAdi.endsWith('%')) { let {oran} = this; revizeAdi += oran.toString() } return revizeAdi }
@@ -54,14 +54,14 @@ class DipSatir extends CObject {
 	visible() { this._visible = true; return this }
 }
 class DipSatir_Brut extends DipSatir {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get satirBelirtec() { return 'BRUT' } get satirEtiket() { return 'BRÜT' }
 	hesaplaDevam(e) { super.hesaplaDevam(e); let {_temps} = this._dipIslemci; _temps.araDeger = roundToBedelFra(this.tlBedel || 0); }
 	icmalSonuclarinaEkle(icmalSonuclari) { super.icmalSonuclarinaEkle(icmalSonuclari); icmalSonuclari.ciro.ekle(this.bedelYapi); return this }
 	eDipHostVarsDuzenle({ hv }) { super.eDipHostVarsDuzenle(...arguments); $.extend(hv, { anatip: 'DP', alttip: 'BR' }) }
 }
 class DipSatir_IskOrtak extends DipSatir {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get iskontomu() { return true } get defaultEkCSS() { return super.defaultEkCSS + 'isk' }
 	hesaplaSonrasi(e) {
 		super.hesaplaSonrasi(e); let {_temps} = this._dipIslemci, hesapBedel = (this.tlBedel || 0);
@@ -78,7 +78,7 @@ class DipSatir_IskOrtak extends DipSatir {
 	}
 }
 class DipSatir_IskOran extends DipSatir_IskOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get iskOranmi() { return true } get defaultOranEditable() { return true }
 	get satirBelirtec() { return `IORAN${this.seq}` } get satirEtiket() { return `İSK%` }
 	hesaplaDevam(e) {
@@ -88,7 +88,7 @@ class DipSatir_IskOran extends DipSatir_IskOrtak {
 	}
 }
 class DipSatir_IskBedel extends DipSatir_IskOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get iskBedelmi() { return true } get defaultBedelEditable() { return true }
 	get satirBelirtec() { return `IBEDEL${this.seq}` } get satirEtiket() { return `İSKONTO` }
 	hesaplaDevam(e) {
@@ -97,7 +97,7 @@ class DipSatir_IskBedel extends DipSatir_IskOrtak {
 	}
 }
 class DipSatir_Nakliye extends DipSatir {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get nakliyemi() { return true } get satirBelirtec() { return 'NAK' } get satirEtiket() { return 'Nakliye' }
 	hesaplaDevam(e) {
 		super.hesaplaDevam(e); let {_temps} = this._dipIslemci;
@@ -114,12 +114,12 @@ class DipSatir_Nakliye extends DipSatir {
 	}
 }
 class DipSatir_KdvVeMatrahOrtak extends DipSatir {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get kdvMatrahVeyaBedelmi() { return true } get _oran() { return '' }
 	hesaplaDevam(e) { super.hesaplaDevam(e) }
 }
 class DipSatir_KdvMatrah extends DipSatir_KdvVeMatrahOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get kdvMatrahmi() { return true } get satirBelirtec() { return `KMAT${this.ekKod}` } get satirEtiket() { return `Kdv.Mat (%${this.oran})` }
 	hesaplaDevam(e) {
 		super.hesaplaDevam(e) /*let {belirtec2DipSatir: d} = this._dipIslemci;*/
@@ -134,11 +134,11 @@ class DipSatir_KdvMatrah extends DipSatir_KdvVeMatrahOrtak {
 	eDipHostVarsDuzenle(e) { super.eDipHostVarsDuzenle(e); let {oran} = this; let {hv} = e; $.extend(hv, { anatip: 'KD', alttip: 'MT', oran }) }
 }
 class DipSatir_KdvOrtak extends DipSatir_KdvVeMatrahOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	hesaplaDevam(e) { super.hesaplaDevam(e) }
 }
 class DipSatir_Kdv extends DipSatir_KdvOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get kdvBedelmi() { return true } get satirBelirtec() { return `KDV${this.ekKod}` } get satirEtiket() { return `KDV (%${this.oran})` }
 	get matrahSatir() { let {belirtec2DipSatir} = this._dipIslemci, vergikod = this.ekKod; return belirtec2DipSatir[`KMAT${vergikod}`] }
 	odenecektenDusulurmu({ fis }) { return fis.class.ihracKaydiylami }
@@ -155,7 +155,7 @@ class DipSatir_Kdv extends DipSatir_KdvOrtak {
 	}
 }
 class DipSatir_Tevkifat extends DipSatir_KdvOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get tevkifatmi() { return true } get satirBelirtec() { return `TEV${this.ekKod}` } get satirEtiket() { return `TEV (${this.oran})` }
 	/* get matrahSatir() { let {belirtec2DipSatir} = this._dipIslemci, vergikod = this.ekKod; return belirtec2DipSatir[`TEVMAT${vergikod}`] } */
 	vergiDahileEklenirmi(e) { return true }
@@ -171,7 +171,7 @@ class DipSatir_Tevkifat extends DipSatir_KdvOrtak {
 	}
 }
 class DipSatir_Sonuc extends DipSatir {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get satirBelirtec() { return 'SONUC' } get satirEtiket() { return 'SONUÇ' } get sonucmu() { return true }
 	hesaplaDevam(e) {
 		super.hesaplaDevam(e); let {_temps} = this._dipIslemci;

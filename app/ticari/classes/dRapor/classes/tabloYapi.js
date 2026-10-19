@@ -1,5 +1,5 @@
 class TabloYapi extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get grupVeToplam() {
 		let {_grupVeToplam: result} = this
 		if (result == null) {
@@ -393,7 +393,7 @@ class TabloYapi extends CObject {
 }
 
 class TabloYapiItem extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get tipStringmi() { return !this.tip } get tipNumerikmi() { return this.tip == 'number' }
 	get tipTarihmi() { return this.tip == 'date' } get tipBoolmu() { return this.tip == 'boolean' }
 	get secimSinif() {
@@ -590,7 +590,7 @@ class TabloYapiItem extends CObject {
 	ustSeviyeUygulanmaz() { this.ustSeviyeUygulanirmi = false; return this }
 }
 class DRaporFormul extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e = {}) {
 		super(e)
 		this.setAttrListe(e.attrListe)

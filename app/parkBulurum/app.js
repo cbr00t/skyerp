@@ -1,5 +1,5 @@
 class ParkBulurumApp extends TicariApp {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'CYON' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'CYON' }
 	get yerelParamSinif() { return MQYerelParam } get defaultWSPath() { return `${super.superDefaultWSPath}/parkBulurum` } get testBaseClass() { return ParkBulurum_TestBase }
 	async run(e) { await super.run(e) }
 	getAnaMenu(e) {

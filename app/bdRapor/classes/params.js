@@ -1,5 +1,5 @@
 class MQParam_BDRapor extends MQParam {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Rapor Parametreleri' } static get paramKod() { return 'DRAPOR' }
 	get ekDBListe() { return this.konsolideCikti ? this._ekDBListe : null }
 	set ekDBListe(value) { this._ekDBListe = value }
@@ -40,7 +40,7 @@ class MQParam_BDRapor extends MQParam {
 }
 
 class MQBrGenelParam extends MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Bordro Genel Parametreler' }
 	static get paramKod() { return 'XGT' }
 	static paramYapiDuzenle({ paramci }) {
@@ -59,7 +59,7 @@ class MQBrGenelParam extends MQTicariParamBase {
 }
 
 class MQBrTahakkukParam extends MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Tahakkuk Parametreleri' }
 	static get paramKod() { return 'XBTP' }
 	static paramYapiDuzenle({ paramci }) {

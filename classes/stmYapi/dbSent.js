@@ -1,5 +1,5 @@
 class MQSent extends MQSentVeIliskiliYapiOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get unionmu() { return false }
 	get isDBWriteClause() { return this.toString()?.toUpperCase()?.includes('INTO ') }
 	static get aggregateFunctions() {
@@ -755,7 +755,7 @@ class MQSent extends MQSentVeIliskiliYapiOrtak {
 	}
 }
 class MQCTESent extends MQSentVeIliskiliYapiOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get baglac() { return '' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get baglac() { return '' }
 	get siraliSahaVeDegerler() { let result = []; for (let sent of this) { result.push(sent.alias2Deger) }; return result }
 	get siraliSahalar() { return this.siraliSahaVeDegerler.map(dict => keys(dict)) }
 	constructor(e) {
@@ -782,24 +782,24 @@ class MQCTESent extends MQSentVeIliskiliYapiOrtak {
 	buildString(e) { super.buildString(e); e.result += (this.liste.map(item => item.toString()).join(`${CrLf}${this.class.baglac}${CrLf}`)) }
 }
 class MQUnionBase extends MQCTESent {
-	static { window[this.name] = this; this._key2Class[this.name] = this } get unionmu() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } get unionmu() { return true }
 	birlestir(diger) { for (let sent of diger.getSentListe()) { this.add(sent) } return this }
 }
 class MQUnion extends MQUnionBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get unionmu() { return true } static get baglac() { return '  UNION' }
 	asUnion(e) { return this } asUnionAll(e) { return new MQUnionAll(this) }
 }
 class MQUnionAll extends MQUnionBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get baglac() { return '  UNION ALL' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get baglac() { return '  UNION ALL' }
 	asUnion(e) { return new MQUnion(this) } asUnionAll(e) { return this }
 }
 class MQExceptBase extends MQCTESent { }
 class MQExcept extends MQExceptBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get baglac() { return '  EXCEPT' }
 }
 class MQExceptAll extends MQExceptBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get baglac() { return '  EXCEPT ALL' }
 }

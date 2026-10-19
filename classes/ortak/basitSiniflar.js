@@ -1,12 +1,12 @@
 class Callable extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(block, args) {
         super(); if (args) { Object.assign(this, args) }
         return block ? block.bind(this) : (() => {})
     }
 }
 class CPoint extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get empty() { return new this({ x: 0, y: 0 }) } static get zero() { return this.empty } static get oneOne() { return new this({ x: 1, y: 1 }) }
 	get bosmu() { return !(this.x || this.y) } get legalmi() { return (this.x && this.y) }
 	constructor(e) {
@@ -29,7 +29,7 @@ class CPoint extends CObject {
 	toString(e) { return `${this.x} x ${this.y}` }
 }
 class CBasiSonu extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get bosmu() { return !(this.basi || this.sonu) } get bosDegilmi() { return !this.bosmu }
 	static get empty() { return new this({ basi: '', sonu: '' }) } static get zero() { return new this({ basi: 0, sonu: 0 }) }
 	get kisaText() {
@@ -198,7 +198,7 @@ class CBasiSonu extends CObject {
 }
 
 class YilVeAy extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get bosmu() { return !(this.basi || !this.sonu) }
 	get yilAy() { const {yil, ay} = this; return asYilAy(yil, ay) }
 	set yilAy(value) { const yilVeAy = ya2YilVeAy(value); if (yilVeAy) { const {yil, ay} = yilVeAy; extend(this, { yil, ay }) } }
@@ -217,7 +217,7 @@ class YilVeAy extends CObject {
 	}
 }
 class Countdown extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get state() { const {remainingSecs: r, totalSecs: t} = this; return r == null || r == t ? 'begin' : r <= 0 ? 'end' : 'progress' }
 	get needUpdate() {
 		/*const {remainingSecs: secs} = this, modulo = secs < 10 ? 1 : secs < 60 ? 10 : 30;

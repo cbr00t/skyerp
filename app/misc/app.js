@@ -1,5 +1,5 @@
 class MiscApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get loginRequiredMenuIdSet() {
 		let {_loginRequiredMenuIdSet: result} = this
 		if (result == null) {

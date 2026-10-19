@@ -1,5 +1,5 @@
 class Runnable extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this };
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this };
 	static get workerPath() { return `${webRoot}/classes/worker/worker.js` }
 	static get rootTip() { return null } static get altTip() { return null }
 	static get tip() { const {rootTip, altTip} = this; return [rootTip, altTip].filter(x => !!x).join('-') }
@@ -323,7 +323,7 @@ class Runnable extends CObject {
 }
 
 class CustomRunnable extends Runnable {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'custom-runnable' }
 }
 

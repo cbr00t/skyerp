@@ -1,5 +1,5 @@
 class EIslKural_SHAdi extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return ' ' } get sadeceAdi1mi() { return this.char == ' ' } get sadeceAdi2mi() { return this.char == '2' } get birliktemi() { return this.char == 'B' }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); const {kaListe} = e;
@@ -11,7 +11,7 @@ class EIslKural_SHAdi extends TekSecim {
 	}
 }
 class EIslKural_Fason extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return ' ' } get hepsimi() { return this.char == ' ' } get sadeceStokmu() { return this.char == 'S' } get sadeceHizmetmi() { return this.char == 'H' }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); const {kaListe} = e;
@@ -23,7 +23,7 @@ class EIslKural_Fason extends TekSecim {
 	}
 }
 class EIslKural_Doviz extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return ' ' } get sadeceTLmi() { return this.char == ' ' } get dipteDovizVeTLmi() { return this.char == 'D' } get satirdaDovizVeDipteTLmi() { return this.char == 'X' }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); const {kaListe} = e; kaListe.push(
@@ -34,7 +34,7 @@ class EIslKural_Doviz extends TekSecim {
 	}
 }
 class EIslKural_AciklamaKapsam extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return ' ' }
 	get hepsimi() { return this.char == ' ' } get sadeceNotlarmi() { return this.char == 'E' } get sadeceAciklamami() { return this.char == 'S' } get yokmu() { return this.char == 'X' }
 	kaListeDuzenle(e) {
@@ -48,7 +48,7 @@ class EIslKural_AciklamaKapsam extends TekSecim {
 	}
 }
 class EIslKural_Aciklama extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return ' ' } get hepsiSatirAltindami() { return this.char == ' ' } get hepsiDiptemi() { return this.char == 'D' }
 	get satirIciUrunAdindami() { return this.char == 'Y' } get hemDipteHemSatirAltindami() { return this.char == 'H' }
 	kaListeDuzenle({ kaListe }) {
@@ -62,7 +62,7 @@ class EIslKural_Aciklama extends TekSecim {
 	}
 }
 class EIslKural_Miktar extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '1' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)
@@ -74,7 +74,7 @@ class EIslKural_Miktar extends TekSecim {
 	}
 }
 class EIslKural_Fiyat extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return ' ' } get brutmu() { return this.char == ' ' } get netmi() { return this.char == 'NT' } get hepsimi() { return this.char == 'HP' }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); const {kaListe} = e;
@@ -86,7 +86,7 @@ class EIslKural_Fiyat extends TekSecim {
 	}
 }
 class EIslKural_Koli extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return 'C' } get sadeceKolimi() { return this.char == 'C' } get koliVeAdetmi() { return this.char == 'CA' }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); const {kaListe} = e;
@@ -97,7 +97,7 @@ class EIslKural_Koli extends TekSecim {
 	}
 }
 class EIslKural_HMR extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return ' ' }
 	get hepsimi() { return this.char == ' ' } get sadeceKodmu() { return this.char == 'K' } get sadeceAdimi() { return this.char == 'A' }
 	kaListeDuzenle(e) {
@@ -110,7 +110,7 @@ class EIslKural_HMR extends TekSecim {
 	}
 }
 class EIslKural_SipTarihVeNo extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return ' ' } get ustteYanYanami() { return this.char == ' ' } get ustteAltAltami() { return this.char == 'UA' } get sadeceNomu() { return this.char == 'SN' }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); const {kaListe} = e;
@@ -122,7 +122,7 @@ class EIslKural_SipTarihVeNo extends TekSecim {
 	}
 }
 class EIslKural_IrsTarihVeNo extends EIslKural_SipTarihVeNo {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get dipteYanYanami() { return this.char == 'DP' }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); const {kaListe} = e;
@@ -130,7 +130,7 @@ class EIslKural_IrsTarihVeNo extends EIslKural_SipTarihVeNo {
 	}
 }
 class EIslKural_IrsTarihFormat extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return ' ' }
 	get uzunmu() { return this.char == ' ' }
 	get kisami() { return this.char == 'Y' }
@@ -144,7 +144,7 @@ class EIslKural_IrsTarihFormat extends TekSecim {
 	}
 }
 class EIslKural_IrsNoFormat extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return ' ' }
 	get uzunmu() { return this.char == ' ' }
 	get kisami() { return this.char == 'Y' }
@@ -157,7 +157,7 @@ class EIslKural_IrsNoFormat extends TekSecim {
 	}
 }
 class EIslKural_IhrBrutNet extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return ' ' }
 	get yokmu() { return this.char == ' ' }
 	get satirAltiAciklamami() { return this.char == 'A' }
@@ -175,7 +175,7 @@ class EIslKural_IhrBrutNet extends TekSecim {
 }
 
 class EIslKural_IhrSatirTekCift extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return 'C' }
 	get ciftmi() { return this.char == 'C' }
 	get tekmi() { return this.char == 'T' }
@@ -190,7 +190,7 @@ class EIslKural_IhrSatirTekCift extends TekSecim {
 
 
 class EArsiv_BelgeTipi extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return 'E' }
 	get kagitmi() { return this.char == '' }
 	get elektronikmi() { return this.char == 'E' }

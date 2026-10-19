@@ -1,5 +1,5 @@
 class SecimBasSon extends Secim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get anaTip() { return 'basSon' } static get tip() { return this.anaTip } get defaultBirKismimi() { return !!this.mfSinif }
 	get value() { return this.birKismimi ? this.getConvertedValue(this.kodListe) : { basi: this.basi, sonu: this.sonu } }
 	set value(value) { if (this.birKismimi) { this.kodListe = this.getConvertedValue(value) } else super.value = value }
@@ -249,10 +249,10 @@ class SecimBasSon extends Secim {
 	hepsi() { this.birKismimi = false; return this }
 }
 class SecimString extends SecimBasSon {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'string' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'string' }
 }
 class SecimInteger extends SecimBasSon {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'integer' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'integer' }
 	initHTMLElements(e) {
 		super.initHTMLElements(e); let {parent} = e, inputs = parent.find('.bs-parent input.bs');
 		if (inputs?.length) {
@@ -268,7 +268,7 @@ class SecimInteger extends SecimBasSon {
 	getConvertedValue(value) { value = value?.value ?? value; return value && $.isArray(value) ? value : inverseCoalesce(value, x => asInteger(x)) }
 }
 class SecimNumber extends SecimInteger {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'number' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'number' }
 	readFrom(e) {
 		if (!super.readFrom(e)) { return false }
 		this.fra = inverseCoalesce(e.fra, x => asInteger(x)); return true
@@ -276,7 +276,7 @@ class SecimNumber extends SecimInteger {
 	getConvertedValue(value) { value = value?.value ?? value; return value && $.isArray(value) ? value : inverseCoalesce(value, x => asFloat(x)) }
 }
 class SecimDate extends SecimBasSon {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'date' } get hasTime() { return false }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'date' } get hasTime() { return false }
 	get ozetBilgiValue() {
 		let {value} = this
 		if (value == null)
@@ -303,7 +303,7 @@ class SecimDate extends SecimBasSon {
 	getConvertedUIValue(value) { return this.hasTime ? dateTimeToString(value) : dateToString(value) }
 }
 class SecimDateTime extends SecimDate {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'dateTime' } get hasTime() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'dateTime' } get hasTime() { return true }
 	get ozetBilgiValue() {
 		let {value} = this; if (value == null) { return value }
 		if ($.isPlainObject(value)) { value = new CBasiSonu(value) }

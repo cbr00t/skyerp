@@ -1,5 +1,5 @@
 class CDBMgr extends CDBLocalData_Base {
-	static { window[this.name] = this; this._key2Class[this.name] = this } get dbMgrmi() { return this.class.dbMgrmi } get cDBmi() { return this.class.cDBmi }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } get dbMgrmi() { return this.class.dbMgrmi } get cDBmi() { return this.class.cDBmi }
 	static get kod() { return 'cDB' } static get aciklama() { return 'Cobra DB' } static get dbMgrmi() { return true } static get cDBmi() { return true }
 	static get default() { const dbMgr = new this(); dbMgr.addDatabase(); return dbMgr } get fsRootDirPaths() { return [...super.fsRootDirPaths, 'db', this.class.kod] }
 	get dbNames() { return Object.keys(this.databases) } get dbArray() { return Object.values(this.databases) } get default() { return this.dbArray[0] }

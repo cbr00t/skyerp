@@ -1,5 +1,5 @@
 class SBRapor extends DGrupluPanelRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return 3 } static get aciklama() { return 'Mali Tablolar' }
 	static get kategoriKod() { return 'SB' } static get kategoriAdi() { return 'Mali Tablolar' }
 	static get chartVarmi() { return false } static get ozetVarmi() { return false }
@@ -17,7 +17,7 @@ class SBRapor extends DGrupluPanelRapor {
 	}
 }
 class SBRapor_Main extends DAltRapor_TreeGrid {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get mainmi() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get mainmi() { return true }
 	get sahaAlias() { return 'bedel' } get tazeleYapilirmi() { return true } get noAutoColumns() { return true }
 	static get etiket() { return this.raporTanim?.aciklama ?? super.etiket }
 	static get raporTanimSinif() { return SBTablo } static get secimSinif() { return DonemselSecimler }

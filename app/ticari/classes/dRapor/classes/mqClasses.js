@@ -1,9 +1,9 @@
 class DMQStokAnaGrup extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok Ana Grup' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok Ana Grup' }
 	static get kodListeTipi() { return 'STKANAGRP' } static get table() { return 'stkanagrup' } static get tableAlias() { return 'agrp' }
 }
 class DMQStokGrup extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok Grup' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok Grup' }
 	static get kodListeTipi() { return 'STKGRP' } static get table() { return 'stkgrup' } static get tableAlias() { return 'grp' }
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e;
@@ -12,18 +12,18 @@ class DMQStokGrup extends DMQKA {
 	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.stokGrup2AnaGrupBagla() }
 }
 class DMQStokIstGrup extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok İst. Grup' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok İst. Grup' }
 	static get kodListeTipi() { return 'STKISTGRP' } static get table() { return 'stkistgrup' } static get tableAlias() { return 'sigrp' }
 }
 class DMQStokTip extends StokTip {
-    static get kodListeTipi() { return 'STKTIP' } static { window[this.name] = this; this._key2Class[this.name] = this }
+    static get kodListeTipi() { return 'STKTIP' } static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 class DMQYerGrup extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok Depo Grup' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok Depo Grup' }
 	static get kodListeTipi() { return 'YERGRP' } static get table() { return 'stkyergrup' } static get tableAlias() { return 'ygrp' }
 }
 class DMQYer extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok Depo' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Stok Depo' }
 	static get kodListeTipi() { return 'STKYER' } static get table() { return 'stkyer' } static get tableAlias() { return 'yer' }
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); const {liste} = e;
@@ -32,7 +32,7 @@ class DMQYer extends DMQKA {
 	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.yer2GrupBagla() }
 }
 class DMQStok extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Stok' } static get zeminRenkDesteklermi() { return true }
 	static get kodListeTipi() { return 'STK' } static get table() { return 'stkmst' } static get tableAlias() { return 'stk' }
 	static orjBaslikListesiDuzenle(e) {
@@ -46,12 +46,12 @@ class DMQStok extends DMQKA {
 	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e; sent.stok2GrupBagla(); sent.stokGrup2AnaGrupBagla(); sent.stok2IstGrupBagla() }
 }
 class DMQStokMarka extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'STKMARKA' } static get sinifAdi() { return 'Stok Marka' }
 	static get table() { return 'stokmarka' } static get tableAlias() { return 'smar' }
 }
 class DMQHizmet extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'HIZ' } static get sinifAdi() { return 'Hizmet' }
 	static get table() { return 'hizmst' } static get tableAlias() { return 'hiz' }
 	static get zeminRenkDesteklermi() { return true }
@@ -76,7 +76,7 @@ class DMQHizmet extends DMQKA {
 	}
 }
 class DMQHizmetGrup extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'HIZGRP' } static get sinifAdi() { return 'Hizmet Grup' }
 	static get table() { return 'hizgrup' } static get tableAlias() { return 'grp' }
 	static orjBaslikListesiDuzenle({ liste }) {
@@ -92,16 +92,16 @@ class DMQHizmetGrup extends DMQKA {
 	}
 }
 class DMQHizmetAnaGrup extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'HIZANAGRP' } static get sinifAdi() { return 'Hizmet Ana Grup' }
 	static get table() { return 'hizanagrup' } static get tableAlias() { return 'agrp' }
 }
 class DMQHizmetIstGrup extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Hizmet İst. Grup' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Hizmet İst. Grup' }
 	static get kodListeTipi() { return 'HIZISTGRP' } static get table() { return 'hizistgrup' } static get tableAlias() { return 'higrp' }
 }
 class DMQDemirbas extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'DEM' } static get sinifAdi() { return 'Demirbaş' }
 	static get table() { return 'demmst' } static get tableAlias() { return 'dem' }
 	static get zeminRenkDesteklermi() { return true }
@@ -127,7 +127,7 @@ class DMQDemirbas extends DMQKA {
 	}
 }
 class DMQDemirbasGrup extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'DEMGRP' } static get sinifAdi() { return 'Demirbaş Grup' }
 	static get table() { return 'demgrup' } static get tableAlias() { return 'grp' }
 	static orjBaslikListesiDuzenle({ liste }) {
@@ -143,24 +143,24 @@ class DMQDemirbasGrup extends DMQKA {
 	}
 }
 class DMQDemirbasAnaGrup extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'DEMANAGRP' } static get sinifAdi() { return 'Demirbaş Ana Grup' }
 	static get table() { return 'demanagrup' } static get tableAlias() { return 'agrp' }
 }
 class DMQCariTip extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Cari Tip' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Cari Tip' }
 	static get kodListeTipi() { return 'CARTIP' } static get table() { return 'cartip' } static get tableAlias() { return 'ctip' }
 }
 class DMQCariIstGrup extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Cari İst. Grup' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Cari İst. Grup' }
 	static get kodListeTipi() { return 'CARISTGRP' } static get table() { return 'caristgrup' } static get tableAlias() { return 'cigrp' }
 }
 class DMQCariAnaBolge extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ana Bölge' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ana Bölge' }
 	static get kodListeTipi() { return 'CARANABOLGE' } static get table() { return 'caranabolge' } static get tableAlias() { return 'abol' }
 }
 class DMQCariBolge extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Bölge' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Bölge' }
 	static get kodListeTipi() { return 'CARBOLGE' } static get table() { return 'carbolge' } static get tableAlias() { return 'bol' }
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
@@ -175,19 +175,19 @@ class DMQCariBolge extends DMQKA {
 	}
 }
 class DMQIl extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'İl' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'İl' }
 	static get kodListeTipi() { return 'IL' } static get table() { return 'caril' } static get tableAlias() { return 'il' }
 }
 class DMQUlke extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ülke' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ülke' }
 	static get kodListeTipi() { return 'ULKE' } static get table() { return 'ulke' } static get tableAlias() { return 'ulk' }
 }
 class DMQSubeGrup extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Şube Grup' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Şube Grup' }
 	static get kodListeTipi() { return 'SUBEGRUP' } static get table() { return 'isygrup' } static get tableAlias() { return 'igrp' }
 }
 class DMQSube extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'SUBE' } static get sinifAdi() { return 'Şube' }
 	static get table() { return 'isyeri' } static get tableAlias() { return 'sub' } static get bosKodAlinirmi() { return false }
 	static orjBaslikListesiDuzenle({ liste }) {
@@ -208,11 +208,11 @@ class DMQSube extends DMQKA {
 	}
 }
 class DMQTakipGrup extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Takip Grup' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Takip Grup' }
 	static get kodListeTipi() { return 'TAKIPGRP' } static get table() { return 'takipgrup' } static get tableAlias() { return 'tgrp' }
 }
 class DMQTakipNo extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Takip No' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Takip No' }
 	static get table() { return 'takipmst' } static get tableAlias() { return 'tak' }
 	static get kodListeTipi() { return 'TAKIP' } static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
@@ -228,7 +228,7 @@ class DMQTakipNo extends DMQKA {
 	}
 }
 class DMQCari extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'CARI' } static get sinifAdi() { return 'Cari' }
 	static get table() { return 'carmst' } static get tableAlias() { return 'car' }
 	static get kodSaha() { return 'must' } static get adiSaha() { return 'birunvan' }
@@ -264,11 +264,11 @@ class DMQCari extends DMQKA {
 	}
 }
 class DMQAltHesap extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Alt Hesap' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Alt Hesap' }
 	static get kodListeTipi() { return 'ALTHESAP' } static get table() { return 'althesap' } static get tableAlias() { return 'alth' }
 }
 class DMQPlasiyer extends DMQCari {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'PLASIYER' } static get sinifAdi() { return 'Plasiyer' } static get tableAlias() { return 'pls' }
 	static orjBaslikListesiDuzenle(e) { super.super_orjBaslikListesiDuzenle(e) }
 	static loadServerData_queryDuzenle({ sent }) {
@@ -277,13 +277,13 @@ class DMQPlasiyer extends DMQCari {
 	}
 }
 class DMQTeslimCari extends DMQCari {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'TESLIMCARI' }
 	static get sinifAdi() { return 'Teslim Cari' }
 	static get tableAlias() { return 'tcar' }
 }
 class DMQKasa extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Kasa' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Kasa' }
 	static get kodListeTipi() { return 'KASA' } static get table() { return 'kasmst' } static get tableAlias() { return 'kas' }
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments);
@@ -298,15 +298,15 @@ class DMQKasa extends DMQKA {
 	}
 }
 class DMQKasaGrup extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Kasa Grup' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Kasa Grup' }
 	static get kodListeTipi() { return 'KASAGRP' } static get table() { return 'kasagrup' } static get tableAlias() { return 'kgrp' }
 }
 class DMQBanka extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Banka' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Banka' }
 	static get kodListeTipi() { return 'BANKA' } static get table() { return 'banmst' } static get tableAlias() { return 'ban' }
 }
 class DMQBankaHesap extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Banka Hesap' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Banka Hesap' }
 	static get kodListeTipi() { return 'BANHESAP' } static get table() { return 'banbizhesap' } static get tableAlias() { return 'bhes' }
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments);
@@ -324,12 +324,12 @@ class DMQBankaHesap extends DMQKA {
 	}
 }
 class DMQBankaHesapGrup extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Banka Hesap Grup' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Banka Hesap Grup' }
 	static get kodListeTipi() { return 'BANHESGRP' } static get table() { return 'banhesapgrup' } static get tableAlias() { return 'bhgrp' }
 }
 
 class DMQPosKrKosul extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tableAlias() { return 'kos' } static get table() { return 'poskosul' }
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
@@ -352,12 +352,12 @@ class DMQPosKrKosul extends DMQKA {
 	}
 }
 class DMQPosHesap extends DMQPosKrKosul {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'POS Hesap' } static get kodListeTipi() { return '' }
 	static get almSat() { return 'T' }
 }
 class DMQKrediKarti extends DMQPosKrKosul {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Kredi Kartı' } static get kodListeTipi() { return  '' }
 	static get almSat() { return 'A' }
 }
@@ -365,65 +365,65 @@ class DMQKrediKarti extends DMQPosKrKosul {
 
 
 class DMQMuhHesap extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'MUHHESAP' } static get sinifAdi() { return 'Muh. Hes.' }
 	static get table() { return 'muhhesap' } static get tableAlias() { return 'mhes' }
 }
 class DMQMuhHesap_Kebir extends DMQMuhHesap {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'MUHHESAPKEB' } static get sinifAdi() { return 'Kebir' }
 	static get tableAlias() { return 'khes' }
 }
 class DMQMuhHesap_Sinif extends DMQMuhHesap {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'MUHHESAPSIN' } static get sinifAdi() { return 'Sınıf Hes.' }
 	static get tableAlias() { return 'shes' }
 }
 class DMQMuhHesap_Cerceve extends DMQMuhHesap {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'MUHHESAPCER' } static get sinifAdi() { return 'Çerçeve' }
 	static get tableAlias() { return 'ches' }
 }
 class DMQMuhHesap_Ust extends DMQMuhHesap {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'MUHHESAPUST' } static get sinifAdi() { return 'Üst Hesap' }
 	static get tableAlias() { return 'uhes' }
 }
 class DMQMuhUstHesap extends DMQMuhHesap {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'MUHUSTHESAP' } static get sinifAdi() { return 'Üst Hesap' }
 	static get tableAlias() { return 'uhes' }
 }
 class DMQMuhGrup extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Muhasebe Grup' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Muhasebe Grup' }
 	static get kodListeTipi() { return 'MUHHESAPGRP' } static get table() { return 'muhgrup' } static get tableAlias() { return 'mhgrp' }
 }
 class DMQHat extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Hat' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Hat' }
 	static get kodListeTipi() { return 'HAT' } static get table() { return 'ismerkezi' } static get tableAlias() { return 'hat' }
 }
 class DMQTezgah extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Tezgah' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Tezgah' }
 	static get kodListeTipi() { return 'TEZGAH' } static get table() { return 'tekilmakina' } static get tableAlias() { return 'tez' }
 }
 class DMQOperasyon extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Operasyon' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Operasyon' }
 	static get kodListeTipi() { return 'OPER' } static get table() { return 'operasyon' } static get tableAlias() { return 'op' } static get kodSaha() { return 'opno' }
 }
 class DMQPersonel extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Personel' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Personel' }
 	static get kodListeTipi() { return 'PER' } static get table() { return 'personel' } static get tableAlias() { return 'per' }
 }
 class DMQDepartman extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Departman' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Departman' }
 	static get kodListeTipi() { return 'DEP' } static get table() { return 'maldepartman' } static get tableAlias() { return 'dep' }
 }
 class DMQDurNeden extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Duraksama Nedeni' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Duraksama Nedeni' }
 	static get kodListeTipi() { return 'DURNEDEN' } static get table() { return 'makdurneden' } static get tableAlias() { return 'dned' }
 }
 class DurTipi extends TekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'DURTIP' } static get sinifAdi() { return 'Duraksama Tipi' }
 	static get defaultChar() { return ' ' }
 	kaListeDuzenle({ kaListe }) {
@@ -436,23 +436,23 @@ class DurTipi extends TekSecim {
 	}
 }
 class DMQIskNeden extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Iskarta Nedeni' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Iskarta Nedeni' }
 	static get kodListeTipi() { return 'ISKNEDEN' } static get table() { return 'opiskartanedeni' } static get tableAlias() { return 'ined' }
 }
 class DMQPDKSGorev extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Görev' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Görev' }
 	static get kodListeTipi() { return 'PERGOREV' } static get table() { return 'pergorev' } static get tableAlias() { return 'pgor' }
 }
 class DMQPDKSGorevTip extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Görev Tip' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Görev Tip' }
 	static get kodListeTipi() { return 'GOREVTIP' } static get table() { return 'gorevtipi' } static get tableAlias() { return 'pgtip' }
 }
 class DMQPDKSNeden extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Neden' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Neden' }
 	static get kodListeTipi() { return 'PDKSIZINNDN' } static get table() { return 'pdksizinneden' } static get tableAlias() { return 'ned' }
 }
 class PDKSAnaTip extends TekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)
@@ -467,32 +467,32 @@ class PDKSAnaTip extends TekSecim {
 	}
 }
 class DMQPDKSAnaTip extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Ana Tip' } static get kodListeTipi() { return 'PDKSANATIP' }
 	static loadServerDataDogrudan(e) { return PDKSAnaTip.kaListe }
 }
 class DMQKategori extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Kategori' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Kategori' }
 	static get kodListeTipi() { return 'KATEGORI' } static get table() { return 'kategori' } static get tableAlias() { return 'kat' }
 }
 class DMQMasraf extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Masraf' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Masraf' }
 	static get kodListeTipi() { return 'MASRAF' } static get table() { return 'stkmasraf' } static get tableAlias() { return 'mas' }
 }
 class DMQOzelIsaret extends MQOzelIsaret {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'OZELISARET' } static get defaultChar() { return ['', '*'] }
 }
 class DMQStokIslem extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'İşlem' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'İşlem' }
 	static get kodListeTipi() { return 'STKISL' } static get table() { return 'stkisl' } static get tableAlias() { return 'isl' }
 }
 class DMQMuhIslem extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'İşlem' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'İşlem' }
 	static get kodListeTipi() { return 'MUHISL' } static get table() { return 'muhisl' } static get tableAlias() { return 'isl' }
 }
 class DMQStokVeMuhIslem extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'İşlem' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'İşlem' }
 	static get kodListeTipi() { return 'STMHISL' } static get tableAlias() { return 'isl' }
 	static async loadServerDataDogrudan(e = {}) {
 		delete e.mfSinif
@@ -503,7 +503,7 @@ class DMQStokVeMuhIslem extends DMQKA {
 	}
 }
 class DMQTahsilSekli extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'TAHSILSEKLI' } static get sinifAdi() { return 'Tahsil Şekli' }
 	static get table() { return 'tahsilsekli' } static get tableAlias() { return 'tsek' }
 	static get kodSaha() { return 'kodno' }
@@ -543,7 +543,7 @@ class DMQTahsilSekli extends DMQKA {
 	}
 }
 class DMQKasiyer extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'KASIYER' } static get sinifAdi() { return 'Kasiyer' }
 	static get table() { return 'kasiyer' } static get tableAlias() { return 'kas' }
 }

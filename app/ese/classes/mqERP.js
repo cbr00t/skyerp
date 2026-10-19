@@ -1,9 +1,9 @@
 class MQCariUlke extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ülke' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ülke' }
 	static get kodListeTipi() { return 'CULKE' } static get table() { return 'ulke' } static get tableAlias() { return 'ulk' }
 }
 class MQCariIl extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'İl' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'İl' }
 	static get kodListeTipi() { return 'CIL' } static get table() { return 'caril' } static get tableAlias() { return 'il' }
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { ilBolgeKod: new PInstStr('ilbolgekod') }) }
 	static orjBaslikListesiDuzenle(e) {
@@ -19,11 +19,11 @@ class MQCariIl extends MQKAOrtak {
 	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); const {sent} = e, {tableAlias: alias} = this; sent.fromIliski('eseilbolge ibol', `${alias}.ilbolgekod = ibol.kod`) }
 }
 class MQCariTip extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Cari Tip' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Cari Tip' }
 	static get kodListeTipi() { return 'CTIP' } static get table() { return 'cartip' } static get tableAlias() { return 'ctip' }
 }
 class MQCari extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'ERP Cari' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'ERP Cari' }
 	static get kodListeTipi() { return 'CARI' } static get table() { return 'carmst' } static get tableAlias() { return 'car' }
 	static get kodSaha() { return 'must' } static get adiSaha() { return 'birunvan' } static get adiEtiket() { return 'Ünvan' }
 	static pTanimDuzenle(e) {

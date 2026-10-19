@@ -1,5 +1,5 @@
 class FormBuilderBase extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static CSSClass_FormBuilder = 'formBuilder'; static CSSClass_FormBuilderElement = 'formBuilder-element';
 	static CSSClass_BuilderId = 'builder-id'; static CSSClass_ElementId = 'element-id'; static elmSeq = 0;
 	get isFormBuilder() { return true } static get defaultAutoAppendFlag() { return false }

@@ -1,5 +1,5 @@
 class GridliGostericiPart extends GridPart {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get wndClassNames() { return ['gridliGosterici', ...super.wndClassNames] }
 	
 	gridArgsDuzenleDevam({ args }) {

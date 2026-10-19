@@ -1,5 +1,5 @@
 class MFListeOrtakPart extends GridliGostericiWindowPart {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get orjBaslikListesi() { return this._orjBaslikListesi } set orjBaslikListesi(value) { this._orjBaslikListesi = value }
 	get listeBasliklari() { return this._listeBasliklari } set listeBasliklari(value) { this._listeBasliklari = value }
 	get mfSinif() { return this._mfSinif } set mfSinif(value) { this._mfSinif = value }

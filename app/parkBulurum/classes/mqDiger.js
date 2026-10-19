@@ -1,5 +1,5 @@
 class MQYakindakiOtoparklar extends MQCogul {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get gridDetaylimi() { return true } static get tumKolonlarGosterilirmi() { return true }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get gridDetaylimi() { return true } static get tumKolonlarGosterilirmi() { return true }
 	static get sinifAdi() { return 'Yakındaki Otoparkları Bul' } static get tanimUISinif() { return ModelTanimPart }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { uzaklikMT: e.uzaklikMT ?? 1000 }) }
 	static rootFormBuilderDuzenle(e) {
@@ -103,7 +103,7 @@ class MQYakindakiOtoparklar extends MQCogul {
 	}
 }
 class MQYakindakiOtoparklarDetay extends MQDetay {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e)
 	}

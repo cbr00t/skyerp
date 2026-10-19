@@ -1,5 +1,5 @@
 class TabDokumYontemi extends CObject {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kod() { return null } static get aciklama() { return null }
 	static get question() { return null } static get araSeviyemi() { return this == TabDokumYontemi }
 	static get defaultKod() { return app.params.tablet?.dokumYontemi?.char ?? TabDokumYontemi_Epson.kod }
@@ -71,7 +71,7 @@ class TabDokumYontemi extends CObject {
 }
 
 class TabDokumYontemi_Epson extends TabDokumYontemi {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kod() { return 'EPS' } static get aciklama() { return 'Epson' }
 	static get question() { return 'epsonmu' }
 
@@ -92,7 +92,7 @@ class TabDokumYontemi_Epson extends TabDokumYontemi {
 }
 
 class TabDokumYontemi_ZPL extends TabDokumYontemi {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kod() { return 'ZPL' } static get aciklama() { return 'ZPL' }
 	static get question() { return 'zplmi' }
 	static get zplSatirYukseklik() { return 18 }

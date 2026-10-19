@@ -1,5 +1,5 @@
 class MQEMutOnay extends MQCogul {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'MAIN' } static get sinifAdi() { return 'Mutabakat Onay' }
 	static get sadeceTanimmi() { return true } static get tanimUISinif() { return ModelTanimPart }
 	static get bulFormKullanilirmi() { return false }

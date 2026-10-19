@@ -1,5 +1,5 @@
 class EAlimTicariyeDonusturucu extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e = {}) {
 		super(e)
 		const eYonetici = this.eYonetici = e.eYonetici || {};

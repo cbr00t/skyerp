@@ -1,5 +1,5 @@
 class EIslemApp extends TicariApp {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	async run(e) { this.kisitlamalariUygula(e); await super.run(e) }
 	getAnaMenu(e) {
 		const {dev} = config, items = []; let subMenu;

@@ -1,5 +1,5 @@
 class SayimGridci extends GridKontrolcu {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	tabloKolonlariDuzenle({ tabloKolonlari }) {
 		super.tabloKolonlariDuzenle(...arguments)
 		let shKolonGrup = MQStok.getGridKolonGrup_brmli({
@@ -29,7 +29,7 @@ class SayimGridci extends GridKontrolcu {
 }
 
 class StokGridKontrolcu extends TSGridKontrolcu {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e = {}) { super(e) }
 	tabloKolonlariDuzenle({ tabloKolonlari }) {
 		super.tabloKolonlariDuzenle(...arguments)

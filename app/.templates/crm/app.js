@@ -1,5 +1,5 @@
 class CRMApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'MAIN' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'MAIN' }
 	get isLoginRequired() { return true } get dbMgrClass() { return SqlJS_DBMgr } /*get defaultWSPath() { return `${super.superDefaultWSPath}/crm` }*/
 	static get yerelParamSinif() { return MQYerelParam } get configParamSinif() { return MQYerelParamConfig_App }
 	async runDevam(e) { await super.runDevam(e); await this.anaMenuOlustur(e); this.show() }

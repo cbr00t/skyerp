@@ -1,5 +1,5 @@
 class SecimOzel extends Secim {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'ozel' } static get tip() { return this.anaTip } static get attr() { return 'value' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'ozel' } static get tip() { return this.anaTip } static get attr() { return 'value' }
 	get value() { return this._value } set value(value) { this._value = value }
 	get ozetBilgiValue() { let value = super.ozetBilgiValue; if (value == null) { return value } return value?.toString() }
 	get ozellik() { return this.value } set ozellik(value) { this.value = value }
@@ -20,7 +20,7 @@ class SecimOzel extends Secim {
 	temizle(e) { super.temizle(e); this.value = this.getConvertedValue(null); return this }
 }
 class SecimText extends SecimOzel {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'text' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'text' }
 	readFrom(e) {
 		if (!super.readFrom(e)) { return false }
 		let cssClasses = e.cssClasses || e.css || []; if (cssClasses && typeof cssClasses == 'string') { cssClasses = cssClasses.split(' ').filter(x => !!x) }
@@ -40,7 +40,7 @@ class SecimText extends SecimOzel {
 	getConvertedValue(value) { value = value?.value ?? value; return value || '' }
 }
 class SecimOzellik extends SecimOzel {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'ozellik' } static get attr() { return 'ozellik' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'ozellik' } static get attr() { return 'ozellik' }
 	readFrom(e) {
 		if (!super.readFrom(e)) { return false }
 		this.disindakilermi = e.disindakilermi ?? e.disindakiler ?? false;
@@ -91,7 +91,7 @@ class SecimOzellik extends SecimOzel {
 	}
 }
 class SecimTekilInteger extends SecimOzel {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'tekilInteger' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'tekilInteger' }
 	uiSetValues(e) {
 		super.uiSetValues(e); let {parent} = e; if (!parent.length) { return false }
 		parent.find('.input').val(this.getConvertedValue(this.value))
@@ -109,13 +109,13 @@ class SecimTekilInteger extends SecimOzel {
 	getConvertedValue(value) { value = value?.value ?? value; return value == null ? this.defaultValue : asInteger(value) }
 }
 class SecimTekilNumber extends SecimTekilInteger {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'tekilNumber' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'tekilNumber' }
 	readFrom(e) { if (!super.readFrom(e)) { return false } this.fra = inverseNullCoalesce(e.fra, x => asInteger(x)); return true }
 	writeTo(e) { if (!super.writeTo(e)) { return false } let {fra} = this; if (fra != null) { e.fra = fra } return true }
 	getConvertedValue(value) { value = value?.value ?? value; return value == null ? this.defaultValue : asFloat(value) }
 }
 class SecimTekilDate extends SecimOzel {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'tekilDate' } get hasTime() { return false }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'tekilDate' } get hasTime() { return false }
 	get ozetBilgiValue() { let {value} = this; if (value == null) { return value } return dateToString(value) }
 	uiSetValues(e) { super.uiSetValues(e); let {parent} = e; if (!parent.length) { return false } parent.find('.input').val(this.getConvertedUIValue(this.value)) }
 	buildHTMLElementStringInto(e) {
@@ -140,7 +140,7 @@ class SecimTekilDate extends SecimOzel {
 	getConvertedUIValue(value) { return this.hasTime ? dateTimeToString(value) : dateToString(value) }
 }
 class SecimTekilDateTime extends SecimTekilDate {
-	static { window[this.name] = this; this._key2Class[this.name] = this } get hasTime() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } get hasTime() { return true }
 	get ozetBilgiValue() { let {value} = this; if (value == null) { return value } return dateTimeToString(value) }
 	uiSetValues(e) {
 		super.uiSetValues(e); let {parent} = e; if (!parent?.length) { return false }
@@ -148,7 +148,7 @@ class SecimTekilDateTime extends SecimTekilDate {
 	}
 }
 class SecimBool extends SecimOzel {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'bool' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'bool' }
 	get ozetBilgiValue() {
 		let {value} = this; if (value == null) { return value }
 		return typeof (value == 'boolean') ? (value ? this.etiket : null) : value?.toString()
@@ -169,11 +169,11 @@ class SecimBool extends SecimOzel {
 	setFalse() { this.value = false; return this }
 }
 class SecimBoolTrue extends SecimBool {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	readFrom(e) { e = e || {}; super.readFrom(e); if (e.value == null) { this.value = true } }
 }
 class SecimTekSecim extends SecimOzel {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'tekSecim' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'tekSecim' }
 	static get birKismimi() { return false } get birKismimi() { return this.class.birKismimi }
 	get value() { return this.getConvertedValue(this.tekSecim?.char) }
 	set value(value) {
@@ -351,7 +351,7 @@ class SecimTekSecim extends SecimOzel {
 	disindakiler() { this.disindakilermi = true; return this } secilenler() { this.disindakilermi = false; return this }
 }
 class SecimBirKismi extends SecimTekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'birKismi' } static get birKismimi() { return true }
 	get value() {
 		let result = this.hepsimi ? null : super.value

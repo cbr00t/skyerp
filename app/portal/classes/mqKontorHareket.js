@@ -1,5 +1,5 @@
 class MQKontorHareket extends MQSayacli {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sayacSaha() { return 'kaysayac' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sayacSaha() { return 'kaysayac' }
 	static get uygunmu() { return true }
 	static get kontorSinif() { return MQKontor }
 	static get tip() { return this.kontorSinif.tip } static get tipAdi() { return this.kontorSinif.tipAdi }
@@ -356,57 +356,57 @@ class MQKontorHareket extends MQSayacli {
 }
 
 class MQKontorHareket_EBelge extends MQKontorHareket {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kontorSinif() { return MQKontor_EBelge }
 }
 
 class MQKontorHareket_Turmob extends MQKontorHareket {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kontorSinif() { return MQKontor_Turmob }
 }
 
 class MQKontorHareket_TokenliOrtak extends MQKontorHareket {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get uygunmu() { return super.uygunmu && this != MQKontorHareket_TokenliOrtak }
 	static get kontorSinif() { return MQKontor_Turmob }
 }
 class MQKontorHareket_ZamanDamgasi extends MQKontorHareket_TokenliOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kontorSinif() { return MQKontor_ZamanDamgasi }
 }
 class MQKontorHareket_SMS extends MQKontorHareket_TokenliOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kontorSinif() { return MQKontor_SMS }
 }
 
 class MQKontorHareket_OEKontorOrtak extends MQKontorHareket {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get uygunmu() { return super.uygunmu && this != MQKontorHareket_OEKontorOrtak }
 	static get kontorSinif() { return MQKontor_OEKontorOrtak }
 }
 class MQKontorHareket_EFA_KontorOrtak extends MQKontorHareket_OEKontorOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get uygunmu() { return super.uygunmu && this != MQKontorHareket_EFA_KontorOrtak }
 	static get kontorSinif() { return MQKontor_EFA_KontorOrtak }
 }
 class MQKontorHareket_EDefter_KontorOrtak extends MQKontorHareket_OEKontorOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get uygunmu() { return super.uygunmu && this != MQKontorHareket_EDefter_KontorOrtak }
 	static get kontorSinif() { return MQKontor_EDefter_KontorOrtak }
 }
 class MQKontorHareket_EFA_Kontor_NES extends MQKontorHareket_EFA_KontorOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kontorSinif() { return MQKontor_EFA_Kontor_NES }
 }
 class MQKontorHareket_EDefter_Kontor_NES extends MQKontorHareket_EDefter_KontorOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kontorSinif() { return MQKontor_EDefter_Kontor_NES }
 }
 class MQKontorHareket_EFA_Kontor_Turkcell extends MQKontorHareket_EFA_KontorOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kontorSinif() { return MQKontor_EFA_Kontor_Turkcell }
 }
 class MQKontorHareket_EDefter_Kontor_Turkcell extends MQKontorHareket_EDefter_KontorOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kontorSinif() { return MQKontor_EDefter_Kontor_Turkcell }
 }

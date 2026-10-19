@@ -1,5 +1,5 @@
 class MQMusteriYedekleri extends MQDetayli {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Sky Müşteri Yedekleri' }
 	static get detaySinif() { return MQMusteriYedekDosyalari }
 	static get tanimUISinif() { return YedeklemeTalebiPart }

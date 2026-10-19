@@ -1,5 +1,5 @@
 class MQEIslem_Gelen_BekSorguFiltre extends DonemselSecimler {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
     constructor() {
         super(...arguments)
         let { donem: { tekSecim: donem } } = this
@@ -12,7 +12,7 @@ class MQEIslem_Gelen_BekSorguFiltre extends DonemselSecimler {
 }
 
 class MQEIslem_Gelen_EkBilgiUI extends SimplePart {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
     static get title() { return 'Alım Fişi İçeri Alımı' }
     get rec() { return this._rec }
     set rec(v) {

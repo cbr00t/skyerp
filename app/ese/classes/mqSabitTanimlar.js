@@ -1,5 +1,5 @@
 class MQYasGrup extends MQGuidVeAdiOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Yaş Grubu' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Yaş Grubu' }
 	static get kodListeTipi() { return 'YASGRUP' } static get table() { return 'eseyasgrup' } static get tableAlias() { return 'ygrp' }
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { basi: new PInstNum('yasbasi'), sonu: new PInstNum('yassonu') }) }
 	static orjBaslikListesiDuzenle(e) {
@@ -13,7 +13,7 @@ class MQYasGrup extends MQGuidVeAdiOrtak {
 	}
 }
 class MQYetki extends MQGuidVeAdiOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Yetki' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Yetki' }
 	static get kodListeTipi() { return 'YETKI' } static get table() { return 'eseyetki' } static get tableAlias() { return 'yet' }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); $.extend(e.pTanim, { cpt: new PInstBitBool('bcptuygular'), ese: new PInstBitBool('beseuygular'), rapor: new PInstBitBool('btopluraporlar') }) }
@@ -34,7 +34,7 @@ class MQYetki extends MQGuidVeAdiOrtak {
 	}
 }
 class MQESEUser extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'ESE Kullanıcı' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'ESE Kullanıcı' }
 	static get kodListeTipi() { return 'ESEUSER' } static get table() { return 'esekullanici' } static get tableAlias() { return 'usr' }
 	static get ignoreBelirtecSet() { return {...super.ignoreBelirtecSet, ...asSet(['kurumid', 'yetkiid']) } }
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { sifre: new PInstStr('sifre'), kurumId: new PInstGuid('kurumid'), yetkiId: new PInstGuid('yetkiid') }) }
@@ -62,11 +62,11 @@ class MQESEUser extends MQKAOrtak {
 	}
 }
 class MQIlBolge extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'İl Bölgesi' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'İl Bölgesi' }
 	static get kodListeTipi() { return 'ILBOL' } static get table() { return 'eseilbolge' } static get tableAlias() { return 'ibol' }
 }
 class MQYerlesim extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Yerleşim' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Yerleşim' }
 	static get kodListeTipi() { return 'YERLESIM' } static get table() { return 'eseyerlesim' } static get tableAlias() { return 'yer' }
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { ilKod: new PInstStr('ilkod'), ulkeKod: new PInstStr('ulkekod') }) }
 	static orjBaslikListesiDuzenle(e) {
@@ -86,7 +86,7 @@ class MQYerlesim extends MQKAOrtak {
 	}
 }
 class MQKurum extends MQGuidVeAdiOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Kurum' } static get adiSaha() { return 'unvan' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Kurum' } static get adiSaha() { return 'unvan' }
 	static get kodListeTipi() { return 'KURUM' } static get table() { return 'esekurum' } static get tableAlias() { return 'krm' }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); $.extend(e.pTanim, {
@@ -113,11 +113,11 @@ class MQKurum extends MQGuidVeAdiOrtak {
 	}
 }
 class MQOkulTipi extends MQGuidVeAdiOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Okul Tipi' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Okul Tipi' }
 	static get kodListeTipi() { return 'OKULTIPI' } static get table() { return 'eseokultipi' } static get tableAlias() { return 'okt' }
 }
 class MQHasta extends MQGuidVeAdiOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'HASTA' } static get sinifAdi() { return 'Hasta' } 
 	static get table() { return 'esehasta' } static get tableAlias() { return 'has' }
 	static get adiEtiket() { return 'İsim' } static get yakinSayi() { return 2 }
@@ -177,7 +177,7 @@ class MQHasta extends MQGuidVeAdiOrtak {
 	}
 }
 class MQDoktor extends MQGuidVeAdiOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Doktor' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Doktor' }
 	static get kodListeTipi() { return 'DOKTOR' } static get table() { return 'esedoktor' } static get tableAlias() { return 'dok' }
 	static get ignoreBelirtecSet() { return {...super.ignoreBelirtecSet, ...asSet(['kurumid']) } }
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { tel: new PInstStr('tel'), tel2: new PInstStr('tel2'), kurumId: new PInstGuid('kurumid') }) }

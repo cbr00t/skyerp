@@ -1,5 +1,5 @@
 class TSOrtakFis extends MQTicariGenelFis {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get detaySinif() { return super.detaySinif } static get aciklamaKullanilirmi() { return true }
 	static detaySiniflarDuzenle({ liste }) {
 		super.detaySiniflarDuzenle(...arguments)

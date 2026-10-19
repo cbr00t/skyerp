@@ -1,5 +1,5 @@
 class HEFis extends BankaOrtakFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'hefis' }
 	static get detaySinif() { return HEDetay }
 	static get gridKontrolcuSinif() { return HEGridci }
@@ -10,7 +10,7 @@ class HEFis extends BankaOrtakFis {
 	}
 }
 class HEDetay extends BankaOrtakDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'hehar' }
 	static extYapilarDuzenle(e) {
 		e.liste.push(Ext_DvKur, Ext_BedelVeDvBedel);
@@ -27,7 +27,7 @@ class HEDetay extends BankaOrtakDetay {
 	}
 }
 class HEGridci extends BankaOrtakGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	tabloKolonlariDuzenle_son({ tabloKolonlari }) {
 		tabloKolonlari.push(
 			new GridKolon({ belirtec: 'dvBedel', text: 'Dv Bedel', genislikCh: 13 }).tipDecimal_dvBedel(),
@@ -40,12 +40,12 @@ class HEGridci extends BankaOrtakGridci {
 }
 
 class HEGelenGidenOrtakFis extends HEFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get detaySinif() { return HEGelenGidenOrtakDetay }
 	static get gridKontrolcuSinif() { return HEGelenGidenOrtakGridci }
 }
 class HEGelenGidenOrtakDetay extends HEDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static extYapilarDuzenle({ liste }) {
 		liste.push(Ext_CariVeAltHesap, Ext_BelgeTarihVeNo, Ext_TakipNo)
 		super.extYapilarDuzenle(...arguments)
@@ -53,7 +53,7 @@ class HEGelenGidenOrtakDetay extends HEDetay {
 	static super_extYapilarDuzenle(e) { super.super_extYapilarDuzenle(e) }
 }
 class HEGelenGidenOrtakGridci extends HEGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	tabloKolonlariDuzenle_ilk({ tabloKolonlari }) {
 		tabloKolonlari.push(
 			...MQCari.getGridKolonlar({ belirtec: 'must', gridKolonGrupcu: 'getGridKolonGrup_yoreli' }),
@@ -68,7 +68,7 @@ class HEGelenGidenOrtakGridci extends HEGridci {
 }
 
 class HEGonderilenFis extends HEGelenGidenOrtakFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Gönderilen Havale/EFT' }
 	static get detaySinif() { return HEGonderilenDetay }
 	static get gridKontrolcuSinif() { return HEGonderilenGridci }
@@ -104,18 +104,18 @@ class HEGonderilenFis extends HEGelenGidenOrtakFis {
 	}
 }
 class HEGonderilenDetay extends HEGelenGidenOrtakDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e);
 		$.extend(e.pTanim, { heTipi: new PInstTekSecim('hisl', HavaleEFTTipi) })
 	}
 }
 class HEGonderilenGridci extends HEGelenGidenOrtakGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 
 class HEGelenFis extends HEGelenGidenOrtakFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Gelen Havale/EFT' }
 	static get detaySinif() { return HEGelenDetay }
 	static get gridKontrolcuSinif() { return HEGelenGridci }
@@ -126,14 +126,14 @@ class HEGelenFis extends HEGelenGidenOrtakFis {
 	}
 }
 class HEGelenDetay extends HEGelenGidenOrtakDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e);
 		$.extend(e.pTanim, { heTipi: new PInstTekSecim('hisl', GelenHavaleEFTTipi) })
 	}
 }
 class HEGelenGridci extends HEGelenGidenOrtakGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	tabloKolonlariDuzenle_ara(e) {
 		super.tabloKolonlariDuzenle_ara(e);
 		e.tabloKolonlari.push(
@@ -145,7 +145,7 @@ class HEGelenGridci extends HEGelenGidenOrtakGridci {
 }
 
 class HEKendimizeFis extends HEFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Kendimize Havale/EFT' }
 	static get detaySinif() { return HEKendimizeDetay }
 	static get gridKontrolcuSinif() { return HEKendimizeGridci }
@@ -182,14 +182,14 @@ class HEKendimizeFis extends HEFis {
 	}
 }
 class HEKendimizeDetay extends HEDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static extYapilarDuzenle(e) {
 		e.liste.push(Ext_RefBankaHesap);
 		super.extYapilarDuzenle(e)
 	}
 }
 class HEKendimizeGridci extends HEGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	tabloKolonlariDuzenle_ilk(e) {
 		const {tabloKolonlari} = e;
 		tabloKolonlari.push(...MQBankaHesap.getGridKolonlar({ belirtec: 'refBanHesap', adiEtiket: 'Ref Banka Hesap' }));
@@ -198,7 +198,7 @@ class HEKendimizeGridci extends HEGridci {
 }
 
 class BankaTopluIslemFis extends HEGelenGidenOrtakFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Banka Toplu İşlem' }
 	static get detaySinif() { return BankaTopluIslemDetay }
 	static get gridKontrolcuSinif() { return BankaTopluIslemGridci }
@@ -209,7 +209,7 @@ class BankaTopluIslemFis extends HEGelenGidenOrtakFis {
 	}
 }
 class BankaTopluIslemDetay extends HEGelenGidenOrtakDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e);
 		$.extend(e.pTanim, {
@@ -248,7 +248,7 @@ class BankaTopluIslemDetay extends HEGelenGidenOrtakDetay {
 	}
 }
 class BankaTopluIslemGridci extends HEGelenGidenOrtakGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	tabloKolonlariDuzenle_son(e) {
 		const {tabloKolonlari} = e;
 		tabloKolonlari.push(

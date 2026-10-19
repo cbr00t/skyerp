@@ -1,5 +1,5 @@
 class SeriVeNo extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get asText() { return this.toString() }
 	constructor(e, _no) {
 		e = e || {}; super(e);
@@ -21,7 +21,7 @@ class SeriVeNo extends CObject {
 	toString() { return `${this.seri || ''}${this.no || 0}` }
 }
 class TicariSeriliNo extends SeriVeNo {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e, _noYil, _no) {
 		e = e || {}; super(e, _no);
 		this.noYil = (typeof e == 'object' ? e.noYil : _noYil) || 0

@@ -1,11 +1,11 @@
 class DRapor_BDRaporBase extends DRapor_AraSeviye {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get vioAdim() { return null }
 	static get kod() { return null } static get aciklama() { return null }
 	// static get kategoriKod() { return 'BORDRO' } static get kategoriAdi() { return 'Bordro' }
 }
 class DRapor_BDRaporBase_Main extends DRapor_AraSeviye_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_BDRaporBase }
 	secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments)

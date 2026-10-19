@@ -1,5 +1,5 @@
 class MQSeriNo extends MQMasterOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Seri Bilgileri' } static get tableAlias() { return 'sr' } static get kodListeTipi() { return 'USERI' }
 	static get localDataBelirtec() { return 'seriNo' } static get secimSinif() { return null } static get gridDetaylimi() { return true }
 	static orjBaslikListesi_gridInit(e) {

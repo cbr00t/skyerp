@@ -1,5 +1,5 @@
 class ParkBulurumMobilApp extends TicariApp {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'CYON' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'CYON' }
 	get defaultWSPath() { return `${super.superDefaultWSPath}/parkBulurum` }
 	async run(e) { await super.run(e) }
 	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e /*; $.extend(params, { })*/ }

@@ -1,5 +1,5 @@
 class ModelKullan2Part extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get isSubPart() { return true }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get isSubPart() { return true }
 	static get partName() { return 'modelKullan' } get jqxSelector() { return this.isDropDown ? 'jqxDropDownList' : 'jqxComboBox' }
 	get mfSinif() {
 		const value = this._mfSinif;

@@ -1,5 +1,5 @@
 class SayimFis extends MQTicariGenelFis {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return 100 } static get table() { return 'butfis' }
 	static get kodListeTipi() { return 'SAYIM' } static get sinifAdi() { return 'Sayım' }
 	static get detaySinif() { return SayimDetay } static get gridKontrolcuSinif() { return SayimGridci }
@@ -44,7 +44,7 @@ class SayimFis extends MQTicariGenelFis {
 }
 
 class SayimDetay extends MQDetay {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'butstok' }
 
 	static pTanimDuzenle({ pTanim }) {
@@ -70,7 +70,7 @@ class SayimDetay extends MQDetay {
 
 
 class StokFis extends TSOrtakFis {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Stok' } static get table() { return 'stfis' } static get oncelik() { return 999 }
 	static get baslikOzelAciklamaTablo() { return 'stbasekaciklama' }
 	static get dipSerbestAciklamaTablo() { return 'stdipaciklama' }
@@ -112,7 +112,7 @@ class StokFis extends TSOrtakFis {
 }
 
 class TransferVeGCOrtakFis extends StokFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		$.extend(pTanim, {
@@ -153,7 +153,7 @@ class TransferVeGCOrtakFis extends StokFis {
 	// fisBaslikOlusturucularDuzenle(e) { super.fisBaslikOlusturucularDuzenle(e); let {liste} = e; liste.push( FisBaslikOlusturucu_StokYer) }
 }
 class StokGCFis extends TransferVeGCOrtakFis {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get bakiyeciler() { return [...super.bakiyeciler, new StokBakiyeci({ borcmu: e => (this.gcTipi == 'G') != this.iademi })] }
 	stokBakiyeSqlEkDuzenle(e) {
 		let {sent, borcmu} = e, {sahalar} = sent; sent.fis2HarBagla('ststok');
@@ -162,24 +162,24 @@ class StokGCFis extends TransferVeGCOrtakFis {
 	}
 }
 class StokGirisOrtakFis extends StokGCFis {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return `${super.sinifAdi} Giriş` }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return `${super.sinifAdi} Giriş` }
 	static get gcTipi() { return 'G' } static get numTipKod() { return 'SG' }
 	static get islTipKod() { return 'SG' } static get varsayilanIslKod() { return 'G' }
 }
 class StokGirisFis extends StokGirisOrtakFis {
-	 static { window[this.name] = this; this._key2Class[this.name] = this }
+	 static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 class StokCikisOrtakFis extends StokGCFis {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return `${super.sinifAdi} Çıkış` }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return `${super.sinifAdi} Çıkış` }
 	static get gcTipi() { return 'C' } static get numTipKod() { return 'SC' }
 	static get islTipKod() { return 'SC' } static get varsayilanIslKod() { return 'C' }
 }
 class StokCikisFis extends StokCikisOrtakFis {
-	 static { window[this.name] = this; this._key2Class[this.name] = this }
+	 static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 
 class StokTransferOrtakFis extends TransferVeGCOrtakFis {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return `${super.sinifAdi} Transfer` }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return `${super.sinifAdi} Transfer` }
 	static get numTipKod() { return 'ST' } static get islTipKod() { return 'ST' }
 	static get gcTipi() { return 'T' } static get varsayilanIslKod() { return 'T' }
 	get bakiyeciler() { return [...super.bakiyeciler, new StokBakiyeci({ borcmu: false })] }
@@ -203,7 +203,7 @@ class StokTransferOrtakFis extends TransferVeGCOrtakFis {
 	}
 }
 class StokTransferFis extends StokTransferOrtakFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		extend(pTanim, {
@@ -212,7 +212,7 @@ class StokTransferFis extends StokTransferOrtakFis {
 	}
 }
 class IrsaliyeliTransferFis extends StokTransferOrtakFis {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'İrsaliyeli Transfer Fiş' } static get ozelTip() { return 'IR' }
 	static get numTipKod() { return SatisIrsaliyeFis.numTipKod } static get numYapi() { return SatisIrsaliyeFis.numYapi }
 	static pTanimDuzenle({ pTanim }) {
@@ -223,7 +223,7 @@ class IrsaliyeliTransferFis extends StokTransferOrtakFis {
 
 
 class TransferSiparisOrtakFis extends StokFis {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return 200 }
 	static get islTipKod() { return StokTransferOrtakFis.islTipKod } static get gcTipi() { return 'S' }
 	static get varsayilanIslKod() { return StokTransferOrtakFis.varsayilanIslKod }
@@ -238,7 +238,7 @@ class TransferSiparisOrtakFis extends StokFis {
 	}
 }
 class TransferSiparisFis extends TransferSiparisOrtakFis {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'PIRSIP' } static get sinifAdi() { return 'İrsaliyeli Transfer Sipariş' }
 	static get numTipKod() { return 'XI' } static get ozelTip() { return 'IR' }
 	static get sevkFisSinif() { return IrsaliyeliTransferFis }
@@ -255,7 +255,7 @@ class TransferSiparisFis extends TransferSiparisOrtakFis {
 	}
 }
 class SubelerArasiSiparisFis extends TransferSiparisOrtakFis {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Şubeler Arası Sipariş' }
 	static get numTipKod() { return 'XS' } static get ozelTip() { return 'SB' }
 	static pTanimDuzenle({ pTanim }) {

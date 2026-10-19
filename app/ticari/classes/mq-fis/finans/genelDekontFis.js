@@ -1,5 +1,5 @@
 class GenelDekontFis extends FinansFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'geneldekontfis' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'geneldekontfis' }
 	static get detaySinif() { return GenelDekontDetay } static get gridKontrolcuSinif() { return GenelDekontGridci }
 	static get numTipKod() { return 'GENDEK' }
 	static extYapilarDuzenle({ liste }) {
@@ -34,7 +34,7 @@ class GenelDekontFis extends FinansFis {
 	}
 }
 class GenelDekontDetay extends FinansDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'geneldekonthar' } static get ticMustKullanilirmi() { return true }
 	static get mfExtSinifYapilari() { return [] }
 	static pTanimDuzenle({ pTanim }) {
@@ -101,7 +101,7 @@ class GenelDekontDetay extends FinansDetay {
 		/*let dvKodBelirtec = dvKodOzelmi ? `${fullBelirtec}DvKod` : `${gc}DvKod`;
 		  let dvKodEtiket = dvKodOzelmi ? `${fullEtiket} DvKod` : `${gcUpper}.DvKod`; */
 	return eval(`(class Ext_${className} extends ExtFis {
-		static { window[this.name] = this; this._key2Class[this.name] = this }
+		static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 		static pTanimDuzenle({ pTanim }) {
 			super.pTanimDuzenle(...arguments);
 			$.extend(pTanim, { ${fullIOAttr}: new PInstStr('${fullRowAttr}'), ${fullIOAdiAttr}: new PInstStr() })
@@ -171,7 +171,7 @@ class GenelDekontDetay extends FinansDetay {
 	}
 }
 class GenelDekontGridci extends FinansGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	tabloKolonlariDuzenle_ara({ tabloKolonlari: liste }) {
 		super.tabloKolonlariDuzenle_ara(...arguments);
 		let {class: fisSinif} = this.fis, {detaySinif} = fisSinif;
@@ -202,7 +202,7 @@ class GenelDekontGridci extends FinansGridci {
 		let fisClsName = detClsName.replace('Detay', 'Fis');
 		let code = [
 			`class ${fisClsName} extends GenelDekontFis {`,
-			`	static { window[this.name] = this; this._key2Class[this.name] = this }`,
+			`	static { globalThis[this.name] = this; this._key2Class[this.name] = this }`,
 			`	static get detaySinif() { return ${detClsName} } static get kodListeTipi() { return ${detClsName}.kodListeTipi }`,
 			`	static get sinifAdi() { return ${detClsName}.sinifAdi } `,
 			'}'

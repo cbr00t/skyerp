@@ -1,5 +1,5 @@
 class Promosyon extends SatisKosul {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tipKod() { return 'PR' } static get aciklama() { return 'Promosyon' }
 	static get promu() { return true } static get kapsamSinif() { return ProKapsam }
 	static get kosulSiniflar() {

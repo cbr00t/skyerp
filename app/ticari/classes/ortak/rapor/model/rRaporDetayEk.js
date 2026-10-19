@@ -1,5 +1,5 @@
 class RRSahaText extends RRSahaOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kayitTipi() { return 'SB' }  get attrOrValue() { return this.value }
 	constructor(e) {
 		super(e); e = this.getConstructorArgs(e) || {};
@@ -9,7 +9,7 @@ class RRSahaText extends RRSahaOrtak {
 	setValues(e) { super.setValues(e); const {rec} = e; $.extend(this, { value: rec.attr }) }
 }
 class RRSahaDegisken extends RRSahaOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kayitTipi() { return '' } static get degiskenmi() { return true } get attrOrValue() { return this.attr }
 	get sql() { let result = this._sql; if (result != null) { if (typeof result == 'string') result = this._sql = { 1: result } } return result }
 	set sql(value) { this._sql = value }
@@ -72,14 +72,14 @@ class RRSahaDegisken extends RRSahaOrtak {
 }
 
 class RROzelIslem extends RRaporDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kayitTipi() { return 'SS' } static get ozelIslemmi() { return true }
 }
 class RRKirilma extends RROzelIslem {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kayitTipi() { return 'KR' } static get kirilmami() { return true }
 }
 class RRFormul extends RROzelIslem {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kayitTipi() { return 'FR' } static get formulmu() { return true }
 }

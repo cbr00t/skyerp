@@ -1,5 +1,5 @@
 class MQSevkAdres extends MQKA {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get kodListetipi() { return 'SEVKADRES' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get kodListetipi() { return 'SEVKADRES' }
 	static get sinifAdi() { return 'Sevk Adresi' } static get table() { return 'carsevkadres' } static get tableAlias() { return 'sadr' }
 	get unvan() { return birlestirBosluk(this.unvan1, this.unvan2) } get adres() { return birlestirBosluk(this.adres1, this.adres2) }
 	static pTanimDuzenle(e) {

@@ -1,5 +1,5 @@
 class MQClause extends MQSQLOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get addDogrudanKullanilirmi() { return false }
 	static get baglacsizmi() { return false } static get baglac() { return ', ' }
 	static get onEk() { return '' } static get sonEk() { return '' }
@@ -144,7 +144,7 @@ class MQClause extends MQSQLOrtak {
 	[Symbol.iterator]() { return this.iter() }
 }
 class MQToplu extends MQClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get toplumu() { return true }
 	get toplumu() { return this.class.toplumu }
 	static get baglac() { return `${MQCogul.isOfflineMode ? ';' : ''}\n\n` }
@@ -181,7 +181,7 @@ class MQToplu extends MQClause {
 	noTrn() { this.withoutTrn(); return this }
 }
 class MQSahalar extends MQClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get alias2Deger() {
 		let result = {}
 		for (let item of this.liste) {
@@ -227,7 +227,7 @@ class MQSahalar extends MQClause {
 	}
 }
 class MQZincirler extends MQClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	optimize(e) {
 		/* liste: [ ["fis", "har"], ["har", "stk"], ["fis", "car"], ["car", "bol"] ] */
 		let {liste} = this
@@ -247,11 +247,11 @@ class MQZincirler extends MQClause {
 	}
 }
 class MQGroupByClause extends MQClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get onEk() { return `	GROUP BY	` }
 }
 class MQFromClause extends MQClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get onEk() { return `	FROM	` }
 	donusmusDeger(item) {
 		item = super.donusmusDeger(item); if (item == null) return item
@@ -309,7 +309,7 @@ class MQFromClause extends MQClause {
 	[Symbol.iterator]() { return this.iter() }
 }
 class MQSubWhereClause extends MQClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get baglac() { return `\n	  AND	 ` }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get baglac() { return `\n	  AND	 ` }
 	constructor(e) {
 		e = e || {}; let initBlock = e => {
 			if (!isPlainObject(e)) { this.add(e); return true }
@@ -639,15 +639,15 @@ class MQSubWhereClause extends MQClause {
 	icerikKisitDuzenle_takipNo(e) { return this.icerikKisitDuzenle_x({ ...e, belirtec: 'takipNo' }) }
 }
 class MQWhereClause extends MQSubWhereClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get onEk() { return `	WHERE	` }
 }
 class MQOnClause extends MQSubWhereClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get onEk() { return ` ON` }
 }
 class MQXJoinTable extends MQAliasliYapi {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get onEk() { return null }
 	constructor(e) {
 		e = e || {}; super(e);
@@ -664,19 +664,19 @@ class MQXJoinTable extends MQAliasliYapi {
 	}
 }
 class MQInnerJoin extends MQXJoinTable {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get innerJoinmi() { return true } static get onEk() { return ' INNER JOIN ' }
 }
 class MQOuterJoin extends MQXJoinTable {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get innerJoinmi() { return true } static get onEk() { return ' OUTER JOIN ' }
 }
 class MQLeftJoin extends MQXJoinTable {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get leftJoinmi() { return true } static get onEk() { return ' LEFT JOIN ' }
 }
 class MQOuterApply extends MQClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get outerApplymi() { return true }
 	static get _onEk() { return ' OUTER APPLY ' }
 	constructor(e = {}) {
@@ -697,7 +697,7 @@ class MQOuterApply extends MQClause {
 	}
 }
 class MQTable extends MQAliasliYapi {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) {
 		e = e || {}; super(e);
 		this.leftVeInner = (e.leftVeInner && !isArray(e.leftVeInner) ? [e.leftVeInner] : e.leftVeInner) || [];
@@ -741,7 +741,7 @@ class MQTable extends MQAliasliYapi {
 	}
 }
 /*class MQLeftJoinClause extends MQClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) {
 		e = e || {};
 		super(e);
@@ -778,12 +778,12 @@ class MQTable extends MQAliasliYapi {
 	}
 }*/
 class MQHavingClause extends MQSubWhereClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get onEk() { return `	HAVING	` }
 	static get baglac() { return ' AND ' }
 }
 class MQAndOrClause extends MQSubWhereClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	buildString_baslangicsiz(e) {
 		if (this.liste.length <= 1) { super.buildString_baslangicsiz(e) }
 		else { e.result += '('; super.buildString_baslangicsiz(e); e.result += ')' }
@@ -791,15 +791,15 @@ class MQAndOrClause extends MQSubWhereClause {
 	}
 }
 class MQAndClause extends MQAndOrClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get baglac() { return ' AND ' }
 }
 class MQOrClause extends MQAndOrClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get baglac() { return ' OR ' }
 }
 class MQInClause extends MQClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get addDogrudanKullanilirmi() { return true }
 	constructor(e) { e = e || {}; super(e); this.isNot = asBool(e.not); this.saha = e.saha || ''; }
 	buildString(e) {
@@ -810,7 +810,7 @@ class MQInClause extends MQClause {
 	}
 }
 class MQOperandClause extends MQIliskiYapisi {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get addDogrudanKullanilirmi() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get addDogrudanKullanilirmi() { return true }
 	constructor(e) { e = e || {}; super(e); this.isNot = asBool(e.not); this.operand = e.operand || '' }
 	buildString(e) {
 		let {sol, sag, isNot} = this; let {operand} = this, notPrefix = isNot;
@@ -828,7 +828,7 @@ class MQOperandClause extends MQIliskiYapisi {
 	}
 }
 class MQSetClause extends MQSubWhereClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get isSetClause() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get isSetClause() { return true }
 	static get onEk() { return `	SET		` } static get baglac() { return ', ' }
 	constructor(e) {
 		super(e)
@@ -836,11 +836,11 @@ class MQSetClause extends MQSubWhereClause {
 	}
 }
 class MQValuesClause extends MQClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get isValuesClause() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get isValuesClause() { return true }
 	static get onEk() { return `VALUES ` } static get baglac() { return ', ' }
 }
 class MQOrderByClause extends MQClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get onEk() { return ` ORDER BY	` }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get onEk() { return ` ORDER BY	` }
 	addIcinUygunmu(value) {
 		if (!super.addIcinUygunmu(value)) { return false }
 		if (this.liste.includes(value)) { console.warn('MQOrderByClause::addIcinUygunmu', value, 'duplicate alias'); return false }
@@ -861,7 +861,7 @@ class MQOrderByClause extends MQClause {
 	}
 }
 class MQWith extends MQClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get onEk() { return `WITH	` } static get baglac() { return `,\n` }
 	get toplamTable() {
 		let { liste } = this, {toplamTable} = MQStm;
@@ -875,7 +875,7 @@ class MQWith extends MQClause {
 
 
 class MQCase extends MQClause {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get casemi() { return true } get casemi() { return this.class.casemi }
 	static get onEk() { return 'CASE ' } static get sonEk() { return 'END' }
 	static get baglac() { return ' ' }

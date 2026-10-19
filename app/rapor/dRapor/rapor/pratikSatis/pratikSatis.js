@@ -1,5 +1,5 @@
 class DRapor_PratikSatis extends DRaporMQ {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get hareketciSinif() { return PratikSatisHareketci }
 	static get oncelik() { return this.hareketciSinif.oncelik }
 	static get kategoriKod() { return this.hareketciSinif.kategoriKod }

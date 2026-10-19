@@ -1,5 +1,5 @@
 class Secimler extends CIO {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get uiSinif() { return window.SecimlerWindowPart }
 	static get duzenlemeUISinif() { return this.uiSinif }
 	

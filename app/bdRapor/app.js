@@ -1,5 +1,5 @@
 class BDRaporApp extends SkyRaporApp {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get vioProgBelirtec() { return 'VioPer' }
 	get mainRaporBase() { return DRapor_BDRaporBase }
 	get autoExecMenuId() { return null }

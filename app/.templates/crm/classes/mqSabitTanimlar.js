@@ -1,5 +1,5 @@
 /*class MQX extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'X' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'X' }
 	static get kodListeTipi() { return 'X' } static get table() { return 'crmx' } static get tableAlias() { return 'x' }
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { basi: new PInstNum('yasbasx'), sonu: new PInstNum('y') }) }
 	static orjBaslikListesiDuzenle(e) {
@@ -17,31 +17,31 @@
 	}
 }*/
 class MQGorev extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Görev' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Görev' }
 	static get kodListeTipi() { return 'CRMGOREV' } static get table() { return 'crmgorev' } static get tableAlias() { return 'grv' }
 }
 class MQCagriKaynak extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Çağrı Kaynak' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Çağrı Kaynak' }
 	static get kodListeTipi() { return 'CRMCAGRIKAYNAK' } static get table() { return 'crmcagrikaynak' } static get tableAlias() { return 'ck' }
 }
 class MQIslemTuru extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'İşlem Türü' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'İşlem Türü' }
 	static get kodListeTipi() { return 'CRMISLTUR' } static get table() { return 'crmislemturu' } static get tableAlias() { return 'itur' }
 }
 class MQZiyaretKonu extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ziyaret Konusu' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ziyaret Konusu' }
 	static get kodListeTipi() { return 'CRMZIYARETKONU' } static get table() { return 'crmziyaretkonu' } static get tableAlias() { return 'zkon' }
 }
 class MQZiyaretSonuc extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ziyaret Sonucu' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ziyaret Sonucu' }
 	static get kodListeTipi() { return 'CRMZIYARETSONUC' } static get table() { return 'crmziyaretsonuc' } static get tableAlias() { return 'zson' }
 }
 class MQIl extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'İl' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'İl' }
 	static get kodListeTipi() { return 'CRMIL' } static get table() { return 'caril' } static get tableAlias() { return 'il' }
 }
 class MQPersonel extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Personel' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Personel' }
 	static get kodListeTipi() { return 'CRMPERSONEL' } static get table() { return 'personel' } static get tableAlias() { return 'per' }
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { gorevKod: new PInstStr('gorevkod'), eMail: new PInstStr('email') }) }
 	static orjBaslikListesiDuzenle(e) {
@@ -61,7 +61,7 @@ class MQPersonel extends MQKAOrtak {
 	}
 }
 class MQCari extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Müşteri' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Müşteri' }
 	static get kodListeTipi() { return 'CRMMUSTERI' } static get table() { return 'carmst' } static get tableAlias() { return 'car' }
 	static get kodSaha() { return 'must' } static get adiSaha() { return 'birunvan' }
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e); $.extend(e.pTanim, { yore: new PInstStr('yore'), ilKod: new PInstStr('ilkod'), eMail: new PInstStr('email') }) }

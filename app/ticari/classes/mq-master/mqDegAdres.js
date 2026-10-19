@@ -1,5 +1,5 @@
 class MQDegAdres extends MQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'DEGADR' } static get sinifAdi() { return 'Değişken Adres' }
 	static get table() { return 'degiskenadres' } static get tableAlias() { return 'dadr' }
     static get kodSaha() { return 'vknox' } static get kodEtiket() { return 'VKN/TCKN' }

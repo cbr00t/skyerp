@@ -1,11 +1,11 @@
 class TicariFis extends MQGenelFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return '' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return '' }
 }
 class TeklifFis extends TicariFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return '' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return '' }
 }
 class SiparisFis extends TicariFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return '' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return '' }
 }
 
 

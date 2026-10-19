@@ -1,5 +1,5 @@
 class YedeklemeTalebiRec extends MQCogul {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get zamanSayi() { return 4 }
 	get onaylimi() { return !this.durum }
 	get yenimi() { return this.durum == 'yeni' }

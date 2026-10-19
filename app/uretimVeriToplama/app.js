@@ -1,5 +1,5 @@
 class UretimVeriToplamaApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get sqlDeferWaitMS() { return 200 }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } get sqlDeferWaitMS() { return 200 }
 	get configParamSinif() { return MQYerelParamConfig_Uretim } get yerelParamSinif() { return MQYerelParamUretim }
 	constructor(e) {
 		e = e || {}; super(e)

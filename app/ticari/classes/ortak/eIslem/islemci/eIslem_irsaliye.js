@@ -1,5 +1,5 @@
 class EIslIrsaliye extends EIslTicariOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get eIrsaliyemi() { return true }
 	static get tip() { return 'IR' }
 	static get altBolum() { return 'EIrsaliye' }

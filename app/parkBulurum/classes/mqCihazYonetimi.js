@@ -1,5 +1,5 @@
 class MQCihazYonetimi extends MQCogul {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Cihaz Yönetimi' } static get table() { return 'ocihaz' } static get tableAlias() { return 'cih' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Cihaz Yönetimi' } static get table() { return 'ocihaz' } static get tableAlias() { return 'cih' }
 	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false }
 	static get orjBaslikListesi_defaultRowsHeight() { return 180 } static get orjBaslikListesi_defaultColCount() { return 5 } static get orjBaslikListesi_maxColCount() { return 20 }
 

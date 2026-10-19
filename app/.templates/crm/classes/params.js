@@ -1,6 +1,6 @@
-class MQYerelParam extends MQYerelParamTicari { static { window[this.name] = this; this._key2Class[this.name] = this } }
+class MQYerelParam extends MQYerelParamTicari { static { globalThis[this.name] = this; this._key2Class[this.name] = this } }
 class MQYerelParamConfig_App extends MQYerelParamConfig {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	/*yukleSonrasi(e) {
 		if (!app.isAdmin) {
 			for (const key of ['sql', 'wsProxyServerURL']) { delete this[key] }
@@ -11,7 +11,7 @@ class MQYerelParamConfig_App extends MQYerelParamConfig {
 	}*/
 }
 class MQParam_CRM extends MQParam {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'CRP Parametreleri' } static get paramKod() { return 'CRPPARAM' }
 	constructor(e) { e = e || {}; super(e) /*$.extend(this, { sablon: e.sablon }) */ }
 	static paramYapiDuzenle(e) {

@@ -1,6 +1,6 @@
-class MQYerelParam extends MQYerelParamTicari { static { window[this.name] = this; this._key2Class[this.name] = this } }
+class MQYerelParam extends MQYerelParamTicari { static { globalThis[this.name] = this; this._key2Class[this.name] = this } }
 class MQYerelParamConfig_App extends MQYerelParamConfig {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	yukleSonrasi(e) {
 		if (!app.isAdmin) {
 			for (let key of ['sql', 'wsProxyServerURL']) { delete this[key] }
@@ -11,7 +11,7 @@ class MQYerelParamConfig_App extends MQYerelParamConfig {
 	}
 }
 class MQParam_ESE extends MQParam {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'ESE Parametreleri' } static get paramKod() { return 'ESEPARAM' }
 	get asArray() { let result = []; for (let rec of this.getIter()) { result.push(rec) } return result }
 	constructor(e = {}) {

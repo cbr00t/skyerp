@@ -1,5 +1,5 @@
 class GridKolonDuzenlePart extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get partName() { return 'gridKolonDuzenle' } static get isWindowPart() { return true }
 	get defaultLayoutSelector() { return super.defaultLayoutSelector }
 	get mfSinif() { let result = this._mfSinif; if (!result) result = this.parentPart?.mfSinif; return result }

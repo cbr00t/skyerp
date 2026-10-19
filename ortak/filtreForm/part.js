@@ -1,5 +1,5 @@
 class FiltreFormPart extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get partName() { return 'filtreForm' }
 	static get isSubPart() { return true }
 

@@ -1,5 +1,5 @@
 class MQKATanimPart extends ModelTanimPart {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get partName() { return 'kaTanim' }
 	get hasTabPages() { return false }
 	get formDeferMS() { return super.formDeferMS }

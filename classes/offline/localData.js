@@ -1,5 +1,5 @@
 class MQLocalData extends MQYerelParamApp {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get defaultName() { return 'localData' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get defaultName() { return 'localData' }
 	static get super_paramKod() { return super.paramKod } static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, 'fh'] }
 	static get paramKod() { return super.paramKod } get paramKod() { return this.class.paramKod }
 	get rootTable() { return app.rootName }
@@ -238,14 +238,14 @@ class MQLocalData extends MQYerelParamApp {
 }
 
 class MQLocalTable extends MQLocalData {
-	static { window[this.name] = this; this._key2Class[this.name] = this } get tablemi() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } get tablemi() { return true }
 	static get paramKod() { return super.super_paramKod }
 	get table() { return this.name } set table(value) { this.name = value }
 	get fullTableName() { return `${this.rootTable}.${this.paramKod || ''}.db${this.dbNameWithPrefix || ''}${this.tableWithPrefix || ''}` }
 }
 
 class MQLocalDB extends CObject {
-	static { window[this.name] = this; this._key2Class[this.name] = this } get dbmi() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } get dbmi() { return true }
 	static get paramKod() { return `${MQLocalData.paramKod}.db` } get paramKod() { return this.class.paramKod }
 	get rootTable() { return app.rootName } get tableWithPrefix() { let {name} = this; return name ? `.${name}` : '' }
 	get fullTableName() { return `${this.rootTable}.${this.paramKod || ''}${this.tableWithPrefix || ''}` }

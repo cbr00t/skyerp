@@ -1,5 +1,5 @@
 class QRGenerator extends CObject {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
     static get defaultFormat() { return 'bmp' } static get defaultWaitMS() { return 1000 }
 	makeQR(data) {
 		data = data ?? ''; if (typeof data == 'object') { data = toJSONStr(data) }

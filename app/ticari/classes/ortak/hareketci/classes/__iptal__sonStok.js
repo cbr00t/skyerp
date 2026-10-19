@@ -1,5 +1,5 @@
 class SonStokHareketci extends Hareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return 50 } static get uygunmu() { return true }
 	static get kod() { return 'sonStok' } static get aciklama() { return 'Son Stok' }
 	static get kisaKod() { return 'SC' } static get maliTabloIcinUygunmu() { return true }

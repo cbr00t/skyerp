@@ -1,5 +1,5 @@
 class SecerekGerceklemePart extends GridliGostericiWindowPart {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get partName() { return 'secerekGercekleme' }
 	/*static get isWindowPart() { return true }*/
 

@@ -1,5 +1,5 @@
 class MQKontor extends MQDetayliMaster {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get uygunmu() { return this != MQKontor }
 	static get tip() { return null }
 	static get tipAdi() {
@@ -1075,7 +1075,7 @@ class MQKontor extends MQDetayliMaster {
 	}
 }
 class MQKontorDetay extends MQDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'muskontordetay' }
 	static get seqSaha() { return null }
 
@@ -1553,7 +1553,7 @@ class MQKontorDetay extends MQDetay {
 	}
 }
 class MQKontorGridci extends GridKontrolcu {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	gridArgsDuzenle({ gridPart, sender, args }) {
 		super.gridArgsDuzenle(...arguments); gridPart = gridPart ?? sender
 		extend(args, { groupsExpandedByDefault: true, editMode: 'click' })
@@ -1587,7 +1587,7 @@ class MQKontorGridci extends GridKontrolcu {
 
 
 class MQKontor_EBelge extends MQKontor {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'BL' }
 	static get tipAdi() { return 'e-Belge' }
 	static get detaySinif() { return MQKontorDetay_EBelge }
@@ -1595,11 +1595,11 @@ class MQKontor_EBelge extends MQKontor {
 	// static get faturalastirmaYapilirmi() { return true }
 }
 class MQKontorDetay_EBelge extends MQKontorDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 
 class MQKontor_Turmob extends MQKontor {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'TR' }
 	static get tipAdi() { return 'Türmob' }
 	static get detaySinif() { return MQKontorDetay_Turmob }
@@ -1719,7 +1719,7 @@ class MQKontor_Turmob extends MQKontor {
 	}
 }
 class MQKontorDetay_Turmob extends MQKontorDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		extend(pTanim, {
@@ -1740,13 +1740,13 @@ class MQKontorDetay_Turmob extends MQKontorDetay {
 
 
 class MQKontor_TokenliOrtak extends MQKontor {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get uygunmu() { return super.uygunmu && this != MQKontor_TokenliOrtak }
 	static get detaySinif() { return MQKontorDetay_TokenliOrtak }
 	// static get faturalastirmaYapilirmi() { return config.dev }
 }
 class MQKontorDetay_TokenliOrtak extends MQKontorDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		extend(pTanim, {
@@ -1765,30 +1765,30 @@ class MQKontorDetay_TokenliOrtak extends MQKontorDetay {
 }
 
 class MQKontor_ZamanDamgasi extends MQKontor_TokenliOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'TS' }
 	static get tipAdi() { return 'Zaman Damgası' }
 	static get detaySinif() { return MQKontorDetay_ZamanDamgasi }
 	static get vioAsilHizmetKod() { return 'H036' }
 }
 class MQKontorDetay_ZamanDamgasi extends MQKontorDetay_TokenliOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 
 class MQKontor_SMS extends MQKontor_TokenliOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'SM' }
 	static get tipAdi() { return 'SMS' }
 	static get detaySinif() { return MQKontorDetay_SMS }
 	static get vioAsilHizmetKod() { return 'H037' }
 }
 class MQKontorDetay_SMS extends MQKontorDetay_TokenliOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 
 
 class MQKontor_OEKontorOrtak extends MQKontor {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get uygunmu() { return super.uygunmu && this != MQKontor_OEKontorOrtak }
 	static get oemi() { return true }
 	static get tipAdi() {
@@ -1804,17 +1804,17 @@ class MQKontor_OEKontorOrtak extends MQKontor {
 	static get acikIslKodPrefix() { return this.tip }*/
 }
 class MQKontorDetay_OEKontorOrtak extends MQKontorDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 
 class MQKontor_EFA_KontorOrtak extends MQKontor_OEKontorOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get uygunmu() { return super.uygunmu && this != MQKontor_EFA_KontorOrtak }
 	static get adiPostfix() { return `<span class=royalblue>e-İşlem</span>` }
 	//static get detaySinif() { return MQKontorDetay_EFA_KontorOrtak }
 }
 class MQKontor_EDefter_KontorOrtak extends MQKontor_OEKontorOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get uygunmu() { return super.uygunmu && this != MQKontor_EDefter_KontorOrtak }
 	static get eDeftermi() { return true }
 	static get adiPrefix() { return this.efaKontorSinif?.adiPrefix }
@@ -1835,14 +1835,14 @@ class MQKontor_EDefter_KontorOrtak extends MQKontor_OEKontorOrtak {
 }
 
 class MQKontor_EFA_Kontor_NES extends MQKontor_EFA_KontorOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'FN' }
 	static get detaySinif() { return MQKontor_EFA_KontorDetay_NES }
 	static get adiPrefix() { return 'NES' }
 	static get vioAsilHizmetKod() { return 'H024' }
 }
 class MQKontor_EFA_KontorDetay_NES extends MQKontorDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	/*getFiyatlar(e) {
 		let { ayrimTipi: t = {}, kontorSayi: sayi } = this
 		return [
@@ -1862,7 +1862,7 @@ class MQKontor_EFA_KontorDetay_NES extends MQKontorDetay {
 	}*/
 }
 class MQKontor_EDefter_Kontor_NES extends MQKontor_EDefter_KontorOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'DN' }
 	static get detaySinif() { return MQKontor_EDefter_KontorDetay_NES }
 	static get efaKontorSinif() { return MQKontor_EFA_Kontor_NES }
@@ -1877,7 +1877,7 @@ class MQKontor_EDefter_Kontor_NES extends MQKontor_EDefter_KontorOrtak {
 	}
 }
 class MQKontor_EDefter_KontorDetay_NES extends MQKontorDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	/*getFiyatlar(e) {
 		let { ayrimTipi: t = {}, kontorSayi: sayi } = this
 		return (    // [ olusturmaFiyati, saklamaFiyati ]
@@ -1891,13 +1891,13 @@ class MQKontor_EDefter_KontorDetay_NES extends MQKontorDetay {
 }
 
 class MQKontor_EFA_Kontor_Turkcell extends MQKontor_EFA_KontorOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'FT' }
 	static get adiPrefix() { return 'Turkcell' }
 	static get vioAsilHizmetKod() { return 'H054' }
 }
 class MQKontor_EDefter_Kontor_Turkcell extends MQKontor_EDefter_KontorOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tip() { return 'DT' }
 	static get detaySinif() { return MQKontor_EDefter_KontorDetay_Turkcell }
 	static get efaKontorSinif() { return MQKontor_EFA_Kontor_Turkcell }
@@ -1911,7 +1911,7 @@ class MQKontor_EDefter_Kontor_Turkcell extends MQKontor_EDefter_KontorOrtak {
 	}
 }
 class MQKontor_EDefter_KontorDetay_Turkcell extends MQKontorDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 
 

@@ -1,10 +1,10 @@
 class MQEkNotAnaGrup extends MQKAOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ek Not Ana Grup' } static get table() { return 'meseknotanagrup' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ek Not Ana Grup' } static get table() { return 'meseknotanagrup' }
 	static get tableAlias() { return 'agrp' } static get kodListeTipi() { return 'MESNOTANAGRUP' }
 	static get tanimUISinif() { return ModelTanimPart } static get secimSinif() { return MQCogul.secimSinif } static get tanimlanabilirmi() { return true } static get silinebilirmi() { return true }
 }
 class MQEkNotGrup extends MQKAOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ek Not Grup' } static get table() { return 'meseknotgrup' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ek Not Grup' } static get table() { return 'meseknotgrup' }
 	static get tableAlias() { return 'grp' } static get kodListeTipi() { return 'MESNOTGRUP' }
 	static get tanimUISinif() { return ModelTanimPart } static get secimSinif() { return MQCogul.secimSinif } static get tanimlanabilirmi() { return true } static get silinebilirmi() { return true }
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e); let {pTanim} = e; $.extend(pTanim, { anaGrupKod: new PInstStr('anagrupkod') }) }
@@ -24,7 +24,7 @@ class MQEkNotGrup extends MQKAOrtak {
 	}
 }
 class MQEkNotlar extends MQSayacliOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ek Notlar' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Ek Notlar' }
 	static get table() { return 'meseknotlar' } static get tableAlias() { return 'eknot' }
 	static get sayacSaha() { return 'kaysayac' } static get adiKullanilirmi() { return false }
 	static get tanimUISinif() { return ModelTanimPart } static get secimSinif() { return MQCogul.secimSinif } static get noAutoFocus() { return true }

@@ -1,8 +1,8 @@
 class MQTekil extends MQYapi {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 class MQParam extends MQTekil {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ozelCopyKeys() { return ['_promise', '_paramci', '_builder'] }
 	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, ...this.ozelCopyKeys] }
 	static get table() { return 'yflaglar' } static get tableAlias() { return 'par' }

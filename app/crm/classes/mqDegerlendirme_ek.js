@@ -1,5 +1,5 @@
 class Yaslandirma extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get orjBaslikListesi() {
 		const cellClassName = (colDef, rowIndex, belirtec, value, rec) => {
 			const result = [belirtec]; if (rec.toplammi) { result.push('bold bg-lightgreen') }

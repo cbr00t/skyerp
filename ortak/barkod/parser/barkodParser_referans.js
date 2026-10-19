@@ -1,5 +1,5 @@
 class BarkodParser_Referans extends BarkodParser {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get aciklama() { return 'Barkod Referans' }
 	static get uygunEkOzellikTipSet() {
 		let tip2EkOzellik = app.tip2EkOzellik || {}

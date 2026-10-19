@@ -1,5 +1,5 @@
 class MQTabRota extends MQGuidVeAdiOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'ROTA' } static get sinifAdi() { return 'Satış Rotası' }
 	static get table() { return 'rota' } static get tableAlias() { return 'rot' }
 	static get offlineDirect() { return true }

@@ -1,9 +1,9 @@
 class DRapor_Hareketci_AlimSatisSipOrtak extends DRapor_Hareketci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get vioAdim() { return null } static get araSeviyemi() { return this == DRapor_Hareketci_AlimSatisSipOrtak }
 }
 class DRapor_Hareketci_AlimSatisSipOrtak_Main extends DRapor_Hareketci_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Hareketci_AlimSatisSipOrtak }
 	tabloYapiDuzenle({ result }) {
 		let e = arguments[0]; super.tabloYapiDuzenle(e)
@@ -45,22 +45,22 @@ class DRapor_Hareketci_AlimSatisSipOrtak_Main extends DRapor_Hareketci_Main {
 	}
 }
 class DRapor_Hareketci_SipSatislar extends DRapor_Hareketci_AlimSatisSipOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kategoriKod() { return 'SATIS' } static get kategoriAdi() { return 'Satış Siparişler' }
 	static get vioAdim() { return 'ST-IR' }
 	static get hareketciSinif() { return SatisSipHareketci } 
 }
 class DRapor_Hareketci_SipSatislar_Main extends DRapor_Hareketci_AlimSatisSipOrtak_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Hareketci_SipSatislar }
 }
 class DRapor_Hareketci_SipAlimlar extends DRapor_Hareketci_AlimSatisSipOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kategoriKod() { return 'ALIM' } static get kategoriAdi() { return 'Alımlar' }
 	static get vioAdim() { return 'ST-IR' }
 	static get hareketciSinif() { return AlimSipHareketci } 
 }
 class DRapor_Hareketci_SipAlimlar_Main extends DRapor_Hareketci_AlimSatisSipOrtak_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Hareketci_SipAlimlar }
 }

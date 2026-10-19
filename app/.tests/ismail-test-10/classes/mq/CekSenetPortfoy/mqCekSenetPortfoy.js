@@ -1,5 +1,5 @@
 class MQCekSenetPortfoy extends MQKA{
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'CekSenetPortfoy' }
 	static get table() { return 'csportfoy' }
 	static get tableAlias() { return 'prt' }

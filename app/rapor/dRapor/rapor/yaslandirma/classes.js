@@ -1,7 +1,7 @@
 (function() { extend(MQYaslandirma, {
 
 MustBilgi: class MustBilgi extends CObject {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get key() { return this.class.getKey(this) }
 	get bakiyeText() {
 		let { bakiye: v } = this
@@ -209,7 +209,7 @@ MustBilgi: class MustBilgi extends CObject {
 },
 
 Yaslandirma: class Yaslandirma extends CObject {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ilkKademe() { return 0 }
 	static get kademeler() {
 		let { yaslandirmaGunleri: res } = app.params.finans ?? {}

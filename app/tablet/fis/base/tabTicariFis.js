@@ -1,5 +1,5 @@
 class TabTicariFis extends TabTSFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get araSeviyemi() { return super.araSeviyemi || this == TabTicariFis }
 	static get kodListeTipi() { return 'TABTIC' } static get sinifAdi() { return 'Ticari' }
 	static get detaySinif() { return TabTicariDetay }

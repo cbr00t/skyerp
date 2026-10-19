@@ -1,5 +1,5 @@
 class MQYerRaf extends MQKod {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get tumKolonlarGosterilirmi() { return true }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tumKolonlarGosterilirmi() { return true }
 	static get sinifAdi() { return 'Yer Raf' } static get table() { return 'yerraf' } static get tableAlias() { return 'raf' }
 	static get kodSaha() { return 'rafkod' } static get kodEtiket() { return 'Raf' } static get localDataBelirtec() { return 'raf' }
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e); const {pTanim} = e; $.extend(pTanim, { yerKod: new PInstStr('yerkod') }) }

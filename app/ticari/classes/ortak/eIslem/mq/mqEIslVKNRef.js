@@ -1,5 +1,5 @@
 class MQEIslVKNRef extends MQCogul {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tanimUISinif() { return ModelTanimPart }
 	static get sinifAdi() { return 'e-İşlem VKN Referansı' }
 	static get kodListeTipi() { return 'EISLVKNREF' }

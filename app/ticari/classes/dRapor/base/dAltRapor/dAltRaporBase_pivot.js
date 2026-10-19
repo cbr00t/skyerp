@@ -1,5 +1,5 @@
 class DAltRapor_Pivot extends DAltRapor_Grid {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get dPivotmu() { return true } static get dGridmi() { return false }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get dPivotmu() { return true } static get dGridmi() { return false }
 	subFormBuilderDuzenle(e) {
 		super.super_subFormBuilderDuzenle(e); const parentBuilder = e.builder;
 		let fbd = this.fbd_grid = parentBuilder.addForm('pivot').setLayout(e => $(`<div id="${e.builder.id}" class="part"></div>`)).addStyle_fullWH(null, 'calc(var(--full) - 0px)')

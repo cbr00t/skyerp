@@ -1,5 +1,5 @@
 class MQMasterOrtakBase extends MQCogul {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tanimUISinif() { return super.tanimUISinif ?? ModelTanimPart }
 	static get secimSinif() { return super.secimSinif } static get ozelSecimSinif() { return undefined }
 	static get secimSinif() { let {ozelSecimSinif} = this; return ozelSecimSinif === undefined ? super.secimSinif ?? undefined : ozelSecimSinif }

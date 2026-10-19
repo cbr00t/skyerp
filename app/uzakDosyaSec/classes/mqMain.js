@@ -1,5 +1,5 @@
 class MQMain extends MQCogul {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get kodListeTipi() { return 'MAIN' } static get sinifAdi() { return 'Uzak Dosya Seç' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get kodListeTipi() { return 'MAIN' } static get sinifAdi() { return 'Uzak Dosya Seç' }
 	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false } static get raporKullanilirmi() { return false } static get kolonDuzenlemeYapilirmi() { return false } 
 	static get secimSinif() { return null } static get tumKolonlarGosterilirmi() { return true }
 	static listeEkrani_init(e) {

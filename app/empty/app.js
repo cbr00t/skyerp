@@ -1,5 +1,5 @@
 class EmptyApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'MAIN' } get isLoginRequired() { return super.isLoginRequired }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'MAIN' } get isLoginRequired() { return super.isLoginRequired }
 	static get yerelParamSinif() { return MQYerelParam } get configParamSinif() { return MQYerelParamConfig_App }
 	async runDevam(e) { await super.runDevam(e); await this.anaMenuOlustur(e); this.show() }
 	paramsDuzenle(e) { super.paramsDuzenle(e); const {params} = e; $.extend(params, { localData: MQLocalData.getInstance() }) }

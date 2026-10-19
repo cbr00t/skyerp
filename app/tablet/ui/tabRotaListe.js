@@ -1,5 +1,5 @@
 class TabRotaListe extends MQMasterOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get uygunmu() { return app.rotaKullanilirmi }
 	static get araSeviyemi() { return true } static get notCacheable() { return true }
 	static get kodListeTipi() { return 'ROTA' } static get sinifAdi() { return 'Rota' }

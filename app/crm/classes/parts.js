@@ -1,5 +1,5 @@
 class CRMResimPart extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get isWindowPart() { return false }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get isWindowPart() { return false }
 	static get partName() { return 'crmResim' } static get sinifAdi() { return 'Resim Görüntüleyici' }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { title: e.title ?? this.class.sinifAdi, urlListe: e.urlListe ?? e.images ?? [] }) }
 	run(e) {
@@ -28,5 +28,5 @@ class CRMResimPart extends Part {
 	}
 }
 class CRMResimWindowPart extends CRMResimPart {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get isWindowPart() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get isWindowPart() { return true }
 }

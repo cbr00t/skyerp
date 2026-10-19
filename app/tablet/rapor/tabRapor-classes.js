@@ -1,5 +1,5 @@
 class TabRapor_IlkIrsaliye extends TabRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kod() { return 'ILKIRSALIYE' }
 	static get aciklama() { return 'İlk İrsaliye' }
 
@@ -80,7 +80,7 @@ class TabRapor_IlkIrsaliye extends TabRapor {
 }
 
 class TabRapor_SatislarVeTahsilatlar extends TabRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kod() { return 'SATISVETAH' }
 	static get aciklama() { return 'Satışlar ve Tahsilatlar' }
 
@@ -205,7 +205,7 @@ class TabRapor_SatislarVeTahsilatlar extends TabRapor {
 }
 
 class TabRapor_SonStok extends TabRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kod() { return 'SONSTOK' }
 	static get aciklama() { return 'Son Stok' }
 	static get hmrlimi() { return false }
@@ -341,7 +341,7 @@ class TabRapor_SonStok extends TabRapor {
 	}
 }
 class TabRapor_SonStok_HMR extends TabRapor_SonStok {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kod() { return 'SONSTOK_HMR' }
 	static get aciklama() { return 'Son Stok (Detaylı)' }
 	static get hmrlimi() { return true }

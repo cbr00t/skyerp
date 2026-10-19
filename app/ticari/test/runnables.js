@@ -1,11 +1,11 @@
 class Ticari_RunnableBase extends Runnable {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get rootTip() { return 'ticari' } static get DefaultWSHost() { return 'localhost' }
 	static get DefaultWSPath() { return 'ws/skyERP' } static get DefaultLoginTipi() { return 'login' }
 	runInternal(e) { super.runInternal(e) /*; const {tip} = this.class; this.callback({ message: 'in test', tip })*/ }
 }
 class Ticari_TrnRollbackAll extends Ticari_RunnableBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get altTip() { return 'trnRollbackAll' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get altTip() { return 'trnRollbackAll' }
 	constructor(e) { e = e || {}; super(e) }
 	async runInternal(e) {
 		await super.runInternal(e); const {tip} = this.class;

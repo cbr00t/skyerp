@@ -1,5 +1,5 @@
 class PratikSatisApp extends TicariApp {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return PratikSatisFis.kodListeTipi }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return PratikSatisFis.kodListeTipi }
 	get configParamSinif() { return MQYerelParamConfig_App } get yerelParamSinif() { return MQYerelParam }
 	paramsDuzenle({ params }) { super.paramsDuzenle(...arguments) /*; $.extend(params, { x: MQParam_X.getInstance() })*/ }
 	async anaMenuOlustur(e) {

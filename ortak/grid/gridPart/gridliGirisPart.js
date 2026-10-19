@@ -1,5 +1,5 @@
 class GridliGirisPart extends GridPart {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get wndClassNames() { return ['gridliGiris', ...super.wndClassNames] }
 	static get noFullHeightFlag() { return true } /* static get defaultAsyncFlag() { return false } */
 

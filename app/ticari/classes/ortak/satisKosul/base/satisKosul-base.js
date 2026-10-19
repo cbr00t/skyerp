@@ -1,5 +1,5 @@
 class SatisKosul extends CKodVeAdi {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tipKod() { return null } static get aciklama() { return null } static get alimmi() { return false }
 	static get table() { return null } static get detayTables() { return null }
 	static get detayMustTable() { return null } static get fisSayacSaha() { return 'fissayac' }

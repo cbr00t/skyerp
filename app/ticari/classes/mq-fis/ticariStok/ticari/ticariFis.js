@@ -1,5 +1,5 @@
 class TicariFis extends TSOrtakFis {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return (this.alimmi ? 'Alım ' : this.satismi ? 'Satış ' : '') + (this.iademi ? 'İADE ' : '') }
 	static get ticarimi() { return true } static get detaySinif() { return super.detaySinif }
 	static get gridKontrolcuSinif() { return TicariGridKontrolcu }
@@ -631,7 +631,7 @@ class TicariFis extends TSOrtakFis {
 }
 
 class SiparisFis extends TicariFis {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get siparismi() { return true }
 	static get sinifAdi() { return `${super.sinifAdi}Siparis` }
 	static get table() { return 'sipfis' }
@@ -682,21 +682,21 @@ class SiparisFis extends TicariFis {
 	}
 }
 class SatisSiparisFis extends SiparisFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'PSATSIP' }
 	static get numTipKod() { return 'TS' }
 	static get almSat() { return 'T' }
 	static get sevkFisSinif() { return SatisIrsaliyeFis }
 }
 class AlimSiparisFis extends SiparisFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'PALMSIP' }
 	static get numTipKod() { return 'AS' } static get almSat() { return 'A' }
 	static get sevkFisSinif() { return AlimIrsaliyeFis }
 }
 
 class SevkiyatFis extends TicariFis {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get gridKontrolcuSinif() { return this.eBilgi?.gridKontrolcuSinif ?? super.gridKontrolcuSinif }
 	static get table() { return 'piffis' } static get baslikOzelAciklamaTablo() { return 'pifbasekaciklama' } static get dipSerbestAciklamaTablo() { return 'pifdipaciklama' }
 	static get dipEkBilgiTablo() { return 'pifdipekbilgi' } static get pifTipi() { return null } static get iade() { return '' } static get fisEkAyrim() { return '' }
@@ -993,7 +993,7 @@ class SevkiyatFis extends TicariFis {
 }
 
 class FaturaFis extends SevkiyatFis {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return `${super.sinifAdi}Fatura` }
 	static get pifTipi() { return 'F' } static get faturami() { return true }
 	get bakiyeciler() {
@@ -1014,100 +1014,100 @@ class FaturaFis extends SevkiyatFis {
 	}
 }
 class SatisFaturaFis extends FaturaFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'PSATFAT' }
 	static get numTipKod() { return 'TF' }
 	static get almSat() { return 'T' }
 	static get otoSablonSinif() { return SatisFaturaFis_OtoSablon }
 }
 class AlimFaturaFis extends FaturaFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'PALMFAT' } static get almSat() { return 'A' }
 }
 class SatisIadeFaturaFis extends AlimFaturaFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get almSat() { return 'T' }
 	static get iade() { return 'I' }
 }
 class AlimIadeFaturaFis extends SatisFaturaFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get almSat() { return 'A' }
 	static get iade() { return 'I' }
 }
 class SatisIhracKaydiylaFaturaFis extends SatisFaturaFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'IK' } static get ihracKaydiylami() { return true }
 }
 class AlimIhracKaydiylaFaturaFis extends AlimFaturaFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'IK' } static get ihracKaydiylami() { return true }
 }
 class SatisIhracatFaturaFis extends SatisFaturaFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'IH' } static get ihracatmi() { return true }
 }
 class AlimIthalatFaturaFis extends AlimFaturaFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'IH' } static get ihracatmi() { return true }
 }
 class SatisEmanetFaturaFis extends SatisFaturaFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'EM' }
 }
 class AlimEmanetFaturaFis extends AlimFaturaFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'EM' }
 }
 class SatisKonsinyeFaturaFis extends SatisFaturaFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'KN' }
 }
 class AlimKonsinyeFaturaFis extends AlimFaturaFis {	
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'KN' }
 }
 class SatisFasonFaturaFis extends SatisFaturaFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'FS' }
 }
 class AlimFasonFaturaFis extends AlimFaturaFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'FS' }
 }
 class SatisIhracKaydiylaIadeFaturaFis extends AlimIadeFaturaFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'IK' } static get ihracKaydiylami() { return true }
 }
 class AlimIhracKaydiylaIadeFaturaFis extends SatisIadeFaturaFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'IK' } static get ihracKaydiylami() { return true }
 }
 class SatisIhracatIadeFaturaFis extends AlimIadeFaturaFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'IH' }
 }
 class AlimIthalatIadeFaturaFis extends SatisIadeFaturaFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'IH' }
 }
 class SatisEmanetIadeFaturaFis extends AlimIadeFaturaFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'EM' }
 }
 class AlimEmanetIadeFaturaFis extends SatisIadeFaturaFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'EM' }
 }
 class SatisKonsinyeIadeFaturaFis extends AlimIadeFaturaFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'KN' }
 }
 class AlimKonsinyeIadeFaturaFis extends SatisIadeFaturaFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'KN' }
 }
 class SatisFasonIadeFaturaFis extends AlimIadeFaturaFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'FS' }
 }
 class AlimFasonIadeFaturaFis extends SatisIadeFaturaFis {
@@ -1115,7 +1115,7 @@ class AlimFasonIadeFaturaFis extends SatisIadeFaturaFis {
 }
 
 class IrsaliyeFis extends SevkiyatFis {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return `${super.sinifAdi}İrsaliye` }
 	static get pifTipi() { return 'I' }
 	static get irsaliyemi() { return true }
@@ -1126,101 +1126,101 @@ class IrsaliyeFis extends SevkiyatFis {
 	}
 }
 class SatisIrsaliyeFis extends IrsaliyeFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'PSATIRS' }
 	static get numTipKod() { return 'TI' }
 	static get almSat() { return 'T' }
 }
 class SatisIadeIrsaliyeFis extends SatisIrsaliyeFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get iade() { return 'I' }
 }
 class AlimIrsaliyeFis extends IrsaliyeFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'PALMIRS' }
 	static get almSat() { return 'A' }
 }
 class AlimIadeIrsaliyeFis extends AlimIrsaliyeFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get iade() { return 'I' }
 }
 class SatisIhracKaydiylaIrsaliyeFis extends SatisIrsaliyeFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'IK' } static get ihracKaydiylami() { return true }
 }
 class AlimIhracKaydiylaIrsaliyeFis extends AlimIrsaliyeFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'IK' } static get ihracKaydiylami() { return true }
 }
 class SatisIhracatIrsaliyeFis extends SatisIrsaliyeFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'IH' }
 }
 class AlimIthalatIrsaliyeFis extends AlimIrsaliyeFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'IH' }
 }
 class SatisEmanetIrsaliyeFis extends SatisIrsaliyeFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'EM' }
 }
 class AlimEmanetIrsaliyeFis extends AlimIrsaliyeFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'EM' }
 }
 class SatisKonsinyeIrsaliyeFis extends SatisIrsaliyeFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'KN' }
 }
 class AlimKonsinyeIrsaliyeFis extends AlimIrsaliyeFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'KN' }
 }
 class SatisFasonIrsaliyeFis extends SatisIrsaliyeFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'FS' }
 }
 class AlimFasonIrsaliyeFis extends AlimIrsaliyeFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'FS' }
 }
 class SatisIhracKaydiylaIadeIrsaliyeFis extends AlimIadeIrsaliyeFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'IK' } static get ihracKaydiylami() { return true }
 }
 class AlimIhracKaydiylaIadeIrsaliyeFis extends SatisIadeIrsaliyeFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'IK' } static get ihracKaydiylami() { return true }
 }
 class SatisIhracatIadeIrsaliyeFis extends AlimIadeIrsaliyeFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'IH' }
 }
 class AlimIthalatIadeIrsaliyeFis extends SatisIadeIrsaliyeFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'IH' }
 }
 class SatisEmanetIadeIrsaliyeFis extends AlimIadeIrsaliyeFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'EM' }
 }
 class AlimEmanetIadeIrsaliyeFis extends SatisIadeIrsaliyeFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'EM' }
 }
 class SatisKonsinyeIadeIrsaliyeFis extends AlimIadeIrsaliyeFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'KN' }
 }
 class AlimKonsinyeIadeIrsaliyeFis extends SatisIadeIrsaliyeFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'KN' }
 }
 class SatisFasonIadeIrsaliyeFis extends AlimIadeIrsaliyeFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'FS' }
 }
 class AlimFasonIadeIrsaliyeFis extends SatisIadeIrsaliyeFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ayrimTipi() { return 'FS' }
 }

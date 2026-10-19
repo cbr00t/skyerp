@@ -1,5 +1,5 @@
 class CDB_QueryProcessorBase extends CObject {
-	static { window[this.name] = this; this._key2Class[this.name] = this } get sortedActions() { return this.sortActions().actions }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } get sortedActions() { return this.sortActions().actions }
 	constructor(e) { e = e ?? {}; super(e); $.extend(this, { root: e.root ?? this, actions: e.actions ?? [] }); this.parent = e.parent ?? this.root }
 	run(e) {
 		e = e || {}; const processor = this, {actions} = this, ctx = e.ctx = new CDB_QueryContext({ processor });
@@ -14,12 +14,12 @@ class CDB_QueryProcessorBase extends CObject {
 	*forEach() { for (const action of this.actions) { yield action } }
 }
 class CDB_QueryProcessor extends CDB_QueryProcessorBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this } get queryProcessormu() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } get queryProcessormu() { return true }
 	constructor(e) { e = e ?? {}; super({ ...e, root: this, parent: null }) }
 }
 
 class CDB_QueryAction extends CDB_QueryProcessorBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this } get queryActionmi() { return true } get oncelik() { return 0 }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } get queryActionmi() { return true } get oncelik() { return 0 }
 	static get araSeviyemi() { return this == CDB_QueryAction } static get tip() { return null } static get kod() { return this.tip } static get aciklama() { return this.kod }
 	static get tip2Sinif() {
 		let result = this._tip2Sinif; if (result == null) {
@@ -33,7 +33,7 @@ class CDB_QueryAction extends CDB_QueryProcessorBase {
 	static newFor(e) { if (typeof e != 'object') { e = { tip: e } } const cls = this.getClass(e); return cls ? new cls(e) : null }
 }
 class CDB_QueryAction_From extends CDB_QueryAction {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'from' } get oncelik() { return 100 }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'from' } get oncelik() { return 100 }
 	constructor(e) { e = e ?? {}; super(e); this.table = e.table }
 	runInternal(e) {
 		super.runInternal(e); const {ctx} = e, {shadow} = this.this;
@@ -43,7 +43,7 @@ class CDB_QueryAction_From extends CDB_QueryAction {
 	setTable(value) { this.table = value; return this }
 }
 class CDB_QueryAction_Join extends CDB_QueryAction_From {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'fromIliski' } get oncelik() { return 200 }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'fromIliski' } get oncelik() { return 200 }
 	constructor(e) { e = e ?? {}; super(e) }
 	runInternal(e) {
 		super.super_runInternal(e); const {ctx} = e, {tables, table2Iliski} = this, {data} = ctx;
@@ -56,7 +56,7 @@ class CDB_QueryAction_Join extends CDB_QueryAction_From {
 	}
 }
 class CDB_QueryAction_Where extends CDB_QueryAction {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'fromIliski' } get oncelik() { return 200 }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'fromIliski' } get oncelik() { return 200 }
 	constructor(e) { e = e ?? {}; super(e); $.extend(this, { filters: e.filters ?? [] }) }
 	runInternal(e) {
 		super.super_runInternal(e); const {ctx} = e, {table2Data} = ctx;
@@ -65,7 +65,7 @@ class CDB_QueryAction_Where extends CDB_QueryAction {
 	setFilters(value) { this.filters = value ?? []; return this }
 }
 class CDB_QueryAction_Select extends CDB_QueryAction {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'select' } get oncelik() { return 1000 }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tip() { return 'select' } get oncelik() { return 1000 }
 	constructor(e) { e = e ?? {}; super(e); $.extend(this, { fields: e.fields }) }
 	buildHandlers(e) {
 		super.buildHandlers(e); this.addHandler(e => {

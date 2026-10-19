@@ -1,5 +1,5 @@
 class GridKolonGrup_KA extends GridKolonGrup {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get defaultKodZorunlumu() { return true }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get defaultKodZorunlumu() { return true }
 	get mfSinif() {
 		let { _mfSinif: res } = this
 		if (isFunction(res) || res?.run) {

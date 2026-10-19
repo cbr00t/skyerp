@@ -7,7 +7,7 @@
  * CSS bu dosyaya dahildir. Sunucu/şema değişikliği gerektirmez.
  */
 class OnayciPart extends SimplePart {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get partName() { return 'onayci' }
 	static get title() { return 'Onay İşlemleri' }
 	static get sinifAdi() { return this.title }

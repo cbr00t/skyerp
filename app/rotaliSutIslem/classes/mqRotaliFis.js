@@ -1,5 +1,5 @@
 class MQRotaliFis extends MQDetayliOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static PrefixSut = 'sut'
 	static get sinifAdi() { return 'Rotalı Fiş' } static get tableAlias() { return 'fis' }
 	static get detaySinif() { return MQRotaliFisDetay } static get tanimlanabilirmi() { return true }
@@ -505,7 +505,7 @@ class MQRotaliFis extends MQDetayliOrtak {
 }
 
 class MQRotaliFisDetay extends MQCogul {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Rotalı Fiş Detayı' }
 	static get tableAlias() { return 'har' }
 	constructor(e = {}) {

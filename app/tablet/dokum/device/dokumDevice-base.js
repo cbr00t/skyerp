@@ -1,5 +1,5 @@
 class TabDokumDevice extends CObject {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kod() { return null } static get aciklama() { return null }
 	static get question() { return null } static get araSeviyemi() { return this == TabDokumDevice }
 	static get ekranmi() { return false } static get byteBased() { return false }

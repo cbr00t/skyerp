@@ -1,5 +1,5 @@
 class MiscResimPart extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get isWindowPart() { return false }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get isWindowPart() { return false }
 	static get partName() { return 'miscResim' } static get sinifAdi() { return 'Resim Görüntüleyici' }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { title: e.title ?? this.class.sinifAdi, urlListe: e.urlListe ?? e.images ?? [] }) }
 	run(e) {
@@ -29,4 +29,4 @@ class MiscResimPart extends Part {
 		)
 	}
 }
-class MiscResimWindowPart extends MiscResimPart { static { window[this.name] = this; this._key2Class[this.name] = this } static get isWindowPart() { return true } }
+class MiscResimWindowPart extends MiscResimPart { static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get isWindowPart() { return true } }

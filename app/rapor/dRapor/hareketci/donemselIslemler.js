@@ -1,5 +1,5 @@
 class DRapor_DonemselIslemler extends DRapor_Donemsel {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return 3 } static get uygunmu() { return true } static get araSeviyemi() { return false }
 	static get sabitmi() { return true } static get vioAdim() { return 'FN-RD' } static get konsolideKullanilirmi() { return true }
 	static get kategoriKod() { return 'FINANLZ' }
@@ -16,7 +16,7 @@ class DRapor_DonemselIslemler extends DRapor_Donemsel {
 	}
 }
 class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get donemselIslemlermi() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get donemselIslemlermi() { return true }
 	static get raporClass() { return DRapor_DonemselIslemler }
 	get width() { return 'var(--full)' }
 	get height() {
@@ -309,7 +309,7 @@ class DRapor_DonemselIslemler_Main extends DRapor_Donemsel_Main {
 }
 
 class DRapor_DonemselIslemler_DetaylarVeDip extends DAltRapor_Grid {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_DonemselIslemler } static get mstEtiket() { return this.aciklama }
 	get height() { return `calc(var(--full) - ${this.rapor.id2AltRapor.main.height})` }
 	gridArgsDuzenle({ args }) {
@@ -327,7 +327,7 @@ class DRapor_DonemselIslemler_DetaylarVeDip extends DAltRapor_Grid {
 	}
 }
 class DRapor_DonemselIslemler_Detaylar extends DRapor_DonemselIslemler_DetaylarVeDip {
-	static { window[this.name] = this; this._key2Class[this.name] = this } get width() { return 'var(--full)' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } get width() { return 'var(--full)' }
 	static get kod() { return 'detaylar' } static get aciklama() { return 'Detaylar' }
 	tabloKolonlariDuzenle({ liste }) {
 		let cellClassName = (sender, rowIndex, belirtec, value, rec, prefix) => {

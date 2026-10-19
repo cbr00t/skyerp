@@ -1,5 +1,5 @@
 class MQHizmet extends MQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get shTip() { return 'H' }
 	static get hizmetmi() { return true }
 	static get sinifAdi() { return 'Hizmet' }
@@ -202,7 +202,7 @@ class MQHizmet extends MQKA {
 
 
 class HizmetTipi extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return ' ' }
 	get gelirmi() { return this.char == ' ' }
 	get gidermi() { return this.char == 'G' }

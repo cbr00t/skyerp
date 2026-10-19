@@ -1,5 +1,5 @@
 class DAltRapor_PanelRec extends CObject {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get panelRecmi() { return true }
 	constructor(e) {
 		e ??= {}; super(e)
@@ -10,7 +10,7 @@ class DAltRapor_PanelRec extends CObject {
 }
 
 class DAltRapor_PanelRec_Donemsel extends DAltRapor_PanelRec {
-	static { window[this.name] = this; this._key2Class[this.name] = this } 
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } 
 	get donemRecmi() { return true }
 	get yatay2Detay() {
 		let { _yatay2Detay: result } = this
@@ -79,7 +79,7 @@ class DAltRapor_PanelRec_Donemsel extends DAltRapor_PanelRec {
 	}
 }
 class DAltRapor_PanelGruplama extends DAltRapor_PanelRec {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get grupmu() { return true }
 	
 	constructor(e = {}) {
@@ -136,7 +136,7 @@ class DAltRapor_PanelGruplama extends DAltRapor_PanelRec {
 }
 
 class DAltRaporTip extends TekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Rapor Tip' } static get defaultChar() { return ' ' }
 	get altRaporTip() {
 		let kod = this.char?.trim() ?? ''

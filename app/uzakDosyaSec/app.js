@@ -1,5 +1,5 @@
 class UzakDosyaSecApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get yerelParamSinif() { return MQYerelParam }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get yerelParamSinif() { return MQYerelParam }
 	get isLoginRequired() { return false } get defaultWSPath() { return 'ws/genel' } get autoExecMenuId() { return 'MAIN' }
 	constructor(e) { e = e || {}; super(e) }
 	async runDevam(e) { await super.runDevam(e); await this.anaMenuOlustur(e) }

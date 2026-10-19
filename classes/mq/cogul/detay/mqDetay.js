@@ -1,5 +1,5 @@
 class MQDetay extends MQSayacli {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get fisSayacSaha() { return 'fissayac' } static get seqSaha() { return 'seq' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get fisSayacSaha() { return 'fissayac' } static get seqSaha() { return 'seq' }
 	/* static get table() { return null } */ static get tableAlias() { return 'har' } /* static get sinifAdi() { return null } */
 	static get detaymi() { return true } get detaymi() { return this.class.detaymi } get dipHesabaEsasDegerler() { return {} }
 	get kod() { return this.sayac } set kod(value) { this.sayac = value }
@@ -109,7 +109,7 @@ class MQDetay extends MQSayacli {
 }
 
 class MQDetayGUID extends MQDetay {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get idKullanilirmi() { return true }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get idKullanilirmi() { return true }
 	static get sayacSaha() { return 'id' } static get fisSayacSaha() { return 'fisid' }
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments)

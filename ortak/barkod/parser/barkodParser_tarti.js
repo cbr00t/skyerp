@@ -1,5 +1,5 @@
 class BarkodParser_Tarti extends BarkodParser_Kuralli {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get aciklama() { return 'Tartı' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get aciklama() { return 'Tartı' }
 	parseDevam(e) {
 		let result = super.parseDevam(e); if (result) { return result } const {kural} = this;
 		result = this.parcaAl({ bas: kural.stokbas, hane: kural.stokhane, callback: value => this.shKod = value }); if (!result) { return result }

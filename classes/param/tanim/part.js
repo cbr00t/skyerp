@@ -1,5 +1,5 @@
 class ParamTanimPart extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get rootPartName() { return 'paramTanim' } static get partName() { return this.rootPartName }
 	static get isWindowPart() { return true } get defaultLayoutSelector() { return `#${this.class.rootPartName}` }
 	get yenimi() { return this.islem == 'yeni' } get degistirmi() { return this.islem == 'degistir' } get silmi() { return this.islem == 'silmi' } get kopyami() { return this.islem == 'kopya' }

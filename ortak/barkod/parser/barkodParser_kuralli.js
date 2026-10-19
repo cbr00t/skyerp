@@ -1,5 +1,5 @@
 class BarkodParser_Kuralli extends BarkodParser {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get formatTipi() { return this.kural?.formattipi } get formatBaslangicmi() { return !this.formatTipi } get formatAyiraclimi() { return this.formatTipi == 'A' }
 	constructor(e) { e = e || {}; super(e); this.kural = e.kural }
 	static kuralFor(e) {

@@ -1,5 +1,5 @@
 class KasaHareketci extends Hareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return 5 } static get kisaKod() { return 'KS' }
 	static get kod() { return 'kasa' } static get aciklama() { return 'Kasa' }
 	static get maliTabloIcinUygunmu() { return true }

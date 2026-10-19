@@ -1,5 +1,5 @@
 class TabFis extends MQDetayliGUIDOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, '_dipIslemci'] }
 	static get araSeviyemi() { return this == TabFis }
 	static get fisTipi() { return this.kodListeTipi }

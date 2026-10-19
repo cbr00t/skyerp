@@ -1,5 +1,5 @@
 class RowluYapi extends CProxyHandler {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get rec() { return this._rec } set rec(value) { this._rec = value }
 	
 	constructor(e) { e = e || {}; super(e); const rec = this._rec = e.rec || e || {}; return new Proxy(rec, this) }

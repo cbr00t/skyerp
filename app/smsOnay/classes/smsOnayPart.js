@@ -25,7 +25,7 @@
  */
 
 class SMSOnayPart extends SimplePart {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'MAIN' }
 	static get sinifAdi() { return 'SMS Onay' }
 	static get partName() { return 'smsOnay' }

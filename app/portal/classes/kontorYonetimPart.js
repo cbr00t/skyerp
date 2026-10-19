@@ -1,5 +1,5 @@
 class KontorYonetimPart extends SimplePart {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get partName() { return 'kontorYonetim' }
 	static get kodListeTipi() { return 'KNT' }
 	static get sinifAdi() { return 'Kontör Yönetim' }

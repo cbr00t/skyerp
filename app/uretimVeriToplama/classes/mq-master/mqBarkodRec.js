@@ -1,5 +1,5 @@
 class MQBarkodRec extends MQMasterOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Gerçekleme' } static get kodListeTipi() { return 'UBAR' } get gorevmi() { return this._gorevmi ?? !!this.isId } set gorevmi(value) { this._gorevmi = value }
 	static get tanimUISinif() { return ModelTanimPart } static get silinebilirmi() { return true } static get bulFormKullanilirmi() { return true }
 	static get ozelBelirtecSet() {

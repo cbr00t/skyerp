@@ -1,5 +1,5 @@
 class OdemeHareketci extends Hareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kisaKod() { return 'OD' } static get kod() { return 'odeme' } static get aciklama() { return 'Ödeme' }
 	static get uygunmu() { return true }  static get oncelik() { return 91 }
 	static get maliTabloIcinUygunmu() { return true } static get donemselIslemlerIcinUygunmu() { return true }

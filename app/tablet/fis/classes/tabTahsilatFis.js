@@ -1,5 +1,5 @@
 class TabTahsilatFis extends TabFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'TAH' } static get sinifAdi() { return 'Karma Tahsilat' }
 	static get numTipKod() { return 'TAH' } static get tahsilatmi() { return true }
 	static get detaySinif() { return TabTahsilatDetay }

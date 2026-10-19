@@ -1,5 +1,5 @@
 class PaletliGirisPart extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get partName() { return 'paletliGiris' } static get isWindowPart() { return true }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get partName() { return 'paletliGiris' } static get isWindowPart() { return true }
 	constructor(e) {
 		e = e || {}; super(e); $.extend(this, {
 			parentPart: e.parentPart, title: e.title == null ? 'Palet Giriş Ekranı' : e.title || '', recs: e.recs || [], tamamIslemi: e.tamamIslemi })

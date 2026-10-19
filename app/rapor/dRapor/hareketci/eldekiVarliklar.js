@@ -1,5 +1,5 @@
 class DRapor_EldekiVarliklar extends DRapor_AraSeviye {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return 4 } 
 	static get uygunmu() { return true } static get araSeviyemi() { return false }
 	static get sabitmi() { return true } static get vioAdim() { return 'FN-RE' }
@@ -26,7 +26,7 @@ class DRapor_EldekiVarliklar extends DRapor_AraSeviye {
 }
 
 ;class DAltRapor_EldekiVarliklar_Ortak extends DRapor_AraSeviye_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get eldekiVarliklarmi() { return true } 
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get eldekiVarliklarmi() { return true } 
 	static get mstEtiket() { return '' } static get borderColor() { return '' }
 	static get aciklama() { return `<div class="full-wh" style="background-color: ${this.borderColor}">${this.mstEtiket}</div>` }
 	static get raporClass() { return DRapor_EldekiVarliklar } get width() { return '49.5%' }
@@ -337,7 +337,7 @@ class DRapor_EldekiVarliklar extends DRapor_AraSeviye {
 }
 
 ;class DRapor_EldekiVarliklar_Sol extends DAltRapor_EldekiVarliklar_Ortak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get mstEtiket() { return 'VARLIKLAR VE ALACAKLARIMIZ' } static get borderColor() { return '#96cd96' }
 	/*async loadServerDataInternal(e) {
 		let recs = await super.loadServerDataInternal(e) ?? [];
@@ -357,7 +357,7 @@ class DRapor_EldekiVarliklar extends DRapor_AraSeviye {
 }
 
 ;class DRapor_EldekiVarliklar_Sag extends DAltRapor_EldekiVarliklar_Ortak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get kod() { return 'sag' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get kod() { return 'sag' }
 	static get mstEtiket() { return 'BORÇLARIMIZ' } static get borderColor() { return '#bc9d9d' }
 	static get yon() { return 'sag' } static get sagmi() { return true }
 	static get sagDuzenlenmeyecekGrupAdlariSet() {

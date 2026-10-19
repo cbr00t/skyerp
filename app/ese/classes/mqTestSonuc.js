@@ -1,5 +1,5 @@
 class MQTestSonuc extends MQCogul {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'TESTSONUC' } static get sinifAdi() { return 'Anket Yanıt' }
 	static get table() { return 'esetestdetay' } static get tableAlias() { return 'cvp' }
 	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false }

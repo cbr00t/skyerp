@@ -1,21 +1,21 @@
 class MQDurNeden extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get tumKolonlarGosterilirmi() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tumKolonlarGosterilirmi() { return true }
 	static get sinifAdi() { return 'Duraksama Nedeni' } static get table() { return 'makdurneden' } static get tableAlias() { return 'dned' }
 	static get kodListeTipi() { return 'UDNED' } static get localDataBelirtec() { return 'durNeden' }
 	/*static loadServerData_querySonucu(e) { return app.sqlExecSP(this.table) }*/
 }
 class MQIskartaNeden extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get tumKolonlarGosterilirmi() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tumKolonlarGosterilirmi() { return true }
 	static get sinifAdi() { return 'Iskarta Neden' } static get table() { return 'opiskartanedeni' } static get tableAlias() { return 'ined' }
 	static get kodListeTipi() { return 'UISKNED' } static get localDataBelirtec() { return 'iskartaNeden' }
 }
 class MQPersonel extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get tumKolonlarGosterilirmi() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tumKolonlarGosterilirmi() { return true }
 	static get sinifAdi() { return 'Personel' } static get table() { return 'personel' } static get tableAlias() { return 'per' }
 	static get kodListeTipi() { return 'UPER' } static get localDataBelirtec() { return 'personel' }
 }
 class MQEmir extends MQSayacliOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Emir' } static get table() { return 'isemri' } static get tableAlias() { return 'emr' }
 	static get kodListeTipi() { return 'UEMIR' } static get idSaha() { return ['seri', 'no'] } static get localDataBelirtec() { return 'emir' }
 	static get kodSaha() { return 'fisnox' } static get adiSaha() { return 'tarih' }
@@ -43,12 +43,12 @@ class MQEmir extends MQSayacliOrtak {
 	static getGloKod2Rec(e) { e = $.extend({}, e, { kodSaha: 'fisnox', adiSaha: 'tarih' }); return super.getGloKod2Rec(e) }*/
 }
 class MQHat extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get tumKolonlarGosterilirmi() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tumKolonlarGosterilirmi() { return true }
 	static get sinifAdi() { return 'Hat' } static get table() { return 'ismerkezi' } static get tableAlias() { return 'hat' }
 	static get kodListeTipi() { return 'UHAT' } static get localDataBelirtec() { return 'hat' }
 }
 class MQTezgah extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get tumKolonlarGosterilirmi() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tumKolonlarGosterilirmi() { return true }
 	static get sinifAdi() { return 'Tezgah' } static get table() { return 'tekilmakina' } static get tableAlias() { return 'tez' }
 	static get kodListeTipi() { return 'UTEZ' } static get localDataBelirtec() { return 'tezgah' }
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e); const {pTanim} = e; $.extend(pTanim, { hatKod: new PInstStr('ismrkkod') }) }
@@ -69,7 +69,7 @@ class MQTezgah extends MQKAOrtak {
 	}
 }
 class MQOperasyon extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get tumKolonlarGosterilirmi() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tumKolonlarGosterilirmi() { return true }
 	static get sinifAdi() { return 'Operasyon' } static get table() { return 'operasyon' } static get tableAlias() { return 'op' }
 	static get kodListeTipi() { return 'UOPER' } static get kodSaha() { return 'opno' } static get localDataBelirtec() { return 'operasyon' }
 	static get kodEtiket() { return 'Op No.' } static get adiEtiket() { return 'Op. Adı' }
@@ -85,7 +85,7 @@ class MQOperasyon extends MQKAOrtak {
 	}
 }
 class MQStok extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get tumKolonlarGosterilirmi() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tumKolonlarGosterilirmi() { return true }
 	static get sinifAdi() { return 'Stok' } static get table() { return 'stkmst' } static get tableAlias() { return 'stk' }
 	static get kodListeTipi() { return 'USTOK' } static get localDataBelirtec() { return 'stok' }
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e); const {pTanim} = e; $.extend(pTanim, { brm: new PInstStr('brm') }) }
@@ -100,7 +100,7 @@ class MQStok extends MQKAOrtak {
 	}
 }
 class MQStokYer extends MQKAOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get tumKolonlarGosterilirmi() { return true }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tumKolonlarGosterilirmi() { return true }
 	static get localDataBelirtec() { return 'yer' } static get sinifAdi() { return 'Stok Yer' }
 	static get table() { return 'stkyer' } static get tableAlias() { return 'yer' }
 
@@ -130,7 +130,7 @@ class MQStokYer extends MQKAOrtak {
 	}
 }
 class MQYerRaf extends MQKodOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get tumKolonlarGosterilirmi() { return true }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tumKolonlarGosterilirmi() { return true }
 	static get sinifAdi() { return 'Yer Raf' } static get table() { return 'yerraf' } static get tableAlias() { return 'raf' }
 	static get kodSaha() { return 'rafkod' } static get kodEtiket() { return 'Raf' } static get localDataBelirtec() { return 'raf' }
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e); const {pTanim} = e; $.extend(pTanim, { yerKod: new PInstStr('yerkod') }) }
@@ -166,7 +166,7 @@ class MQYerRaf extends MQKodOrtak {
 	}
 }
 class MQOlcu extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get tumKolonlarGosterilirmi() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tumKolonlarGosterilirmi() { return true }
 	static get sinifAdi() { return 'Ölçü' } static get table() { return 'muayeneolcu' } static get tableAlias() { return 'olc' }
 	static get kodListeTipi() { return 'UOLCU' } static get localDataBelirtec() { return 'olcu' }
 	static loadServerData_queryDuzenle(e) {

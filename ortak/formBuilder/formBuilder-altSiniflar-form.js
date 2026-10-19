@@ -1,5 +1,5 @@
 class FBuilder_TanimForm extends FormBuilder {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get isTanimForm() { return true }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } get isTanimForm() { return true }
 	preInit(e) {
 		super.preInit(e); const {rootPart} = this, {formParent} = rootPart;
 		let {form} = rootPart; if (!form?.length || (form.parent() != formParent)) { form = rootPart.form = $(`<div class="form-layout dock-bottom"/>`); form.appendTo(formParent) }
@@ -9,7 +9,7 @@ class FBuilder_TanimForm extends FormBuilder {
 	}
 }
 class FBuilder_TabsOrtak extends FormBuilder {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get isTabs() { return true }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } get isTabs() { return true }
 	constructor(e) { e = e || {}; super(e); this.tabPages = e.tabPages || {}; }
 	buildDevam(e) { super.buildDevam(e); const layout = this.layout = $(`<div class="tabPanel dock-bottom"><ul class="tabs"/></div>`); layout.appendTo(this.parent) }
 	postBuild(e) {
@@ -42,12 +42,12 @@ class FBuilder_TabsOrtak extends FormBuilder {
 	}
 }
 class FBuilder_TanimFormTabs extends FBuilder_TabsOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	preInit(e) { super.preInit(e); this.rootPart.hasTabPages = true }
 	buildDevam(e) { super.buildDevam(e); const {layout, rootPart} = this; layout.prop('id', 'tabPanel'); rootPart.tabPanel = layout }
 }
 class FBuilder_Tabs extends FBuilder_TabsOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) { super(e); $.extend(this, { widgetArgsDuzenle: e.widgetArgsDuzenle, initTabLayoutBlock: e.initTabLayout ?? e.initTabLayoutBlock, tabPageChangedBlock: e.tabPageChanged ?? e.tabPageChangedBlock }) }
 	afterBuildDevam(e) {
 		super.afterBuildDevam(e); const {parent, layout, parentPart, tabPageChangedBlock} = this; this._initTabIDSet = {};
@@ -69,7 +69,7 @@ class FBuilder_Tabs extends FBuilder_TabsOrtak {
 	tabPageChangedHandler(handler) { this.tabPageChangedBlock = handler; return this }
 }
 class FBuilder_TabPage extends FormBuilder {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get isTabPage() { return true }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } get isTabPage() { return true }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { tabID: e.tabID || e.tabId || e.id, text: e.text ?? e.etiket, tabActivatedFlag: false }); }
 	preInit(e) { super.preInit(e); this.parent = this.parent.children(`div#${this.tabID}`); }
 	buildDevam(e) { super.buildDevam(e); const {layout, parent} = this; if (layout === undefined) { debugger } if (layout?.parent() != parent) { layout.appendTo(parent) } }

@@ -1,5 +1,5 @@
 class MQTabMusDurum extends MQKodOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'MUSDURUM' } static get sinifAdi() { return 'Müşteri Durumu' }
 	static get table() { return 'musdurum' } static get tableAlias() { return 'dur' }
 	static get offlineGonderYapilirmi() { return true }

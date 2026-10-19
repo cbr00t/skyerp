@@ -1,5 +1,5 @@
 class MQEIslOzelYontem extends MQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'e-İşlem Özel Yöntem' } static get table() { return 'efozelyontem' } static get tableAlias() { return 'efy' }
 	static get kodListeTipi() { return 'EISLOYON' } static get tumKolonlarGosterilirmi() { return true }
 	get yontemAdi() { return this.aciklama || '' } get varsaGenelYontem() { return null }
@@ -77,7 +77,7 @@ class MQEIslOzelYontem extends MQKA {
 	getUygunDegilMesaji(text, belgeNox) { const {yontemAdi} = this; return `<b class="royalblue">${belgeNox}</b> nolu belge ${yontemAdi} e-İşlem Kuralına uygun değildir (<b>${text}</b>)` }
 }
 class MQEIslGeneldenOzelYontem extends MQEIslOzelYontem {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get yontemAdi() { return this.genelYontem?.aciklama } get varsaGenelYontem() { const rec = this.genelYontem; return rec?.yokmu ? null : (rec ?? null) }
 	get iskontoZorunlumu() { const rec = this.genelYontem; return (rec.migrosmu || super.iskontoZorunlumu) ?? false }
 	get iskontoTekilYazilirmi() { const rec = this.genelYontem; return (rec.migrosmu || super.iskontoTekilYazilirmi) ?? false }
@@ -113,7 +113,7 @@ class MQEIslGeneldenOzelYontem extends MQEIslOzelYontem {
 	metroIcinUygunmuDegilseMesaj(e) { return this.malKabulNoKontrolu(e) ?? null }
 }
 class EIslGenelYontem extends TekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this } get stokYerineBarkodmu() { return this.getirmi } get stokYerineRefKodmu() { return this.kipami || this.carrefourmu }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } get stokYerineBarkodmu() { return this.getirmi } get stokYerineRefKodmu() { return this.kipami || this.carrefourmu }
 	static get defaultChar() { return ' ' } get yokmu() { return this.char == ' ' } get migrosmu() { return this.char == 'MIG' } get metromu() { return this.char == 'MET' }
 	get carrefourmu() { return this.char == 'CSA' } get bimmi() { return this.char == 'BIM' } get a101mi() { return this.char == 'A101' } get kilermi() { return this.char == 'KIL' }
 	get kipami() { return this.char == 'KIP' } get adesami() { return this.char == 'ADE' } get ozenmi() { return this.char == 'OZN' } get eformu() { return this.char == 'EFOR' }

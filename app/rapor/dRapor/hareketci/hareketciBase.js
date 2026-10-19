@@ -1,5 +1,5 @@
 class DRapor_Hareketci extends DRapor_Donemsel {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get araSeviyemi() { return this == DRapor_Hareketci } static get hareketciSinif() { return null }
 	// static get oncelik() { return 20 }
 	static get hareketcimi() { return true }
@@ -83,11 +83,11 @@ class DRapor_Hareketci extends DRapor_Donemsel {
 				extend(sub, { mainName: `${sub.name}_Main` })
 				evalList.push(
 					`class ${sub.name} extends ${parent.name} {`,
-					`	static { window[this.name] = this; this._key2Class[this.name] = this }`,
+					`	static { globalThis[this.name] = this; this._key2Class[this.name] = this }`,
 					`	static get uygunmu() { return true /*config.dev*/ } static get ${selector}mi() { return true }`,
 					'}',
 					`class ${sub.mainName} extends ${parent.mainName} {`,
-					`	static { window[this.name] = this; this._key2Class[this.name] = this }`,
+					`	static { globalThis[this.name] = this; this._key2Class[this.name] = this }`,
 					`	static get raporClass() { return ${sub.name} }`,
 					'}'
 				)
@@ -101,7 +101,7 @@ class DRapor_Hareketci extends DRapor_Donemsel {
 }
 
 class DRapor_Hareketci_Main extends DRapor_Donemsel_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get hareketcimi() { return true } 
 	static get hareketciSinif() { return this.raporClass?.hareketciSinif }
 	static get secimWhereBaglanirmi() { return false }

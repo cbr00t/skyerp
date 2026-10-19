@@ -1,5 +1,5 @@
 class TabDokumSaha extends CObject {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'TABMATSAHA' } static get sinifAdi() { return 'Tablet Matbuu Saha' }
 	static get kodSaha() { return 'key' } static get adiSaha() { return 'text' }
 	static get kodEtiket() { return 'Belirteç' } static get adiEtiket() { return 'Değer' }

@@ -1,5 +1,5 @@
 class MasterFisRaporOrtak extends ModelRapor {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get raporGrup() { return super.raporGrup }
 	get builder() { return this._builder || (this.parentPart || {}).builder }
 	get gridWidget() { return this._gridWidget || (this.parentPart || {}).gridWidget }

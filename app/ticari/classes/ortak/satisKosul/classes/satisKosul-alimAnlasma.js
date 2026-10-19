@@ -1,5 +1,5 @@
 class SatisKosul_AlimAnlasma extends SatisKosul {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tipKod() { return 'AL' } static get aciklama() { return 'Alım Anlaşma' } static get alimmi() { return true }
 	static get table() { return 'alimanlasma' }
 	static get detayTables() { return { stok: 'anlastarife', grup: 'anlastargrup' } }

@@ -1,5 +1,5 @@
 class MQStokYer extends MQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Stok Yer' } static get table() { return 'stkyer' } static get tableAlias() { return 'yer' }
 
 	constructor(e) { e = e || {}; super(e); }

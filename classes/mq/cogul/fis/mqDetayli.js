@@ -1,5 +1,5 @@
 class MQDetayli extends MQSayacli {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get detaylimi() { return true } static get detayliMastermi() { return false }
 	static get gridKontrolcuSinif() { return null }
 	get gridKontrolcuSinif() { return this.class.gridKontrolcuSinif }
@@ -430,7 +430,7 @@ class MQDetayli extends MQSayacli {
 		/*
 			e = { toplu: new MQToplu() };
 			d = new (class extends MQDetayli {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 				static get table() { return 'abc' }
 			});
 			d.topluYazmaKomutlariniOlustur(e);
@@ -599,7 +599,7 @@ class MQDetayli extends MQSayacli {
 	}
 }
 class MQDetayliMaster extends MQDetayli {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get hasTabs() { return false } static get tanimUISinif() { return MQKA.tanimUISinif }
 	static get detayliMastermi() { return true } static get sabitBilgiRaporcuSinif() { return MQCogul.sabitBilgiRaporcuSinif }
 	static rootFormBuilderDuzenle(e) {
@@ -670,7 +670,7 @@ class MQDetayliMaster extends MQDetayli {
 	static getGridKolonGrup(e) { return MQKA.getGridKolonGrup({ ...e, mfSinif: this }) }
 }
 class MQDetayliGUID extends MQDetayliMaster {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sayacSaha() { return 'id' } static get idSaha() { return this.sayacSaha }
 	static get kami() { return true } static get guidmi() { return true }
 	get id() { return this.sayac } set id(value) { this.sayac = value }
@@ -790,10 +790,10 @@ class MQDetayliGUID extends MQDetayliMaster {
 	}
 }
 class MQDetayliVeAdi extends MQDetayliMaster {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get adiKullanilirmi() { return true }
 }
 class MQDetayliGUIDVeAdi extends MQDetayliGUID {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get adiKullanilirmi() { return true }
 }

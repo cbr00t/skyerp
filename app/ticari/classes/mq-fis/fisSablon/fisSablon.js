@@ -1,5 +1,5 @@
 class SatisFaturaFis_OtoSablon extends SatisFaturaFis {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
     static get kodListeTipi() { return 'TFS' }
     static get sinifAdi() { return `${super.sinifAdi} Şablonu` }
     static get sablonmu() { return true }

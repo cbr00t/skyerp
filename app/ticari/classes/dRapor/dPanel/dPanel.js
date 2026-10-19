@@ -1,5 +1,5 @@
 class DPanel extends Part {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get isWindowPart() { return true } static get asyncRunFlag() { return true }
 	static get partName() { return 'dPanel' } get partName() { return this.class.partName }
 	static get oncelik() { return 2 } static get anaTip() { return 'panel' }

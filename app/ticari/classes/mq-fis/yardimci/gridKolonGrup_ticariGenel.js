@@ -1,5 +1,5 @@
 class GKG_BelgeTarihVeNo extends GridKolonGrup {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	defaultTabloKolonlariDuzenle(e) {
 		super.defaultTabloKolonlariDuzenle(e);
 		const {tabloKolonlari} = e;

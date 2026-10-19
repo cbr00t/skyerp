@@ -1,5 +1,5 @@
 class SqlJS_DBMgrBase extends CObject {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static DBWriteClauses = ['INTO ', 'INSERT ', 'UPDATE', 'DELETE', 'CREATE ', 'DROP ', 'ALTER ', 'EXEC ', 'IMPORT ', 'BEGIN TRAN', 'COMMIT', 'ROLLBACK']
 	get sqlJSmi() { return this.class.sqlJSmi }
 	static get sqlJSmi() { return true }

@@ -1,5 +1,5 @@
 class MQKod extends MQCogul {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get kami() { return true }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get kami() { return true }
 	static get kodSaha() { return 'kod' }
 	static get tanimUISinif() { return ModelTanimPart }
 	static get kodKullanilirmi() { return true } static get bosKodAlinirmi() { return false }
@@ -165,7 +165,7 @@ class MQKod extends MQCogul {
 	setId(value) { this.kod = value; return this }
 }
 class MQKA extends MQKod {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get adiKullanilirmi() { return true } static get adiEtiket() { return 'Açıklama' }
 	static get adiSaha() { return this.adiKullanilirmi ? 'aciklama' : this.kodSaha }
 	
@@ -380,7 +380,7 @@ class MQKA extends MQKod {
 	}
 }
 class MQGuidVeAdi extends MQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static guidmi() { return true }
 	static get kodKullanilirmi() { return false }
 	static get bosKodAlinirmi() { return true }
@@ -400,6 +400,6 @@ class MQGuidVeAdi extends MQKA {
 	kaydetOncesiIslemler(e) { this.kod = this.kod || newGUID(); return super.kaydetOncesiIslemler(e) }
 }
 class MQGuid extends MQGuidVeAdi {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get adiKullanilirmi() { return false }
 }

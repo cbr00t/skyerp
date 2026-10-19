@@ -1,5 +1,5 @@
 class SkyMenuApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get grids() { return [this.grid_programlar, this.grid_vtListe].filter(x => !!x); }
 	async runDevam(e) { await super.runDevam(e); this.show() }
 	initGrid_programlar(e) {

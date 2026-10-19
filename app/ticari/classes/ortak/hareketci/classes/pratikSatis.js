@@ -1,5 +1,5 @@
 class PratikSatisHareketci extends Hareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return 170 } static get sadeceTotalmi() { return true }
 	static get uygunmu() { return app.params.aktarim?.kullanim?.pratikSatis }
 	// static get kategoriKod() { return '' } static get kategoriAdi() { return '' }

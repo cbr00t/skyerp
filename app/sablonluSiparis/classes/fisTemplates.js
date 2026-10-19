@@ -1,5 +1,5 @@
 class SablonluSiparisFisTemplate extends CObject {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sablonSinif() { return MQSablonOrtak }
 	static getUISplitHeight({ islem }) { return 170 + ($(window).width() < 1300 ? 90 : 0) + (islem == 'onayla' || islem == 'sil' ? 65 : 0) }
 	static get numaratorGosterilirmi() { return config.dev }
@@ -843,7 +843,7 @@ class SablonluSiparisFisTemplate extends CObject {
 	}
 }
 class SablonluSiparisDetayTemplate extends CObject {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static constructor(e) {
 		let {det} = e; for (let key of ['grupSayac', 'grupSeq', 'grupAdi']) { det[key] = e[key] ?? det[key] }
 		det.stokText = this.getStokText(det)
@@ -876,7 +876,7 @@ class SablonluSiparisDetayTemplate extends CObject {
 	}
 }
 class SablonluSiparisGridciTemplate extends CObject {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get fisTemplateSinif() { return SablonluSiparisFisTemplate } static get sablonSinif() { return this.fisTemplateSinif.sablonSinif }
 	static gridArgsDuzenle({ gridPart, sender, inst, args }) {
 		gridPart ??= sender; let {fis = {}} = gridPart; gridPart.sabit()

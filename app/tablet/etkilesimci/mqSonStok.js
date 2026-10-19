@@ -1,5 +1,5 @@
 class MQTabSonStok extends MQMasterOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'SONSTOK' } static get sinifAdi() { return 'Son Stok' }
 	static get table() { return 'sonstok' } static get tableAlias() { return 'son' }
 	static get offlineGonderYapilirmi() { return true }

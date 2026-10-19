@@ -1,5 +1,5 @@
 class DRapor_SonStok extends DRapor_AraSeviye {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get altRaporClassPrefix() { return 'DRapor_SonStok' }
 	static get oncelik() { return 110 }
 	static get kategoriKod() { return DRapor_Hareketci_Stok.kategoriKod }
@@ -9,7 +9,7 @@ class DRapor_SonStok extends DRapor_AraSeviye {
 	static get vioAdim() { return 'ST-LS' } get stokmu() { return true } 
 }
 class DRapor_SonStok_Main extends DRapor_AraSeviye_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_SonStok } get stokmu() { return this.rapor?.stokmu }
 	secimlerDuzenle({ secimler: sec }) {
 		let {violetmi} = app

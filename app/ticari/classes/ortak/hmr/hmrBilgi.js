@@ -1,5 +1,5 @@
 class HMRBilgi extends CIO {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ekOzellikListe() {
 		let {_ekOzellikListe: result} = this; if (result == null) {
 			result = this._ekOzellikListe = []; let {ekOzellikBilgileri} = app.params?.stokGenel ?? {};
@@ -104,7 +104,7 @@ class HMRBilgi extends CIO {
 				adi = ekOzellikBilgileri[i]?.adi || adi
 				let mfSinif = eval(
 					`(class MQEkOzellik${seq} extends MQKA {
-						static { window[this.name] = this; this._key2Class[this.name] = this }
+						static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 						static get sinifAdi() { return '${adi}' }
 						static get table() { return '${`stokekoz${seq}`}' }
 						static get tableAlias() { return '${`ekoz${seq}`}' }

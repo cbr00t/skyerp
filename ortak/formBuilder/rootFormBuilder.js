@@ -1,5 +1,5 @@
 class RootFormBuilder extends SubPartBuilder {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get isRootFormBuilder() { return true }
 	constructor(e) {
 		e = e || {}; super(e);
@@ -115,7 +115,7 @@ rfb = new RootFormBuilder({
 			id: 'subform-1',
 			builders: [
 				new (class extends SubPartBuilder {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 					buildDevam(e) {
 						const {parent} = this;
 						const layout = this.layout = $(`<div class="altForm-1"><button id="test1">TEST 1</button><button id="test2">TEST 2</button></div>`);
@@ -178,7 +178,7 @@ new FormBuilder({
 			id: 'subform-1',
 			builders: [
 				new (class extends SubPartBuilder {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 					buildDevam(e) {
 						const {parent} = this;
 						const layout = this.layout = $(`<div class="altForm-1"><button id="test1">TEST 1</button><button id="test2">TEST 2</button></div>`);

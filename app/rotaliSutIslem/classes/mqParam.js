@@ -1,5 +1,5 @@
 class MQSutParam extends MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Süt Parametreleri' } static get paramKod() { return 'MUSHZ' }
 	get postaKAListe() { const postalar = this.postalar || {}; return Posta.kaListe.filter(ka => !!postalar[ka.kod]) }
 	get postalar() { return this._postalar } set postalar(value) { this._postalar = value }

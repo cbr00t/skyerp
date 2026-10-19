@@ -1,5 +1,5 @@
 class MQTabDokumForm extends MQMasterOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'TABMATFORM' } static get sinifAdi() { return 'Tablet Matbuu Form' }
 	static get offlineDirect() { return true } static get offlineGonderYapilirmi() { return false }
 	static get noLocalTable() { return true }

@@ -1,5 +1,5 @@
 class Oran extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { pay: e.pay, baz: e.baz }) }
 	get anahtarStr() { const {pay, baz} = this; return baz ? `${pay}/${baz}` : null }
 	ekle(diger) {
@@ -10,7 +10,7 @@ class Oran extends CObject {
 	toString() { return this.anahtarStr }
 }
 class TLVeDVBedel extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get bosmu() { return !(this.tl || this.dv) }
 	get negated() { return new this.class({ tl: negated(this.tl), dv: negated(this.dv) }) }
 	constructor(e) {
@@ -56,7 +56,7 @@ class TLVeDVBedel extends CObject {
 	}
 }
 class Taksitci extends CIO {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get tlVeDvBedel() { return new TLVeDVBedel({ tl: this.bedel, dv: this.dvBedel }) }
 	constructor(e) {
 		e = e || {}; super(e); $.extend(this, { inst: e.inst });

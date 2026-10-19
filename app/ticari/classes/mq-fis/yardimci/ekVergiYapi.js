@@ -1,5 +1,5 @@
 class EkVergiYapi extends CIO {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get bosmu() { return !this.tip.char }
 	get tevkifatmi() { return this.tip.char == 'TV' }
 	get istisnami() { return this.kismiIstisnami || this.tamIstisnami }

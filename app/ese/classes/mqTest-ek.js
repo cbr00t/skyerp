@@ -1,5 +1,5 @@
 class MQTestUygulanmaYeri extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return '' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return '' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)
 		kaListe.push(
@@ -9,7 +9,7 @@ class MQTestUygulanmaYeri extends TekSecim {
 }
 
 class TestSonuc extends CObject {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return null } static get genelSonucmu() { return false }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tip() { return null } static get genelSonucmu() { return false }
 	static get reduceKeys() { return this.genelSonucmu ? ['id', 'belirtec', 'tip', 'tumSayi', 'cevapSayi', 'cevapsizSayi'] : [] }
 	get cevapSayi() { return 0 } get cevapsizSayi() { return Math.max((this.tumSayi || 0) - (this.cevapSayi || 0), 0) }
 	constructor(e) {
@@ -47,7 +47,7 @@ class TestSonuc extends CObject {
 	toString() { return toJSONStr(this, ' ').replaceAll('\n', '').replaceAll('  ', ' ').replaceAll('"', '') }
 }
 class TestSonucCPT extends TestSonuc {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return MQTestCPT.tip }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tip() { return MQTestCPT.tip }
 	static get parentKeys() { return ['dogru', 'yanlis'] } static get reduceKeys() { return [...super.reduceKeys, ...this.parentKeys] }
 	constructor(e) {
 		e = e || {}; super(e); 
@@ -72,7 +72,7 @@ class TestSonucCPT extends TestSonuc {
 	}
 }
 class TestGenelSonucCPT extends TestSonucCPT {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get genelSonucmu() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get genelSonucmu() { return true }
 	static get reduceKeys() { return [...super.reduceKeys, 'grupNo2Bilgi', 'secilmeyenDogruSayi'] }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { grupNo2Bilgi: e.grupNo2Bilgi || {}, secilmeyenDogruSayi: 0 }) }
 	totalEkle(diger) {
@@ -86,10 +86,10 @@ class TestGenelSonucCPT extends TestSonucCPT {
 	}
 }
 class TestSonucAnket extends TestSonuc {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get tip() { return MQTestAnket.tip }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get tip() { return MQTestAnket.tip }
 }
 class TestGenelSonucAnket extends TestSonucAnket {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get genelSonucmu() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get genelSonucmu() { return true }
 	static get reduceKeys() { return [...super.reduceKeys, 'soruId2Cevap'] } get cevapSayi() { return Object.keys(this.soruId2Cevap).length }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { soruId2Cevap: e.soruId2Cevap || {}, toplamPuan: 0 }) }
 	totalEkle(diger) {

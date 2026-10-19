@@ -1,5 +1,5 @@
 class RaporGosterPart extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get partName() { return 'raporGoster' }
 	static get isWindowPart() { return true }
 	get wndDefaultIsModal() { return false }
@@ -294,7 +294,7 @@ class RaporGosterPart extends Part {
 	getKolonFiltreDuzenleyici(e) {
 		const $this = this;
 		return new class extends CObject {
-		    static { window[this.name] = this; this._key2Class[this.name] = this }
+		    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 			uygunmu(e) { const {rRapor} = $this.inst; return !!rRapor }
 			attrKAListe(e) {
 				const {raporcu, rRapor} = $this.inst; rRapor.detayEkIslemler({ raporcu: raporcu });
@@ -312,7 +312,7 @@ class RaporGosterPart extends Part {
 	onResize(e) { super.onResize(e); const {secimlerPart} = this; if (secimlerPart) secimlerPart.onResize(e) }
 }
 class RaporcuInst extends CIO {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) { e = e || {}; super(e); if (!this.raporcu) this.raporcu = e.modelRapor }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e;
@@ -320,7 +320,7 @@ class RaporcuInst extends CIO {
 	}
 }
 class RaporTip extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return 'grid' }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e);

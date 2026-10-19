@@ -1,5 +1,5 @@
 class DistYonetimApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'ONAY' } get yerelParamSinif() { return MQYerelParam }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return 'ONAY' } get yerelParamSinif() { return MQYerelParam }
 	constructor(e) { e = e || {}; super(e) }
 	async runDevam(e) {
 		await super.runDevam(e); try { await this.yetkiKontrol(e) }

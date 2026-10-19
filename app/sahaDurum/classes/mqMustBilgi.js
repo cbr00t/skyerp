@@ -1,5 +1,5 @@
 class MQMustBilgi extends MQKAOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get dataKey() { return 'mustBilgi' }
 	static get tableAlias() { return 'mbil' }
 	static kodListeTipi() { return 'MUST' }

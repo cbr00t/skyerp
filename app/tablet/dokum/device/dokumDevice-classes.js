@@ -1,5 +1,5 @@
 class TabDokumDevice_Console extends TabDokumDevice {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kod() { return 'CON' } static get aciklama() { return 'Browser Console' }
 	static get question() { return 'consolemu' }
 
@@ -25,7 +25,7 @@ class TabDokumDevice_Console extends TabDokumDevice {
 }
 
 class TabDokumDevice_Ekran extends TabDokumDevice {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kod() { return 'SCR' } static get aciklama() { return 'Ekran' }
 	static get question() { return 'ekranmi' } static get ekranmi() { return true }
 
@@ -142,7 +142,7 @@ class TabDokumDevice_Ekran extends TabDokumDevice {
 }
 
 class TabDokumDevice_SerialPort extends TabDokumDevice {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kod() { return 'SER' } static get aciklama() { return 'Seri Port' }
 	static get question() { return 'serialmi' } static get byteBased() { return true }
 	static get chunkSize() { return 15 } static get chunkDelayMS() { return 5 }
@@ -162,7 +162,7 @@ class TabDokumDevice_SerialPort extends TabDokumDevice {
 }
 
 class TabDokumDevice_HrefBased extends TabDokumDevice {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get araSeviyemi() { return super.araSeviyemi || this == TabDokumDevice_HrefBased }
 
 	async open(e) {
@@ -183,7 +183,7 @@ class TabDokumDevice_HrefBased extends TabDokumDevice {
 	}
 }
 class TabDokumDevice_QuickPrinter extends TabDokumDevice_HrefBased {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kod() { return 'QP' } static get aciklama() { return 'Quick Printer' }
 	static get question() { return 'quickPrintermi' }
 	async close(e) {

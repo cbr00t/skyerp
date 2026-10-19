@@ -1,5 +1,5 @@
 class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return 25 }
 	static get maliTabloIcinUygunmu() { return this.uygunmu }
 	static get araSeviyemi() { return this == BankaMevduatKrediOrtakHareketci }
@@ -520,7 +520,7 @@ class BankaMevduatKrediOrtakHareketci extends BankaOrtakHareketci {
 }
 
 class BankaMevduatHareketci extends BankaMevduatKrediOrtakHareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kisaKod() { return 'BM' }
     static get kod() { return 'bankaMevduat' }
 	static get aciklama() { return 'Banka Mevduat' }
@@ -536,7 +536,7 @@ class BankaMevduatHareketci extends BankaMevduatKrediOrtakHareketci {
 }
 
 class BankaKrediHareketci extends BankaMevduatKrediOrtakHareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kisaKod() { return 'KR' }
     static get kod() { return 'bankaKredi' }
 	static get aciklama() { return 'Banka Kredi' }

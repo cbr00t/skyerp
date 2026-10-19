@@ -1,5 +1,5 @@
 class MQMasterOrtak extends MQCogul {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get raporKullanilirmi() { return false }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get raporKullanilirmi() { return false }
 	static get ignoreBelirtecSet() { return {} } static get gonderildiDesteklenirmi() { return true }
 	static super_standartGorunumListesiDuzenle(e) { super.standartGorunumListesiDuzenle(e) } static get tanimUISinif() { return ModelTanimPart } static get kolonFiltreKullanilirmi() { return false }
 	static standartGorunumListesiDuzenle(e) {

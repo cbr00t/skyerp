@@ -1,5 +1,5 @@
 class DAltRapor_TreeGrid extends DAltRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporTanimSinif() { return DMQRapor }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get raporTanimSinif() { return DMQRapor }
 	static get dGridmi() { return true } static get dTreeGridmi() { return true } static get dGridliAltRapormu() { return true }
 	static get raporClass() { return null } static get kod() { return 'main' } static get aciklama() { return this.raporClass?.aciklama }
 	get noAutoColumns() { return false } get sabitmi() { return this.class.raporClass?.sabitmi }
@@ -587,7 +587,7 @@ class DAltRapor_TreeGrid extends DAltRapor {
 	gridVeriYuklendiIslemi(value) { this.gridVeriYuklendi_ek = value; return this }
 }
 class DAltRapor_TreeGridGruplu extends DAltRapor_TreeGrid {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get noAutoColumns() { return true }
 	get ustSeviyeUygulanirmi() {
 		let { secimler: { ustSeviyeUygulanirmi: sec } = {} } = this

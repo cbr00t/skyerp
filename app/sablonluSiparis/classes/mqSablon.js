@@ -1,6 +1,6 @@
 /** Şablon listesi, Home screen */
 class MQSablonOrtak extends MQDetayliVeAdi {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get gereksizTablolariSilYapilirmi() { return false } static get noAutoFocus() { return true } static get konsinyemi() { return false } 
 	static get table() { return 'hizlisablon' } static get tableAlias() { return 'sab' } static get fisSiniflar() { return [] }
 	static get detaySinif() { return MQSablonOrtakDetay } static get adiEtiket() { return 'Şablon Adı' } static get tumKolonlarGosterilirmi() { return true }
@@ -577,7 +577,7 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 }
 /** Şablon listesi, Home screen */
 class MQSablon extends MQSablonOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'SSIP' } static get sinifAdi() { return 'Sipariş' }
 	static get fisSiniflar() { return [...super.fisSiniflar, SablonluSatisSiparisFis ] }
 	static get detaySinif() { return MQSablonDetay }
@@ -585,7 +585,7 @@ class MQSablon extends MQSablonOrtak {
 }
 /** Şablon listesi, Home screen */
 class MQKonsinyeSablon extends MQSablonOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get konsinyemi() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get konsinyemi() { return true }
 	static get kodListeTipi() { return 'KSSIP' } static get sinifAdi() { return 'Konsinye Sipariş' }
 	static get fisSiniflar() { return [...super.fisSiniflar, SablonluKonsinyeAlimSiparisFis, SablonluKonsinyeTransferFis ] }
 	static get detaySinif() { return MQKonsinyeSablonDetay }
@@ -680,7 +680,7 @@ class MQKonsinyeSablon extends MQSablonOrtak {
 
 /** Şablon'a ait Önceki Siparişler */
 class MQSablonOrtakDetay extends MQDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get table() { return this.fisSinif.table }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get table() { return this.fisSinif.table }
 	static get sablonSinif() { return MQSablonOrtak } static get fisSinif() { return this.sablonSinif.fisSinif }
 	static get konsinyemi() { return this.sablonSinif.konsinyemi }
 	static orjBaslikListesi_argsDuzenle(e) {
@@ -833,7 +833,7 @@ class MQSablonOrtakDetay extends MQDetay {
 }
 /** Şablon'a ait Önceki Siparişler */
 class MQSablonDetay extends MQSablonOrtakDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sablonSinif() { return MQSablon }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sablonSinif() { return MQSablon }
 	static async loadServerDataDogrudan(e) {
 		let {sender: gridPart, parentRec} = e;  /* gridPart: SablonOrtakFis'in liste ekranı ; parentRec: Şablon başlık kaydı */
 		let {kaysayac: sablonSayac} = parentRec, {tarih, mustKod} = gridPart;
@@ -868,7 +868,7 @@ class MQSablonDetay extends MQSablonOrtakDetay {
 }
 /** Şablon'a ait Önceki Siparişler */
 class MQKonsinyeSablonDetay extends MQSablonOrtakDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sablonSinif() { return MQKonsinyeSablon }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sablonSinif() { return MQKonsinyeSablon }
 }
 
 

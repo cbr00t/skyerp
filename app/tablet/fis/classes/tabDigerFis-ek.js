@@ -1,6 +1,6 @@
 
 class TabPlasTeslimFis extends TabTransferFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'PS' }
 	static get sinifAdi() {
 		let { tablet: { ertesiGunSiparisTeslimFisidir: teslim } = {} } = app.params
@@ -38,7 +38,7 @@ class TabPlasTeslimFis extends TabTransferFis {
 	}
 }
 class TabPlasIadeFis extends TabPlasTeslimFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'PI' }
 	static get sinifAdi() { return 'Plasiyer İADE' }
 	static get onlineFisSinif() { return PlasIadeOnlineFis }
@@ -48,7 +48,7 @@ class TabPlasIadeFis extends TabPlasTeslimFis {
 
 
 class PlasTeslimOnlineFis extends StokTransferFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get fisEkAyrim() { return 'SC' }
 	
 	static pTanimDuzenle({ pTanim }) {
@@ -58,12 +58,12 @@ class PlasTeslimOnlineFis extends StokTransferFis {
 	}	
 }
 class PlasIadeOnlineFis extends PlasTeslimOnlineFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get iademi() { return true }
 }
 
 class PlasSiparisOnlineFis extends MQTicariGenelFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'butfis' }
 	static get detaySinif() { return PlasSiparisOnlineDetay }
 	static get tsnKullanilirmi() { return true }
@@ -81,5 +81,5 @@ class PlasSiparisOnlineFis extends MQTicariGenelFis {
 	}
 }
 class PlasSiparisOnlineDetay extends SayimDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }

@@ -1,5 +1,5 @@
 class EIslemTip extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return null }
 	get eFaturami() { return this.char == EIslFatura.tip } get eArsivmi() { return this.char == EIslArsiv.tip }
 	get eIrsaliyemi() { return this.char == EIslIrsaliye.tip } get eMustahsilmi() { return this.char == EIslMustahsil.tip }
@@ -12,7 +12,7 @@ class EIslemTip extends TekSecim {
 	}
 }
 class EIslFaturaAyrim extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return ' ' } get magazami() { return this.char == 'PR' } faturami() { return !this.char?.trim() }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); const {kaListe} = e; kaListe.push(
@@ -22,7 +22,7 @@ class EIslFaturaAyrim extends TekSecim {
 	}
 }
 class EIslemOnayDurum extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return null }
 	get aliciyaUlastimi() { return this.char == '@' } onaymi() { return this.char == 'O' } get kabulmu() { return this.onaymi } get redmi() { return this.char == 'R' }
 	get iptalmi() { return this.char == 'C' } get hatami() { return this.char == 'X' } get beklemedemi() { return this.char == 'B' } get belirsizmi() { return this.char == ' ' }
@@ -40,7 +40,7 @@ class EIslemOnayDurum extends TekSecim {
 	}
 }
 class EOzelEntegrator extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return ' ' }
 	get yokmu() { return this.char == ' ' }
 	get innovami() { return this.char == 'innova' }
@@ -65,7 +65,7 @@ class EOzelEntegrator extends TekSecim {
 	}
 }
 class EIslemSenaryo extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return 'M' }
 	get temelmi() { return this.char == 'M' }
 	get ticarimi() { return this.char == 'T' }

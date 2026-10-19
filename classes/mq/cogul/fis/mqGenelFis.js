@@ -1,5 +1,5 @@
 class MQGenelFis extends MQOrtakFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get listeUISinif() { return FisListePart }
 	static get tanimUISinif() { return FisGirisPart }
 	static get subeKodSaha() { return 'bizsubekod' }

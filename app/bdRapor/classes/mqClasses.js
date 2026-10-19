@@ -1,5 +1,5 @@
 class BDMQPersonel extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'PER' } static get sinifAdi() { return 'Personel' }
 	static get table() { return 'personel' } static get tableAlias() { return 'per' }
 	static get zeminRenkDesteklermi() { return true }
@@ -85,7 +85,7 @@ class BDMQPersonel extends DMQKA {
 }
 
 class BDMQPerDep extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'DEP' } static get sinifAdi() { return 'Departman' }
 	static get table() { return 'departman' } static get tableAlias() { return 'dep' }
 	static orjBaslikListesiDuzenle({ liste }) {
@@ -105,7 +105,7 @@ class BDMQPerDep extends DMQKA {
 }
 
 class BDMQPerGorev extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'GOREV' } static get sinifAdi() { return 'Görev' }
 	static get table() { return 'bgorev' } static get tableAlias() { return 'gor' }
 	static orjBaslikListesiDuzenle({ liste }) {
@@ -125,50 +125,50 @@ class BDMQPerGorev extends DMQKA {
 }
 
 class BDMQPerGrup extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'PERGRUP' } static get sinifAdi() { return 'Per. Grup' }
 	static get table() { return 'pergrup' } static get tableAlias() { return 'grp' }
 }
 class BDMQPerMasraf extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'PERMASRAF' } static get sinifAdi() { return 'Masraf' }
 	static get table() { return 'permasraf' } static get tableAlias() { return 'mas' }
 }
 class BDMQPerBirim extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'PERBIRIM' } static get sinifAdi() { return 'Birim' }
 	static get table() { return 'perbirim' } static get tableAlias() { return 'brm' }
 }
 class BDMQDepIsyeri extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'ISYERI' } static get sinifAdi() { return 'İşyeri' }
 	static get table() { return 'bisyeri' } static get tableAlias() { return 'isy' }
 	static get adiSaha() { return 'birunvan' }
 }
 class BDMQPerGorevTipi extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'GOREVTIPI' } static get sinifAdi() { return 'Görev Tipi' }
 	static get table() { return 'bgorevtipi' } static get tableAlias() { return 'tip' }
 }
 class BDMQPerUzmanlik extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'UZMANLIK' } static get sinifAdi() { return 'Uzmanlık' }
 	static get table() { return 'peruzmanlik' } static get tableAlias() { return 'uzm' }
 }
 class BDMQPerYaka extends DMQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'YAKA' } static get sinifAdi() { return 'Yaka' }
 	static get table() { return 'peryaka' } static get tableAlias() { return 'yak' }
 }
 
 class BDMQGOFirma extends DMQGuidVeAdi {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'GOFIRMA' } static get sinifAdi() { return 'GO Firma' }
 	static get table() { return 'gyuzfirma' } static get tableAlias() { return 'gfir' }
 	static get kodSaha() { return 'webrefid' }
 }
 class BDMQGOBolge extends DMQGuidVeAdi {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'GOBOLGE' } static get sinifAdi() { return 'GO Bölge' }
 	static get table() { return 'gyuzbolge' } static get tableAlias() { return 'gbol' }
 	static get kodSaha() { return 'webrefid' }

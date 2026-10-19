@@ -1,5 +1,5 @@
 class HTMLDokum extends CObject {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get doc() {
 	    if (!this._doc && this.sablon)
 			this._doc = this.parser.parseFromString(this.sablon, 'text/html')

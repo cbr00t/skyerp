@@ -1,5 +1,5 @@
 class MQCari extends MQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Toplu e-Mail: Cari Listesi' } static get table() { return 'carmst' } static get tableAlias() { return 'car' }
 	static get kodSaha() { return 'must' } static get adiSaha() { return 'birunvan' }
 	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false } static get raporKullanilirmi() { return true }

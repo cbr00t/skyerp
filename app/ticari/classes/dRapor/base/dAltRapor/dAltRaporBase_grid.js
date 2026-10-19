@@ -1,5 +1,5 @@
 class DAltRapor_Grid extends DAltRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGridmi() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get dGridmi() { return true }
 	constructor(e) {
 		e = e || {}; super(e);
 		if (this.secimler == null) { this.secimler = this.newSecimler(e) }
@@ -30,7 +30,7 @@ class DAltRapor_Grid extends DAltRapor {
 	super_tazele(e) { super.tazele(e) }
 }
 class DAltRapor_GridGruplu extends DAltRapor_Grid {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get dGridliAltRapormu() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get dGridliAltRapormu() { return true }
 	static get raporClass() { return null } static get kod() { return 'main' } static get aciklama() { return this.raporClass.aciklama }
 	get width() { return '73%' } get height() { return 'var(--full)' } static get gruplamaKAListe() { return [] }
 	static get gridGrupAttrSet() { let result = this._gridGrupAttrSet; if (result == null) { result = this._gridGrupAttrSet = asSet(this.gridGrupAttrListe) } return result }
@@ -108,7 +108,7 @@ class DAltRapor_GridGruplu extends DAltRapor_Grid {
 	}
 }
 class DAltRapor_Grid_Ozet extends DAltRapor_Grid {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return null }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return null }
 	static get kod() { return 'ozet' } static get aciklama() { return 'Özet Bilgi' } static get uygunmu() { return false }
 	static get tazeleYapilirmi() { return false } get etiket() { return `${super.etiket}: ${this.class.aciklama}` }
 	get width() { return this.isPanelItem ? 'var(--full)' : `calc(var(--full) - ${this.rapor.id2AltRapor.main.width} - 15px)` }

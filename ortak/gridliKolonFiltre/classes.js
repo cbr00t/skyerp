@@ -1,5 +1,5 @@
 class GridKolonFiltreDuzenleyici extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get recs() { return this._recs } set recs(value) { this._recs = value; this._attr2FiltreRecs }
 	get attr2FiltreRecs() {
 		let result = this._attr2FiltreRecs; if (result == null) {
@@ -13,7 +13,7 @@ class GridKolonFiltreDuzenleyici extends CObject {
 	degisti() { this.degistimi = true; return this } degismedi() { this.degistimi = false; return this }
 }
 class GridKolonFiltreRec extends CKodAdiVeEkBilgi {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get attr() { return this.kod } set attr(value) { this.kod = value }
 	get operator() { return this.ekBilgi } set operator(value) { this.ekBilgi = value }
 	get value() { return this.aciklama } set value(value) { this.aciklama = value }
@@ -56,7 +56,7 @@ class GridKolonFiltreRec extends CKodAdiVeEkBilgi {
 	}
 }
 class GridliKolonFiltre_OperatorTekSecim extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return 'CONTAINS' }
 	kaListeDuzenle(e) {
 		/* [ "EMPTY", "NOT_EMPTY", "CONTAINS", "CONTAINS_CASE_SENSITIVE", "DOES_NOT_CONTAIN", "DOES_NOT_CONTAIN_CASE_SENSITIVE", "STARTS_WITH", "STARTS_WITH_CASE_SENSITIVE",

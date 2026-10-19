@@ -1,5 +1,5 @@
 class HizmetOrtakFis extends FinansFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get detaySinif() { return HizmetOrtakDetay }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get detaySinif() { return HizmetOrtakDetay }
 	static get gridKontrolcuSinif() { return HizmetOrtakGridci } static get fisTipi() { return null }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
@@ -81,7 +81,7 @@ class HizmetOrtakFis extends FinansFis {
 	}
 }
 class HizmetOrtakDetay extends FinansDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	getHesaplanmisSonuc(e) {
 		const fis = e.inst ?? e.fis ?? e.sender?.fis;
 		const fis_ba = fis?.ba?.char;
@@ -211,7 +211,7 @@ class HizmetOrtakDetay extends FinansDetay {
 	}
 }
 class HizmetOrtakGridci extends FinansGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	tabloKolonlariDuzenle_ilk(e) {
 		super.tabloKolonlariDuzenle_ilk(e);
 		const {tabloKolonlari} = e;
@@ -494,7 +494,7 @@ class HizmetOrtakGridci extends FinansGridci {
 }
 
 class KasaHizmetFis extends HizmetOrtakFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get detaySinif() { return KasaHizmetDetay } static get gridKontrolcuSinif() { return KasaHizmetGridci } static get sinifAdi() { return 'Kasa Hizmet Fişi' }
 	static get kodListeTipi() { return 'KSHIZ' } static get numTipKod() { return 'KDTAH' } static get fisTipi() { return 'KH' }
 	get bakiyeciler() { return [...super.bakiyeciler, new KasaBakiyeci({ borcmu: e => this.ba.gelirmi })] }
@@ -553,14 +553,14 @@ class KasaHizmetFis extends HizmetOrtakFis {
 	}
 }
 class KasaHizmetDetay extends HizmetOrtakDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 class KasaHizmetGridci extends HizmetOrtakGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 
 class CariHizmetFis extends HizmetOrtakFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get detaySinif() { return CariHizmetDetay } static get gridKontrolcuSinif() { return CariHizmetGridci }
 	static get fisTipi() { return 'CH' } static get sinifAdi() { return 'Cari Hizmet Fişi' }
 	static get kodListeTipi() { return 'CRHIZ' } static get numTipKod() { return 'CHIZ' }
@@ -584,14 +584,14 @@ class CariHizmetFis extends HizmetOrtakFis {
 	}
 }
 class CariHizmetDetay extends HizmetOrtakDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static extYapilarDuzenle(e) {
 		super.extYapilarDuzenle(e)
 		e.liste.unshift(Ext_CariVeAltHesap)
 	}
 }
 class CariHizmetGridci extends HizmetOrtakGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	tabloKolonlariDuzenle_ilk(e) {
 		const kolonGruplar = MQCari.getGridKolonlar({ belirtec: 'must', gridKolonGrupcu: 'getGridKolonGrup_yoreli', sabitle: true });
 		const {tabloKolonlari} = e; tabloKolonlari.push(...kolonGruplar);
@@ -600,7 +600,7 @@ class CariHizmetGridci extends HizmetOrtakGridci {
 }
 
 class BankaHizmetFis extends HizmetOrtakFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'BNHIZ' } static get sinifAdi() { return 'Banka Hizmet Fişi' }
 	static get detaySinif() { return BankaHizmetDetay } static get gridKontrolcuSinif() { return BankaHizmetGridci }
 	static get numTipKod() { return 'HSHIZ' } static get fisTipi() { return 'HH' }
@@ -624,19 +624,19 @@ class BankaHizmetFis extends HizmetOrtakFis {
 	}
 }
 class BankaHizmetDetay extends HizmetOrtakDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static extYapilarDuzenle(e) {
 		super.extYapilarDuzenle(e)
 		e.liste.unshift(Ext_BankaHesap)
 	}
 }
 class BankaHizmetGridci extends HizmetOrtakGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	tabloKolonlariDuzenle_ilk(e) { const kolonGruplar = MQBankaHesap.getGridKolonlar({ belirtec: 'banHesap', sabitle: true }); e.tabloKolonlari.push(...kolonGruplar); super.tabloKolonlariDuzenle_ilk(e) }
 }
 
 class KrediKartiIleMasrafOdemeFis extends HizmetOrtakFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Kredi Kartı ile Masraf Ödeme' } static get table() { return KrediKartiIleOdemeFis.table } static get detaySinif() { return KrediKartiIleMasrafOdemeDetay }
 	static get gridKontrolcuSinif() { return KrediKartiIleMasrafOdemeGridci } static get almSat() { return KrediKartiIleOdemeFis.almSat } static get fisTipi() { return KrediKartiIleOdemeFis.fisTipi }
 	static get kodListeTipi() { return 'KKMOF' } static get numTipKod() { return KrediKartiIleOdemeFis.numTipKod }
@@ -669,7 +669,7 @@ class KrediKartiIleMasrafOdemeFis extends HizmetOrtakFis {
 	static orjBaslikListesiDuzenle_son(e) { return super.super_orjBaslikListesiDuzenle_son(e) }
 }
 class KrediKartiIleMasrafOdemeDetay extends HizmetOrtakDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'posilkhar' }
 	static extYapilarDuzenle(e) {
 		const {liste} = e;
@@ -683,7 +683,7 @@ class KrediKartiIleMasrafOdemeDetay extends HizmetOrtakDetay {
 	}
 }
 class KrediKartiIleMasrafOdemeGridci extends HizmetOrtakGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get posHesapSinif() { return MQKrediKarti }
 	tabloKolonlariDuzenle(e) {
 		super.tabloKolonlariDuzenle(e);

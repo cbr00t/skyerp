@@ -1,5 +1,5 @@
 class CProxyHandler extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(obj) { super(); this._ = obj }
 	has(target, key) {
 		if (key === undefined) { return this.has(this._, target) }
@@ -64,7 +64,7 @@ class MapSetHandler extends CProxyHandler {
 	}
 }
 class CTekSecimProxyHandler extends CProxyHandler {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get(target, prop, $this) {
 		if (prop.length > 2) {
 			if (prop.endsWith('mi') || prop.endsWith('mu')) {

@@ -1,5 +1,5 @@
 class MQHMR extends MQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tableAlias() { return 'hmr' }
 	static hmrTabloKolonDuzenle(e) {}
 	static hmr_queryEkDuzenle(e) { }

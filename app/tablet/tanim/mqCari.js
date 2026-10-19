@@ -1,5 +1,5 @@
 class MQTabCari extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'CARI' } static get sinifAdi() { return 'Cari' }
 	static get table() { return 'carmst' } static get tableAlias() { return 'car' }
 	static get onlineIdSaha() { return 'must' } static get adiEtiket() { return 'Ünvan' }

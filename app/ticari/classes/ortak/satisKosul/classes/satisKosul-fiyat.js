@@ -1,5 +1,5 @@
 class SatisKosul_Fiyat extends SatisKosul {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tipKod() { return 'FY' } static get aciklama() { return 'Fiyat' }
 	static get table() { return 'fiyliste' } static get detayTables() { return { stok: 'fiytarife', grup: 'fiytargrup' } }
 	static get detayMustTable() { return 'fiymust' }

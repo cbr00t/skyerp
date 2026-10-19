@@ -1,5 +1,5 @@
 class MQKodOrtak extends MQKod {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tanimUISinif() { return MQMasterOrtak.tanimUISinif }
 	static get secimSinif() { let {ozelSecimSinif} = MQMasterOrtak; return ozelSecimSinif === undefined ? super.secimSinif : ozelSecimSinif }
 	static get ignoreBelirtecSet() { return {} } static get gonderildiDesteklenirmi() { return MQMasterOrtak.gonderildiDesteklenirmi }
@@ -17,7 +17,7 @@ class MQKodOrtak extends MQKod {
 }
 
 class MQKAOrtak extends MQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tanimUISinif() { return MQMasterOrtak.tanimUISinif }
 	static get secimSinif() { let {ozelSecimSinif} = MQMasterOrtak; return ozelSecimSinif === undefined ? super.secimSinif : ozelSecimSinif }
 	static get ignoreBelirtecSet() { return {} } static get gonderildiDesteklenirmi() { return MQMasterOrtak.gonderildiDesteklenirmi }
@@ -35,7 +35,7 @@ class MQKAOrtak extends MQKA {
 }
 
 class MQGuidOrtak extends MQGuid {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tanimUISinif() { return MQMasterOrtak.tanimUISinif }
 	static get secimSinif() { let {ozelSecimSinif} = MQMasterOrtak; return ozelSecimSinif === undefined ? super.secimSinif : ozelSecimSinif }
 	static get ignoreBelirtecSet() { return asSet([this.kodSaha]) } static get gonderildiDesteklenirmi() { return MQMasterOrtak.gonderildiDesteklenirmi }
@@ -53,7 +53,7 @@ class MQGuidOrtak extends MQGuid {
 }
 
 class MQGuidVeAdiOrtak extends MQGuidVeAdi {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tanimUISinif() { return MQMasterOrtak.tanimUISinif } static get secimSinif() { let {ozelSecimSinif} = MQMasterOrtak; return ozelSecimSinif === undefined ? super.secimSinif : ozelSecimSinif }
 	static get ignoreBelirtecSet() { return {} } static get gonderildiDesteklenirmi() { return MQMasterOrtak.gonderildiDesteklenirmi }
 	static get noAutoFocus() { return MQMasterOrtak.noAutoFocus }
@@ -71,7 +71,7 @@ class MQGuidVeAdiOrtak extends MQGuidVeAdi {
 }
 
 class MQSayacliOrtak extends MQSayacli {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tanimUISinif() { return MQMasterOrtak.tanimUISinif }
 	static get secimSinif() { let {ozelSecimSinif} = MQMasterOrtak; return ozelSecimSinif === undefined ? super.secimSinif : ozelSecimSinif }
 	static get ignoreBelirtecSet() { return {} } static get gonderildiDesteklenirmi() { return MQMasterOrtak.gonderildiDesteklenirmi }
@@ -89,7 +89,7 @@ class MQSayacliOrtak extends MQSayacli {
 }
 
 class MQDetayliOrtak extends MQDetayli {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tanimUISinif() { return MQMasterOrtak.tanimUISinif }
 	static get secimSinif() { let {ozelSecimSinif} = MQMasterOrtak; return ozelSecimSinif === undefined ? super.secimSinif : ozelSecimSinif }
 	static get ignoreBelirtecSet() { return {} } static get gonderildiDesteklenirmi() { return MQMasterOrtak.gonderildiDesteklenirmi }
@@ -107,7 +107,7 @@ class MQDetayliOrtak extends MQDetayli {
 }
 
 class MQDetayliMasterOrtak extends MQDetayliMaster {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tanimUISinif() { return MQMasterOrtak.tanimUISinif }
 	static get secimSinif() { let {ozelSecimSinif} = MQMasterOrtak; return ozelSecimSinif === undefined ? super.secimSinif : ozelSecimSinif }
 	static get ignoreBelirtecSet() { return {} } static get gonderildiDesteklenirmi() { return MQMasterOrtak.gonderildiDesteklenirmi }
@@ -123,7 +123,7 @@ class MQDetayliMasterOrtak extends MQDetayliMaster {
 }
 
 class MQDetayliGUIDOrtak extends MQDetayliGUID {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tanimUISinif() { return MQMasterOrtak.tanimUISinif }
 	static get secimSinif() { let {ozelSecimSinif} = MQMasterOrtak; return ozelSecimSinif === undefined ? super.secimSinif : ozelSecimSinif }
 	static get gonderildiDesteklenirmi() { return MQMasterOrtak.gonderildiDesteklenirmi } static get noAutoFocus() { return MQMasterOrtak.noAutoFocus }
@@ -141,7 +141,7 @@ class MQDetayliGUIDOrtak extends MQDetayliGUID {
 }
 
 class MQDetayliVeAdiOrtak extends MQDetayliVeAdi {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tanimUISinif() { return MQMasterOrtak.tanimUISinif }
 	static get secimSinif() { let {ozelSecimSinif} = MQMasterOrtak; return ozelSecimSinif === undefined ? super.secimSinif : ozelSecimSinif }
 	static get ignoreBelirtecSet() { return {} } static get gonderildiDesteklenirmi() { return MQMasterOrtak.gonderildiDesteklenirmi }
@@ -159,7 +159,7 @@ class MQDetayliVeAdiOrtak extends MQDetayliVeAdi {
 }
 
 class MQDetayliGUIDVeAdiOrtak extends MQDetayliGUIDVeAdi {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tanimUISinif() { return MQMasterOrtak.tanimUISinif }
 	static get secimSinif() { let {ozelSecimSinif} = MQMasterOrtak; return ozelSecimSinif === undefined ? super.secimSinif : ozelSecimSinif }
 	static get ignoreBelirtecSet() { return {} } static get gonderildiDesteklenirmi() { return MQMasterOrtak.gonderildiDesteklenirmi }
@@ -177,7 +177,7 @@ class MQDetayliGUIDVeAdiOrtak extends MQDetayliGUIDVeAdi {
 }
 
 class MQSayacliKAOrtak extends MQSayacliKA {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tanimUISinif() { return MQMasterOrtak.tanimUISinif }
 	static get secimSinif() { let {ozelSecimSinif} = MQMasterOrtak; return ozelSecimSinif === undefined ? super.secimSinif : ozelSecimSinif }
 	static get ignoreBelirtecSet() { return {} } static get gonderildiDesteklenirmi() { return MQMasterOrtak.gonderildiDesteklenirmi }
@@ -195,7 +195,7 @@ class MQSayacliKAOrtak extends MQSayacliKA {
 }
 
 class MQApiOrtak extends MQMasterOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tanimUISinif() { return null } static get secimSinif() { return null }
 	static get silinebilirmi() { return false } static get gonderildiDesteklenirmi() { return false }
 	static get offlineSahaListe() { return [...super.offlineSahaListe, ...this.orjBaslikListesi.filter(x => !x.sql).map(x => x.belirtec)] }

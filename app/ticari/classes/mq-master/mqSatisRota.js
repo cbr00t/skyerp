@@ -1,5 +1,5 @@
 class MQSatisRota extends MQDetayliVeAdi {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get kodKullanilirmi() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get kodKullanilirmi() { return true }
 	static get kodListeTipi() { return 'SATISROTA' } static get detaySinif() { return MQSatisRotaDetay } static get gridKontrolcuSinif() { return MQSatisRotaGridci }
 	static get sinifAdi() { return 'Satış Rotası' } static get table() { return 'rota' } static get tableAlias() { return 'rot' }
 	static varsayilanKeyHostVarsDuzenle(e) { super.varsayilanKeyHostVarsDuzenle(e); let {hv} = e; $.extend(hv, { tipkod: 'T', sutalttip: '' }) }
@@ -18,7 +18,7 @@ class MQSatisRota extends MQDetayliVeAdi {
 	}
 }
 class MQSatisRotaDetay extends MQDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'rotadetay' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'rotadetay' }
 	static pTanimDuzenle(e) { super.pTanimDuzenle(e); let {pTanim} = e; $.extend(pTanim, { mustKod: new PInstStr('must'), mustUnvan: new PInstStr(), yore: new PInstStr() }) }
 	static orjBaslikListesiDuzenle(e) {
 		super.orjBaslikListesiDuzenle(e); let {liste} = e; liste.push(...[
@@ -31,7 +31,7 @@ class MQSatisRotaDetay extends MQDetay {
 	setValues(e) { super.setValues(e); let {rec} = e; $.extend(this, { mustUnvan: rec.mustunvan, yore: rec.yore }) }
 }
 class MQSatisRotaGridci extends GridKontrolcu {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	tabloKolonlariDuzenle_ilk(e) {
 		super.tabloKolonlariDuzenle_ilk(e); let {tabloKolonlari: liste} = e; liste.push(...[
 			...MQCari.getGridKolonlar({ gridKolonGrupcu: 'getGridKolonGrup_yoreli', belirtec: 'must', adiGenislikCh: 100 })

@@ -1,12 +1,12 @@
 class TabSayimFis extends TabStokFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'SAYIM' } static get sinifAdi() { return 'Sayım' }
 	static get onlineFisSinif() { return SayimFis }
 	static get sayimmi() { return true }
 }
 
 class TabTransferFis extends TabStokFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'TRF' } static get sinifAdi() { return 'Transfer' }
 	static get onlineFisSinif() { return StokTransferFis }
 	static get transfermi() { return true }
@@ -53,14 +53,14 @@ class TabTransferFis extends TabStokFis {
 }
 
 class TabTransferSiparisFis extends TabTransferFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'TRFS' } static get sinifAdi() { return 'Transfer Sipariş' }
 	static get onlineFisSinif() { return TransferSiparisFis }
 	static get siparismi() { return true }
 }
 
 class TabIrsaliyeliTransferFis extends TabTransferFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'TRFI' } static get sinifAdi() { return 'İrsaliyeli Transfer' }
 	static get onlineFisSinif() { return IrsaliyeliTransferFis }
 	static get irsaliyemi() { return true }

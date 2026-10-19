@@ -1,5 +1,5 @@
 class FisDipPart extends GridliGirisPart {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get partName() { return 'fisDip' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get partName() { return 'fisDip' }
 	static get isSubPart() { return false } static get isWindowPart() { return false }
 	static get gelismisFlag() { return false } get defaultGridIDBelirtec() { return 'belirtec' }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { islem: e.islem, fis: e.inst || e.fis, dipIslemci: e.dipIslemci }) }

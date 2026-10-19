@@ -1,5 +1,5 @@
 class MQYerelParamBaseTanimPart extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get rootPartName() { return 'yerelParamBaseTanim' } static get partName() { return this.rootPartName }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get rootPartName() { return 'yerelParamBaseTanim' } static get partName() { return this.rootPartName }
 	get defaultLayoutSelector() { return `#${this.class.partName}` } get wndDefaultIsModal() { return true } static get canDestroy() { return true }
 	get builder() {
 		let result = this._builder;

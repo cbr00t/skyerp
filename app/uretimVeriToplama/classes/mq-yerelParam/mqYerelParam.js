@@ -1,5 +1,5 @@
 class MQYerelParamUretim extends MQYerelParamTicari {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get paramKod() { return `${super.paramKod}.yerel` }
 	constructor(e) {
 		e = e || {}; super(e);

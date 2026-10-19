@@ -1,5 +1,5 @@
 class GridExporter_TreeGrid extends GridExporter {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get widget() { return this.gridWidget.base }
 	checkLoaded() {
 		if (this.gridWidget.virtualModeCreateRecords || this.widget.serverProcessing)

@@ -1,5 +1,5 @@
 class AITraining01Part extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this } 
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } 
     static get isWindowPart() { return true }
     static get partName() { return 'aiTraining01' }
     static get sinifAdi() { return 'AI Training 01 - Window' }

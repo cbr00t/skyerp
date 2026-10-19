@@ -1,5 +1,5 @@
 class ESEApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this } 
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } 
 	get autoExecMenuId() { return 'MAIN' }
 	get isLoginRequired() { return true }
 	get kioskmuDogrudan() { return config.session?.loginTipi == 'eseLogin' }

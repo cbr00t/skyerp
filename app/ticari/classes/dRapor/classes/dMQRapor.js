@@ -1,5 +1,5 @@
 class DMQRapor extends DMQSayacliKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, 'rapor'] }
 	static get kodListeTipi() { return 'DMQRAPOR' } static get sinifAdi() { return 'Rapor' }
 	static get table() { return 'wgruprapor' } static get tableAlias() { return 'rap' }

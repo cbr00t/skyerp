@@ -1,5 +1,5 @@
 class TabDokumForm extends MQKA {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'TABMATFORM' } static get sinifAdi() { return 'Tablet Matbuu Form' }
 	static get table() { return 'tmatbuu' } static get detaySinif() { return TabDokumFormDetay }
 	static get adiKullanilirmi() { return false }
@@ -233,7 +233,7 @@ class TabDokumForm extends MQKA {
 }
 
 class TabDokumFormDetay extends MQDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'tmatdetay' }
 }
 

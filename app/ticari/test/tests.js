@@ -1,10 +1,10 @@
 class Ticari_TestBase extends TestBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get rootTip() { return Ticari_RunnableBase.rootTip }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get rootTip() { return Ticari_RunnableBase.rootTip }
 	static get DefaultWSHost() { return Ticari_RunnableBase.DefaultWSHost } static get DefaultWSPath() { return Ticari_RunnableBase.DefaultWSPath } static get DefaultLoginTipi() { return Ticari_RunnableBase.DefaultLoginTipi }
 	runInternal(e) { super.runInternal(e) /*; const {tip} = this.class; this.callback({ message: 'in test', tip })*/ }
 }
 class TicariTest_TrnListTest extends Ticari_TestBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get altTip() { return 'trnList' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get altTip() { return 'trnList' }
 	constructor(e) { e = e || {}; super(e); Object.assign(this, { delayMS: e.delay ?? e.delayMS, showTableFlag: e.showTable ?? e.withTable }) }
 	async runInternal(e) {
 		await super.runInternal(e); const {showTableFlag} = this, {tip} = this.class, delayMS = this.delayMS ?? 500;
@@ -21,7 +21,7 @@ class TicariTest_TrnListTest extends Ticari_TestBase {
 	withTable() { this.showTableFlag = true; return this } noTable() { this.showTableFlag = false; return this }
 }
 class TicariTest_SatFat_TopluKayitOlustur extends Ticari_TestBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get altTip() { return 'satFat-topluKayitAc' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get altTip() { return 'satFat-topluKayitAc' }
 	static get fisSinif() { return SatisFaturaFis } static get baslikAciklama() { return 'KAYIT TEST' }
 	constructor(e) { e = e || {}; super(e); Object.assign(this, { trnFlag: e.trn ?? e.trnFlag, unvanLike: e.unvanLike ?? 'MEMDUH' }) }
 	async runInternal(e) {
@@ -39,7 +39,7 @@ class TicariTest_SatFat_TopluKayitOlustur extends Ticari_TestBase {
 	setUnvanLike(value) { this.unvanLike = value; return this }
 }
 class TicariTest_SatFat_TopluKayitSil extends Ticari_TestBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get altTip() { return 'satFat-topluKayitAc' } static get olusturClass() { return Ticari_SatFat_TopluKayitOlustur }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get altTip() { return 'satFat-topluKayitAc' } static get olusturClass() { return Ticari_SatFat_TopluKayitOlustur }
 	constructor(e) { e = e || {}; super(e); Object.assign(this, { trnFlag: e.trn ?? e.trnFlag }) }
 	async runInternal(e) {
 		await super.runInternal(e); await this.wsLogin(e); const {trnFlag} = this, {tip, olusturClass} = this.class, {fisSinif, baslikAciklama} = olusturClass;
@@ -56,7 +56,7 @@ class TicariTest_SatFat_TopluKayitSil extends Ticari_TestBase {
 	withTrn() { this.trnFlag = true; return this } noTrn() { return this.trnFlag = false; return this }
 }
 class TicariTest_OzelComboBox1 extends Ticari_TestBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get altTip() { return this.partName } static get partName() { return 'ozelComboBox1' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get altTip() { return this.partName } static get partName() { return 'ozelComboBox1' }
 	constructor(e) {
 		e = e || {}; super(e); const kolonTanimlari = e.kolonTanimlari ?? MQKA.orjBaslikListesi, {source, parent, layout} = e;
 		const width = e.width || '98%', height = e.height ?? 40, kodAttr = e.kodAttr ?? e.kodSaha ?? MQKA.kodSaha, adiAttr = e.adiAttr ?? e.adiSaha ?? MQKA.adiSaha;
@@ -113,7 +113,7 @@ class TicariTest_OzelComboBox1 extends Ticari_TestBase {
 	}
 }
 class TicariTest_OzelComboBox2 extends Ticari_TestBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get altTip() { return this.partName } static get partName() { return 'ozelComboBox2' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get altTip() { return this.partName } static get partName() { return 'ozelComboBox2' }
 	static get isSubPart() { return true } get isSubPart() { return this.class.isSubPart }
 	constructor(e) {
 		e = e || {}; super(e); const {mfSinif, source, parent, layout} = e;

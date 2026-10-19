@@ -1,9 +1,9 @@
 class DRapor_Oper_GerDurumOrtak extends DRapor_OperBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get araSeviyemi() { return true } static get uygunmu() { return false }
 }
 class DRapor_Oper_GerDurumOrtak_Main extends DRapor_OperBase_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Oper_GerDurumOrtak } static get defaultAlias() { return null }
 	secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments); let grupKod = 'emirOper';
@@ -83,11 +83,11 @@ class DRapor_Oper_GerDurumOrtak_Main extends DRapor_OperBase_Main {
 }
 
 class DRapor_Oper_Gercekleme extends DRapor_Oper_GerDurumOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get araSeviyemi() { return false }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get araSeviyemi() { return false }
 	static get kod() { return 'GERCEKLEME' } static get aciklama() { return 'Gerçekleme Analizi' } static get vioAdim() { return null }
 }
 class DRapor_Oper_Gercekleme_Main extends DRapor_Oper_GerDurumOrtak_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get araSeviyemi() { return false }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get araSeviyemi() { return false }
 	static get raporClass() { return DRapor_Oper_Gercekleme } static get defaultAlias() { return 'gdet' }
 	tabloYapiDuzenle({ result }) {
 		super.tabloYapiDuzenle(...arguments);
@@ -123,11 +123,11 @@ class DRapor_Oper_Gercekleme_Main extends DRapor_Oper_GerDurumOrtak_Main {
 }
 
 class DRapor_Oper_Durum extends DRapor_Oper_GerDurumOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get araSeviyemi() { return false }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get araSeviyemi() { return false }
 	static get kod() { return 'OPERDURUM' } static get aciklama() { return 'Oper. Durum Analizi' } static get vioAdim() { return null }
 }
 class DRapor_Oper_Durum_Main extends DRapor_Oper_GerDurumOrtak_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get araSeviyemi() { return false }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get araSeviyemi() { return false }
 	static get raporClass() { return DRapor_Oper_Durum } static get defaultAlias() { return 'oem' }
 	tabloYapiDuzenle_brutMiktarOncesi({ result }) {
 		super.tabloYapiDuzenle_brutMiktarOncesi(...arguments);
@@ -160,11 +160,11 @@ class DRapor_Oper_Durum_Main extends DRapor_Oper_GerDurumOrtak_Main {
 
 
 class DRapor_Oper_Iskarta extends DRapor_OperBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get araSeviyemi() { return false } static get uygunmu() { return false }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get araSeviyemi() { return false } static get uygunmu() { return false }
 	static get kod() { return 'ISKARTA' } static get aciklama() { return 'Iskarta Analizi' } static get vioAdim() { return null }
 }
 class DRapor_Oper_Iskarta_Main extends DRapor_OperBase_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_Oper_Iskarta }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_Oper_Iskarta }
 	tabloYapiDuzenle({ result }) {
 		super.tabloYapiDuzenle(...arguments); let {iskartaMaxSayi} = app.params.operGenel;
 		result.addKAPrefix('neden')
@@ -206,11 +206,11 @@ class DRapor_Oper_Iskarta_Main extends DRapor_OperBase_Main {
 }
 
 class DRapor_Oper_Duraksama extends DRapor_OperBase {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get araSeviyemi() { return false }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get araSeviyemi() { return false }
 	static get kod() { return 'DURAKSAMA' } static get aciklama() { return 'Duraksama Analizi' } static get vioAdim() { return null }
 }
 class DRapor_Oper_Duraksama_Main extends DRapor_OperBase_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Oper_Duraksama }
 	secimlerDuzenle({ secimler: sec }) {
 		super.secimlerDuzenle(...arguments)

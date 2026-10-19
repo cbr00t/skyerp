@@ -1,5 +1,5 @@
 class Hareketci extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get uygunmu() { return true }
 	static get oncelik() { return 99 } static get kisaKod() { return this.kod }
 	static get kod() { return null } static get aciklama() { return null } static get araSeviyemi() { return this == Hareketci }

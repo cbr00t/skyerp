@@ -1,5 +1,5 @@
 class MQSayacli extends MQCogul {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sayacSaha() { return 'kaysayac' } static kami() { return this.kodKullanilirmi }
 	static get kodKullanilirmi() { return false } static get adiKullanilirmi() { return false }
 	static get kodSaha() { return this.kodKullanilirmi ? MQKA.kodSaha : this.sayacSaha } static get bosKodAlinirmi() { return false }

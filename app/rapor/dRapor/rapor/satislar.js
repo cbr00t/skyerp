@@ -1,5 +1,5 @@
 class DRapor_StokSatislar extends DRapor_TicariStok {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get uygunmu() { return config.dev }
 	static get kategoriKod() { return DRapor_Hareketci_Satislar.kategoriKod }
 	static get kategoriAdi() { return DRapor_Hareketci_Satislar.kategoriAdi }
@@ -8,7 +8,7 @@ class DRapor_StokSatislar extends DRapor_TicariStok {
 	static get vioAdim() { return 'SA-RCF' }
 }
 class DRapor_StokSatislar_Main extends DRapor_Sevkiyat_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_StokSatislar }
 	fisVeHareketBagla({ sent: { where: wh }}) {
 		super.fisVeHareketBagla(...arguments)
@@ -17,7 +17,7 @@ class DRapor_StokSatislar_Main extends DRapor_Sevkiyat_Main {
 }
 
 class DRapor_HizmetSatislar extends DRapor_TicariHizmet {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get uygunmu() { return config.dev }
 	static get kategoriKod() { return DRapor_StokSatislar.kategoriKod }
 	static get kategoriAdi() { return DRapor_StokSatislar.kategoriAdi }
@@ -27,7 +27,7 @@ class DRapor_HizmetSatislar extends DRapor_TicariHizmet {
 	static get aciklama() { return 'ESKİ Satışlar (<span class=orangered>Hizmet</span>)' }
 }
 class DRapor_HizmetSatislar_Main extends DRapor_Sevkiyat_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_HizmetSatislar }
 	fisVeHareketBagla({ sent: { where: wh }}) {
 		super.fisVeHareketBagla(...arguments)

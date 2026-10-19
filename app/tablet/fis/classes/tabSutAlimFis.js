@@ -1,5 +1,5 @@
 class TabSutAlimFis extends TabFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sutAlimmi() { return true } static get alimmi() { return true }
 	static get kodListeTipi() { return 'SUT' } static get sinifAdi() { return 'Süt Alım' }
 	static get numTipKod() { return 'SUT' } get defaultSeri() { return '' }
@@ -718,7 +718,7 @@ class TabSutAlimFis extends TabFis {
 }
 
 class TabSutAlimDetay extends TabStokDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get bedelKullanilirmi() { return false }
 	static get stokSinif() { return MQTabSutSira }
 	static get stokKodGosterilirmi() { return false }
@@ -792,7 +792,7 @@ class TabSutAlimDetay extends TabStokDetay {
 }
 
 class MQTabPosta extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tanimlanabilirmi() { return false } static get silinebilirmi() { return false }
 	static get tekSecimSinif() { return TabPosta } static get kodKullanilirmi() { return false } 
 	static get kodListeTipi() { return this.tekSecimSinif.kodListeTipi }
@@ -801,7 +801,7 @@ class MQTabPosta extends MQKAOrtak {
 	static loadServerDataDogrudan(e) { return this.tekSecimSinif.kaListe }
 }
 class TabPosta extends TekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'TABPOSTA' } static get sinifAdi() { return 'Posta' }
 	static get kodSaha() { return 'kod' } static get adiSaha() { return 'aciklama' }
 	static get defaultChar() { return 'S' }

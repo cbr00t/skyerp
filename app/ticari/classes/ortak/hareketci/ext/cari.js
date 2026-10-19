@@ -1,8 +1,8 @@
 class ModulExt_Hareketci_Cari extends ModulExt_Hareketci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 class ModulExt_Hareketci_Cari_SutAlim extends ModulExt_Hareketci_Cari {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	/*static hareketTipSecim_kaListeDuzenle(e) { super.hareketTipSecim_kaListeDuzenle(e); e.kaListe.push( new CKodVeAdi(['sutAlimMakbuz', 'Süt Alım Makbuz']) ) }
 	static uygunluk2UnionBilgiListeDuzenle(e) {
 		super.uygunluk2UnionBilgiListeDuzenle(e); const {liste, uygunluk} = e;

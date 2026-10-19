@@ -1,5 +1,5 @@
 class HatirlaticiApp extends TicariApp {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get autoExecMenuId() { return 'HATIRLATICI' }
 	get ntfyTopic() {
 		let { session: { user } = {} } = config

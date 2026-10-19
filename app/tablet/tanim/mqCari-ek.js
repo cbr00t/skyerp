@@ -1,5 +1,5 @@
 class MQTabPlasiyer extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'PLASIYER' } static get sinifAdi() { return 'Plasiyer' }
 	static get table() { return MQTabCari.table } static get tableAlias() { return 'pls' }
 	static get onlineIdSaha() { return MQTabCari.onlineIdSaha } static get kayitTipi() { return 'X' }
@@ -61,7 +61,7 @@ class MQTabPlasiyer extends MQKAOrtak {
 }
 
 class MQTabMustahsil extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'MUSTAHSIL' } static get sinifAdi() { return 'Müstahsil' }
 	static get table() { return MQTabCari.table } static get tableAlias() { return 'mus' }
 	static get onlineIdSaha() { return MQTabCari.onlineIdSaha } static get kayitTipi() { return 'M' }

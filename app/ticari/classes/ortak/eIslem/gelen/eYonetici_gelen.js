@@ -1,5 +1,5 @@
 class EYonetici_Gelen extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
     get eIslTip() { return this.eIslSinif?.tip }
     set eIslTip(v) { this.eIslSinif = EIslemOrtak.getClass(v) }
     get efAyrimTipi() { return this.class.normalizeEFAyrimTipi(this.eIslTip) }

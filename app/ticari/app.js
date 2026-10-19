@@ -1,5 +1,5 @@
 class TicariApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get vioProgBelirtec() { return null }
 	get testBaseClass() { return Ticari_TestBase }
 	get yerelParamSinif() { return MQYerelParamTicari }

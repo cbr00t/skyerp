@@ -1,5 +1,5 @@
 class TabRapor extends MQKAOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return this.kod ?? 'RAPOR' }
 	static get sinifAdi() { return this.aciklama ?? 'Raporlar' }
 	static get kod() { return null } static get aciklama() { return null }

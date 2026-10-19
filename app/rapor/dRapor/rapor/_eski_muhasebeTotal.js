@@ -1,6 +1,6 @@
 
 class DRapor_Muhasebe extends DRapor_Donemsel {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get altRaporClassPrefix() { return 'DRapor_Muhasebe' }
 	static get kategoriKod() { return 'MUH' } static get kategoriAdi() { return 'Muhasebe' }
 	static get kod() { return 'MUHASEBE' } static get aciklama() { return 'Muhasebe Total' }
@@ -9,7 +9,7 @@ class DRapor_Muhasebe extends DRapor_Donemsel {
 	static get maliTabloIcinUygunmu() { return true }
 }
 class DRapor_Muhasebe_Main extends DRapor_Donemsel_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_Muhasebe }
 	
 	secimlerDuzenle({ secimler: sec }) {

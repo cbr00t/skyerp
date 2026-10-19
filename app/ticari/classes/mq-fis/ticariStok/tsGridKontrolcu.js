@@ -1,5 +1,5 @@
 class TSGridKontrolcu extends GridKontrolcu {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	gridArgsDuzenle(e) {
 		super.gridArgsDuzenle(e); $.extend(e.args, {
 			rowDetails: this.fis?.class?.aciklamaKullanilirmi, rowDetailsTemplate: rowIndex => {

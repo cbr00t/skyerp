@@ -1,5 +1,5 @@
 class SubPartBuilder extends FormBuilderBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultAutoAppendFlag() { return true }
 	get mfSinif() {
 		let result = this._mfSinif;
@@ -68,7 +68,7 @@ class SubPartBuilder extends FormBuilderBase {
 	setAltInst(value) { this.altInst = value; return this } resetAltInst() { this.altInst = undefined; return this }
 }
 class FormBuilder extends SubPartBuilder {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultYanSayi() { return null }
 	get defaultCSSClasses() {
 		const _e = { liste: [] };
@@ -124,7 +124,7 @@ class FormBuilder extends SubPartBuilder {
 	altAlta() { this.yanSayi = null; return this }
 }
 class FBuilderWithInitLayout extends FormBuilder {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultYanSayi() { return 0 }
 	build_defaultLayout(e) {
 		super.build_defaultLayout(e);

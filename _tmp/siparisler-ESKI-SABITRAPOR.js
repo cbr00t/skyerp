@@ -1,8 +1,8 @@
 class DRapor_StokSiparisler extends DRapor_Donemsel {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 class DRapor_StokSiparisler_Main extends DRapor_Donemsel_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_StokSatisSiparisler }
 	static get almSat() { return null }
 
@@ -131,25 +131,25 @@ class DRapor_StokSiparisler_Main extends DRapor_Donemsel_Main {
 }
 
 class DRapor_StokSatisSiparisler extends DRapor_StokSiparisler {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kategoriKod() { return 'SATIS' } static get kategoriAdi() { return 'Satışlar' }
 	static get kod() { return 'STSSIP' } static get aciklama() { return 'ESKİ Satış Siparişler' }
 	static get vioAdim() { return 'SA-RST' }
 }
 class DRapor_StokSatisSiparisler_Main extends DRapor_StokSiparisler_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_StokSatisSiparisler }
 	static get almSat() { return 'T' }
 }
 
 class DRapor_AlimSatisSiparisler extends DRapor_StokSiparisler {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kategoriKod() { return 'ALIM' } static get kategoriAdi() { return 'Alımlar' }
 	static get kod() { return 'SASSIP' } static get aciklama() { return 'ESKİ Alım Siparişler' }
 	static get vioAdim() { return 'SA-RST' }
 }
 class DRapor_AlimSatisSiparisler_Main extends DRapor_StokSiparisler_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get raporClass() { return DRapor_AlimSatisSiparisler }
 	static get almSat() { return 'A' }
 }

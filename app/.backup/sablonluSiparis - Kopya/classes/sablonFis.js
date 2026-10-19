@@ -1,5 +1,5 @@
 class MQSablonOrtak extends MQDetayliVeAdi {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get gereksizTablolariSilYapilirmi() { return false } static get noAutoFocus() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get gereksizTablolariSilYapilirmi() { return false } static get noAutoFocus() { return true }
 	static get detaySinif() { return MQSablonOrtakDetay } static get listeFisSinif() { return SablonluSiparisListeOrtakFis }
 	static get listeFisTemplate() { return this.listeFisSinif?.instance } static get konsinyemi() { return this.listeFisSinif?.konsinyemi }
 	static get fisSinif() { return this.listeFisTemplate?.fisSinif } static get fisIcinDetaySinif(){ return this.listeFisTemplate?.fisIcinDetaySinif }
@@ -233,16 +233,16 @@ class MQSablonOrtak extends MQDetayliVeAdi {
 	}
 }
 class MQSablon extends MQSablonOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get detaySinif() { return MQSablonDetay }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get detaySinif() { return MQSablonDetay }
 	static get listeFisSinif() { return SablonluSiparisListeFis }
 }
 class MQKonsinyeSablon extends MQSablonOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get detaySinif() { return MQKonsinyeSablonDetay }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get detaySinif() { return MQKonsinyeSablonDetay }
 	static get listeFisSinif() { return SablonluKonsinyeSiparisListeFis }
 }
 
 class MQSablonOrtakDetay extends MQDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sablonSinif() { return MQSablonOrtak }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sablonSinif() { return MQSablonOrtak }
 	static get listeFisSinif() { return this.sablonSinif.listeFisSinif } static get fisSinif() { return this.sablonSinif.fisSinif } static get table() { return this.fisSinif.table }
 	static orjBaslikListesi_argsDuzenle(e) {
 		super.orjBaslikListesi_argsDuzenle(e); $.extend(e.args, {
@@ -266,10 +266,10 @@ class MQSablonOrtakDetay extends MQDetay {
 	static loadServerData_queryDuzenle(e) { this.listeFisSinif?.loadServerData_queryDuzenle(e) }
 }
 class MQSablonDetay extends MQSablonOrtakDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sablonSinif() { return MQSablon }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sablonSinif() { return MQSablon }
 }
 class MQKonsinyeSablonDetay extends MQSablonOrtakDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sablonSinif() { return MQKonsinyeSablon }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sablonSinif() { return MQKonsinyeSablon }
 	static loadServerData_queryDuzenle(e) {
 		super.loadServerData_queryDuzenle(e); let {sender: gridPart, parentRec, stm} = e, {kaysayac: sablonSayac} = parentRec;
 		let {tarih, mustKod} = gridPart, subeKod = gridPart.subeKod ?? config.session.subeKod;

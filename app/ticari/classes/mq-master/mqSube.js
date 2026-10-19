@@ -1,5 +1,5 @@
 class MQSube extends MQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Şube' } static get table() { return 'isyeri' } static get tableAlias() { return 'sub' }
 	static get kodListeTipi() { return 'SUBE' } static get bosKodAlinirmi() { return true }
 	static get cioClassKeys() { return ['asil', 'iletisim', 'vergi', 'teknik', 'musavir', 'diger'] }
@@ -87,21 +87,21 @@ class MQSube extends MQKA {
 	}
 }
 class MQSubeGrup extends MQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'İşyeri Grubu' } static get table() { return 'isygrup' } static get tableAlias() { return 'igrp' } static get kodListeTipi() { return 'FISYGRUP' }
 }
 class MQSubeAlt extends MQAlt {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 class MQSube_AsilBilgi extends UnvanVeAdresYapi {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e;
 		$.extend(pTanim, { ilAdi: new PInstStr('iladi') })
 	}
 }
 class MQSube_Iletisim extends MQSubeAlt {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e);
 		const {pTanim} = e; $.extend(pTanim, {
@@ -116,7 +116,7 @@ class MQSube_Iletisim extends MQSubeAlt {
 	}
 }
 class MQSube_Vergi extends MQSubeAlt {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get vknTckn() { return this.sahismi ? this.tckn : this.vkn }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e;
@@ -135,13 +135,13 @@ class MQSube_Vergi extends MQSubeAlt {
 	}
 }
 class MQSube_Teknik extends MQSubeAlt {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 class MQSube_Musavir extends MQSubeAlt {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 class MQSube_Diger extends MQSubeAlt {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e;
 			$.extend(pTanim, {

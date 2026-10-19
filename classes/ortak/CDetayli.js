@@ -1,5 +1,5 @@
 class DetayliYapi extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get detaylar() { return this.ekBilgi } set detaylar(value) { return this.ekBilgi = value }
 
 	constructor(e) {

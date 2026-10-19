@@ -1,5 +1,5 @@
 class AktifVeDevreDisi extends BuDigerVeHepsi {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get aktifmi() { return this.bumu } get devreDisimi() { return this.digermi }
 	init(e) {
 		e = e || {}; super.init(e); let {_buDigerYapi} = this;
@@ -8,7 +8,7 @@ class AktifVeDevreDisi extends BuDigerVeHepsi {
 	}
 }
 class CalismaDurumu extends BuDigerVeHepsi {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get calisiyormu() { return this.bumu } get calismiyormu() { return this.digermi }
 	init(e) {
 		e = e || {}; super.init(e); let {_buDigerYapi} = this;
@@ -17,7 +17,7 @@ class CalismaDurumu extends BuDigerVeHepsi {
 	}
 }
 class SatilmaDurumu extends BuDigerVeHepsi {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get satilirmi() { return this.bumu }
 	get satilmazmi() { return this.digermi }
 	init(e) {
@@ -29,7 +29,7 @@ class SatilmaDurumu extends BuDigerVeHepsi {
 	}
 }
 class MQOzelIsaret extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Özel İşaret' } static get tableAlias() { return 'fis' } static get defaultChar() { return ' ' }
 	get yildizmi() { return this.char == '*' } get fiktifmi() { return this.char == 'X' }
 	kaListeDuzenle(e) {
@@ -42,7 +42,7 @@ class MQOzelIsaret extends TekSecim {
 	}
 }
 class NormalFiili extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Normal/Fiili' } static get defaultChar() { return 'F' }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); let {kaListe} = e;
@@ -54,12 +54,12 @@ class NormalFiili extends TekSecim {
 }
 
 class FisTipiUst extends TekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return ' ' }
 	get kdvUygulanirmi() { return true }
 }
 class TicariFisTipi extends FisTipiUst {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get istisnaVeyaOzelMatrahmi() {
 		let { tamIstisnami: tam, kismiIstisnami: kismi, ozelMatrahmi: ozel } = this
 		return tam || kismi || ozel
@@ -104,7 +104,7 @@ class TicariFisTipi extends FisTipiUst {
 	}
 }
 class TicariFisTipi_Satis extends TicariFisTipi {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get satismi() { return true }
 
 	kaListeDuzenle({ kaListe }) {
@@ -117,11 +117,11 @@ class TicariFisTipi_Satis extends TicariFisTipi {
 	}
 }
 class TicariFisTipi_SatisIade extends TicariFisTipi_Satis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get iademi() { return true }
 }
 class TicariFisTipi_Alim extends TicariFisTipi {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get alimmi() { return true }
 
 	kaListeDuzenle({ kaListe }) {
@@ -132,7 +132,7 @@ class TicariFisTipi_Alim extends TicariFisTipi {
 	}
 }
 class TicariFisTipi_AlimIade extends TicariFisTipi_Alim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get iademi() { return true }
 
 	kaListeDuzenle({ kaListe }) {
@@ -145,7 +145,7 @@ class TicariFisTipi_AlimIade extends TicariFisTipi_Alim {
 }
 
 class AlimSatis extends TekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return 'T' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)
@@ -156,7 +156,7 @@ class AlimSatis extends TekSecim {
 	}
 }
 class NormalIade extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments);
@@ -167,14 +167,14 @@ class NormalIade extends TekSecim {
 	}
 }
 class NormalIadeVeBirlikte extends NormalIade {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)
 		kaListe.push(new CKodVeAdi(['X', 'Birlikte', 'birliktemi']))
 	}
 }
 class BorcAlacak extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return 'B' } get borcmu() { return this.char == 'B' } get alacakmi() { return this.char == 'A' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)
@@ -186,7 +186,7 @@ class BorcAlacak extends TekSecim {
 }
 
 class GelirGider extends BorcAlacak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get gelirmi() { return this.borcmu }
 	get gidermi() { return this.alacakmi }
 	
@@ -208,7 +208,7 @@ class GelirGider extends BorcAlacak {
 }
 
 class TahsilatOdeme extends BorcAlacak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return 'A' }
 	get tahsilatmi() { return this.alacakmi }
 	get odememi() { return this.borcmu }
@@ -231,7 +231,7 @@ class TahsilatOdeme extends BorcAlacak {
 }
 
 class FisHesapSekli extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' } get bedelmi() { return this.char == '' }
 	get fiyatmi() { return this.char == 'F' } get miktarmi() { return this.char == 'M' }
 	kaListeDuzenle({ kaListe }) {
@@ -247,7 +247,7 @@ class FisHesapSekli extends TekSecim {
 	miktarYap() { this.char = 'M'; return this }
 }
 class StokTip extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'STKTIP' }
 	static get sinifAdi() { return 'Stok Tipi' }
 	static get defaultChar() { return 'TC' }
@@ -267,7 +267,7 @@ class StokTip extends TekSecim {
 	}
 }
 class DemirbasCinsi extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'DEMCINS' }
 	static get sinifAdi() { return 'Demirbaş Cinsi' }
 	static get defaultChar() { return ' ' }
@@ -282,7 +282,7 @@ class DemirbasCinsi extends TekSecim {
 	}
 }
 class VergiTip extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return 'KDV' }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e);
@@ -305,7 +305,7 @@ class VergiTip extends TekSecim {
 	}
 }
 class EkVergiTipi extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return ' ' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)
@@ -318,7 +318,7 @@ class EkVergiTipi extends TekSecim {
 	}
 }
 class TahsilSekliTip extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'TAHSEKLITIP' } static get sinifAdi() { return 'Tahsilat Tipi' }
 	static get kodKullanilirmi() { return true } static get kami() { return true }
 	static get kodSaha() { return MQKA.kodSaha } static get adiSaha() { return MQKA.adiSaha }
@@ -336,7 +336,7 @@ class TahsilSekliTip extends TekSecim {
 	}
 }
 class TahsilSekliAltTip extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'TAHALTTIP' } static get sinifAdi() { return 'Tahsilat Alt Tip' }
 	static get kodKullanilirmi() { return true } static get kami() { return true }
 	static get kodSaha() { return MQKA.kodSaha } static get adiSaha() { return MQKA.adiSaha }
@@ -351,7 +351,7 @@ class TahsilSekliAltTip extends TekSecim {
 	}
 }
 class MQSHTip extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tip2MFSinif() {
 		let result = this._tip2MFSinif; if (result === undefined) { result = this._tip2MFSinif = { stok: MQStok, hizmet: MQHizmet, demirbas: MQDemirbas } }
 		return result
@@ -371,7 +371,7 @@ class MQSHTip extends TekSecim {
 	}
 }
 class MQSHTipVeAciklama extends MQSHTip {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get aciklamami() { return this.char == TSAciklamaDetay.tip }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)
@@ -381,7 +381,7 @@ class MQSHTipVeAciklama extends MQSHTip {
 	}
 }
 class MQSHTip_Sabit extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return TSStokDetay.tip }
 	get stokmu() { return this.char == TSStokDetay.tip }
 	get hizmetmi() { return this.char == TSHizmetDetay.tip }
@@ -393,7 +393,7 @@ class MQSHTip_Sabit extends TekSecim {
 	}
 }
 class LimitKontrol extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
 	get devammi() { return this.char == '' }
 	get uyarVeDevammi() { return this.char == '*' }
@@ -410,7 +410,7 @@ class LimitKontrol extends TekSecim {
 	}
 }
 class FisAyrimTipiBasit extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get basitmi() { return true }
 	static get defaultChar() { return '' }
 	get normalmi() { return this.char == ' ' }
@@ -466,11 +466,11 @@ class FisAyrimTipiBasit extends TekSecim {
 	gelenFisSinifFor(e) { e = e || {}; return this.class.gelenFisSinifFor($.extend({}, e, { ayrimTipi: this.char || '' })) }
 }
 class FisAyrimTipi extends FisAyrimTipiBasit {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get basitmi() { return false }
 }
 class UretimSekli extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
 	get serimi() { return this.char == '' }
 	get onSerimi() { return this.char == 'O' }
@@ -485,7 +485,7 @@ class UretimSekli extends TekSecim {
 	}
 }
 class UretimFisTipi extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get fisListeTipi() { return 'URTFISTIP' } static get sinifAdi() { return 'Üretim Fiş Tipi' }
 	static get defaultChar() { return '' }
 	kaListeDuzenle({ kaListe }) {
@@ -500,7 +500,7 @@ class UretimFisTipi extends TekSecim {
 	}
 }
 class OperFisTipi extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get fisListeTipi() { return 'OPERFISTIP' }
 	static get sinifAdi() { return 'Operasyon Fiş Tipi' }
 	static get defaultChar() { return '' }
@@ -514,7 +514,7 @@ class OperFisTipi extends TekSecim {
 	}
 }
 class GeciciUretilen extends BuDigerVeHepsi {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get fisListeTipi() { return 'FISGECURET' } static get sinifAdi() { return 'Geçici Üretilen' }
 	static get defaultChar() { return '' }
 	init() {
@@ -524,7 +524,7 @@ class GeciciUretilen extends BuDigerVeHepsi {
 	}
 }
 class HesapTipi extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); let {kaListe} = e;
@@ -537,7 +537,7 @@ class HesapTipi extends TekSecim {
 	}
 }
 class FiyatListeNo extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); let {kaListe} = e;
@@ -549,7 +549,7 @@ class FiyatListeNo extends TekSecim {
 	}
 }
 class KkegTipi extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); let {kaListe} = e;
@@ -561,7 +561,7 @@ class KkegTipi extends TekSecim {
 	}
 }
 class TedarikSekli extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); let {kaListe} = e;
@@ -573,7 +573,7 @@ class TedarikSekli extends TekSecim {
 	}
 }
 class SubeGecerlilik extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); let {kaListe} = e;
@@ -585,7 +585,7 @@ class SubeGecerlilik extends TekSecim {
 	}
 }
 class HizGelirTabloTipi extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); let {kaListe} = e;
@@ -596,7 +596,7 @@ class HizGelirTabloTipi extends TekSecim {
 	}
 }
 class SenaryoTipi extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return 'T' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return 'T' }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); let {kaListe} = e; kaListe.push(
 			new CKodVeAdi(['M', 'Temel Fatura', 'temel']),
@@ -606,7 +606,7 @@ class SenaryoTipi extends TekSecim {
 	}
 }
 class KdvTipi extends TekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); let {kaListe} = e;
@@ -618,17 +618,17 @@ class KdvTipi extends TekSecim {
 	}
 }
 class SatisFisTipi extends TekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
 	kaListeDuzenle(e) { super.kaListeDuzenle(e); let {kaListe} = e }
 }
 class AlimFisTipi extends TekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
 	kaListeDuzenle(e) { super.kaListeDuzenle(e); let {kaListe} = e }
 }
 class CSBelgeTipi extends TekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return null }
 	get ba() { return (this.char || '')[0] }
 	get borcmu() { return this.ba == 'B' }
@@ -644,7 +644,7 @@ class CSBelgeTipi extends TekSecim {
 	}
 }
 class CSGercekPortfTipi extends TekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return null }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)
@@ -656,7 +656,7 @@ class CSGercekPortfTipi extends TekSecim {
 	}
 }
 class CSPortfTipi extends CSGercekPortfTipi {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return null }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)
@@ -671,7 +671,7 @@ class CSPortfTipi extends CSGercekPortfTipi {
 	}
 }
 class HizmetTipi extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return null } get gelirmi() { return this.char == ' ' } get gidermi() { return this.char == 'G' } get tahakkukmu() { return this.char == 'T' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments); kaListe.push(
@@ -681,7 +681,7 @@ class HizmetTipi extends TekSecim {
 	}
 }
 class HavaleEFTTipi extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return this.chars.havale }
 	static get chars() {
 		let result = this._chars;
@@ -705,7 +705,7 @@ class HavaleEFTTipi extends TekSecim {
 	}
 }
 class GelenHavaleEFTTipi extends TekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get charsInternal() { return { havale: 'BHAV', eft: 'BEFT', swift: 'BSWF' } }
 	static get etiketPrefix() { 'Gelen' }
 	get posmu() { return this.char == 'BPOS' }
@@ -727,7 +727,7 @@ class GelenGidenHavaleEFTTipi extends TekSecim {
 	}
 }
 class DonemSecim extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return '' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return '' }
 	get basiSonu() { let {char} = this; return $.isArray(char) ? char.map(kod => this.getBasiSonu(kod)) : this.getBasiSonu(char) }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); let {kaListe} = e; kaListe.push(
@@ -762,17 +762,17 @@ class DonemSecim extends TekSecim {
 	}
 }
 class DonemVeTarihAralikSecim extends DonemSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return '' } get tarihAralikmi() { return this.char == 'TR' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return '' } get tarihAralikmi() { return this.char == 'TR' }
 	kaListeDuzenle({ kaListe }) { kaListe.push(new CKodVeAdi(['TR', `<span class="bold forestgreen">Tarih Aralık</span>`])); super.kaListeDuzenle(...arguments) }
 	tarihAralik() { this.char = 'TR'; return this }
 }
 class DonemTarihAralikVeHepsiSecim extends DonemVeTarihAralikSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return '' } get tarihAralikmi() { return this.char == 'TR' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return '' } get tarihAralikmi() { return this.char == 'TR' }
 	kaListeDuzenle({ kaListe }) { kaListe.push(new CKodVeAdi(['', `<span class="bold royalblue">Baştan &nbsp;<span class=orangered>--&gt;</span> &nbsp;Sona</span>`])); super.kaListeDuzenle(...arguments) }
 	tarihAralik() { this.char = 'TR'; return this }
 }
 class ResimBelirlemeKurali extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return 'ST' } get stokTanimdami() { return this.char == '' } get stokKodu() { return this.char == 'ST' }
 	get grupVeStokmu() { return this.char == 'GS' } get pdmmi() { return this.char == 'PD' } get grupVePDMmi() { return this.char == 'GP' }
 	kaListeDuzenle(e) {
@@ -784,7 +784,7 @@ class ResimBelirlemeKurali extends TekSecim {
 	}
 }
 class TicBorclanmaSekli extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return 'F' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)
@@ -797,7 +797,7 @@ class TicBorclanmaSekli extends TekSecim {
 	}
 }
 class YerMaliyetSekli extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Yer Maliyet Şekli' } static get defaultChar() { return '' }
 	kaListeDuzenle(e) {
 		super.kaListeDuzenle(e); let {kaListe} = e;
@@ -808,7 +808,7 @@ class YerMaliyetSekli extends TekSecim {
 	}
 }
 class StokDegerleme extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Stok Değerleme' } static get defaultChar() { return '' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)
@@ -820,7 +820,7 @@ class StokDegerleme extends TekSecim {
 	}
 }
 class EmirDevamDurumu extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get fisListeTipi() { return 'EMIRDEVAMDURUM' }
 	static get sinifAdi() { return 'Emir Devam Durumu' }
 	static get defaultChar() { return ' ' }
@@ -834,7 +834,7 @@ class EmirDevamDurumu extends TekSecim {
 	}
 }
 class OperDurum extends BuDigerVeHepsi {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get fisListeTipi() { return 'OPERDURUM' }
 	static get sinifAdi() { return 'Oper. Durum' }
 	static get defaultChar() { return '1' }
@@ -847,7 +847,7 @@ class OperDurum extends BuDigerVeHepsi {
 }
 
 class StokMaliyetYontemi extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return ' ' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)
@@ -860,7 +860,7 @@ class StokMaliyetYontemi extends TekSecim {
 }
 
 class SipOnayDurum extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return 'ON' }
 	
 	kaListeDuzenle({ kaListe }) {

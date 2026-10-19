@@ -1,5 +1,5 @@
 class MQHizliSatis extends MQCogul {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporKullanilirmi() { return false }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get raporKullanilirmi() { return false }
 	static get kodListeTipi() { return 'HIZLI' } static get sinifAdi() { return 'Hızlı Satış' }
 	static get tanimmi() { return true } static get tanimUISinif() { return ModelTanimPart }
 	static pTanimDuzenle({ pTanim }) {

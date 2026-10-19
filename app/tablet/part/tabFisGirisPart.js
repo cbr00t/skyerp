@@ -1,5 +1,5 @@
 class TabFisGirisPart extends ModelTanimPart {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get partName() { return 'tabFisGiris' } get titlePostfix() { return '' }
 
 	async rootFormBuilderDuzenle(e) {

@@ -1,5 +1,5 @@
 class MQIslem extends MQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tableAlias() { return 'isl' } static get tumKolonlarGosterilirmi() { return true }
 	static async getKod2OzelIsaret() {
 		let {globals} = this, {kod2OzelIsaret: result} = globals;
@@ -36,7 +36,7 @@ class MQIslem extends MQKA {
 }
 
 class MQMuhIslem extends MQIslem {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'muhisl' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'muhisl' }
 	static get kodListeTipi() { return 'MUHISL' } static get sinifAdi() { return 'Muh. İşlem' }
 	get durumKod() {
 		switch (this.tip.char) { case 'VIR': case 'GEN': return 'DIG' }
@@ -69,7 +69,7 @@ class MQMuhIslem extends MQIslem {
 	}
 }
 class MQMuhIslemTipi extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return ' ' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return ' ' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments);
 		kaListe.push(...[
@@ -80,7 +80,7 @@ class MQMuhIslemTipi extends TekSecim {
 }
 
 class MQStokIslem extends MQIslem {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'stkisl' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'stkisl' }
 	static get kodListeTipi() { return 'STKISL' } static get sinifAdi() { return 'Stok İşlem' }
 	get durumKod() {
 		switch (this.tip.char) {
@@ -122,7 +122,7 @@ class MQStokIslem extends MQIslem {
 	}
 }
 class MQStokIslemTipi extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return 'TF' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get defaultChar() { return 'TF' }
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments);
 		kaListe.push(...[
@@ -133,7 +133,7 @@ class MQStokIslemTipi extends TekSecim {
 }
 
 class MQCariIslem extends MQIslem {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'carisl' } 
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'carisl' } 
 	static kodListeTipi() { return 'CARISL' } static get sinifAdi() { return 'Cari İşlem' }
 	static async getKod2BA() {
 		let {globals} = this, {kod2BA: result} = globals;
@@ -179,6 +179,6 @@ class MQCariIslem extends MQIslem {
 }
 
 class MQUretimIslem extends MQIslem {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'urtisl' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'urtisl' }
 	static kodListeTipi() { return 'URTISL' } static get sinifAdi() { return 'Üretim İşlem' }
 }

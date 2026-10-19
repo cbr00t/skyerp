@@ -1,5 +1,5 @@
 class RotaliSutIslemApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return super.autoExecMenuId }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return super.autoExecMenuId }
 	get configParamSinif() { return MQYerelParamConfig_App } get yerelParamSinif() { return MQYerelParam }
 	get gonderilmemisVeriler() {
 		let {localData} = this.params, {dataKey} = MQRotaliFis, recs = localData.get(dataKey) || [];

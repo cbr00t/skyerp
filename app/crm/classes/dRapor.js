@@ -1,10 +1,10 @@
 class DRapor_X extends DRapor_Donemsel {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get kategoriKod() { return 'CRM' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get kategoriKod() { return 'CRM' }
 	static get kod() { return 'X' } static get aciklama() { return 'Test Sonuçları' } static get mainClass() { return null }
 	altRaporlarDuzenle(e) { this.add(this.class.mainClass); super.altRaporlarDuzenle(e) }
 }
 class DRapor_X_Main extends DRapor_Donemsel_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_X }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_X }
 	static get table() { return null } static get detayVeyaGrupTable() { return null } get tazeleYapilirmi() { return true }
 	tabloYapiDuzenle(e) {
 		super.tabloYapiDuzenle(e) /*; const {result} = e; result.addKAPrefix('doktor', 'hasta', 'ilbolge', 'il')

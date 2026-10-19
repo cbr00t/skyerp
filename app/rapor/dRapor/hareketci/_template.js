@@ -1,10 +1,10 @@
 class DRapor_Hareketci_X extends DRapor_Hareketci {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get uygunmu() { return true }
 	static get araSeviyemi() { return false } static get vioAdim() { return null }
 	static get kod() { return 'HAR_X' } static get aciklama() { return 'X' }
 }
 class DRapor_Hareketci_X_Main extends DRapor_Hareketci_Main {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_Hareketci_X }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return DRapor_Hareketci_X }
 	tabloYapiDuzenle(e) {
 		super.tabloYapiDuzenle(e); const {result} = e; result
 			.addKAPrefix('x')

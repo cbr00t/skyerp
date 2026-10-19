@@ -1,5 +1,5 @@
 class DAltRapor extends DRapor {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'altRapor' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get anaTip() { return 'altRapor' }
 	static get dRapormu() { return false } static get dAltRapormu() { return true } static get mainmi() { return false }
 	static get secimSinif() { return MQCogul.secimSinif } static get etiket() { return this.aciklama }
 	get etiket() {

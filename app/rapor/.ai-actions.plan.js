@@ -1,5 +1,5 @@
 class DRapor_AIEngine {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	async process({ actions }) {
 		let queue = [...actions]
 		let e = { ...arguments[0], actions }

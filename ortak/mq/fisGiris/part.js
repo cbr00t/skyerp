@@ -1,5 +1,5 @@
 class FisGirisPart extends GridliGirisWindowPart {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get slowAnimationFlag() { return true }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get slowAnimationFlag() { return true }
 	static get partName() { return 'fisGiris' } get formDeferMS() { return 150 } static get defaultCacheFlag() { return false } static get defaultAsyncFlag() { return false }
 	get yenimi() { return this.islem == 'yeni' } get degistirmi() { return this.islem == 'degistir' }
 	get kopyami() { return this.islem == 'kopya' } get silmi() { return this.islem == 'sil' } get izlemi() { return this.islem == 'izle' }
@@ -79,7 +79,7 @@ class FisGirisPart extends GridliGirisWindowPart {
 			let {gridIslemTusYapilari} = this; for (let i = 0; i < buttons.length; i++) {
 				let elm = buttons.eq(i), id = elm.prop('id');
 				let clsElmInfo = class ElmInfo extends CObject {
-					static { window[this.name] = this; this._key2Class[this.name] = this }
+					static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 					constructor(e) { e = e || {}; super(e); for (let key in e) this[key] = e[key] }
 					get id() { return this.elm.prop('id') } get text() { return this.elm.html() } get width() { return this.elm.width() } get height() { return this.elm.height() }
 					get position() { return this.elm.position() } get offset() { return this.elm.offset() }

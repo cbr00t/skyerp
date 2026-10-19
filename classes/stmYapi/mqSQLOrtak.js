@@ -1,5 +1,5 @@
 class MQSQLOrtak extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get aggrFuncs() {
 		let { _aggrFuncs: res } = this
 		if (res == null)
@@ -347,13 +347,13 @@ class MQSQLOrtak extends CObject {
 	concat() { return Array.from(this).concat(...arguments) }
 }
 class MQSQLConst extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get sqlDegeri() { return this.value } get sqlServerDegeri() { return this.sqlDegeri }
 	constructor(e) { e = e || {}; super(e); this.value = e?.value ?? e }
 	toString(e) { return this.sqlServerDegeri }
 }
 class MQAliasliYapi extends MQSQLOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get aliasliYapimi() { return true }
 	get alias() {
 		let {_alias: result} = this
@@ -562,7 +562,7 @@ class MQAliasliYapi extends MQSQLOrtak {
 	}
 }
 class MQIliskiYapisi extends MQSQLOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get varsaZincirler() {
 		let {sol: { degerAliasListe: solListe }, sag: { degerAliasListe: sagListe }} = this
 		let result = []

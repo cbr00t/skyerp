@@ -1,5 +1,5 @@
 class MQEMailUst extends MQSayacli {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get kodListeTipi() { return 'AMPAR' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get kodListeTipi() { return 'AMPAR' }
 	static get sinifAdi() { return 'Alternatif Mail Parametresi' } static get table() { return 'ORTAK..oaltmailparam' } static get tableAlias() { return 'mpar' }
 	static get eMailKeys() {
 		let {_eMailKeys: result} = this;
@@ -65,6 +65,6 @@ class MQEMailUst extends MQSayacli {
 	wsEMailArgsDuzenle(e) { return this.class.wsEMailArgsDuzenle({ ...e, inst: this }) }
 }
 class MQEMail extends MQEMailUst {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get kodListeTipi() { return 'OMPAR' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get kodListeTipi() { return 'OMPAR' }
 	static get sinifAdi() { return 'Özel Mail Parametresi' } static get table() { return 'ORTAK..omailparam' }
 }

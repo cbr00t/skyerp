@@ -1,5 +1,5 @@
 class UnvanVeAdresYapi extends MQAlt {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get unvan() { return birlestirBosluk(this.unvan1, this.unvan2) }
 	get adres() { return birlestirBosluk(this.adres1, this.adres2) }
 

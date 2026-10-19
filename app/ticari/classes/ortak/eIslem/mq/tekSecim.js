@@ -1,5 +1,5 @@
 class EIslemTipi extends TekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	kaListeDuzenle({ kaListe: l }) {
 		super.kaListeDuzenle(...arguments)
 		l.push(...EIslemOrtak.kaListe)
@@ -7,7 +7,7 @@ class EIslemTipi extends TekSecim {
 }
 
 class EIslMusRefDetayTip extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return 'A' }
 	get barkodmu() { return this.char == 'B' }
 	get kodmu() { return this.char == ' ' }

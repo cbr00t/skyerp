@@ -1,5 +1,5 @@
 class MQIliskiliYapiOrtak extends MQSentVeIliskiliYapiOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e = {}) {
 		super(e)
 		let from = e.from ?? e.table
@@ -91,7 +91,7 @@ class MQIliskiliYapiOrtak extends MQSentVeIliskiliYapiOrtak {
 	buildString_ara(e) { }
 }
 class MQIliskiliUpdate extends MQIliskiliYapiOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get onEk() { return 'UPDATE ' } get isDBWriteClause() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get onEk() { return 'UPDATE ' } get isDBWriteClause() { return true }
 	constructor(e) {
 		e = e || {}; super(e); $.extend(this, {
 			set: (isArray(e.set) || $.isPlainObject(e.set) || typeof e.set == 'string' ? new MQSetClause(e.set) : e.set) || new MQSetClause() })
@@ -105,6 +105,6 @@ class MQIliskiliUpdate extends MQIliskiliYapiOrtak {
 	}
 }
 class MQIliskiliDelete extends MQIliskiliYapiOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } get isDBWriteClause() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } get isDBWriteClause() { return true }
 	static get onEk() { return 'DELETE FROM ' }
 }

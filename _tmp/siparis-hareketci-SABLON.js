@@ -1,5 +1,5 @@
 class AlimSatisSipOrtakHareketci extends Hareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get araSeviyemi() { return this == AlimSatisSipOrtakHareketci } static get ticarimi() { return true }
 	static get kod() { return null } static get aciklama() { return 'Ticari' }
 	static get kisaKod() { return null } static get almSat() { return null }
@@ -181,13 +181,13 @@ class AlimSatisSipOrtakHareketci extends Hareketci {
 }
 
 class AlimSipHareketci extends AlimSatisSipOrtakHareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return 96 }
 	static get kod() { return 'alim' } static get aciklama() { return 'Alım' }
 	static get kisaKod() { return 'SA' } static get almSat() { return 'A' } 
 }
 class SatisSipHareketci extends AlimSatisSipOrtakHareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return 97 }
 	static get kod() { return 'satis' } static get aciklama() { return 'Satış' }
 	static get kisaKod() { return 'ST' } static get almSat() { return 'T' }

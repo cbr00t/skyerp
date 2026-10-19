@@ -1,5 +1,5 @@
 class DRapor_AraSeviye extends DGrupluPanelRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tekilBuildCount() { return 1 }
 
 	/* static get altRaporClassPrefix() { return this.name } */
@@ -84,7 +84,7 @@ class DRapor_AraSeviye extends DGrupluPanelRapor {
 }
 
 class DRapor_AraSeviye_Main extends DAltRapor_TreeGridGruplu {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get mainmi() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get mainmi() { return true }
 	static get araSeviyemi() { return this == DRapor_AraSeviye_Main } get tazeleYapilirmi() { return true }
 	static get secimWhereBaglanirmi() { return true } static get konsolideKullanilirmi() { return true }
 	static get konsolideVarmi() { return this.konsolideKullanilirmi && app.params?.dRapor?.konsolideCikti } get konsolideVarmi() { return this.class.konsolideVarmi }

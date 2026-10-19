@@ -1,5 +1,5 @@
 class MQAktivasyon extends MQDetayliMaster {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'AKT' } static get sinifAdi() { return 'Aktivasyon' }
 	static get table() { return 'muslisans' } static get tableAlias() { return 'fis' }
 	static get detaySinif() { return MQAktivasyonDetay } 
@@ -226,7 +226,7 @@ class MQAktivasyon extends MQDetayliMaster {
 	}
 }
 class MQAktivasyonDetay extends MQDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'muslisansdetay' }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
@@ -258,7 +258,7 @@ class MQAktivasyonDetay extends MQDetay {
 	}
 }
 class MQAktivasyonGridci extends GridKontrolcu {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	gridArgsDuzenle({ gridPart, sender, args }) {
 		gridPart = gridPart ?? sender;
 		extend(args, { groupsExpandedByDefault: true /*, editMode: 'click'*/ })

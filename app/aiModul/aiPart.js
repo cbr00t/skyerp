@@ -1,5 +1,5 @@
 class AIPart extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
     static get isWindowPart() { return true; }            // pencere olarak açılsın
     static get partName() { return 'aiQuery'; }           // pencere template id diyelim
     static get sinifAdi() { return 'AI Sorgu Ekranı'; }

@@ -1,5 +1,5 @@
 class CSOrtakFis extends FinansFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return [this.sinifAdi_prefix, this.sinifAdi_postfix, 'Fiş'].filter(x => !!x).join(' ') }
 	static get listeSinifAdi() { return [this.belgeSinif.sinifAdi, 'Fiş'].filter(x => !!x).join(' ') }
 	static get sinifAdi_prefix() { return '' }
@@ -56,14 +56,14 @@ class CSOrtakFis extends FinansFis {
 	}
 }
 class CSOrtakDetay extends FinansDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static extYapilarDuzenle(e) {
 		super.extYapilarDuzenle(e); const {liste} = e;
 		liste.push(Ext_DetAciklama)
 	}
 }
 class CSOrtakGridci extends FinansGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	tabloKolonlariDuzenle_son(e) {
 		super.tabloKolonlariDuzenle_son(e); const {tabloKolonlari} = e;
 		tabloKolonlari.push(new GridKolon({ belirtec: 'detAciklama', text: 'Açıklama', genislikCh: 50 }))
@@ -71,81 +71,81 @@ class CSOrtakGridci extends FinansGridci {
 }
 
 class CSIlkFis extends CSOrtakFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get detaySinif() { return CSIlkDetay }
 	static get gridKontrolcuSinif() { return CSIlkGridci }
 	static get ilkmi() { return true }
 }
 class CSIlkDetay extends CSOrtakDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'csilkhar' }
 }
 class CSIlkGridci extends CSOrtakGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 
 class CSDigerFis extends CSOrtakFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get detaySinif() { return CSDigerDetay }
 	static get gridKontrolcuSinif() { return CSDigerGridci }
 	static get digermi() { return true }
 }
 class CSDigerDetay extends CSOrtakDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'csdigerhar' }
 }
 class CSDigerGridci extends CSOrtakGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 
 class AlacakCSIlkFis extends CSIlkFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get detaySinif() { return AlacakCSIlkDetay }
 	static get gridKontrolcuSinif() { return AlacakCSIlkGridci }
 	static get alacakmi() { return true }
 }
 class AlacakCSIlkDetay extends CSIlkDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 class AlacakCSIlkGridci extends CSIlkGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 
 class AlacakCSDigerFis extends CSDigerFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get detaySinif() { return AlacakCSDigerDetay }
 	static get gridKontrolcuSinif() { return AlacakCSDigerGridci }
 	static get alacakmi() { return true }
 }
 class AlacakCSDigerDetay extends CSDigerDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 class AlacakCSDigerGridci extends CSDigerGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 
 class BorcCSIlkFis extends CSIlkFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get detaySinif() { return BorcCSIlkDetay }
 	static get gridKontrolcuSinif() { return BorcCSIlkGridci }
 	static get borcmu() { return true }
 }
 class BorcCSIlkDetay extends CSIlkDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 class BorcCSIlkGridci extends CSIlkGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 
 class BorcCSDigerFis extends CSDigerFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get detaySinif() { return BorcCSDigerDetay }
 	static get gridKontrolcuSinif() { return BorcCSDigerGridci }
 	static get borcmu() { return true }
 }
 class BorcCSDigerDetay extends CSDigerDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 class BorcCSDigerGridci extends CSDigerGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }

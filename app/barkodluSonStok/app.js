@@ -1,5 +1,5 @@
 class BarkodluSonStokApp extends MiscApp {
-	static { window[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return MQBarkodluSonStok.kodListeTipi }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } get autoExecMenuId() { return MQBarkodluSonStok.kodListeTipi }
 	paramsDuzenle(e) {
 		super.paramsDuzenle(e); const {params} = e;
 		$.extend(params, {

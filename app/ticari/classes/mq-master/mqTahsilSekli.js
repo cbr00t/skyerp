@@ -1,5 +1,5 @@
 class MQTahsilSekli extends MQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Tahsil Şekli' }
 	static get table() { return 'tahsilsekli' } static get tableAlias() { return 'tsek' } static get kodSaha() { return 'kodno' }
 	static get kodListeTipi() { return 'MRTAH' }
@@ -7,7 +7,7 @@ class MQTahsilSekli extends MQKA {
 	constructor(e) {
 		e = e || {}; super(e);
 		const kullanim = this.kullanim = new (class extends CIO {
-		    static { window[this.name] = this; this._key2Class[this.name] = this }
+		    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 			static pTanimDuzenle(e) {
 				super.pTanimDuzenle(e); const {pTanim} = e;
 				$.extend(pTanim, {

@@ -1,5 +1,5 @@
 class MQMusIslem extends MQDetayliMasterOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Müşteri İşlemi' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get sinifAdi() { return 'Müşteri İşlemi' }
 	static get detaySinif() { return MQMusIslemDetay } static get gridKontrolcuSinif() { return MQMusIslemGridci }
 	static get kodListeTipi() { return 'CRMMUSISLEM' } static get table() { return 'crmmusislem' } static get tableAlias() { return 'fis' } static get hasTabs() { return true }
 	static pTanimDuzenle(e) {
@@ -56,14 +56,14 @@ class MQMusIslem extends MQDetayliMasterOrtak {
 	}
 }
 class MQMusIslemDetay extends MQDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'crmmusislemdetay' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'crmmusislemdetay' }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); $.extend(e.pTanim, {
 			detayTS: new PInstDateTime('detayts'), detayKullaniciKod: new PInstStr('detaykullanicikod'), detayAciklama: new PInstStr('detayaciklama') })
 	}
 }
 class MQMusIslemGridci extends GridKontrolcu {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	tabloKolonlariDuzenle(e) {
 		super.tabloKolonlariDuzenle(e); e.tabloKolonlari.push(
 			new GridKolon({ belirtec: 'detayTarih', text: 'Tarih', genislikCh: 10 }).tipDate(), new GridKolon({ belirtec: 'detaySaat', text: 'Saat', genislikCh: 10 }).tipTime(),

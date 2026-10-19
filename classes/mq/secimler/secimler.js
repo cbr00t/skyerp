@@ -1,5 +1,5 @@
 class Secimler extends CIO {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get uiSinif() { return window.SecimlerWindowPart }
 	static get duzenlemeUISinif() { return this.uiSinif }
 	get key2OzetBilgiHTML() { return this.getKey2OzetBilgiHTML() }
@@ -415,7 +415,7 @@ class Secimler extends CIO {
 }
 
 class DonemselSecimler extends Secimler {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get tarihBS() {
 		let { donem, tarihAralik } = this
 		let { tarihAralikmi, basiSonu: bs } = donem?.tekSecim ?? {}

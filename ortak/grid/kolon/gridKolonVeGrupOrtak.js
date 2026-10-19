@@ -1,5 +1,5 @@
 class GridKolonVeGrupOrtak extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static _anaTip2Sinif = []; static _templates = {};
 	static get defaultKodZorunlumu() { return false }
 	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar || [], 'builder', '_builder', 'gridPart'] }

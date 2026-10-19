@@ -1,5 +1,5 @@
 class StokHareketci extends Hareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return 34 } static get kisaKod() { return 'S' }
 	static get kod() { return `stok-${this.kodEk}` } static get aciklama() { return `Stok ${this.adiEk}` }
 	static get kodEk() { return '' } static get adiEk() { return '' } static get sablonsalVarmi() { return this._sablonsalVarmi }
@@ -794,12 +794,12 @@ class StokHareketci extends Hareketci {
 	}
 }
 class StokHareketci_Gercek extends StokHareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get gercekmi() { return true }
 	static get kodEk() { return 'gercek' } static get adiEk() { return 'Gerçek' }
 }
 class StokHareketci_Maliyetli extends StokHareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get maliyetlimi() { return true }
 	static get kodEk() { return 'maliyetli' } static get adiEk() { return 'Maliyetli' }
 }

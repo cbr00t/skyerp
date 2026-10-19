@@ -1,5 +1,5 @@
 class CariTopluIslemFis extends FinansFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get detaySinif() { return CariTopluIslemDetay }
 	static get gridKontrolcuSinif() { return CariTopluIslemGridci }
 	static get sinifAdi() { return 'Cari Toplu İşlem Fişi' }
@@ -88,7 +88,7 @@ class CariTopluIslemFis extends FinansFis {
 }
 
 class CariTopluIslemDetay extends MQDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'finanshar' }
 	static get tableAlias(){return 'har'}
 	
@@ -120,7 +120,7 @@ class CariTopluIslemDetay extends MQDetay {
 }
 
 class CariTopluIslemGridci extends GridKontrolcu {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 
 	tabloKolonlariDuzenle(e) {
 		super.tabloKolonlariDuzenle(e);

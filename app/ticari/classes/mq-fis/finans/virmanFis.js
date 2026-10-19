@@ -1,5 +1,5 @@
 class VirmanFis extends FinansFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'geneldekontfis' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'geneldekontfis' }
 	static get detaySinif() { return VirmanDetay } static get gridKontrolcuSinif() { return VirmanGridci }
 	/*static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
@@ -32,7 +32,7 @@ class VirmanFis extends FinansFis {
 	}
 }
 class VirmanDetay extends FinansDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'geneldekonthar' } static get ticMustKullanilirmi() { return true }
 	static get mfExtSinifYapilari() { return [] }
 	static pTanimDuzenle({ pTanim }) {
@@ -97,7 +97,7 @@ class VirmanDetay extends FinansDetay {
 		/*let dvKodBelirtec = dvKodOzelmi ? `${fullBelirtec}DvKod` : `${gc}DvKod`;
 		  let dvKodEtiket = dvKodOzelmi ? `${fullEtiket} DvKod` : `${gcUpper}.DvKod`; */
 	return eval(`(class Ext_${className} extends ExtFis {
-		static { window[this.name] = this; this._key2Class[this.name] = this }
+		static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 		static pTanimDuzenle({ pTanim }) {
 			super.pTanimDuzenle(...arguments);
 			$.extend(pTanim, { ${fullIOAttr}: new PInstStr('${fullRowAttr}'), ${fullIOAdiAttr}: new PInstStr() })
@@ -167,7 +167,7 @@ class VirmanDetay extends FinansDetay {
 	}
 }
 class VirmanGridci extends FinansGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	tabloKolonlariDuzenle_ara({ tabloKolonlari: liste }) {
 		super.tabloKolonlariDuzenle_ara(...arguments);
 		let {class: fisSinif} = this.fis, {detaySinif} = fisSinif;
@@ -192,14 +192,14 @@ class VirmanGridci extends FinansGridci {
 }
 
 class KasaVirmanDetay extends VirmanDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { 'VIRKASA' } static get sinifAdi() { return 'Kasa' }
 	static get mfExtSinifYapilari() {
 		return [...super.mfExtSinifYapilari, { prefix: 'Kasa', belirtec: 'kasa', mfSinif: MQKasa, dvKodRowAttr: 'dvtipi' } ]
 	}
 }
 class BankaHesapVirmanDetay extends VirmanDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { 'VIRBANHESAP' } static get sinifAdi() { return 'Banka Hesap' }
 	static get mfExtSinifYapilari() {
 		return [...super.mfExtSinifYapilari, { prefix: 'BankaHesap', belirtec: 'banHesap', mfSinif: MQBankaHesap, dvKodRowAttr: 'dvtipi' } ]
@@ -207,7 +207,7 @@ class BankaHesapVirmanDetay extends VirmanDetay {
 }
 
 class CariVirmanDetay extends VirmanDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { 'VIRCARI' } static get sinifAdi() { return 'Cari' }
 	static get mfExtSinifYapilari() {
 		let {params} = app, {altHesap} = params.cariGenel?.kullanim ?? {};
@@ -242,7 +242,7 @@ class CariVirmanDetay extends VirmanDetay {
 	}
 }
 class HizmetVirmanDetay extends VirmanDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { 'VIRHIZMET' } static get sinifAdi() { return 'Hizmet' }
 	static get mfExtSinifYapilari() {
 		return [...super.mfExtSinifYapilari, { prefix: 'Hizmet', belirtec: 'hizmet', mfSinif: MQHizmet } ]
@@ -255,7 +255,7 @@ class HizmetVirmanDetay extends VirmanDetay {
 		let fisClsName = detClsName.replace('Detay', 'Fis');
 		let code = [
 			`class ${fisClsName} extends VirmanFis {`,
-			`	static { window[this.name] = this; this._key2Class[this.name] = this }`,
+			`	static { globalThis[this.name] = this; this._key2Class[this.name] = this }`,
 			`	static get detaySinif() { return ${detClsName} } static get kodListeTipi() { return ${detClsName}.kodListeTipi }`,
 			`	static get sinifAdi() { return ${detClsName}.sinifAdi } `,
 			'}'

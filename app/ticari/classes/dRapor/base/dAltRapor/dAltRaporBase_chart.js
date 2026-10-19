@@ -1,5 +1,5 @@
 class DAltRapor_Chart extends DAltRapor {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return null }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get raporClass() { return null }
 	static get uygunmu() { return false } static get kod() { return 'chart' } static get tazeleYapilirmi() { return false }
 	static get aciklama() { return 'Grafik' } get etiket() { return `${super.etiket}: ${this.class.aciklama}` }
 	get width() { return this.isPanelItem ? 'var(--full)' : `calc(var(--full) - ${this.rapor.id2AltRapor.main?.width} - 15px)` }

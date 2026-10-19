@@ -1,5 +1,5 @@
 class CSFisTipi extends TekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get fisSiniflari() { return [] }
 	static get defaultChar() { return null }
 	kaListeDuzenle(e) {
@@ -11,7 +11,7 @@ class CSFisTipi extends TekSecim {
 	}
 }
 class CSFisTipi_AlacakCek extends CSFisTipi {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get fisSiniflari() {
 		return [
 			...super.fisSiniflari,
@@ -25,7 +25,7 @@ class CSFisTipi_AlacakCek extends CSFisTipi {
 	}
 }
 class CSFisTipi_AlacakSenet extends CSFisTipi {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get fisSiniflari() {
 		return [
 			...super.fisSiniflari,
@@ -39,10 +39,10 @@ class CSFisTipi_AlacakSenet extends CSFisTipi {
 	}
 }
 class CSFisTipi_BorcCek extends CSFisTipi {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get fisSiniflari() { return [...super.fisSiniflari, BorcCekGirisFis] }
 }
 class CSFisTipi_BorcSenet extends CSFisTipi {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get fisSiniflari() { return [...super.fisSiniflari, BorcSenetGirisFis] }
 }

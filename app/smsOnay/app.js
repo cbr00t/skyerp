@@ -1,5 +1,5 @@
 class SMSOnayApp extends App {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get mainClass() { return SMSOnayPart }
 	get mainClass() { return this.class.mainClass }
 	get isLoginRequired() { return false } 

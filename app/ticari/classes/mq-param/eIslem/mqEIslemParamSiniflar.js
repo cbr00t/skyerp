@@ -1,5 +1,5 @@
 class MQEIslemParam extends MQTicariParamBase {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get paramKod() { return 'PTEFATP' } static get sinifAdi() { return 'e-İşlem Parametreleri' }
 	get tekSecimDonusum_receiver() { return this.kural }
 	static get defaultGoruntuOzelPunto() { return null }

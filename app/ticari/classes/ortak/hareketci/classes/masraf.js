@@ -1,5 +1,5 @@
 class MasrafHareketci extends Hareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 95 }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get oncelik() { return 95 }
 	static get kod() { return 'masraf' } static get aciklama() { return 'Masraf' }
 	static get uygunmu() { return app?.params?.ticariGenel?.kullanim?.masraf }
 	static get eldekiVarliklarIcinUygunmu() { return false }

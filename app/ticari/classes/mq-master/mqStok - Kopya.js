@@ -1,5 +1,5 @@
 class MQStok extends MQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get shTip() { return 'S' }
 	static get stokmu() { return true }
 	static get sinifAdi() { return 'Stok' }

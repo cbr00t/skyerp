@@ -1,5 +1,5 @@
 class MQGorev extends MQSayacliOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Görev' } static get table() { return '' } static get tableAlias() { return 'grv' }
 	static get kodListeTipi() { return 'UGOREV' } static get localDataBelirtec() { return 'gorev' } static get tanimUISinif() { return ModelTanimPart }
 	get basTarih() { const {basTS} = this; return basTS?.clearTime ? new Date(basTS).clearTime() : basTS } set basTarih(value) { return value?.clearTime ? new Date(value).clearTime() : value }

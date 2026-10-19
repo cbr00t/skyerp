@@ -1,9 +1,9 @@
 class MQAlt extends CIO {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get deepCopyAlinmayacaklar() { return [...super.deepCopyAlinmayacaklar, 'inst'] } static get addSelfToPTanimFlag() { return true }
 }
 class MQExt extends MQAlt {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get extmi() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get extmi() { return true }
 	static altYapiInit(e) {
 		const {mfSinif, pTanim} = this, target_pTanim = e.pTanim;
 		if (pTanim && target_pTanim) {

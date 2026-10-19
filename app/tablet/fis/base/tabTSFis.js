@@ -1,6 +1,6 @@
 // class MQTabTestFis extends mixin($TabFisTemplate, MQGenelFis) {
 class TabTSFis extends TabFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get araSeviyemi() { return super.araSeviyemi || this == TabTSFis }
 	static get kodListeTipi() { return 'TABTS' } static get sinifAdi() { return 'Ticari/Stok Fiş' }
 	static get detaySinif() { return TabTSDetay } static get almSat() { return 'T' }

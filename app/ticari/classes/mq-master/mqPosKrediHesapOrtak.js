@@ -1,5 +1,5 @@
 class MQPosKrediHesapOrtak extends MQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Banka Koşul' }
 	static get kosulSinif() { return MQAlt_BankaKosulOrtak }
 	static get table() { return 'poskosul' }
@@ -181,20 +181,20 @@ class MQPosKrediHesapOrtak extends MQKA {
 	}
 }
 class MQPosHesap extends MQPosKrediHesapOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kosulSinif() { return MQAlt_POSKosul }
 	static get sinifAdi() { return 'POS Hesap' }
 	static get almSat() { return 'T' }
 }
 class MQKrediKarti extends MQPosKrediHesapOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kosulSinif() { return MQAlt_KrediKartiKosul }
 	static get sinifAdi() { return 'Kredi Kartı' }
 	static get almSat() { return 'A' }
 }
 
 class MQAlt_BankaKosulOrtak extends MQAlt {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kosulVadeMaxSayi() { return 8 }
 	static rootFormBuilderDuzenle(e) { }
 	static orjBaslikListesiDuzenle(e) { }
@@ -297,7 +297,7 @@ class MQAlt_BankaKosulOrtak extends MQAlt {
 	tarihBaslangicDuzenlenmis(vade) { return vade }
 }
 class MQAlt_POSKosul extends MQAlt_BankaKosulOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) {
 		e = e || {};
 		super(e);
@@ -384,11 +384,11 @@ class MQAlt_POSKosul extends MQAlt_BankaKosulOrtak {
 	}
 }
 class MQAlt_KrediKartiKosul extends MQAlt_BankaKosulOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 
 class MQAlt_BankaKosulOrtak_NakdeDonusumTipi extends TekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
 	get gunSonrami() { return !this.char }
 	get sabitmi() { return this.char == 'X' }
@@ -406,7 +406,7 @@ class MQAlt_BankaKosulOrtak_NakdeDonusumTipi extends TekSecim {
 	}
 }
 class MQAlt_BankaKosulOrtak_IlkGunCumartesiDurumu extends TekSecim {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '' }
 	get yapmami() { return !this.char }
 	get pazarmi() { return this.char == '*' }

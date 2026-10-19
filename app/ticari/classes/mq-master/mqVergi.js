@@ -1,5 +1,5 @@
 class MQVergi extends MQKA {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Vergi' }
 	static get table() { return 'vergihesap' }
 	static get tableAlias() { return 'ver' }
@@ -575,7 +575,7 @@ class MQVergi extends MQKA {
 }
 
 class MQVergiAlt extends MQAlt {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get belirtec() { return null }
 	static get rowAttrPrefix() { return null }
 
@@ -677,7 +677,7 @@ class MQVergiAlt extends MQAlt {
 	}
 }
 class MQVergiKdv extends MQVergiAlt {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get belirtec() { return 'kdv' }
 	static get rowAttrPrefix() { return 'kdv' }
 	static get eIslTypeCode() { return '0015' }
@@ -899,7 +899,7 @@ class MQVergiKdv extends MQVergiAlt {
 	}
 }
 class MQVergiOtv extends MQVergiAlt {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get belirtec() { return 'otv' }
 	static get rowAttrPrefix() { return 'otv' }
 	static get eIslTypeCode() { return '0071' }
@@ -932,7 +932,7 @@ class MQVergiOtv extends MQVergiAlt {
 	}
 }
 class MQVergiStopaj extends MQVergiAlt {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get belirtec() { return 'stopaj' }
 	static get rowAttrPrefix() { return 'stopaj' }
 	static get eIslTypeCode() { return '0003' }
@@ -950,7 +950,7 @@ class MQVergiStopaj extends MQVergiAlt {
 	}
 }
 class MQVergiGKKP extends MQVergiAlt {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get belirtec() { return 'gkkp' }
 	static get rowAttrPrefix() { return 'gkkp' }
 	static tipSetDuzenle(e) {
@@ -967,7 +967,7 @@ class MQVergiGKKP extends MQVergiAlt {
 	}
 }
 class MQVergiMustahsil extends MQVergiAlt {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get belirtec() { return 'mustahsil' }
 	static get rowAttrPrefix() { return 'mustahsil' }
 	static tipSetDuzenle(e) {
@@ -977,7 +977,7 @@ class MQVergiMustahsil extends MQVergiAlt {
 	}
 }
 class MQVergiKonaklama extends MQVergiAlt {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get belirtec() { return 'konaklama' }
 	static get rowAttrPrefix() { return 'konaklama' }
 	static tipSetDuzenle(e) {
@@ -987,7 +987,7 @@ class MQVergiKonaklama extends MQVergiAlt {
 	}
 }
 class MQVergiEkVergi extends MQVergiAlt {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get belirtec() { return 'ekVergi' }
 	static get rowAttrPrefix() { return 'ekvergi' }
 	static tipSetDuzenle(e) {
@@ -999,7 +999,7 @@ class MQVergiEkVergi extends MQVergiAlt {
 
 
 class CTevkifatBilgi extends PayVeBaz {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	constructor(e) {
 		e = e || {};
 		super(e);

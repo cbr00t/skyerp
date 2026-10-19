@@ -1,5 +1,5 @@
 class MQStokCariRef extends MQDetayliMaster {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'STOKCARIREF' } static get sinifAdi() { return 'Stok-Cari Referans' }
 	static get table() { return 'pzmusturunfis' } static get tableAlias() { return 'fis' }
 	static get detaySinif() { return MQStokCariRefDetay } static get gridKontrolcuSinif() { return MQStokCariRefGridci }
@@ -61,7 +61,7 @@ class MQStokCariRef extends MQDetayliMaster {
 	}
 }
 class MQStokCariRefDetay extends MQDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'pzmusturundetay' }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get table() { return 'pzmusturundetay' }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments); $.extend(pTanim, {
 			urunDurumu: new PInstStr('urundurumu'), stokKod: new PInstStr('stokkod'),
@@ -82,7 +82,7 @@ class MQStokCariRefDetay extends MQDetay {
 	}
 }
 class MQStokCariRefGridci extends GridKontrolcu {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	tabloKolonlariDuzenle_ara({ tabloKolonlari }) {
 		super.tabloKolonlariDuzenle_ara(...arguments); tabloKolonlari.push(...[
 			...MQStok.getGridKolonlar({ belirtec: 'stok' }),

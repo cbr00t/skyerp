@@ -1,5 +1,5 @@
 class MQKasa extends MQKA {
-	static { window[this.name] = this; this._key2Class[this.name] = this } static get kodListeTipi() { return 'KASA' } static get zeminRenkDesteklermi() { return true }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get kodListeTipi() { return 'KASA' } static get zeminRenkDesteklermi() { return true }
 	static get sinifAdi() { return 'Kasa' } static get table() { return 'kasmst' } static get tableAlias() { return 'kas' }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); const {pTanim} = e; $.extend(pTanim, {

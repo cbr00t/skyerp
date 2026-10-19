@@ -1,5 +1,5 @@
 class BuVeDiger extends TekSecim {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return '1' }
 	get bumu() { return this.char == '1' }
 	get digermi() { return this.char == '2' }
@@ -75,7 +75,7 @@ class BuVeDiger extends TekSecim {
 	}
 }
 class BuDigerVeHepsi extends BuVeDiger {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get defaultChar() { return null }
 	get hepsimi() { return !this.char }
 	kaListeDuzenle({ kaListe }) {
@@ -85,7 +85,7 @@ class BuDigerVeHepsi extends BuVeDiger {
 	hepsi() { this.char = null; return this }
 }
 class EvetHayirTekSecim extends BuDigerVeHepsi {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	init(e) {
 		e = e || {}; super.init(e); let {_buDigerYapi} = this;
 		_buDigerYapi[0] = '<span class="green">Evet</span>';

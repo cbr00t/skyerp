@@ -1,5 +1,5 @@
 class OperBaseHareketci extends Hareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return 105 } static get sadeceTotalmi() { return true }
 	static get uygunmu() { return !this.araSeviyemi && app.violetmi }
 	static get araSeviyemi() { return super.araSeviyemi || this == OperBaseHareketci }
@@ -104,7 +104,7 @@ class OperBaseHareketci extends Hareketci {
 }
 
 class OperDurumHareketci extends OperBaseHareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return super.oncelik + 1 } static get kisaKod() { return 'OD' }
 	static get kod() { return 'OPERDURUM' } static get aciklama() { return 'Oper. Durum' }
 
@@ -128,7 +128,7 @@ class OperDurumHareketci extends OperBaseHareketci {
 }
 
 class OperGerHareketciOrtak extends OperBaseHareketci {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	uniOrtakSonIslem({ hvDegeri, sent }) {
 		super.uniOrtakSonIslem(...arguments)
 		sent
@@ -144,7 +144,7 @@ class OperGerHareketciOrtak extends OperBaseHareketci {
 }
 
 class OperGerHareketci extends OperGerHareketciOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return super.oncelik + 2 } static get kisaKod() { return 'OG' }
 	static get kod() { return 'OPEGER' } static get aciklama() { return 'Oper. Gerçekleme' }
 
@@ -164,7 +164,7 @@ class OperGerHareketci extends OperGerHareketciOrtak {
 }
 
 class IskartaHareketci extends OperGerHareketciOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return super.oncelik + 3 } static get kisaKod() { return 'IS' }
 	static get kod() { return 'ISKARTA' } static get aciklama() { return 'Iskarta' }
 
@@ -204,7 +204,7 @@ class IskartaHareketci extends OperGerHareketciOrtak {
 }
 
 class DuraksamaHareketci extends OperGerHareketciOrtak {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get oncelik() { return super.oncelik + 4 } static get kisaKod() { return 'DR' }
 	static get kod() { return 'DURAKSAMA' } static get aciklama() { return 'Duraksama' }
 

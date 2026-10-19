@@ -1,5 +1,5 @@
 class CSTekilIslem extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get siraliInstVars() {
 		let {_siraliInstVars: result} = this; if (result == null) {
 			result = this._siraliInstVars = [
@@ -22,7 +22,7 @@ class CSTekilIslem extends CObject {
 }
 
 class CSIslemler extends CObject {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static delim = '@'; static get tekilIslemSinif() { return CSTekilIslem }
 	static get portfoyTip2Bilgi() {
 		let {_portfoyTip2Bilgi: result} = this; if (result == null) {

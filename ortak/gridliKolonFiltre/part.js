@@ -1,5 +1,5 @@
 class GridliKolonFiltrePart extends GridliGirisWindowPart {
-    static { window[this.name] = this; this._key2Class[this.name] = this } static get partName() { return 'gridliKolonFiltre' }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get partName() { return 'gridliKolonFiltre' }
 	/* static get isWindowPart() { return true } */ get wndDefaultIsModal() { return true }
 	get recsUyarlanmis() { return this.boundRecs.filter(rec => !!(rec.attr && (rec.operator == 'EMPTY' || rec.operator == 'NOT_EMPTY' || rec.value))) ?? [] }
 	get filtreText() { return this.class.getFiltreText(this.recsUyarlanmis) }

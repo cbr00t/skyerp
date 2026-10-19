@@ -1,5 +1,5 @@
 class MQOEM extends MQSayacliOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Operasyon Emri' } static get table() { return 'operemri' } static get tableAlias() { return 'oem' } static get detayTable() { return MQGercekleme.table } 
 	static get kodListeTipi() { return 'UOEM' } static get localDataBelirtec() { return 'oem' } static get sayacSahaGosterilirmi() { return true } static get gridDetaylimi() { return true }
 	static get idSaha() { return ['emirnox', 'opno', 'stokkod'] } static get idSahaDonusum() { return $.extend(super.idSahaDonusum || {}, { emirnox: 'emr.fisnox', stokkod: 'frm.formul' }) }
@@ -481,7 +481,7 @@ class MQOEM extends MQSayacliOrtak {
 	}
 }
 class MQOEMVeGorev extends MQOEM {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Operasyon ve Görevler' }
 	static get defaultGroups() { return [...super.defaultGroups, 'hatadi'] }
 	static secimlerDuzenle(e) {

@@ -1,5 +1,5 @@
 class MESDokumanPart extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get isWindowPart() { return false } static get partName() { return 'mesDokuman' } static get sinifAdi() { return 'Dökümanlar' }
 	constructor(e) { e = e || {}; super(e); $.extend(this, { title: e.title ?? 'Dökümanlar', urlListe: e.urlListe ?? e.images ?? [] }) }
 	run(e) {
@@ -27,4 +27,4 @@ class MESDokumanPart extends Part {
 		)
 	}
 }
-class MESDokumanWindowPart extends MESDokumanPart { static { window[this.name] = this; this._key2Class[this.name] = this } static get isWindowPart() { return true } }
+class MESDokumanWindowPart extends MESDokumanPart { static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get isWindowPart() { return true } }

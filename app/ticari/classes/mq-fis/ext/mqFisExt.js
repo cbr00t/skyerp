@@ -1,10 +1,10 @@
 class ExtFis extends MQExt {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static tekilOku_queryDuzenle(e) {}
 	tekilOku_queryDuzenle(e) { this.class.tekilOku_queryDuzenle(e) }
 }
 class ExtFis_Cari extends ExtFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		let { mustSaha = 'must' } = this.mfSinif
@@ -55,7 +55,7 @@ class ExtFis_Cari extends ExtFis {
 	}
 }
 class ExtFis_AltHesap extends ExtFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodSaha() { return this.mfSinif.altHesapSaha || 'cariitn' }
 
 	static pTanimDuzenle({ pTanim }) {
@@ -100,7 +100,7 @@ class ExtFis_AltHesap extends ExtFis {
 	async dataDuzgunmu(e) { return await MQAltHesap.kodYoksaMesaj(this.inst.altHesapKod) }
 }
 class ExtFis_CariVeAltHesap extends ExtFis_Cari {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e);
 		extend(e.pTanim, { carDvKod: new PInstStr(), altHesapDvKod: new PInstStr() });
@@ -135,7 +135,7 @@ class ExtFis_CariVeAltHesap extends ExtFis_Cari {
 	}
 }
 class ExtFis_Plasiyer extends ExtFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
 		extend(pTanim, { plasiyerKod: new PInstStr('plasiyerkod') })
@@ -173,7 +173,7 @@ class ExtFis_Plasiyer extends ExtFis {
 	async dataDuzgunmu(e) { return await MQPlasiyer.kodYoksaMesaj(this.inst.plasiyerKod) }
 }
 class ExtFis_Kasa extends ExtFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		extend(pTanim, { kasaKod: new PInstStr('kasakod') })
@@ -214,7 +214,7 @@ class ExtFis_Kasa extends ExtFis {
 	}
 }
 class ExtFis_BankaHesap extends ExtFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e);
 		let {pTanim} = e;
@@ -255,7 +255,7 @@ class ExtFis_BankaHesap extends ExtFis {
 	async dataDuzgunmu(e) { return await MQBankaHesap.kodYoksaMesaj(this.inst.banHesapKod) }
 }
 class ExtFis_RefBankaHesap extends ExtFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e);
 		let {pTanim} = e;
@@ -297,7 +297,7 @@ class ExtFis_RefBankaHesap extends ExtFis {
 	async dataDuzgunmu(e) { return await MQBankaHesap.kodYoksaMesaj(this.inst.refBanHesapKod) }
 }
 class ExtFis_Hizmet extends ExtFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e);
 		extend(e.pTanim, { hizmetKod: new PInstStr('hizmetkod') })
@@ -337,7 +337,7 @@ class ExtFis_Hizmet extends ExtFis {
 	async dataDuzgunmu(e) { return await MQHizmet.kodYoksaMesaj(this.inst.hizmetKod) }
 }
 class ExtFis_TakipNo extends ExtFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
 		extend(pTanim, { takipNo: new PInstStr('takipno') })
@@ -366,7 +366,7 @@ class ExtFis_TakipNo extends ExtFis {
 	async dataDuzgunmu(e) { return await MQTakipNo.kodYoksaMesaj(this.inst.takipNo) }
 }
 class ExtFis_TahSekliNo extends ExtFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
 		extend(pTanim, { tahSekliNo: new PInstStr('tahseklino') })
@@ -401,7 +401,7 @@ class ExtFis_TahSekliNo extends ExtFis {
 	async dataDuzgunmu(e) { return await MQTahsilSekli.kodYoksaMesaj(this.inst.tahSekliNo) }
 }
 class ExtFis_Portfoy extends ExtFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e);
 		let {pTanim} = e;
@@ -443,7 +443,7 @@ class ExtFis_Portfoy extends ExtFis {
 	async dataDuzgunmu(e) { return await MQPortfoy.kodYoksaMesaj(this.inst.portfoyKod) }
 }
 class ExtFis_Ciranta extends ExtFis_Cari {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e);
 		extend(e.pTanim, { cirantaKod: new PInstStr('fisciranta') })
@@ -476,7 +476,7 @@ class ExtFis_Ciranta extends ExtFis_Cari {
 	async dataDuzgunmu(e) { return await MQCiranta.kodYoksaMesaj(this.inst.ciranta) }
 }
 class ExtFis_StokIslem extends ExtFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
 		extend(pTanim, { islKod: new PInstStr('islkod'), isl_tip: new PInstStr() })
@@ -516,7 +516,7 @@ class ExtFis_StokIslem extends ExtFis {
 	setValues({ rec }) { let {inst} = this; inst.isl_tip = rec.isl_tip }
 }
 class ExtFis_CariIslem extends ExtFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
 		extend(pTanim, { islKod: new PInstStr('carislkod'), isl_ba: new PInstStr() })
@@ -563,7 +563,7 @@ class ExtFis_CariIslem extends ExtFis {
 	setValues({ rec }) { let {inst} = this; inst.isl_ba = rec.isl_ba }
 }
 class ExtFis_MuhIslem extends ExtFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
 		extend(pTanim, { islKod: new PInstStr('muhislkod') })
@@ -603,7 +603,7 @@ class ExtFis_MuhIslem extends ExtFis {
 	async dataDuzgunmu(e) { return await MQMuhIslem.kodYoksaMesaj(this.inst.islKod) }
 }
 class ExtFis_MuhHesap extends ExtFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
 		extend(pTanim, { muhHesapKod: new PInstStr('muhhesapkod') })
@@ -644,7 +644,7 @@ class ExtFis_MuhHesap extends ExtFis {
 }
 
 class Ext_Cari extends ExtFis_Cari {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		extend(pTanim, { mustUnvan: new PInstStr(), yore: new PInstStr() })					// MQCari kolonGrup için ${belirtec}Unvan adiAttr kullanılır
@@ -659,7 +659,7 @@ class Ext_Cari extends ExtFis_Cari {
 	}
 }
 class Ext_AltHesap extends ExtFis_AltHesap {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
 		extend(pTanim, { altHesapAdi: new PInstStr() })
@@ -668,7 +668,7 @@ class Ext_AltHesap extends ExtFis_AltHesap {
 	setValues({ rec }) { let {inst} = this; extend(inst, { altHesapAdi: rec.althesapadi }) }
 }
 class Ext_CariVeAltHesap extends ExtFis_CariVeAltHesap {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		extend(pTanim, {
@@ -693,7 +693,7 @@ class Ext_CariVeAltHesap extends ExtFis_CariVeAltHesap {
 	}
 }
 class Ext_Kasa extends ExtFis_Kasa {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
 		extend(pTanim, { kasaAdi: new PInstStr() })
@@ -704,7 +704,7 @@ class Ext_Kasa extends ExtFis_Kasa {
 	setValues({ rec }) { let {inst} = this; inst.kasaAdi = rec.kasaadi }
 }
 class Ext_MuhHesap extends ExtFis_MuhHesap {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
 		extend(pTanim, { muhHesapAdi: new PInstStr() })
@@ -713,7 +713,7 @@ class Ext_MuhHesap extends ExtFis_MuhHesap {
 	setValues({ rec }) { let {inst} = this; inst.muhHesapAdi = rec.muhhesapadi }
 }
 class Ext_MuhIslem extends ExtFis_MuhIslem {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
 		extend(pTanim, { islAdi: new PInstStr() })
@@ -722,7 +722,7 @@ class Ext_MuhIslem extends ExtFis_MuhIslem {
 	setValues({ rec }) { let {inst} = this; inst.islAdi = rec.isladi }
 }
 class Ext_StokIslem extends ExtFis_StokIslem {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
 		extend(pTanim, { islAdi: new PInstStr() })
@@ -731,7 +731,7 @@ class Ext_StokIslem extends ExtFis_StokIslem {
 	setValues({ rec }) { let {inst} = this; inst.islAdi = rec.isladi }
 }
 class Ext_CariIslem extends ExtFis_CariIslem {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		extend(pTanim, { islAdi: new PInstStr() })
@@ -740,7 +740,7 @@ class Ext_CariIslem extends ExtFis_CariIslem {
 	setValues({ rec }) { let {inst} = this; inst.islAdi = rec.isladi }
 }
 class Ext_BankaHesap extends ExtFis_BankaHesap {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e);
 		extend(e.pTanim, { banHesapAdi: new PInstStr() })
@@ -752,7 +752,7 @@ class Ext_BankaHesap extends ExtFis_BankaHesap {
 	}
 }
 class Ext_RefBankaHesap extends ExtFis_RefBankaHesap {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e);
 		extend(e.pTanim, { refBanHesapAdi: new PInstStr() })
@@ -764,7 +764,7 @@ class Ext_RefBankaHesap extends ExtFis_RefBankaHesap {
 	}
 }
 class Ext_Hizmet extends ExtFis_Hizmet {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e);
 		extend(e.pTanim, { hizmetAdi: new PInstStr() })
@@ -776,19 +776,19 @@ class Ext_Hizmet extends ExtFis_Hizmet {
 	}
 }
 class Ext_TakipNo extends ExtFis_TakipNo {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) { super.pTanimDuzenle(...arguments); extend(pTanim, { takipAdi: new PInstStr() }) }
 	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); this.tekilOku_queryDuzenle(e) }
 	setValues({ rec }) { let {inst} = this; inst.takipAdi = rec.takipadi }
 }
 class Ext_TahSekliNo extends ExtFis_TahSekliNo {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) { super.pTanimDuzenle(...arguments); extend(pTanim, { tahSekliAdi: new PInstStr() }) }
 	static loadServerData_queryDuzenle(e) { super.loadServerData_queryDuzenle(e); this.tekilOku_queryDuzenle(e) }
 	setValues({ rec }) { let {inst} = this; inst.tahSekliAdi = rec.tahsekliadi }
 }
 class Ext_PosKrediOrtak extends MQExt {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kisaAdi() { return null }
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e);
@@ -821,15 +821,15 @@ class Ext_PosKrediOrtak extends MQExt {
 	}
 }
 class Ext_PosHesap extends Ext_PosKrediOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kisaAdi() { return 'POS Hesap' }
 }
 class Ext_KrediKartiHesap extends Ext_PosKrediOrtak {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kisaAdi() { return 'Kredi Kartı' }
 }
 class Ext_BelgeTarihVeNo extends MQExt {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments); extend(pTanim, {
 			belgeTarih: new PInstDate('belgetarih'), belgeSeri: new PInstStr('belgeseri'),
@@ -848,7 +848,7 @@ class Ext_BelgeTarihVeNo extends MQExt {
 	}
 }
 class Ext_Bedel extends MQExt {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
 		extend(pTanim, { bedel: new PInstNum('bedel') })
@@ -858,7 +858,7 @@ class Ext_Bedel extends MQExt {
 	}
 }
 class Ext_BedelVeDvBedel extends Ext_Bedel {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments);
 		extend(pTanim, { dvBedel: new PInstNum('dvbedel') })
@@ -872,7 +872,7 @@ class Ext_BedelVeDvBedel extends Ext_Bedel {
 	}
 }
 class Ext_DvKur extends MQExt {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		extend(pTanim, { dvKur: new PInstNum('dvkur') })
@@ -889,7 +889,7 @@ class Ext_DvKur extends MQExt {
 	}
 }
 class Ext_NDVade extends MQExt {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments )
 		extend(pTanim, { ndVade: new PInstDate('nakdedonusumvade') })
@@ -899,7 +899,7 @@ class Ext_NDVade extends MQExt {
 	}
 }
 class Ext_Vade extends MQExt {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		extend(pTanim, { vade: new PInstDate('vade') })
@@ -909,7 +909,7 @@ class Ext_Vade extends MQExt {
 	}
 }
 class Ext_DetAciklama extends MQExt {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		extend(pTanim, { detAciklama: new PInstStr('aciklama') })

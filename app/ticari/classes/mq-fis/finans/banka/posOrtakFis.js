@@ -1,5 +1,5 @@
 class PosOrtakFis extends BankaOrtakFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'posfis' }
 	static get detaySinif() { return PosOrtakDetay }
 	static get gridKontrolcuSinif() { return PosOrtakGridci }
@@ -101,7 +101,7 @@ class PosOrtakFis extends BankaOrtakFis {
 }
 
 class PosOrtakDetay extends BankaOrtakDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get table() { return 'posilkhar' }
 	static extYapilarDuzenle({ liste }) {
 		liste.push(Ext_CariVeAltHesap)
@@ -113,7 +113,7 @@ class PosOrtakDetay extends BankaOrtakDetay {
 }
 
 class PosOrtakGridci extends BankaOrtakGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get posHesapSinif() { return MQPosHesap }
 	
 	tabloKolonlariDuzenle_ilk(e = {}) {
@@ -220,7 +220,7 @@ class PosOrtakGridci extends BankaOrtakGridci {
 
 
 class PosKrediKartiOrtakFis extends PosOrtakFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get detaySinif() { return PosKrediKartiOrtakDetay }
 	static get gridKontrolcuSinif() { return PosKrediKartiOrtakGridci }
 	static get almSat() { return null }
@@ -231,14 +231,14 @@ class PosKrediKartiOrtakFis extends PosOrtakFis {
 	}
 }
 class PosKrediKartiOrtakDetay extends PosOrtakDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 class PosKrediKartiOrtakGridci extends PosOrtakGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 }
 
 class PosTahsilFis extends PosKrediKartiOrtakFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get detaySinif() { return PosTahsilDetay }
 	static get gridKontrolcuSinif() { return PosTahsilGridci }
 	static get sinifAdi() { return 'POS Tahsil Fiş' }
@@ -248,7 +248,7 @@ class PosTahsilFis extends PosKrediKartiOrtakFis {
 	static get posmu() { return true }
 }
 class PosTahsilDetay extends PosKrediKartiOrtakDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static extYapilarDuzenle(e) {
 		let {liste} = e;
 		liste.push(Ext_PosHesap);
@@ -256,12 +256,12 @@ class PosTahsilDetay extends PosKrediKartiOrtakDetay {
 	}
 }
 class PosTahsilGridci extends PosKrediKartiOrtakGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get posHesapSinif() { return MQPosHesap }
 }
 
 class KrediKartiIleOdemeFis extends PosKrediKartiOrtakFis {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get detaySinif() { return KrediKartiIleOdemeDetay }
 	static get gridKontrolcuSinif() { return KrediKartiIleOdemeGridci }
 	static get sinifAdi() { return 'Kredi Kartı ile Cari Ödeme Fiş' }
@@ -271,7 +271,7 @@ class KrediKartiIleOdemeFis extends PosKrediKartiOrtakFis {
 	static get krediKartimi() { return true }
 }
 class KrediKartiIleOdemeDetay extends PosKrediKartiOrtakDetay {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static extYapilarDuzenle(e) {
 		let {liste} = e;
 		liste.push(Ext_KrediKartiHesap);
@@ -279,6 +279,6 @@ class KrediKartiIleOdemeDetay extends PosKrediKartiOrtakDetay {
 	}
 }
 class KrediKartiIleOdemeGridci extends PosKrediKartiOrtakGridci {
-	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get posHesapSinif() { return MQKrediKarti }
 }

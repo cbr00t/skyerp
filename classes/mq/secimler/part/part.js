@@ -1,5 +1,5 @@
 class SecimlerPart extends Part {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	/*static get isSubPart() { return true }*/
 	static get isWindowPart() { return false }
 	//static get canDestroy() { return false }

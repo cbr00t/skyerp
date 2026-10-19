@@ -1,5 +1,5 @@
 class RRapor extends MQDetayli {
-    static { window[this.name] = this; this._key2Class[this.name] = this }
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Rapor' } static get table() { return 'rstdrapor' } static get tableAlias() { return 'rap' }
 	static get sayacSaha() { return 'sayac' } static get adiSaha() { return 'aciklama' }
 	static get tanimUISinif() { return RaporTanimPart } static get detaySinif() { return RRaporDetay }
