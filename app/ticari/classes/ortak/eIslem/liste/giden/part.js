@@ -1,128 +1,92 @@
 class GidenEIslemListePart extends EIslemListeBasePart {
     static { globalThis[this.name] = this; this._key2Class[this.name] = this }
-	static get partName() { return 'gidenEIslemListe' }
-	static get filtreSinif() { return GidenEIslemFiltre }
-	static get gidenmi() { return true }
-	
-	constructor(e = {}) {
-		super(e)
+	static get partName() { return 'gidenEIslemListe' } static get filtreSinif() { return GidenEIslemFiltre }
+	constructor(e) {
+		e ??= {}; super(e)
 		this.title = e.title ?? 'Giden e-İşlem Listesi' ?? ''
 	}
-	runDevam(e = {}) {
+	runDevam(e) {
+		e ??= {}
 		super.runDevam(e)
-		let { dbName } = config.session
-		let { kural } = app.params.eIslem ?? {}
-		let { sadeceAdi2mi } = kural?.shAdi ?? {}
+		let { dbName } = config.session, { kural } = app.params.eIslem, { sadeceAdi2mi } = kural?.shAdi ?? {}
 		if (!sadeceAdi2mi && dbName?.toUpperCase().includes('BAKERMAN')) {
-			delay(1000).then(() => {
-				hConfirm(
-					`<b>BAKERMAN</b> veritabanı için e-İşlem Parametresi <b class="red">Stok Adı Gösterim</b> kuralı <u class="bold royalblue">2. Adı</u> olarak işaretlenmelidir`,
-					'UYARI'
-				)
-			})
+			setTimeout(() =>
+				hConfirm(`<b>BAKERMAN</b> veritabanı için e-İşlem Parametresi <b class="red">Stok Adı Gösterim</b> kuralı <u class="bold royalblue">2. Adı</u> olarak işaretlenmelidir`, 'UYARI'),
+				1000)
 		}
 	}
-	islemTuslariDuzenle(e = {}) {
+	islemTuslariDuzenle(e) {
 		super.islemTuslariDuzenle(e)
-		let { liste, part: { sagButonIdSet } } = e
-		let removeIdSet = asSet('kolonFiltre')
-		liste = e.liste = liste.filter(({ id }) => !removeIdSet[id])
-		liste.unshift(...[
-			{ id: 'eIslemGonder', toolTip: 'e-İşlem GÖNDER', handler: _e => this.eIslemGonderIstendi({ ...e, ..._e }) },
-			{ id: 'eIslemIzle', toolTip: 'e-İşlem İzle', handler: _e => this.eIslemIzleIstendi({ ...e, ..._e, toplu: false }) },
-			{ id: 'eIslemYazdir', text: 'YZDR', toolTip: 'e-İşlem Yazdır', handler: _e => this.eIslemIzleIstendi({ ...e, ..._e, toplu: true }) },
-			{ id: 'eIslemSorgu', toolTip: 'e-İşlem Durum Sorgula', handler: _e => this.eIslemSorguIstendi({ ...e, ..._e }) },
-			{ id: 'eIslemXMLOlustur', toolTip: 'e-İşlem XML Oluştur', handler: _e => this.eIslemXMLOlusturIstendi({ ...e, ..._e }) },
-			{ id: 'eIslemIptal', toolTip: 'e-İşlem İPTAL', handler: _e => this.eIslemIptalIstendi({ ...e, ..._e }) },
-			{ id: 'eIslemXMLKaldir', toolTip: 'XML Kaldır', handler: _e => this.eIslemXMLKaldirIstendi({ ...e, ..._e }) }
-		])
+		let { liste, part } = e
 		liste.push({
-			id: 'gonderildiDurumAyarla', text: 'GND', toolTip: 'Gönderim Durum Ayarla',
-			handler: _e => this.gonderildiDurumAyarlaIstendi({ ...e, ..._e })
+			id: 'gonderildiDurumAyarla',
+			text: 'GND',
+			toolTip: 'Gönderim Durum Ayarla',
+			handler: e => this.gonderildiDurumAyarlaIstendi(e)
 		})
-		extend(sagButonIdSet, asSet([
-			'eIslemGonder', 'eIslemIzle', 'eIslemYazdir', 'eIslemSorgu',
-			'eIslemXMLOlustur', 'eIslemIptal', 'eIslemXMLKaldir'
-		]))
+		liste.unshift(
+			{ id: 'eIslemGonder', toolTip: 'e-İşlem GÖNDER', handler: e => this.eIslemGonderIstendi(e) },
+			{ id: 'eIslemIzle', toolTip: 'e-İşlem İzle', handler: e => this.eIslemIzleIstendi(e) },
+			{ id: 'eIslemYazdir', text: 'YZDR', toolTip: 'e-İşlem Yazdır', handler: e => this.eIslemIzleIstendi({ ...e, toplu: true }) },
+			{ id: 'eIslemSorgu', toolTip: 'e-İşlem Durum Sorgula', handler: e => this.eIslemSorguIstendi(e) },
+			{ id: 'eIslemXMLOlustur', toolTip: 'e-İşlem XML Oluştur', handler: e => this.eIslemXMLOlusturIstendi(e) },
+			{ id: 'eIslemIptal', toolTip: 'e-İşlem İPTAL', handler: e => this.eIslemIptalIstendi(e) },
+			{ id: 'xmlKaldir', toolTip: 'XML Kaldır', handler: e => this.xmlKaldirIstendi(e) }
+		)
+		extend(part.sagButonIdSet, asSet(['eIslemGonder', 'eIslemIzle', 'eIslemYazdir', 'eIslemSorgu', 'eIslemXMLOlustur', 'eIslemIptal', 'xmlKaldir']))
 	}
 	get defaultTabloKolonlari() {
-		let cssDuzenleyici = (e = {}) => {
-			let { ekCSS, duzenleyici } = e
+		let getCSSDuzenleyici = e => {
+			e ??= {}; let {ekCSS, duzenleyici} = e;
 			return ((sender, rowIndex, belirtec, value, rec) => {
-				let res = [belirtec]
-				let { eIslTip, onayDurum, uuid, imzaTS, gonderimTS } = rec
-				if (!empty(ekCSS))
-					res.push(...makeArray(ekCSS))
-				if (eIslTip != null)
-					res.push(`eIslTip-${eIslTip}`)
-				if (efatonaydurumu != null)
-					res.push(`akibet-${onayDurum}`)
-				if (imzaTS)
-					res.push('imzali')
-				if (gonderimTS)
-					res.push('gonderildi')
-				if (uuid)
-					res.push('hasUUID')
-				
-				if (duzenleyici) {
-					let args = { ...e, sender, rowIndex, belirtec, value, rec, result: res }
-					duzenleyici.call(this, args)
-					res = args.result
-				}
-				
-				return res.join(' ')
+				let result = [belirtec]; let {efayrimtipi, efatonaydurumu, efatuuid, efimzats, efgonderimts} = rec;
+				if (!$.isEmptyObject(ekCSS)) { let _liste = $.isArray(ekCSS) ? ekCSS : [ekCSS]; result.push(..._liste) }
+				if (efayrimtipi != null) { result.push(`eIslTip-${efayrimtipi}`) }
+				if (efatonaydurumu != null) { result.push(`akibet-${efatonaydurumu}`) }
+				if (efimzats) { result.push('imzali') }
+				if (efgonderimts) { result.push('gonderildi') }
+				if (efatuuid) { result.push('hasUUID') }
+				if (duzenleyici) { let _e = extend({}, e, { sender, rowIndex, belirtec, value, rec, result }); getFuncValue.call(this, duzenleyici, _e); result = _e.result }
+				return result.join(' ')
 			})
-		}
-		
-		let colDefs = [
-			...super.defaultTabloKolonlari,
-			gridKolon('eIslTipText', 'e-İşlem', 13),
-			gridKolon('belgeTipText', 'Belge<br/>Tipi', 15),
-			gridKolon('tarih', 'Tarih', 13).date(),
-			gridKolon('fisNox', 'Belge<br/>No', 21),
-			gridKolon('akibetText', 'Akıbet', 13),
-			gridKolon('mustText', 'Müşteri', 50),
-			gridKolon('efImzaTS', 'XML Oluş.<br/>Zamanı', 13),
-			gridKolon('efGonderimTS', 'Gönderim<br/>Zamanı', 13),
-			gridKolon('sonucBedel', 'Sonuç<br/>Bedel', 19),
-			gridKolon('dvKodText', 'Dv.', 5),
-			gridKolon('efUUIDText', 'UUID<br/>(ETTN)', 40)
-		]
-		;colDefs.forEach(cd => {
-			cd.setCellClassName(args => cssDuzenleyici(args))
-			if (!cd.filterType)
-				cd.checkedList()
-		})
-		
-		return colDefs
+		};
+		return $.merge(super.defaultTabloKolonlari, [
+			new GridKolon({ belirtec: 'eIslTipText', text: 'e-İşlem', genislikCh: 11, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
+			new GridKolon({ belirtec: 'belgeTipText', text: 'Belge<br/>Tipi', filterType: 'checkedlist', genislikCh: 15, cellClassName: getCSSDuzenleyici() }),
+			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 13, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }).tipDate(),
+			new GridKolon({ belirtec: 'fisnox', text: 'Belge<br/>No', genislikCh: 21, cellClassName: getCSSDuzenleyici() }),
+			new GridKolon({ belirtec: 'akibetText', text: 'Akıbet', genislikCh: 13, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
+			new GridKolon({ belirtec: 'mustText', text: 'Müşteri', minWidth: 500, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
+			new GridKolon({ belirtec: 'efimzats', text: 'XML Oluş.<br/>Zamanı', genislikCh: 13, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
+			new GridKolon({ belirtec: 'efgonderimts', text: 'Gönderim<br/>Zamanı', genislikCh: 13, filterType: 'checkedlist', cellClassName: getCSSDuzenleyici() }),
+			new GridKolon({ belirtec: 'sonucbedel', text: 'Sonuç<br/>Bedel', genislikCh: 19, cellClassName: getCSSDuzenleyici() }).tipDecimal_bedel(),
+			new GridKolon({ belirtec: 'dvKodText', text: 'Dv.', genislikCh: 5, cellClassName: getCSSDuzenleyici() }),
+			new GridKolon({ belirtec: 'efUUIDText', text: 'UUID<br/>(ETTN)', genislikCh: 30, cellClassName: getCSSDuzenleyici() })
+		])
 	}
-	
 	loadServerData_veriDuzenle(e) {
-		super.loadServerData_veriDuzenle(...arguments)
-		let { recs } = e
-		let { secimler: sec } = this
-		
+		super.loadServerData_veriDuzenle(e)
 		let tSec_eIslTip = new EIslemTip()
 		let tSec_akibet = new EIslemOnayDurum()
-		
-		for (let r of recs) {
-			let eIslTip = r.eIslTip ||= 'A'
-			let { onayDurum } = r
-			extend(r, {
-				eIslTipText: tSec_eIslTip.kaDict[eIslTip]?.aciklama || eIslTip,
-				belgeTipText: sec.class.getBelgeTipText({ rec: r }),
-				akibetText: tSec_akibet.kaDict[onayDurum]?.aciklama || onayDurum,
-				mustText: `(<b>${r.mustKod}</b>) ${r.mustUnvan}`,
-				efUUIDText: r.uuid || r.zorunluUUID,
-				dvKodText: r.dvKod || 'TL'
+		let { secimler: sec } = this
+		let { recs } = e
+		for (let rec of recs) {
+			let efAyrimTipi = rec.efayrimtipi ||= 'A'
+			let { efatonaydurumu: efOnayDurumu } = rec
+			extend(rec, {
+				eIslTipText: tSec_eIslTip.kaDict[efAyrimTipi]?.aciklama || efAyrimTipi,
+				belgeTipText: sec.class.getBelgeTipText({ rec }),
+				akibetText: tSec_akibet.kaDict[efOnayDurumu]?.aciklama || efOnayDurumu,
+				mustText: `(<b>${rec.mustkod}</b>) ${rec.birunvan}`,
+				efUUIDText: rec.efatuuid || rec.zorunluguidstr,
+				dvKodText: rec.dvkod || 'TL'
 			})
 		}
 	}
-	
 	async gonderildiDurumAyarlaIstendi(e = {}) {
-		let parentPart = this, { eConf } = this
+		let { eConf } = this
 		let islemAdi = 'Gönderildi Durum Ayarla'
-		let recs = await this.getSecilenSatirlar({ islemAdi }) ?? {}
+		let { recs } = await this.getSecilenSatirlar({ islemAdi }) ?? {}
 		if (empty(recs))
 			return
 
@@ -215,7 +179,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		let toplu = new MQToplu().withTrn()
 		for (let [ps, recs] of entries(ps2Recs)) {
 			let table = EYonetici.getPS2Table(ps)
-			let sayaclar = recs.map(r => r.fisSayac)
+			let sayaclar = recs.map(r => r.kaysayac)
 			let tsClause = (
 				action == 'X' ? 'COALESCE(efimzats, GETDATE())'.sqlConst() :
 				action == 'T' ? ts :
@@ -224,7 +188,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 			
 			let upd = new MQIliskiliUpdate(), { where: wh, set } = upd
 			upd.fromAdd(table)
-			wh.inDizi(sayaclar, 'fisSayac')
+			wh.inDizi(sayaclar, 'kaysayac')
 			set.degerAta(tsClause, 'efgonderimts')
 			toplu.add(upd)
 		}
@@ -234,23 +198,23 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		await toplu.execute()
 		this.tazele()
 	}
-	
 	async eIslemGonderIstendi(e = {}) {
-		let parentPart = this, { eConf } = this
+		let { eConf } = this
 		let islemAdi = 'e-İşlem Gönder'
-		let recs = e.recs ?? await this.getSecilenSatirlar_mesajli({ islemAdi })
-		if (empty(recs))
+		let _e = await this.getSecilenSatirlar_mesajli({ islemAdi }) ?? {}
+		let { recs, sender: listePart } = _e
+		if (!recs)
 			return
 		
 		let { event: { ctrlKey: ctrl } = {} } = e
 		if (ctrl)
-			await this.eIslemXMLKaldirIstendi({ ...e, recs })
+			await this.xmlKaldirIstendi({ ...e, recs })
 		
 		try {
 			extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
 			this.showProgress(_e)
 			
-			let sayaclar = asSet(recs.map(r => r.fisSayac))
+			let sayaclar = asSet(recs.map(r => r.kaysayac))
 			await EYonetici.eIslemXMLOlustur({ ..._e, internal: true })
 			
 			;{
@@ -265,7 +229,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 				await this.tazele()
 				await pr
 				recs = _e.recs = listePart.boundRecs
-					.filter(r => sayaclar[r.fisSayac])
+					.filter(r => sayaclar[r.kaysayac])
 			}
 			await EYonetici.eIslemGonder(_e)
 		}
@@ -279,134 +243,158 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 	}
 	async eIslemIzleIstendi(e = {}) {
 		let islemAdi = 'e-İşlem İZLE'
-		let { toplu, silent, event: { ctrlKey: ctrl } = {} } = e
-		let mesajli = !silent
-		let recs = await this.getSecilenSatirlar({ islemAdi, mesajli }) ?? {}
-		if (empty(recs))
+		let { toplu } = e
+		let _e = await this.getSecilenSatirlar_mesajli({ islemAdi }) ?? {}
+		let { recs, sender: listePart } = _e
+		if (!recs)
 			return
 
-		let parentPart = this, { eConf } = this
+		let { eConf } = this
+		let { event: { ctrlKey: ctrl } = {} } = e
 		if (ctrl)
-			await this.eIslemXMLKaldirIstendi({ ...e, silent: true, internal: true, recs })
+			await this.xmlKaldirIstendi({ ...e, silent: true, recs })
 		
 		try {
-			let args = { ...e, islemAdi, recs, eConf, toplu, silent, callback: new EIslemAkibet_Callback({ islemAdi }) }
-			this.showProgress(args)
+			extend(_e, { eConf, toplu, callback: new EIslemAkibet_Callback({ islemAdi }) })
+			this.showProgress(_e)
 
-			// args.tip2Table2Sayaclar = EYonetici.getTip2Table2Sayaclar(recs)
-			await EYonetici.eIslemXMLOlustur({ ...args, silent: true, internal: true })
-			await EYonetici.eIslemIzle(args)
+			let sayaclar = asSet(recs.map(r => r.kaysayac))
+			await EYonetici.eIslemXMLOlustur({ ..._e, internal: true })
+			;{
+				let pr = promise(resolve => {
+					let { veriYukleninceBlock: handler } = listePart
+					listePart.veriYuklenince((...args) => {
+						listePart.veriYuklenince(handler)
+						handler?.call(this, ...args)
+						resolve()
+					})
+				})
+				await this.tazele()
+				await pr
+				recs = _e.recs = listePart.boundRecs
+					.filter(r => sayaclar[r.kaysayac])
+			}
+			await EYonetici.eIslemIzle(_e)
 		}
-		finally { this.uiIslemiSonrasi({ silent: true }) }
+		catch (ex) {
+			_e.error = ex
+			// hConfirm(getErrorText(ex), islemAdi)
+			console.error(ex)
+			throw ex
+		}
+		finally { this.uiIslemiSonrasi({ ..._e, silent: true }) }
 	}
 	async eIslemSorguIstendi(e = {}) {
-		let islemAdi = 'e-İşlem Sorgu'
-		let { toplu, silent, event: { ctrlKey: ctrl } = {} } = e
-		let mesajli = !silent
-		let recs = await this.getSecilenSatirlar({ islemAdi, mesajli }) ?? {}
-		if (empty(recs))
+		let {eConf} = this, islemAdi = 'e-İşlem Sorgu'
+		let {silent, event: { ctrlKey: ctrl } = {}} = e
+		let mesajli = !(silent || ctrl)
+		let _e = await this.getSecilenSatirlar({ islemAdi, mesajli }) || {}
+		let { recs } = _e
+		if (!recs)
 			return
-
-		let parentPart = this, { eConf } = this
 		try {
-			let args = { ...e, islemAdi, recs, eConf, toplu, silent, callback: new EIslemAkibet_Callback({ islemAdi }) }
-
+			extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
 			if (ctrl) {
-				islemAdi = args.islemAdi = 'e-İşlem UUID Değiştir'
-				args.araMesaj = `<span class="bold royalblue">${islemAdi}</span> işlemi`
+				islemAdi = _e.islemAdi = 'e-İşlem UUID Değiştir'
+				_e.araMesaj = `<span class="bold royalblue">${islemAdi}</span> işlemi`
 				if (recs.length != 1)
 					throw { isError: true, errorText: 'UUID değişimi için tek satır seçilmelidir' }
-				
-				let rec = recs[0]
-				let { uuid, _table: table, fisSayac: sayac } = rec
+				let rec = recs[0], {efatuuid: uuid, pstip: psTip, kaysayac: sayac} = rec
 				uuid = uuid?.toLowerCase() ?? ''
 				let newUUID = (await jqxPrompt({ etiket: 'Yeni UUID değerini giriniz', title: 'UUID Değiştir', value: uuid }))?.trim()?.toLowerCase()
-				if (!newUUID || uuid == newUUID)
+				if (!newUUID)
 					return
-				
+				if (uuid == newUUID)
+					return
 				if (!isGUID(newUUID))
 					throw { isError: true, errorText: `<b class=firebrick>${newUUID}</b> değeri geçerli bir UUID değildir` }
-				
-				this.showProgress(args)
-				;{
-					let upd = new MQIliskiliUpdate(), { set, where: wh } = upd
-					upd.fromAdd(table)
-					wh.degerAta(sayac, 'fisSayac')
-					set.degerAta(newUUID, 'efatuuid')
-					set.add(
-						`efimzats = NULL`,
-						`efgonderimts = NULL`,
-						`efatonaydurumu = ''`,
-						`zorunluguidstr = ''`
-					)
-					await app.sqlExecNone(upd)
-				}
+				this.showProgress(_e)
+				let table = EYonetici.getPS2Table(psTip)
+				let upd = new MQIliskiliUpdate(), {set, where: wh} = upd
+				upd.fromAdd(table)
+				wh.degerAta(sayac, 'kaysayac')
+				set.degerAta(newUUID, 'efatuuid')
+				set.add(`efimzats = NULL`, `efgonderimts = NULL`, `efatonaydurumu = ''`, `zorunluguidstr = ''`)
+				await app.sqlExecNone(upd)
+				EYonetici.eIslemSorgula(_e).finally(() =>
+					this.tazele())
+				return
 			}
-			else
-				this.showProgress(args)
 			
-			await EYonetici.eIslemSorgula(args)
+			this.showProgress(_e)
+			await EYonetici.eIslemSorgula(_e)
 		}
-		finally { this.uiIslemiSonrasi({ silent: true }) }
+		catch (ex) {
+			_e.error = ex
+			// hConfirm(getErrorText(ex), islemAdi)
+			console.error(ex)
+			throw ex
+		}
+		finally { this.uiIslemiSonrasi(_e) }
 	}
 	async eIslemXMLOlusturIstendi(e = {}) {
-		let islemAdi = 'e-İşlem XML Oluştur'
-		let { toplu, silent, event: { ctrlKey: ctrl } = {} } = e
-		let mesajli = !silent
-		let recs = await this.getSecilenSatirlar({ islemAdi, mesajli }) ?? {}
-		if (empty(recs))
+		let {eConf} = this, islemAdi = 'e-İşlem XML Oluştur'
+		let _e = await this.getSecilenSatirlar_mesajli({ islemAdi }) || {}
+		let {recs} = _e
+		if (!recs)
 			return
-
-		let parentPart = this, { eConf } = this
+		let {event: { ctrlKey: ctrl } = {}} = e
 		if (ctrl)
-			await this.eIslemXMLKaldirIstendi({ ...e, silent: true, internal: true, recs })
-		
+			await this.xmlKaldirIstendi({ ...e, silent: true, recs })
 		try {
-			let args = { ...e, islemAdi, recs, eConf, toplu, silent, callback: new EIslemAkibet_Callback({ islemAdi }) }
-			this.showProgress(args)
-			await EYonetici.eIslemXMLOlustur(args)
+			extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
+			this.showProgress(_e)
+			await EYonetici.eIslemXMLOlustur(_e)
 		}
-		finally { this.uiIslemiSonrasi({ silent: true }) }
+		catch (ex) {
+			_e.error = ex
+			// hConfirm(getErrorText(ex), islemAdi)
+			console.error(ex)
+			throw ex
+		}
+		finally { this.uiIslemiSonrasi(_e) }
 	}
 	async eIslemIptalIstendi(e = {}) {
-		let islemAdi = 'e-İşlem İPTAL'
-		let { toplu, silent, event: { ctrlKey: ctrl } = {} } = e
-		let mesajli = !silent
-		let recs = await this.getSecilenSatirlar({ islemAdi, mesajli }) ?? {}
-		if (empty(recs))
+		let {eConf} = this, islemAdi = 'e-İşlem İPTAL'
+		let _e = await this.getSecilenSatirlar_mesajli({ islemAdi }) || {}
+		let {recs} = _e
+		if (!recs)
 			return
-
-		let parentPart = this, { eConf } = this
 		try {
-			let args = { ...e, islemAdi, recs, eConf, toplu, silent, callback: new EIslemAkibet_Callback({ islemAdi }) }
-			this.showProgress(args)
-			await EYonetici.eIslemIptal(args)
+			extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
+			this.showProgress(_e)
+			await EYonetici.eIslemIptal(_e)
 		}
 		catch (ex) {
-			//console.error(ex)
+			_e.error = ex
+			// hConfirm(getErrorText(ex), islemAdi)
+			console.error(ex)
 			throw ex
 		}
-		finally { this.uiIslemiSonrasi({ silent: true }) }
+		finally { this.uiIslemiSonrasi(_e) }
 	}
-	async eIslemXMLKaldirIstendi(e = {}) {
+	async xmlKaldirIstendi(e = {}) {
 		let islemAdi = 'e-İşlem XML Kaldır'
-		let { toplu, silent, event: { ctrlKey: ctrl } = {} } = e
-		let mesajli = !(silent || ctrl)
-		let recs = await this.getSecilenSatirlar({ islemAdi, mesajli }) ?? {}
-		if (empty(recs))
-			return
-
-		let parentPart = this, { eConf } = this
+		let {eConf} = this, {silent, recs} = e, _e = { ...e, sender: this }
+		if (!recs) {
+			extend(_e, await this.getSecilenSatirlar({ islemAdi, mesajli: !silent }) || {})
+			recs = _e.recs
+		}
 		try {
-			let args = { ...e, islemAdi, recs, eConf, toplu, callback: new EIslemAkibet_Callback({ islemAdi }) }
-			this.showProgress(args)
-			await EYonetici.eIslemXMLKaldir(args)
+			let callback = silent ? null : new EIslemAkibet_Callback({ islemAdi })
+			extend(_e, { eConf, callback })
+			this.showProgress(_e)
+			await EYonetici.xmlKaldir(_e)
 		}
 		catch (ex) {
-			//console.error(ex)
-			throw ex
+			_e.error = ex
+			if (!silent) {
+				// hConfirm(getErrorText(ex), islemAdi)
+				console.error(ex)
+				throw ex
+			}
 		}
-		finally { this.uiIslemiSonrasi({ silent: true }) }
+		finally { this.uiIslemiSonrasi(_e) }
 	}
 }
 

@@ -379,19 +379,31 @@ class MQFiyatVeIskontoParam extends MQTicariParamBase {
 class MQAlimSatisParamOrtak extends MQTicariParamBase {
     static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static paramYapiDuzenle(e) {
-		super.paramYapiDuzenle(e); let {paramci} = e; let temps = e.temps = e.temps || {};
-		let form = temps.siparis_kullanim = paramci.addGrup({ etiket: 'Sipariş Kullanımı' }).addFormWithParent();
-			let kullanim = form.addKullanim(); kullanim.addBool('sipOnay', 'Sipariş İçin Onay Kullanılır');
-			form.addBool('sipVarsayilanOnaysiz', 'Sipariş Varsayılan Olarak Onaysızdır'); form.addBool('irs2FatKosulGuncelleme', 'İrsaliye -> Fatura Dönüşümünde Fiyat Ve İskontoların Güncellenmesi');
-		let tabPage = paramci.addTabPage('genel2', 'Genel-2'); form = temps.form_genel2 = tabPage.addGrup({ id: 'genel2', etiket: 'Genel-2' }).addFormWithParent(); form.addBool('fisGirisiOtoHizmet', 'Fişe Yeni Eklenen Satırlar Hizmet Tipinde Olsun');
-			kullanim = form.addKullanim(); kullanim.addBool('dogrudanIrsaliye', 'Siparişsiz İrsaliye girişi yapılır'); kullanim.addBool('dogrudanFatura', 'İrsaliyesiz Fatura girişi yapılır');
-	    tabPage = paramci.addTabPage('ekmodul', 'Ek Modül'); form = temps.islem_kullanim = tabPage.addGrup({ id: 'islemKullanim', etiket: 'İşlem Kullanımı' }).addFormWithParent();
+		super.paramYapiDuzenle(e)
+		let { paramci } = e
+		let temps = e.temps ??= {}
+		let form = temps.siparis_kullanim = paramci.addGrup({ etiket: 'Sipariş Kullanımı' }).addFormWithParent()
+			let kullanim = form.addKullanim(); kullanim.addBool('sipOnay', 'Sipariş İçin Onay Kullanılır')
+			form.addBool('sipVarsayilanOnaysiz', 'Sipariş Varsayılan Olarak Onaysızdır')
+			form.addBool('irs2FatKosulGuncelleme', 'İrsaliye -> Fatura Dönüşümünde Fiyat Ve İskontoların Güncellenmesi')
+		let tabPage = paramci.addTabPage('genel2', 'Genel-2')
+		form = temps.form_genel2 = tabPage.addGrup({ id: 'genel2', etiket: 'Genel-2' }).addFormWithParent()
+			form.addBool('fisGirisiOtoHizmet', 'Fişe Yeni Eklenen Satırlar Hizmet Tipinde Olsun');
+			kullanim = form.addKullanim()
+				kullanim.addBool('dogrudanIrsaliye', 'Siparişsiz İrsaliye girişi yapılır'); kullanim.addBool('dogrudanFatura', 'İrsaliyesiz Fatura girişi yapılır');
+	    tabPage = paramci.addTabPage('ekmodul', 'Ek Modül')
+			form = temps.islem_kullanim = tabPage.addGrup({ id: 'islemKullanim', etiket: 'İşlem Kullanımı' }).addFormWithParent()
 		kullanim = form.addKullanim();
-			kullanim.addBool('ihracKaydiyla', 'İhraç Kaydıyla'); kullanim.addBool('konsinye', 'Konsinye');
-			kullanim.addBool('emanet', 'Emanet'); kullanim.addBool('yeniEmanet', 'Yeni Emanet'); kullanim.addBool('fason', 'Fason');
-			kullanim.addBool('talepTeklif', 'Talep/Teklif'); kullanim.addBool('ticariKosul', 'Alım Koşulları'); kullanim.addBool('serbestMeslekMakbuzu', 'Serbest Meslek Makbuzu');
+			kullanim.addBool('ihracKaydiyla', 'İhraç Kaydıyla')
+			kullanim.addBool('konsinye', 'Konsinye');
+			kullanim.addBool('emanet', 'Emanet')
+			kullanim.addBool('eskiEmanet', 'ESKİ Emanet')
+			kullanim.addBool('fason', 'Fason')
+			kullanim.addBool('talepTeklif', 'Talep/Teklif')
+			kullanim.addBool('ticariKosul', 'Alım Koşulları')
+			kullanim.addBool('serbestMeslekMakbuzu', 'Serbest Meslek Makbuzu')
 		tabPage = paramci.addTabPage('if', 'İrs->Fat');
-		form = tabPage.addGrup({ etiket: 'İrs->Fat' }).addFormWithParent();
+		form = tabPage.addGrup({ etiket: 'İrs->Fat' }).addFormWithParent()
 			form.addBool('irs2FatKosulGuncelleme', 'irsaliye -> Fatura dönüşümünde fiyat ve iskontoların güncellenmesi'); form.addBool('irs2FatEkransalDuzenleme', 'İrs->Fat Ekransal Dönüşüm');
 			form.addBool('irs2FatTopluDonusum', 'İrs->Fat Toplu Dönüşüm'); form.addBool('irs2FatSecerek', 'İrs->Fat Seçerek Dönüşüm'); form.addBool('irs2FatIrsaliyeBirlestir', 'irs->fat Uygun Satırlar Birleşir');
 		tabPage = paramci.addTabPage('sif', 'Sip->İrs/Fat'); form = temps.sip2_irsFat = tabPage.addGrup({ etiket: 'Sip->İrs/Fat' }).addFormWithParent();

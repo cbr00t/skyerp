@@ -2,6 +2,7 @@ class GelenEIslemListePart extends EIslemListeBasePart {
     static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get partName() { return 'gelenEIslemListe' }
 	static get filtreSinif() { return GelenEIslemFiltre }
+	static get gelenmi() { return true }
 	
 	constructor(e) { e = e || {}; super(e); this.title = e.title == null ? ( 'Gelen e-İşlem Listesi' ) : e.title || '' }
 	islemTuslariDuzenle(e) {

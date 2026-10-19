@@ -10,30 +10,37 @@ class EIslFaturaArsivOrtak extends EIslTicariOrtak {
 		promises.push(
 			yukleIslemi({
 				stm: e => this.getOncekiIrsTSNStm(e),
-				seviyelendirici: ({ recs: source }) => seviyelendirAttrGruplari({ source, attrGruplari: [['pstip', 'fissayac']] }),
+				seviyelendirici: ({ recs: source }) => seviyelendirAttrGruplari({ source, attrGruplari: [['_table', 'id']] }),
 				yukleyici: ({ eFis, detaylar: recs, ...e }) => eFis.oncekiIrsTSNYukle({ ...e, recs })
 			})
 		)
 	}
-	static getOncekiIrsTSNStm({ ps2SayacListe } = {}) {
+	static getOncekiIrsTSNStm({ table2IDListe } = {}) {
 		let uni = new MQUnionAll()
 		let stm = new MQStm({ sent: uni })
 		let { orderBy } = stm
 		;{
-			let { P: fisSayaclar } = ps2SayacListe
-			if (fisSayaclar) {
-				let sent = new MQSent({
-					from: 'irs2fat don', where: { inDizi: fisSayaclar, saha: 'don.fatsayac' },
-					fromIliskiler: [ { from: 'piffis irs', iliski: 'don.irssayac = irs.kaysayac' } ],
-					sahalar: [`'P' pstip`, `don.fatsayac fissayac`, 'irs.tarih', 'irs.fisnox nox']
-				})
+			let fisTable = 'piffis'
+			let idListe = table2IDListe[fisTable]
+			if (!empty(idListe)) {
+				let sent = new MQSent(), { where: wh, sahalar } = sent
+				sent
+					.fromAdd('irs2fat don')
+					.innerJoin('don', 'piffis irs', 'don.irssayac = irs.kaysayac')
+					.innerJoin('don', 'piffis fat', 'don.fatsayac = fat.kaysayac')
+				wh.inDizi(idListe, 'fat.id')
+				sahalar.add(...[
+					`${fisTable.sqlServerDegeri()} _table`,
+					'fat.id', 'irs.id irsID',
+					'irs.tarih', 'irs.fisnox nox'
+				])
 				uni.add(sent)
 			}
 		}
 		if (empty(uni.liste))
 			return null
 		
-		orderBy.addAll('pstip', 'fissayac', 'tarih', 'nox')
+		orderBy.addAll('_table', 'id', 'tarih', 'nox')
 		return stm
 	}
 	oncekiIrsTSNYukle({ _detaylar: d } = {}) {

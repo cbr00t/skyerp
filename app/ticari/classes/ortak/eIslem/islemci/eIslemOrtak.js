@@ -111,8 +111,7 @@ class EIslemOrtak extends CObject {
 		let cls = e ? this.getClass(e) : null
 		return cls ? new cls(e) : null
 	}
-	
-	static __iptal__getUUIDStm() {
+	static getUUIDStm() {
 		let e = { ...arguments[0] }
 		let { gelenmi = e.gelen, ps2SayacListe = e.psTip2SayacListe, genelStmDuzenleyici: genelStmDuzenle } = e
 		if (isFunction(ps2SayacListe))
@@ -124,7 +123,7 @@ class EIslemOrtak extends CObject {
 		
 		return stm
 	}
-	static __iptal___getUUIDStm(e) {
+	static _getUUIDStm(e) {
 		let uni = e.uni = new MQUnionAll()
 		this.uuidStm_uniDuzenle(e)
 		uni = e.uni
@@ -136,91 +135,81 @@ class EIslemOrtak extends CObject {
 		
 		return new MQStm({ sent: uni })
 	}
-	static __iptal__uuidStm_uniDuzenle(e) { }
-	
-	static async tipIcinFislerEkDuzenlemeYap(e = {}) {
-		let { table2Sayac2EFis } = e
-		if (empty(table2Sayac2EFis))
-			return
-		
-		let promises = []
-		let yukleIslemi = async _e => {
-			_e = { ...e, ..._e }
-			let stm = _e.stm = getFuncValue.call(this, _e.stm, _e)
-			if (!stm)
-				return
-			
-			let { seviyelendirici, yukleyici } = _e
-			let recs = _e.recs = await stm.execSelect()
-			let sevRecs = seviyelendirici ? _e.sevRecs = getFuncValue.call(this, seviyelendirici, _e) : null
-			let _recs = _e.recs = (sevRecs ?? recs)
-			for (let sev of _recs) {
-				let rec = _e.rec = sev.orjBilgi ?? sev
-				let { detaylar } = sev
-				let { _table: tbl, fisSayac: sayac } = rec
-				
-				let args = { ..._e, sev, detaylar }
-				let sayac2EFis = table2Sayac2EFis[tbl]
-				let eFis = sayac2EFis?.[sayac]
-				if (!eFis)
-					continue
-
-				args.eFis = eFis
-				await yukleyici.call(this, args)
-			}
-		}
-
-		;{
-			let args = { ...e, promises, yukleIslemi }
-			await this.tipIcinFislerEkDuzenlemeYapDevam(args)
-			promises = args.promises
-		}
-		
-		if (!empty(promises))
-			await promiseAll(promises)
-	}
-	static tipIcinFislerEkDuzenlemeYapDevam({ yukleIslemi, promises }) {
-		promises.push(
-			yukleIslemi({
-				stm: e => this.getEIslemBilgiStm(e),
-				seviyelendirici: ({ recs: source }) =>
-					seviyelendir({ source, attrListe: ['kod'] }),
-				yukleyici: e => this.eIslemBilgiYukle({ ...e })
-			})
-		)
-	}
-	
+	static uuidStm_uniDuzenle(e) { }
+	static getEFisBaslikVeDetayStm() { return null }
 	baslikVeDetaylariYukle(e) {
-		let { baslik, detaylar, temps = {}, shared = {} } = e
+		let { baslik, detaylar, temps, shared } = e
 		let { detaylar: thisDetaylar } = this
 		for (let inst of [this, baslik, ...detaylar]) {
 			inst._temps = temps
 			inst._shared = shared
 		}
 		this.baslik = baslik
-		thisDetaylar.push(...detaylar.slice(1))    // [0]: sev.orjBilgi | [1..]: sev.detaylar
+		thisDetaylar.splice(0)
+		thisDetaylar.push(...detaylar)
 		return this
 	}
-	static getEFisBaslikVeDetayStm() { return null }
+	static async tipIcinFislerEkDuzenlemeYap({ ps2Sayac2EFis } = {}) {
+		let e = arguments[0] ?? {}
+		let promises = e.promises = []
+		let yukleIslemi = e.yukleIslemi = async _e => {
+			_e = { ...e, ..._e }
+			let stm = _e.stm = getFuncValue.call(this, _e.stm, _e)
+			if (!stm)
+				return this
+			
+			let { seviyelendirici, yukleyici } = _e
+			let recs = _e.recs = await app.sqlExecSelect(stm)
+			let sevRecs = seviyelendirici ? _e.sevRecs = getFuncValue.call(this, seviyelendirici, _e) : null
+			let _recs = _e.recs = (sevRecs ?? recs)
+			for (let sev of _recs) {
+				let rec = _e.rec = sev.orjBilgi ?? sev
+				let { pstip: psTip, fissayac: sayac } = rec
+				_e.detaylar = sev.detaylar
+				
+				let sayac2EFis = _e.sayac2EFis = ps2Sayac2EFis[psTip] ??= values(ps2Sayac2EFis)?.[0] ?? {}
+				let eFis = sayac2EFis[sayac]
+				if (!eFis)
+					eFis = values(sayac2EFis)[0]
+
+				if (!eFis)
+					return this
+				
+				_e.eFis = eFis
+				await getFuncValue.call(this, yukleyici, _e)
+			}
+			return this
+		}
+		await this.tipIcinFislerEkDuzenlemeYapDevam(e)
+		if (promises?.length)
+			await promiseAll(promises)
+	}
+	static tipIcinFislerEkDuzenlemeYapDevam({ yukleIslemi, promises }) {
+		promises.push(
+			yukleIslemi({
+				stm: e => this.getEIslemBilgiStm(e),
+				yukleyici: e => this.eIslemBilgiYukle({ ...e }),
+				seviyelendirici: ({ recs: source }) =>
+					seviyelendir({ source, attrListe: ['kod'] })
+			})
+		)
+	}
 	static getEIslemBilgiStm(e) {
-		let sent = new MQSent(), { where: wh, sahalar } = sent
+		let sent = new MQSent(), {where: wh, sahalar} = sent
 		sent.fisHareket('progbuyukdata', 'progbuyukdatadetay')
-		wh
-			.degerAta('EF', 'fis.tip')
-			.degerAta('EKB', 'fis.alttip')
+		wh.degerAta('EF', 'fis.tip').degerAta('EKB', 'fis.alttip')
 		sahalar.add('fis.kod', 'har.seq', 'har.xdata')
-		
 		let orderBy = ['kod', 'seq']
 		return new MQStm({ sent, orderBy })
 	}
 	static eIslemBilgiYukle({ sevRecs, temps }) {
-		let res = temps.eIslemKod2Bilgi = {}
+		let result = temps.eIslemKod2Bilgi = {}
 		for (let sev of sevRecs) {
-			let { orjBilgi: { kod }, detaylar } = sev
+			let {orjBilgi: { kod }, detaylar} = sev
 			let xdata = detaylar.map(_ => _.xdata).join('')
 			let data = xdata ? new TextDecoder(encoding_iso).decode(Base64.toUint8Array(xdata)) : data
 			if (data)
-				res[kod] = data
+				result[kod] = data
 		}
 	}
 	icmalYoksaOlustur(e) {
@@ -298,25 +287,19 @@ class EIslemOrtak extends CObject {
 		
 		if (uuidOlustumu) {
 			let { updCallback: callback } = e
-			let { _table: tbl, fisSayac: sayac, uuid } = baslik
+			let { fisTable: from, fissayac: sayac, uuid } = baslik
 			delete e.updCallback
 			
-			let upd = e.query = new MQIliskiliUpdate()
-			;{
-				let { where: wh, set } = upd
-				upd.fromAdd(tbl)
-				wh.degerAta(sayac, 'kaysayac')
-				set
-					.degerAta(uuid, 'efatuuid')
-					.degerAta(now(), 'efimzats')
-			}
-			
+			let upd = e.query = new MQIliskiliUpdate({ from }), { where: wh, set } = upd
+			wh.degerAta(sayac, 'kaysayac')
+			set
+				.degerAta(uuid, 'efatuuid')
+				.degerAta(now(), 'efimzats')
 			if (callback)
 				await callback.call(this, e)
 			else
 				await query.execute()
 		}
-		
 		return result
 	}
 	async xmlDuzenle(e) {

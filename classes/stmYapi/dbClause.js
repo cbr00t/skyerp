@@ -798,6 +798,10 @@ class MQOrClause extends MQAndOrClause {
 	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get baglac() { return ' OR ' }
 }
+class MQXOrClause extends MQAndOrClause {
+	static { window[this.name] = this; this._key2Class[this.name] = this }
+	static get baglac() { return ' XOR ' }
+}
 class MQInClause extends MQClause {
 	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get addDogrudanKullanilirmi() { return true }

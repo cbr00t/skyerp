@@ -7,12 +7,11 @@ class EIslBaslikVeDetayOrtak extends RowluYapi {
 
 class EIslBaslik extends EIslBaslikVeDetayOrtak {
     static { globalThis[this.name] = this; this._key2Class[this.name] = this }
-	get eIslTip() { return this.rec.eIslTip }
+	get eIslTip() { return this.rec.efayrimtipi }
 	get eFaturami() { return this.eIslTip == 'E' } get eArsivmi() { return (this.eIslTip || 'A') == 'A' }
 	get eIrsaliyemi() { return this.eIslTip == 'IR' } get eMustahsilmi() { return this.eIslTip == 'MS' }
-	get alimIademi() { return asBool(this.rec.alimiademi) }
-	get subeKod() { return this.rec.bizsubekod }
-	get fisTipi() { return this.rec.fisTipi }
+	get alimIademi() { return asBool(this.rec.alimiademi) } get subeKod() { return this.rec.bizsubekod }
+	get fisTipi() { return this.rec.fistipi }
 	get tarihStr() { return asReverseDateString(asDate(this.rec.tarih)) }
 	get sevkTarihStr() { return asReverseDateString(asDate(this.rec.sevkTarih)) }
 	get sevkSaatStr() { return timeToString(asDate(this.rec.sevkSaat)) }
@@ -37,65 +36,47 @@ class EIslBaslik extends EIslBaslikVeDetayOrtak {
 	}
 	get dovizlimi() {
 		let result = this._dovizlimi
-		if (result === undefined) {
-			let { dvKod } = this
-			result = this._dovizlimi = (
-				dvKod &&
-				dvKod != EIslemOrtak.currCode_tl
-			)
-		}
+		if (result === undefined) { let {dvKod} = this; result = this._dovizlimi = dvKod && dvKod != EIslemOrtak.currCode_tl }
 		return result
 	}
 	get aliciBilgi() {
-		let { _aliciBilgi: result } = this
+		let {_aliciBilgi: result} = this
 		if (result === undefined)
 			result = this._aliciBilgi = extend(new EIslBaslik_AliciBilgi(), this)
 		return result
 	}
-	get genelYontemKod() { return this.rec.genelyontem }
-	get ozelYontemKod() { return this.rec.ozelyontem }
+	get genelYontemKod() { return this.rec.genelyontem } get ozelYontemKod() { return this.rec.ozelyontem }
 	get eYontem() {
-		let { _eYontem: res } = this
-		if (res === undefined) {
-			let { ozelYontemKod, genelYontemKod, _temps } = this
-			if (genelYontemKod)
-				res = new MQEIslGeneldenOzelYontem({ genelYontem: new EIslGenelYontem(genelYontemKod) })
-			else {
-				let { ozelYontemKod2Rec } = _temps
-				res = new MQEIslOzelYontem()
-				let rec = ozelYontemKod2Rec?.[ozelYontemKod]
-				if (rec)
-					res.setValues({ rec })
-			}
-			this._eYontem = res
-		}
-		return res
-	}
-	get faturaOzelTipText() {
-		let result = this._faturaOzelTipText
+		let {_eYontem: result} = this;
 		if (result === undefined) {
-			let { rec, alimIademi } = this
-			result = rec.faturaozeltip
-			if (alimIademi)
-				result += `${result ? '-' : ''}IADE`
+			let {ozelYontemKod, genelYontemKod, _temps} = this;
+			if (genelYontemKod) { result = new MQEIslGeneldenOzelYontem({ genelYontem: new EIslGenelYontem(genelYontemKod) }) }
+			else {
+				result = new MQEIslOzelYontem(); let {ozelYontemKod2Rec} = _temps;
+				let rec = ozelYontemKod2Rec ? ozelYontemKod2Rec[ozelYontemKod] : null; if (rec) { result.setValues({ rec }) }
+			}
+			this._eYontem = result
 		}
 		return result
 	}
-	get eArsivBelgeTipi() { return this.eArsivmi ? this.rec.eaGonderimTipi : null }
-	get eArsivBelgeTipBelirtec() {
-		let res = this._eArsivBelgeTipBelirtec
-		if (res === undefined) {
-			let { eArsivmi, eArsivBelgeTipi } = this
-			res = this._eArsivBelgeTipBelirtec = (
-				eArsivmi
-					? eArsivBelgeTipi == 'E' ? 'ELEKTRONIK' : 'KAGIT'
-					: null
-			)
+	get faturaOzelTipText() {
+		let result = this._faturaOzelTipText;
+		if (result === undefined) {
+			let {rec, alimIademi} = this; result = rec.faturaozeltip;
+			if (alimIademi) { result += `${result ? '-' : ''}IADE` }
 		}
-		return res
+		return result
 	}
-	get xbakiye() { return this.rec[`${this.dovizlimi ? 'dv' : 'tl'}bakiye`] }
-	get oncekiXBakiye() { return this.rec[`${this.dovizlimi ? 'dv' : 'tl'}oncekibakiye`] }
+	get eArsivBelgeTipi() { return this.eArsivmi ? this.rec.earsivbelgetipi : null }
+	get eArsivBelgeTipBelirtec() {
+		let result = this._eArsivBelgeTipBelirtec;
+		if (result === undefined) {
+			let {eArsivmi, eArsivBelgeTipi} = this;
+			result = this._eArsivBelgeTipBelirtec = eArsivmi ? eArsivBelgeTipi == 'E' ? 'ELEKTRONIK' : 'KAGIT' : null
+		}
+		return result
+	}
+	get xbakiye() { return this.rec[`${this.dovizlimi ? 'dv' : 'tl'}bakiye`] } get oncekiXBakiye() { return this.rec[`${this.dovizlimi ? 'dv' : 'tl'}oncekibakiye`] }
 	get sonrakiXBakiye() { return (this.oncekiXBakiye || 0) + (this.xbakiye || 0) }
 	get tlBakiye() { return this.rec.tlbakiye }
 	get oncekiTLBakiye() { return this.rec.tloncekibakiye }
@@ -110,14 +91,11 @@ class EIslBaslik extends EIslBaslikVeDetayOrtak {
 		await eYontem?.eIslemOnKontrol?.(e)
 		return this
 	}
-	async onKontrolMesajlar(e = {}) {
-		let args = { ...e, liste: [] }
-		await this.onKontrolMesajlarDuzenle(args)
-		await this.onKontrolMesajlarDuzenle_son(args)
-		return args.liste?.filter(Boolean)
+	async onKontrolMesajlar(e) {
+		let _e = $.extend({}, e, { liste: [] }); await this.onKontrolMesajlarDuzenle(_e); await this.onKontrolMesajlarDuzenle_son(_e);
+		return _e.liste?.filter(x => !!x)
 	}
-	async onKontrolMesajlarDuzenle(e) { }
-	async onKontrolMesajlarDuzenle_son(e) { }
+	async onKontrolMesajlarDuzenle(e) { } async onKontrolMesajlarDuzenle_son(e) { }
 }
 
 class EIslDetay extends EIslBaslikVeDetayOrtak {
@@ -125,7 +103,7 @@ class EIslDetay extends EIslBaslikVeDetayOrtak {
 	get kayitTipi() { return this.rec.kayittipi }
 	get stokmu() { return this.kayitTipi == 'S' } get hizmetmi() { return this.kayitTipi == 'H' } get demirbasmi() { return this.kayitTipi == 'D' }
 	get kodGosterim() {
-		let result = this._kodGosterim
+		let result = this._kodGosterim;
 		if (result == null) {
 			let {rec} = this, {kodYerineSiraNo} = app.params.eIslem.kullanim; result = kodYerineSiraNo ? rec.seq.toString() : rec.shkod;
 			this._kodGosterim = result = result.trimEnd()
@@ -133,7 +111,7 @@ class EIslDetay extends EIslBaslikVeDetayOrtak {
 		return result
 	}
 	get adiGosterim() {
-		let result = this._adiGosterim
+		let result = this._adiGosterim;
 		if (result == null) {
 			let {kural} = app.params.eIslem, kural_shAdi = kural.shAdi, kural_aciklama = kural.aciklama, kural_aciklamaKapsam = kural.aciklamaKapsam, {rec} = this;
 			result = kural_shAdi.sadeceAdi1mi ? rec.shadi : kural_shAdi.sadeceAdi2mi ? rec.shadi2 : `${rec.shadi} ${rec.shadi2}`
@@ -144,24 +122,24 @@ class EIslDetay extends EIslBaslikVeDetayOrtak {
 		return result
 	}
 	get barkodGosterim() {
-		let { _barkodGosterim: result } = this
+		let {_barkodGosterim: result} = this
 		if (result == null)
 			this._barkodGosterim = result = this.rec.barkod || this.kodGosterim
 		return result
 	}
 	get ikOranlar() {
-		let { rec} = this, ikYapilar = arrayFrom(TicIskYapi.getIskIter())
+		let {rec} = this, ikYapilar = Array.from(TicIskYapi.getIskIter())
 		let ikKeys = ikYapilar.map(_ => _.rowAttr)
-		return ikKeys.map(k => rec[k]).filter(Boolean)
+		return ikKeys.map(k => rec[k]).filter(v => !!v)
 	}
 	get ikBedeller() {
-		let { rec } = this, ikYapilar = arrayFrom(TicIskYapi.getIskIter())
+		let {rec} = this, ikYapilar = Array.from(TicIskYapi.getIskIter())
 		let ikKeys = ikYapilar.map(_ => _.rowAttr_bedel)
-		return ikKeys.map(k => rec[k]).filter(Boolean)
+		return ikKeys.map(k => rec[k]).filter(v => !!v)
 	}
 	get sonucIskOran() { return this.rec.sonuciskoran }
 	get topIskBedel() {
-		let { rec, ikBedeller } = this
+		let {rec, ikBedeller} = this
 		// ikBedeller.reduce((bu, sonuc) => sonuc + bu)
 		return topla(null, ...ikBedeller)
 	}

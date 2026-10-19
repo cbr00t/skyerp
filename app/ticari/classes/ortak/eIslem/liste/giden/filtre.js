@@ -1,236 +1,153 @@
 class GidenEIslemFiltre extends EIslemFiltre {
     static { globalThis[this.name] = this; this._key2Class[this.name] = this }
-	static get gidenmi() { return true }
 	
 	getQueryStm(e = {}) {
 		let uni = new MQUnionAll()
 		let stm = new MQStm({ sent: uni })
-		let args = { ...e, stm, uni, alias: 'fis' }
-		this.queryStmDuzenle(args)
-		return args.stm
+		let _e = { ...e, stm, uni }
+		this.queryStmDuzenle(_e)
+		return _e.stm
 	}
 	queryStmDuzenle(e = {}) {
 		super.queryStmDuzenle(e)
-		
-		let { stm, uni, eConf = this.eConf } = e
-		uni ??= e.uni = stm.sent
-		
-		let { isyeri = {} } = app.params
-		let { _colDefs: cd = {} } = app
-
-		let getIdClause = (table, clause) =>
-			`${!cd?.[table] || cd?.[table].id ? clause : `''`} id`
+		let { stm, uni } = e
 		let sentEkle = args => {
-			args = { ...e, ...args }
-			let secWH = this.getTBWhereClause(args)
-			if (!secWH)
+			let _e = { ...e, ...args }
+			let wh = this.getTBWhereClause(_e)
+			if (!wh)
 				return null
 			
-				/* e: { fisTable psTipStr ifSql efAyrimTipiClause } */
-			let { fisTable: table, oncelik, psTip, ifSql, efAyrimTipiClause } = args
-			oncelik ??= 10
-			let sent = new MQSent(), { where: wh, sahalar } = sent
-			;{
-				sent
-					.fromAdd(`${table} fis`)
-					.fis2TicCariBagla()
-					.fromIliski('degiskenadres dadr', 'fis.degiskenvknox = dadr.vknox')
-			}
-			wh.birlestir(secWH)
-			;{
-				sahalar
-					.add(...[
-						`${table.sqlServerDegeri()} _table`,
-						`${psTip.sqlServerDegeri()} psTip`,
-						`${oncelik.sqlServerDegeri()} oncelik`,
-						getIdClause(table, 'fis.id'),
-						'fis.kaysayac fisSayac',
-						`${ifSql} pifTipi`,
-						`${efAyrimTipiClause} eIslTip`
-					])
-					.addWithAlias('fis', ...[
-						'almsat almSat', 'iade', 'ayrimtipi fisAyrim',
-						'tarih', 'fisnox fisNox', 'ticmust mustKod', 'efatuuid uuid',
-						'efimzats imzaTS', 'efgonderimts gonderimTS',
-						'efatonaydurumu onayDurum', 'net bedel'
-					])
-					.add(`${table == 'piffis' ? 'fis.zorunluguidstr' : `''`} zorunluUUID`)
-					.addWithAlias('car', ...[
-						'birunvan mustUnvan', 'vkno vkn',
-						'revizeeislemmail eMail',
-						'efatsenaryotipi efSenaryoTipi',
-						'earsivbelgetipi eaGonderimTipi'
-					])
-					.add(...[`${
-						new MQCase().setClause('fis.efayrimtipi')
-							.when(`'IR'`, new MQCase()
-								.setClause('fis.degiskenvknox')
-									.when(`''`, 'dbo.emptycoalesce(car.eirsgibalias, car.efatgibalias)')
-									.else('dadr.efatgibalias')
-							)
-							.else(new MQCase()
-								.setClause('fis.degiskenvknox')
-									.when(`''`, 'car.efatgibalias')
-									.else('dadr.efatgibalias')
-							)
-						} gibAlias`
-					])
-			}
+				/* e: { fisTablo psTipStr ifSql efAyrimTipiClause } */
+			let { fisTablo, alias, psTip, ifSql, efAyrimTipiClause } = _e
+			let sent = new MQSent({
+				from: `${fisTablo} fis`,
+				where: { birlestir: wh },
+				sahalar: [
+					`${MQSQLOrtak.sqlServerDegeri(psTip)} pstip`, `${ifSql} piftipi`, `${efAyrimTipiClause} efayrimtipi`,
+					`fis.kaysayac`, `fis.almsat`, `fis.iade`, `fis.ayrimtipi`, `fis.tarih`, `fis.fisnox`,
+					`fis.ticmust mustkod`, `car.birunvan`, `fis.efatuuid`,
+					(fisTablo == 'piffis' ? 'fis.zorunluguidstr' : `'' zorunluguidstr`),
+					`fis.efimzats`, `fis.efgonderimts`, `fis.efatonaydurumu`,
+					`fis.net sonucbedel`, `car.vkno vkn`, 'car.efatsenaryotipi',
+					'fis.efatuuid',
+					`(case
+						when fis.efayrimtipi = 'IR'
+							then
+								(case when fis.degiskenvknox <> ''
+									then dadr.efatgibalias
+									else dbo.emptycoalesce(car.eirsgibalias, car.efatgibalias)
+								end)
+							else
+								(case when fis.degiskenvknox <> ''
+									then dadr.efatgibalias
+									else car.efatgibalias
+								end)
+							end
+					 ) gibalias`
+				]
+			})
+			sent
+				.fis2TicCariBagla()
+				.fromIliski('degiskenadres dadr', 'fis.degiskenvknox = dadr.vknox')
 
-			eConf?.eIslListeSentDuzenle({ ...args, sent })
+			let eConf = this.eConf ?? MQEConf.instance
+			if (eConf)
+				eConf.eIslListeSentDuzenle({ ...e, sent })
 			
 			uni.add(sent)
 			return sent
-		}
+		};
 		
-		let eIslTipClause = (defVal, duzenle) => {
-			let res = new MQCase()
-				.when(`fis.ayrimtipi = 'IH'`, `'IH'`)
-				.when(`fis.ayrimtipi = ''`, MQSQLOrtak.sqlServerDegeri(defVal))
-			duzenle?.call(this, res, defVal)
-			res.else('fis.efayrimtipi')    // ** 'when/else ==>  liste.push' yapar. else en son eklenmeli
-			return res
-		}
-		;{
-			if (!(
-				sentEkle({
-					fisTable: 'piffis', oncelik: 10,
-					psTip: 'P', ifSql: 'fis.piftipi',
-					efAyrimTipiClause: eIslTipClause('A', cs => {
-						cs
-							.when(`fis.piftipi = 'I'`, `'IR'`)
-							.when(`fis.almsat = 'M'`, `'MS'`)
-					})
-				}) &&
-				sentEkle({
-					fisTable: 'sipfis', oncelik: 13,
-					psTip: 'S', ifSql: `'F'`,
-					efAyrimTipiClause: eIslTipClause('')
-				})
-			)) { return null }
-		}
+		let fisGenelAyrimTipiClause = (
+			`(case
+				when fis.ayrimtipi = 'IH' then 'IH'
+				when fis.efayrimtipi = '' then 'A'
+				else fis.efayrimtipi
+			end)`
+		)
 		
 		;{
-			let table = 'stfis'
-			let secWH = this.getTBWhereClause({ ...e, psTip: 'ST', fisTable: table })
-			if (!secWH)
+			sentEkle({
+				fisTablo: 'piffis', psTip: 'P', ifSql: 'fis.piftipi',
+				efAyrimTipiClause: `(case when fis.piftipi = 'I' then 'IR' when fis.almsat = 'M' then 'MS' else ${fisGenelAyrimTipiClause} end)`
+			})
+			/*sentEkle({
+				fisTablo: 'sipfis', psTip: 'S', ifSql: `'F'`,
+				efAyrimTipiClause: fisGenelAyrimTipiClause
+			})*/
+		}
+		;{
+			let wh = this.getTBWhereClause({ ...e, psTip: 'ST' })
+			if (!wh)
 				return
 			
-			let sent = new MQSent(), { where: wh, sahalar } = sent
-			sent
-				.fromAdd(`${table} fis`)
-				.fromIliski('carmst car', 'fis.irsmust = car.must')
-			wh.birlestir(secWH)
-			sahalar
-				.add(...[
-					`${table.sqlServerDegeri()} _table`,
-					`'ST' psTip`,
-					'20 oncelik',
-					getIdClause(table, 'fis.id'),
-					'fis.kaysayac fisSayac',
-					'fis.ozeltip pifTipi',
-					`'IR' eIslTip`,
-					`'T' almSat`, `'' iade`, `fis.fisekayrim fisAyrim`,
-					`fis.tarih`, `fis.fisnox fisNox`, `'' mustKod`
-				])
-				.addWithAlias('fis', ...[
-					'efatuuid uuid',
-					'efimzats imzaTS', 'efgonderimts gonderimTS',
-					'efatonaydurumu onayDurum'
-				])
-				.add(...[
-					`0 bedel`,
-					`'' zorunluUUID`,
-					`'' mustUnvan`,
-					`${
-						new MQCase().setClause('fis.fisekayrim')
-							.when(`'SC'`, VergiNo.perakendeVKN.sqlServerDegeri())
-							.else(isyeri.vergiVeyaVKN || `''`)
-					 } vkn`
-				])
-				.addWithAlias('car', ...[
-					'revizeeislemmail eMail',
-					'efatsenaryotipi efSenaryoTipi',
-					'earsivbelgetipi eaGonderimTipi'
-				])
-				.add(...[
-					`${
-						new MQCase().setClause('fis.efayrimtipi')
-							.when(`'IR'`, 'dbo.emptycoalesce(car.eirsgibalias, car.efatgibalias)')
-							.else('car.efatgibalias')
-					} gibAlias`
-				])
+			let alias = 'fis', sent = new MQSent({
+				from: `stfis fis`,
+				fromIliskiler: [
+					{ from: 'carmst car', iliski: 'fis.irsmust = car.must' }
+				],
+				where: [ { birlestir: wh } ],
+				sahalar: [
+					`'ST' pstip`, `fis.ozeltip piftipi`, `'IR' efayrimtipi`, `fis.kaysayac`, `'T' almsat`, `'' iade`, `fis.fisekayrim ayrimtipi`, `fis.tarih`, `fis.fisnox`,
+					`'' mustkod`, `'' birunvan`, `fis.efatuuid`, `'' zorunluguidstr`, `fis.efimzats`, `fis.efgonderimts`, `fis.efatonaydurumu`, `0 sonucbedel`,
+					`(case
+						when fis.fisekayrim = 'SC' then ${MQSQLOrtak.sqlServerDegeri(VergiNo.perakendeVKN)}
+						else ${MQSQLOrtak.sqlServerDegeri(app.params.isyeri.vergiVeyaVKN || '')}
+					end) vkn`,
+					'car.efatsenaryotipi',
+					`(case
+						when fis.efayrimtipi = 'IR'
+							then dbo.emptycoalesce(car.eirsgibalias, car.efatgibalias)
+							else car.efatgibalias
+							end
+					 ) gibalias`
+				]
+			})
 			uni.add(sent)
 		}
-	
 		;{
-			let table = 'topmakbuzara'
-			let secWH = this.getTBWhereClause({ ...e, psTip: 'SM', fisTable: table })
-			if (!secWH)
+			let wh = this.getTBWhereClause({ ...e, psTip: 'SM' })
+			if (!wh)
 				return
-	
-			let sent = new MQSent(), { where: wh, sahalar } = sent
-			sent
-				.fromAdd(`${table} fis`)
-				.fromIliski('topmakbuzfis ust', 'fis.fissayac = ust.kaysayac')
-				.fromIliski('carmst car', 'fis.mustahsilkod = car.must')
-			wh.birlestir(secWH)
-			sahalar
-				.add(...[
-					`${table.sqlServerDegeri()} _table`,
-					`'SM' psTip`,
-					'30 oncelik',
-					getIdClause(table, 'fis.id'),
-					'fis.kaysayac fisSayac',
-					`'' pifTipi`,
-					`'MS' eIslTip`,
-					`'T' almsat`, `'' iade`, , `'' fisAyrim`,
-					'ust.tarih', 'fis.makbuznox fisNox', 'fis.mustahsilkod mustKod'
-				])
-				.addWithAlias('fis', ...[
-					'efatuuid uuid',
-					`efimzats imzaTS`, `efgonderimts gonderimTS`,
-					'efatonaydurumu onayDurum'
-				])
-				.add(...[
-					`0 bedel`,
-					`'' zorunluUUID`
-				])
-				.addWithAlias('car', ...[
-					`birunvan mustUnvan`,
-					'vkno vkn',
-					'revizeeislemmail eMail',
-					'efatsenaryotipi efSenaryoTipi',
-					'earsivbelgetipi eaGonderimTipi'
-				])
-				.add(...[
-					`${
-						new MQCase().setClause('fis.efayrimtipi')
-							.when(`'IR'`, 'dbo.emptycoalesce(car.eirsgibalias, car.efatgibalias)')
-							.else('car.efatgibalias')
-					} gibAlias`
-				])
+			let sent = new MQSent({
+				from: `topmakbuzara fis`,
+				fromIliskiler: [
+					{ from: `topmakbuzfis ust`, iliski: `fis.fissayac = ust.kaysayac` },
+					{ from: `carmst car`, iliski: `fis.mustahsilkod = car.must` }
+				],
+				where: { birlestir: wh },
+				sahalar:  [
+					`'SM' pstip`, `'' piftipi`, `'MS' efayrimtipi`, `fis.kaysayac`, `'T' almsat`, `'' iade`, `'' ayrimtipi`, `ust.tarih`, `fis.makbuznox fisnox`,
+					`fis.mustahsilkod mustkod`, `car.birunvan`, `fis.efatuuid`, `'' zorunluguidstr`, `fis.efimzats`, `fis.efgonderimts`,
+					`fis.efatonaydurumu`, `0 sonucbedel`, `car.vkno vkn`, 'car.efatsenaryotipi',
+					`(case
+						when fis.efayrimtipi = 'IR'
+							then dbo.emptycoalesce(car.eirsgibalias, car.efatgibalias)
+							else car.efatgibalias
+							end
+					 ) gibalias`
+				]
+			})
 			uni.add(sent)
 		}
-		
-		sentEkle({ fisTable: 'piffis', psTip: 'SR', ifSql: `fis.piftipi`, efAyrimTipiClause: `'MS'` })
-
-		for (let sent of stm)
-			this.sayaclarBagla({ ...e, sent })
-		
+		sentEkle({ fisTablo: 'piffis', psTip: 'SR', ifSql: `fis.piftipi`, efAyrimTipiClause: `'MS'` })
 		stm.orderBy
-			.add('tarih DESC', 'eIslTip', 'oncelik', 'fisNox DESC')
+			.add('tarih DESC', 'efayrimtipi', 'pstip', 'fisnox DESC')
 	}
 
 	static getBelgeTipText(e) {
 		let { rec = e } = e
-		let { psTip, pifTipi, almSat, iade, fisAyrim: ayrimTipi } = rec
+		let psTip = (rec.pstip ?? rec.psTip ?? rec.psTipStr ?? '').trim()
+		let pifTipi = (rec.piftipi ?? rec.pifTipi ?? '').trim()
+		let almSat = (rec.almsat ?? rec.almSat ?? '').trim()
+		let iade = (rec.iade ?? '').trim()
+		let ayrimTipi = (rec.ayrimtipi ?? rec.ayrimTipi ?? '').trim()
 		
 		if (psTip == 'S') {												/* S: sipfis */
 			if (almSat == 'T') {
 				switch (ayrimTipi) {
 					case 'IH': return 'İhracat Fatura'
-					case 'EM': return 'Eski Emanet Fatura'
+					case 'EM': return 'Emanet Fatura'
 				}
 			}
 			return null
@@ -262,18 +179,15 @@ class GidenEIslemFiltre extends EIslemFiltre {
 		let atText = alimmi ? 'Alım' : 'Satış'
 		let iadePrefix = iademi ? ' İADE' : ''
 		let ifText = (pifTipi == 'I' ? 'İrsaliye' : 'Fatura')
-		
 		switch (ayrimTipi) {
 			case '': return `${atText}${iadePrefix} ${ifText}`
 			case 'IK': return `${atText} İhraç Kaydıyla${iadePrefix} ${ifText}`
-			case 'EM': return `${atText} Eski Emanet${iadePrefix} ${ifText}`
-			case 'EX': return `${atText} Emanet${iadePrefix} ${ifText}`
+			case 'EM': return `${atText} Emanet${iadePrefix} ${ifText}`
 			case 'FS': return `${atText} Fason${iadePrefix} ${ifText}`
 			case 'KN': return `${atText} Konsinye${iadePrefix} ${ifText}`
 			case 'IH': return `${alimmi ? 'İthalat' : 'İhracat'}${iadePrefix} ${ifText}`
 			case 'MI': return 'Mikro İhracat'
 		}
-		
 		return `${atText}${iadePrefix} ${ifText}`
 	}
 	
@@ -282,7 +196,7 @@ class GidenEIslemFiltre extends EIslemFiltre {
 		let tarihBasi = null   //today().addMonths(-5); tarihBasi.setDate(1);
 		this.grupEkle({ kod: 'PRG', aciklama: 'Yazılımsal', renk: '#111', zeminRenk: '#eee', kapali: true })
 		
-		let { liste, eConf = this.eConf ?? {} } = e
+		let { liste } = e
 		let sec_eIslem, sec_faturaAyrim
 		extend(liste, {
 			uygunOlmayanlarGosterilirmiFlag: new SecimBool({
@@ -302,6 +216,7 @@ class GidenEIslemFiltre extends EIslemFiltre {
 			)
 		})
 
+		let eConf = this.eConf ?? MQEConf.instance
 		let { kisitUyarlanmis: kisit } = eConf
 		if (kisit.kullanilirmi) {
 			let magazami = kisit.magaza
@@ -317,7 +232,7 @@ class GidenEIslemFiltre extends EIslemFiltre {
 					eIslKodlar.push('MS')
 			
 			if (eIslKodlar.length) {
-				let { kaDict } = EIslemTip
+				let {kaDict} = EIslemTip
 				liste.uyari_kisitEIslTip = new SecimText({
 					etiket: `Kısıtlanacak e-İşlem Tipleri:`,
 					value: `[ <b class="indianred">${eIslKodlar.map(eIslTip => kaDict[eIslTip] || eIslTip)}</b> ]`
@@ -328,7 +243,6 @@ class GidenEIslemFiltre extends EIslemFiltre {
 				value: `[ <b class="indianred">${magazami ? 'Mağaza' : 'Normal Faturalar'}</b> ]`
 			})
 		}
-		
 		extend(liste, {
 			sube: new SecimBirKismi({ etiket: 'Fiş Şubesi', mfSinif: MQSube }),
 			tarih: new SecimDate({ etiket: 'Tarih', basi: tarihBasi }),
@@ -351,9 +265,8 @@ class GidenEIslemFiltre extends EIslemFiltre {
 				tekSecim: new BuDigerVeHepsi([`<span class="green">XML Oluşmuş Olanlar</span>`, `<span class="red">XML OLUŞMAMIŞ Olanlar</span>`])
 			}),
 			fisSayac: new SecimInteger({ etiket: 'VIO ID (fisSayac)', grupKod: 'PRG' })
-		})
+		});
 	}
-	
 	tbWhereClauseDuzenle(e = {}) {
 		super.tbWhereClauseDuzenle(e)
 		this.tbWhereClauseDuzenle_kisit(e)
@@ -376,7 +289,6 @@ class GidenEIslemFiltre extends EIslemFiltre {
 		
 		let _e = { ...e, where: new MQWhereClause() }
 		this.tbWhereClauseDuzenle_cari(_e)
-		
 		let { where: cariWh } = _e
 		if (cariWh && !empty(cariWh.liste)) {
 			if (psTip == 'ST') {
@@ -413,8 +325,8 @@ class GidenEIslemFiltre extends EIslemFiltre {
 			this.tbWhereClauseDuzenle_ortak(e)
 	}
 	tbWhereClauseDuzenle_ortak(e = {}) {
-		let {alias, aliasVeNokta} = e, { where: wh } = e
-		wh.add(`${aliasVeNokta}silindi = ''`, `${aliasVeNokta}ozelisaret <> '*'`)
+		let {alias, aliasVeNokta} = e, { where: wh } = e;
+		wh.add(`${aliasVeNokta}silindi = ''`, `${aliasVeNokta}ozelisaret <> '*'`);
 		if (!this.uygunOlmayanlarGosterilirmiFlag.value) { wh.add(`LEN(${aliasVeNokta}seri) = 3`, `${aliasVeNokta}noyil > 0`) }
 		wh.birKismi(this.sube, `${aliasVeNokta}bizsubekod`); wh.basiSonu(this.tarih, `${aliasVeNokta}tarih`);
 		wh.basiSonu(this.seri, `${aliasVeNokta}seri`); wh.basiSonu(this.fisNo, `${aliasVeNokta}no`)
@@ -537,7 +449,6 @@ class GidenEIslemFiltre extends EIslemFiltre {
 			if (!empty(ayrimlar))
 				extend(_ayrimlar, (isArray(ayrimlar) ? asSet(ayrimlar) : ayrimlar))
 		}
-		
 		let { eIslemTipSet, alias, aliasVeNokta, where: wh } = e
 		let or = new MQOrClause()
 		if (!eIslemTipSet || (eIslemTipSet.A || eIslemTipSet.E))
@@ -555,8 +466,7 @@ class GidenEIslemFiltre extends EIslemFiltre {
 				]).parantezli())
 			}
 		}
-		if (!empty(or.liste))
-			wh.add(or)
+		if (!empty(or.liste)) { wh.add(or) }
 	}
 	tbWhereClauseDuzenle_stFis(e = {}) {
 		let ozelTip2GC2Ayrimlar = {}

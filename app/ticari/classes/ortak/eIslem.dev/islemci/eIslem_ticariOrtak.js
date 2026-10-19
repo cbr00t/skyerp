@@ -2,296 +2,22 @@ class EIslTicariOrtak extends EIslGiden {
     static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get ticarimi() { return true }
 
-	static uuidStm_uniDuzenle(e) {
-		super.uuidStm_uniDuzenle(e)
-		let { uni, ps2SayacListe, genelSentDuzenleyici: genelSentDuzenle, whereDuzenleyici: genelWHDzenle } = e
-		
-		let psTipVeYapilar = [
-			{
-				psTip: 'P', table: 'piffis',
-				whereDuzenleyici: ({ sent, sent: { sahalar }, where: wh }) => {
-					sent
-						.fis2TicCariBagla()
-						.fromIliski('degiskenadres dadr', 'fis.degiskenvknox = dadr.vknox')
-					wh.notDegerAta('IN', 'fis.ayrimtipi')
-				}
-			},
-			{
-				psTip: 'S', table: 'sipfis',
-				whereDuzenleyici: ({ sent, sent: { sahalar }, where: wh }) => {
-					sent.fis2CariBagla()
-					wh
-						.degerAta('EM', 'fis.ayrimtipi')
-						.degerAta('E', 'fis.ozeltip')
-					sent.add(
-						`(
-							case when fis.efayrimtipi = 'IR'
-								then dbo.emptycoalesce(car.eirsgibalias, car.efatgibalias)
-								else car.efatgibalias
-							end
-						) gibalias`
-					)
-				}
-			}
-		]
-		
-		for (let { psTip, table, whereDuzenleyici: whDuzenle } of psTipVeYapilar) {
-			let sayaclar = ps2SayacListe[psTip]
-			let sent = new MQSent(), { where: wh, sahalar } = sent
-			sent
-				.fromAdd(`${table} fis`)
-				.fis2TicCariBagla()
-				.fromIliski('degiskenadres dadr', 'fis.degiskenvknox = dadr.vknox')
-			wh
-				.fisSilindiEkle()
-				.add(new MQOrClause([
-					`(fis.almsat = 'T' AND fis.iade = '')`,
-					`(fis.almsat = 'A' AND fis.iade = 'I')`
-				]))
-			
-			wh.inDizi(['E', 'A', 'IR', ''], 'fis.efayrimtipi')
-			
-			sahalar
-				.add(`'${psTip}' pstip`)
-				.addWithAlias('fis',
-					'kaysayac fissayac', 'efatuuid uuid', 'efayrimtipi', 'tarih', 'fisnox')
-				.add(
-					`(case
-						when fis.efayrimtipi = 'IR'
-							then
-								(case when fis.degiskenvknox <> ''
-									then dadr.efatgibalias
-									else dbo.emptycoalesce(car.eirsgibalias, car.efatgibalias)
-								end)
-							else
-								(case when fis.degiskenvknox <> ''
-									then dadr.efatgibalias
-									else car.efatgibalias
-								end)
-							end
-					 ) gibalias`
-				)
-			if (sayaclar)
-				wh.inDizi(sayaclar, 'fis.kaysayac')
-			
-			if (whDuzenle || genelWHDzenle) {
-				let _e = { ...e, psTip, table, uni, sent, where: sent.where };
-				whDuzenle?.call?.(this, _e)
-				genelWHDzenle?.call?.(this, _e)
-			}
-			else if (!empty(ps2SayacListe))
-				continue
-			
-			genelSentDuzenle?.call?.(this, { ...e, psTip, table, uni, sent, where: sent.where })
-			
-			sent.gereksizTablolariSil()
-			uni.add(sent)
-		}
-	}
-    static getEFisBaslikVeDetayStm(e = {}) {
-		e.psTip2SayacListe ??= {}
-		let { whereDuzenleyici: genelWhereDuzenleyici, ps2SayacListe = e.psTip2SayacListe } = e
-		let { eArsivmi } = this
-		if (isFunction(ps2SayacListe))
-			ps2SayacListe = ps2SayacListe.call(this, e)
-		
-		let uni = new MQUnionAll()
-		let fhBagla = e.fhBagla = ({ psTip, sayacListe, fisTable, harTable }) => {
-			let mustIlClause = `(case when fis.degiskenvknox <> '' then dadr.ilkod else car.ilkod end)`
-			let sent = new MQSent(), { where: wh, sahalar } = sent
-			sent
-				.fisHareket(fisTable, harTable, true)
-				.fis2TicCariBagla()
-				.fromIliski('degiskenadres dadr', 'fis.degiskenvknox = dadr.vknox')
-				.fromIliski('naksekli nak', 'fis.nakseklikod = nak.kod')
-				.fromIliski('carmst pls', 'fis.plasiyerkod = pls.must')
-				.fromIliski('caril cil', `${mustIlClause} = cil.kod`)
-				.fromIliski('ulke culk', 'car.ulkekod = culk.kod')
-				.leftJoin({ alias: 'fis', table: 'tahsilsekli tsek', iliski: [`fis.tahtipi = 'T'`, 'fis.martahsil = tsek.kodno'] })
-				.leftJoin({ alias: 'fis', table: 'pifbasekaciklama basack', iliski: 'fis.kaysayac = basack.fissayac' })
-				.leftJoin({ alias: 'fis', table: 'pifdipaciklama dipack', iliski: 'fis.kaysayac = dipack.fissayac' })
-				.fromIliski('vergihesap kver', 'har.kdvhesapkod = kver.kod')
-				.fromIliski('vergihesap tevver', 'har.dettevhesapkod = tevver.kod')
-				.fromIliski('vergihesap sver', 'har.stopajhesapkod = sver.kod')
-			wh
-				.fisSilindiEkle()
-				.inDizi(['E', 'A', 'IR', ''], 'fis.efayrimtipi')
-				.inDizi(sayacListe, 'fis.kaysayac')
-				.add(
-					`fis.ozelisaret <> '*'`,
-					new MQOrClause([
-						`(fis.almsat = 'T' and fis.iade = '')`,
-						`(fis.almsat = 'A' and fis.iade = 'I')`
-					])
-				)
-			sahalar.addAll([
-				`${psTip.sqlServerDegeri()} pstip`,
-				`${fisTable.sqlServerDegeri()} fisTable`,
-				`${harTable.sqlServerDegeri()} harTable`,
-				`fis.bizsubekod`, 'fis.kaysayac fissayac', 'fis.iade', 'fis.ayrimtipi', 'fis.fistipi', 'fis.efayrimtipi',
-				'fis.tarih', 'fis.fisnox', 'fis.sevktarihi sevkTarih', 'fis.sevksaati sevkSaat',
-				'fis.ortalamavade', 'car.earsivbelgetipi', 'fis.kdvistisnaturu',
-				`(case fis.ayrimtipi when 'IH' then 'IHRACAT' when 'IK' then 'IHRACKAYITLI' when 'FS' then 'FASON' when 'EM' then 'EMANET' when 'KN' then 'KONSINYE' else '' end) faturaozeltip`,
-				`(case when fis.almsat = 'A' and fis.iade = 'I' then '*' else '' end) alimiademi`,
-																						/* M: TEMEL ; T: TİCARİ ; K: KAMU */
-				`(case when fis.degiskenvknox <> '' then 'M' else dbo.emptycoalesce(car.efatsenaryotipi, 'M') end) carsenaryo`,
-				`car.efatyontem genelyontem`, `car.efozelyontemkod ozelyontem`, 'fis.tahtipi', 'fis.martahsil tahseklino',
-				`(case when fis.tahtipi = 'K' then 'Karma Tahsil' else tsek.aciklama end) tahsekliadi`,
-				'fis.plasiyerkod', 'fis.nakseklikod', 'fis.zorunluguidstr', 'fis.efatuuid uuid',
-				'fis.dvkod', 'fis.dvkur', 'fis.net sonucbedel',
-				`(case when fis.degiskenvknox <> '' then fis.degiskenvknox else fis.ticmust end) mustkod`,
-				`(case when fis.degiskenvknox <> '' then dadr.birunvan when fis.must = '' and fis.ayrimtipi = 'PR' then 'Muhtelif Müşteri' else car.birunvan end) unvan`,
-				`(case when fis.degiskenvknox <> '' then dadr.biradres else car.biradres end) adres`,
-				`(case when fis.degiskenvknox <> '' then dadr.yore else car.yore end) yore`,
-				`(case when fis.degiskenvknox <> '' then dadr.posta else car.posta end) posta`,
-				`${mustIlClause} ilkod`, 'cil.aciklama iladi',
-				`(case when fis.degiskenvknox <> '' then '' else car.ulkekod end) ulkekod`,
-				`(case when fis.degiskenvknox <> '' then '' else culk.aciklama end) ulkeadi`,
-				`(case when fis.degiskenvknox <> '' then '' else car.tel1 end) tel1`,
-				`(case when fis.degiskenvknox <> '' then '' else car.tel2 end) tel2`,
-				`(case when fis.degiskenvknox <> '' then '' else car.tel3 end) tel3`,
-				`(case when fis.degiskenvknox <> '' then '' else car.fax end) fax`,
-				`(case when fis.degiskenvknox <> '' then '' else car.webadresi end) webadresi`,
-				`(case when fis.degiskenvknox <> '' then '' else car.posta end) posta`,
-				`(case when fis.degiskenvknox <> '' then
-						dadr.email
-					else
-					${
-						eArsivmi
-						  ? `(CASE WHEN car.emailearsiv = '' THEN car.email ELSE car.emailearsiv END)`
-						  : 'car.email'
-					}
-				 end) email`,
-				`(case when fis.degiskenvknox <> '' then (case when dadr.sahismi = '' then fis.degiskenvknox else '' end)
-						when fis.must = '' and fis.ayrimtipi = 'PR' then ''
-						else car.vnumara end) vkn`,
-				`(case when fis.degiskenvknox <> '' then (case when dadr.sahismi <> '' then fis.degiskenvknox else '' end)
-						when fis.must = '' and fis.ayrimtipi = 'PR' then ${TCKimlik.perakendeVKN.sqlServerDegeri()}
-						else car.tckimlikno end) tckn`,
-				`(case when fis.degiskenvknox <> '' then dadr.sahismi
-						when fis.must = '' and fis.ayrimtipi = 'PR' then '*' else car.sahismi
-					end) sahismi`,
-				`(case when fis.degiskenvknox <> '' then dadr.vdaire else car.vdaire end) vergidairesi`,
-				`(case when fis.degiskenvknox <> '' then '' else car.ticaretsicilno end) ticsicilno`,
-				`(case when fis.degiskenvknox <> '' then '' else car.mersisno end) mersisno`,
-				`(case
-					when fis.efayrimtipi = 'IR'
-						then
-							(case when fis.degiskenvknox <> ''
-								then dadr.efatgibalias
-								else dbo.emptycoalesce(car.eirsgibalias, car.efatgibalias)
-							end)
-						else
-							(case when fis.degiskenvknox <> ''
-								then dadr.efatgibalias
-								else car.efatgibalias
-							end)
-						end
-				 ) gibalias`,
-				`(case when fis.degiskenvknox <> '' then '' else car.webadresi end) webadresi`,
-				'pls.birunvan plasiyeradi', 'nak.aciklama naksekliadi', 'car.musrefkod', 'car.kondepomu',
-				`fis.tlacikhesap tlbakiye`, `fis.tloncekibakiye`, `fis.dvacikhesap dvbakiye`, `fis.dvoncekibakiye`,
-				'fis.refstrnox refnox', /*'fis.borsatescilvarmi', 'fis.kunyenox',*/ 'basack.basaciklama', 'dipack.aciklama dipaciklama',
-				'har.seq', 'har.miktar', 'har.fiyat', 'har.dvfiyat', 'har.brutbedel', 'har.dvbrutbedel', 'har.bedel', 'har.dvbedel',
-				'har.ekaciklama', 'har.detkdvekvergitipi', 'har.detistisnakod', 'har.perkdv', 'kver.kdvorani', 'har.perstopaj', 'sver.stopajorani',
-				'har.dettevhesapkod', 'tevver.kdvtevoranx', 'tevver.kdvtevoranpay', 'tevver.tevislemturu', 'har.pertevkifat', 'har.satiriskonto', 'har.sonuciskoran'
-			])
-			let args = { ...e, psTip, sayacListe, fisTable, harTable, uni, sent, where: wh }
-			;{
-				if (this.eFisBaslikVeDetayStm_araSentDuzenle(args) === false)
-					return null
-				if (genelWhereDuzenleyici?.call?.(this, args) === false)
-					return null
-			}
-			uni.add(sent)
-			return sent
-		}
-		
-		let stokBagla = ({ sent, sent: { sahalar, where: wh } }) => {
-			sent.har2StokBagla()
-			sent.stok2BarkodBagla()
-			sent.fromIliski('vergihesap otver', 'har.otvhesapkod = otver.kod')
-			sent.leftJoin('har', 'pzmusturunfis mref', 'fis.ticmust = mref.mustkod')
-			sent.leftJoin('mref', 'pzmusturundetay mdet', ['mref.kaysayac = mdet.fissayac', 'har.stokkod = mdet.stokkod'])
-			sahalar.add(
-				`'S' kayittipi`, 'sbar.refkod barkod', 'har.stokkod shkod', 'stk.aciklama shadi', 'stk.aciklama2 shadi2',
-				'stk.brm', 'stk.brm2', 'stk.gtipkod', 'har.miktar2', 'har.koli', 'har.fiyatveritipi',
-				'mdet.refkod stokrefkod', 'mdet.refadi stokrefadi', 'otver.otvorani', 'har.perotv'
-			)
-			for (let { rowAttr } of HMRBilgi)
-				sahalar.add(`har.${rowAttr}`)
-			for (let { belirtec, rowAttr, rowAttr_bedel } of TicIskYapi)
-				sahalar.add(`har.${rowAttr}`, `har.${rowAttr_bedel}`)
-			return this
-		}
-		let hizmetBagla = ({ sent, sent: { sahalar, where: wh } }) => {
-			sent.har2HizmetBagla()
-			sahalar.add(
-				`'H' kayittipi`, `NULL barkod`, 'har.hizmetkod shkod', 'hiz.aciklama shadi', 'hiz.aciklama2 shadi2',
-				'hiz.brm', `'' brm2`, `'' gtipkod`, `0 miktar2`, `0 koli`, `'' fiyatveritipi`,
-				'NULL stokrefkod', 'NULL stokrefadi', '0 otvorani', '0 perotv'
-			)
-			for (let {numerikmi, rowAttr} of HMRBilgi)
-				sahalar.add(`${numerikmi ? '0' : `''`} ${rowAttr}`)
-			for (let {belirtec, rowAttr, rowAttr_bedel} of TicIskYapi)
-				sahalar.add(`har.${rowAttr}`, `har.${rowAttr_bedel}`)
-			return this
-		}
-		
-		;{
-			let psTip = 'P', sayacListe = ps2SayacListe[psTip]
-			if (sayacListe) {
-				let sent = fhBagla({ psTip, sayacListe, fisTable: 'piffis', harTable: 'pifstok' })
-				if (sent) {
-					sent.where.add(`fis.ayrimtipi NOT IN ('FS', 'IN')`)				// PR -magaza da alinir
-					stokBagla({ sent })
-				}
-				sent = fhBagla({ psTip, sayacListe, fisTable: 'piffis', harTable: 'pifhizmet' })
-				if (sent) {
-					sent.where.add(`fis.ayrimtipi NOT IN ('FS', 'IN', 'PR')`)
-					hizmetBagla({ sent })
-				}
-				sent = fhBagla({ psTip, sayacListe, fisTable: 'piffis', harTable: 'piffsstok' })				// sadece fason olanlar
-				if (sent) {
-					sent.where.add(`fis.ayrimtipi = 'FS'`)
-					hizmetBagla({ sent })
-				}
-			}
-		}
-		{
-			let psTip = 'S', sayacListe = ps2SayacListe[psTip]
-			if (sayacListe) {
-				let sent = fhBagla({ psTip, sayacListe, fisTable: 'sipfis', harTable: 'sipstok' })
-				if (sent) {
-					sent.where.addAll(`fis.ayrimtipi = 'EM'`, `fis.ozeltip = 'E'`)
-					stokBagla({ sent })
-				}
-			}
-		}
-		
-		let orderBy = ['tarih', 'pstip', 'fisnox', 'fissayac', 'seq']
-		if (empty(uni.liste))
-			return null
-		
-		return new MQStm({ sent: uni, orderBy })
-	}
-	static eFisBaslikVeDetayStm_araSentDuzenle({ psTip, fisTable, harTable, uni, sent, where: wh }) { }
 	static tipIcinFislerEkDuzenlemeYapDevam({ yukleIslemi, promises }) {
 		super.tipIcinFislerEkDuzenlemeYapDevam(...arguments)
 		promises.push(
 			yukleIslemi({
 				stm: e => this.getDetayAciklamaStm(e),
-				seviyelendirici: ({ recs: source }) => seviyelendirAttrGruplari({ source, attrGruplari: [['pstip', 'fissayac']] }),
+				seviyelendirici: ({ recs: source }) => seviyelendirAttrGruplari({ source, attrGruplari: [['_table', 'id']] }),
 				yukleyici: ({ eFis, detaylar: recs, ...e }) => eFis.detayAciklamalarYukle({ ...e, recs })
 			}),
 			yukleIslemi({
 				stm: e => this.getDipAciklamaStm(e),
-				seviyelendirici: ({ recs: source }) => seviyelendirAttrGruplari({ source, attrGruplari: [['pstip', 'fissayac']] }),
+				seviyelendirici: ({ recs: source }) => seviyelendirAttrGruplari({ source, attrGruplari: [['_table', 'id']] }),
 				yukleyici: ({ eFis, detaylar: recs, ...e }) => eFis.dipAciklamaYukle({ ...e, recs })
 			}),
 			yukleIslemi({
 				stm: e => this.getDipEIcmalStm(e),
-				seviyelendirici: ({ recs: source }) => seviyelendirAttrGruplari({ source, attrGruplari: [['pstip', 'fissayac']] }),
+				seviyelendirici: ({ recs: source }) => seviyelendirAttrGruplari({ source, attrGruplari: [['_table', 'id']] }),
 				yukleyici: ({ eFis, detaylar: recs, ...e }) => eFis.dipEIcmalYukle({ ...e, recs })
 			}),
 			yukleIslemi({
@@ -304,117 +30,174 @@ class EIslTicariOrtak extends EIslGiden {
 			})
 		)
 	}
-	static getDetayAciklamaStm(e) {
-		let stm, uni;
-		let fhBagla = _e => {
-			let {harTable, fisSayaclar, psTip} = _e;
-			let sent = new MQSent({
-				from: harTable,
-				where: [{ inDizi: fisSayaclar, saha: 'fissayac' }],
-				sahalar: [
-					`${MQSQLOrtak.sqlServerDegeri(psTip)} pstip`,
-					'fissayac', 'seq', 'aciklama'
-				]
-			});
+	static getDetayAciklamaStm({ table2IDListe }) {
+		let uni = new MQUnionAll()
+		let fhBagla = ({ fisTable, ackTable, idListe }) => {
+			let sent = new MQSent(), { where: wh, sahalar } = sent
+			sent
+				.fromAdd(`${ackTable} ack`)
+				.innerJoin('ack', `${fisTable} fis`, 'ack.fissayac = fis.kaysayac')
+			wh.inDizi(idListe, 'fis.id')
+			sahalar.add([
+				`${fisTable.sqlServerDegeri()} _table`,
+				'fis.id',
+				'ack.seq', 'ack.aciklama'
+			])
 			uni.add(sent)
-		};
-		uni = new MQUnionAll(); stm = new MQStm({ sent: uni });
-		let {ps2SayacListe} = e;
-		let fisSayaclar = ps2SayacListe.P;
-		if (fisSayaclar) fhBagla(({ harTable: 'pifaciklama', fisSayaclar, psTip: 'P' }))
-		fisSayaclar = ps2SayacListe.S;
-		if (fisSayaclar) fhBagla(({ harTable: 'sipaciklama', fisSayaclar, psTip: 'S' }))
-		if (empty(uni.liste)) return null
-		stm.orderBy.addAll('pstip', 'fissayac', 'seq');
+		}
+		
+		let stm = new MQStm({ sent: uni })
+		let { orderBy } = stm
+		let ekle = (fisTable, ackTable) => {
+			let idListe = table2IDListe[fisTable]
+			if (!empty(idListe))
+				fhBagla({ fisTable, ackTable, idListe })
+		}
+		ekle('piffis', 'pifaciklama')
+		ekle('sipfis', 'sipaciklama')
+		ekle('stfis', 'staciklama')
+		if (empty(uni.liste))
+			return null
+		
+		orderBy.add('_table', 'id', 'seq')
 		return stm
 	}
-	detayAciklamalarYukle(e) {
+	detayAciklamalarYukle({ recs }) {
 		// 'seq' değerine göre ilgili detaya eklenecektir
-		let {recs} = e, {detaylar} = this, seq2Detay = {}
-		for (let det of detaylar)
-			seq2Detay[det.seq] = det
+		let { detaylar } = this
+		let seq2Detay = fromEntries(
+			detaylar.map(d => [d.seq, d]))
+		
 		for (let rec of recs) {
-			let ackSeq = rec.seq, maxSeq = 0; for (let seq in seq2Detay) { if (seq <= ackSeq) maxSeq = Math.max(maxSeq, seq) }
-			if (maxSeq) seq2Detay[maxSeq].aciklamaEkle({ aciklama: rec.aciklama })
+			let { seq: ackSeq, aciklama } = rec
+			let maxSeq = 0
+			for (let seq in seq2Detay) {
+				if (seq <= ackSeq)
+					maxSeq = max(maxSeq, seq)
+			}
+			if (maxSeq)
+				seq2Detay[maxSeq].aciklamaEkle({ aciklama })
 		}
 	}
-	static getDipAciklamaStm(e) {
-		let stm, uni;
-		let fhBagla_baslik = _e => {
-			let {harTable, fisSayaclar, psTip} = _e;
-			let sent = new MQSent({
-				from: harTable, where: [{ inDizi: fisSayaclar, saha: 'fissayac' }],
-				sahalar: [`${MQSQLOrtak.sqlServerDegeri(psTip)} pstip`, `'B' alttip`, `0 kayitno`, 'fissayac', 'basaciklama aciklama']
-			})
+	static getDipAciklamaStm({ table2IDListe }) {
+		// ** TODO: getDetayAciklamaStm(e)  kısmındaki gibi düzenlenecek
+		let uni = new MQUnionAll()
+		let ackBagla_baslik = _e => {
+			let { fisTable, ackTable, idListe } = _e
+			let sent = new MQSent(), { where: wh, sahalar } = sent
+			sent
+				.fromAdd(`${ackTable} ack`)
+				.innerJoin('ack', `${fisTable} fis`, 'ack.fissayac = fis.kaysayac')
+			wh.inDizi(idListe, 'fis.id')
+			sahalar.add([
+				`${fisTable.sqlServerDegeri()} _table`,
+				'fis.id',
+				`'B' alttip`, `0 kayitno`,
+				'ack.basaciklama aciklama'
+			])
 			uni.add(sent)
-		};
-		let fhBagla_dip = _e => {
-			let {harTable, fisSayaclar, psTip} = _e;
-			let sent = new MQSent({
-				from: harTable,where: [{ inDizi: fisSayaclar, saha: 'fissayac' }],
-				sahalar: [`${MQSQLOrtak.sqlServerDegeri(psTip)} pstip`, `'D' alttip`, `0 kayitno`, 'fissayac', 'aciklama']
-			})
-			uni.add(sent)
-		};
-		let fhBagla_ekBilgi = _e => {
-			let {harTable, fisSayaclar, psTip} = _e;
-			let sent = new MQSent({
-				from: harTable, where: [{ inDizi: fisSayaclar, saha: 'fissayac' }, `kayittipi IN ('E1', 'E2')` ],
-				sahalar: [`${MQSQLOrtak.sqlServerDegeri(psTip)} pstip`, 'kayittipi alttip', 'kayitno', 'fissayac', 'ekbilgi aciklama']
-			})
-			uni.add(sent)
-		};
-		uni = new MQUnionAll(); stm = new MQStm({ sent: uni });
-		let {ps2SayacListe} = e
-		let psTip = 'P', fisSayaclar = ps2SayacListe[psTip];
-		if (fisSayaclar) {
-			fhBagla_baslik(({ harTable: 'pifbasekaciklama', fisSayaclar, psTip }));
-			fhBagla_dip(({ harTable: 'pifdipaciklama', fisSayaclar, psTip }));
-			fhBagla_ekBilgi(({ harTable: 'pifdipekbilgi', fisSayaclar, psTip }))
 		}
-		psTip = 'S';
-		fisSayaclar = ps2SayacListe[psTip];
-		if (fisSayaclar) {
-			fhBagla_baslik(({ harTable: 'sipbasekaciklama', fisSayaclar, psTip }));
-			fhBagla_dip(({ harTable: 'sipdipaciklama', fisSayaclar, psTip }));
-			fhBagla_ekBilgi(({ harTable: 'sipdipekbilgi', fisSayaclar, psTip }))
+		let ackBagla_dip = _e => {
+			let { fisTable, ackTable, idListe } = _e
+			let sent = new MQSent(), { where: wh, sahalar } = sent
+			sent
+				.fromAdd(`${ackTable} ack`)
+				.innerJoin('ack', `${fisTable} fis`, 'ack.fissayac = fis.kaysayac')
+			wh.inDizi(idListe, 'fis.id')
+			sahalar.add([
+				`${fisTable.sqlServerDegeri()} _table`,
+				'fis.id',
+				`'D' alttip`, `0 kayitno`,
+				'ack.aciklama'
+			])
+			uni.add(sent)
 		}
-		if (empty(uni.liste)) { return null }
-		stm.orderBy.addAll('pstip', 'fissayac', 'alttip', 'kayitno');
+		let ackBagla_ekBilgi = _e => {
+			let { fisTable, ackTable, idListe } = _e
+			let sent = new MQSent(), { where: wh, sahalar } = sent
+			sent
+				.fromAdd(`${ackTable} ack`)
+				.innerJoin('ack', `${fisTable} fis`, 'ack.fissayac = fis.kaysayac')
+			wh
+				.inDizi(idListe, 'fis.id')
+				.inDizi(['E1', 'E2'], 'ack.kayittipi')
+			sahalar.add([
+				`${fisTable.sqlServerDegeri()} _table`,
+				'fis.id',
+				'ack.kayittipi alttip', 'ack.kayitno',
+				'ack.ekbilgi aciklama'
+			])
+			uni.add(sent)
+		}
+		
+		let stm = new MQStm({ sent: uni })
+		let { orderBy } = stm
+		;{
+			let fisTable = 'piffis', idListe = table2IDListe[fisTable]
+			if (!empty(idListe)) {
+				ackBagla_baslik(({ fisTable, ackTable: 'pifbasekaciklama', idListe }))
+				ackBagla_dip(({ fisTable, ackTable: 'pifdipaciklama', idListe }))
+				ackBagla_ekBilgi(({ fisTable, ackTable: 'pifdipekbilgi', idListe }))
+			}
+		}
+		;{
+			let fisTable = 'sipfis', idListe = table2IDListe[fisTable]
+			if (!empty(idListe)) {
+				ackBagla_baslik(({ fisTable, ackTable: 'sipbasekaciklama', idListe }))
+				ackBagla_dip(({ fisTable, ackTable: 'sipdipaciklama', idListe }))
+				ackBagla_ekBilgi(({ fisTable, ackTable: 'sipdipekbilgi', idListe }))
+			}
+		}
+		if (empty(uni.liste))
+			return null
+		
+		orderBy.addAll('_table', 'id', 'alttip', 'kayitno')
 		return stm
 	}
 	dipAciklamaYukle({ recs }) {
 		let dipNotlar = this.dipNotlar = []
 		dipNotlar.push(...recs.map(r => r?.aciklama?.trimEnd() ?? ''))
 	}
-	static getDipEIcmalStm({ ps2SayacListe } = {}) {
-		let fhBagla = ({ fisSayaclar, psTip }) => {
-			if (!fisSayaclar)
+	static getDipEIcmalStm({ table2IDListe } = {}) {
+		let uni = new MQUnionAll()
+		let icmalBagla = ({ fisTable, fisSayacSaha, idListe }) => {
+			if (!idListe)
 				return
 			
-			let fisSayacSaha = psTip == 'S' ? 'sipsayac' : 'pifsayac'
-			let sent = new MQSent({
-				from: 'dipebilgi',
-				where: { inDizi: fisSayaclar, saha: fisSayacSaha },
-				sahalar: [
-					`${MQSQLOrtak.sqlServerDegeri(psTip)} pstip`,
-					`${fisSayacSaha} fissayac`, 'seq', 'xadi', 'xkod',
+			let sent = new MQSent(), { where: wh, sahalar } = sent
+			sent
+				.fromAdd('dipebilgi ebil')
+				.innerJoin('ebil', `${fisTable} fis`, `ebil.${fisSayacSaha} = fis.kaysayac`)
+			wh.inDizi(idListe, 'fis.id')
+			sahalar
+				.add([
+					`${fisTable.sqlServerDegeri()} _table`,
+					`fis.id`
+				])
+				.addWithAlias('ebil', ...[
+					'seq', 'xadi', 'xkod',
 					'hvtip', 'anatip', 'alttip', 'ustoran', 'oran',
 					'matrah', 'dvmatrah', 'bedel', 'dvbedel'
-				]
-			})
+				])
 			uni.add(sent)
 		}
 		
-		let uni = new MQUnionAll()
 		let stm = new MQStm({ sent: uni })
 		let { orderBy } = stm
-		fhBagla({ fisSayaclar: ps2SayacListe.P, psTip: 'P' })
-		fhBagla({ fisSayaclar: ps2SayacListe.S, psTip: 'S' })
+		;{
+			let fisTable = 'piffis', fisSayacSaha = 'pifsayac'
+			let idListe = table2IDListe[fisTable]
+			icmalBagla({ fisTable, fisSayacSaha, idListe })
+		}
+		;{
+			let fisTable = 'sipfis', fisSayacSaha = 'sipsayac'
+			let idListe = table2IDListe[fisTable]
+			icmalBagla({ fisTable, fisSayacSaha, idListe })
+		}
 		if (empty(uni.liste))
 			return null
 		
-		orderBy.add('pstip', 'fissayac', 'seq')
+		orderBy.add('_table', 'id', 'seq')
 		return stm
 	}
 	dipEIcmalYukle(e) {
@@ -446,6 +229,7 @@ class EIslTicariOrtak extends EIslGiden {
 			result[rec.kod] = rec
 	}
 
+	
 	// xmlGetProfileID(e) { }
 	xmlGetBelgeTipKodu(e) { return 'SATIS' }
 
