@@ -7,18 +7,24 @@ class EIslTicariOrtak extends EIslGiden {
 		promises.push(
 			yukleIslemi({
 				stm: e => this.getDetayAciklamaStm(e),
-				seviyelendirici: ({ recs: source }) => seviyelendirAttrGruplari({ source, attrGruplari: [['_table', 'id']] }),
-				yukleyici: ({ eFis, detaylar: recs, ...e }) => eFis.detayAciklamalarYukle({ ...e, recs })
+				seviyelendirici: ({ recs: source }) =>
+					seviyelendirAttrGruplari({ source, attrGruplari: [['_table', 'id']] }),
+				yukleyici: ({ eFis, detaylar: recs, ...e }) =>
+					eFis.detayAciklamalarYukle({ ...e, recs })
 			}),
 			yukleIslemi({
 				stm: e => this.getDipAciklamaStm(e),
-				seviyelendirici: ({ recs: source }) => seviyelendirAttrGruplari({ source, attrGruplari: [['_table', 'id']] }),
-				yukleyici: ({ eFis, detaylar: recs, ...e }) => eFis.dipAciklamaYukle({ ...e, recs })
+				seviyelendirici: ({ recs: source }) =>
+					seviyelendirAttrGruplari({ source, attrGruplari: [['_table', 'id']] }),
+				yukleyici: ({ eFis, detaylar: recs, ...e }) =>
+					eFis.dipAciklamaYukle({ ...e, recs })
 			}),
 			yukleIslemi({
 				stm: e => this.getDipEIcmalStm(e),
-				seviyelendirici: ({ recs: source }) => seviyelendirAttrGruplari({ source, attrGruplari: [['_table', 'id']] }),
-				yukleyici: ({ eFis, detaylar: recs, ...e }) => eFis.dipEIcmalYukle({ ...e, recs })
+				seviyelendirici: ({ recs: source }) =>
+					seviyelendirAttrGruplari({ source, attrGruplari: [['_table', 'id']] }),
+				yukleyici: ({ eFis, detaylar: recs, ...e }) =>
+					eFis.dipEIcmalYukle({ ...e, recs })
 			}),
 			yukleIslemi({
 				stm: e => this.getSubeStm(e),
@@ -27,6 +33,12 @@ class EIslTicariOrtak extends EIslGiden {
 			yukleIslemi({
 				stm: e => this.getOzelYontemStm(e),
 				yukleyici: e => this.ozelYontemYukle({ ...e })
+			}),
+			yukleIslemi({
+				stm: e => this.getCariOzelDipStm(e),
+				seviyelendirici: ({ recs: source }) =>
+					seviyelendirAttrGruplari({ source, attrGruplari: [['fisSayac', 'seq']] }),
+				yukleyici: e => this.cariOzelDipYukle({ ...e })
 			})
 		)
 	}
@@ -40,8 +52,8 @@ class EIslTicariOrtak extends EIslGiden {
 			wh.inDizi(idListe, 'fis.id')
 			sahalar.add([
 				`${fisTable.sqlServerDegeri()} _table`,
-				'fis.id',
-				'ack.seq', 'ack.aciklama'
+				'fis.id', 'ack.seq',
+				'ack.aciklama'
 			])
 			uni.add(sent)
 		}
@@ -92,7 +104,7 @@ class EIslTicariOrtak extends EIslGiden {
 			sahalar.add([
 				`${fisTable.sqlServerDegeri()} _table`,
 				'fis.id',
-				`'B' alttip`, `0 kayitno`,
+				`'B' altTip`, `0 kayitNo`,
 				'ack.basaciklama aciklama'
 			])
 			uni.add(sent)
@@ -107,7 +119,7 @@ class EIslTicariOrtak extends EIslGiden {
 			sahalar.add([
 				`${fisTable.sqlServerDegeri()} _table`,
 				'fis.id',
-				`'D' alttip`, `0 kayitno`,
+				`'D' altTip`, `0 kayitNo`,
 				'ack.aciklama'
 			])
 			uni.add(sent)
@@ -124,7 +136,7 @@ class EIslTicariOrtak extends EIslGiden {
 			sahalar.add([
 				`${fisTable.sqlServerDegeri()} _table`,
 				'fis.id',
-				'ack.kayittipi alttip', 'ack.kayitno',
+				'ack.kayittipi altTip', 'ack.kayitno kayitNo',
 				'ack.ekbilgi aciklama'
 			])
 			uni.add(sent)
@@ -151,12 +163,12 @@ class EIslTicariOrtak extends EIslGiden {
 		if (empty(uni.liste))
 			return null
 		
-		orderBy.addAll('_table', 'id', 'alttip', 'kayitno')
+		orderBy.addAll('_table', 'id', 'altTip', 'kayitNo')
 		return stm
 	}
 	dipAciklamaYukle({ recs }) {
-		let dipNotlar = this.dipNotlar = []
-		dipNotlar.push(...recs.map(r => r?.aciklama?.trimEnd() ?? ''))
+		this.dipNotlar = recs.map(r =>
+			r?.aciklama?.trimEnd() ?? '')
 	}
 	static getDipEIcmalStm({ table2IDListe } = {}) {
 		let uni = new MQUnionAll()
@@ -176,8 +188,10 @@ class EIslTicariOrtak extends EIslGiden {
 				])
 				.addWithAlias('ebil', ...[
 					'seq', 'xadi', 'xkod',
-					'hvtip', 'anatip', 'alttip', 'ustoran', 'oran',
-					'matrah', 'dvmatrah', 'bedel', 'dvbedel'
+					'hvtip hvTip', 'anatip anaTip', 'alttip altTip',
+					'ustoran ustOran', 'oran',
+					'matrah', 'dvmatrah dvMatrah',
+					'bedel', 'dvbedel dvBedel'
 				])
 			uni.add(sent)
 		}
@@ -212,23 +226,86 @@ class EIslTicariOrtak extends EIslGiden {
 		return sent
 	}
 	static subeYukle({ recs, temps }) {
-		let result = temps.subeKod2Rec = {}
-		for (let rec of recs)
-			result[rec.kod] = rec
+		temps.subeKod2Rec = fromEntries(
+			recs.map(r => [r.kod, r]))
 	}
 	static getOzelYontemStm(e) {
-		let sent = new MQSent(), {where: wh, sahalar} = sent
+		let sent = new MQSent(), { where: wh, sahalar } = sent
 		sent.fromAdd('efozelyontem')
 		wh.add(`kod <> ''`, `silindi = ''`)
 		sahalar.add('*')
 		return sent
 	}
 	static ozelYontemYukle({ recs, temps }) {
-		let result = temps.ozelYontemKod2Rec = {}
-		for (let rec of recs)
-			result[rec.kod] = rec
+		temps.ozelYontemKod2Rec = fromEntries(
+			recs.map(r => [r.kod, r]))
 	}
+	static getCariOzelDipStm({ table2Id2EFis } = {}) {
+		let mustKodlar = {}
+		for (let id2EFis of values(table2Id2EFis)) {
+			for (let eFis of values(id2EFis)) {
+				let kod = eFis.baslik?.mustKod
+				if (kod)
+					mustKodlar[kod] = true
+			}
+		}
+		mustKodlar = keys(mustKodlar)
+		if (empty(mustKodlar))
+			return null
 
+		let sent = new MQSent(), { where: wh, sahalar } = sent
+		let stm = new MQStm({ sent }), { orderBy } = stm
+		;{
+			sent
+				.fromAdd(`carmst car`)
+				.innerJoin('car', 'eislemozeldip odip', 'odip.kod = car.eislozeldipkod')
+				.innerJoin('odip', 'eislemozeldipdetay har', 'har.fissayac = odip.kaysayac')
+			wh.add(`car.eislozeldipkod <> ''`)
+			if (mustKodlar)
+				wh.inDizi(mustKodlar, 'car.must')
+			sahalar
+				.add('car.must mustKod')
+				.addWithAlias('odip',
+					'kaysayac fisSayac', 'kod', 'aciklama',
+					'bearsiv tip_A', 'befatura tip_E', 'beirsaliye tip_IR',
+					'beihracat tip_IH', 'bemustahsil tip_MS'
+				)
+				.addWithAlias('har', 'seq', 'html')
+		}
+		orderBy.add('fisSayac', 'seq')
+		
+		return stm
+	}
+	static cariOzelDipYukle({ recs, temps }) {
+		function getRec(sev) {
+			const PFTip = 'tip_'
+			let { orjBilgi: orj, detaylar } = sev
+			// detaylar .html
+			
+			let uygunluk = {}
+			let rec = {
+				...orj,
+				uygunluk,
+				html: detaylar
+					.map(d => d.html)
+					.join('')
+			}
+			deleteKeys(rec, 'seq', 'detaylar')
+			
+			;entries(orj)
+				.filter(([k, ]) => k.startsWith(PFTip))
+				.forEach(([k, v]) => {
+					delete rec[k]
+					if (v)
+						uygunluk[k.slice(PFTip.length)] = true
+				})
+			
+			
+			return rec
+		}
+		temps.kod2OzelDip = fromEntries(
+			recs.map(sev => [sev.orjBilgi.kod, getRec(sev)]))
+	}
 	
 	// xmlGetProfileID(e) { }
 	xmlGetBelgeTipKodu(e) { return 'SATIS' }
@@ -239,7 +316,9 @@ class EIslTicariOrtak extends EIslGiden {
 	}
 	async xmlDuzenle_xsltOncesi(e) {
 		await super.xmlDuzenle_xsltOncesi(e)
-		// await this.xmlDuzenle_bakiye(e)
+	}
+	async xmlDuzenle_ozelDip(e) {
+		await super.xmlDuzenle_ozelDip(e)
 	}
 	async xmlDuzenle_docRefs_ilk({ xw }) {
 		await super.xmlDuzenle_docRefs_ilk(...arguments)
@@ -347,7 +426,7 @@ class EIslTicariOrtak extends EIslGiden {
 	xmlDuzenle_dvKur(e) {
 		super.xmlDuzenle_dvKur(e)
 		if (this.dovizlimi)
-			this.xmlDuzenleInternal_dvKur(e)
+			this.xmlDuzenleInternal_dvKur({ ...e, dvKod: this.dvKod, dvKur: this.dvKur })
 	}
 	xmlDuzenle_docRefs_yalnizYazisi({ xw }) {
 		super.xmlDuzenle_docRefs_yalnizYazisi(...arguments)
@@ -447,7 +526,7 @@ class EIslTicariOrtak extends EIslGiden {
 		if (empty(vergiRecs_tevkifatlar))
 			return
 		
-		let toplamBedel = topla(rec > rec.bedelYapi[bedelSelector], vergiRecs_tevkifatlar)
+		let toplamBedel = topla(rec => rec.bedelYapi[bedelSelector], vergiRecs_tevkifatlar)
 		if (!toplamBedel)
 			return
 		
@@ -492,10 +571,11 @@ class EIslTicariOrtak extends EIslGiden {
 			'tevver.kdvtevoranx', 'tevver.kdvtevoranpay', 'tevver.tevislemturu' */
 		super.xmlDuzenle_detayDevam_taxTotal(...arguments)
 		let { bedelSelector, xattrYapi_bedel, dovizlimi } = this
-		let { bedel: matrah } = det
+		let matrah = det.getSonucBedel({ dovizlimi })
+		let vergiBedeli = bedel => dovizlimi ? roundToDvBedelFra((bedel || 0) / (this.dvKur || 1)) : bedel
 		let tip2VergiYapi = {
 			get kdv() {
-				return { bedel: det.perkdv, oran: det.kdvorani, taxTypeCode: MQVergiKdv.eIslTypeCode, taxName: 'KDV' }
+				return { bedel: vergiBedeli(det.perkdv), oran: det.kdvorani, taxTypeCode: MQVergiKdv.eIslTypeCode, taxName: 'KDV' }
 				//return det.perkdv
 				//	? { bedel: det.perkdv, oran: det.kdvorani, taxTypeCode: MQVergiKdv.eIslTypeCode, taxName: 'KDV' }
 				//	: null
@@ -508,12 +588,12 @@ class EIslTicariOrtak extends EIslGiden {
 			}, 
 			get stopaj() {
 				return det.perstopaj
-					? { bedel: det.perstopaj, oran: det.stopajorani, taxTypeCode: MQVergiStopaj.eIslTypeCode, taxName: 'STOPAJ' }
+					? { bedel: vergiBedeli(det.perstopaj), oran: det.stopajorani, taxTypeCode: MQVergiStopaj.eIslTypeCode, taxName: 'STOPAJ' }
 					: null
 			},
 			get otv() {
 				return det.perotv
-					? { bedel: det.perotv, oran: det.otvorani, taxTypeCode: MQVergiOtv.eIslTypeCode, taxName: 'ÖTV' }
+					? { bedel: vergiBedeli(det.perotv), oran: det.otvorani, taxTypeCode: MQVergiOtv.eIslTypeCode, taxName: 'ÖTV' }
 					: null
 			}
 		}
@@ -569,8 +649,10 @@ class EIslTicariOrtak extends EIslGiden {
 			'tevver.kdvtevoranx', 'tevver.kdvtevoranpay', 'tevver.tevislemturu' */
 		super.xmlDuzenle_detayDevam_tevkifatli_taxTotal(...arguments)
 		let { bedelSelector, xattrYapi_bedel, dovizlimi } = this
-		let { bedel: matrah, pertevkifat, kdvtevoranpay } = det
-		let bedel = pertevkifat || 0, oran = (kdvtevoranpay || 0) * 10
+		let { pertevkifat, kdvtevoranpay } = det
+		let matrah = det.getSonucBedel({ dovizlimi })
+		let bedel = dovizlimi ? roundToDvBedelFra((pertevkifat || 0) / (this.dvKur || 1)) : pertevkifat || 0
+		let oran = (kdvtevoranpay || 0) * 10
 		if (!bedel)
 			return
 		
@@ -686,6 +768,8 @@ class EIslTicariOrtak extends EIslGiden {
 		for (let { rowAttr, rowAttr_bedel } of iskYapilar) {
 			let oran = rec[rowAttr] || 0
 			let ikBedel = oran ? rec[rowAttr_bedel] : 0
+			if (dovizlimi)
+				ikBedel = roundToDvBedelFra((ikBedel || 0) / (this.dvKur || 1))
 			if (!oran)
 				continue
 			xw.writeElementBlock('cac:AllowanceCharge', null, () =>

@@ -3,10 +3,22 @@ class EIslemQuery_Giden extends EIslemQuery {
 	get table2Yapi() {
 		return {
 			...super.table2Yapi,
-			piffis: { alias: 'fis', mustSaha: 'must', harTables: { stok: 'pifstok', hizmet: 'pifhizmet' } },
-			sipfis: { alias: 'fis', mustSaha: 'must', harTables: { stok: 'sipstok', hizmet: 'siphizmet' } },
-			stfis: { alias: 'fis', mustSaha: 'irsmust', harTables: { stok: 'ststok' } },
-			topmakbuzara: { alias: 'ara', harTables: { stok: 'topmakbuzstok' } }
+			piffis: {
+				alias: 'fis', mustSaha: 'must',
+				harTables: { stok: 'pifstok', hizmet: 'pifhizmet', demirbas: 'pifdemirbas', fason: 'piffsstok' }
+			},
+			sipfis: {
+				alias: 'fis', mustSaha: 'must',
+				harTables: { stok: 'sipstok', hizmet: 'siphizmet', demirbas: 'sipdemirbas' }
+			},
+			stfis: {
+				alias: 'fis', mustSaha: 'irsmust',
+				harTables: { stok: 'ststok' }
+			},
+			topmakbuzara: {
+				alias: 'ara',
+				harTables: { stok: 'topmakbuzstok' }
+			}
 		}
 	}
 	sentOrtakDuzenle(e) {
@@ -85,11 +97,13 @@ class EIslemQuery_Giden extends EIslemQuery {
 
 			sent
 				.groupByOlustur()
-				.gereksizTablolariSil(['fis', alias])
+				.gereksizTablolariSil([alias, 'fis', 'har', 'car'])
 			sentListe.push(sent)
 		}
 	}
 
+	getPIFFismi(table) { return table == 'piffis' }
+	getSIPFismi(table) { return table == 'sipfis' }
 	getSTFismi(table) { return table == 'stfis' }
 	getSutMakbuzmu(table) { return table == 'topmakbuzara' }
 }

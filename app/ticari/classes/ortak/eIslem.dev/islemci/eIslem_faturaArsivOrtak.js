@@ -43,7 +43,7 @@ class EIslFaturaArsivOrtak extends EIslTicariOrtak {
 		orderBy.addAll('_table', 'id', 'tarih', 'nox')
 		return stm
 	}
-	oncekiIrsTSNYukle({ _detaylar: d } = {}) {
+	oncekiIrsTSNYukle({ recs: d } = {}) {
 		this.baslik.oncekiIrsTSNListe = d
 	}
 	
@@ -78,7 +78,7 @@ class EIslFaturaArsivOrtak extends EIslTicariOrtak {
 		let istisnaTipSet = asSet(['IS', 'KI', 'OM'])
 		if (istisnaKod) {
 			;detaylar.forEach(d => {
-				let { kayittipi: tip, detkdvekvergitipi: vergiTipi } = d
+				let { kayitTipi: tip, detkdvekvergitipi: vergiTipi } = d
 				if (detayTipSet[tip] && !vergiTipi) {
 					d.detkdvekvergitipi = hDetIstTip
 					d.detistisnakod = istisnaKod
@@ -114,7 +114,7 @@ class EIslFaturaArsivOrtak extends EIslTicariOrtak {
 	}
 	xmlGetBelgeTipKodu(e) {
 		let { baslik, detaylar } = this
-		let { alimIademi, fistipi: fisTipi, ayrimtipi: ayrimTipi, eYontem } = baslik
+		let { alimIademi, fisTipi, fisAyrim: ayrimTipi, eYontem } = baslik
 
 		if (alimIademi) 
 			return fisTipi == 'SR' ? 'TEVKIFATIADE' : 'IADE'
@@ -151,7 +151,7 @@ class EIslFaturaArsivOrtak extends EIslTicariOrtak {
 		return super.xmlGetBelgeTipKodu(e)
 	}
 
-	async xmlDuzenle_docRefs_ilk({ xw }) {
+	async xmlDuzenle_docRefs_ilk(e) {
 		await super.xmlDuzenle_docRefs_ilk(...arguments)
 		await this.xmlDuzenle_docRefs_sgk(e)
 	}

@@ -115,7 +115,7 @@ class MQOzelSahaDetay extends MQDetay {
 	}
 
 	getOzelSahaFormBuilders(e) {
-		let { tip } = this
+		let { tip, fra } = this
 		let subBuilder = tip?.getOzelSahaFormBuilder({ ...e, fra })
 		if (!subBuilder)
 			return []

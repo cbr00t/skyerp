@@ -1,6 +1,7 @@
 class DetayliYapi extends CObject {
     static { globalThis[this.name] = this; this._key2Class[this.name] = this }
-	get detaylar() { return this.ekBilgi } set detaylar(value) { return this.ekBilgi = value }
+	get detaylar() { return this.ekBilgi }
+	set detaylar(value) { return this.ekBilgi = value }
 
 	constructor(e) {
 		e = e || {}; super(e);
@@ -16,10 +17,14 @@ class DetayliYapi extends CObject {
 	detaylarReset() { this.detaylar = [] }
 }
 class SeviyeliYapi extends DetayliYapi {
-	get orjBilgi() { return this._orjBilgi ?? (() => this.detaylar || [])[0] } set orjBilgi(value) { this._orjBilgi = value }
+	get orjBilgi() {
+		return this._orjBilgi ?? (() => this.detaylar || [])[0]
+	}
+	set orjBilgi(value) { this._orjBilgi = value }
+	
 	constructor(e) {
-		e = e || {}; super(e);
-		if ($.isArray(e)) { this.orjBilgi = e[0]; this.detaylar = e[1] }
+		super(e)
+		if (isArray(e)) { this.orjBilgi = e[0]; this.detaylar = e[1] }
 		else { if (e.orjBilgi !== undefined) { this.orjBilgi = e.orjBilgi } }
 	}
 }

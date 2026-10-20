@@ -38,7 +38,10 @@ class EIslemOrtak extends CObject {
 			.map(([ kod, ekBilgi ]) =>
 				new CKodAdiVeEkBilgi({ kod, aciklama: ekBilgi.sinifAdi, ekBilgi }))
 	}
-	get temps() { return this._temps } get shared() { return this._shared }
+	get temps() { return this._temps }
+	set temps(v) { this._temps = v }
+	get shared() { return this._shared }
+	set shared(v) { this._shared = v }
 	static get currCode_tl() { return 'TRY' }
 	// get xsltBelirtec() { return 'EIslemOrtak' }
 	get xsltBelirtec() { return 'EFatura' }    // ** API'den hepsinde 'EFatura' için XSLT istenmeli
@@ -54,7 +57,7 @@ class EIslemOrtak extends CObject {
 
 	static get defaultCountryName() { return 'Türkiye' }
 	get dovizlimi() { return this.baslik.dovizlimi }
-	get dvKod() { return this.baslik.dvKod } get dvKur() { return this.baslik.dvkur }
+	get dvKod() { return this.baslik.dvKod } get dvKur() { return this.baslik.dvKur }
 	get bedelSelector() { return this.dovizlimi ? 'dv' : 'tl' } 
 	get currencyID() { return this.dvKod }
 	get xattrYapi_bedel() { return ({ currencyID: this.currencyID }) }
@@ -112,35 +115,9 @@ class EIslemOrtak extends CObject {
 		return cls ? new cls(e) : null
 	}
 	
-	static __iptal__getUUIDStm() {
-		let e = { ...arguments[0] }
-		let { gelenmi = e.gelen, ps2SayacListe = e.psTip2SayacListe, genelStmDuzenleyici: genelStmDuzenle } = e
-		if (isFunction(ps2SayacListe))
-			ps2SayacListe = ps2SayacListe?.call(this, e)
-		e.ps2SayacListe = ps2SayacListe ??= {}
-		let stm = this._getUUIDStm(e)
-		if (stm && genelStmDuzenle)
-			genelStmDuzenle.call(this, { ...e, stm })
-		
-		return stm
-	}
-	static __iptal___getUUIDStm(e) {
-		let uni = e.uni = new MQUnionAll()
-		this.uuidStm_uniDuzenle(e)
-		uni = e.uni
-		if (empty(uni.liste))
-			return null
-
-		for (let sent of uni)
-			sent.gereksizTablolariSil()
-		
-		return new MQStm({ sent: uni })
-	}
-	static __iptal__uuidStm_uniDuzenle(e) { }
-	
 	static async tipIcinFislerEkDuzenlemeYap(e = {}) {
-		let { table2Sayac2EFis } = e
-		if (empty(table2Sayac2EFis))
+		let { table2Id2EFis } = e
+		if (empty(table2Id2EFis))
 			return
 		
 		let promises = []
@@ -157,12 +134,12 @@ class EIslemOrtak extends CObject {
 			for (let sev of _recs) {
 				let rec = _e.rec = sev.orjBilgi ?? sev
 				let { detaylar } = sev
-				let { _table: tbl, fisSayac: sayac } = rec
+				let { _table: tbl, id } = rec
 				
 				let args = { ..._e, sev, detaylar }
-				let sayac2EFis = table2Sayac2EFis[tbl]
-				let eFis = sayac2EFis?.[sayac]
-				if (!eFis)
+				let id2EFis = table2Id2EFis[tbl]
+				let eFis = id2EFis?.[id]
+				if (tbl && !eFis)
 					continue
 
 				args.eFis = eFis
@@ -192,13 +169,13 @@ class EIslemOrtak extends CObject {
 	
 	baslikVeDetaylariYukle(e) {
 		let { baslik, detaylar, temps = {}, shared = {} } = e
-		let { detaylar: thisDetaylar } = this
 		for (let inst of [this, baslik, ...detaylar]) {
 			inst._temps = temps
 			inst._shared = shared
 		}
-		this.baslik = baslik
-		thisDetaylar.push(...detaylar.slice(1))    // [0]: sev.orjBilgi | [1..]: sev.detaylar
+		extend(this, { baslik, detaylar })
+		//this.baslik = baslik
+		// thisDetaylar.push(...detaylar.slice(1))    // [0]: sev.orjBilgi | [1..]: sev.detaylar
 		return this
 	}
 	static getEFisBaslikVeDetayStm() { return null }
@@ -218,7 +195,7 @@ class EIslemOrtak extends CObject {
 		for (let sev of sevRecs) {
 			let { orjBilgi: { kod }, detaylar } = sev
 			let xdata = detaylar.map(_ => _.xdata).join('')
-			let data = xdata ? new TextDecoder(encoding_iso).decode(Base64.toUint8Array(xdata)) : data
+			let data = xdata ? new TextDecoder(encoding_iso).decode(Base64.toUint8Array(xdata)) : null
 			if (data)
 				res[kod] = data
 		}
@@ -273,7 +250,7 @@ class EIslemOrtak extends CObject {
 		
 		let uuidOlustumu = false
 		if (!baslik.uuid) {
-			baslik.uuid = baslik.zorunluguidstr || newGUID()
+			baslik.uuid = baslik.zorunluUUID || newGUID()
 			uuidOlustumu = true
 		}
 		
@@ -314,7 +291,7 @@ class EIslemOrtak extends CObject {
 			if (callback)
 				await callback.call(this, e)
 			else
-				await query.execute()
+				await upd.execute()
 		}
 		
 		return result
@@ -357,6 +334,8 @@ class EIslemOrtak extends CObject {
 			'xmlns:qdt': 'urn:oasis:names:specification:ubl:schema:xsd:QualifiedDatatypes-2',
 			'xmlns:ext': 'urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2',
 			'xmlns:ds': 'http://www.w3.org/2000/09/xmldsig#',
+			'xmlns:sig': 'urn:oasis:names:specification:ubl:schema:xsd:CommonSignatureComponents-2',
+			'xmlns:sac': 'urn:oasis:names:specification:ubl:schema:xsd:SignatureAggregateComponents-2',
 			'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance'
 		})
 	}
@@ -365,10 +344,13 @@ class EIslemOrtak extends CObject {
 		xw.writeAttributeString('xsi:schemaLocation', `urn:oasis:names:specification:ubl:schema:xsd:${belirtec}-2 UBL-${belirtec}-${ublVer}.xsd`)
 	}
 	xmlDuzenle_ublExtensions({ xw }) {
+		// İmza öncesi standart UBL imza kabı; gerçek ds:Signature imzalama servisinde eklenir.
 		xw.writeElementBlock('ext:UBLExtensions', null, () =>
 			xw.writeElementBlock('ext:UBLExtension', null, () =>
-			xw.writeEmptyElement('ext:ExtensionContent'))
-		)
+			xw.writeEmptyElement('ext:ExtensionContent')))
+			/*xw.writeElementBlock('ext:ExtensionContent', null, () =>
+			xw.writeElementBlock('sig:UBLDocumentSignatures', null, () =>
+				xw.writeEmptyElement('sac:SignatureInformation')))))*/
 	}
 	xmlDuzenle_profileID_oncesi({ xw }) {
 		let { xml_ublVersionID: verId, xml_customizationID: custId } = this.class
@@ -383,7 +365,7 @@ class EIslemOrtak extends CObject {
 	}
 	xmlDuzenle_profileIDVeBelgeTipKodu_arasi({ xw }) {
 		let { baslik, detaylar } = this
-		let { fisnox: fisNox, uuid, tarihStr, sevkTarihStr, sevkSaatStr } = baslik
+		let { fisNox, uuid, tarihStr, sevkTarihStr, sevkSaatStr } = baslik
 		xw.writeElements({
 			'cbc:ID': fisNox,
 			'cbc:CopyIndicator': false,
@@ -460,7 +442,7 @@ class EIslemOrtak extends CObject {
 		let { kullanim, kural, goruntuOzelPunto } = eIslem
 		let { satirBarkod, satirIskBedeli, satirKdv, satirDigerVergi } = kullanim
 		let { baslik, dvKod, dvKur, dovizlimi } = this
-		let { _profileID, _belgeTipKod, eYontem, sevkTarihStr, must: mustKod } = baslik
+		let { _profileID, _belgeTipKod, eYontem, sevkTarihStr, mustKod } = baslik
 		if (!_belgeTipKod)
 			_belgeTipKod = this.baslik._belgeTipKod = await this.xmlGetBelgeTipKodu(e)
 		
@@ -500,6 +482,7 @@ class EIslemOrtak extends CObject {
 		
 		await this.xmlDuzenle_docRefs_qrCode(e)
 		//await this.xmlDuzenle_bakiye(e)
+		await this.xmlDuzenle_ozelDip(e)
 	}
 	async xmlDuzenle_docRefs_ilk(e) {
 		let { eYontem } = this.baslik
@@ -576,7 +559,7 @@ class EIslemOrtak extends CObject {
 			senaryo: baslik._profileID,
 			tip: baslik._belgeTipKod,
 			tarih: asReverseDateString(baslik.tarih),
-			no: baslik.fisnox,
+			no: baslik.fisNox,
 			ettn: baslik.uuid,
 			parabirimi: currencyID,
 			malhizmettoplam: toFileStringWithFra(brutBedelYapi[bedelSelector], 2),
@@ -658,11 +641,35 @@ class EIslemOrtak extends CObject {
 			}
 		}
 	}
+	xmlDuzenle_ozelDip(e) {
+		let { baslik, temps, class: { tip: eIslTip } } = this
+		let { mustKod } = baslik, { kod2OzelDip } = temps
+		if (empty(kod2OzelDip))
+			return
+
+		let html = values(kod2OzelDip)
+			.filter(r => r.mustKod && r.uygunluk[eIslTip])
+			.map(r => r.html)
+			.join('')
+		if (!html)
+			return
+
+		// ...
+
+		this.xsltDuzenleyiciEkle({
+			args: html,
+			handler: ({ args: html, result: res }) => {
+				let s = '</body>'
+				return res.replace(s, `${html}\n${s}`)
+			}
+		})
+	}
 	xmlDuzenle_docRefs_vioFisBilgi({ xw }) {
-		let {baslik: { _: baslik }, detaylar, baslik: { uuid }} = this
+		let { baslik: { _: baslik }, detaylar, baslik: { uuid } } = this
 		detaylar = detaylar.map(det => det._)
 		let rec = { baslik, detaylar }
-		let value = Base64.encode(toJSONStr(rec)), mimeType = 'text/plain'
+		let value = Base64.encode(toJSONStr(rec))
+		let mimeType = 'text/plain'
 		let id = 4, type = 'VIO_FISBILGI', fileName = `${type}.json`
 		this.xmlDuzenleInternal_docRef({
 			xw, id, type,
@@ -677,7 +684,7 @@ class EIslemOrtak extends CObject {
 		if (!value)
 			throw { isError: true, rc: 'emptyXslt', errorText: 'e-İşlem XML oluşturma için <b>XSLT Bilgisi</b> belirlenemedi' }
 		
-		let { uuid: id, fisnox: fisNox } = this.baslik
+		let { uuid: id, fisNox } = this.baslik
 		let type = 'XSLT', mimeCode = 'application/xml'
 		let attachment = { mimeCode, fileName: `${fisNox}.xslt`, value }
 		await this.xmlDuzenleInternal_docRef({ xw, id, type, typeCode: null, attachment })
@@ -888,10 +895,13 @@ class EIslemOrtak extends CObject {
 		xw.writeEndElement()
 	}
 	xmlDuzenle_detayDevam_item_description({ detay: det, xw }) {
-		let {kural} = app.params.eIslem, kural_aciklama = kural.aciklama, kural_kapsam = kural.aciklamaKapsam;
+		let { kural } = app.params.eIslem
+		let kural_aciklama = kural?.aciklama
+		let kural_kapsam = kural?.aciklamaKapsam
 		if ((kural_kapsam.sadeceAciklamami || kural_kapsam.hepsimi) && !kural_aciklama.hepsiDiptemi) {
-			let {ekaciklama: value} = det;
-			if (value) { xw.writeElementString('cbc:Description', escapeXML(value)) }
+			let { ekAciklama: value } = det
+			if (value)
+				xw.writeElementString('cbc:Description', escapeXML(value))
 		}
 	}
 	xmlDuzenle_detayDevam_item_name({ detay: det, xw }) {

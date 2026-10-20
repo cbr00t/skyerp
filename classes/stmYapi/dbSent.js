@@ -774,11 +774,20 @@ class MQCTESent extends MQSentVeIliskiliYapiOrtak {
 		}
 	}
 	distinctYap() { for (let sent of this.getSentListe()) { sent.distinctYap() }; return this }
-	add(e) {
-		if (!e && typeof e != 'number') { return }
-		this.liste.push(e); return this
+	add(...arr) {
+		this.addAll(arr.filter(r =>
+			r && !isNumber(r)))
+		return this
 	}
-	addAll(coll) { this.liste.push(...coll); return this }
+	addAll(arr) {
+		if (empty(arr))
+			return this
+
+		let { liste } = this
+		liste.push(...arr.flat())
+		
+		return this
+	}
 	buildString(e) { super.buildString(e); e.result += (this.liste.map(item => item.toString()).join(`${CrLf}${this.class.baglac}${CrLf}`)) }
 }
 class MQUnionBase extends MQCTESent {

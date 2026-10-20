@@ -20,236 +20,129 @@ class EYonetici extends CObject {
 	}
 
 	static async mukellefSorgula(e = {}) {
-		let eYoneticiler = await this.getEYoneticiler(e)
-		delete e.eYoneticiler
-		let uuid2Result = {}
-		for (let eYonetici of eYoneticiler ?? []) {
-			await eYonetici.mukellefSorgula(e)
-			let {uuid2Result: _uuid2Result} = e
-			if (!empty(_uuid2Result))
-				extend(uuid2Result, _uuid2Result)
+		// Cari kartı, henüz belge oluşturmadan doğrudan VKN sorgulayabilir.
+		if (e.vknListe != null || e.vkn != null) {
+			let eIslSinif = e.eIslSinif ?? EIslemOrtak.getClass({ tip: e.eIslTip ?? 'E' })
+			return new this({ ...e, eIslSinif }).mukellefSorgula(e)
 		}
-		e.uuid2Result = uuid2Result
+		let res = await this.eIslemListeYap('mukellefSorgula', 'Mükellef Sorgula', e)
+		return { ...res, vkn2Result: res?.uuid2Result ?? {} }
 	}
-	async mukellefSorgula(e) {
-		let vknListe = makeArray(e.vknListe ?? e.vkn)
-		for (let key of ['psTip2SayacListe', 'whereDuzenleyici'])
-			delete e[key]
-		if (!vknListe?.length)
+	async mukellefSorgula(e = {}) {
+		let vknListe = e.vknListe ?? e.vkn
+		let dogrudanmi = vknListe != null
+		let recs = dogrudanmi ? makeArray(vknListe).map(vkn => ({ _table: 'carmst', vknTckn: String(vkn).trim() })) : undefined
+		if (dogrudanmi && !recs.length)
 			throw { isError: true, rc: 'emptyArgument', errorText: 'VKN Liste(vknListe) belirtilmelidir' }
-		
-		let { sender, callback, internal, eConf = this.eConf } = e
-		let { eIslEkArgs } = eConf
-		let { eIslSinif } = this, { sinifAdi: eIslAdi, tip: efAyrimTipi } = eIslSinif
-		let oe = eConf.getValue('ozelEntegrator')
-		if (isObject(oe))
-			oe = oe.char
-		let eIslemci = efAyrimTipi
-		let eLogin = toJSONStr(eConf.eLogin)
-		let ekArgs = toJSONStr(eIslEkArgs)
-		let eIslemAPI = 'mukellefDurumu'
-		let BlockSize = 8
-		let vkn2Result = {}, promises = []
-		let savedToken = this.class.getTempToken(efAyrimTipi)
-		let error
-		try {
-			vkn2Result = (await app.wsEIslemYap({ eIslemci, oe, eIslemAPI, eLogin, eToken: savedToken || '', ekArgs, args: { vknTckn: vknListe } }))?.[0]
-			let { token } = vkn2Result ?? {}
-			delete vkn2Result.token
-			if (token && !(savedToken && savedToken == token)) {
-				savedToken = token
-				this.class.setTempToken(efAyrimTipi, token)
-			}
-		}
-		catch (ex) { console.error(ex); error = ex }
-		
-		for (let vkn of vknListe) {
-			let result = vkn2Result[vkn]
-			if (empty(result))
-				result = null
-			if (!(error || result))
-				result = { isError: true, rc: 'mukellefYok', errorText: `${eIslAdi} mükellefi değil` }
-			
-			let subResult = vkn2Result[vkn] = {
-				islemZamani: now(), isError: error || (result?.isError ?? false), vkn,
-				rec: error || result?.isError ? undefined : result,
-				efAyrimTipi, message: error ? getErrorText(error) : result.errorText ?? `${eIslAdi} MÜKELLEFİ`
-			}
-			extend(subResult, { islemZamaniText: dateTimeToString(subResult.islemZamani), eIslTipText: eIslAdi, efUUIDText: vkn })
-		}
-		if (promises?.length) {
-			await promiseAll(promises)
-			promises = []
-		}
-		if (globalThis.progressManager)
-			globalThis.progressManager.progressStep(results.length)
-		if (callback) { getFuncValue.call(this, callback, e) }
-		if (!internal && sender && !sender.isDestroyed)
-			sender.tazele?.()
-		return { eYonetici: this, vkn2Result }
-	}
-	static async eIslemGonder(e) {
-		let eYoneticiler = await this.getEYoneticiler({ ...e }) ?? []
-		let uuid2Result = {}
-		for (let eYon of eYoneticiler) {
-			let { uuid2Result: res } = await eYon.eIslemGonder(e) ?? {}
-			extend(uuid2Result, res)
-		}
-		e.uuid2Result = uuid2Result
-	}
-	async eIslemGonder(e) {
-			/* nesV4 test = 068E86F50AFBEFEB3795FD9BDC17EDE0D65D62A4EA2911F80F5C59854C518420 */
-		let { eIslSinif: eIslAnaSinif } = this
-		let { gelenmi } = eIslAnaSinif
-		if (!gelenmi)
-			await this.eIslemXMLOlustur({ internal: true })
-		
-		extend(e, {
-			ps2SayacListe: this.ps2SayacListe || (() => this.class.getPS2SayacListe(e)),
-			whereDuzenleyici: (
-				gelenmi
-					? null
-					: ({ where: wh }) => wh.add(`fis.efatuuid <> ''`)
-			),
-			sentDuzenleyici: (
-				gelenmi
-					? null
-					: ({ sent, sent: { sahalar } }) => {
-						sent.fis2CariBagla()
-						sahalar.add(
-							'fis.seri', 'car.vkno', 'car.efatgibalias', 'car.eirsgibalias',
-							'car.efatsenaryotipi', 'car.email', 'car.earsivbelgetipi', 'car.revizeeislemmail'
-						)
+		return this.eIslemYap({
+			...e, kosul: false,
+			...(dogrudanmi ? { stm: false, recs } : {}),
+			proc: async ({ table2Recs, eIslSinif, efAyrimTipi, oe, eToken, setToken, eLogin, eIslEkArgs: ekArgs, callback }) => {
+				let vkn2Recs = {}, vkn2Result = e.uuid2Result ?? {}
+				for (let rec of values(table2Recs).flat()) {
+					let vkn = rec.vknTckn?.trim()
+					if (vkn)
+						(vkn2Recs[vkn] ??= []).push(rec)
 				}
-			)
+				let vknListe = keys(vkn2Recs)
+				if (!vknListe.length)
+					throw { isError: true, rc: 'emptyVKN', errorText: 'Seçilen belgelerde Vergi veya TC Kimlik No bulunamadı' }
+				for (let i = 0; i < vknListe.length; i += 8) {
+					let subListe = vknListe.slice(i, i + 8), results = {}, error
+					try {
+						results = (await app.wsEIslemYap({ eIslemci: efAyrimTipi, oe, eIslemAPI: 'mukellefDurumu', eLogin, eToken, ekArgs: toJSONStr(ekArgs), args: { vknTckn: subListe } }))?.[0] ?? {}
+						setToken(results.token)
+						eToken = this.class.getTempToken(efAyrimTipi) ?? eToken
+					}
+					catch (ex) { error = ex }
+					for (let vkn of subListe) {
+						let result = results[vkn]
+						let hata = error ?? (results.isError ? results : null)
+						let isError = !!hata || (result?.isError ?? empty(result))
+						let message = hata ? getErrorText(hata) : result?.errorText ?? result?.message ?? `${eIslSinif.sinifAdi} ${isError ? 'mükellefi değil' : 'MÜKELLEFİ'}`
+						vkn2Result[vkn] = { islemZamani: now(), isError, vkn, efAyrimTipi, message, rec: result, recs: vkn2Recs[vkn] }
+					}
+					globalThis.progressManager?.progressStep(subListe.length)
+					if (callback)
+						await getFuncValue.call(this, callback, { ...e, uuid2Result: vkn2Result, vkn2Result })
+				}
+				return { uuid2Result: vkn2Result, vkn2Result }
+			}
 		})
-		
-		let stm = eIslAnaSinif.getUUIDStm(e)
-		deleteKeys(e, 'psTip2SayacListe', 'sentDuzenleyici', 'whereDuzenleyici')
-		if (!stm)
-			throw { isError: true, rc: 'bosUUIDStm', errorText: 'Filtre hatalı' }
-		
-		let param_eIslem = app.params.eIslem
-		let { sender, callback, internal } = e
-		let { eConf } = this, { eIslEkArgs } = eConf
-		let oe = eConf.getValue('ozelEntegrator')
-		if (isObject(oe))
-			oe = oe.char
-		
-		const BlockSize = 20
-		// let senderGIBAlias = eConf.getValue('gibAlias') ?? ''
-		// let senderEIrsGIBAlias = eConf.getValue('eIrsGIBAlias') ?? ''
-		let recs = e.recs ??= await stm.execSelect()
-		recs = recs.filter(r => r.efatuuid || r.uuid)
-		
-		let ps2Recs = this.class.getPS2Recs({ recs })
-		let uuid2Result = e.uuid2Result = e.uuid2Result || {}
-		if (!empty(ps2Recs)) {
-			let eConf = e.eConf ?? this.eConf
-			for (let psTip in ps2Recs) {
-				let _recs = ps2Recs[psTip]
-				let eIslTip2Recs = {}
-				for (let rec of _recs) {
-					let efAyrimTipi = rec.efayrimtipi || 'A'
-					;(eIslTip2Recs[efAyrimTipi] ??= [])
-						.push(rec)
-				}
-
-				let duzgunUUIDListe = []
-				for (let efAyrimTipi in eIslTip2Recs) {
-					let _recs = eIslTip2Recs[efAyrimTipi]
-					if (empty(_recs))
-						continue
-					
-					let eIslSinif = EIslemOrtak.getClass({ tip: efAyrimTipi })
-					let eIslAltBolum = eConf.getAnaBolumFor({ eIslSinif })
-					if (!eIslAltBolum)
-						throw { isError: true, rc: 'eIslAnaBolumBelirsiz', errorText: 'e-İşlem için Ana Bölüm belirlenemedi' };
-					
-					let startIndex = 0
-					while (true) {
-						let subRecs = _recs.slice(startIndex, startIndex + BlockSize)
-						startIndex += BlockSize
-						if (!subRecs.length)
-							break
-						
-						let savedToken = this.class.getTempToken(efAyrimTipi)
-						let subDuzgunUUIDListe = []
-						let results = await app.wsEIslemYap({
-							eIslemci: efAyrimTipi, oe,
-							eIslemAPI: 'belgeGonder',
-							eLogin: toJSONStr(eConf.eLogin),
-							eToken: savedToken || '',
-							ekArgs: toJSONStr(eIslEkArgs),
-							args: subRecs.map(rec => {
-								let { uuid, seri } = rec
-								let { efatsenaryotipi: senaryoTipi, fisnox: belgeNox, gibalias: receiverGIBAlias } = rec
-								let { vkno: receiverVKN } = rec
-								let { revizeeislemmail: eMailStr } = rec
-								let eMails = eMailStr
-									? eMailStr
-										.split(';')
-										.map(v => v?.trim())
-										.filter(v =>
-											v && v.length > 4 && v.includes('@') & v.includes('.'))
-									: null
-								
-								// let { earsivbelgetipi: eArsivGonderimTipi } = rec
-								//eArsivGonderimTipi ??= ''
-								
-								return {
-									uuid, seri, senaryoTipi,
-									receiverVKN, receiverGIBAlias,
-									belgeNox, eMails
-								}
+	}
+	static async eIslemGonder(e) { return this.eIslemListeYap('eIslemGonder', 'e-İşlem Gönder', e) }
+	async eIslemGonder(e = {}) {
+		return this.eIslemYap({
+			...e, autoXML: true, dirCheck: true, kosul: 'uuid',
+			proc: async ({ table2Recs, efAyrimTipi, rootDir, uuidSaha, oe, eToken, setToken, eLogin, eIslEkArgs: ekArgs, callback }) => {
+				const BlockSize = 20
+				let uuid2Result = e.uuid2Result ?? {}
+				for (let [table, recs] of entries(table2Recs)) {
+					for (let i = 0; i < recs.length; i += BlockSize) {
+						let subRecs = recs.slice(i, i + BlockSize)
+						let results, error
+						try {
+							results = await app.wsEIslemYap({
+								eIslemci: efAyrimTipi,
+								oe, eIslemAPI: 'belgeGonder',
+								eLogin, eToken,
+								ekArgs: toJSONStr(ekArgs),
+								args: subRecs.map(({ 
+									uuid, seri, senaryoTipi, fisNox: belgeNox,
+									gibAlias: receiverGIBAlias, vknTckn: receiverVKN, eMail
+								}) => ({
+									uuid, seri, senaryoTipi, belgeNox, receiverGIBAlias, receiverVKN,
+									eMails: (
+										eMail
+											? eMail
+												.split(';')
+												.map(v => v.trim())
+												.filter(v => v.length > 4 && v.includes('@') && v.includes('.'))
+											: null
+									)
+								}))
 							})
-						});
-						if (results) {
-							for (let i = 0; i < subRecs.length; i++) {
-								let result = results[i]
-								if (!result)
-									continue
-								
-								let _rec = subRecs[i], { uuid } = _rec
-								let isError = result.isError ?? !result.code
-								let message = result.message ?? result.errorText
-								extend(result, {
-									islemZamani: now(), isError, message,
-									rec: _rec, efAyrimTipi,
-									xmlDosya: `${eIslAltBolum}\\${uuid}.xml`
-								})
-								uuid2Result[uuid] = result
-								if (!isError) {
-									duzgunUUIDListe.push(uuid)
-									subDuzgunUUIDListe.push(uuid)
-								}
-								if (!savedToken) {
-									let { token } = result
-									if (token != null && savedToken != token) {
-										savedToken = token
-										this.class.setTempToken(efAyrimTipi, token) }
-								}
-								globalThis.progressManager?.progressStep?.()
-								if (callback)
-									getFuncValue.call(this, callback, e)
-							}
 						}
-						if (subDuzgunUUIDListe.length) {
-							let upd = new MQIliskiliUpdate({
-								from: this.class.getPS2Table(psTip),
-								set: [`efgonderimts = getdate()`],
-								where: { inDizi: subDuzgunUUIDListe, saha: 'efatuuid' }
+						catch (ex) { error = ex }
+						
+						let basariliRecs = []
+						for (let j = 0; j < subRecs.length; j++) {
+							let rec = subRecs[j]
+							let { uuid } = rec
+							let result = results?.[j] ?? { isError: true, errorText: error ? getErrorText(error) : 'Gönderim sonucu alınamadı' }
+							setToken(result.token)
+							
+							extend(result, {
+								islemZamani: now(), isError: result.isError ?? !result.code,
+								message: result.message ?? result.errorText,
+								rec, uuid, efAyrimTipi,
+								xmlDosya: `${rootDir}\\IMZALI\\${uuid}.xml`
 							})
+							uuid2Result[uuid] = result
+							if (!result.isError)
+								basariliRecs.push(rec)
+						}
+						
+						if (basariliRecs.length) {
+							let upd = new MQIliskiliUpdate({
+								from: table,
+								set: ['efgonderimts = GETDATE()']
+							}), { where: wh } = upd
+							wh
+								.inDizi(basariliRecs.map(r => r.id), 'id')
+								.inDizi(basariliRecs.map(r => r.uuid), uuidSaha)
 							await upd.execute()
 						}
+						eToken = this.class.getTempToken(efAyrimTipi) ?? eToken
+						
+						globalThis.progressManager?.progressStep(subRecs.length)
+						if (callback)
+							await getFuncValue.call(this, callback, { ...e, uuid2Result })
 					}
 				}
+				return { uuid2Result }
 			}
-		}
-		if (!internal) {
-			if (sender && !sender.isDestroyed)
-				sender?.tazele?.()
-		}
+		})
 	}
 	static async eIslemIzle(e) { return this.eIslemYap('eIslemIzle', 'e-İşlem İZLE', e) }
 	async eIslemIzle(e) {
@@ -270,6 +163,7 @@ class EYonetici extends CObject {
 					catch (ex) { cerr(ex) }
 					finally { hideProgress() }
 				}
+				
 				let divContainer = toplu ? $(`<div/>`)[0] : null
 				let eDocCount = 0
 				for (let [tbl, recs] of entries(table2Recs)) {
@@ -311,37 +205,45 @@ class EYonetici extends CObject {
 							let xsltProcessor, eDoc
 							
 							try {
+								// throw null    // API XSLT Debug için
 								;(xsltProcessor = new XSLTProcessor()).importStylesheet(xslt)
 								eDoc = xsltProcessor.transformToFragment(xml, document)
 							}
 							catch (ex) {
 								xsltProcessor = 'api'
-								let xmlURL = remoteFile
-								let html = await app.wsXSLTTransformAsStream({ data: { xmlData, xsltData } })
-								if (html)
-									eDoc = $(html)
+								// let xmlURL = remoteFile
+								let data = { xmlData, xsltData }
+								let html = await app.wsXSLTTransformAsStream({ data })
+								if (html?.trim()) {
+									let htmlDoc = new DOMParser().parseFromString(html, 'text/html')
+									eDoc = document.createDocumentFragment()
+									// Native XSLT sonucu gibi head ve body içeriğini aynı DOM fragment'inde tut.
+									for (let node of [...htmlDoc.head.childNodes, ...htmlDoc.body.childNodes])
+										eDoc.append(document.importNode(node, true))
+								}
 							}
-							if (!eDoc) {
-								console.error({ isError: true, rc: 'xsltTransform', errorText: 'XSLT Görüntüsü oluşturulamadı', source: xsltProcessor })
-								continue
-							}
+							if (!eDoc?.hasChildNodes())
+								throw { isError: true, rc: 'xsltTransform', errorText: 'XSLT Görüntüsü oluşturulamadı', source: xsltProcessor }
 	
 							let _container = toplu ? divContainer : $(`<div/>`)[0]
 							if (toplu && eDocCount) {
-								let elmPageBreak = $(`<div style="float: none;"><div style="page-break-after: always;"></div></div>`)[0]
-								_container.lastElementChild.after(elmPageBreak)
-								_container.lastElementChild.after(eDoc.querySelector('div'))
+								let elmPageBreak = $(`
+									<div style="float: none">
+										<div style="page-break-after: always"></div>
+									</div>`
+								)[0]
+								_container.append(elmPageBreak)
 							}
-							else
-								_container.append(eDoc)
+							_container.append(eDoc)
 							
 							eDocCount++
 							extend(res, { xmlData, xml, xsltData, xslt, xsltProcessor, eDoc, divContainer: _container })
 							globalThis.progressManager?.progressStep()
+							
 							if (callback && keys(uuid2Result).length % 201 == 200)
 								getFuncValue.call(this, callback, e)
 							
-							if (!(toplu || e.internal) && _container) {
+							if (!(toplu || internal) && _container) {
 								let html = `<html><body>${_container.innerHTML}</body></html>`
 								let url = URL.createObjectURL(new Blob([html], { type: 'text/html' }))
 								openNewWindow(url)
@@ -362,111 +264,127 @@ class EYonetici extends CObject {
 				callback?.call?.(this, e)
 				
 				if (!internal && toplu && eDocCount) {
-						let newDocHTML = `<html><body>${divContainer.innerHTML}</body></html>`
-						let url = URL.createObjectURL(new Blob([newDocHTML], { type: 'text/html' }))
-						openNewWindow(url)
-					}
+					let newDocHTML = `<html><body>${divContainer.innerHTML}</body></html>`
+					let url = URL.createObjectURL(new Blob([newDocHTML], { type: 'text/html' }))
+					openNewWindow(url)
+				}
 		
 				return { uuid2Result }
 			}
 		})
 	}
-	static async eIslemSorgula(e) { return this.eIslemYapAsync('eIslemSorgula', 'e-İşlem Sorgula', e) }
-	async eIslemSorgula(e) {
-		let { eIslSinif: eIslAnaSinif } = this
-		extend(e, {
-			ps2SayacListe: this.ps2SayacListe || (() => this.class.getPS2SayacListe(e)),
-			whereDuzenleyici: (
-				eIslAnaSinif.gelenmi
-					? null
-					: ({ where: wh }) => wh.add(`fis.efatuuid <> ''`)
-			)
-		})
-		let stm = eIslAnaSinif.getUUIDStm(e)
-		for (let key of ['psTip2SayacListe', 'whereDuzenleyici'])
-			delete e[key]
-		if (!stm)
-			throw { isError: true, rc: 'bosUUIDStm', errorText: 'Filtre hatalı' }
-		
-		let { sender, callback } = e
-		let eConf = e.eConf ?? this.eConf, { eIslEkArgs } = eConf
-		let recs = e.recs ??= await stm.execSelect()
-		recs = recs.filter(r => r.efatuuid || r.uuid)
-		
-		let BlockSize = 50
-		let ps2Recs = this.class.getPS2Recs({ recs })
-		let uuid2Result = e.uuid2Result ??= {}
-		let subUUID2Result = e.subUUID2Result = []
-		let seq = 0
-		if (!empty(ps2Recs)) {
-			let oe = eConf.getValue('ozelEntegrator')
-			if (isObject(oe))
-				oe = oe.char
-			
-			for (let psTip in ps2Recs) {
-				let _recs = ps2Recs[psTip]
-				let eIslTip2Recs = {}
-				for (let rec of _recs) {
-					let efAyrimTipi = rec.efayrimtipi || 'A'
-					;(eIslTip2Recs[efAyrimTipi] ??= []).push(rec)
-				}
-				for (let efAyrimTipi in eIslTip2Recs) {
-					let savedToken = this.class.getTempToken(efAyrimTipi)
-					let _recs = eIslTip2Recs[efAyrimTipi] ?? []
-					if (empty(_recs))
-						continue
-					
-					for (let i = 0; i < _recs.length; i += BlockSize) {
-						seq++
-						let subRecs = _recs.slice(i, i + BlockSize)
-						let results = await app.wsEIslemYap({
-							eIslemci: efAyrimTipi, oe,
-							eIslemAPI: 'akibetSorgula',
-							eLogin: toJSONStr(eConf.eLogin), eToken: savedToken || '',
-							ekArgs: toJSONStr(eIslEkArgs),
-							args: subRecs.map(r => ({ gelenmi: false, uuid: r.uuid ?? r.efatuuid }))
-						});
-						if (!savedToken && results?.length) {
-							let {token} = results[0]
-							if (token != null && savedToken != token) {
-								savedToken = token
-								this.class.setTempToken(efAyrimTipi, token)
-							}
+	static async eIslemSorgula(e) { return this.eIslemListeYap('eIslemSorgula', 'e-İşlem Sorgula', e) }
+	async eIslemSorgula(e = {}) {
+		return this.eIslemYap({
+			...e, kosul: 'uuid',
+			proc: async ({ table2Recs, gelenmi, uuidSaha, efAyrimTipi, oe, eToken, setToken, eLogin, eIslEkArgs: ekArgs, callback }) => {
+				let uuid2Result = e.uuid2Result ?? {}
+				for (let [table, recs] of entries(table2Recs)) {
+					for (let i = 0; i < recs.length; i += 50) {
+						let subRecs = recs.slice(i, i + 50), results, error, subUUID2Result = {}
+						try {
+							results = await app.wsEIslemYap({
+								eIslemci: efAyrimTipi, oe,
+								eIslemAPI: 'akibetSorgula', eLogin, eToken,
+								ekArgs: toJSONStr(ekArgs),
+								args: subRecs.map(({ uuid }) => ({ gelenmi: !!gelenmi, uuid }))
+							})
 						}
-						if (results) {
-							for (let i = 0; i < subRecs.length; i++) {
-								let result = results[i]
-								if (!result)
-									continue
-								let rec = subRecs[i]
-								let { uuid } = rec
-								let sayac = rec.kaysayac
-								if (result?.statusCode == 0) { extend(result, { isError: false }) }
-								extend(result, { islemZamani: now(), isError: result.isError ?? !result.result, psTip, sayac, uuid, rec, efAyrimTipi });
-								uuid2Result[uuid] = subUUID2Result[uuid] = result
-							}
-							if (!empty(subUUID2Result)) { this.eIslemSorgula_sonucIsle(e); subUUID2Result = e.subUUID2Result = [] }
-							if (globalThis.progressManager) { globalThis.progressManager.progressStep(results.length) } if (callback) { getFuncValue.call(this, callback, e) }
+						catch (ex) { error = ex }
+						
+						for (let j = 0; j < subRecs.length; j++) {
+							let rec = subRecs[j]
+							let { uuid } = rec
+							let result = results?.[j] ?? { isError: true, errorText: error ? getErrorText(error) : 'Sorgulama sonucu alınamadı' }
+							setToken(result.token)
+							
+							let isError = result.isError ?? (result.statusCode == 0 ? false : !result.result)
+							extend(result, { islemZamani: now(), isError, message: result.message ?? result.errorText, table, uuid, rec, efAyrimTipi })
+							
+							uuid2Result[uuid] = subUUID2Result[uuid] = result
 						}
+						
+						await this.eIslemSorgula_sonucIsle({ gelenmi, uuidSaha, subUUID2Result })
+						eToken = this.class.getTempToken(efAyrimTipi) ?? eToken
+						
+						globalThis.progressManager?.progressStep(subRecs.length)
+						if (callback)
+							await getFuncValue.call(this, callback, { ...e, uuid2Result })
 					}
 				}
+				return { uuid2Result }
 			}
-			if (globalThis.progressManager) { globalThis.progressManager.progressStep() } if (callback) { getFuncValue.call(this, callback, e) }
-			if (!empty(subUUID2Result)) { this.eIslemSorgula_sonucIsle(e) }
-			subUUID2Result = []; delete e.subUUID2Result
-		}
-		if (!e.internal) { if (sender && !sender.isDestroyed && sender.tazele) { sender.tazele() } }
+		})
 	}
 	async eIslemSorgula_sonucIsle(e) {
-		let uuid2Result = e.subUUID2Result ?? e.uuid2Result; if (empty(uuid2Result)) { return }
-		let gelenmi = e.gelen ?? e.gelenmi ?? false, toplu = new MQToplu().withDefTrn();
-		for (let subResult of values(uuid2Result)) {
-			let {psTip, uuid} = subResult, from = gelenmi ? 'efgecicialfatfis' : psTip == 'S' ? 'sipfis' : 'piffis';
-			let uuidSaha = gelenmi ? 'efuuid' : 'efatuuid', onaySaha = gelenmi ? 'onaydurumu' : 'efatonaydurumu';
-			let value = subResult.isError ? 'X' : subResult.onayDurumChar;
-			if (value != null) { toplu.add(new MQIliskiliUpdate({ from, where: { degerAta: uuid, saha: uuidSaha }, set: { degerAta: value, saha: onaySaha } })) }
+		let uuid2Result = e.subUUID2Result ?? e.uuid2Result ?? {}
+		let { gelenmi = this.gelenmi } = e
+		let { uuidSaha = this.uuidSaha } = e
+		let onaySaha = gelenmi ? 'onaydurumu' : 'efatonaydurumu'
+		let toplu = new MQToplu().withDefTrn()
+		for (let result of values(uuid2Result)) {
+			// Token/iletişim hatası, belgenin gerçek akıbetini değiştirmez
+			if (result.isError || result.onayDurumChar == null)
+				continue
+			
+			let { rec, uuid, table = rec?._table } = result
+			if (!(table && rec?.id && uuid))
+				continue
+
+			let { id } = rec
+			let upd = new MQIliskiliUpdate({
+				from: table,
+				where: [
+					{ degerAta: id, saha: 'id' },
+					{ degerAta: uuid, saha: uuidSaha }
+				],
+				set: { degerAta: result.onayDurumChar, saha: onaySaha }
+			})
+			toplu.add(upd)
 		}
-		if (toplu?.liste?.length) { await app.sqlExecNone(toplu) }
+		if (!empty(toplu.liste))
+			await toplu.execute()
+	}
+	static async gonderildiDurumAyarla(e) { return this.eIslemListeYap('gonderildiDurumAyarla', 'Gönderildi Durum Ayarla', e) }
+	async gonderildiDurumAyarla(e = {}) {
+		return this.eIslemYap({ ...e, kosul: false, proc: async ({ table2Recs }) => {
+			let { action, ts } = e
+			if (!['', 'X', 'T'].includes(action) || (action == 'T' && !(ts instanceof Date && !isNaN(ts))))
+				throw { isError: true, errorText: 'Gönderim durumu veya tarihi geçersiz' }
+			let tsClause = action == 'X' ? 'COALESCE(efimzats, GETDATE())'.sqlConst() : action == 'T' ? ts : null
+			let toplu = new MQToplu().withTrn(), uuid2Result = {}
+			for (let [table, recs] of entries(table2Recs)) {
+				let upd = new MQIliskiliUpdate({ from: table, set: { degerAta: tsClause, saha: 'efgonderimts' } })
+				upd.where.inDizi(recs.map(r => r.id), 'id')
+				toplu.add(upd)
+				for (let rec of recs)
+					uuid2Result[rec.uuid || rec.id] = { rec, isError: false, message: 'Gönderim durumu ayarlandı' }
+			}
+			if (toplu.liste.length)
+				await toplu.execute()
+			return { uuid2Result }
+		} })
+	}
+	static async eIslemUUIDDegistir(e) { return this.eIslemListeYap('eIslemUUIDDegistir', 'e-İşlem UUID Değiştir', e) }
+	async eIslemUUIDDegistir(e = {}) {
+		return this.eIslemYap({ ...e, kosul: false, proc: async ({ table2Recs, uuidSaha }) => {
+			let recs = values(table2Recs).flat()
+			if (recs.length != 1)
+				throw { isError: true, errorText: 'UUID değişimi için tek belge seçilmelidir' }
+			let [rec] = recs, uuid = rec.uuid?.toLowerCase() ?? ''
+			let newUUID = (await jqxPrompt({ etiket: 'Yeni UUID değerini giriniz', title: 'UUID Değiştir', value: uuid }))?.trim()?.toLowerCase()
+			if (!newUUID || newUUID == uuid)
+				return { uuid2Result: {} }
+			if (!isGUID(newUUID))
+				throw { isError: true, errorText: 'Geçerli bir UUID girilmelidir' }
+			let upd = new MQIliskiliUpdate({ from: rec._table })
+			upd.where.degerAta(rec.id, 'id').degerAta(rec.uuid, uuidSaha)
+			upd.set.degerAta(newUUID, uuidSaha).add(`efimzats = NULL`, `efgonderimts = NULL`, `efatonaydurumu = ''`)
+			if (rec._table != 'topmakbuzara')
+				upd.set.add(`zorunluguidstr = ''`)
+			await upd.execute()
+			return { uuid2Result: { [newUUID]: { rec, uuid: newUUID, isError: false } } }
+		} })
 	}
 	static async eIslemIptal(e) { return this.eIslemYap('eIslemIptal', 'e-İşlem İPTAL', e) }
 	async eIslemIptal(e) {
@@ -590,7 +508,8 @@ class EYonetici extends CObject {
 		let uuid2Result = {}
 		for (let eYon of eYoneticiler) {
 			let args = { ...e }
-			extend(uuid2Result, await eYon.eIslemXMLOlustur(args))
+			let { uuid2Result: res } = await eYon.eIslemXMLOlustur(args) ?? {}
+			extend(uuid2Result, res)
 		}
 		return { eYoneticiler, uuid2Result }
 	}
@@ -671,26 +590,29 @@ class EYonetici extends CObject {
 		
 		let eFisListe = [], uuid2Result = {}
 		if (!empty(yeniTable2IDListe)) {
-			let args = { ...e, table2IDListe: yeniTable2IDListe }
-			let stm = eIslSinif.getEFisBaslikVeDetayStm(args)
+			let table2IDListe = yeniTable2IDListe
+			let args = { ...e, table2IDListe, temps: {}, shared: {} }
+
+			let queryci = new EIslemQuery_XML({ table2IDListe })
+			let stm = queryci.getQuery()
+			// let stm = eIslSinif.getEFisBaslikVeDetayStm(args)
 			if (!stm)
 				return
 			
 			let _today = today(), _now = now()
-			let temps = {}, shared = {}
 			let recs = await stm.execSelect()
-			let table2Sayac2EFis = args.table2Sayac2EFis = {}
-			let sevRecs = seviyelendirAttrGruplari({ source: recs, attrGruplari: [['_table', 'fissayac']] })
+			let table2Id2EFis = args.table2Id2EFis = {}
+			let sevRecs = seviyelendirAttrGruplari({ source: recs, attrGruplari: [['_table', 'id']] })
 			for (let sev of sevRecs) {
 				let { orjBilgi: rec, detaylar } = sev
 				if (rec.sevkTarih === undefined)
 					delete rec.sevkTarih
 				
-				let { _table: tbl, fisSayac, sevkTarih } = rec
+				let { _table: tbl, id, sevkTarih } = rec
 				extend(rec, {
-					tarihStr: asReverseDateString(rec.tarih),
-					sevkTarihStr: asReverseDateString(sevkTarih || _today),
-					sevkSaatStr: timeToString(sevkTarih || _now)
+					tarihStr: asReverseDateString(asDate(rec.tarih)),
+					sevkTarihStr: asReverseDateString(asDate(sevkTarih) || _today),
+					sevkSaatStr: timeToString(asDate(rec.sevkSaat) || _now)
 				})
 				extend(sev, {
 					orjBilgi: new EIslBaslik(rec),
@@ -698,25 +620,24 @@ class EYonetici extends CObject {
 				})
 				
 				let eFis = EIslemOrtak.newFor({ tip: eIslTip, eConf })
-				let sayac2EFis = table2Sayac2EFis[tbl] ??= {}
-				sayac2EFis[fisSayac] = eFis
+				let id2EFis = table2Id2EFis[tbl] ??= {}
+				id2EFis[id] = eFis
 				
 				await eFis.baslikVeDetaylariYukle({
 					...args,
 					baslik: sev.orjBilgi,
-					detaylar: sev.detaylar,
-					temps, shared
+					detaylar: sev.detaylar
 				})
 			}
 			
 			await eIslSinif.tipIcinFislerEkDuzenlemeYap(args)
 			
 			let BlockSize = 100
-			for (let tbl in table2Sayac2EFis) {
-				let sayac2EFis = table2Sayac2EFis[tbl]
-				let fisSayacListe = keys(sayac2EFis).map(Number)
-				while (fisSayacListe.length) {
-					let subFisSayacListe = fisSayacListe.splice(0, BlockSize)
+			let { temps, shared } = args
+			for (let [tbl, id2EFis] of entries(table2Id2EFis)) {
+				let idListe = keys(id2EFis)
+				while (!empty(idListe)) {
+					let subList = idListe.splice(0, BlockSize)
 					let uuid2SubResult = {}
 					let toplu = new MQToplu()
 					let updCallback = args.updCallback = ({ query }) => {
@@ -728,19 +649,27 @@ class EYonetici extends CObject {
 					let commit = async () => {
 						await promiseAll(promises)
 						promises = []
-						if (uploadList.length) {
-							await app.wsMultiUpload({ data: uploadList })
-							uploadList = []
-						}
-						if (toplu.liste.length) {
-							await toplu.execute()
-							toplu.liste = []
-						}
+
+						await promiseAll([
+							(async () => {
+								if (!empty(uploadList)) {
+									await app.wsMultiUpload({ data: uploadList })
+									uploadList = []
+								}
+							})(),
+							(async () => {
+								if (!empty(toplu.liste)) {
+									await toplu.execute()
+									toplu.liste = []
+								}
+							})()
+						])
 					}
 					
-					for (let fisSayac of subFisSayacListe) {
+					for (let id of subList) {
 						promises.push(defer(async p => {
-							let eFis = sayac2EFis[fisSayac]
+							let eFis = id2EFis[id]
+							extend(eFis, { temps, shared })
 							let { baslik } = eFis, { eIslTip } = baslik
 							let uuid
 							try {
@@ -771,7 +700,7 @@ class EYonetici extends CObject {
 							await commit()
 					}
 					await commit()
-					globalThis.progressManager?.progressStep(subFisSayacListe?.length ?? 0)
+					globalThis.progressManager?.progressStep(subList?.length ?? 0)
 					try {
 						if (callback)
 							getFuncValue.call(this, callback, e)
@@ -803,7 +732,7 @@ class EYonetici extends CObject {
 			from: 'efgecicialfatfis',
 			where: { inDizi: fisSayacListe, saha: 'kaysayac' }
 		});
-		let isError = !(await app.sqlExecNone(del));
+		let isError = !(await del.execute())
 		for (let rec of recs) {
 			let efAyrimTipi = rec.efayrimtipi || 'A', {uuid} = rec;
 			let result = { islemZamani: now(), isError, rec, efAyrimTipi };
@@ -1046,7 +975,7 @@ class EYonetici extends CObject {
 			extend(result, await islemci.fisGirisiYap(e) || {});
 			if (result && !result.isError) {
 				let upd = new MQIliskiliUpdate({ from: 'efgecicialfatfis', where: { degerAta: uuid, saha: 'efuuid' }, set: `tamamlandi = '*'` });
-				await app.sqlExecNone(upd)
+				await upd.execute()
 			}
 			return result
 		}
@@ -1203,6 +1132,8 @@ class EYonetici extends CObject {
 	
 	static getEYoneticiler(e = {}) {
 		let { tip2Table2IDListe, recs } = e
+		if (tip2Table2IDListe == null && e.table2IDListe && e.eIslTip != null)
+			tip2Table2IDListe = { [e.eIslTip]: e.table2IDListe }
 		if (tip2Table2IDListe == null && recs != null)
 			tip2Table2IDListe = this.getTip2Table2IDListe(recs)
 		
@@ -1233,7 +1164,8 @@ class EYonetici extends CObject {
 		let res = {}
 		for (let r of recs) {
 			let { eIslTip: tip, _table: tbl, id } = r
-			if (!(tip && id))
+			tip ||= 'A'
+			if (!(tbl && id))
 				continue
 
 			let table2IDListe = res[tip] ??= {}
@@ -1251,7 +1183,8 @@ class EYonetici extends CObject {
 		let res = {}
 		for (let r of recs) {
 			let { eIslTip: tip, _table: tbl, id } = r
-			if (!(tip && id))
+			tip ||= 'A'
+			if (!(tbl && id))
 				continue
 
 			let table2IDListe = res[tip] ??= {}
@@ -1283,13 +1216,34 @@ class EYonetici extends CObject {
 		return this
 	}
 
+	static async eIslemListeYap(selector, islemAdi, e = {}) {
+		let { parentPart = e.sender, eConf = parentPart?.eConf ?? MQEConf.getInstance() } = e
+		let gelenmi = e.gelenmi ?? e.gelen ?? parentPart?.gelenmi
+		let filtre = e.filtre ?? EIslemFiltre[gelenmi ? 'gelenEmpty' : 'gidenEmpty']({ eConf })
+		let table2IDListe = {}
+		for (let map of values(e.tip2Table2IDListe ?? (e.table2IDListe ? { _: e.table2IDListe } : {}))) {
+			for (let [table, ids] of entries(map))
+				(table2IDListe[table] ??= []).push(...ids)
+		}
+		if (empty(table2IDListe)) {
+			for (let { _table: table, id } of e.recs ?? []) {
+				if (table && id)
+					(table2IDListe[table] ??= []).push(id)
+			}
+		}
+		let { querySinif } = filtre
+		// Yönetici tipi de grid'den değil, kimliklerle yeniden okunan listeden gelir.
+		let recs = empty(table2IDListe) ? [] : await new querySinif({ filtre, table2IDListe }).getQuery().execSelect()
+		let tip2Table2IDListe = this.getTip2Table2IDListe(recs)
+		return this.eIslemYap(selector, islemAdi, { ...e, parentPart, eConf, filtre, gelenmi, recs, tip2Table2IDListe, uuid2Result: {} })
+	}
 	static async eIslemYap(procOrSelector, islemAdi, ...args) {
 		let e = args?.[0] ?? {}
 		if (islemAdi !== undefined)
 			e.islemAdi = islemAdi
 		
 		let eYoneticiler = await this.getEYoneticiler({ ...e }) ?? []
-		let uuid2Result = {}
+		let uuid2Result = e.uuid2Result ?? {}
 		for (let eYon of eYoneticiler ?? []) {
 			let _e = { ...e, eYonetici: eYon }
 			let res = await (
@@ -1298,7 +1252,7 @@ class EYonetici extends CObject {
 				procOrSelector
 			)
 			if (res == null)
-				return res
+				continue
 
 			let { uuid2Result: _uuid2Result } = res
 			if (_uuid2Result)
@@ -1328,7 +1282,7 @@ class EYonetici extends CObject {
 	}
 	async eIslemYap(e = {}) {
 		let { islemAdi, eConf = this.eConf, filtre = this.filtre, uuidSaha = this.uuidSaha } = e
-		let { gelenmi = e.gelen, autoXML, dirCheck, stm, recs } = e
+		let { gelenmi = e.gelen ?? this.gelenmi, autoXML, dirCheck, stm, recs } = e
 		let { parentPart = this.parentPart, callback = this.callback, toplu, internal, kosul, proc } = e
 		if (autoXML && !gelenmi)
 			await this.eIslemXMLOlustur({ ...e, internal: true })
@@ -1347,7 +1301,7 @@ class EYonetici extends CObject {
 				stm = queryci.getQuery()
 			}
 		}
-		recs ??= stm ? await stm.execSelect() : null
+		recs = stm ? await stm.execSelect() : recs
 		if (empty(recs))
 			return null
 
@@ -1365,7 +1319,7 @@ class EYonetici extends CObject {
 						k = k.slice(1)
 						not = true
 					}
-					let v = r[kosul]
+					let v = r[k]
 					let ok = Boolean(v) != not
 					if (!ok)
 						continue
@@ -1401,7 +1355,7 @@ class EYonetici extends CObject {
 			let _token = resOrToken?.token ?? resOrToken
 			if (!(_token == null || eToken == _token)) {
 				eToken = _token
-				this.class.setTempToken(efAyrimTipi, token)
+				this.class.setTempToken(efAyrimTipi, _token)
 			}
 		}
 		
@@ -1424,77 +1378,6 @@ class EYonetici extends CObject {
 		return res
 	}
 	
-	static async testShow(efayrimtipi = 'E', pstip = 'P', kaysayac = null, seri = null, fisno = null) {
-		// 0) bağlam
-		if (!kaysayac && fisno) {
-			seri ??= '';
-			let sent = new MQSent(), { where: wh, sahalar } = sent;
-			sent.fromAdd(EYonetici.getPS2Table(pstip));
-			wh.degerAta(seri, 'seri').degerAta(fisno, 'no');
-			sahalar.add('kaysayac');
-			kaysayac = asInteger(await app.sqlExecTekilDeger(sent)) ?? null;
-		}
-		let recs = [{ pstip, efayrimtipi, kaysayac }]
-		let internal = true, eYonetici = (await EYonetici.getEYoneticiler({ recs }))?.[0];
-		let { eConf, eIslSinif } = eYonetici, uuid_old;
-		
-		// 1) paths
-		let rootDir = `${eConf.getAnaBolumFor({ eIslSinif })}\\IMZALI`;
-		{
-			let sent = new MQSent(), { where: wh, sahalar } = sent;
-			sent.fromAdd(EYonetici.getPS2Table(pstip))
-			wh.degerAta(kaysayac, 'kaysayac');
-			sahalar.add('efatuuid');
-			uuid_old = (await app.sqlExecTekilDeger(sent))?.trimEnd();
-		}
-		// 2) normalize (C14N) → server-side iki çıktı üret (old.c14n.xml / new.c14n.xml)
-		let xmlDosya_old = `${rootDir}\\${uuid_old}.xml`;
-		let oldC14N = `${rootDir}\\old.c14n.xml`;
-		await app.shell(`DEL "${oldC14N}"`);
-		await app.shell(`xmllint --c14n "${xmlDosya_old}" > "${oldC14N}"`);
-		let oldText = await app.wsDownloadAsStream(oldC14N);
-
-		// 3) XML Kaldır & Oluştur + Yeni Dosyayı belirle
-		await eYonetici?.eIslemXMLKaldir({ internal });
-		let uuid2Result = {}; await eYonetici?.eIslemXMLOlustur({ internal, uuid2Result });
-		await new Promise(c => setTimeout(() => c(), 500));
-		let uuid_new = keys(uuid2Result)[0];
-		let xmlDosya_new = `${rootDir}\\${uuid_new}.xml`;
-		
-		// 4) normalize (C14N) → server-side iki çıktı üret (old.c14n.xml / new.c14n.xml)
-		let newC14N = `${rootDir}\\new.c14n.xml`;
-		await app.shell(`DEL "${newC14N}"`);
-		await app.shell(`xmllint --c14n "${xmlDosya_new}" > "${newC14N}"`);
-		
-		// 5) normalize edilmiş xml’leri indir → JS tarafında satır bazlı filtre uygula
-		let newText = await app.wsDownloadAsStream(newC14N);
-	
-		// 6) C14N tek satır olabilir → satırlaştır: '><' → '>\n<'
-		let asLines = s => s.replace(/></g, '>\n<').split(/\r?\n/);
-		let dropPatterns = [
-		  /^<cbc:(UUID|ID)>[0-9a-f-]+<\/cbc:(UUID|ID)>$/i,
-		  /^<cbc:IssueTime>/,
-		  /^<cbc:EmbeddedDocumentBinaryObject /
-		];
-		let shouldDrop = line => dropPatterns.some(r => r.test(line.trimStart()));
-		let oldData = asLines(oldText).filter(l => !shouldDrop(l)).join('\n');
-		let newData = asLines(newText).filter(l => !shouldDrop(l)).join('\n');
-
-		// 7) Diff HTML oluştur
-		let diffHtml = await app.diff_html({ data1: oldData, data2: newData });
-		
-		// 8) HTML’i yeni pencerede aç
-		let blob = new Blob([diffHtml], { type: 'text/html; charset=utf-8' });
-		let url = URL.createObjectURL(blob); openNewWindow(url);
-		setTimeout(() => URL.revokeObjectURL(url), 500_000);
-	
-		return {
-			efayrimtipi, pstip, kaysayac,
-			xmlDosya_old, xmlDosya_new,
-			/* oldText, newText, */
-			diffHtml, url
-		}
-	}
 	static async __ipcTest() {
 		let key = 'a', result;
 		try {
@@ -1515,7 +1398,7 @@ try {
     let uuidList = app.activeWndPart.recs.map(rec => rec.efatuuid ?? rec.uuid);
     if (uuidList?.length) {
         let upd = new MQIliskiliUpdate({ from: 'piffis', where: [`efgonderimts IS NOT NULL`, `efatuuid <> ''`, { inDizi: uuidList, saha: 'efatuuid' }], set: { degerAta: '', saha: 'efatonaydurumu' } });
-        console.info({ upd, result: await app.sqlExecNone(upd) })
+        console.info({ upd, result: await upd.execute() })
     }
 }
 catch (ex) { console.error(ex) }

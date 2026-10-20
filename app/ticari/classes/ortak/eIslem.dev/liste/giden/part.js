@@ -55,7 +55,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 					res.push(...makeArray(ekCSS))
 				if (eIslTip != null)
 					res.push(`eIslTip-${eIslTip}`)
-				if (efatonaydurumu != null)
+				if (onayDurum != null)
 					res.push(`akibet-${onayDurum}`)
 				if (imzaTS)
 					res.push('imzali')
@@ -81,10 +81,10 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 			gridKolon('tarih', 'Tarih', 13).date(),
 			gridKolon('fisNox', 'Belge<br/>No', 21),
 			gridKolon('akibetText', 'Akıbet', 13),
-			gridKolon('mustText', 'Müşteri', 50),
+			gridKolon('mustText', 'Müşteri', 40),
 			gridKolon('efImzaTS', 'XML Oluş.<br/>Zamanı', 13),
 			gridKolon('efGonderimTS', 'Gönderim<br/>Zamanı', 13),
-			gridKolon('sonucBedel', 'Sonuç<br/>Bedel', 19),
+			gridKolon('sonucBedel', 'Sonuç<br/>Bedel', 19).bedel(),
 			gridKolon('dvKodText', 'Dv.', 5),
 			gridKolon('efUUIDText', 'UUID<br/>(ETTN)', 40)
 		]
@@ -126,7 +126,12 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		if (empty(recs))
 			return
 
-		let defAction = recs[0].efgonderimts ? '' : 'X'
+		let table2IDListe = {}
+		for (let { _table: table, id } of recs)
+			(table2IDListe[table] ??= []).push(id)
+		let { secimler: filtre } = this, { querySinif } = filtre
+		let [rec] = await new querySinif({ table2IDListe, filtre }).getQuery().execSelect()
+		let defAction = rec?.efGonderimTS ? '' : 'X'
 		let _now = now()
 		
 		let inst = {
@@ -174,8 +179,8 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		let wnd, res
 		let pr = defer()
 		let close = res => {
-			wnd.jqxWindow('destroy')
-			pr.resolve(res)
+			wnd.off('close').jqxWindow('destroy')
+			pr.resolve(res === true)
 		}
 		
 		wnd = createJQXWindow({
@@ -191,7 +196,7 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 				VAZGEÇ: () => close(false)
 			}
 		})
-		wnd.on('close', close)
+		wnd.on('close', () => close(false))
 
 		try { res = await pr } catch (ex) { }
 		if (!res)
@@ -201,82 +206,31 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 		if (action == null)
 			return
 
-		let ts = asDate(tarih ?? today().clone().clearTime())
-		if (saat)
-			ts.setTime(saat)
-		
-		let ps2Recs = {}
-		;recs.forEach(r => {
-			let { pstip: ps } = r
-			;(ps2Recs[ps] ??= [])
-				.push(r)
-		})
-
-		let toplu = new MQToplu().withTrn()
-		for (let [ps, recs] of entries(ps2Recs)) {
-			let table = EYonetici.getPS2Table(ps)
-			let sayaclar = recs.map(r => r.fisSayac)
-			let tsClause = (
-				action == 'X' ? 'COALESCE(efimzats, GETDATE())'.sqlConst() :
-				action == 'T' ? ts :
-				null
-			)
-			
-			let upd = new MQIliskiliUpdate(), { where: wh, set } = upd
-			upd.fromAdd(table)
-			wh.inDizi(sayaclar, 'fisSayac')
-			set.degerAta(tsClause, 'efgonderimts')
-			toplu.add(upd)
-		}
-		if (empty(toplu.liste))
-			return
-
-		await toplu.execute()
-		this.tazele()
+		let ts = asDate(tarih || today())?.clone().clearTime()
+		let zaman = asDate(saat)
+		if (ts && zaman)
+			ts.setHours(zaman.getHours(), zaman.getMinutes(), zaman.getSeconds(), 0)
+		await EYonetici.gonderildiDurumAyarla({ ...e, parentPart, eConf, recs, action, ts })
 	}
-	
 	async eIslemGonderIstendi(e = {}) {
-		let parentPart = this, { eConf } = this
 		let islemAdi = 'e-İşlem Gönder'
-		let recs = e.recs ?? await this.getSecilenSatirlar_mesajli({ islemAdi })
+		let { toplu, silent, event: { ctrlKey: ctrl } = {} } = e
+		let recs = e.recs ?? await this.getSecilenSatirlar({ islemAdi, mesajli: !silent })
 		if (empty(recs))
 			return
-		
-		let { event: { ctrlKey: ctrl } = {} } = e
 		if (ctrl)
-			await this.eIslemXMLKaldirIstendi({ ...e, recs })
-		
+			await this.eIslemXMLKaldirIstendi({ ...e, silent: true, internal: true, recs })
+		let args = { ...e, parentPart: this, islemAdi, recs, eConf: this.eConf, toplu, silent, callback: new EIslemAkibet_Callback({ islemAdi }) }
 		try {
-			extend(_e, { eConf, callback: new EIslemAkibet_Callback({ islemAdi }) })
-			this.showProgress(_e)
-			
-			let sayaclar = asSet(recs.map(r => r.fisSayac))
-			await EYonetici.eIslemXMLOlustur({ ..._e, internal: true })
-			
-			;{
-				let pr = promise(resolve => {
-					let { veriYukleninceBlock: handler } = listePart
-					listePart.veriYuklenince((...args) => {
-						listePart.veriYuklenince(handler)
-						handler?.call(this, ...args)
-						resolve()
-					})
-				})
-				await this.tazele()
-				await pr
-				recs = _e.recs = listePart.boundRecs
-					.filter(r => sayaclar[r.fisSayac])
-			}
-			await EYonetici.eIslemGonder(_e)
+			this.showProgress(args)
+			let result = await EYonetici.eIslemGonder(args)
+			extend(args, result)
+			return result
 		}
-		catch (ex) {
-			_e.error = ex
-			// hConfirm(getErrorText(ex), islemAdi)
-			console.error(ex)
-			throw ex
-		}
-		finally { this.uiIslemiSonrasi(_e) }
+		catch (ex) { args.error = ex; throw ex }
+		finally { this.uiIslemiSonrasi(args) }
 	}
+
 	async eIslemIzleIstendi(e = {}) {
 		let islemAdi = 'e-İşlem İZLE'
 		let { toplu, silent, event: { ctrlKey: ctrl } = {} } = e
@@ -302,52 +256,25 @@ class GidenEIslemListePart extends EIslemListeBasePart {
 	async eIslemSorguIstendi(e = {}) {
 		let islemAdi = 'e-İşlem Sorgu'
 		let { toplu, silent, event: { ctrlKey: ctrl } = {} } = e
-		let mesajli = !silent
-		let recs = await this.getSecilenSatirlar({ islemAdi, mesajli }) ?? {}
+		let recs = e.recs ?? await this.getSecilenSatirlar({ islemAdi, mesajli: !silent })
 		if (empty(recs))
 			return
-
-		let parentPart = this, { eConf } = this
+		let args = { ...e, parentPart: this, islemAdi, recs, eConf: this.eConf, toplu, silent, callback: new EIslemAkibet_Callback({ islemAdi }) }
 		try {
-			let args = { ...e, islemAdi, recs, eConf, toplu, silent, callback: new EIslemAkibet_Callback({ islemAdi }) }
-
 			if (ctrl) {
-				islemAdi = args.islemAdi = 'e-İşlem UUID Değiştir'
-				args.araMesaj = `<span class="bold royalblue">${islemAdi}</span> işlemi`
 				if (recs.length != 1)
 					throw { isError: true, errorText: 'UUID değişimi için tek satır seçilmelidir' }
-				
-				let rec = recs[0]
-				let { uuid, _table: table, fisSayac: sayac } = rec
-				uuid = uuid?.toLowerCase() ?? ''
-				let newUUID = (await jqxPrompt({ etiket: 'Yeni UUID değerini giriniz', title: 'UUID Değiştir', value: uuid }))?.trim()?.toLowerCase()
-				if (!newUUID || uuid == newUUID)
-					return
-				
-				if (!isGUID(newUUID))
-					throw { isError: true, errorText: `<b class=firebrick>${newUUID}</b> değeri geçerli bir UUID değildir` }
-				
-				this.showProgress(args)
-				;{
-					let upd = new MQIliskiliUpdate(), { set, where: wh } = upd
-					upd.fromAdd(table)
-					wh.degerAta(sayac, 'fisSayac')
-					set.degerAta(newUUID, 'efatuuid')
-					set.add(
-						`efimzats = NULL`,
-						`efgonderimts = NULL`,
-						`efatonaydurumu = ''`,
-						`zorunluguidstr = ''`
-					)
-					await app.sqlExecNone(upd)
-				}
+				let result = await EYonetici.eIslemUUIDDegistir(args)
+				if (empty(result?.uuid2Result))
+					return result
 			}
-			else
-				this.showProgress(args)
-			
-			await EYonetici.eIslemSorgula(args)
+			this.showProgress(args)
+			let result = await EYonetici.eIslemSorgula(args)
+			extend(args, result)
+			return result
 		}
-		finally { this.uiIslemiSonrasi({ silent: true }) }
+		catch (ex) { args.error = ex; throw ex }
+		finally { this.uiIslemiSonrasi(args) }
 	}
 	async eIslemXMLOlusturIstendi(e = {}) {
 		let islemAdi = 'e-İşlem XML Oluştur'

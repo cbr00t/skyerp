@@ -2,7 +2,7 @@ class EIslGiden extends EIslemOrtak {
     static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get gidenmi() { return true }
 
-    static getEFisBaslikVeDetayStm(e = {}) {
+    static __iptal__getEFisBaslikVeDetayStm(e = {}) {
 		let { table2IDListe, whereDuzenleyici: genelWhereDuzenleyici } = e
 		let { eArsivmi } = this
 		if (isFunction(table2IDListe))
@@ -196,7 +196,7 @@ class EIslGiden extends EIslemOrtak {
 		
 		return new MQStm({ sent: uni, orderBy })
 	}
-	static eFisBaslikVeDetayStm_araSentDuzenle({ fisTable, harTable, uni, sent, where: wh }) { }
+	static __iptal__eFisBaslikVeDetayStm_araSentDuzenle({ fisTable, harTable, uni, sent, where: wh }) { }
 
 	
 	/*getTablo2EkIslem_xmlOlustur = () {
