@@ -1141,7 +1141,7 @@ class GridPart extends Part {
 						/*{ id: 'html', handler: _e => this.gridExport_html($.extend({}, e, _e)) },*/
 						{ id: 'yazdir', handler: _e => this.gridYazdir({ ...e, ..._e }) },
 						{ id: 'excel', handler: _e => this.gridExport_excel({ ...e, ..._e }) }
-					]
+					].filter(Boolean)
 				}
 				let islemTuslariPart = rootPart.islemTuslariPart = new ButonlarPart(_e)
 				islemTuslariPart.run()
@@ -1225,27 +1225,62 @@ class GridPart extends Part {
 		}
 	}*/
 	async gridExport_excel(e = {}) {
-		// download:false ile dosya indirmeden XLSX binary verisi alınabilir.
-		let exporter = new GridExporter_Grid({ gridPart: this, fileName: 'Grid.xlsx' })
+		showProgress()
 		try {
-			return await exporter[e.download === false ? 'toBuffer' : 'download'](e)
-			// return await exporter.toBuffer(e)
+			// download:false ile dosya indirmeden XLSX binary verisi alınabilir.
+			let exporter = new GridExporter_Grid({ gridPart: this, fileName: 'Grid.xlsx' })
+			try {
+				await delay(1)
+				return await exporter[e.download === false ? 'toBuffer' : 'download'](e)
+				// return await exporter.toBuffer(e)
+			}
+			catch (ex) {
+				console.error(ex)
+				if (e.download === false)
+					throw ex
+				hConfirm(getErrorText(ex), 'Excel Çıktısı')
+				return null
+			}
 		}
-		catch (ex) {
-			console.error(ex)
-			if (e.download === false) throw ex
-			hConfirm(getErrorText(ex), 'Excel Çıktısı')
-			return null
-		}
+		finally { hideProgress() }
 	}
-	gridExport_html(e = {}) {
-		try { this.grid.jqxGrid('exportview', 'html', 'jqxGrid') }
+	async gridExport_excelEski(e = {}) {
+		showProgress()
+		let { gridWidget: w } = this
+		let { rootPart } = e, wnd = rootPart?.wnd
+		await delay(10)
+		
+		try {
+			w.exportdata('xls', 'Grid', true, null, false, null, 'utf-8')
+			//downloadData(new Blob([data]), 'Grid.xls', 'application/vnd.ms-excel')
+		}
+		finally { hideProgress() }
+
+		if (wnd?.length)
+			wnd.jqxWindow('close')
+	}
+	async gridExport_html(e = {}) {
+		showProgress()
+		let { grid, gridWidget: w } = this
+		let { rootPart } = e, wnd = rootPart?.wnd
+		await delay(10)
+		
+		try {
+			grid.jqxGrid('exportview', 'html', 'jqxGrid')
+		}
 		catch (ex) {
 			console.error(ex)
-			let {gridWidget} = this, data = gridWidget.exportdata('html');
-			let {rootPart} = e, _wnd = rootPart?.wnd; if (_wnd?.length) { _wnd.jqxWindow('close') }
-			let wnd = openNewWindow(); if (!wnd) { return }
-			let doc = wnd.document; doc.writeln(
+			let data = w.exportdata('html')
+			
+			if (_wnd?.length)
+				_wnd.jqxWindow('close')
+			
+			let wnd = openNewWindow()
+			if (!wnd)
+				return
+			
+			let { document: doc } = wnd
+			doc.writeln(
 				`<html><head><title>Grid Çıktısı</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=yes">`);
 			let preReqList = [
 				`<link rel="stylesheet" href="${webRoot}/lib_external/jqx/css/jquery-ui.min.css" />`,
@@ -1255,20 +1290,38 @@ class GridPart extends Part {
 				`<link rel="stylesheet" href="${webRoot}/lib/appBase/appBase.css?${appVersion}" />`,
 				`<link rel="stylesheet" href="${webRoot}/lib/appBase/appLayout.css?${appVersion}" />`,
 				`<link rel="stylesheet" href="./app.css?${appVersion}" />`
-			];
+			]
 			doc.writeln(`<style>@media only screen { body { overflow-y: auto !important } } button, input { visibility: hidden }</style>`);
-			for (let item of preReqList) { doc.writeln(item) } doc.writeln(`</head><body>${data}</body></html>`)
+			for (let item of preReqList)
+				doc.writeln(item)
+			doc.writeln(`</head><body>${data}</body></html>`)
 		}
+		finally { hideProgress() }
 	}
-	gridYazdir(e = {}) {
-		try { this.grid.jqxGrid('exportview', 'html', 'jqxGrid') }
+	async gridYazdir() {
+		let { grid, gridWidget: w } = this
+		let { rootPart } = e, _wnd = rootPart?.wnd
+		await delay(10)
+		
+		try {
+			grid.jqxGrid('exportview', 'html', 'jqxGrid')
+		}
 		catch (ex) {
 			console.error(ex)
-			let {gridWidget} = this, data = gridWidget.exportdata('html');
-			let {rootPart} = e, _wnd = rootPart?.wnd; if (_wnd?.length) { _wnd.jqxWindow('close') }
-			let wnd = openNewWindow(); if (!wnd) { return }
-			let doc = wnd.document; doc.writeln(
-				`<html><head><title>Grid Çıktısı</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=yes">`);
+			let data = w.exportdata('html')
+			
+			if (_wnd?.length)
+				_wnd.jqxWindow('close')
+			
+			let wnd = openNewWindow()
+			if (!wnd)
+				return
+			
+			let { document: doc } = wnd
+			doc.writeln(
+				`<html><head><title>Grid Çıktısı</title><meta charset="utf-8">
+				<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=yes">`
+			)
 			let preReqList = [
 				`<link rel="stylesheet" href="${webRoot}/lib_external/jqx/css/jquery-ui.min.css" />`,
 				`<link class="theme-base" rel="stylesheet" href="${webRoot}/lib_external/jqx/css/jqx.base.min.css" />`,
@@ -1277,9 +1330,11 @@ class GridPart extends Part {
 				`<link rel="stylesheet" href="${webRoot}/lib/appBase/appBase.css?${appVersion}" />`,
 				`<link rel="stylesheet" href="${webRoot}/lib/appBase/appLayout.css?${appVersion}" />`,
 				`<link rel="stylesheet" href="./app.css?${appVersion}" />`
-			];
-			doc.writeln(`<style>@media only screen { body { overflow-y: auto !important } } button, input { visibility: hidden }</style>`);
-			for (let item of preReqList) { doc.writeln(item) }
+			]
+			doc.writeln(
+				`<style>@media only screen { body { overflow-y: auto !important } } button, input { visibility: hidden }</style>`)
+			for (let item of preReqList)
+				doc.writeln(item)
 			doc.write(
 				`<script>
 				function loaded() {
@@ -1287,9 +1342,11 @@ class GridPart extends Part {
 					window.addEventListener('beforeprint', evt => clearTimeout(this.timer_printDialogWait)); window.addEventListener('afterprint', evt => window.close());
 					setTimeout(() => { this.timer_printDialogWait = setTimeout(() => alert("Yazdırma ekranı için lütfen TAMAM butonuna ve sonra CTRL+P tuşlarına basınız"), 2000); window.print() }, 1000)
 				}
-				</script>`);
+				</script>`
+			)
 			doc.writeln(`</head><body>${data}<script>loaded()</script></body></html>`)
 		}
+		finally { hideProgress() }
 	}
 	gridSortIstendi(e) { this.getKontrolcu(e)?.gridSortIstendi?.(e) }
 	gridRowExpanded(e) { this.getKontrolcu(e)?.gridRowExpanded?.(e) }

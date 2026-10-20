@@ -219,10 +219,15 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		return super.hizliBulIslemi(e)
 	}
 	islemTuslariDuzenle(e) {
-		let mfSinif = this.getMFSinif(), {secimler, panelDuzenleyici} = this
+		let mfSinif = this.getMFSinif()
+		let { secimler, panelDuzenleyici } = this
 		panelDuzenleyici?.islemTuslariDuzenle_listeEkrani_ilk?.(_e)
 		mfSinif?.islemTuslariDuzenle_listeEkrani_ilk?.(e)
-		super.islemTuslariDuzenle(e); let {liste} = e; let yListe = [];
+		
+		super.islemTuslariDuzenle(e)
+		let { liste } = e
+		
+		let yListe = []
 		if (!panelDuzenleyici && (!mfSinif || mfSinif?.kolonDuzenlemeYapilirmi)) {
 			yListe.push({
 				id: 'basliklariDuzenle',
@@ -238,10 +243,11 @@ class MFListeOrtakPart extends GridliGostericiWindowPart {
 		if (secimler)
 			yListe.push({ id: 'secimler', toolTip: 'Filtre (Seçimler)', handler: e => this.secimlerIstendi(e) })
 		if (!panelDuzenleyici && (!mfSinif || mfSinif?.gridIslemTuslariKullanilirmi)) {
-			yListe.push(
+			yListe.push(...[
 				{ id: 'yazdir', toolTip: 'Yazdır', handler: _e => this.gridYazdir({ ...e, ..._e }) },
-				{ id: 'excel', toolTip: `Excel'e Aktar`, handler: _e => this.gridExport_excel({ ...e, ..._e }) }
-			)
+				{ id: 'excel', toolTip: `Excel'e Aktar`, handler: _e => this.gridExport_excel({ ...e, ..._e }) },
+				( mfSinif?.eskiExcelKullanilirmi ?? true ? { id: 'excelEski', text: 'Excel\n(Veri)', handler: _e => this.gridExport_excelEski({ ...e, ..._e }) } : null )
+			].filter(Boolean))
 		}
 		if (!panelDuzenleyici && (!mfSinif || mfSinif?.seviyeAcKapatKullanilirmi)) {
 			yListe.push(

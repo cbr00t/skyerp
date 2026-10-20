@@ -10,6 +10,7 @@ class MQMustBilgi extends MQKAOrtak {
 	static get tumKolonlarGosterilirmi() { return true }
 	static get gridIslemTuslariKullanilirmi() { return true }
 	static get birlesikGorunumKullanilmazmi() { return true }
+	static get eskiExcelKullanilirmi() { return true }
 
 	static islemTuslariDuzenle_listeEkrani({ liste, part }) {
 		let e = arguments[0]

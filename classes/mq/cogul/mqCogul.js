@@ -20,6 +20,7 @@ class MQCogul extends MQYapi {
 	static get kolonFiltreKullanilirmi() { return false }
 	static get seviyeAcKapatKullanilirmi() { return true }
 	static get gridIslemTuslariKullanilirmi() { return !isMiniDevice() }
+	static get eskiExcelKullanilirmi() { return !isMiniDevice() }
 	static get yerelParamBelirtec() { return this.classKey }
 	static get sayacSahaGosterilirmi() { return false }
 	static get tumKolonlarGosterilirmi() { return false }
