@@ -64,14 +64,14 @@ class EIslemQuery_XML extends EIslemQuery_Giden {
 				if (stokmu)
 					sent.leftJoin('har', 'vergihesap otver', 'har.otvhesapkod = otver.kod')
 			}
-			let barkodClause = sqlEmpty, stokRefClause = () => sqlEmpty
+			let barkodClause = sqlEmpty
+			let stokRefClause = () => sqlEmpty
 			if (stokmu) {
 				let barkodKosullari = ['sb.stokkod = har.stokkod', 'sb.paketsayac IS NULL', `sb.varsayilan <> ''`]
 				for (let { rowAttr, defaultValue } of HMRBilgi.hmrIter())
 					barkodKosullari.push(`sb.${rowAttr} = ${MQSQLOrtak.sqlServerDegeri(defaultValue)}`)
 				// Referanslar hareket sayısını çoğaltmamalı; eksik referansta hareket korunur.
-				barkodClause = `(SELECT TOP 1 sb.refkod FROM sbarref sb
-					WHERE ${barkodKosullari.join(' AND ')} ORDER BY sb.refkod)`
+				barkodClause = `(SELECT TOP 1 sb.refkod FROM sbarref sb WHERE ${barkodKosullari.join(' AND ')} ORDER BY sb.refkod)`
 				if (ticarimi) {
 					stokRefClause = attr => `(SELECT TOP 1 rd.${attr}
 						FROM pzmusturunfis rf INNER JOIN pzmusturundetay rd ON rf.kaysayac = rd.fissayac
@@ -146,7 +146,8 @@ class EIslemQuery_XML extends EIslemQuery_Giden {
 				kdvtevoranpay: ticarimi ? 'COALESCE(tevver.kdvtevoranpay, 0)' : sqlZero,
 				tevislemturu: ticarimi ? 'COALESCE(tevver.tevislemturu, \'\')' : sqlEmpty,
 				perotv: ticarimi ? 'har.perotv' : sqlZero, otvorani: ticarimi && stokmu ? 'COALESCE(otver.otvorani, 0)' : sqlZero,
-				satiriskonto: ticarimi ? 'har.satiriskonto' : sqlZero, sonuciskoran: ticarimi ? 'har.sonuciskoran' : sqlZero
+				satiriskonto: ticarimi ? 'har.satiriskonto' : sqlZero, sonuciskoran: ticarimi ? 'har.sonuciskoran' : sqlZero,
+				konSubeKod: 'car.kendidetaykod'
 			}
 			for (let { rowAttr, numerikmi } of HMRBilgi)
 				f[rowAttr] = stokmu && !sutMakbuzmu ? `har.${rowAttr}` : numerikmi ? sqlZero : sqlEmpty

@@ -109,10 +109,10 @@ class MQKod extends MQCogul {
 	}
 	static loadServerData_queryDuzenle({ offlineRequest, offlineMode, sent, sent: { where: wh, sahalar } }) {
 		super.loadServerData_queryDuzenle(...arguments)
-		let {aliasVeNokta, kodSaha, onlineIdSaha, bosKodAlinirmi, zeminRenkDesteklermi, emptyKodValue = ''} = this
+		let { aliasVeNokta, guidmi, kodSaha, onlineIdSaha, bosKodAlinirmi, zeminRenkDesteklermi, emptyKodValue = '' } = this
 		if (offlineRequest && !offlineMode)
 			kodSaha = onlineIdSaha
-		if (!bosKodAlinirmi)
+		if (!(bosKodAlinirmi || guidmi))
 			wh.add(`${aliasVeNokta}${kodSaha} <> ${MQSQLOrtak.sqlDegeri(emptyKodValue)}`)
 		if (!sahalar.liste.find(saha => saha.alias == kodSaha))
 			sahalar.add(`${aliasVeNokta}${kodSaha}`)
@@ -275,10 +275,12 @@ class MQKA extends MQKod {
 				let belirtec = colDef.belirtec
 				let kodAttr = e.kodAttr || colDef.kodAttr || `${belirtec}Kod`
 				let adiAttr = e.adiAttr || colDef.adiAttr ||`${belirtec}Adi`
-				let { tableAndAlias, tableAlias: alias, aliasVeNokta, kodSaha, adiSaha, emptyKodValue = '' } = mfSinif
+				let { tableAndAlias, tableAlias: alias, aliasVeNokta, guidmi, kodSaha, adiSaha, emptyKodValue = '' } = mfSinif
 				let sent = new MQSent({
 					from: tableAndAlias,
-					where: [`${aliasVeNokta}${kodSaha} <> ${MQSQLOrtak.sqlDegeri(emptyKodValue)}`],
+					where: [
+						( guidmi ? null : `${aliasVeNokta}${kodSaha} <> ${MQSQLOrtak.sqlDegeri(emptyKodValue)}` )
+					].filter(Boolean),
 					sahalar: [
 						`${aliasVeNokta}${kodSaha} ${kodAttr}`,
 						`${aliasVeNokta}${adiSaha} ${adiAttr}`

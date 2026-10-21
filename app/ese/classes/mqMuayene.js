@@ -115,8 +115,8 @@ class MQMuayene extends MQGuidOrtak {
 			return
 		}
 		let veriYuklenince = e.veriYuklenince ??= (_e => {
-			let {gridPart, gridPart: { boundRecs: recs, gridWidget: w }} = _e
-			delete gridPart.veriYukleninceBlock
+			let { gridPart, gridPart: { boundRecs: recs, gridWidget: w } } = _e
+			delete gridPart.bindingCompleteBlock
 			if (recs?.length)
 				w.selectrow(0)
 			// gridPart.degistirIstendi()
@@ -130,15 +130,22 @@ class MQMuayene extends MQGuidOrtak {
 		return MQTest.listeEkraniAc({ acilinca, veriYuklenince, secimlerDuzenle })
 	}
 	static async testYapIstendi(e = {}) {
-		let title = 'Test İşlemleri', gridPart = e.gridPart ?? e.parentPart ?? e.sender ?? {};
+		let title = 'Test İşlemleri', gridPart = e.gridPart ?? e.parentPart ?? e.sender ?? {}
 		let recs = e.recs ?? gridPart.selectedRecs, idListe = recs.map(rec => rec.id);
 		let sent = new MQSent({ from: 'esetest', sahalar: 'muayeneid', where: { inDizi: idListe, saha: 'muayeneid' } });
 		let mevcutIdSet = asSet((await app.sqlExecSelect(sent)).map(rec => rec.muayeneid));
 		let bostaIdListe = idListe.filter(id => !mevcutIdSet[id]);
 		if (!bostaIdListe.length) {
+			let triggered = false
 			return await this.testEkraniAcIstendi({
-				...e, veriYuklenince: _e => {
-					let {gridPart} = _e; delete gridPart.veriYukleninceBlock;
+				...e,
+				veriYuklenince: _e => {
+					let { gridPart } = _e
+					delete gridPart.bindingCompleteBlock
+					if (triggered)
+						return
+					
+					triggered = true
 					MQTest.testIslemleriIstendi({ ...e, ..._e, forcedRecs: gridPart.boundRecs })
 				}
 			})

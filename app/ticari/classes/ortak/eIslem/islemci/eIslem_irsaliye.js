@@ -14,8 +14,8 @@ class EIslIrsaliye extends EIslTicariOrtak {
 	async onKontrol_ara(e) {
 		await super.onKontrol_ara(e)
 	}
-	static eFisBaslikVeDetayStm_araSentDuzenle({ psTip, fisTable, harTable, uni, sent }) {
-		super.eFisBaslikVeDetayStm_araSentDuzenle(...arguments)
+	static eFisBaslikVeDetayStm_araSentDuzenle({ fisTable, harTable, uni, sent }) {
+		// super.eFisBaslikVeDetayStm_araSentDuzenle(...arguments)
 		let { sqlEmpty } = Hareketci_UniBilgi.ortakArgs
 		let { isyeri: { unvan: isyUnvan = '', vknTckn: isyVknTckn, yore: isyYore, ilAdi: isyIlAdi } } = app.params
 		let c = {
@@ -60,11 +60,11 @@ class EIslIrsaliye extends EIslTicariOrtak {
 		
 		let { where: wh, sahalar } = sent
 		sent
-			.fromIliski('carsevkadres sadr', 'fis.xadreskod = sadr.kod')
-			.fromIliski('caril sil', 'sadr.ilkod = sil.kod')                         // cil bağlantısı üstte var
-			.fromIliski('aracsofor sof1', 'fis.tasimasoforkod = sof1.kod')
-			.fromIliski('aracsofor sof2', 'fis.tasimasoforkod2 = sof2.kod')
-			.fromIliski('arac arc', 'fis.tasimaarackod = arc.kod')
+			.leftJoin('fis', 'carsevkadres sadr', 'fis.xadreskod = sadr.kod')
+			.leftJoin('sadr', 'caril sil', 'sadr.ilkod = sil.kod')
+			.leftJoin('fis', 'aracsofor sof1', 'fis.tasimasoforkod = sof1.kod')
+			.leftJoin('fis', 'aracsofor sof2', 'fis.tasimasoforkod2 = sof2.kod')
+			.leftJoin('fis', 'arac arc', 'fis.tasimaarackod = arc.kod')
 			// .fromIliski('naksekli nak', 'fis.nakseklikod = nak.kod')              // ust seviyede var
 			.leftJoin('fis', 'tasima tas1', 'fis.tasimasayac = tas1.kaysayac')
 			.leftJoin('fis', 'tasima tas2', 'fis.tasima2sayac = tas2.kaysayac')
@@ -167,6 +167,7 @@ class EIslIrsaliye extends EIslTicariOrtak {
 			]
 		])
 	}
+
 	
 	xmlGetProfileID(e) { return 'TEMELIRSALIYE' }
 	xmlGetBelgeTipKodu(e) { return 'SEVK' }

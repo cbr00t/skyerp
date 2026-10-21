@@ -1,13 +1,18 @@
 class GelenEIslemFiltre extends EIslemFiltre {
     static { globalThis[this.name] = this; this._key2Class[this.name] = this }
-	getQueryStm(e) {
-		e = e || {}; const stm = new MQStm(), _e = $.extend({}, e, { stm, sent: stm.sent })
-		this.queryStmDuzenle(_e); return _e.stm
+	static get gelenmi() { return true }
+	
+	getQueryStm(e = {}) {
+		let stm = new MQStm()
+		let _e = { ...e, stm, sent: stm.sent }
+		this.queryStmDuzenle(_e)
+		return _e.stm
 	}
-	queryStmDuzenle(e) {
-		e = e || {}; super.queryStmDuzenle(e);
-		const wh = this.getTBWhereClause(e); if (!wh) { return null }
-		const {eConf} = this, {stm, sent} = e;
+	queryStmDuzenle(e = {}) {
+		super.queryStmDuzenle(e)
+		const wh = this.getTBWhereClause(e)
+		if (!wh) { return null }
+		const {eConf} = this, {stm, sent} = e
 		sent.fromAdd('efgecicialfatfis fis');
 		sent.fromIliski('carmst car', 'fis.mustkod = car.must');
 		sent.cari2IlBagla();

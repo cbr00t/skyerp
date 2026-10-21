@@ -10,40 +10,33 @@ class EIslFaturaArsivOrtak extends EIslTicariOrtak {
 		promises.push(
 			yukleIslemi({
 				stm: e => this.getOncekiIrsTSNStm(e),
-				seviyelendirici: ({ recs: source }) => seviyelendirAttrGruplari({ source, attrGruplari: [['_table', 'id']] }),
+				seviyelendirici: ({ recs: source }) => seviyelendirAttrGruplari({ source, attrGruplari: [['pstip', 'fissayac']] }),
 				yukleyici: ({ eFis, detaylar: recs, ...e }) => eFis.oncekiIrsTSNYukle({ ...e, recs })
 			})
 		)
 	}
-	static getOncekiIrsTSNStm({ table2IDListe } = {}) {
+	static getOncekiIrsTSNStm({ ps2SayacListe } = {}) {
 		let uni = new MQUnionAll()
 		let stm = new MQStm({ sent: uni })
 		let { orderBy } = stm
 		;{
-			let fisTable = 'piffis'
-			let idListe = table2IDListe[fisTable]
-			if (!empty(idListe)) {
-				let sent = new MQSent(), { where: wh, sahalar } = sent
-				sent
-					.fromAdd('irs2fat don')
-					.innerJoin('don', 'piffis irs', 'don.irssayac = irs.kaysayac')
-					.innerJoin('don', 'piffis fat', 'don.fatsayac = fat.kaysayac')
-				wh.inDizi(idListe, 'fat.id')
-				sahalar.add(...[
-					`${fisTable.sqlServerDegeri()} _table`,
-					'fat.id', 'irs.id irsID',
-					'irs.tarih', 'irs.fisnox nox'
-				])
+			let { P: fisSayaclar } = ps2SayacListe
+			if (fisSayaclar) {
+				let sent = new MQSent({
+					from: 'irs2fat don', where: { inDizi: fisSayaclar, saha: 'don.fatsayac' },
+					fromIliskiler: [ { from: 'piffis irs', iliski: 'don.irssayac = irs.kaysayac' } ],
+					sahalar: [`'P' pstip`, `don.fatsayac fissayac`, 'irs.tarih', 'irs.fisnox nox']
+				})
 				uni.add(sent)
 			}
 		}
 		if (empty(uni.liste))
 			return null
 		
-		orderBy.addAll('_table', 'id', 'tarih', 'nox')
+		orderBy.addAll('pstip', 'fissayac', 'tarih', 'nox')
 		return stm
 	}
-	oncekiIrsTSNYukle({ recs: d } = {}) {
+	oncekiIrsTSNYukle({ _detaylar: d } = {}) {
 		this.baslik.oncekiIrsTSNListe = d
 	}
 	
@@ -78,7 +71,7 @@ class EIslFaturaArsivOrtak extends EIslTicariOrtak {
 		let istisnaTipSet = asSet(['IS', 'KI', 'OM'])
 		if (istisnaKod) {
 			;detaylar.forEach(d => {
-				let { kayitTipi: tip, detkdvekvergitipi: vergiTipi } = d
+				let { kayittipi: tip, detkdvekvergitipi: vergiTipi } = d
 				if (detayTipSet[tip] && !vergiTipi) {
 					d.detkdvekvergitipi = hDetIstTip
 					d.detistisnakod = istisnaKod
@@ -114,7 +107,7 @@ class EIslFaturaArsivOrtak extends EIslTicariOrtak {
 	}
 	xmlGetBelgeTipKodu(e) {
 		let { baslik, detaylar } = this
-		let { alimIademi, fisTipi, fisAyrim: ayrimTipi, eYontem } = baslik
+		let { alimIademi, fistipi: fisTipi, ayrimtipi: ayrimTipi, eYontem } = baslik
 
 		if (alimIademi) 
 			return fisTipi == 'SR' ? 'TEVKIFATIADE' : 'IADE'
@@ -151,7 +144,7 @@ class EIslFaturaArsivOrtak extends EIslTicariOrtak {
 		return super.xmlGetBelgeTipKodu(e)
 	}
 
-	async xmlDuzenle_docRefs_ilk(e) {
+	async xmlDuzenle_docRefs_ilk({ xw }) {
 		await super.xmlDuzenle_docRefs_ilk(...arguments)
 		await this.xmlDuzenle_docRefs_sgk(e)
 	}

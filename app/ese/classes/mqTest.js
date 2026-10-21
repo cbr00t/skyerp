@@ -18,24 +18,46 @@ class MQTest extends MQGuidOrtak {
 	static get uiState2Adi() { let {_uiState2Adi: result} = this; if (result == null) { let e = { liste: [] }; this.uiState2AdiDuzenle(e); result = this._uiState2Adi = e.liste } return result }
 	static get uiStates() { let {_uiStates: result} = this; if (result == null) { result = this._uiStates = Object.keys(this.uiState2Adi) } return result }
 
-	constructor(e) {
-		e = e || {}; super(e); let {tip} = this.class, {belirtec, sablonId} = e; $.extend(this, { belirtec, sablonId });
-		if (tip && !this.sablonId) { let {sablon} = app.params.ese || {}; this.sablonId = sablon?.[tip]?.[0]?.sablonId }
+	constructor(e = {}) {
+		super(e)
+		let { tip } = this.class
+		let { belirtec, sablonId } = e
+		extend(this, { belirtec, sablonId })
+		if (tip && !this.sablonId) {
+			let { sablon } = app.params.ese ?? {}
+			this.sablonId = sablon?.[tip]?.[0]?.sablonId
+		}
 	}
-	static getClass(e) { let tip = typeof e == 'object' ? e.tip : e; return this.tip2Sinif[tip] }
-	static newFor(e) { if (typeof e != 'object') { e = { tip: e } } let cls = this.getClass(e); return cls ? new cls(e) : null }
-	static pTanimDuzenle(e) {
-		let {tip} = this, {maxSecenekSayisi} = MQSablonAnketYanit; super.pTanimDuzenle(e); let {pTanim} = e;
-		$.extend(pTanim, {
+	static getClass(e = {}) {
+		let tip = isObject(e) ? e.tip : e
+		return this.tip2Sinif[tip]
+	}
+	static newFor(e = {}) {
+		e = isObject(e) ? e : { tip: e }
+		let cls = this.getClass(e)
+		return cls ? new cls(e) : null
+	}
+	static pTanimDuzenle({ pTanim }) {
+		let { tip } = this
+		let { maxSecenekSayisi } = MQSablonAnketYanit
+		let { ese = {} } = app.params
+		
+		super.pTanimDuzenle(...arguments)
+		extend(pTanim, {
 			muayeneId: new PInstGuid('muayeneid'), hastaId: new PInstGuid('hastaid'), ts: new PInstDate('tarihsaat'),
 			dehbVarmi: new PInstBitBool('bdehbvarmi'), dehbVarmi_klinik: new PInstBitBool('bdehbvarmiklinik'), 
 			uygulanmaYeri: new PInstTekSecim('uygulanmayeri', MQTestUygulanmaYeri), onayKodu: new PInstNum('onaykodu'),
 			aktifYas: new PInstNum('aktifyas'), cinsiyet: new PInstTekSecim('cinsiyet', Cinsiyet),
 			notlar: new PInstStr('notlar')
 			/*deSkor: new PInstNum('deskor'), hiSkor: new PInstNum('hiskor'), deBelirtiSayi: new PInstNum('debelirtisayi'), hiBelirtiSayi: new PInstNum('hibelirtisayi')*/
-		});
-		for (let {tip, belirtec, prefix, etiket} of app.params.ese) {
-			if (tip == 'anket') { for (let key of ['Skor', 'BelirtiSayi']) { let prefix = belirtec + key; pTanim[prefix] = new PInstNum(prefix.toLowerCase()) } }
+		})
+		for (let { tip, belirtec, prefix, etiket } of ese) {
+			if (tip == 'anket') {
+				for (let key of ['Skor', 'BelirtiSayi']) {
+					let prefix = belirtec + key;
+					pTanim[prefix] = new PInstNum(prefix.toLowerCase())
+				}
+			}
 			pTanim[`${prefix}Yapildimi`] = new PInstBitBool(`b${prefix}yapildi`)
 		}
 	}
@@ -72,13 +94,14 @@ class MQTest extends MQGuidOrtak {
 		for (let key of ['deskor', 'debelirtisayi']) { if (belirtec == key) { result.push('anket', 'anket-de') } }
 		for (let key of ['hiskor', 'hibelirtisayi']) { if (belirtec == key) { result.push('anket', 'anket-hi') } }
 	}
-	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); let {tableAlias: alias} = this, {dev} = config;
-		let {liste} = e; liste.push(...[
-			(dev ? new GridKolon({ belirtec: 'muayeneid', text: 'Muayene ID', genislikCh: 40 }) : null),
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		let { tableAlias: alias } = this, { dev } = config
+		liste.push(...[
+			( dev ? new GridKolon({ belirtec: 'muayeneid', text: 'Muayene ID', genislikCh: 40 }) : null ),
 			new GridKolon({ belirtec: 'tarih', text: 'Tarih', genislikCh: 11, sql: `${alias}.tarihsaat` }).tipDate(),
 			new GridKolon({ belirtec: 'saat', text: 'Saat', genislikCh: 9, sql: `${alias}.tarihsaat` }).tipTime_noSecs().alignCenter()
-		].filter(x => !!x));
+		].filter(Boolean))
 		for (let {prefix, kisaEtiket, sablonId} of app.params.ese) {
 			liste.push(
 				new GridKolon({ belirtec: `b${prefix}yapildi`, text: `${kisaEtiket}?`, genislikCh: 10, filterType: 'checkedlist' }).tipBool()
@@ -106,11 +129,11 @@ class MQTest extends MQGuidOrtak {
 			new GridKolon({ belirtec: 'fisno', text: 'No', genislikCh: 17, sql: 'mua.fisno' }).tipNumerik(),
 			new GridKolon({ belirtec: 'uygulanmayeritext', text: 'Uygulanma Yeri', genislikCh: 15, sql: MQTestUygulanmaYeri.getClause(`${alias}.uygulanmayeri`) }),
 			new GridKolon({ belirtec: 'notlar', text: 'Notlar', genislikCh: 100 })
-		].filter(x => !!x))
+		].filter(Boolean))
 	}
-	static loadServerData_queryDuzenle({ stm, sent, sent: { where: wh, sahalar } }) {
+	static loadServerData_queryDuzenle({ tekilOku, stm: { orderBy }, sent, sent: { where: wh, sahalar } }) {
 		super.loadServerData_queryDuzenle(...arguments)
-		let {tip, tableAlias: alias, sablonSinif, pTanim} = this
+		let { tip, tableAlias: alias, sablonSinif, pTanim } = this
 		sent.leftJoin({ alias, from: 'esehasta has', on: `${alias}.hastaid = has.id` })
 			.leftJoin({ alias, from: 'esemuayene mua', on: `${alias}.muayeneid = mua.id` })
 			.leftJoin({ alias: 'mua', from: 'esedoktor dok', on: 'mua.doktorid = dok.id' });
@@ -118,20 +141,26 @@ class MQTest extends MQGuidOrtak {
 			`${alias}.muayeneid`, `${alias}.hastaid`, 'has.aciklama hastaadi',
 			`${alias}.uygulanmayeri`, `${alias}.onaykodu`, `${alias}.cinsiyet`, 'has.email',
 			'mua.doktorid', 'dok.aciklama doktoradi'
-		);
-		for (let {prefix} of app.params.ese)
+		)
+		
+		for (let { prefix } of app.params.ese)
 			sahalar.add(`b${prefix}yapildi`)
-		if (e.tekilOku)
-			sahalar.liste = sahalar.liste.filter(({ deger }) => !deger.includes('SUM('))
+		
+		if (tekilOku) {
+			sahalar.liste = sahalar.liste.filter(({ deger: v }) =>
+				!v.includes('SUM('))
+		}
 		else {
 			sent.groupByOlustur()
-			if (empty(stm.orderBy.liste))
-				stm.orderBy.liste = [`${alias}.tarihsaat DESC`]
+			if (empty(orderBy.liste))
+				orderBy.liste = [`${alias}.tarihsaat DESC`]
 		}
 	}
 	static islemTuslariDuzenle_listeEkrani(e) {
-		super.islemTuslariDuzenle_listeEkrani(e); let removeIdSet = asSet(['yeni', 'kopya']);
-		let {liste} = e; liste = e.liste = liste.filter(item => !removeIdSet[item.id]);
+		super.islemTuslariDuzenle_listeEkrani(e)
+		let removeIdSet = asSet(['yeni', 'kopya'])
+		let liste = e.liste = e.liste
+			.filter(item => !removeIdSet[item.id])
 		liste.push(
 			{ id: 'testIslemleri', text: 'TEST', handler: _e => this.testIslemleriIstendi({ ...e, ..._e, id: _e.event.currentTarget.id }) },
 			{ id: 'eMailGonder', text: 'e-Mail', handler: _e => this.eMailIslemleriIstendi({ ...e, ..._e, id: _e.event.currentTarget.id }) }
@@ -139,9 +168,9 @@ class MQTest extends MQGuidOrtak {
 	}
 	static async rootFormBuilderDuzenle(e) {
 		await super.rootFormBuilderDuzenle(e)
-		let {aliasVeNokta, idSaha} = this
-		let {rootBuilder: rfb, tanimFormBuilder: tanimForm, inst, inst: { id }} = e
-		let {dev} = config, fbd_testSonuc
+		let { aliasVeNokta, idSaha } = this
+		let { rootBuilder: rfb, tanimFormBuilder: tanimForm, inst, inst: { id } } = e
+		let { dev } = config, fbd_testSonuc
 		let rec = (await this.loadServerData({ ozelQueryDuzenle: ({ sent }) =>
 			sent.where.degerAta(id, `${aliasVeNokta}${idSaha}`) }))?.[0]
 		let getLayout_testSonuc = () => {
@@ -161,7 +190,7 @@ class MQTest extends MQGuidOrtak {
 			return iframe
 		}
 		/*if (dev) { form.addModelKullan('sablonId', 'Şablon').dropDown().kodsuz().setMFSinif(this.sablonSinif) }*/
-		{
+		;{
 			let form = tanimForm.addFormWithParent().altAlta().addStyle(() => `$elementCSS { margin-top: 40px !important }`)
 			let altForm = form.addFormWithParent().yanYana()
 			for (let {prefix, etiket} of app.params.ese) {
@@ -170,7 +199,7 @@ class MQTest extends MQGuidOrtak {
 					.addStyle(`$elementCSS { margin-top: 10px !important }`)
 			}
 		}
-		{
+		;{
 			let ustForm = tanimForm.addFormWithParent().yanYana()
 			{
 				let form = ustForm.addFormWithParent().altAlta()
@@ -619,43 +648,93 @@ class MQTest extends MQGuidOrtak {
 	testUI_initLayout_ara(e) { }
 	testUI_kaydetOncesi(e) { } testUI_kaydet(e) { } testUI_kaydetSonrasi(e) { }
 }
+
 class MQTestCPT extends MQTest {
 	static { globalThis[this.name] = this; this._key2Class[this.name] = this } static get intervalKatSayi() { return config.dev ? .5: 1 }
 	static get sinifAdi() { return 'CPT Test' }  static get testSonucSinif() { return TestSonucCPT } static get testGenelSonucSinif() { return TestGenelSonucCPT }
 	static get kodListeTipi() { return 'TSTCPT' } static get sablonSinif() { return MQSablonCPT }
 	static get testUyariText() { return `Bu testi <span class="orangered">Çocuk</span> uygulayacaktır` }
-	testUI_setValues(e) {
-		super.testUI_setValues(e); let {rec} = e; if (!rec) { return }
-		for (let key of ['gecerliResimSeq', /*'grupTekrarSayisi',*/ 'baslamaOncesiBostaMS', 'resimGosterimMS', 'resimBostaMS']) {
-			let value = rec[key]; if (value !== undefined) { this[key] = value } }
-		this.baslamaOncesiBostaMS = rec.baslamaOncesiMS
+	
+	testUI_setValues({ rec }) {
+		super.testUI_setValues(...arguments)
+		if (!rec)
+			return
+		
+		;['gecerliResimSeq', /*'grupTekrarSayisi',*/ 'baslamaOncesiBostaMS', 'resimGosterimMS', 'resimBostaMS'].forEach(k => {
+			let v = rec[k]
+			if (v !== undefined)
+				this[k] = v
+		})
+		this.baslamaOncesiBostaMS ??= rec.baslamaOncesiMS
+		;['baslamaOncesiBostaMS', 'resimGosterimMS'].forEach(k =>
+			this[k] ||= 500)
+		this.resimBostaMS ||= 0
 	}
 	async testUI_initLayout_ara(e) {   /* gecerliResimSeq: Bu seq'daki resim görünür olunca ve tıklanınca DOĞRU kabul et */
-		await super.testUI_initLayout_ara(e); let {tip, intervalKatSayi, sablonSinif, testUyariText} = this.class, {parentPart} = e, {state, content} = parentPart;
-		let {id: testId, detaylar, genelSonuc, gecerliResimSeq, baslamaOncesiBostaMS, resimGosterimMS, resimBostaMS} = this;
-		baslamaOncesiBostaMS *= intervalKatSayi; resimGosterimMS *= intervalKatSayi; resimBostaMS *= intervalKatSayi;
-		let startCounter = 3, orjUrls = detaylar.map(det => det.resimLink), urls = [...orjUrls], imageCount = urls.length, keyDownHandler;
-		let {gecerliTekrarSayi, digerTekrarSayi, toplamTekrarSayi} = sablonSinif, gecerliResimInd = gecerliResimSeq - 1;
+		await super.testUI_initLayout_ara(e)
+		let { dev, session, debug } = config, { isAdmin: admin } = session ?? {}
+		let { tip, intervalKatSayi, sablonSinif, testUyariText } = this.class
+		let { parentPart } = e, { state, content } = parentPart
+		let { id: testId, detaylar, genelSonuc, gecerliResimSeq, baslamaOncesiBostaMS, resimGosterimMS, resimBostaMS } = this
+		let erkenYanitMS = 300
+		let gecYanitMS = floor(resimBostaMS / 2)
+		//let randomizeTime = debug
+		let randomizeTime = false
+		
+		baslamaOncesiBostaMS *= intervalKatSayi
+		resimGosterimMS *= intervalKatSayi
+		resimBostaMS *= intervalKatSayi
+		erkenYanitMS *= intervalKatSayi
+		gecYanitMS *= intervalKatSayi
+		
+		let { gecerliTekrarSayi, digerTekrarSayi, toplamTekrarSayi } = sablonSinif
+		let startCounter = 3, orjUrls = detaylar.map(r => r.resimLink)
+		let urls = [...orjUrls]
+		let { length: imageCount } = urls
+		let gecerliResimInd = gecerliResimSeq - 1
 		let shuffleOzel = _urls => {
-			let secilenUrl = orjUrls[gecerliResimInd], urls = [];
-			for (let i = 0; i < gecerliTekrarSayi; i++) { urls.push(secilenUrl) }
+			let secilenUrl = orjUrls[gecerliResimInd]
+			let urls = []
+			for (let i = 0; i < gecerliTekrarSayi; i++)
+				urls.push(secilenUrl)
+			
 			while (urls.length < toplamTekrarSayi) {
-				let rndInd; do { rndInd = Math.round(Math.random() * 100000) % orjUrls.length } while (rndInd == gecerliResimInd);
+				let rndInd
+				do { rndInd = round(random() * 100000) % orjUrls.length }
+					while (rndInd == gecerliResimInd)
 				urls.push(orjUrls[rndInd])
-			} urls = shuffle(urls); imageCount = urls.length;
+			}
+			urls = shuffle(urls)
+			imageCount = urls.length
 			return urls
 		}
+
+		let keyDownHandler, elmDebug
 		switch (state) {
-			case 'home':
-				let promises = []; for (let i = 0; i < orjUrls.length; i++) { promises.push(new $.Deferred()) }
-				let elmContainer = $(`<div class="prefetch-parent" hidden/>`); for (let i = 0; i < orjUrls.length; i++) {
-					let img = $(`<img class="prefetch" data-index="${i}" src="${urls[i]}"/>`); img.appendTo(elmContainer);
-					img.on('load', evt => promises[asInteger(evt.currentTarget.dataset.index)].resolve({ result: true, evt }));
+			
+			case 'home': {
+				let promises = []
+				for (let i = 0; i < orjUrls.length; i++)
+					promises.push(defer())
+				
+				let elmContainer = $(`<div class="prefetch-parent" hidden/>`)
+				for (let i = 0; i < orjUrls.length; i++) {
+					let img = $(`<img class="prefetch" data-index="${i}" src="${urls[i]}"/>`)
+					img.appendTo(elmContainer)
+					img.on('load', evt => promises[asInteger(evt.currentTarget.dataset.index)].resolve({ result: true, evt }))
 					img.on('error', evt => promises[asInteger(evt.currentTarget.dataset.index)].resolve({ result: false, evt }))
 				}
-				elmContainer.appendTo(content); let imgStates = { load: 0, error: 0 }, results = await Promise.all(promises); elmContainer.remove();
-				for (let rec of results) { imgStates[rec.result ? 'load' : 'error']++ }
-				let rightWidth = 250, infoHTML = (
+				elmContainer.appendTo(content)
+				
+				let imgStates = { load: 0, error: 0 }
+				let results = await promiseAll(promises)
+				elmContainer.remove()
+				
+				;results.forEach(r =>
+					imgStates[r.result ? 'load' : 'error']++)
+				
+				let rightWidth = 250
+				let infoHTML = (
 					`<p>Biraz sonra Sürekli Performans Testine başlayacaksınız.</p>` +
 					`<p>Bu testin amacı, alfabenin sadece belli bir harfine cevap vermektir.</p>` +
 					`<p>Alfabenin çeşitli harfleri kısa sürelerle ekranda gözükecektir.<br/>` +
@@ -664,78 +743,446 @@ class MQTestCPT extends MQTest {
 					`<p>Hazırsanız <b class="royalblue">'İşleme Başla'</b> tuşuna basarak testi başlatınız.</p>` +
 					`<p style="font-weight: bold; font-size: 180%; margin-top: 30px">${testUyariText || ''}</p>` +
 					`<div style="margin-bottom: 50px"></div>`
-				);
-				$(`<div class="info float-left wrap-pretty" style="width: calc(var(--full) - (${rightWidth}px + 5px))">${infoHTML}</div>`).appendTo(content);
+				)
+				$(`<div class="info float-left wrap-pretty" style="width: calc(var(--full) - (${rightWidth}px + 5px))">${infoHTML}</div>`
+					).appendTo(content)
 				$(`<div class="target-img-parent float-right full-height" style="width: ${rightWidth}px">` +
-					  `Şu resme tıklayınız: <div class="target-img full-wh" style="margin-left: 100px; background-image: url(${orjUrls[gecerliResimInd]})"></div>`).appendTo(content)
+					  `Şu resme tıklayınız: <div class="target-img full-wh" style="margin-left: 100px; background-image: url(${orjUrls[gecerliResimInd]})"></div>`
+					).appendTo(content)
 				/*if (imgStates.error) { hConfirm(`<b>UYARI: </b><p/><div class="darkred"><b>${imgStates.error} adet</b> resim yüklenemedi!</div>`, parentPart.title); return }*/
 				break
-			case 'test':
-				let {testSonucSinif} = this.class;
-				let grupNo = 1, testSonuc = genelSonuc.grupNo2Bilgi[grupNo] = genelSonuc.grupNo2Bilgi[grupNo] || new testSonucSinif({ tip, testId });
-				let donusum = { dogru: gecerliTekrarSayi, yanlis: digerTekrarSayi };
-				for (let [parentKey, toplamSayi] of Object.entries(donusum)) {
-					testSonuc[parentKey].toplamSayi = genelSonuc[parentKey].toplamSayi = toplamSayi }
-				let gecerliResimURL, index = -1, resimGosterimTime, ilkTiklamaTime, hInternal;
-				/*parentPart.headerText = `Şu resme tıklayınız: <img class="target-img" src="${orjUrls[gecerliResimInd]}">`;*/
-				let img = $(`<div class="resim"/>`); img.appendTo(content);
-				let clearFlag = false, promise_wait = new $.Deferred();
-				let loopProc = () => {
-					if (startCounter <= 0 || parentPart.isDestroyed || parentPart.state != 'test') { clearInterval(this._hInterval); delete this._hInterval; promise_wait?.resolve(); return false }
-					img.html(clearFlag ? '' : `<div class="veri full-wh">${startCounter--}</div>`); clearFlag = !clearFlag
-				}; this._hInterval = setInterval(loopProc, 1000 * intervalKatSayi); await promise_wait; img.html('');
-				let clickHandler = evt => {
-					if (!clearFlag || ilkTiklamaTime || !resimGosterimTime) { return }
-					ilkTiklamaTime = now();
-					let dogrumu = urls[index] == gecerliResimURL;
-					let cssClicked = `clicked-${dogrumu ? 'dogru' : 'yanlis'}`; img.removeClass('clicked-dogru clicked-yanlis'); setTimeout(() => img.addClass(cssClicked), 1);
-					let tiklamaMSFarki = (ilkTiklamaTime - resimGosterimTime);
-					testSonuc.tiklamaEkle(dogrumu, tiklamaMSFarki); if (dogrumu) { genelSonuc.secilmeyenDogruSayi-- }
-				}; img.on('mousedown', clickHandler); img.on('touchstart', clickHandler);
-				keyDownHandler = evt => {
-					if (parentPart.isDestroyed || parentPart.state != 'test') { $('body').off('keydown', keyDownHandler); return }
-					let key = evt.key?.toLowerCase(); if (key == ' ' || key == 'enter' || key == 'linefeed') { clickHandler(evt) }
-				}; $('body').off('keydown', keyDownHandler).on('keydown', keyDownHandler);
-				let ilkmi = true, intervalTime; clearFlag = true;
-				loopProc = async () => {
-					if (parentPart.isDestroyed || parentPart.state != 'test') { clearInterval(this._hInterval); delete this._hInterval; return false }
-					let farkMS = now() - intervalTime;
-					if (clearFlag) {
-						if (farkMS < resimGosterimMS) { return true }
-						img.css('background-image', '')
-					}
+			}
+			
+			case 'test': {
+				// Önceki çalışmanın zamanlayıcısı ve dinleyicileri bu çalışmaya taşınmasın.
+				this._cptCleanup?.()
+				clearInterval(this._hInterval)
+				delete this._hInterval
+				let gecerliResimURL = orjUrls[gecerliResimInd]
+				if (!gecerliResimURL || (digerTekrarSayi > 0 && !orjUrls.some(url => url && url != gecerliResimURL)))
+					throw new Error('CPT için geçerli hedef ve farklı bir çeldirici resim gereklidir')
+				
+				if (![baslamaOncesiBostaMS, resimBostaMS].every(ms => Number.isFinite(ms) && ms >= 0) ||
+					!Number.isFinite(resimGosterimMS) || resimGosterimMS <= 0)
+					throw new Error('CPT süreleri geçerli olmalı; resim gösterim süresi sıfırdan büyük olmalıdır')
+				
+				urls = shuffleOzel(urls)
+				imageCount = urls.length
+
+				let { testSonucSinif } = this.class
+				let grupNo = 1
+				let testSonuc = genelSonuc.grupNo2Bilgi[grupNo] = new testSonucSinif({ tip, testId })
+				let hedefSayi = urls.filter(url => url == gecerliResimURL).length
+				for (let [key, toplamSayi] of entries({ dogru: hedefSayi, yanlis: imageCount - hedefSayi })) {
+					testSonuc[key].toplamSayi = toplamSayi
+					// 'end' adımı grup toplamlarını zaten genel sonuca ekliyor.
+					genelSonuc[key].toplamSayi = 0
+				}
+				genelSonuc.tumSayi = genelSonuc.secilmeyenDogruSayi = 0
+				if (admin && debug) {
+					let w_etk = '80px', w_veri = '130px'
+					let mb = '.5rem'
+					elmDebug = $(
+						`<div
+								class="debug-info"
+								style="position: absolute; top: 2rem; left: 2rem; width: 350px; padding: .5rem 1rem; box-shadow: 0 0 5px 0 #eee; z-index: 1010"
+						 >
+							<div class="_row flex-row dogru" style="margin-bottom: ${mb}">
+								<div class="etiket gray" style="width: ${w_etk}">Doğru:</div>
+								<div class="veri right bold forestgreen" style="width: ${w_veri}">-</div>
+							</div>
+							<div class="_row flex-row yanlis" style="margin-bottom: ${mb}">
+								<div class="etiket gray" style="width: ${w_etk}">Yanlış:</div>
+								<div class="veri right bold firebrick" style="width: ${w_veri}">-</div>
+							</div>
+							<div class="_row flex-row click" style="margin-bottom: ${mb}">
+								<div class="etiket gray" style="width: ${w_etk}">Tıklama:</div>
+								<div class="veri right bold royalblue" style="width: ${w_veri}">-</div>
+							</div>
+							<div class="_row flex-row kalan" style="margin-bottom: ${mb}">
+								<div class="etiket gray" style="width: ${w_etk}">Kalan:</div>
+								<div class="veri right bold" style="width: ${w_veri}">${imageCount}</div>
+							</div>
+						</div>`
+					).appendTo(content)
+				}
+				
+				let img = $(`<div class="resim"/>`).appendTo(content), imgNode = img[0]
+				img.css('touch-action', 'none')
+				let index = -1, clickCount = 0
+				let denemeler = [], gecerliDeneme = null
+				let bekleyenYanitlar = []
+				let phase = 'countdown'
+				let deadline = performance.now() + 1000 * intervalKatSayi
+				let stopped = false, timer, frame
+				let basiliTuslar = new Set()
+				
+				let olcumPaneli
+				this._cptTiming = []
+				if (elmDebug) {
+					olcumPaneli = $(
+						`<div
+							class="timing"
+							style="font-size: 85%; width: 100%; white-space: pre-line;
+								   margin-top: .5rem; border-top: 1px solid #666; padding-top: .5rem; pointer-events: none"
+						/>`
+					).appendTo(elmDebug)
+				}
+				
+				let pointerEvent = typeof window.PointerEvent == 'function' ? 'pointerdown' : null
+				let active = () => !parentPart.isDestroyed && parentPart.state == 'test'
+				
+				let cleanup = () => {
+					if (stopped)
+						return
+					
+					stopped = true
+					clearInterval(timer)
+					cancelAnimationFrame(frame)
+					if (this._hInterval === timer)
+						delete this._hInterval
+					
+					document.removeEventListener('keydown', keyDownHandler, true)
+					document.removeEventListener('keyup', keyUpHandler, true)
+					
+					if (pointerEvent)
+						imgNode.removeEventListener(pointerEvent, pointerHandler, true)
 					else {
-						if (farkMS < resimBostaMS - 50) { return true }
-						if (ilkmi) { ilkmi = false }
-						let gecerliResimmi = urls[++index] == gecerliResimURL;
-						genelSonuc.tumSayi++; if (gecerliResimmi) { genelSonuc.secilmeyenDogruSayi++ }
-						let cevrimBittimi = index >= imageCount - 1;
-						if (cevrimBittimi) { parentPart.nextPage(); return false }
-						/*parentPart.progressText = (`<div class="flex-row">
-							<div class="item"><span class="ek-bilgi">Resim: &nbsp;</span><span class="veri white">${index + 1} / ${imageCount}</span></div>
-						</div>`);*/
-						img.css('background-image', `url(${urls[index]})`);
-						resimGosterimTime = now(); ilkTiklamaTime = null
+						imgNode.removeEventListener('mousedown', pointerHandler, true)
+						imgNode.removeEventListener('touchstart', pointerHandler, true)
 					}
-					clearFlag = !clearFlag; intervalTime = now();
-					return true
-				};
-				gecerliResimURL = urls[gecerliResimSeq - 1]; urls = shuffleOzel(urls); intervalTime = now();
-				this._hInterval = setInterval(loopProc, 10);
+					
+					if (this._cptCleanup === cleanup)
+						delete this._cptCleanup
+				}
+				
+				let olayZamani = evt => {
+					let time = evt?.timeStamp, simdi = performance.now()
+					if (!Number.isFinite(time) || time <= 0)
+						return simdi
+					
+					// Eski tarayıcıların epoch tabanlı olay saatini monoton saate çevir.
+					if (time > 1e12)
+						time -= performance.timeOrigin
+					
+					return Number.isFinite(time) && time <= simdi ? time : simdi
+				}
+				
+				let taniYaz = (evt, sonuc, deneme) => {
+					if (!olcumPaneli)
+						return
+					
+					let time = olayZamani(evt)
+					let simdi = performance.now()
+					let secilenDeneme = deneme ?? gecerliDeneme
+					let bilgi = {
+						tiklama: clickCount, tur: evt.type ?? 'tampon', faz: phase,
+						olayMS: time, islemeMS: simdi, beklemeMS: simdi - time,
+						resimNo: secilenDeneme ? denemeler.indexOf(secilenDeneme) + 1 : null,
+						baslangicaGoreMS: secilenDeneme ? time - secilenDeneme.baslangic : null,
+						sonuc
+					}
+
+					let { _cptTiming } = this
+					_cptTiming.push(bilgi)
+					if (_cptTiming.length > 500)
+						_cptTiming.shift()
+					
+					let { baslangicaGoreMS: fark } = bilgi
+					olcumPaneli.html([
+						`<span class="darkgray">Giriş:</span> <b>${bilgi.tur}</b> <span class="darkestgray">|</span> <span class="darkgray">Aşama:</span> <b>${phase}</b>`,
+						`<span class="darkgray">${evt.type ? 'Olay → işleme' : 'Tampon bekleme'}:</span> <b>${bilgi.beklemeMS.toFixed(1)}</b> ms`,
+						`<span class="darkgray">Resim: ${bilgi.resimNo ?? '-'}</span> <span class="darkestgray">|</span> <span class="darkgray">Başlangıca göre:</span> <b>${fark == null ? '-' : (fark >= 0 ? '+' : '') + fark.toFixed(1) + '</b> ms'}`,
+						`<span class="gray" style="margin-right: .3rem">Sonuç:</span> <b class="cadetblue">${sonuc}</b>`
+					].join('\n'))
+				}
+				
+				let yanitEkle = evt => {
+					if (stopped || !active())
+						return
+					
+					let time = olayZamani(evt)
+					let deneme
+					// Kuyrukta geciken giriş, işlendiği resme değil oluştuğu resme aittir.
+					for (let i = denemeler.length - 1; i >= 0; i--) {
+						let aday = denemeler[i]
+						if (time >= aday.baslangic && (aday.bitis == null || time < aday.bitis)) {
+							deneme = aday
+							break
+						}
+					}
+					
+					// Öncelik: görünür resim, önceki resmin geç yanıtı, sonraki resmin erken yanıtı.
+					if (!deneme && gecYanitMS > 0) {
+						for (let i = denemeler.length - 1; i >= 0; i--) {
+							let aday = denemeler[i], sonrakiBaslangic = denemeler[i + 1]?.baslangic ?? Infinity
+							if (aday.bitis != null && time >= aday.bitis && time <= aday.bitis + gecYanitMS && time < sonrakiBaslangic) {
+								deneme = aday
+								break
+							}
+						}
+					}
+					if (!deneme) {
+						// Önce gerçek görünür aralık aranır; erken pencere önceki resmin yanıtını çalmaz.
+						for (let i = denemeler.length - 1; i >= 0; i--) {
+							let aday = denemeler[i], oncekiBitis = denemeler[i - 1]?.bitis ?? -Infinity
+							if (time >= max(aday.baslangic - erkenYanitMS, oncekiBitis) && time < aday.baslangic) {
+								deneme = aday
+								break
+							}
+						}
+					}
+					
+					if (!deneme) {
+						// Gelecek resmin gerçek başlangıcı belli olduğunda erken yanıt toleransını doğrula.
+						if (/*phase != 'visible' &&*/ index + 1 < imageCount) {
+							let altSinir = performance.now() - erkenYanitMS
+							bekleyenYanitlar = bekleyenYanitlar.filter(t => t >= altSinir)
+							if (time >= altSinir)
+								bekleyenYanitlar.push(time)
+						}
+						taniYaz(evt, bekleyenYanitlar.includes(time) ? 'Sonraki resim için bekliyor' : 'Eşleşen yanıt penceresi yok')
+						return
+					}
+					
+					if (deneme.yanitlandi /*|| (deneme.bitis == null && phase != 'visible')*/) {
+						taniYaz(evt, deneme.yanitlandi ? 'Bu resim zaten yanıtlandı' : 'Görünür aşamada değil', deneme)
+						return
+					}
+					
+					// Görünür aralık ve başlangıçtan önceki tolerans içindeki ilk yanıt sayılır.
+					deneme.yanitlandi = true
+					let { dogrumu } = deneme
+					let gecYanitmi = deneme.bitis != null && time >= deneme.bitis
+					taniYaz(evt, (
+						( dogrumu ? 'Sayıldı: <b class=forestgreen>doğru</b>' : 'Sayıldı: <b class=firebrick>yanlış</b>' ) +
+						( gecYanitmi ? ' &nbsp;(<span class="fs90 normal orangered">geç yanıt</span>)' : '' )
+					), deneme)
+
+					let tiklamaTime = max(0, time - deneme.baslangic)
+					testSonuc.tiklamaEkle(dogrumu, tiklamaTime)
+					if (dogrumu)
+						genelSonuc.secilmeyenDogruSayi--
+					
+					console.info(max(0, time - deneme.baslangic))
+					
+					if (deneme === gecerliDeneme /* && phase == 'visible'*/) {
+						img.removeClass('clicked-dogru clicked-yanlis')
+							.addClass(`clicked-${dogrumu ? 'dogru' : 'yanlis'}`)
+					}
+					
+					if (elmDebug) {
+						let key = dogrumu ? 'dogru' : 'yanlis'
+						elmDebug.find(`.${key} > .veri`).html(testSonuc[key].sayi)
+					}
+				}
+
+				let yanitTusu = evt => {
+					let key = evt.key?.toLowerCase()
+					return (
+						evt.code == 'Space' || key == ' '
+							? 'space'
+							: ( key == 'enter' || key == 'linefeed' ? 'enter' : null )
+					)
+				}
+				
+				keyDownHandler = evt => {
+					if (!active()) {
+						cleanup()
+						return
+					}
+
+					let key = yanitTusu(evt)
+					if (!key || evt.isComposing)
+						return
+
+					if (elmDebug)
+						elmDebug.find('.click > .veri').html(++clickCount)
+					
+					evt.preventDefault()
+					if (evt.repeat || basiliTuslar.has(key)) {
+						taniYaz(evt, 'Tuş tekrarı / basılı tuş')
+						return
+					}
+					
+					basiliTuslar.add(key)
+					yanitEkle(evt)
+				}
+				
+				let keyUpHandler = evt =>
+					basiliTuslar.delete(yanitTusu(evt))
+				
+				let pointerHandler = evt => {
+					if (!active()) {
+						cleanup()
+						return 
+					}
+					
+					if (evt.isPrimary === false || !(evt.button == null || evt.button == 0))
+						return
+					
+					if (evt.type == 'touchstart' && evt.touches?.length > 1)
+						return
+					
+					if (evt.type == 'mousedown' && evt.sourceCapabilities?.firesTouchEvents)
+						return
+
+					if (elmDebug)
+						elmDebug.find('.click > .veri').html(++clickCount)
+
+					evt.preventDefault()
+					yanitEkle(evt)
+				}
+				
+				let sonrakiResim = () => {
+					if (elmDebug) {
+						let kalan = imageCount - index - 2
+						elmDebug.find('.kalan > .veri')
+							.html(`<b>${kalan}</b> <span class="lightgray">/</span> <span class="gray">${imageCount}</span>`)
+					}
+					
+					if (index + 1 >= imageCount) {
+						// Son resmin gösterim VE yanıt süresi dolduktan sonra yalnızca bir kez bitir.
+						cleanup()
+						parentPart.nextPage()
+						return
+					}
+					
+					phase = 'pending'
+					frame = requestAnimationFrame(() => {
+						frame = null
+						if (stopped || !active()) {
+							cleanup()
+							return
+						}
+						
+						index++
+						let dogrumu = urls[index] == gecerliResimURL
+						img.removeClass('clicked-dogru clicked-yanlis')
+							.css('background-image', `url(${urls[index]})`)
+						
+						// Saati çizim karesinde aç; resim hazırlanırken gösterim süresi tükenmesin.
+						let baslangic = performance.now()
+						gecerliDeneme = { baslangic, bitis: null, dogrumu, yanitlandi: false }
+						denemeler.push(gecerliDeneme)
+						genelSonuc.tumSayi++
+						if (dogrumu)
+							genelSonuc.secilmeyenDogruSayi++
+						
+						phase = 'visible'
+						deadline = baslangic + resimGosterimMS
+						let erkenYanit = bekleyenYanitlar.find(t => t >= baslangic - erkenYanitMS && t < baslangic)
+						if (erkenYanit === undefined && bekleyenYanitlar.length)
+							taniYaz({ timeStamp: bekleyenYanitlar[bekleyenYanitlar.length - 1] }, 'Erken yanıt toleransı dışında', gecerliDeneme)
+						
+						bekleyenYanitlar = []
+						if (erkenYanit !== undefined)
+							yanitEkle({ timeStamp: erkenYanit })
+					})
+				}
+				
+				let loopProc = () => {
+					if (stopped)
+						return
+					
+					if (!active()) {
+						cleanup()
+						return
+					}
+					
+					let time = performance.now()
+					if (time < deadline)
+						return
+					
+					switch (phase) {
+						case 'countdown':
+							if (--startCounter > 0) {
+								img.html(`<div class="veri full-wh">${startCounter}</div>`)
+								deadline = time + ( 1000 * intervalKatSayi )
+								return
+							}
+							img.html('')
+							phase = 'initial'
+							deadline = time + baslamaOncesiBostaMS
+							if (baslamaOncesiBostaMS > 0)
+								return
+						case 'initial': {
+							sonrakiResim()
+							return
+						}
+						case 'visible': {
+							if (frame != null)
+								return
+							
+							frame = requestAnimationFrame(() => {
+								frame = null
+								if (stopped || !active()) {
+									cleanup()
+									return
+								}
+
+								if (randomizeTime)
+									resimBostaMS = (floor(this.resimBostaMS / 3) + ( random() * 550 ) ) * intervalKatSayi
+
+								img.css('background-image', '')
+								
+								let bitis = performance.now()
+								gecerliDeneme.bitis = bitis
+								// Son resimde de geç yanıt penceresi dolmadan bitirme.
+								let bostaMS = index == imageCount - 1 ? max(resimBostaMS, gecYanitMS) : resimBostaMS
+								deadline = bitis + bostaMS
+
+								phase = 'blank'
+								if (bostaMS == 0)
+									sonrakiResim()
+							})
+							return
+						}
+						case 'blank': {
+							sonrakiResim()
+							break
+						}
+					}
+				}
+				
+				this._cptCleanup = cleanup
+				document.addEventListener('keydown', keyDownHandler, true)
+				document.addEventListener('keyup', keyUpHandler, true)
+				if (pointerEvent)
+					imgNode.addEventListener(pointerEvent, pointerHandler, true)
+				else {
+					imgNode.addEventListener('mousedown', pointerHandler, true)
+					imgNode.addEventListener('touchstart', pointerHandler, { capture: true, passive: false })
+				}
+				
+				img.html(`<div class="veri full-wh">${startCounter}</div>`)
+				timer = this._hInterval = setInterval(loopProc, 10)
 				break
-			case 'end':
-				$('body').off('keydown', keyDownHandler);
+			}
+			
+			case 'end': {
+				$('body').off('keydown', keyDownHandler)
 				if (genelSonuc) {
-					for (let testSonuc of Object.values(genelSonuc.grupNo2Bilgi)) { genelSonuc.totalEkle(testSonuc); testSonuc.ortalamaOlustur() }
+					values(genelSonuc.grupNo2Bilgi).forEach(testSonuc => {
+						genelSonuc.totalEkle(testSonuc)
+						testSonuc.ortalamaOlustur()
+					})
 					genelSonuc.ortalamaOlustur()
-				} break
-			/*case 'end':
-				let {result} = this.testResult || {}; if (result != null) {
+				}
+				break
+			}
+			
+			/*case 'end': {
+				let { result } = this.testResult
+				if (result != null) {
 					$(`<div class="resultText ${result ? 'green' : 'red'}">${result ? 'Başarılı' : 'Hatalı'}</div>`).appendTo(content) }
-				break*/
+				break
+			}*/
+			
 		}
 	}
 }
+
 class MQTestAnket extends MQTest {
 	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Anket Test' } static get testSonucSinif() { return TestSonucAnket } static get testGenelSonucSinif() { return TestGenelSonucAnket }

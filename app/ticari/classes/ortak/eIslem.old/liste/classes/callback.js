@@ -50,13 +50,13 @@ class EIslemAkibet_Callback extends CObject {
 		let recs = []; if (source) {
 			if (!$.isArray(source)) { source = Object.values(source) }
 			for (let rec of source) {
-				let _rec = rec.rec || {}, efAyrimTipi = (rec.efAyrimTipi ?? _rec.eIslTip ?? _rec.efayrimtipi) || 'A';
+				let _rec = rec.rec || {}, efAyrimTipi = (rec.efAyrimTipi ?? _rec.efayrimtipi) || 'A';
 				let code = rec.code ?? rec.ResponseCode, message = rec.message ?? rec.errorText ?? rec.ResponseDescription;
 				$.extend(rec, {
 					islemZamaniText: rec.islemZamani ? (rec.islemZamani.toISOString().split('T')[1].replace('Z', '').substr(0, 10)) : '??',
 					hataText: rec.isError ? 'HATA' : '', basariliText: rec.isError ? '' : 'BAŞARILI', code, message,
-					efAyrimTipi: efAyrimTipi, uuid: _rec.uuid || _rec.efatuuid || _rec.efuuid || rec.uuid || rec.UUID || rec.vkn,
-					tarih: _rec.tarih, fisNox: _rec.fisNox ?? _rec.fisnox, eIslTipText: (EIslemOrtak.getClass({ tip: efAyrimTipi }) || {}).sinifAdi || efAyrimTipi
+					efAyrimTipi: efAyrimTipi, uuid: _rec.uuid || _rec.efatuuid || _rec.efuuid || rec.UUID,
+					tarih: _rec.tarih, fisNox: _rec.fisnox, eIslTipText: (EIslemOrtak.getClass({ tip: efAyrimTipi }) || {}).sinifAdi || efAyrimTipi
 				});
 				recs.unshift(rec)
 			}
