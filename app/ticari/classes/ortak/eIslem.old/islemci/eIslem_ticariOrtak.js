@@ -318,14 +318,14 @@ class EIslTicariOrtak extends EIslGiden {
 			});
 			uni.add(sent)
 		};
-		uni = new MQUnionAll(); stm = new MQStm({ sent: uni });
+		uni = new MQUnionAll(); stm = new MQStm({ sent: uni })
 		let {ps2SayacListe} = e;
 		let fisSayaclar = ps2SayacListe.P;
 		if (fisSayaclar) fhBagla(({ harTable: 'pifaciklama', fisSayaclar, psTip: 'P' }))
 		fisSayaclar = ps2SayacListe.S;
 		if (fisSayaclar) fhBagla(({ harTable: 'sipaciklama', fisSayaclar, psTip: 'S' }))
 		if (empty(uni.liste)) return null
-		stm.orderBy.addAll('pstip', 'fissayac', 'seq');
+		stm.orderBy.add('pstip', 'fissayac', 'seq');
 		return stm
 	}
 	detayAciklamalarYukle(e) {
@@ -380,7 +380,7 @@ class EIslTicariOrtak extends EIslGiden {
 			fhBagla_ekBilgi(({ harTable: 'sipdipekbilgi', fisSayaclar, psTip }))
 		}
 		if (empty(uni.liste)) { return null }
-		stm.orderBy.addAll('pstip', 'fissayac', 'alttip', 'kayitno');
+		stm.orderBy.add('pstip', 'fissayac', 'alttip', 'kayitno')
 		return stm
 	}
 	dipAciklamaYukle({ recs }) {

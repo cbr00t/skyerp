@@ -783,8 +783,8 @@ class MQCTESent extends MQSentVeIliskiliYapiOrtak {
 		if (empty(arr))
 			return this
 
-		let { liste } = this
-		liste.push(...arr.flat())
+		arr = makeArray(arr).flat()
+		this.liste.push(...arr)
 		
 		return this
 	}

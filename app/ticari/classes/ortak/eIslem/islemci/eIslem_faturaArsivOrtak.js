@@ -40,7 +40,7 @@ class EIslFaturaArsivOrtak extends EIslTicariOrtak {
 		if (empty(uni.liste))
 			return null
 		
-		orderBy.addAll('_table', 'id', 'tarih', 'nox')
+		orderBy.add('_table', 'id', 'tarih', 'nox')
 		return stm
 	}
 	oncekiIrsTSNYukle({ recs: d } = {}) {

@@ -33,7 +33,7 @@ class EIslFaturaArsivOrtak extends EIslTicariOrtak {
 		if (empty(uni.liste))
 			return null
 		
-		orderBy.addAll('pstip', 'fissayac', 'tarih', 'nox')
+		orderBy.add('pstip', 'fissayac', 'tarih', 'nox')
 		return stm
 	}
 	oncekiIrsTSNYukle({ _detaylar: d } = {}) {

@@ -163,7 +163,7 @@ class EIslTicariOrtak extends EIslGiden {
 		if (empty(uni.liste))
 			return null
 		
-		orderBy.addAll('_table', 'id', 'altTip', 'kayitNo')
+		orderBy.add('_table', 'id', 'altTip', 'kayitNo')
 		return stm
 	}
 	dipAciklamaYukle({ recs }) {
