@@ -3,7 +3,7 @@ class GidenEIslemFiltre extends EIslemFiltre {
 	static get gidenmi() { return true }
 	get querySinif() { return EIslemQuery_Liste }
 	
-	getQueryStm(e = {}) {
+	/*getQueryStm(e = {}) {
 		let uni = new MQUnionAll()
 		let stm = new MQStm({ sent: uni })
 		let args = { ...e, stm, uni, alias: 'fis' }
@@ -27,7 +27,6 @@ class GidenEIslemFiltre extends EIslemFiltre {
 			if (!secWH)
 				return null
 			
-				/* e: { fisTable psTipStr ifSql efAyrimTipiClause } */
 			let { fisTable: table, oncelik, psTip, ifSql, efAyrimTipiClause } = args
 			oncelik ??= 10
 			let sent = new MQSent(), { where: wh, sahalar } = sent
@@ -221,7 +220,7 @@ class GidenEIslemFiltre extends EIslemFiltre {
 		
 		stm.orderBy
 			.add('tarih DESC', 'eIslTip', 'oncelik', 'fisNox DESC')
-	}
+	}*/
 
 	static getBelgeTipText(e) {
 		let { rec = e } = e
@@ -277,7 +276,6 @@ class GidenEIslemFiltre extends EIslemFiltre {
 		
 		return `${atText}${iadePrefix} ${ifText}`
 	}
-	
 	listeOlustur(e = {}) {
 		super.listeOlustur(e)
 		let tarihBasi = null   //today().addMonths(-5); tarihBasi.setDate(1);
@@ -396,6 +394,7 @@ class GidenEIslemFiltre extends EIslemFiltre {
 	tbWhereClauseDuzenle_son(e = {}) {
 		let uygunmu = this.tbWhereClauseDuzenle_kisit(e) !== false
 		uygunmu = uygunmu && this.tbWhereClauseDuzenle_ortak(e) !== false
+		uygunmu = uygunmu && this.tbWhereClauseDuzenle_eIslem(e) !== false
 		return uygunmu
 	}
 	tbWhereClauseDuzenle_kisit(e) {
