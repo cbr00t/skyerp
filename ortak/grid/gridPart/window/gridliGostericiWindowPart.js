@@ -7,38 +7,84 @@ class GridliGostericiWindowPart extends GridliGostericiPart {
 	get converter() { return (this.secimBilgi || {}).converter } set converter(value) { (this.secimBilgi || {}).converter = value }
 
 	constructor(e) {
-		super(e); e = e || {}; if ((e.tekil ?? e.tekilmi) == null) { e.tekil = false }
-		$.extend(this, {
+		super(e)
+		e ??= {}
+		if ((e.tekil ?? e.tekilmi) == null)
+			e.tekil = false
+		
+		extend(this, {
 			secimBilgi: e.secimBilgi ?? new SecimBilgi(e), gridArgs: $.extend({ selectionMode: e.selectionMode }, e.gridArgs),
 			islemTuslariDuzenleyici: e.islemTuslariDuzenle || e.islemTuslariDuzenleyici, secinceKontroluYapilmazmi: e.secinceKontroluYapilmazmi ?? e.secinceKontroluYapilmaz
-		});
-		let {secimBilgi} = this; if ($.isPlainObject(secimBilgi)) { secimBilgi = this.secimBilgi = new SecimBilgi(secimBilgi) }
-		let keys = ['secince', 'vazgecince', 'tekilmi', 'converter']; for (const key of keys) { const value = e[key]; if (value !== undefined) { secimBilgi[key] = value } }
-		const {gridArgs, secince, tekilmi} = this; gridArgs.selectionMode = tekilmi ? this.getSilinebilirmi?.(e) ? 'checkbox' : 'singlerow' : (secince ? 'checkbox' : 'singlerow')
+		})
+		let { secimBilgi}  = this
+		if (isPlainObject(secimBilgi))
+			secimBilgi = this.secimBilgi = new SecimBilgi(secimBilgi)
+		
+		let keys = ['secince', 'vazgecince', 'tekilmi', 'converter']
+		for (let key of keys) {
+			let value = e[key]
+			if (value !== undefined)
+				secimBilgi[key] = value
+		}
+		
+		let { gridArgs, secince, tekilmi } = this
+		gridArgs.selectionMode = tekilmi
+			? ( this.getSilinebilirmi?.(e) ? 'checkbox' : 'singlerow' )
+			: ( secince ? 'checkbox' : 'singlerow' )
 	}
-	runDevam(e) {
-		e = e || {}; super.runDevam(e);
-		const {layout} = this; this.header = this.header || layout.find('.header');
-		const islemTuslari = this.islemTuslari = this.islemTuslari || layout.find('.islemTuslari'); let {islemTuslariPart} = this;
+	runDevam(e = {}) {
+		super.runDevam(e)
+		let { layout } = this
+		let header = this.header ??= layout.find('.header')
+		let islemTuslari = this.islemTuslari ??= layout.find('.islemTuslari')
+		let { islemTuslariPart } = this
 		if (!islemTuslariPart && islemTuslari?.length) {
-			islemTuslariPart = this.islemTuslariPart = new ButonlarPart({ sender: this, layout: islemTuslari, tip: 'tazeleVazgecSec', butonlarDuzenleyici: e => this.islemTuslariDuzenle(e) });
+			islemTuslariPart = this.islemTuslariPart = new ButonlarPart({
+				sender: this, layout: islemTuslari,
+				tip: 'tazeleVazgecSec',
+				butonlarDuzenleyici: e => this.islemTuslariDuzenle(e)
+			})
 			islemTuslariPart.run()
 		}
 	}
 	afterRun(e) {
-		super.afterRun(e);
-		setTimeout(() => { const {gridWidget} = this; if (!this.isDestroyed && gridWidget) { gridWidget.focus(); this.show() } }, 20)
+		super.afterRun(e)
+		delay(15).then(() => {
+			let { grid, gridWidget } = this
+			if (!this.isDestroyed && gridWidget) {
+				this.show()
+				this.onResize(e)
+				gridWidget.focus()
+
+				let fix = () => {
+					const DefHeight = 400
+					if (floor(grid.height()) == DefHeight && gridWidget.height != DefHeight) {
+						grid.height('unset')
+						grid.jqxGrid('height', grid.jqxGrid('height'))
+					}
+				}
+
+				fix()
+				delay(500).then(() => {
+					fix()
+					this.onResize(e)
+					gridWidget.focus()
+				})
+			}
+		})
 	}
 	destroyPart(e) {
-		super.destroyPart(e);
-		const {islemTuslariPart} = this; if (islemTuslariPart) { islemTuslariPart.destroyPart() }
-		this.islemTuslariPart = null;
+		super.destroyPart(e)
+		let { islemTuslariPart } = this
+		islemTuslariPart?.destroyPart?.()
+		this.islemTuslariPart = null
 	}
 	islemTuslariDuzenle(e) {
-		const {islemTuslariDuzenleyici} = this;
+		let { islemTuslariDuzenleyici } = this
 		if (islemTuslariDuzenleyici) {
-			let result = getFuncValue.call(this, islemTuslariDuzenleyici, e);
-			if (typeof result == 'object') { e.liste = result = result.liste ?? result }
+			let result = getFuncValue.call(this, islemTuslariDuzenleyici, e)
+			if (isObject(result))
+				e.liste = result = result.liste ?? result
 		}
 		const {liste} = e, yListe = [];
 		for (const item of liste) {
@@ -52,22 +98,44 @@ class GridliGostericiWindowPart extends GridliGostericiPart {
 		}
 		e.liste = yListe
 	}
-	gridArgsDuzenleDevam(e) { super.gridArgsDuzenleDevam(e); const {args} = e; $.extend(args, this.gridArgs) }
-	tazeleIstendi(e) { this.tazele(e) }
-	async secIstendi(e) {
-		e = e || {}; const secimBilgi = this.secimBilgi || {}; if (!secimBilgi) { return false }
-		const {secince} = this; if (!secince) return false
-		const {gridWidget} = this; const recs = e.rec ? [e.rec] : (e.recs ?? this.selectedRecs);
-		if (!this.secinceKontroluYapilmazmi && $.isEmptyObject(recs)) { return false }
-		const _e = { sender: this, grid: this.grid, gridWidget: this.gridWidget, recs, secince, tekilmi: this.tekilmi, mfSinif: this.getMFSinif(e), converter: this.converter };
-		const result = await secimBilgi.sec(_e); if (result === false) return false
-		this.secIstendimi = true; this.destroyPart(); return true
+	gridArgsDuzenleDevam({ args }) {
+		super.gridArgsDuzenleDevam(...arguments)
+		extend(args, this.gridArgs)
 	}
-	gridVeriYuklendi(e) {
-		e = e || {}; super.gridVeriYuklendi(e);
-		const {gridWidget} = e, selectionMode = gridWidget.selectionmode, sel = gridWidget.getselection();
-		if (selectionMode && selectionMode != 'none' && $.isEmptyObject(sel.rows) && $.isEmptyObject(sel.cells)) {
-			try { gridWidget?.clearselection() } catch (ex) { }
+	tazeleIstendi(e) { this.tazele(e) }
+	async secIstendi(e = {}) {
+		let { secimBilgi, secince, grid, gridWidget, converter, tekilmi } = this
+		if (!(secimBilgi && secince))
+			return false
+		
+		let { recs = e.rec ?? this.selectedRecs } = e
+		recs = makeArray(recs)
+		
+		if (!this.secinceKontroluYapilmazmi && empty(recs))
+			return false
+		
+		let _e = {
+			sender: this, grid, gridWidget,
+			recs, secince, tekilmi, converter,
+			mfSinif: this.getMFSinif(e)
+		}
+		let result = await secimBilgi.sec(_e)
+		if (result === false)
+			return false
+		
+		this.secIstendimi = true
+		this.destroyPart()
+		return true
+	}
+	gridVeriYuklendi(e = {}) {
+		super.gridVeriYuklendi(e)
+		let { gridWidget } = e
+		let { selectionmode: selectionMode } = gridWidget
+		let sel = gridWidget.getselection()
+		if (selectionMode && selectionMode != 'none' && empty(sel.rows) && empty(sel.cells)) {
+			try { gridWidget?.clearselection() }
+			catch (ex) { }
+			
 			/*if (selectionMode == 'checkbox' || selectionMode.toLowerCase().includes('row')) {
 				try { gridWidget.selectrow(0) } catch (ex) { } }
 			else {
@@ -77,11 +145,20 @@ class GridliGostericiWindowPart extends GridliGostericiPart {
 		}
 		gridWidget?.focus()
 	}
-	gridSatirCiftTiklandi(e) {
-		e = e || {}; if (super.gridSatirCiftTiklandi(e) === false) return false
-		const {gridWidget} = this; if (gridWidget?._clickedcolumn == '_checkboxcolumn') return false
-		const args = e.event?.args || {};
-		if ((this.secimBilgi || {}).secince) { this.secIstendi($.extend({}, e, { rec: (args.row || {}).bounddata, rowIndex: args.rowindex })); return false }
+	gridSatirCiftTiklandi(e = {}) {
+		if (super.gridSatirCiftTiklandi(e) === false)
+			return false
+		
+		let { gridWidget, secimBilgi } = this
+		if (gridWidget?._clickedcolumn == '_checkboxcolumn')
+			return false
+		
+		let { args = {} } = e.event ?? {}
+		if (secimBilgi?.secince) {
+			this.secIstendi({ ...e, rec: args.row?.bounddata, rowIndex: args.rowindex })
+			return false
+		}
+		
 		return true
 	}
 	/*triggerKapanincaEvent(e) { if (!this.secIstendimi) { const vazgecince = (this.secimBilgi || {}).vazgecince; const _e = { sender: this }; return getFuncValue.call(this, vazgecince, _e) } }*/

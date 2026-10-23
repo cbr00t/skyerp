@@ -498,8 +498,11 @@ class GridKolonGrup_KA extends GridKolonGrup {
 		
 		kaKolonu.cellClick = e => {
 			let { rightclick: right } = e?.args ?? {}
-			if (right)
+			let { event: evt } = e
+			if (right) {
+				evt?.preventDefault()
 				return kaKolonu.listedenSec(e)
+			}
 		}
 
 		kaKolonu.listedenSec = async e => {
@@ -516,7 +519,7 @@ class GridKolonGrup_KA extends GridKolonGrup {
 				await delay(10)
 				ep = getEditorPart(gp)?.part
 			}
-			if (ep)
+			if (ep && app.activePart == gp)
 				return ep.listeIstendi(e)
 			
 			/*let { mfSinif, kodAttr, dataBlock } = this
