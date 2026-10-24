@@ -6,10 +6,13 @@ class LoginPart extends Part {
 	
 	runDevam(e) {
 		super.runDevam(e); window.boot?.step();
-		let {layout} = this, btnAyarlar = layout.find('#ayarlar').jqxButton({ theme: theme, width: false, height: false });
+		let {layout} = this;
+		layout.find('.login-app-name').text((typeof appName == 'undefined' ? null : appName) || app.appName || 'SkyERP');
+		layout.find('.login-app-version').text(typeof appVersion == 'undefined' ? '' : appVersion);
+		let btnAyarlar = layout.find('#ayarlar').jqxButton({ theme: theme, width: false, height: false });
 		btnAyarlar.off('click').on('click', evt => this.ayarlarIstendi($.extend({}, e, { event: evt })));
 		let ddLoginTipi = layout.find(`#loginTipi`); ddLoginTipi.jqxDropDownList({
-			theme, width: '100%', height: 55, itemHeight: 50, dropDownHeight: 200,
+			theme, width: '100%', height: 48, itemHeight: 40, dropDownHeight: 200,
 			source: app.loginTipleri, valueMember: 'kod', displayMember: 'aciklama',
 			renderer: (index, aciklama, kod) => {
 				let {partName} = this.class, layoutName = ddLoginTipi.prop('id');
@@ -20,14 +23,14 @@ class LoginPart extends Part {
 		let txtPass = layout.find('#pass'), txtUser = layout.find('#user'); txtUser.off('blur').on('blur', evt => this.loginUserDegisti({ event: evt }));
 		let btnSSOLogin = this.btnSSOLogin = layout.find('#ssoLogin').jqxButton({ theme, width: false, height: false });
 		btnSSOLogin.off('click').on('click', evt => this.loginIstendi({ event: evt, isSSO: true }));
-		let btnLogin = layout.find('#islemTuslari #login'); btnLogin.jqxButton({ theme, width: '100%', height: 60 }); btnLogin.off('click').on('click', evt => this.loginIstendi({ event: evt }));
+		let btnLogin = layout.find('#islemTuslari #login'); btnLogin.jqxButton({ theme, width: '100%', height: 49 }); btnLogin.off('click').on('click', evt => this.loginIstendi({ event: evt }));
 		if (loginTipi) { ddLoginTipi.val(loginTipi) }
 		let {sessionID, session, user, pass} = qs; if (user) { txtUser.val(user); let {pass} = qs; if (pass != null) { txtPass.val(pass) } }
 		if (!ddLoginTipi.val()) { ddLoginTipi.val(loginTipi) }
 		let promise_uiResult = this.promise_uiResult = new $.Deferred();
 		if (sessionID || session || (user && pass)) { this.loginIstendi({ sessionID, session }); txtPass.focus() }
 		else { this.show(); (user ? txtPass : txtUser).focus() }
-		let elms = layout.find('input[type=textbox], input[type=password]');
+		let elms = layout.find('input[type=textbox], input[type=text], input[type=password]');
 		elms.on('focus', evt => evt.target.select());
 		elms.on('keyup', evt => { let key = evt.key?.toLowerCase(); if (key == 'enter' || key == 'linefeed') { btnLogin.click() } });
 		if (window.boot) window.boot.step()
@@ -45,7 +48,8 @@ class LoginPart extends Part {
 	}
 	async loginUserDegisti(e) {
 		let {layout} = this; let loginTipi = layout.find('#loginTipi').val()?.trimEnd(), user = layout.find('#user').val()?.trimEnd(); let result;
-		try { result = await app.wsLogin({ infoOnly: true, session: new Session({ loginTipi, user }) }) } catch (ex) { console.error(ex); if (window.boot) window.boot.end() }
+		try { result = await app.wsLogin({ infoOnly: true, session: new Session({ loginTipi, user }) }) }
+		catch (ex) { console.error(ex); if (window.boot) window.boot.end() }
 		let userTextParent = layout.find('#userTextParent'), btnSSOLogin = layout.find('#ssoLogin');
 		let {session} = (result || {});
 		if (session?.sessionID) {

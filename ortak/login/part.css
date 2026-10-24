@@ -1,28 +1,149 @@
-.loginPart.part { --ssoButton-length: 50px; position: absolute; width: var(--full); height: var(--full); background-color: #031d519c; z-index: 1014 }
-body.dark-theme .loginPart.part { background-color: #eee }
-.loginPart #islemTuslari { margin-top: 20px }
-.loginPart #islemTuslari #login.jqx-fill-state-normal { color: whitesmoke; background-color: #93abf8 }
-.loginPart .alt-form {
-	position: relative; top: 90px; left: 35%; width: 30%; background-color: #f9f9f9; padding: 15px 30px;
-	/* border: 1px solid #aaa; */ border-radius: 8px; box-shadow: 2px 2px 20px #94a2cda6; box-sizing: content-box
+#loginForm.loginPart.part {
+	--login-ink: #172b49; --login-muted: #68788f; --login-line: #dce4ee; --login-accent: #2864e7;
+	--login-page: #edf2f8; --login-surface: #fff; --login-field: #fbfcfe; --login-focus: #fff;
+	--login-shell-line: #e0e7f0; --login-footer-line: #edf0f5; --login-placeholder: #8b98aa;
+	--login-subtle: #f0f4fa; --login-sso-bg: #f1f6ff; --login-sso-ink: #315fa6; --login-eyebrow: #4774ba;
+	--login-banner-bg: #102b50; --login-shadow: #16335c16; --login-button-hover: #1d53cd;
+	position: fixed; inset: 0; z-index: 1014; width: 100%; height: 100%; margin: 0; padding: 36px;
+	overflow: auto; box-sizing: border-box; color: var(--login-ink); background: var(--login-page);
+	font-family: 'Segoe UI', system-ui, sans-serif; font-size: 100%; line-height: 1.5; color-scheme: light;
 }
-@media (max-width: 850px) { .loginPart .alt-form { --space: 15px; left: var(--space); width: calc(var(--full) - (var(--space) + 70px)) } }
-.loginPart .alt-form .row { margin: 5px 0;padding: 0px 5px }
-.loginPart .alt-form .row .etiket,
-.loginPart .alt-form .row .veri { width: calc(var(--full) - 25px) }
-.loginPart .alt-form .row .veri { /* margin-left: 10px */ }
-.loginPart input[type=textbox], .loginPart input[type=text], .loginPart input[type=password], .loginPart input[type=number] { height: 40px }
-.loginPart #ayarlar {
-	position: absolute;
-	width: 40px; height: 40px;
-	top: 10px; right: 10px;
-	background-size: contain; background-image: url(../../images/ayarlar.png)
+#loginForm.loginPart * { font-size: 100% }
+#loginForm.loginPart *, #loginForm.loginPart *::before, #loginForm.loginPart *::after { box-sizing: border-box }
+
+#loginForm.loginPart.part {
+	--login-ink: #e7eef8; --login-muted: #a2b2c8; --login-line: #34465f; --login-accent: #437be5;
+	--login-page: #f8f8f8; --login-surface: #142236; --login-field: #101c2d; --login-focus: #182a42;
+	--login-shell-line: #293b52; --login-footer-line: #2a3a50; --login-placeholder: #8195af;
+	--login-subtle: #20334d; --login-sso-bg: #203654; --login-sso-ink: #bad4ff; --login-eyebrow: #97bfff;
+	--login-shadow: #00000055; --login-button-hover: #548bf0;
 }
-.loginPart #ayarlar.jqx-fill-state-normal { background-color: royalblue }
-.loginPart #loginTipi { font-weight: bold; color: #555; background-color: #dcdffa }
-.loginPart #loginTipi .jqx-dropdownlist-content { font-size: var(--full) }
-.loginPart.loginTipi.list-item > * { font-size: 90%; padding: 3% 20px }
-.loginPart #userTextParent { font-size: 90%; color: #999; height: 30px; pointer-events: none }
-.loginPart #pass { width: calc(var(--full) - var(--ssoButton-length) - 40px ;}
-.loginPart #ssoLogin { width: var(--ssoButton-length) !important; height: 40px !important; margin: 3px 0 0 20px; background-image: url(../../images/email.png); background-size: cover !important }
-.loginPart #ssoLogin.jqx-fill-state-normal { /* background-color: #a05d45; */ background-color: transparent }
+
+body.dark-theme #loginForm.loginPart.part {
+	--login-ink: #e7eef8; --login-muted: #a2b2c8; --login-line: #34465f; --login-accent: #437be5;
+	--login-page: #0a1320; --login-surface: #142236; --login-field: #101c2d; --login-focus: #182a42;
+	--login-shell-line: #293b52; --login-footer-line: #2a3a50; --login-placeholder: #8195af;
+	--login-subtle: #20334d; --login-sso-bg: #203654; --login-sso-ink: #bad4ff; --login-eyebrow: #97bfff;
+	--login-banner-bg: #08172b; --login-shadow: #00000055; --login-button-hover: #548bf0;
+	color-scheme: dark;
+}
+/* Keep the login palette under the application's body-wide dark-theme filter. */
+body.dark-theme:not(.no-dark-theme) #loginForm.loginPart.part { --login-theme-filter: invert(1) hue-rotate(180deg); filter: var(--login-theme-filter) }
+body.bg-modal > #loginForm.loginPart.part,
+body.dark-theme.bg-modal > #loginForm.loginPart.part { filter: var(--login-theme-filter, brightness(1)) blur(3px) brightness(.5) }
+#loginForm.loginPart .login-shell {
+	display: grid; grid-template-columns: 1.05fr 1fr; width: 100%; max-width: 1120px; min-height: 680px;
+	margin: max(0px, calc((100dvh - 752px) / 2)) auto 0; border: 1px solid var(--login-shell-line); border-radius: 26px;
+	background: var(--login-surface); box-shadow: 0 24px 80px var(--login-shadow); overflow: hidden;
+}
+#loginForm.loginPart .login-banner {
+	position: relative; display: flex; flex-direction: column; justify-content: space-between; min-width: 0;
+	padding: 38px 44px 30px; overflow: hidden; color: #fff;
+	background: radial-gradient(ellipse at 95% 90%, #277b9d66, transparent 62%), radial-gradient(ellipse at 0 0, #3764a955, transparent 65%), var(--login-banner-bg);
+}
+#loginForm.loginPart .login-banner::before { content: ''; position: absolute; width: 380px; height: 380px; top: -240px; right: -140px; border: 1px solid #ffffff16; border-radius: 50%; pointer-events: none }
+#loginForm.loginPart .login-brand { display: flex; align-items: center; gap: 11px; font-size: 123.2143%; font-weight: 700; letter-spacing: -.7px }
+#loginForm.loginPart .login-brand-light { font-weight: 400; color: #c6dbf3 }
+#loginForm.loginPart .login-brand-mark { display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid #ffffff40; border-radius: 11px; background: #ffffff10; color: #9ce0ec; font-size: 100%; font-style: italic }
+#loginForm.loginPart .login-banner-content { margin-top: 48px }
+#loginForm.loginPart .login-eyebrow { margin: 0 0 14px; color: #98c9e5; font-size: 58.9286%; font-weight: 700; letter-spacing: 2px }
+#loginForm.loginPart .login-app-name { margin: 0 0 20px; color: #fff; font-size: 246.4286%; font-weight: 650; line-height: 1.15; letter-spacing: -1.4px; overflow-wrap: anywhere }
+#loginForm.loginPart .login-banner-description { margin: 0; color: #b9cde3; font-size: 80.3571%; line-height: 1.85 }
+#loginForm.loginPart .login-banner-footer { display: flex; align-items: center; gap: 9px; margin-top: 32px; color: #a6bfd9; font-size: 64.2857% }
+#loginForm.loginPart .login-dot { width: 6px; height: 6px; border-radius: 50%; background: #7dd8c8; box-shadow: 0 0 0 4px #7dd8c811 }
+#loginForm.loginPart .login-art { position: relative; width: 100%; max-width: 368px; height: 214px; margin: 35px auto 0 }
+#loginForm.loginPart .login-art-orbit { position: absolute; inset: -10px -30px -5px; border: 1px solid #b9dafa16; border-radius: 50%; transform: rotate(-20deg) }
+#loginForm.loginPart .login-art-window { position: absolute; inset: 12px 6px 18px 0; border: 1px solid #d6e8ff44; border-radius: 13px; background: linear-gradient(130deg, #ffffff19, #ffffff08); box-shadow: 0 20px 36px #07182e33; transform: perspective(800px) rotateY(-9deg) rotateZ(-3deg); overflow: hidden }
+#loginForm.loginPart .login-art-toolbar { display: flex; gap: 5px; height: 27px; padding: 10px 12px; border-bottom: 1px solid #d6e8ff22 }
+#loginForm.loginPart .login-art-toolbar i { width: 5px; height: 5px; border-radius: 50%; background: #bdd5ef66 }
+#loginForm.loginPart .login-art-body { display: flex; height: calc(100% - 27px) }
+#loginForm.loginPart .login-art-sidebar { display: flex; flex-direction: column; gap: 14px; width: 22%; padding: 19px 12px; border-right: 1px solid #d6e8ff18 }
+#loginForm.loginPart .login-art-sidebar i { height: 5px; border-radius: 3px; background: #bdd5ef33 }
+#loginForm.loginPart .login-art-sidebar i:first-child { background: #82c9ed }
+#loginForm.loginPart .login-art-main { flex: 1; padding: 16px }
+#loginForm.loginPart .login-art-tiles { display: flex; gap: 8px }
+#loginForm.loginPart .login-art-tiles i { flex: 1; height: 26px; border: 1px solid #ffffff18; border-radius: 5px; background: #ffffff0d }
+#loginForm.loginPart .login-art-chart { display: flex; align-items: end; justify-content: space-between; height: 65px; padding: 8px 7px 0; border-bottom: 1px solid #d6e8ff33 }
+#loginForm.loginPart .login-art-chart i { width: 9%; height: 35%; border-radius: 3px 3px 0 0; background: #80c8e5 }
+#loginForm.loginPart .login-art-chart i:nth-child(2n) { height: 56%; background: #68a4d3 }
+#loginForm.loginPart .login-art-chart i:nth-child(3n) { height: 72% }
+#loginForm.loginPart .login-art-chart i:last-child { height: 94%; background: #91ddcd }
+#loginForm.loginPart .login-art-lines i { display: block; width: 90%; height: 4px; margin-top: 9px; border-radius: 3px; background: #bdd5ef29 }
+#loginForm.loginPart .login-art-lines i:last-child { width: 65% }
+#loginForm.loginPart .login-art-badge { position: absolute; right: -7px; bottom: 0; padding: 10px 15px; border: 1px solid #d9e9f84a; border-radius: 10px; background: #254b6b; box-shadow: 0 8px 24px #051b3533; color: #e0eef8; font-size: 58.9286% }
+#loginForm.loginPart .login-art-badge span { margin-right: 7px; color: #9de4cc }
+#loginForm.loginPart .login-panel { display: flex; align-items: center; justify-content: center; min-width: 0; padding: 52px 54px; background: var(--login-surface) }
+#loginForm.loginPart .alt-form { position: static; width: 100%; max-width: 360px; margin: 0; padding: 0; background: transparent; border: 0; border-radius: 0; box-shadow: none }
+#loginForm.loginPart .login-heading { margin-bottom: 30px }
+#loginForm.loginPart .login-heading .login-eyebrow { margin-bottom: 8px; color: var(--login-eyebrow); font-size: 53.5714% }
+#loginForm.loginPart .login-heading h2 { margin: 0 0 8px; color: var(--login-ink); font-size: 160.7143%; font-weight: 650; letter-spacing: -.9px; line-height: 1.25 }
+#loginForm.loginPart .login-heading > p:last-child { margin: 0; color: var(--login-muted); font-size: 69.6429%; line-height: 1.7 }
+#loginForm.loginPart .alt-form .row { display: block; width: 100%; margin: 0 0 20px; padding: 0 }
+#loginForm.loginPart .etiket { display: block; width: 100%; margin: 0 0 8px; padding: 0; color: var(--login-ink); font-size: 69.6429%; font-weight: 600; line-height: 1.5 }
+#loginForm.loginPart .login-label-ese { display: none }
+#loginForm.loginPart .veri { min-width: 0; max-width: 100% }
+#loginForm.loginPart input.veri {
+	display: block; width: 100%; height: 48px; min-height: 48px; margin: 0; padding: 0 14px;
+	border: 1px solid var(--login-line); border-radius: 9px; outline: none; box-shadow: none;
+	background: var(--login-field); color: var(--login-ink); font: inherit; font-size: 85.7143%; transition: border-color .15s, box-shadow .15s;
+}
+#loginForm.loginPart input.veri::placeholder { color: var(--login-placeholder); font-size: 81.25%; opacity: 1 }
+#loginForm.loginPart input.veri:focus { border-color: #6390ee; box-shadow: 0 0 0 3px #2864e714; background: var(--login-focus) }
+#loginForm.loginPart #loginTipi { width: 100%; border: 1px solid var(--login-line); border-radius: 9px; background: var(--login-field); color: var(--login-ink); font-weight: 500 }
+#loginForm.loginPart #loginTipi .jqx-dropdownlist-content { display: flex; align-items: center; margin: 0 0 0 13px !important; padding: 0; font-family: inherit; font-size: 75%; color: var(--login-ink) }
+#loginForm.loginPart #loginTipi .jqx-icon-arrow-down { opacity: .65 }
+#loginForm.loginPart #loginTipi.jqx-fill-state-focus { border-color: #6390ee; box-shadow: 0 0 0 3px #2864e714 }
+.loginPart.loginTipi.list-item { display: flex; align-items: center; min-height: 40px; color: #172b49; font-family: 'Segoe UI', system-ui, sans-serif; font-size: 105.2632% }
+.loginPart.loginTipi.list-item > .aciklama { padding: 8px 12px; font-size: 75% }
+#loginForm.loginPart #userTextParent { min-height: 0; height: auto; margin: -10px 0 16px; color: var(--login-muted); font-size: 64.2857%; overflow-wrap: anywhere }
+#loginForm.loginPart #userTextParent.basic-hidden { display: none !important }
+#loginForm.loginPart .login-password-controls { display: flex; align-items: center; gap: 8px; width: 100%; min-width: 0 }
+#loginForm.loginPart #pass { flex: 1; width: 100%; min-width: 0 }
+#loginForm.loginPart #ssoLogin { flex: 0 0 50px; width: 50px !important; height: 48px !important; margin: 0; padding: 0; border: 1px solid var(--login-line); border-radius: 9px; background: var(--login-sso-bg); color: var(--login-sso-ink); font: inherit; font-size: 58.9286%; font-weight: 700; cursor: pointer }
+#loginForm.loginPart #islemTuslari { margin-top: 26px; margin-bottom: 0 }
+#loginForm.loginPart #login { width: 100%; height: 49px; padding: 0 18px; border: 1px solid var(--login-accent); border-radius: 9px; background: var(--login-accent); color: #fff; font: inherit; font-size: 75%; font-weight: 600; box-shadow: 0 6px 15px #2864e71f; cursor: pointer; transition: background .15s, box-shadow .15s }
+#loginForm.loginPart #login > span { float: right; font-size: 142.8571%; line-height: 1; font-weight: 400 }
+#loginForm.loginPart #login:hover { background: var(--login-button-hover); border-color: var(--login-button-hover); box-shadow: 0 8px 18px #2864e72e }
+#loginForm.loginPart .login-form-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--login-footer-line); color: var(--login-muted); font-size: 58.9286% }
+#loginForm.loginPart .login-app-version { margin-left: 3px; color: var(--login-placeholder) }
+#loginForm.loginPart #ayarlar { position: static; width: auto; height: 32px; margin: 0 -8px 0 0; padding: 4px 8px; border: 1px solid transparent; border-radius: 6px; background: transparent; background-image: none; color: var(--login-muted); font: inherit; font-size: 109.0909%; cursor: pointer }
+#loginForm.loginPart #ayarlar > span { margin-right: 3px; font-size: 125%}
+#loginForm.loginPart #ayarlar:hover { background: var(--login-subtle); color: var(--login-ink) }
+#loginForm.loginPart button:focus-visible, #loginForm.loginPart #loginTipi:focus-visible { outline: 3px solid #6390ee; outline-offset: 3px }
+@media (max-width: 900px) {
+	#loginForm.loginPart .login-app-name { font-size: 160.7143% }
+	#loginForm.loginPart.part { padding: 24px }
+	#loginForm.loginPart .login-shell { grid-template-columns: .95fr 1fr; min-height: 640px; margin-top: max(0px, calc((100dvh - 688px) / 2)) }
+	#loginForm.loginPart .login-banner { padding: 32px 28px }
+	#loginForm.loginPart .login-panel { padding: 40px 30px }
+	#loginForm.loginPart .login-art { height: 180px }
+}
+@media (max-width: 680px) {
+	#loginForm.loginPart.part { padding: 16px }
+	#loginForm.loginPart .login-shell { grid-template-columns: 1fr; min-height: 0; margin-top: 0; border-radius: 18px }
+	#loginForm.loginPart .login-banner { padding: 24px 28px 26px }
+	#loginForm.loginPart .login-brand { font-size: 107.1429% }
+	#loginForm.loginPart .login-brand-mark { width: 30px; height: 30px; font-size: 100%}
+	#loginForm.loginPart .login-banner-content { margin-top: 24px }
+	#loginForm.loginPart .login-banner-content .login-eyebrow { margin-bottom: 8px; font-size: 48.2143% }
+	#loginForm.loginPart .login-app-name { margin-bottom: 10px; font-size: 160.7143% }
+	#loginForm.loginPart .login-banner-description { font-size: 69.6429%; line-height: 1.65 }
+	#loginForm.loginPart .login-art, #loginForm.loginPart .login-banner-footer { display: none }
+	#loginForm.loginPart .login-panel { padding: 32px 28px }
+	#loginForm.loginPart .login-heading { margin-bottom: 24px }
+	#loginForm.loginPart .login-heading h2 { font-size: 144.6429% }
+}
+@media (max-width: 380px) {
+	#loginForm.loginPart.part { padding: 8px }
+	#loginForm.loginPart .login-banner, #loginForm.loginPart .login-panel { padding-left: 20px; padding-right: 20px }
+}
+@media (prefers-reduced-motion: reduce) { #loginForm.loginPart input.veri, #loginForm.loginPart #login { transition: none } }
+
+/* The dropdown popup is attached outside #loginForm by jqx. */
+body.dark-theme #listBoxloginTipi { background: #142236; border-color: #34465f; color: #e7eef8; color-scheme: dark }
+body.dark-theme:not(.no-dark-theme) #listBoxloginTipi { filter: invert(1) hue-rotate(180deg) }
+body.dark-theme #listBoxloginTipi .jqx-listbox,
+body.dark-theme #listBoxloginTipi .jqx-listbox-content { background: #142236; color: #e7eef8 }
+body.dark-theme #listBoxloginTipi .loginPart.loginTipi.list-item { color: #e7eef8 }
+body.dark-theme #listBoxloginTipi .jqx-fill-state-hover { background: #203654; border-color: #34465f }
+body.dark-theme #listBoxloginTipi .jqx-fill-state-pressed { background: #294b78; border-color: #4774ba }
