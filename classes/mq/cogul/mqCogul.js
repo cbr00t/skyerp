@@ -708,7 +708,7 @@ class MQCogul extends MQYapi {
 			sahalar.add(`${aliasVeNokta}*`)
 		/* sent.groupByOlustur(); */
 		let stm = new MQStm({ sent })
-		$.extend(e, { table, alias, aliasVeNokta, stm, sent })
+		extend(e, { table, alias, aliasVeNokta, stm, sent })
 		this.loadServerData_queryDuzenle(e)
 		stm = e.query ?? e.stm
 		if (offlineRequest) {
