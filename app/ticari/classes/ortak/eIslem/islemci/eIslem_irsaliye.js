@@ -1,6 +1,7 @@
 class EIslIrsaliye extends EIslTicariOrtak {
     static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get eIrsaliyemi() { return true }
+	static get xml_customizationID() { return 'TR1.2.1' }
 	static get tip() { return 'IR' }
 	static get altBolum() { return 'EIrsaliye' }
 	static get sinifAdi() { return 'e-İrsaliye' }
@@ -65,6 +66,8 @@ class EIslIrsaliye extends EIslTicariOrtak {
 			.leftJoin('fis', 'aracsofor sof1', 'fis.tasimasoforkod = sof1.kod')
 			.leftJoin('fis', 'aracsofor sof2', 'fis.tasimasoforkod2 = sof2.kod')
 			.leftJoin('fis', 'arac arc', 'fis.tasimaarackod = arc.kod')
+			.leftJoin('nak', 'carmst ncar', 'nak.mustkod = ncar.must')
+			.leftJoin('ncar', 'caril nil', 'ncar.ilkod = nil.kod')
 			// .fromIliski('naksekli nak', 'fis.nakseklikod = nak.kod')              // ust seviyede var
 			.leftJoin('fis', 'tasima tas1', 'fis.tasimasayac = tas1.kaysayac')
 			.leftJoin('fis', 'tasima tas2', 'fis.tasima2sayac = tas2.kaysayac')
@@ -118,7 +121,7 @@ class EIslIrsaliye extends EIslTicariOrtak {
 				`${c.tasimaSoforTC(3, true)} sofor3VknTckn`
 			],
 			...[
-				`${new MQCase()
+				`COALESCE(NULLIF(RTRIM(${new MQCase()
 					.when(
 						new MQAndClause([`fis.tasimasayac IS NULL`, `fis.tasimasoforkod <> ${sqlEmpty}`]),
 						'sof1.tckimlikno'
@@ -132,8 +135,8 @@ class EIslIrsaliye extends EIslTicariOrtak {
 						'tas1.nakliyecivkn'
 					)
 				   .else(c.isyVknTckn)
-				} nakVknTckn`,
-				`${new MQCase()
+				}), ''), CASE WHEN ncar.sahismi <> '' THEN ncar.tckimlikno ELSE ncar.vnumara END, '') nakVknTckn`,
+				`COALESCE(NULLIF(RTRIM(${new MQCase()
 					.when(
 						new MQAndClause([`fis.tasimasayac IS NULL`, `fis.tasimasoforkod <> ${sqlEmpty}`]),
 						'sof1.aciklama'
@@ -147,23 +150,23 @@ class EIslIrsaliye extends EIslTicariOrtak {
 						'tas1.nakliyeciunvan'
 					)
 				   .else(c.isyUnvan)
-				} nakUnvan`
+				}), ''), ncar.birunvan, '') nakUnvan`
 			],
 			...[
-				`${new MQCase()
+				`COALESCE(NULLIF(RTRIM(${new MQCase()
 				   .when(
 						`(fis.tasimasayac IS NULL OR tas1.nakliyetipi = 'B')`,
 						c.isyYore
 					)
 				   .else(sqlEmpty)
-				} nakYore`,
-				`${new MQCase()
+				}), ''), ncar.yore, '') nakYore`,
+				`COALESCE(NULLIF(RTRIM(${new MQCase()
 				   .when(
 						`(fis.tasimasayac IS NULL OR tas1.nakliyetipi = 'B')`,
 						c.isyIlAdi
 					)
 				   .else(sqlEmpty)
-				} nakIlAdi`
+				}), ''), nil.aciklama, '') nakIlAdi`
 			]
 		])
 	}
@@ -171,6 +174,72 @@ class EIslIrsaliye extends EIslTicariOrtak {
 	
 	xmlGetProfileID(e) { return 'TEMELIRSALIYE' }
 	xmlGetBelgeTipKodu(e) { return 'SEVK' }
+	getKoliBilgi(det) {
+		let koli = asFloat(det.koli) || 0
+		if (!koli)
+			return null
+		
+		let cinsi = det.koliCinsi?.trim() || 'KOLI'
+		let icAdet = roundToFra((asFloat(det.miktar) || 0) / koli, 6)
+		let gorunum = `${numberToString(koli)} ${cinsi}`
+		if (app.params.eIslem.kural.koli.koliVeAdetmi)
+			gorunum += ` (iç: ${numberToString(icAdet)})`
+		
+		return { koli, cinsi, icAdet, gorunum }
+	}
+	
+	async xsltDuzenle(e) {
+		await super.xsltDuzenle(e)
+	}
+	xmlDuzenle_notes({ xw }) {
+		let { kullanim } = app.params.eIslem
+		xw.writeElementString('cbc:Note', '')
+		if (kullanim.dipMiktarToplami) {
+			let koliToplam = {}, miktarToplam = {}
+			for (let det of this.detaylar) {
+				let koliBilgi = kullanim.satirEIrsKoli && this.getKoliBilgi(det)
+				if (koliBilgi) {
+					let { cinsi, koli } = koliBilgi
+					koliToplam[cinsi] = (koliToplam[cinsi] || 0) + koli
+				}
+				let brm = det.brm?.trim() || 'AD'
+				miktarToplam[brm] = (miktarToplam[brm] || 0) + (asFloat(det.miktar) || 0)
+			}
+			let parts = [...entries(koliToplam), ...entries(miktarToplam)]
+				.map(([brm, miktar]) => `${numberToString(miktar)} ${brm}`)
+			if (parts.length)
+				xw.writeElementString('cbc:Note', `Toplam Miktar: ${parts.join(', &#160;')}`)
+		}
+		for (let value of this.dipNotlar) {
+			if (value && !(value.startsWith('<span class="') && value.includes('bakiye"')))
+				xw.writeElementString('cbc:Note', turkcesiz(value))
+		}
+	}
+	xmlDuzenle_detayDevam_item_additionalItemIds(e) {
+		super.xmlDuzenle_detayDevam_item_additionalItemIds(e)
+		if (!app.params.eIslem.kullanim.satirEIrsKoli)
+			return
+		let bilgi = this.getKoliBilgi(e.detay)
+		if (!bilgi)
+			return
+		let { xw } = e, { koli, cinsi, icAdet, gorunum } = bilgi
+		for (let [key, value] of entries({ KOLI_ADET: koli, KOLI_CINSI: cinsi, KOLI_ICI_ADET: icAdet, KOLI_GORUNUM: gorunum }))
+			this.xmlDuzenleInternal_detAdditionalIdent({ xw, schemeID: key, id: value })
+	}
+	xmlDuzenle_doviz(e) { }
+	xmlDuzenle_lineCountNumeric(e) { }
+	xmlDuzenle_detayDevam_bedel(e) {
+		if (app.params.eIslem.kullanim.irsDetayBedel)
+			super.xmlDuzenle_detayDevam_bedel(e)
+	}
+	xmlDuzenle_detayDevam_notes(e) {
+		if (e.detay.aciklamalar?.some(Boolean))
+			super.xmlDuzenle_detayDevam_notes(e)
+	}
+	xmlDuzenle_detayDevam_siparisSatirBaglantisi({ xw, seq }) {
+		xw.writeElementBlock('cac:OrderLineReference', null, () =>
+			xw.writeElementString('cbc:LineID', seq))
+	}
 
 	async xmlDuzenle_docRefs_ara({ xw }) {
 		await super.xmlDuzenle_docRefs_ara(...arguments)
@@ -199,6 +268,8 @@ class EIslIrsaliye extends EIslTicariOrtak {
 		let { teslimYore, teslimIlKod, teslimIlAdi, teslimPosta, teslimAdres, plaka } = rec
 		let { sofor1Adi, sofor1VknTckn, sofor2Adi, sofor2VknTckn, sofor3Adi, sofor3VknTckn } = rec
 		let { nakVknTckn, nakUnvan, nakYore, nakIlAdi } = rec
+		// Vio uyumu: hiçbir şoför adı yoksa temsilî varsayılan kullanılır.
+		let varsayilanSofor = ![1, 2, 3].some(i => rec[`sofor${i}Adi`]?.trim())
 		xw.writeElementBlock('cac:Shipment', null, () => {
 			xw
 				.writeElementString('cbc:ID', '')
@@ -211,20 +282,29 @@ class EIslIrsaliye extends EIslTicariOrtak {
 					}
 					for (let i = 1; i <= 3; i++) {
 						let soforAdi = rec[`sofor${i}Adi`]
-						let vknTckn = rec[`sofor${i}VknTckn`]
+						let vknTckn = rec[`sofor${i}VknTckn`] || ''
+						if (i == 1 && varsayilanSofor) {
+							soforAdi = 'Sofor'
+							vknTckn ||= '11111111111'
+						}
 						if (soforAdi) {
 							xw.writeElementBlock('cac:DriverPerson', null, () => {
 								let sahismi = vknTckn.length == 11
 								if (sahismi) {
 									let { adi, soyadi } = getAdiSoyadi(soforAdi) ?? {}
+									if (i == 1 && varsayilanSofor) {
+										adi = soforAdi
+										soyadi = '.'
+									}
 									xw
 										.writeElementString('cbc:FirstName', adi || '.')
 										.writeElementString('cbc:FamilyName', soyadi || '.')
+										.writeElementString('cbc:Title', '')
 								}
 								else
 									xw.writeElementString('cbc:Title', soforAdi)
+								xw.writeElementString('cbc:NationalityID', vknTckn)
 							})
-							xw.writeElementString('cbc:NationalityID', vknTckn)
 						}
 					}
 				})
@@ -233,23 +313,23 @@ class EIslIrsaliye extends EIslTicariOrtak {
 						.writeElementBlock('cac:DeliveryAddress', null, () => {
 							xw
 								.writeElementString('cbc:Room', 0)
-								.writeElementString('cbc:StreetName', teslimAdres)
+								.writeElementString('cbc:StreetName', teslimAdres || '.')
 								.writeElementString('cbc:BuildingName', '.')
-								.writeElementString('cbc:BuildingNumber ', 0)
+								.writeElementString('cbc:BuildingNumber', 0)
 								.writeElementString('cbc:CitySubdivisionName', teslimYore)
 								.writeElementString('cbc:CityName', teslimIlAdi)
 								.writeElementString('cbc:PostalZone', normalizePostaKod(teslimPosta, teslimIlKod, ihracatmi))
-								.writeElementString('cbc:Region', '')
+								.writeElementString('cbc:Region', '.')
 								.writeElementBlock('cac:Country', null, () =>
 									xw.writeElementString('cbc:Name', defaultCountryName))
 						})
 						.writeElementBlock('cac:CarrierParty', null, () => {
 							//nakVknTckn, nakUnvan, nakYore, nakIlAdi
-							let sahismi = nakVknTckn.length == 11
+							let sahismi = nakVknTckn?.length == 11
 							let schemeID = sahismi ? 'TCKN' : 'VKN'
 							xw
 								.writeElementBlock('cac:PartyIdentification', null, () =>
-									xw.writeElementString('cbc:ID', nakVknTckn), null, { schemeID })
+									xw.writeElementString('cbc:ID', nakVknTckn, null, { schemeID }))
 								.writeElementBlock('cac:PartyName', null, () =>
 									xw.writeElementString('cbc:Name', nakUnvan))
 								.writeElementBlock('cac:PostalAddress', null, () =>
@@ -262,15 +342,14 @@ class EIslIrsaliye extends EIslTicariOrtak {
 						})
 						.writeElementBlock('cac:Despatch', null, () => {
 							xw
-								.writeElementString('cac:ActualDespatchDate', sevkTarihStr)
-								.writeElementString('cac:ActualDespatchTime', sevkSaatStr)
+								.writeElementString('cbc:ActualDespatchDate', sevkTarihStr)
+								.writeElementString('cbc:ActualDespatchTime', sevkSaatStr)
 							
 						})
 				})
 		})
 	}
 	xmlDuzenle_detayDevam_miktar({ xw, detay: det }) {
-		super.xmlDuzenle_detayDevam_miktar(...arguments)
 		let { stokBirim: { brmDict = {} } } = app.params
 		let { miktar, brm } = det
 		let { [brm]: { intKod } = {} } = brmDict

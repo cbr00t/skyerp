@@ -18,8 +18,8 @@ class EIslBaslik extends EIslBaslikVeDetayOrtak {
 	get subeKod() { return this.rec.subeKod }
 	get fisTipi() { return this.rec.fisTipi }
 	get tarihStr() { return asReverseDateString(asDate(this.rec.tarih)) }
-	get sevkTarihStr() { return asReverseDateString(asDate(this.rec.sevkTarih)) }
-	get sevkSaatStr() { return timeToString(asDate(this.rec.sevkSaat)) }
+	get sevkTarihStr() { return asReverseDateString(asDate(this.rec.sevkTarih)) || this.rec.sevkTarihStr }
+	get sevkSaatStr() { return timeToString(asDate(this.rec.sevkSaat)) || this.rec.sevkSaatStr }
 	get istisnaKod() { return this._istisnaKod ?? this.rec.kdvIstisnaTuru }
 	set istisnaKod(v) { return this._istisnaKod = v }
 	get dvKod() {

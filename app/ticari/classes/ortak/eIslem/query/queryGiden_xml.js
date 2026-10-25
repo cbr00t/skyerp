@@ -67,6 +67,8 @@ class EIslemQuery_XML extends EIslemQuery_Giden {
 			let barkodClause = sqlEmpty
 			let stokRefClause = () => sqlEmpty
 			if (stokmu) {
+				if (!sutMakbuzmu)
+					sent.leftJoin('har', 'paket pak', 'har.paketsayac = pak.kaysayac')
 				let barkodKosullari = ['sb.stokkod = har.stokkod', 'sb.paketsayac IS NULL', `sb.varsayilan <> ''`]
 				for (let { rowAttr, defaultValue } of HMRBilgi.hmrIter())
 					barkodKosullari.push(`sb.${rowAttr} = ${MQSQLOrtak.sqlServerDegeri(defaultValue)}`)
@@ -97,7 +99,7 @@ class EIslemQuery_XML extends EIslemQuery_Giden {
 				faturaOzelTip: ticarimi ? `(CASE fis.ayrimtipi WHEN 'IH' THEN 'IHRACAT' WHEN 'IK' THEN 'IHRACKAYITLI' WHEN 'FS' THEN 'FASON' WHEN 'EM' THEN 'EMANET' WHEN 'KN' THEN 'KONSINYE' ELSE '' END)` : sqlEmpty,
 				alimiademi: ticarimi ? `(CASE WHEN fis.almsat = 'A' AND fis.iade = 'I' THEN '*' ELSE '' END)` : sqlEmpty,
 				kdvIstisnaTuru: ticarimi ? 'fis.kdvistisnaturu' : sqlEmpty,
-				sevkTarih: sutMakbuzmu ? 'fis.tarih' : 'fis.sevktarihi', sevkSaat: sutMakbuzmu ? sqlNull : 'fis.sevksaati',
+				sevkTarih: sutMakbuzmu ? 'fis.tarih' : 'COALESCE(fis.sevktarihi, fis.tarih)', sevkSaat: sutMakbuzmu ? sqlNull : 'fis.sevksaati',
 				ortalamavade: ticarimi ? 'fis.ortalamavade' : sqlNull,
 				carsenaryo: alici(`COALESCE(NULLIF(car.efatsenaryotipi, ''), 'M')`, `'M'`),
 				genelyontem: 'car.efatyontem', ozelyontem: 'car.efozelyontemkod',
@@ -127,6 +129,7 @@ class EIslemQuery_XML extends EIslemQuery_Giden {
 				brm2: stokmu ? 'mst.brm2' : sqlEmpty, brmOrani: stokmu ? 'mst.brmorani' : sqlZero,
 				miktar: 'har.miktar', miktar2: stokmu ? 'har.miktar2' : sqlZero,
 				koli: stokmu && !sutMakbuzmu ? 'har.koli' : sqlZero,
+				koliCinsi: stokmu && !sutMakbuzmu ? 'pak.kod' : sqlEmpty,
 				fiyatVeriTipi: sutMakbuzmu ? sqlEmpty : 'har.fiyatveritipi',
 				fiyat: 'har.fiyat', dvFiyat: sutMakbuzmu ? sqlZero : 'har.dvfiyat',
 				brutBedel: ticarimi ? 'har.brutbedel' : sutMakbuzmu ? 'har.bedel' : 'har.belgebrutbedel',

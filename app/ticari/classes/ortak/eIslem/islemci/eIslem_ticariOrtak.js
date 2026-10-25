@@ -37,7 +37,7 @@ class EIslTicariOrtak extends EIslGiden {
 			yukleIslemi({
 				stm: e => this.getCariOzelDipStm(e),
 				seviyelendirici: ({ recs: source }) =>
-					seviyelendirAttrGruplari({ source, attrGruplari: [['fisSayac', 'seq']] }),
+					seviyelendirAttrGruplari({ source, attrGruplari: [['mustKod', 'fisSayac', 'seq']] }),
 				yukleyici: e => this.cariOzelDipYukle({ ...e })
 			})
 		)
@@ -160,6 +160,13 @@ class EIslTicariOrtak extends EIslGiden {
 				ackBagla_ekBilgi(({ fisTable, ackTable: 'sipdipekbilgi', idListe }))
 			}
 		}
+		;{
+			let fisTable = 'stfis', idListe = table2IDListe[fisTable]
+			if (!empty(idListe)) {
+				ackBagla_baslik({ fisTable, ackTable: 'stbasekaciklama', idListe })
+				ackBagla_dip({ fisTable, ackTable: 'stdipaciklama', idListe })
+			}
+		}
 		if (empty(uni.liste))
 			return null
 		
@@ -272,7 +279,7 @@ class EIslTicariOrtak extends EIslGiden {
 				)
 				.addWithAlias('har', 'seq', 'html')
 		}
-		orderBy.add('fisSayac', 'seq')
+		orderBy.add('mustKod', 'fisSayac', 'seq')
 		
 		return stm
 	}
@@ -304,7 +311,7 @@ class EIslTicariOrtak extends EIslGiden {
 			return rec
 		}
 		temps.kod2OzelDip = fromEntries(
-			recs.map(sev => [sev.orjBilgi.kod, getRec(sev)]))
+			recs.map(sev => [`${sev.orjBilgi.mustKod}|${sev.orjBilgi.kod}`, getRec(sev)]))
 	}
 	
 	// xmlGetProfileID(e) { }
