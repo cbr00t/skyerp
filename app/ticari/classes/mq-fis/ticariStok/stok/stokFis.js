@@ -9,7 +9,7 @@ class SayimFis extends MQTicariGenelFis {
 
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
-		$.extend(pTanim, {
+		extend(pTanim, {
 			yerKod: new PInstStr({ rowAttr: 'yerkod', init: e => 'A' })
 		})
 	}
@@ -37,6 +37,11 @@ class SayimFis extends MQTicariGenelFis {
 		super.loadServerData_queryDuzenle(...arguments)
 		sent.fromIliski('stkyer yer', 'fis.yerkod = yer.kod')
 	}
+	static loadServerData_detaylar_queryDuzenle({ stm }) {
+		super.loadServerData_detaylar_queryDuzenle(...arguments)
+		for (let sent of stm)
+			sent.har2StokBagla()
+	}
 	static varsayilanKeyHostVarsDuzenle({ hv }) {
 		super.varsayilanKeyHostVarsDuzenle(...arguments)
 		extend(hv, { bttip: 'SY' })
@@ -50,7 +55,7 @@ class SayimDetay extends MQDetay {
 	static pTanimDuzenle({ pTanim }) {
 		super.pTanimDuzenle(...arguments)
 		extend(pTanim, {
-			stokKod: new PInstStr('stokkod'),
+			shKod: new PInstStr('stokkod'),
 			miktar: new PInstNum('miktar'),
 			miktar2: new PInstNum('miktar2')
 		})
@@ -58,9 +63,9 @@ class SayimDetay extends MQDetay {
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
 		liste.push(
-			this.getKAKolonlar(
+			...this.getKAKolonlar(
 				new GridKolon({ belirtec: 'stokkod', text: 'Stok', genislikCh: 16 }),
-				new GridKolon({ belirtec: 'stokadi', text: 'Stok Adı', genislikCh: 40 }),
+				new GridKolon({ belirtec: 'stokadi', text: 'Stok Adı', genislikCh: 40, sql: 'stk.aciklama' })
 			),
 			new GridKolon({ belirtec: 'miktar', text: 'Miktar', genislikCh: 8 }).tipDecimal(),
 			new GridKolon({ belirtec: 'miktar2', text: 'Miktar 2', genislikCh: 8 }).tipDecimal()
@@ -121,8 +126,8 @@ class TransferVeGCOrtakFis extends StokFis {
 		})
 	}
 	static secimlerDuzenle({ secimler: sec }) {
-		super.secimlerDuzenle(e)
-		let {tableAlias: alias} = this
+		super.secimlerDuzenle(...arguments)
+		let { tableAlias: alias } = this
 		sec.addKA('yer', MQStokYer, `${alias}.yerkod`, 'yer.aciklama')
 	}
 	static rootFormBuilderDuzenle({ builders: { baslikForm: { builders: f } } }) {

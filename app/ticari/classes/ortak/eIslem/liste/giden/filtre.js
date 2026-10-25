@@ -222,6 +222,94 @@ class GidenEIslemFiltre extends EIslemFiltre {
 			.add('tarih DESC', 'eIslTip', 'oncelik', 'fisNox DESC')
 	}*/
 
+	listeOlustur(e = {}) {
+		super.listeOlustur(e)
+		
+		let _today = today()
+		let { cariYil } = app.params.zorunlu ?? {}
+		cariYil ||= today.yil
+		
+		let tarihBS = {
+			basi: _today.clone().yilBasi().setYil(cariYil),
+			sonu: _today.clone().yilSonu().setYil(cariYil)
+		}
+		
+		let { liste, eConf = this.eConf ?? {} } = e
+		let sec_eIslem, sec_faturaAyrim
+		
+		this.grupEkle({ kod: 'PRG', aciklama: 'Yazılımsal', renk: '#111', zeminRenk: '#eee', kapali: true })
+		extend(liste, {
+			uygunOlmayanlarGosterilirmiFlag: new SecimBool({
+				etiket: 'Seri-No Yıl Uygun OLMAYANLAR da gösterilsin'
+			}),
+			eIslemBirKismi: (
+				sec_eIslem = new SecimBirKismi({
+					etiket: 'e-İşlem',
+					tekSecim: new EIslemTip({ hepsi: true })
+				}).birKismi()
+			),
+			faturaAyrimSecim: (
+				sec_faturaAyrim = new SecimTekSecim({
+					etiket: 'Fatura Ayrım',
+					tekSecim: new BuDigerVeHepsi(['Mağaza Fişi', 'Normal Fatura'])
+				})
+			)
+		})
+
+		let { kisitUyarlanmis: kisit } = eConf
+		if (kisit.kullanilirmi) {
+			let eIslKodlar = []
+				if (kisit.fatura) {
+					eIslKodlar.push('E', 'IH')
+					if (kisit.magaza)
+						eIslKodlar.push('A')
+				}
+				if (kisit.irsaliye)
+					eIslKodlar.push('IR')
+				if (kisit.musMakbuz)
+					eIslKodlar.push('MS')
+			
+			if (eIslKodlar.length) {
+				let { kaDict } = EIslemTip
+				liste.uyari_kisitEIslTip = new SecimText({
+					etiket: `Kısıtlanacak e-İşlem Tipleri:`,
+					value: `[ <b class="indianred">${eIslKodlar.map(eIslTip =>kaDict[eIslTip] || eIslTip)}</b> ]`
+				})
+			}
+			liste.uyari_kisitAyrim = new SecimText({
+				etiket: `Kısıtlanacak Ayrımlar`,
+				value: `[ <b class="indianred">${magazami ? 'Mağaza' : 'Normal Faturalar'}</b> ]`
+			})
+		}
+		
+		extend(liste, {
+			sube: new SecimBirKismi({ etiket: 'Fiş Şubesi', mfSinif: MQSube }),
+			tarih: new SecimDate({ etiket: 'Tarih', basi: tarihBS.basi, sonu: tarihBS.sonu }),
+			seri: new SecimString({ etiket: 'Belge Seri' }),
+			fisNo: new SecimNumber({ etiket: 'Belge No' }),
+			must: new SecimString({ etiket: 'Müşteri', mfSinif: MQCari }),
+			mustUnvan1: new SecimOzellik({ etiket: 'Müşteri Ünvan 1' }),
+			gonderimDurumSecim: new SecimTekSecim({
+				etiket: 'Gönderim Durumu',
+				tekSecim: new BuDigerVeHepsi(['Bekleyenler', 'GÖNDERİLENLER']).bu()
+			}),
+			gonderimTarihi: new SecimDate({ etiket: 'Gönderim Tarihi' }),
+			akibetDurumBirKismi: new SecimBirKismi({
+				etiket: 'Akıbet',
+				tekSecimSinif: EIslemOnayDurum
+			}).birKismi(),
+			uuid: new SecimOzellik({ etiket: 'UUID' }),
+			xmlDurumSecim: new SecimTekSecim({
+				etiket: 'XML Durumu',
+				tekSecim: new BuDigerVeHepsi([
+					`<span class="green">XML Oluşmuş Olanlar</span>`,
+					`<span class="red">XML OLUŞMAMIŞ Olanlar</span>`
+				])
+			}),
+			fisSayac: new SecimInteger({ etiket: 'VIO ID (fisSayac)', grupKod: 'PRG' })
+		})
+	}
+
 	static getBelgeTipText(e) {
 		let { rec = e } = e
 		let { psTip, pifTipi, almSat, iade, fisAyrim: ayrimTipi } = rec
@@ -275,84 +363,6 @@ class GidenEIslemFiltre extends EIslemFiltre {
 		}
 		
 		return `${atText}${iadePrefix} ${ifText}`
-	}
-	listeOlustur(e = {}) {
-		super.listeOlustur(e)
-		let tarihBasi = null   //today().addMonths(-5); tarihBasi.setDate(1);
-		this.grupEkle({ kod: 'PRG', aciklama: 'Yazılımsal', renk: '#111', zeminRenk: '#eee', kapali: true })
-		
-		let { liste, eConf = this.eConf ?? {} } = e
-		let sec_eIslem, sec_faturaAyrim
-		extend(liste, {
-			uygunOlmayanlarGosterilirmiFlag: new SecimBool({
-				etiket: 'Seri-No Yıl Uygun OLMAYANLAR da gösterilsin'
-			}),
-			eIslemBirKismi: (
-				sec_eIslem = new SecimBirKismi({
-					etiket: 'e-İşlem',
-					tekSecim: new EIslemTip({ hepsi: true })
-				}).birKismi()
-			),
-			faturaAyrimSecim: (
-				sec_faturaAyrim = new SecimTekSecim({
-					etiket: 'Fatura Ayrım',
-					tekSecim: new BuDigerVeHepsi(['Mağaza Fişi', 'Normal Fatura'])
-				})
-			)
-		})
-
-		let { kisitUyarlanmis: kisit } = eConf
-		if (kisit.kullanilirmi) {
-			let eIslKodlar = []
-				if (kisit.fatura) {
-					eIslKodlar.push('E', 'IH')
-					if (kisit.magaza)
-						eIslKodlar.push('A')
-				}
-				if (kisit.irsaliye)
-					eIslKodlar.push('IR')
-				if (kisit.musMakbuz)
-					eIslKodlar.push('MS')
-			
-			if (eIslKodlar.length) {
-				let { kaDict } = EIslemTip
-				liste.uyari_kisitEIslTip = new SecimText({
-					etiket: `Kısıtlanacak e-İşlem Tipleri:`,
-					value: `[ <b class="indianred">${eIslKodlar.map(eIslTip => kaDict[eIslTip] || eIslTip)}</b> ]`
-				})
-			}
-			liste.uyari_kisitAyrim = new SecimText({
-				etiket: `Kısıtlanacak Ayrımlar`,
-				value: `[ <b class="indianred">${magazami ? 'Mağaza' : 'Normal Faturalar'}</b> ]`
-			})
-		}
-		
-		extend(liste, {
-			sube: new SecimBirKismi({ etiket: 'Fiş Şubesi', mfSinif: MQSube }),
-			tarih: new SecimDate({ etiket: 'Tarih', basi: tarihBasi }),
-			seri: new SecimString({ etiket: 'Belge Seri' }),
-			fisNo: new SecimNumber({ etiket: 'Belge No' }),
-			must: new SecimString({ etiket: 'Müşteri', mfSinif: MQCari }),
-			mustUnvan1: new SecimOzellik({ etiket: 'Müşteri Ünvan 1' }),
-			gonderimDurumSecim: new SecimTekSecim({
-				etiket: 'Gönderim Durumu',
-				tekSecim: new BuDigerVeHepsi(['Bekleyenler', 'GÖNDERİLENLER']).bu()
-			}),
-			gonderimTarihi: new SecimDate({ etiket: 'Gönderim Tarihi' }),
-			akibetDurumBirKismi: new SecimBirKismi({
-				etiket: 'Akıbet',
-				tekSecimSinif: EIslemOnayDurum
-			}).birKismi(),
-			uuid: new SecimOzellik({ etiket: 'UUID' }),
-			xmlDurumSecim: new SecimTekSecim({
-				etiket: 'XML Durumu',
-				tekSecim: new BuDigerVeHepsi([
-					`<span class="green">XML Oluşmuş Olanlar</span>`,
-					`<span class="red">XML OLUŞMAMIŞ Olanlar</span>`
-				])
-			}),
-			fisSayac: new SecimInteger({ etiket: 'VIO ID (fisSayac)', grupKod: 'PRG' })
-		})
 	}
 	
 	tbWhereClauseDuzenle(e = {}) {

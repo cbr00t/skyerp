@@ -37,7 +37,7 @@ class EIslTicariOrtak extends EIslGiden {
 			yukleIslemi({
 				stm: e => this.getCariOzelDipStm(e),
 				seviyelendirici: ({ recs: source }) =>
-					seviyelendirAttrGruplari({ source, attrGruplari: [['fisSayac', 'seq']] }),
+					seviyelendirAttrGruplari({ source, attrGruplari: [['mustKod', 'fisSayac', 'seq']] }),
 				yukleyici: e => this.cariOzelDipYukle({ ...e })
 			})
 		)
@@ -160,6 +160,13 @@ class EIslTicariOrtak extends EIslGiden {
 				ackBagla_ekBilgi(({ fisTable, ackTable: 'sipdipekbilgi', idListe }))
 			}
 		}
+		;{
+			let fisTable = 'stfis', idListe = table2IDListe[fisTable]
+			if (!empty(idListe)) {
+				ackBagla_baslik({ fisTable, ackTable: 'stbasekaciklama', idListe })
+				ackBagla_dip({ fisTable, ackTable: 'stdipaciklama', idListe })
+			}
+		}
 		if (empty(uni.liste))
 			return null
 		
@@ -272,7 +279,7 @@ class EIslTicariOrtak extends EIslGiden {
 				)
 				.addWithAlias('har', 'seq', 'html')
 		}
-		orderBy.add('fisSayac', 'seq')
+		orderBy.add('mustKod', 'fisSayac', 'seq')
 		
 		return stm
 	}
@@ -304,11 +311,27 @@ class EIslTicariOrtak extends EIslGiden {
 			return rec
 		}
 		temps.kod2OzelDip = fromEntries(
-			recs.map(sev => [sev.orjBilgi.kod, getRec(sev)]))
+			recs.map(sev => [`${sev.orjBilgi.mustKod}|${sev.orjBilgi.kod}`, getRec(sev)]))
 	}
 	
 	// xmlGetProfileID(e) { }
 	xmlGetBelgeTipKodu(e) { return 'SATIS' }
+
+	getKoliBilgi(det) {
+		let koli = asFloat(det.koli) || 0
+		if (!koli)
+			return null
+		
+		let cinsi = det.koliCinsi?.trim() || 'KOLI'
+		let icAdet = roundToFra((asFloat(det.miktar) || 0) / koli, 6)
+		let gorunum = `${numberToString(koli)} ${cinsi}`
+		let { eIslem } = app.params
+		let { koliVeAdetmi } = eIslem.koli ?? {}
+		if (koliVeAdetmi)
+			gorunum += ` (iç: ${numberToString(icAdet)})`
+		
+		return { koli, cinsi, icAdet, gorunum }
+	}
 
 	async xmlDuzenle_docRefs(e) {
 		await super.xmlDuzenle_docRefs(e)
@@ -357,8 +380,34 @@ class EIslTicariOrtak extends EIslGiden {
 	}
 
 	xmlDuzenle_notes(e) {
-		// this.xmlDuzenle_bakiye(e)
 		super.xmlDuzenle_notes(e)
+		// this.xmlDuzenle_bakiye(e)
+	}
+	xmlDuzenle_notes_son(e) {
+		super.xmlDuzenle_notes_son(e)
+		this.xmlDuzenle_notes_miktar(e)
+	}
+	xmlDuzenle_notes_miktar({ xw }) {
+		let { class: { innovami } } = this
+		let { kullanim } = app.params.eIslem
+		let { dipMiktarToplami, satirEIrsKoli } = kullanim ?? {}
+		
+		if (dipMiktarToplami) {
+			let koliToplam = {}, miktarToplam = {}
+			for (let det of this.detaylar) {
+				let koliBilgi = satirEIrsKoli && this.getKoliBilgi(det)
+				if (koliBilgi) {
+					let { cinsi, koli } = koliBilgi
+					koliToplam[cinsi] = (koliToplam[cinsi] || 0) + koli
+				}
+				let brm = det.brm?.trim() || 'AD'
+				miktarToplam[brm] = (miktarToplam[brm] || 0) + (asFloat(det.miktar) || 0)
+			}
+			let tokens = [...entries(koliToplam), ...entries(miktarToplam)]
+				.map(([brm, miktar]) => `${numberToString(miktar)} ${brm}`)
+			if (tokens.length)
+				xw[innovami ? 'writeElementString' : 'writeElementCDATA']('cbc:Note', `Toplam Miktar: ${tokens.join(', &#160;')}`)
+		}
 	}
 	async xmlDuzenle_bakiye({ xw }) {
 		await super.xmlDuzenle_bakiye(...arguments)

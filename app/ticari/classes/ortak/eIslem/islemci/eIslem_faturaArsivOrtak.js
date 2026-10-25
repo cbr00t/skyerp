@@ -47,11 +47,13 @@ class EIslFaturaArsivOrtak extends EIslTicariOrtak {
 		this.baslik.oncekiIrsTSNListe = d
 	}
 	
-	async onKontrol_ara(e) {
-		await super.onKontrol_ara(e)
-		let { baslik, detaylar, temps, dipNotlar } = this
-		let { fisTipi, istisnaKod } = baslik
+	async onKontrolMesajlarDuzenle({ liste: errors }) {
+		await super.onKontrolMesajlarDuzenle(...arguments)
+		
+		let { baslik, detaylar, temps, dipNotlar, class: { sinifAdi: tipAdi } } = this
+		let { fisTipi, istisnaKod, kamumu } = baslik
 		let icmal = this.icmalYoksaOlustur()
+		let { isyeri } = app.params
 		
 		let hDetIstTip, hDetTevKod
 		// dettevhesapkod
@@ -100,16 +102,23 @@ class EIslFaturaArsivOrtak extends EIslTicariOrtak {
 				dipNotlar.push([ `<b>${istKod}</b>`, aciklama ].filter(Boolean).join('-'))
 			}
 		}
+
+		if (kamumu) {
+			let { iban } = isyeri.iletisim ?? {}
+			if (!iban)
+				errors.push(`<b>KAMU</b> carisine ${tipAdi} kesilirken İşyeri tanımında <b>IBAN</b> bilgisi belirtilmelidir`)
+		}
 		
 		return this
 	}
 
 	xmlGetProfileID(e) {
 		let { baslik, class: { eArsivmi } } = this
+		let { alimIademi, efSenaryo } = baslik
 		return (
 			eArsivmi ? 'EARSIVFATURA':
-			baslik.alimIademi ? 'TEMELFATURA' :
-			EIslemSenaryo.getSenaryoText(baslik.carsenaryo)
+			alimIademi ? 'TEMELFATURA' :
+			EIslemSenaryo.getSenaryoText(efSenaryo)
 		)
 	}
 	xmlGetBelgeTipKodu(e) {
@@ -160,9 +169,9 @@ class EIslFaturaArsivOrtak extends EIslTicariOrtak {
 	}
 	xmlDuzenle_docRefs_sgk(e) { }
 
-	xmlDuzenle_notes(e) {
+	xmlDuzenle_notes_ilk(e) {
 		this.xmlDuzenle_notes_eArsiv(e)
-		super.xmlDuzenle_notes(e)
+		super.xmlDuzenle_notes_ilk(e)
 	}
 	xmlDuzenle_notes_eArsiv({ xw }) {
 		let { eArsivBelgeTipBelirtec } = this.baslik
@@ -170,6 +179,49 @@ class EIslFaturaArsivOrtak extends EIslTicariOrtak {
 			let value = `Gönderim Şekli: ${eArsivBelgeTipBelirtec}`
 			xw.writeElementString('cbc:Note', value)
 		}
+	}
+
+	xmlDuzenle_paymentMeans({ xw }) {
+		super.xmlDuzenle_paymentMeans(...arguments)
+		let { baslik } = this, { kamumu } = baslik
+		if (kamumu) {
+			let { currencyID } = this, { tarihStr } = baslik
+			let { isyeri } = app.params, { iban } = isyeri.iletisim ?? {}
+			if (iban) {
+				xw.writeElementBlock('cac:PaymentMeans', null, () => {
+					xw
+						.writeElements({
+							'cbc:PaymentMeansCode': 1,
+							'cbc:PaymentDueDate': tarihStr
+						})
+						.writeElementBlock('cac:PayeeFinancialAccount', null, () => {
+							xw.writeElements({
+								'cbc:ID': iban,
+								'cbc:CurrencyCode': currencyID,
+								'cbc:PaymentNote': 'Firma Hesabı'
+							})
+						})
+				})
+			}
+		}
+		
+		/*let {eIslemKod2Bilgi} = this.temps, temp = eIslemKod2Bilgi?.BSK
+		let bankaBilgi = temp ? JSON.parse(temp) : null
+		let {currencyID} = this, bankaRecs = (bankaBilgi?.dipteBankaGoster ? bankaBilgi.bankaAdiVeIBANListe : null) ?? []
+		for (let arr of bankaRecs) {		// [banka adı, şube adı, iban, dvKod ??]
+			let [bankaAdi, subeAdi, iban, _dvKod] = arr;
+			let dvKod = _dvKod || currencyID; if (dvKod == 'TL' || dvKod == 'TRL') { dvKod = currencyID }
+			xw.writeElementBlock('cac:PaymentMeans', null, () => {
+				xw.writeElementString('cbc:PaymentMeansCode', 42);
+				xw.writeElementBlock('cac:PayeeFinancialAccount', null, () => {
+					xw.writeElements({ 'cbc:ID': iban, 'cbc:CurrencyCode': dvKod, 'cbc:PaymentNote': bankaAdi });
+					if (subeAdi.trim()) {
+						xw.writeElementBlock('cac:FinancialInstitutionBranch', null, () =>
+							xw.writeElementString('cbc:Name', subeAdi))
+					}
+				})
+			})
+		}*/
 	}
 }
 

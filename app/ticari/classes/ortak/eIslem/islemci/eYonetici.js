@@ -602,7 +602,7 @@ class EYonetici extends CObject {
 				let { _table: tbl, id, sevkTarih } = rec
 				extend(rec, {
 					tarihStr: asReverseDateString(asDate(rec.tarih)),
-					sevkTarihStr: asReverseDateString(asDate(sevkTarih) || _today),
+					sevkTarihStr: asReverseDateString(asDate(sevkTarih) || asDate(rec.tarih) || _today),
 					sevkSaatStr: timeToString(asDate(rec.sevkSaat) || _now)
 				})
 				extend(sev, {

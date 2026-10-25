@@ -79,7 +79,8 @@ class MQEIslemParam extends MQTicariParamBase {
 		form.addString('_faturaVadeEtiket', 'Fatura Vade Etiket').setRowAttr('faturaVadeEtiket')
 		form = paramci.addKullanim().addGrup('Kullanım').addFormWithParent()
 		form.addBool('ozelConf', 'Özel Konfigurasyon')
-		form.addNumber('_goruntuOzelPunto', 'Görüntü Özel Punto').setRowAttr('goruntuOzelPunto').addStyle_wh(180)
+		form.addNumber('_goruntuOzelPunto', 'Görüntü Özel Punto').setRowAttr('goruntuOzelPunto')
+			.setAltInst(e => e.paramci?.root?.inst).addStyle_wh(180)
 		form.addBool('kodYerineSiraNo', 'Kod Yerine Sıra No'); form.addBool('bakiyeDovizliIseAyricaTLBakiye', 'Dövizli Bakiye için Ayrıca TL Bakiye')
 		form = paramci.addAltObject('kisit')
 			.setAltInst(e => e.paramci?.inst.kisit)
@@ -113,6 +114,7 @@ class MQEIslemParam extends MQTicariParamBase {
 	paramHostVarsDuzenle({ hv }) {
 		super.paramHostVarsDuzenle(...arguments)
 		let {kullanim, class: { kullanimKeys }} = this
+		hv.goruntuOzelPunto = this.goruntuOzelPunto
 		for (let key of kullanimKeys) {
 			let value = kullanim[key]
 			if (value != null)
@@ -123,6 +125,7 @@ class MQEIslemParam extends MQTicariParamBase {
 		let {rec, rec: { efatAnaBolum: anaBolum, ozelEntegrator: _oe }} = e
 		this.kural = rec.kural ?? this.kural ?? {}
 		super.paramSetValues(e)
+		this._goruntuOzelPunto = rec.goruntuOzelPunto ?? rec._goruntuOzelPunto
 		let {kullanim, class: { kullanimKeys }} = this
 		for (let key of kullanimKeys)
 			kullanim[key] = rec[key]

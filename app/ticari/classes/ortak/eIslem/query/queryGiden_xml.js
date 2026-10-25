@@ -10,7 +10,7 @@ class EIslemQuery_XML extends EIslemQuery_Giden {
 	}
 	getQuery(e = {}) {
 		let stm = super.getQuery(e)
-		stm.orderBy.add('_table', 'id', 'seq', 'harSayac')
+		stm.orderBy.add('_table', 'tarih DESC', 'fisNox DESC')
 		return stm
 	}
 	sentEkDuzenle(e) {
@@ -67,6 +67,8 @@ class EIslemQuery_XML extends EIslemQuery_Giden {
 			let barkodClause = sqlEmpty
 			let stokRefClause = () => sqlEmpty
 			if (stokmu) {
+				if (!sutMakbuzmu)
+					sent.leftJoin('har', 'paket pak', 'har.paketsayac = pak.kaysayac')
 				let barkodKosullari = ['sb.stokkod = har.stokkod', 'sb.paketsayac IS NULL', `sb.varsayilan <> ''`]
 				for (let { rowAttr, defaultValue } of HMRBilgi.hmrIter())
 					barkodKosullari.push(`sb.${rowAttr} = ${MQSQLOrtak.sqlServerDegeri(defaultValue)}`)
@@ -81,7 +83,7 @@ class EIslemQuery_XML extends EIslemQuery_Giden {
 			}
 			// Her UNION dalında aynı sırada ve aynı türde kolonlar üretilir.
 			// Başlıktaki sonucBedel ile detay bedelleri birbirine karıştırılmaz.
-			let f = {
+			let hv = {
 				_table: table.sqlServerDegeri(), id: `${alias}.id`, fisSayac: `${alias}.kaysayac`,
 				uuid: `${alias}.efatuuid`, eIslTip: `${alias}.efayrimtipi`,
 				onayDurum: `${alias}.efatonaydurumu`, efImzaTS: `${alias}.efimzats`, efGonderimTS: `${alias}.efgonderimts`,
@@ -97,7 +99,8 @@ class EIslemQuery_XML extends EIslemQuery_Giden {
 				faturaOzelTip: ticarimi ? `(CASE fis.ayrimtipi WHEN 'IH' THEN 'IHRACAT' WHEN 'IK' THEN 'IHRACKAYITLI' WHEN 'FS' THEN 'FASON' WHEN 'EM' THEN 'EMANET' WHEN 'KN' THEN 'KONSINYE' ELSE '' END)` : sqlEmpty,
 				alimiademi: ticarimi ? `(CASE WHEN fis.almsat = 'A' AND fis.iade = 'I' THEN '*' ELSE '' END)` : sqlEmpty,
 				kdvIstisnaTuru: ticarimi ? 'fis.kdvistisnaturu' : sqlEmpty,
-				sevkTarih: sutMakbuzmu ? 'fis.tarih' : 'fis.sevktarihi', sevkSaat: sutMakbuzmu ? sqlNull : 'fis.sevksaati',
+				sevkTarih: sutMakbuzmu ? 'fis.tarih' : 'COALESCE(fis.sevktarihi, fis.tarih)',
+				sevkSaat: sutMakbuzmu ? sqlNull : 'fis.sevksaati',
 				ortalamavade: ticarimi ? 'fis.ortalamavade' : sqlNull,
 				carsenaryo: alici(`COALESCE(NULLIF(car.efatsenaryotipi, ''), 'M')`, `'M'`),
 				genelyontem: 'car.efatyontem', ozelyontem: 'car.efozelyontemkod',
@@ -114,6 +117,7 @@ class EIslemQuery_XML extends EIslemQuery_Giden {
 				ticSicilNo: alici('car.ticaretsicilno', sqlEmpty), mersisNo: alici('car.mersisno', sqlEmpty),
 				gibAlias: alici(`CASE WHEN ${alias}.efayrimtipi = 'IR' THEN COALESCE(NULLIF(car.eirsgibalias, ''), car.efatgibalias) ELSE car.efatgibalias END`, 'dadr.efatgibalias'),
 				musrefkod: 'car.musrefkod', kondepomu: 'car.kondepomu',
+				sevkYerKod: 'fis.xadreskod',
 				tlBakiye: ticarimi ? 'fis.tlacikhesap' : sqlZero, tloncekibakiye: ticarimi ? 'fis.tloncekibakiye' : sqlZero,
 				dvBakiye: ticarimi ? 'fis.dvacikhesap' : sqlZero, dvoncekibakiye: ticarimi ? 'fis.dvoncekibakiye' : sqlZero,
 				refnox: sutMakbuzmu ? sqlEmpty : 'fis.refstrnox',
@@ -127,6 +131,7 @@ class EIslemQuery_XML extends EIslemQuery_Giden {
 				brm2: stokmu ? 'mst.brm2' : sqlEmpty, brmOrani: stokmu ? 'mst.brmorani' : sqlZero,
 				miktar: 'har.miktar', miktar2: stokmu ? 'har.miktar2' : sqlZero,
 				koli: stokmu && !sutMakbuzmu ? 'har.koli' : sqlZero,
+				koliCinsi: stokmu && !sutMakbuzmu ? 'pak.kod' : sqlEmpty,
 				fiyatVeriTipi: sutMakbuzmu ? sqlEmpty : 'har.fiyatveritipi',
 				fiyat: 'har.fiyat', dvFiyat: sutMakbuzmu ? sqlZero : 'har.dvfiyat',
 				brutBedel: ticarimi ? 'har.brutbedel' : sutMakbuzmu ? 'har.bedel' : 'har.belgebrutbedel',
@@ -156,7 +161,7 @@ class EIslemQuery_XML extends EIslemQuery_Giden {
 				f[rowAttr_bedel] = ticarimi ? `har.${rowAttr_bedel}` : sqlZero
 			}
 			sahalar.liste = []
-			for (let [attr, clause] of entries(f))
+			for (let [attr, clause] of entries(hv))
 				sahalar.add(`${clause} ${attr}`)
 			// Sevkiyat alanları e-İrsaliye üreticisinin kendi düzenleyicisinden alınır.
 			if (!sutMakbuzmu && (pifFismi || stFismi))

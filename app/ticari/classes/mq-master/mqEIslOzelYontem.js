@@ -28,23 +28,29 @@ class MQEIslOzelYontem extends MQKA {
 			else if (pInst instanceof PInstTekSecim) { form.addModelKullan(key, key).dropDown().noMF().kodsuz().setSource(pInst.sinif.kaListe) }
 		}
 	}
-	static orjBaslikListesiDuzenle(e) {
-		super.orjBaslikListesiDuzenle(e); const {liste} = e;
-		for (const [key, pInst] of Object.entries(this.pTanimListe_kullanim)) {
-			const {rowAttr} = pInst; if (!rowAttr) { continue }
-			let colDef = new GridKolon({ belirtec: rowAttr, text: key, genislikCh: 15 });
-			if (pInst instanceof PInstNum) { colDef.tipDecimal() } else if (pInst instanceof PInstBool || pInst instanceof PInstBitBool) { colDef.tipBool() }
+	static orjBaslikListesiDuzenle({ liste }) {
+		super.orjBaslikListesiDuzenle(...arguments)
+		for (const [key, pInst] of entries(this.pTanimListe_kullanim)) {
+			let { rowAttr } = pInst
+			if (!rowAttr)
+				continue
+			let colDef = gridKolon(rowAttr, key, 15)
+			if (pInst instanceof PInstNum)
+				colDef.tipDecimal()
+			else if (pInst instanceof PInstBool || pInst instanceof PInstBitBool)
+				colDef.tipBool()
 			liste.push(colDef)
 		}
 	}
 	static loadServerData_queryDuzenle({ sent: { where: wh, sahalar } }) {
-		super.loadServerData_queryDuzenle(e)
+		super.loadServerData_queryDuzenle(...arguments)
 		let { aliasVeNokta } = this
 		wh.add(`${aliasVeNokta}silindi = ''`)
 		sahalar.add(`${aliasVeNokta}*`)
 	}
 	xmlDuzenle_docRefs(e) {
-		let { eFis, xw } = e, { subeKod } = eFis.baslik
+		let { eFis, xw } = e
+		let { subeKod } = eFis.baslik
 		if (subeKod && this.subeKoduBayiNoOlarakYazilsin)
 			eFis.xmlDuzenleInternal_docRef({ xw, type: 'BAYINO', id: subeKod })
 	}
@@ -211,7 +217,8 @@ class EIslGenelYontem extends TekSecim {
 	get a101mi() { return this.char == 'A101' } get kilermi() { return this.char == 'KIL' }
 	get kipami() { return this.char == 'KIP' } get adesami() { return this.char == 'ADE' }
 	get ozenmi() { return this.char == 'OZN' } get eformu() { return this.char == 'EFOR' }
-	get cetinkayami() { return this.char == 'CET' } get lezitami() { return this.char == 'LEZ' } 
+	get cetinkayami() { return this.char == 'CET' }
+	get lezitami() { return this.char == 'LEZ' } 
 	get sofraGrupmu() { return this.char == 'SOF' } get getirmi() { return this.char == 'GET' }
 	get tofasmi() { return this.char == 'TOF' } get fordmu() { return this.char == 'FOR' }
 	get sgkmi() { return this.char == 'SGK' } get dmomu() { return this.char == 'DMO' }

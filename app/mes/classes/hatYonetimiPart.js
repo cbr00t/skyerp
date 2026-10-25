@@ -182,7 +182,7 @@ class HatYonetimiPart extends Part {
 							finally {
 								promises = []
 								delay(20).then(() =>
-									p.resolve())
+									promiseAll(promises).resolve())
 							}
 						}
 					}
