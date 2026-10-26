@@ -139,7 +139,10 @@ class Modul_YazarKasa extends Modul {
 }
 class Modul_KonsinyeLojistik extends Modul {
     static { globalThis[this.name] = this; this._key2Class[this.name] = this }
-	static get kullaniliyormu() { const {params} = app; params?.aktarim?.kullanim?.konsinyeLojistik ?? params?.satis?.kullanim?.kamuIhale }
+	static get kullaniliyormu() {
+		let { aktarim, satis } = app.params
+		return aktarim?.kullanim?.konsinyeLojistik
+	}
 	static get kod() { return 'MKONLJ' } static get aciklama() { return 'Konsinye Lojistik' }
 	/*static get extSinif_hareketci_cari() { return ModulExt_Hareketci_Cari_KonsinyeLojistik }*/
 }

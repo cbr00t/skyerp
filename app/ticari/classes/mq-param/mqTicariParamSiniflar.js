@@ -395,7 +395,7 @@ class MQAlimSatisParamOrtak extends MQTicariParamBase {
 			form = temps.islem_kullanim = tabPage.addGrup({ id: 'islemKullanim', etiket: 'İşlem Kullanımı' }).addFormWithParent()
 		kullanim = form.addKullanim();
 			kullanim.addBool('ihracKaydiyla', 'İhraç Kaydıyla')
-			kullanim.addBool('konsinye', 'Konsinye');
+			kullanim.addBool('konsinye', 'Konsinye')
 			kullanim.addBool('emanet', 'Emanet')
 			kullanim.addBool('eskiEmanet', 'ESKİ Emanet')
 			kullanim.addBool('fason', 'Fason')
@@ -655,59 +655,79 @@ class MQFinansParam extends MQTicariParamBase {
 
 class MQWebParam extends MQTicariParamBase {
 	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
-	static get sinifAdi() { return 'Web Parametreleri' } static get paramKod() { return 'TICWEB' }
+	static get sinifAdi() { return 'Web Parametreleri' }
+	static get paramKod() { return 'TICWEB' }
 	get ekOzellikKodlariStr() { return array2MLStr(this.ekOzellikKodlari) }
 	set ekOzellikKodlariStr(value) { this.ekOzellikKodlari = mlStr2Array(value) }
 	get konBuFirma_eMailListeStr() { return array2EMailStr(this.konBuFirma_eMailListe) }
 	set konBuFirma_eMailListeStr(value) { this.konBuFirma_eMailListe = eMailStr2Array(value) }
+	static get kamuReyonOrani() { return 1 }
+	
 	constructor(e = {}) {
 		super(e)
-		let {sablonSip_degisiklik, sablonSip_eMail, ekOzellikKodlari, yerKodListe} = e
+		let { sablonSip_degisiklik, sablonSip_eMail, ekOzellikKodlari, yerKodListe } = e
+		let { kamuReyonOrani = this.class.kamuReyonOrani } = e
 		extend(this, {
 			sablonSip_degisiklik: sablonSip_degisiklik ?? true, sablonSip_eMail: sablonSip_eMail ?? true,
-			ekOzellikKodlari: ekOzellikKodlari ?? [], yerKodListe: yerKodListe ?? []
+			ekOzellikKodlari: ekOzellikKodlari ?? [], yerKodListe: yerKodListe ?? [],
+			kamuReyonOrani
 		})
 	}
 	static paramYapiDuzenle({ paramci }) {
 		super.paramYapiDuzenle(...arguments)
 		let { dbName } = config.session ?? {}, dbNamePrefix = dbName?.slice(0, 4)
 		
-		let form = paramci.addFormWithParent().yanYana(1.4)
-		if (globalThis.MQCari)
-			form.addModelKullan('pesinMustKod', 'Peşin Müşteri').comboBox().autoBind().setMFSinif(MQCari)
-		else
-			form.addString('pesinMustKod', 'Peşin Müşteri')
+		;{
+			let form = paramci.addFormWithParent().yanYana(1.4)
+			if (globalThis.MQCari)
+				form.addModelKullan('pesinMustKod', 'Peşin Müşteri').comboBox().autoBind().setMFSinif(MQCari)
+			else
+				form.addString('pesinMustKod', 'Peşin Müşteri')
+			
+			form.addML('ekOzellikKodlariStr', 'Ek Özellik Kodları')
+				.noRowAttr()
+				.setRowCount(5)
+				.addStyle_wh(200)
+		}
 		
-		form.addML('ekOzellikKodlariStr', 'Ek Özellik Kodları')
-			.noRowAttr()
-			.setRowCount(5)
-			.addStyle_wh(200)
-		
-		form = paramci.addFormWithParent()
+		;{
+			let form = paramci.addFormWithParent()
 			form.addBool('stokResim', 'Stok Resim Kullanılır')
+		}
 
 		let tabPage = paramci.addTabPage('webSiparis', 'Web Sipariş')
 		let grup = tabPage.addGrup().setEtiket('Şablonlu Sipariş')
-		form = grup.addFormWithParent()
-			form.addBool('sablonSip_eMail', 'e-Mail Gönderilir');
-		form = tabPage.addAltObject('sablonDefKisit').addGrup().setEtiket('Def.Kısıt').addFormWithParent();
-			form.addBool('sablonSip_degisiklik', 'Değişiklik');
-			form.addBool('sube', 'Şube'); form.addBool('musteri', 'Müşteri');
-		form = tabPage.addFormWithParent().altAlta()
-			form.addString('konBuFirma_eMailListeStr', 'Bu Firma e-Mail Adresleri');
+		;{
+			let form = grup.addFormWithParent()
+			form.addBool('sablonSip_eMail', 'e-Mail Gönderilir')
+		}
+
+		;{
+			let form = tabPage.addAltObject('sablonDefKisit').addGrup().setEtiket('Def.Kısıt').addFormWithParent();
+				form.addBool('sablonSip_degisiklik', 'Değişiklik');
+				form.addBool('sube', 'Şube'); form.addBool('musteri', 'Müşteri');
+			form = tabPage.addFormWithParent().altAlta()
+				form.addString('konBuFirma_eMailListeStr', 'Bu Firma e-Mail Adresleri')
+		}
+		
 		let source_dbList = async e => {
 			return (await app.wsDBListe())
 				.filter(name => $.isNumeric(name.substr(2, 2)))
 				// .filter(name => !dbNamePrefix || name.startsWith(dbNamePrefix))
 				.map(adi => new CKodVeAdi([adi, adi]))
-		};
-		form = tabPage.addFormWithParent().yanYana()
-			form.addBool('webSiparis_sonStokGosterilirmi', 'Son Stok Gösterilir');
-			form.addModelKullan('webSiparis_sonStokDB', 'Son Stok Veritabanı')
-				.comboBox().autoBind().noMF().kodsuz().setSource(source_dbList);
-			form.addModelKullan('webSiparis_konDBListe', 'Kon. Ek Veritabanları')
-				.comboBox().autoBind().noMF().kodsuz().coklu().setSource(source_dbList);
-		form = tabPage.addFormWithParent()
+		}
+		
+		;{
+			let form = tabPage.addFormWithParent().yanYana()
+				form.addBool('webSiparis_sonStokGosterilirmi', 'Son Stok Gösterilir');
+				form.addModelKullan('webSiparis_sonStokDB', 'Son Stok Veritabanı')
+					.comboBox().autoBind().noMF().kodsuz().setSource(source_dbList);
+				form.addModelKullan('webSiparis_konDBListe', 'Kon. Ek Veritabanları')
+					.comboBox().autoBind().noMF().kodsuz().coklu().setSource(source_dbList)
+		}
+
+		;{
+			let form = tabPage.addFormWithParent()
 			form.addModelKullan('webSiparis_yerKodListe', 'Depolar')
 				.comboBox().autoBind().coklu().setMFSinif(MQStokYer)
 				.ozelQueryDuzenleIslemi(({ builder: fbd, sent }) => {
@@ -725,19 +745,26 @@ class MQWebParam extends MQTicariParamBase {
 				.setFra(0).addStyle_wh(150);
 			form.addNumberInput('webSiparis_ayOnceSayisi', 'Örnekleme<br/>Ay Sayısı')
 				.setFra(0).addStyle_wh(150)
+		}
 
-		{
+		;{
 			let tabPage = paramci.addTabPage('onayci', 'Onaycı')
 			let form = tabPage.addGrup().setEtiket('Onaycı').addFormWithParent()
 			form.addBool('onayci_onayNedenIstenir', 'Onay için Neden İstenir')
 			form.addBool('onayci_redNedenIstenir', 'RED için Neden İstenir')
 			form.addBool('onayci_nedenZorunludur', 'Neden Girişi Zorunludur')
 		}
+
+		;{
+			let tabPage = paramci.addTabPage('kl', 'Konsinye Lojistik')
+			let form = tabPage.addGrup().setEtiket('Konsinye Lojistik').addFormWithParent()
+			form.addNumber('kamuReyonOrani', 'Kamu Reyon Oranı')
+		}
 	}
 	paramHostVarsDuzenle({ hv }) {
 		super.paramHostVarsDuzenle(...arguments)
-		let {ekOzellikKodlari} = this
-		$.extend(hv, { ekOzellikKodlari })
+		let { ekOzellikKodlari } = this
+		extend(hv, { ekOzellikKodlari })
 	}
 	paramSetValues({ rec }) {
 		super.paramSetValues(...arguments)
@@ -745,11 +772,14 @@ class MQWebParam extends MQTicariParamBase {
 			this[key] = this[key] ?? true
 		for (let key of ['ekOzellikKodlari', 'yerKodListe'])
 			this[key] = rec[key] ?? this[key] ?? []
+		
 		let { sablonDefKisit } = this
 		if (sablonDefKisit?.sablonDefKisit) {
-			$.extend(sablonDefKisit, sablonDefKisit.sablonDefKisit);
+			extend(sablonDefKisit, sablonDefKisit.sablonDefKisit)
 			delete sablonDefKisit.sablonDefKisit
 		}
+
+		this.kamuReyonOrani ||= this.class.kamuReyonOrani
 	}
 }
 
@@ -826,10 +856,12 @@ class MQVergiParam extends MQTicariParamBase {
 	static get paramKod() { return 'FNVRG' }
 	static get sinifAdi() { return 'Vergi Parametreleri' }
 	static get genelKdvOrani() { return 20 }
+	static get kamuDamgaOrani() { return 0.948 }
 
 	constructor(e = {}) {
 		super(e)
 		this.genelKdvOrani ??= this.class.genelKdvOrani
+		this.kamuDamgaOrani ||= this.class.kamuDamgaOrani
 	}
 	static paramYapiDuzenle({ paramci }) {
 		super.paramYapiDuzenle(...arguments)
@@ -842,6 +874,12 @@ class MQVergiParam extends MQTicariParamBase {
 			form.addBool('gkkpKdvMatrahina', 'GKKP: KDV Matrahına eklenir')
 			form.addNumber('genelKdvOrani', 'Genel KDV %')
 		}
+
+		;{
+			let form = paramci.addFormWithParent()
+			form.addNumber('kamuDamgaOrani', 'Kamu Damga Oranı')
+		}
+		
 		;{
 			//let form = paramci.addFormWithParent()
 			//form.addTekSecim('', '')
@@ -853,6 +891,7 @@ class MQVergiParam extends MQTicariParamBase {
 	paramSetValues({ rec }) {
 		super.paramSetValues(...arguments)
 		this.genelKdvOrani ??= this.class.genelKdvOrani
+		this.kamuDamgaOrani ||= this.class.kamuDamgaOrani
 	}
 }
 

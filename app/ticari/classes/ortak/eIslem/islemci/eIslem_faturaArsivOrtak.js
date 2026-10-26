@@ -253,3 +253,12 @@ class EIslIhracat extends EIslFatura {
 	static get kisaAdi() { return 'e-İhr' }
 	get xsltBelirtec() { return EIslFatura.xsltBelirtec }
 }
+
+
+/*
+PFaturaExtKonsinyeLojistik class>>#pTanim
+	^OrderedCollection new
+		add: #(klDamgaVergisi kldamgavergisi) asMFDec;
+		add: #(klReyonBedeli klreyonbedeli) asMFDec;
+		yourself
+*/

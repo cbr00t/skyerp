@@ -23,6 +23,7 @@ class EIslemQuery_Giden extends EIslemQuery {
 	}
 	sentOrtakDuzenle(e) {
 		super.sentOrtakDuzenle(e)
+		
 		let { sqlNull, sqlEmpty, sqlZero } = Hareketci_UniBilgi.ortakArgs
 		let { filtremi, filtre } = this
 		let { alias = this.getAlias(table) } = e
@@ -32,12 +33,16 @@ class EIslemQuery_Giden extends EIslemQuery {
 		let sutMakbuzmu = this.getSutMakbuzmu(table)
 		
 		switch (table) {
+			case 'piffis': {
+				wh.add(`fis.fisekayrim <> 'DV'`, `fis.bdevirdir = 0`)
+				break
+			}
 			case 'sipfis': {
-				wh.add(`fis.ozeltip = 'E'`, `fis.almsat = 'T'`)
+				wh.add(`fis.ozeltip = 'E'`, `fis.almsat = 'T'`, `fis.bdevirdir = 0`)
 				break
 			}
 		}
-
+		
 		;{
 			sahalar
 				.add(`${table.sqlServerDegeri()} _table`)

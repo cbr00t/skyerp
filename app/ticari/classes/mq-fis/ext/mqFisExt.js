@@ -16,7 +16,6 @@ class ExtFis_Cari extends ExtFis {
 		form.addSimpleComboBox('mustKod', 'Müşteri', 'Müşteri')
 			.etiketGosterim_yok()
 			.setMFSinif(MQCari)
-			
 	}
 	static secimlerDuzenle({ secimler: sec }) {
 		sec.secimTopluEkle({

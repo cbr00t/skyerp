@@ -361,8 +361,9 @@ class MQDetayli extends MQSayacli {
 			await delay(asInteger(50 + Math.random() * 200))
 			let result = await this.sqlExecNoneWithResult(_e)
 			result = result?.[0] ?? result
-			await this.degistirSonrasiIslemler(e); return result
-		};
+			await this.degistirSonrasiIslemler(e)
+			return result
+		}
 		return offlineMode ? await e.proc() : (await app.sqlTrnDo(e)).result
 	}
 	async sil(e) {

@@ -158,7 +158,7 @@ class TSOrtakFis extends MQTicariGenelFis {
 				let {altInst, rootPart, parentBuilder} = fbd, {kontrolcu} = rootPart
 				parentBuilder.id2Builder.takipNo.updateVisible()
 				e.sender = e.gridPart = rootPart
-				extend(e, { builder })
+				e.builder = fbd
 				if (altInst.takipOrtakmiDegisti) { altInst.takipOrtakmiDegisti(e) }
 				if (kontrolcu.takipOrtakmiDegisti) { kontrolcu.takipOrtakmiDegisti(e) }
 			});
@@ -352,7 +352,7 @@ class TSOrtakFis extends MQTicariGenelFis {
 				new MQIliskiliDelete({ table, where }),
 				( empty(hvListe) ? null : new MQInsert({ table, hvListe }) )
 			].filter(Boolean)).withTrn()
-			await toplu.execNone()
+			await toplu.execute()
 		}
 	}
 	async degistirSonrasiIslemler(e) { await super.degistirSonrasiIslemler(e) }
@@ -362,13 +362,23 @@ class TSOrtakFis extends MQTicariGenelFis {
 		efayrimtipi = (isObject(efayrimtipi) ? efayrimtipi.char : efayrimtipi) || ''
 		extend(hv, { efayrimtipi })
 	}
-	async detaylariYukleSonrasi(e) {
-		e = e || {}; await super.detaylariYukleSonrasi(e);
-		let {detaylar} = this, aktifUstDetay, _detaylar = [];
-		this._orjDetaylar = [...detaylar];
+	async detaylariYukleSonrasi(e = {}) {
+		await super.detaylariYukleSonrasi(e)
+		let { detaylar } = this
+		let aktifUstDetay, _detaylar = []
+		this._orjDetaylar = [...detaylar]
 		for (const det of detaylar) {
-			if (det.aciklamami) { if (aktifUstDetay) { if (aktifUstDetay.altAciklama) { aktifUstDetay.altAciklama += CrLf } aktifUstDetay.altAciklama += det.aciklama } }
-			else { aktifUstDetay = det; _detaylar.push(det) }
+			if (det.aciklamami) {
+				if (aktifUstDetay) {
+					if (aktifUstDetay.altAciklama)
+						aktifUstDetay.altAciklama += CrLf
+					aktifUstDetay.altAciklama += det.aciklama
+				}
+			}
+			else {
+				aktifUstDetay = det
+				_detaylar.push(det)
+			}
 		}
 		detaylar = this.detaylar = _detaylar
 	}

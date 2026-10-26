@@ -1,7 +1,15 @@
 <div id="loginForm" class="part jqx-hidden">
 	<div class="login-shell">
 		<aside class="login-banner" aria-labelledby="loginAppName">
-			<div class="login-brand"><span class="login-brand-mark" aria-hidden="true">S</span><span>Sky<span class="login-brand-light">ERP</span></span></div>
+			<div class="login-brand">
+				<span class="login-brand-mark" aria-hidden="true">
+					<!--S-->
+				</span>
+				<span>
+					Sky
+					<span class="login-brand-light">ERP</span>
+				</span>
+			</div>
 			<div class="login-banner-content">
 				<p class="login-eyebrow">İŞİNİZLE BAĞLANTIDA KALIN</p>
 				<h1 id="loginAppName" class="login-app-name">SkyERP</h1>

@@ -322,7 +322,9 @@ class TicariFis extends TSOrtakFis {
 		return farkBilgi
 	}
 	async dipEBilgi2DipAktarKomutlariniOlustur(e) {
-		let degistirmi = e.degistir ?? e.degistirmi, {trnId, toplu, paramName_fisSayac} = e, {sayac} = this;
+		let degistirmi = e.degistir ?? e.degistirmi
+		let { trnId, toplu, paramName_fisSayac } = e
+		let { sayac } = this
 		let {table: fisTable} = this.class, dsPrefix = fisTable == 'sipfis' ? 'sip' : 'pif';
 		let dipVergiTable = `${dsPrefix}dipvergi`, dipHizmetTable = `${dsPrefix}diphizmet`;
 		/* (xdipvergi, dipebilgi) için sahalar ortaktır */
@@ -337,19 +339,18 @@ class TicariFis extends TSOrtakFis {
 				let sent = new MQSent({
 					from: 'dipebilgi', sahalar: dipSahalar,
 					where: [{ degerAta: sayac, saha: `${dsPrefix}sayac` }, { degerAta: hvTip, saha: 'hvtip' }]
-				});
-				let hvListe = []; for (let rec of await app.sqlExecSelect(sent)) {
-					rec.fissayac = sayac;
+				})
+				let hvListe = []
+				for (let rec of await sent.execSelect()) {
+					rec.fissayac = sayac
 					hvListe.push(rec)
 				}
 				let uniqueKeys = [...uniqueOrtakKeys, ...ekUniqueKeys];
 				let eskiWhere = new MQWhereClause({ degerAta: sayac, saha: 'fissayac' });
 				await MQSQLOrtak.topluYazVeyaDegistirIcinYap({ trnId, toplu, uniqueKeys, table: dipTable, hvListe, eskiWhere })
 			}
-			await Promise.all([
-				ekle(dipVergiTable, vergiSahalar, 'V', ['vergikod', 'ustoran']),
-				ekle(dipHizmetTable, hizmetSahalar, 'H', ['hizmetkod'])
-			]);
+			await ekle(dipVergiTable, vergiSahalar, 'V', ['vergikod', 'ustoran'])
+			await ekle(dipHizmetTable, hizmetSahalar, 'H', ['hizmetkod'])
 			return
 		}
 		toplu.add(
@@ -699,7 +700,8 @@ class SevkiyatFis extends TicariFis {
     static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get gridKontrolcuSinif() { return this.eBilgi?.gridKontrolcuSinif ?? super.gridKontrolcuSinif }
 	static get table() { return 'piffis' } static get baslikOzelAciklamaTablo() { return 'pifbasekaciklama' } static get dipSerbestAciklamaTablo() { return 'pifdipaciklama' }
-	static get dipEkBilgiTablo() { return 'pifdipekbilgi' } static get pifTipi() { return null } static get iade() { return '' } static get fisEkAyrim() { return '' }
+	static get dipEkBilgiTablo() { return 'pifdipekbilgi' }
+	static get pifTipi() { return null } static get iade() { return '' } static get fisEkAyrim() { return '' }
 	get bakiyeciler() {
 		let { alimmi, iademi, fasonmu } = this.class
 		let stok_sqlDuzenleyici = fasonmu ? 'stokBakiyeSqlEkDuzenle_pifFSStok' : 'stokBakiyeSqlEkDuzenle_pifStok'
@@ -1019,7 +1021,85 @@ class SatisFaturaFis extends FaturaFis {
 	static get numTipKod() { return 'TF' }
 	static get almSat() { return 'T' }
 	static get otoSablonSinif() { return SatisFaturaFis_OtoSablon }
+
+	async kaydetOncesiIslemler(e = {}) {
+		await super.kaydetOncesiIslemler(e)
+		
+		let { mustKod } = this
+		if (mustKod && !MQCogul.isOfflineMode) {
+			let m2b = MQCari._must2Bilgi ??= {}
+			let mb = m2b[mustKod] ??= {}
+
+			let { resmiKurum } = mb
+			if (resmiKurum == null) {
+				let sent = new MQSent({
+					from: MQCari.table,
+					where: { degerAta: mustKod, saha: MQCari.kodSaha },
+					sahalar: ['bklresmikurumdur']
+				})
+				resmiKurum = mb.resmiKurum = Boolean(await sent.execTekilDeger())
+			}
+
+			let ekBilgi = this._ekBilgi ??= {}
+			;{
+				let { dipIslemci: dip } = this
+				let { satis, vergi, web } = app.params
+				let { kullaniliyormu: kl } = Modul_KonsinyeLojistik
+				let { kamuIhale } = satis?.kullanim ?? {}
+				if (kl || kamuIhale) {
+					let { kamuDamgaOrani: par_damga = 0 } = vergi ?? {}
+					let { kamuReyonOrani: par_reyon = 0 } = web ?? {}
+					let { tl: ciro = 0 } = dip?.icmalSonuclari?.ciro ?? {}
+					let { mustKod, fisTipi } = this
+					fisTipi = fisTipi?.char ?? fisTipi
+		
+					let hesapla = v =>
+						roundToBedelFra(ciro * v / 100)
+					
+					let res = { damga: 0, reyon: 0 }
+					if (kamuIhale && fisTipi == 'IH')
+						res.damga = hesapla(par_damga)
+					else if (kl && resmiKurum) {
+						res.damga = hesapla(par_damga)
+						res.reyon = hesapla(par_reyon)
+					}
+					ekBilgi.kamu = res
+				}
+			}
+		}
+	}
+	async kaydetSonrasiIslemler(e = {}) {
+		await super.kaydetSonrasiIslemler(e)
+		let { dipEkBilgiTablo } = this.class
+		if (dipEkBilgiTablo) {
+			// E1, E2
+			// PTSOrtakFis>>#efNotlarYaz
+			// pifdipekbilgi (fissayac kayittipi kayitno)
+
+			/*
+			self efaturaDipNotlaraEkle: tmpDizi efParam: efParam.
+			tmpDizi doWithIndex: [ :text :ind |
+				| hv |
+				(hv := Dictionary new)
+					at: 'fissayac'		put: self sayac;
+					at: 'kayittipi'		put: 'E1';
+					at: 'kayitno'		put: ind;
+					at: 'ekbilgi'		put: text.
+				hvListe add: hv ]
+			*/
+		}
+	}
+	hostVarsDuzenle({ hv }) {
+		super.hostVarsDuzenle(...arguments)
+
+		let { kamu } = this._ekBilgi ?? {}
+		if (kamu) {    // oluştuysa ilgili modul/param zaten açık demektir
+			let { damga: kldamgavergisi = 0, reyon: klreyonbedeli = 0 } = kamu
+			extend(hv, { kldamgavergisi, klreyonbedeli })
+		}
+	}
 }
+
 class AlimFaturaFis extends FaturaFis {
 	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get kodListeTipi() { return 'PALMFAT' } static get almSat() { return 'A' }
