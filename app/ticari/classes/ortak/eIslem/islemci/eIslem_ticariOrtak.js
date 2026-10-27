@@ -499,7 +499,7 @@ class EIslTicariOrtak extends EIslGiden {
 			let bedel = bedelYapi?.[bedelSelector] || 0
 			xw.writeElementBlock('cac:AllowanceCharge', null, () =>
 				xw.writeElementString('cbc:ChargeIndicator', nakliyemi ?? false)
-				  .writeElementString('cbc:MultiplierFactorNumeric', toFileStringWithFra(oran, 4))
+				  .writeElementString('cbc:MultiplierFactorNumeric', toFileStringWithFra(oran / 100, 4))
 				  .writeElementString('cbc:Amount', toFileStringWithFra(bedel, 2), null, xattrYapi_bedel)
 				  .writeElementString('cbc:BaseAmount', toFileStringWithFra(dipSonucBedel, 2), null, xattrYapi_bedel)
 			)
