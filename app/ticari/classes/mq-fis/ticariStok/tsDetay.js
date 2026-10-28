@@ -439,10 +439,23 @@ class TSStokHizmetDetay extends TSSHDDetay {
     static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get shdmi() { return true }
 	static getOrjStopajKodClause(e) { return null }
-	static getAdiDegisirmiClause(e) { let {shAlias} = this; return `${shAlias}.adidegisir` }
+	static getAdiDegisirmiClause(e) {
+		let { shAlias } = this
+		return `${shAlias}.adidegisir`
+	}
+	get brutMiktar() { return this.miktar }
+	get brutKilo() {
+		let kgSet = asSet(MQStok.kgBirimler)
+		return (
+			kgSet[this.brm] ? this.miktar :
+			kgSet[this.brm2] ? this.miktar2 :
+			0
+		)
+	}
+	
 	static pTanimDuzenle(e) {
 		super.pTanimDuzenle(e); let {pTanim} = e;
-		$.extend(pTanim, { stopajKod: new PInstStr() })
+		extend(pTanim, { stopajKod: new PInstStr() })
 	}
 	static orjBaslikListesiDuzenleDevam2(e) {
 		super.orjBaslikListesiDuzenleDevam2(e); let {liste} = e;

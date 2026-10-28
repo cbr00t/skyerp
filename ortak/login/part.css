@@ -753,16 +753,23 @@ body.dark-theme #listBoxloginTipi .jqx-listbox, body.dark-theme #listBoxloginTip
 	color: #e7eef8
 }
 
-body.dark-theme #listBoxloginTipi .loginPart.loginTipi.list-item {
-	color: #e7eef8
+body #listBoxloginTipi .jqx-fill-state-pressed {
+	background: #5382c0;
+	border-color: #4774ba !important
 }
-
-body.dark-theme #listBoxloginTipi .jqx-fill-state-hover {
-	background: #203654;
-	border-color: #34465f
-}
-
 body.dark-theme #listBoxloginTipi .jqx-fill-state-pressed {
 	background: #294b78;
-	border-color: #4774ba
+}
+body #listBoxloginTipi .jqx-fill-state-hover {
+	font-weight: bold;
+	/*background: #d2dae5 !important;*/
+	border-color: #34465f
+}
+body #listBoxloginTipi [aria-selected = true] * {
+	/*color: #e7eef8*/
+	font-weight: bold;
+	color: ghostwhite
+}
+body #listBoxloginTipi [aria-selected = true] .jqx-fill-state-hover * {
+	color: #333
 }

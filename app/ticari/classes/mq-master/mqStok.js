@@ -2,21 +2,26 @@ class MQStok extends MQKA {
 	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get sinifAdi() { return 'Stok' } static get table() {return 'stkmst'} static get tableAlias() { return 'stk' } static get stokmu() { return true }
 	static get kodListeTipi() { return 'STK' } static get ayrimTipKod() { return 'STAYR' } static get ayrimTableAlias() { return 'sayr' } static get ozelSahaTipKod() { return 'STK' }
-	static get zeminRenkDesteklermi() { return true } static get vergiBelirtecler() { return ['kdv', 'otv', 'stopaj'] }
+	static get zeminRenkDesteklermi() { return true }
+	static get vergiBelirtecler() { return ['kdv', 'otv', 'stopaj'] }
+	static get paketKod_koli() { return 'KOLI' }
+	static get brmColl() { return app.params.stokBirim?.brmColl }
+	static get brmDict() { return app.params.stokBirim?.brmDict }
+	static get kgBirimler() { return ['KG', 'KILO', 'KİLO', 'Kilo', 'kg'] }
 
-	constructor(e) { e = e || {}; super(e) }
+	constructor(e = {}) { super(e) }
 	static altYapiDictDuzenle(e) {
 		super.altYapiDictDuzenle(e); const {liste} = e; $.extend(liste, {
 			genel: MQStokGenel, diger: MQStokDiger, diger2: MQStokDiger2,
 			barkodMuh: MQStokBarkodMuh, uretim: MQStokUretim
 		})
 	}
-	static rootFormBuilderDuzenle(e) {
-		e = e || {}; super.rootFormBuilderDuzenle(e);
+	static rootFormBuilderDuzenle(e = {}) {
+		super.rootFormBuilderDuzenle(e)
 		this.formBuilder_addTabPanelWithGenelTab(e)
 	}
-	static standartGorunumListesiDuzenle(e) {
-		super.standartGorunumListesiDuzenle(e); const {liste} = e;
+	static standartGorunumListesiDuzenle({ liste }) {
+		super.standartGorunumListesiDuzenle(...arguments )
 		liste.push('brm', 'grupAciklama', 'satfiyat1', 'almfiyat')
 	}
 	static loadServerData_queryDuzenle(e) {

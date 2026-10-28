@@ -230,6 +230,7 @@ main#content { background: var(--s-whitesmoke) }
 .jqx-tabs-title { background-color: #e1e4ef; height: 23px }
 .part.wnd-content:not(.list-item) { padding: 2px 5px }
 .list-item.jqx-grid { background: transparent; border: none }
+.jqx-listbox-container { z-index: 3000 }
 main#content { padding: var(--main-padding-y) var(--main-padding-x) }
 body.bg-modal > #root-parent > #ust-parent,
 	body.bg-modal > #loginForm { filter: blur(3px) brightness(.5); /* backdrop-filter: blur(10px); */ pointer-events: none }

@@ -570,9 +570,160 @@ class TSOrtakFis extends MQTicariGenelFis {
 	}
 	takipNoDegisti(e) { }
 	yerOrtakmiDegisti(e) { }
-	static getDonusumYapi(e) {
-		e = e ?? {}; let {detaySinif, detay} = e;
-		detaySinif = e.detaySinif = detaySinif ?? detay?.class ?? this.detaySinif;
+	
+	static getDonusumYapi(e = {}) {
+		let { detaySinif, detay } = e
+		e.detaySinif = detaySinif ??= detay?.class ?? this.detaySinif
 		return null
+	}
+	
+	static getMiktarToplamlari(e = {}) {
+		let { detaylar = [], exclude = e.excludeSet } = e
+		let { sadeceKoli = false, brutKiloFl = e.brutKilo ?? false } = e
+		exclude = exclude ? asSet(exclude) : null
+		
+		let { brmDict = {}, paketKod_koli } = MQStok
+		let kgBrmSet = asSet(MQStok.kgBirimler)
+		
+		let topBrutKilo = 0
+		let brm2MiktarYapi = [], koliKod2Miktar = {}
+		
+		let getRec = (brm, miktar, fra, validate) => {
+			if (validate) {
+				if (!brm || (exclude && !exclude[brm]))
+					return null
+			}
+			
+			miktar ||= 0; fra ||= 0
+			return { brm, miktar, fra }
+		}
+		let ekle = (brm, miktar, fra, validate) => {
+			let r = getRec(brm, miktar, fra, validate)
+			if (!r)
+				return r
+			
+			r.miktar += miktar
+			if (fra !== undefined)
+				r.fra = fra
+
+			brm2MiktarYapi[brm] = r
+			return r
+		}
+		let uygunsaEkle = (brm, miktar, fra) =>
+			ekle(brm, miktar, fra, true)
+			
+		
+		;detaylar
+			.filter(d => d?.stokGibimi || isPlainObject(d))
+			.forEach(d => {
+				let { brm, brutMiktar = d.miktar, brm2, miktar2, brutKilo } = d
+				let { paketKod, paketIcAdet, koli } = d
+				if (!sadeceKoli)
+					uygunsaEkle(brm, brutMiktar || miktar)
+				if (brm != brm2)
+					uygunsaEkle(brm2, miktar2)
+				
+				if (paketKod) {
+					if (!koli && paketKod == paketKod_koli)
+						koli = paketIcAdet
+					if (koli)
+						toplamEkle(koliKod2Miktar, paketKod, koli)
+				}
+				
+				if (!sadeceKoli && brutKiloFl && brutKilo)
+					topBrutKilo += brutKilo
+			})
+
+		let res = []
+		if (!empty(koliKod2Miktar)) {
+			let fra = 0
+			res.push(
+				...keys(koliKod2Miktar)
+					.sort()
+					.map(brm => ({ brm, miktar: koliKod2Miktar[brm], fra }))
+			)
+		}
+
+		if (topBrutKilo > 0) {
+			if (brm2MiktarYapi.some(([brm, { miktar }]) => kgBrmSet[brm] && miktar == topBrutKilo))
+				topBrutKilo = 0
+		}
+		if (topBrutKilo > 0)
+			ekle('BrütKG', topBrutKilo, 3)
+		
+		res.push(
+			...values(brm2MiktarYapi)
+				.filter(Boolean)
+		)
+		
+		return res
+	}
+	static getMiktarToplamlariStr(e = {}) {
+		let { miktarYapilar = e.brm2MiktarYapi, detaylar, satirYazilsin = true } = e
+		miktarYapilar ??= this.getMiktarToplamlari(e)
+		if (empty(miktarYapilar))
+			return ''
+		
+		if (isString(miktarYapilar))
+			return miktarYapilar
+
+		if (!isArray(miktarYapilar))
+			miktarYapilar = values(miktarYapilar)
+
+		let lines = [], satir
+		if (satirYazilsin) {
+			satir = miktarYapilar.find(({ brm }) =>
+				brm?.toLocaleLowerCase() == 'satır' )
+			if (satir)
+				miktarYapilar = miktarYapilar.filter(r => r != satir)
+		}
+		
+		if (!empty(miktarYapilar)) {
+			lines.push(
+				miktarYapilar
+					.map(({ miktar, brm }) => `${numberToString(miktar)} ${brm}`)
+					.join(', ')
+			)
+		}
+		if (satir)
+			lines.push(`${numberToString(satir.miktar)} Satır`)
+
+		return lines.join(CrLf)
+	}
+	static async getEIslEkNotlar(e = {}) {
+		let { eIslem = {} } = app.params
+		let { miktarToplamiKilosuz, dipNetBrutKilo } = eIslem
+		let brutKiloFl = !miktarToplamiKilosuz
+		let exclude = brutKiloFl ? {} : asSet(MQStok.kgBirimler)
+		let { detaylar } = e
+
+		let res = this.getMiktarToplamlariStr({ ...e, detaylar, brutKiloFl, exclude })
+		if (dipNetBrutKilo) {
+			let stok2Detaylar = groupBy(
+				detaylar.filter(d => d.shKod && !d.ekBilgimi),
+				d => d.shKod
+			)
+			let sent = new MQSent({
+				from: 'stkmst',
+				where: { inDizi: keys(stok2Detaylar), saha: 'kod' },
+				sahalar: ['kod', 'brmorani', 'brm', 'brm2', 'brutagirlik', 'netagirlik']
+			})
+			let stok2Rec = await sent.execSelect().then(recs =>
+				fromEntries(recs.map(r => [r.kod, r])))
+
+			let brutKilo = 0, netKilo = 0
+			for (let [stokKod, detaylar] of entries(stok2Detaylar)) {
+				
+			}
+		}
+	}
+
+	getMiktarToplamlari(e = {}) {
+		let { detaylar } = this
+		return this.class.getMiktarToplamlari({ ...e, detaylar })
+	}
+	getMiktarToplamlariStr(e = {}) {
+		let { detaylar } = this
+		return this.class.getMiktarToplamlariStr({ ...e, detaylar })
 	}
 }

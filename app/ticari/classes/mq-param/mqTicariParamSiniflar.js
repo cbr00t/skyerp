@@ -268,7 +268,7 @@ class MQStokGenelParam extends MQTicariParamBase {
 		}
 		this.ekOzellikBilgileri = ekOzellikBilgileri;
 		let hmr = this.hmr = this.hmr || {}, hmrEtiket = this.hmrEtiket = this.hmrEtiket || {};
-		for (let [key, yapi] of Object.entries(hmrYapi)) {
+		for (let [key, yapi] of entries(hmrYapi)) {
 			let {rowAttr, etiketEditable} = yapi; if (!rowAttr) { continue }
 			let ekRowAttr = key == 'harDet' ? 'hardet' : null;
 			let kullanim = rec[rowAttr] ?? rec[ekRowAttr]; if (kullanim != null) { hmr[key] = kullanim }
