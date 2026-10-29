@@ -198,7 +198,7 @@ class MQQueryInsert extends MQInsertBase {
 }
 class MQInsertOrUpdate extends MQDbCommand {
 	static { globalThis[this.name] = this; this._key2Class[this.name] = this } get isDBWriteClause() { return true }
-	constructor(e) {
+	constructor(e = {}) {
 		super(e)
 		extend(this, {
 			table: e.table ?? e.from, keyHV: e.keyHV ?? e.keyHostVars,

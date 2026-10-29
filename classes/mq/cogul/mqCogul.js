@@ -171,7 +171,10 @@ class MQCogul extends MQYapi {
 		e.mfSinif = _mfSinif
 		return rootBuilder
 	}
-	getRootFormBuilder(e) { e = e || {}; e.inst = this; return this.class.getRootFormBuilder(e) }
+	getRootFormBuilder(e = {}) {
+		e.inst = this
+		return this.class.getRootFormBuilder(e)
+	}
 	static rootFormBuilderDuzenle(e) { }
 	static async rootFormBuilderDuzenleSonrasi(e) {
 		await this.forAltYapiClassesDoAsync('rootFormBuilderDuzenle', e)

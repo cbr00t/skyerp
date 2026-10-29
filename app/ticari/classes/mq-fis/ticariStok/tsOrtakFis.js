@@ -32,8 +32,8 @@ class TSOrtakFis extends MQTicariGenelFis {
 	set kosulYapilar(value) { this._kosulYapilar = value }
 
 	static getUISplitHeight(e) { return 300 }
-	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e); const {pTanim} = e;
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
 		extend(pTanim, {
 			takipNo: new PInstStr('orttakipno'), takipOrtakmi: new PInstTrue('takiportakdir'),
 			islKod: new PInstStr({ rowAttr: 'islkod', init: e => this.varsayilanIslKod }),
@@ -44,25 +44,27 @@ class TSOrtakFis extends MQTicariGenelFis {
 			fisEkBilgi: new PInstStr()
 		})
 	}
-	static secimlerDuzenle(e) {
-		super.secimlerDuzenle(e); const sec = e.secimler, {kullanim} = app.params.ticariGenel;
+	static secimlerDuzenle({ secimler: sec }) {
+		super.secimlerDuzenle(...arguments)
+		let { kullanim } = app.params.ticariGenel
 		sec.secimTopluEkle({
 			islKod: new SecimString({ etiket: 'İşlem', mfSinif: MQStokIslem }),
 			takipNo: (kullanim.takipNo ? new SecimString({ etiket: 'Takip No', mfSinif: MQTakipNo }) : null),
 			efAyrimTipi: new SecimBirKismi({ etiket: 'e-İşlem', tekSecimSinif: EIslemTip })
 		});
-		sec.whereBlockEkle(e => {
-			const {aliasVeNokta} = this, wh = e.where, sec = e.secimler;
-			wh.basiSonu(sec.islKod, `${aliasVeNokta}islkod`);
-			if (sec.takipNo) { wh.basiSonu(sec.takipNo, `${aliasVeNokta}orttakipno`) }
+		sec.whereBlockEkle(({ secimler: sec, where: wh }) => {
+			let { aliasVeNokta } = this
+			wh.basiSonu(sec.islKod, `${aliasVeNokta}islkod`)
+			if (sec.takipNo)
+				wh.basiSonu(sec.takipNo, `${aliasVeNokta}orttakipno`)
 			wh.birKismi(sec.efAyrimTipi, `${aliasVeNokta}efayrimtipi`)
 		})
 	}
 	static secimlerDuzenleSon({ secimler: sec }) {
-		super.secimlerDuzenleSon(...arguments);
+		super.secimlerDuzenleSon(...arguments)
 		sec.secimTopluEkle({ baslikAciklama: new SecimOzellik({ etiket: 'Belge Açıklama' }) });
 		sec.whereBlockEkle(({ secimler: sec, where: wh }) => {
-			let {aliasVeNokta} = this;
+			let { aliasVeNokta } = this
 			wh.ozellik(sec.baslikAciklama, `${aliasVeNokta}cariaciklama`)
 		})
 	}
@@ -71,6 +73,11 @@ class TSOrtakFis extends MQTicariGenelFis {
 		let { builders } = e
 		let { tsnForm, baslikForm } = builders
 		let { yerKullanilirmi } = this
+
+		/*;baslikForm.builders.forEach((fbd, i) => {
+			if (i >= 3)
+				fbd.altAlta()
+		})*/
 		
 		tsnForm.addFormWithParent('efatGosterim')
 			.onBuildEk(({ builder: fbd }) => {
@@ -148,7 +155,7 @@ class TSOrtakFis extends MQTicariGenelFis {
 				.etiketGosterim_yok()
 				.setMFSinif(MQStokYer)
 				.autoBind()
-				.addStyle_wh(400)
+				.addStyle_wh(600)
 				.setVisibleKosulu(({ builder: { altInst: inst }}) =>
 					inst.yerOrtakmi ? true : 'basic-hidden')
 		}
@@ -165,12 +172,17 @@ class TSOrtakFis extends MQTicariGenelFis {
 			baslikForm.builders[1].addSimpleComboBox('takipNo')
 				.etiketGosterim_yok()
 				.setMFSinif(MQTakipNo)
-				.addStyle_wh(400)
+				.addStyle_wh(600)
 				.setVisibleKosulu(({ builder: fbd }) =>
 					( fbd.altInst.takipOrtakmi ?? true ) ? true : 'basic-hidden')
 		}
-		
-		baslikForm.builders[2].addTextInput('baslikAciklama', 'Fiş Açıklama')
+	}
+
+	static rootFormBuilderDuzenle_son(e) {
+		super.rootFormBuilderDuzenle_son(e)
+		let { builders } = e
+		let { tsnForm, baslikForm } = builders
+		baslikForm.builders[7].addTextInput('baslikAciklama', 'Fiş Açıklama')
 			.setPlaceHolder('Fiş Açıklama').etiketGosterim_yok()
 			.onAfterRun(({ builder: { input, rootPart: tanimPart = {} }}) => {
 				input.on('keydown', ({ key }) => {
@@ -182,9 +194,9 @@ class TSOrtakFis extends MQTicariGenelFis {
 					}
 				})
 			})
-			.addStyle(e => `$elementCSS  { min-width: 150px !important; max-width: 400px !important }`)
+			.addStyle_wh(600)
 
-		baslikForm.builders[3].addTextArea('fisEkBilgi', 'Fiş Ek Bilgi')
+		baslikForm.builders.at(-1).addTextArea('fisEkBilgi', 'Fiş Ek Bilgi')
 			.setPlaceHolder('Fiş Ek Bilgi')
 			.etiketGosterim_yok()
 			.setRows(3).setCols(1000)
@@ -333,28 +345,60 @@ class TSOrtakFis extends MQTicariGenelFis {
 	}
 	async kaydetSonrasiIslemler(e = {}) {
 		await super.kaydetSonrasiIslemler(e)
-		let { sayac: fissayac, fisEkBilgi, class: { dipSerbestAciklamaTablo: tblSAck } } = this
-		fisEkBilgi = fisEkBilgi?.trimEnd()
-		if (fissayac && tblSAck) {
+		let { sayac: fissayac } = this
+		
+		if (!fissayac)
+			return
+		
+		let { fisEkBilgi, class: fisSinif } = this
+		let { dipSerbestAciklamaTablo: tblSAck, dipEkBilgiTablo: tblEAck } = fisSinif
+		
+		let toplu = new MQToplu().withTrn()
+		if (tblSAck) {
 			let table = tblSAck
-			/*let lines = fisEkBilgi
-				? fisEkBilgi
-					.split('\n')
-					.map(l => l?.replace('\r', '')?.trimEnd())
-					.filter(l => l != null)
-				: []*/
+			fisEkBilgi = fisEkBilgi?.trimEnd()
 			let lines = fisEkBilgi ? [fisEkBilgi.slice(0, 8000)] : []
-			
 			let where = { degerAta: fissayac, saha: 'fissayac' }
 			let hvListe = lines.map(aciklama => ({ fissayac, aciklama }))
-			
-			let toplu = new MQToplu([
+			toplu.add(...[
 				new MQIliskiliDelete({ table, where }),
 				( empty(hvListe) ? null : new MQInsert({ table, hvListe }) )
-			].filter(Boolean)).withTrn()
-			await toplu.execute()
+			].filter(Boolean))
 		}
+
+		if (tblEAck) {
+			let table = tblEAck
+			let where = { degerAta: fissayac, saha: 'fissayac' }
+			
+			let hvListe = []
+			for (let ei = 1; ei <= 2; ei++) {
+				let kayittipi = `E${ei}`
+				let lines = await this[`getEIslEkNotlar${ei}Lines`](e)
+				if (empty(lines))
+					continue
+
+				hvListe.push(
+					...lines.map((ekbilgi, i) => ({
+						fissayac,
+						kayittipi,
+						kayitno: i + 1,
+						ekbilgi
+					}))
+				)
+			}
+
+			toplu.add(...[
+				new MQIliskiliDelete({ table, where }),
+				new MQInsert({ table, hvListe })
+			])
+		}
+
+		await this.kaydetSonrasiIslemler_ara({ ...e, toplu })
+
+		if (!empty(toplu.liste))
+			await toplu.execute()
 	}
+	async kaydetSonrasiIslemler_ara(e) { }
 	async degistirSonrasiIslemler(e) { await super.degistirSonrasiIslemler(e) }
 	hostVarsDuzenle({ hv }) {
 		super.hostVarsDuzenle(...arguments)
@@ -576,18 +620,24 @@ class TSOrtakFis extends MQTicariGenelFis {
 		e.detaySinif = detaySinif ??= detay?.class ?? this.detaySinif
 		return null
 	}
-	
+
+	getMiktarToplamlari(e = {}) {
+		let { detaylar } = this
+		return this.class.getMiktarToplamlari({ ...e, detaylar })
+	}
 	static getMiktarToplamlari(e = {}) {
 		let { detaylar = [], exclude = e.excludeSet } = e
-		let { sadeceKoli = false, brutKiloFl = e.brutKilo ?? false } = e
-		exclude = exclude ? asSet(exclude) : null
-		
+		let { sadeceKoli = false, brutKiloFl = false } = e
+		exclude = (
+			empty(exclude) ? null :
+			isArray(exclude) ? asSet(exclude) :
+			exclude
+		)
 		let { brmDict = {}, paketKod_koli } = MQStok
 		let kgBrmSet = asSet(MQStok.kgBirimler)
 		
 		let topBrutKilo = 0
-		let brm2MiktarYapi = [], koliKod2Miktar = {}
-		
+		let brm2MiktarYapi = {}, koliKod2Miktar = {}
 		let getRec = (brm, miktar, fra, validate) => {
 			if (validate) {
 				if (!brm || (exclude && !exclude[brm]))
@@ -611,7 +661,6 @@ class TSOrtakFis extends MQTicariGenelFis {
 		}
 		let uygunsaEkle = (brm, miktar, fra) =>
 			ekle(brm, miktar, fra, true)
-			
 		
 		;detaylar
 			.filter(d => d?.stokGibimi || isPlainObject(d))
@@ -645,8 +694,10 @@ class TSOrtakFis extends MQTicariGenelFis {
 		}
 
 		if (topBrutKilo > 0) {
-			if (brm2MiktarYapi.some(([brm, { miktar }]) => kgBrmSet[brm] && miktar == topBrutKilo))
+			if (entries(brm2MiktarYapi).some(([brm, { miktar }]) =>
+					kgBrmSet[brm] && miktar == topBrutKilo)) {
 				topBrutKilo = 0
+			}
 		}
 		if (topBrutKilo > 0)
 			ekle('BrütKG', topBrutKilo, 3)
@@ -658,72 +709,182 @@ class TSOrtakFis extends MQTicariGenelFis {
 		
 		return res
 	}
-	static getMiktarToplamlariStr(e = {}) {
-		let { miktarYapilar = e.brm2MiktarYapi, detaylar, satirYazilsin = true } = e
+	getMiktarToplamlariLines(e = {}) {
+		let { detaylar } = this
+		return this.class.getMiktarToplamlariStr({ ...e, detaylar })
+	}
+	static getMiktarToplamlariLines(e = {}) {
+		let { miktarYapilar = e.brm2MiktarYapi, detaylar = [], satirYazilsin = true } = e
 		miktarYapilar ??= this.getMiktarToplamlari(e)
+
+		let res = []
 		if (empty(miktarYapilar))
-			return ''
+			return res
 		
 		if (isString(miktarYapilar))
-			return miktarYapilar
+			return makeArray(miktarYapilar)
 
-		if (!isArray(miktarYapilar))
+		if (isPlainObject(miktarYapilar))
 			miktarYapilar = values(miktarYapilar)
 
-		let lines = [], satir
+		const Brm_Satir = 'Satır'
+		let lwBrm_Satir = Brm_Satir.toLocaleLowerCase()
+		let satir
 		if (satirYazilsin) {
 			satir = miktarYapilar.find(({ brm }) =>
-				brm?.toLocaleLowerCase() == 'satır' )
+				brm?.toLocaleLowerCase() == lwBrm_Satir)
 			if (satir)
 				miktarYapilar = miktarYapilar.filter(r => r != satir)
 		}
 		
 		if (!empty(miktarYapilar)) {
-			lines.push(
+			res.push(
 				miktarYapilar
 					.map(({ miktar, brm }) => `${numberToString(miktar)} ${brm}`)
 					.join(', ')
 			)
 		}
+
+		let { length: satirSayi } = detaylar.filter(d => d.shKod && !d.ekBilgimi)
+		if (!satir && satirSayi)
+			satir = { brm: Brm_Satir, miktar: satirSayi }
 		if (satir)
-			lines.push(`${numberToString(satir.miktar)} Satır`)
+			res.push(`${numberToString(satir.miktar)} ${Brm_Satir}`)
 
-		return lines.join(CrLf)
-	}
-	static async getEIslEkNotlar(e = {}) {
-		let { eIslem = {} } = app.params
-		let { miktarToplamiKilosuz, dipNetBrutKilo } = eIslem
-		let brutKiloFl = !miktarToplamiKilosuz
-		let exclude = brutKiloFl ? {} : asSet(MQStok.kgBirimler)
-		let { detaylar } = e
-
-		let res = this.getMiktarToplamlariStr({ ...e, detaylar, brutKiloFl, exclude })
-		if (dipNetBrutKilo) {
-			let stok2Detaylar = groupBy(
-				detaylar.filter(d => d.shKod && !d.ekBilgimi),
-				d => d.shKod
-			)
-			let sent = new MQSent({
-				from: 'stkmst',
-				where: { inDizi: keys(stok2Detaylar), saha: 'kod' },
-				sahalar: ['kod', 'brmorani', 'brm', 'brm2', 'brutagirlik', 'netagirlik']
-			})
-			let stok2Rec = await sent.execSelect().then(recs =>
-				fromEntries(recs.map(r => [r.kod, r])))
-
-			let brutKilo = 0, netKilo = 0
-			for (let [stokKod, detaylar] of entries(stok2Detaylar)) {
-				
-			}
-		}
-	}
-
-	getMiktarToplamlari(e = {}) {
-		let { detaylar } = this
-		return this.class.getMiktarToplamlari({ ...e, detaylar })
+		return res
 	}
 	getMiktarToplamlariStr(e = {}) {
 		let { detaylar } = this
 		return this.class.getMiktarToplamlariStr({ ...e, detaylar })
 	}
+	static getMiktarToplamlariStr(e = {}) {
+		let lines = this.getMiktarToplamlariLines(e)
+		return empty(lines) ? '' : lines.join(CrLf)
+	}
+
+	getBrutNetToplamlariLines(e = {}) {
+		let baslik = this, { detaylar } = this
+		return this.class.getBrutNetToplamlariLines({ ...e, baslik, detaylar })
+	}
+	static async getBrutNetToplamlariLines(e = {}) {
+		let { baslik = {}, detaylar = [], exclude = {} } = e
+		let { kgBrmSet = asSet(MQStok.kgBirimler) } = e
+		let { eIslem = {} } = app.params
+		let { miktarToplamiKilosuz, dipNetBrutKilo } = eIslem.kullanim ?? {}
+		
+		let { brutKiloFl = !miktarToplamiKilosuz } = e
+		if (!brutKiloFl)
+			exclude = { ...exclude, kgBrmSet }
+
+		let res = []
+		if (!dipNetBrutKilo)
+			return res
+		
+		let stok2Detaylar = groupBy(
+			detaylar.filter(d => d.shKod && !d.ekBilgimi),
+			d => d.shKod
+		)
+		let sent = new MQSent({
+			from: 'stkmst',
+			where: { inDizi: keys(stok2Detaylar), saha: 'kod' },
+			sahalar: [
+				'kod', 'brmorani brmOrani', 'brm', 'brm2',
+				'brutagirlik brutAgirlik', 'netagirlik netAgirlik'
+			]
+		})
+		let stok2Rec = await sent.execSelect().then(recs =>
+			fromEntries(recs.map(r => [r.kod, r])))
+
+		let brutKilo = 0, netKilo = 0
+		for (let [stokKod, detaylar] of entries(stok2Detaylar)) {
+			let r = stok2Rec[stokKod]
+			if (!r)
+				continue
+
+			let kgBrm1mi = Boolean(kgBrmSet[r.brm])
+			let kgBrm2mi = Boolean(kgBrmSet[r.brm2])
+			
+			let netKGci = (
+				kgBrm1mi ? ( d => d.brutMiktar || d.miktar ) :
+				kgBrm2mi ? ( d => d.miktar2 ) :
+				( d => roundToFra3(d.brutMiktar * r.netAgirlik) )
+			)
+			let digerci = (
+				kgBrm1mi ? ( d => kgBrm2mi ? 0 : d.miktar2 ) :    // hem 1 hem 2 de varsa ==> 0
+				// kgBrm2mi ? ( d => d.brutMiktar ) :
+				( d => d.brutMiktar )
+			)
+			let brutKGci = ( d => roundToFra3(digerci(d) * r.brutAgirlik) )
+
+			;detaylar.forEach(d => {
+				brutKilo += brutKGci(d) || 0
+				netKilo += netKGci(d) || 0
+			})
+			brutKilo = roundToFra3(brutKilo)
+			netKilo = roundToFra3(netKilo)
+		}
+
+		let satir = [
+			( brutKilo > 0 ? `Brüt Kilo: ${numberToString(brutKilo)} KG` : null ),
+			( netKilo > 0 ? `Net Kilo: ${numberToString(netKilo)} KG` : null )
+		].filter(Boolean).join(', ')
+		if (satir)
+			res.push(satir)
+
+		return res
+	}
+
+	getEIslEkNotlar1Str(e = {}) {
+		let baslik = this, { detaylar } = this
+		return this.class.getEIslEkNotlar1Str({ ...e, baslik, detaylar })
+	}
+	static async getEIslEkNotlar1Str(e = {}) {
+		let res = await this.getEIslEkNotlar1Lines(e)
+		return empty(res) ? '' : res.join(CrLf)
+	}
+	getEIslEkNotlar1Lines(e = {}) {
+		let baslik = this, { detaylar } = this
+		return this.class.getEIslEkNotlar1Lines({ ...e, baslik, detaylar })
+	}
+	static async getEIslEkNotlar1Lines(e = {}) {
+		let args = { ...e, liste: [] }
+		await this.eIslEkNotlar1Duzenle(args)
+		return args.liste
+	}
+	static async eIslEkNotlar1Duzenle(e = {}) {
+		let { liste: res = [] } = e
+		let { eIslem = {} } = app.params
+		let { miktarToplamiKilosuz, dipNetBrutKilo } = eIslem?.kullanim ?? {}
+		let brutKiloFl = !miktarToplamiKilosuz
+		let kgBrmSet = asSet(MQStok.kgBirimler)
+		
+		;{
+			let args = { ...e, brutKiloFl, kgBrmSet }
+			let lines = [
+				( await this.getBrutNetToplamlariLines(args) ),
+				( await this.getMiktarToplamlariLines(args) )
+			].flat().filter(Boolean)
+			if (!empty(lines))
+				res.push(...lines)
+		}
+	}
+
+	getEIslEkNotlar2Str(e = {}) {
+		let baslik = this, { detaylar } = this
+		return this.class.getEIslEkNotlar2Str({ ...e, baslik, detaylar })
+	}
+	static async getEIslEkNotlar2Str(e = {}) {
+		let res = await this.getEIslEkNotlar2Lines(e)
+		return empty(res) ? '' : res.join(CrLf)
+	}
+	getEIslEkNotlar2Lines(e = {}) {
+		let baslik = this, { detaylar } = this
+		return this.class.getEIslEkNotlar2Lines({ ...e, baslik, detaylar })
+	}
+	static async getEIslEkNotlar2Lines(e = {}) {
+		let args = { ...e, liste: [] }
+		await this.eIslEkNotlar2Duzenle(args)
+		return args.liste
+	}
+	static async eIslEkNotlar2Duzenle(e = {}) { }
 }

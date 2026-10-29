@@ -33,19 +33,18 @@ class FisGirisPart extends GridliGirisWindowPart {
 		let sender = this
 		let { layout, fis, header, islemTuslari } = this
 		let splitMain = this.splitMain = layout.find('.main-split')
-		let baslikFormlar = this.baslikFormlar = [
-			header.find('.baslikForm1'),
-			header.find('.baslikForm2'),
-			header.find('.baslikForm3'),
-			header.find('.baslikForm4'),
-			header.find('.baslikForm5')
-		]
+		let baslikFormlar = this.baslikFormlar =  (
+			arrayFrom(header.find('.baslikForm'))
+				.map(elm => $(elm))
+		)
+		
 		splitMain.jqxSplitter({
 			theme, width: '100%', height: layout.height(), orientation: 'horizontal', splitBarSize: 20,
 			panels: [ { min: 90, size: fis.class.getUISplitHeight({ ...e, fis, islem }) ?? 170 }, { min: 200 } ]
 		})
+		
 		let subeForm = this.subeForm = header.find('.sube')
-		let tsnForm = this.tsnForm = layout.find('.tsnForm');
+		let tsnForm = this.tsnForm = layout.find('.tsnForm')
 		let divHeaderDipOrtak = this.divHeaderDipOrtak = layout.find('.headerDipOrtak')
 		let dipForm = divHeaderDipOrtak.find('.dipForm')
 		if (fis.class.dipKullanilirmi) {
@@ -102,13 +101,14 @@ class FisGirisPart extends GridliGirisWindowPart {
 				splitGridVeIslemTuslari.jqxSplitter('collapse')
 				/* splitGridVeIslemTuslari.jqxSplitter('collapse', 0) */
 			}, 10)
-		}, 0);
-		this.noAnimate(); this.initBulForm(e);
+		}, 0)
+		this.noAnimate()
+		this.initBulForm(e)
+		
 		let _e = { ...e, sender, mfSinif: fis.class, fis, islem, layout, islemTuslari, subeForm, baslikFormlar, gridIslemTuslari };
-		let promises = [fis.uiGirisOncesiIslemler(_e)];
+		let promises = [fis.uiGirisOncesiIslemler(_e)]
 		if (this.yeniVeyaKopyami) {
 			promises.push(fis.yeniTanimOncesiIslemler(_e))
-			
 			let css = 'opacity-0'
 			layout.addClass(css)
 			promiseAll(promises)
@@ -121,46 +121,79 @@ class FisGirisPart extends GridliGirisWindowPart {
 			super.afterRun(e)
 			if (app.activePart != this)
 				app._activePartStack.pop()
-			let sender = this, {fis, islem, layout, header, tsnForm, subeForm, islemTuslari, baslikFormlar, gridIslemTuslari, splitGridVeIslemTuslari} = this;
-			let _e = { ...e, sender, fis, islem, layout, islemTuslari, subeForm, baslikFormlar, gridIslemTuslari };
+			let sender = this
+			let { fis, islem, layout, header, tsnForm, subeForm, islemTuslari, baslikFormlar, gridIslemTuslari, splitGridVeIslemTuslari } = this
+			let _e = { ...e, sender, fis, islem, layout, islemTuslari, subeForm, baslikFormlar, gridIslemTuslari, splitGridVeIslemTuslari }
 			setTimeout(async () => {
 				if (config.dev) { header?.removeClass('jqx-hidden basic-hidden') }
-				if (fis.uiDuzenle_fisGiris) { setTimeout(() => { fis.uiDuzenle_fisGiris(_e) }, 10) }
-				await this.initFormBuilder(_e);
+				if (fis.uiDuzenle_fisGiris)
+					setTimeout(() => { fis.uiDuzenle_fisGiris(_e) }, 10)
+				
+				await this.initFormBuilder(_e)
+				
 				let selectors = ['input[type=textarea].jqx-input-content', 'input[type=textbox]', 'input[type=text]', 'input[type=number]'];
 				for (let selector of selectors) { let elm = layout.find(selector); if (elm.length) { elm.on('focus', evt => evt.target.select()) } }
 				setTimeout(() => { if (header.height() < 10) { this.splitMain.jqxSplitter('collapse', 0) } }, 200)
 				setTimeout(() => header.removeClass('jqx-hidden basic-hidden'), 500)
-			}, 10);
-			setTimeout(() => makeScrollable(header), 100);
+			}, 10)
+			setTimeout(() => makeScrollable(header), 100)
 			setTimeout(() => { this.onResize(e); if (!gridIslemTuslari?.find(':not(div)').length) { splitGridVeIslemTuslari.jqxSplitter('collapse') } }, 300)
 		}
 		catch (ex) { hConfirm(getErrorText(ex), 'Fiş Giriş Ekranı'); throw ex }
 	}
 	async initFormBuilder(e) {
 		let {builder} = this; let {fis} = this;
-		if (!builder && fis) { let _e = { ...e, sender: this }; builder = (await fis.getRootFormBuilder(_e)) || (await fis.getFormBuilders(_e)) } if (empty(builder)) { return }
-		let {layout} = this, subBuilders = builder.isFormBuilder ? [builder] : builder, id2Builder = this.id2Builder = {};
+		if (!builder && fis) {
+			let _e = { ...e, sender: this }
+			builder = (await fis.getRootFormBuilder(_e)) || (await fis.getFormBuilders(_e))
+		}
+		if (empty(builder))
+			return
+		
+		let { layout } = this
+		let subBuilders = builder.isFormBuilder ? [builder] : builder
+		let id2Builder = this.id2Builder = {}
 		for (let builder of subBuilders) {
 			if (!builder) { continue } builder.part = this; let _parent = builder.parent;
 			if (builder.isRootFormBuilder) {
-				this.builder = builder; let _layout = builder.layout;
-				if (!(_parent?.length || _layout?.length)) { _layout = builder.layout = layout }
+				this.builder = builder
+				let { layout: _layout } = builder
+				if (!(_parent?.length || _layout?.length))
+					_layout = builder.layout = layout
 			}
 			else if (!_parent?.length) { _parent = builder.parent = layout }
-			let {id: _id} = builder; if (!_id) { _id = builder.id = builder.newElementId() }
-			if (_id) { id2Builder[_id] = builder } builder.autoInitLayout(); builder.run();
-			let {layout: _layout} = builder; if (_layout?.length) { _layout.addClass('jqx-hidden'); setTimeout(() => _layout.removeClass('jqx-hidden'), 1) }
+			
+			let { id: _id } = builder
+			if (!_id)
+				_id = builder.id = builder.newElementId()
+			
+			if (_id)
+				id2Builder[_id] = builder
+			
+			builder.autoInitLayout()
+			builder.run()
+			
+			let { layout: _layout } = builder
+			if (_layout?.length) {
+				_layout.addClass('jqx-hidden')
+				delay(5).then(() => _layout.removeClass('jqx-hidden'))
+			}
 		}
 	}
 	islemTuslariDuzenle(e) {
-		super.islemTuslariDuzenle(e); let {liste} = e, yListe = [];
+		super.islemTuslariDuzenle(e)
+		let { liste } = e
+		let yListe = []
 		for (let item of liste) {
-			let {id} = item; switch (id) {
+			let { id } = item
+			switch (id) {
 				case 'tamam':
-					if (this.izlemi) { continue }
-					item.handler = e => this.tamamIstendi(e);
-					if (this.silmi) { item.id = 'sil' }
+					if (this.izlemi)
+						continue
+					
+					item.handler = e => this.tamamIstendi(e)
+					if (this.silmi)
+						item.id = 'sil'
 					break
 			}
 			yListe.push(item)

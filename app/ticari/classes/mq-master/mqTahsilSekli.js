@@ -4,8 +4,8 @@ class MQTahsilSekli extends MQKA {
 	static get table() { return 'tahsilsekli' } static get tableAlias() { return 'tsek' } static get kodSaha() { return 'kodno' }
 	static get kodListeTipi() { return 'MRTAH' }
 
-	constructor(e) {
-		e = e || {}; super(e);
+	constructor(e = {}) {
+		super(e)
 		const kullanim = this.kullanim = new (class extends CIO {
 		    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 			static pTanimDuzenle(e) {
@@ -182,8 +182,19 @@ class MQTahsilSekli extends MQKA {
 		alias = alias ?? this.tableAlias; let aliasVeNokta = alias ? `${alias}.` : '';
 		let {where: wh, sahalar} = sent
 	}*/
-	static getGridKolonGrup(e) {
-		e = e || {}; if (!e.kodAttr) { e.kodAttr = 'tahSekliNo' }
+	static getGridKolonGrup(e = {}) {
+		if (!e.kodAttr)
+			e.kodAttr = 'tahSekliNo'
 		return super.getGridKolonGrup(e)
+	}
+
+	static async getAcikRecs() {
+		return await MQTahsilSekli.getGloKod2Rec().then(k2r =>
+			values(k2r).filter(r => !(r.tahsiltipi)))
+	}
+	static async getAcikKodlar() {
+		let { kodSaha } = this
+		return await this.getAcikRecs().then(recs =>
+			recs.map(r => r[kodSaha]))
 	}
 }

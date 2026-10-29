@@ -350,6 +350,36 @@ class TahsilSekliAltTip extends TekSecim {
 		)
 	}
 }
+
+class TahsilTipi extends TekSecim {
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'TAHTIP' }
+	static get sinifAdi() { return 'Tahsilat Tipi' }
+	static get kodKullanilirmi() { return true } static get kami() { return true }
+	static get kodSaha() { return MQKA.kodSaha } static get adiSaha() { return MQKA.adiSaha }
+	static get defaultChar() { return '' }
+	
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		kaListe.push(
+			ka('', 'Açık Hesap', 'acikmi'),
+			ka('T', 'Tekil Tahsil', 'tekilmi'),
+			ka('K', 'Karma Tahsil', 'karmami')
+			// ka('D', 'Detaylarda Gün', 'detayGunmu')
+		)
+	}
+}
+class OdemeTipi extends TahsilTipi {
+    static { globalThis[this.name] = this; this._key2Class[this.name] = this }
+	static get kodListeTipi() { return 'ODETIP' }
+	static get sinifAdi() { return 'Ödeme Tipi' }
+	kaListeDuzenle({ kaListe }) {
+		super.kaListeDuzenle(...arguments)
+		;kaListe.forEach(ka =>
+			ka.aciklama = ka.aciklama.replace('Tahsil', 'Ödeme'))
+	}
+}
+
 class MQSHTip extends TekSecim {
     static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	static get tip2MFSinif() {

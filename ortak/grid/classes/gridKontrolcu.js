@@ -20,7 +20,7 @@ class GridKontrolcu extends CObject {
 		let { tabloKolonlari } = e
 		if (config.dev) {
 			tabloKolonlari.push(
-				new GridKolon({ belirtec: 'okunanHarSayac', text: '-har-', genislikCh: 7 })
+				new GridKolon({ belirtec: 'okunanHarSayac', text: '-har-', genislikCh: 9 })
 					.tipNumerik().readOnly().sabitle()
 			)
 		}

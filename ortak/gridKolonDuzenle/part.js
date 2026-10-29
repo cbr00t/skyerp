@@ -17,8 +17,10 @@ class GridKolonDuzenlePart extends Part {
 		})
 		this.title = e.title || 'Kolon Düzenleme Ekranı'
 	}
-	afterRun(e) {
-		super.afterRun(e)
+	async afterRun(e) {
+		await super.afterRun(e)
+		await delay(10)
+		
 		let { layout } = this, header = this.header = layout.find('.header')
 		let islemTuslari = this.islemTuslari = layout.find(`.islemTuslari`);
 		let islemTuslariPart = this.islemTuslariPart = new ButonlarPart({
@@ -27,19 +29,23 @@ class GridKolonDuzenlePart extends Part {
 			butonlarDuzenleyici: e => this.islemTuslariDuzenle(e)
 		})
 		islemTuslariPart.run()
-		let splitMain = this.splitMain = layout.find('#splitMain'), divSol = this.divSol = splitMain.find('#sol'), divSag = this.divSag = splitMain.find('#sag')
+		
+		let splitMain = this.splitMain = layout.find('#splitMain')
+		let divSol = this.divSol = splitMain.find('#sol'), divSag = this.divSag = splitMain.find('#sag')
 		let divKalanlar = this.divKalanlar = divSol.find('#kalanlar'), divSecilenler = this.divSecilenler = divSag.find('#secilenler')
 		splitMain.jqxSplitter({ theme, width: '100%', height: $(window).height(), orientation: 'vertical', splitBarSize: 20, panels: [ { size: '50%' }, { size: '50%' } ] })
 		for (let elm of [divKalanlar, divSecilenler]) {
 			/* elm.addClass('float-left');*/
 			elm.jqxListBox({
-				theme, width: '100%', height: '90%', filterable: true, filterHeight: 55, filterPlaceHolder: 'Hızlı Bul', searchMode: 'containsignorecase',
+				theme, width: '100%', height: '90%',
+				filterable: true, filterHeight: 55, filterPlaceHolder: 'Hızlı Bul', searchMode: 'containsignorecase',
 				allowDrag: true, allowDrop: true, itemHeight: 45, checkboxes: false, valueMember: 'belirtec', displayMember: 'text', source: []
 				/*renderer: (index, label, value) => `<div class="list-item" style="font-size: 110%; color: #555; width: 100%; height: 100%;">${label}</div>`*/
 			})/*.jqxSortable({ theme, items: `div[role=option]` }) */
 		}
-		splitMain.find('#kaldir').jqxButton({ theme }).on('click', evt => this.kaldirIstendi(extend({}, e, { event: evt })));
-		splitMain.find('#aktar').jqxButton({ theme }).on('click', evt => this.aktarIstendi(extend({}, e, { event: evt })));
+		splitMain.find('#kaldir').jqxButton({ theme }).on('click', evt => this.kaldirIstendi(extend({}, e, { event: evt })))
+		splitMain.find('#aktar').jqxButton({ theme }).on('click', evt => this.aktarIstendi(extend({}, e, { event: evt })))
+		
 		let belirtec2OrjBaslik = this.belirtec2OrjBaslik = {}
 		for (let colDef of this.orjBaslikListesi)
 			belirtec2OrjBaslik[colDef.belirtec] = colDef

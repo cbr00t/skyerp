@@ -227,7 +227,7 @@ class GidenEIslemFiltre extends EIslemFiltre {
 		
 		let _today = today()
 		let { cariYil } = app.params.zorunlu ?? {}
-		cariYil ||= today.yil
+		cariYil ||= _today.yil
 		
 		let tarihBS = {
 			basi: _today.clone().yilBasi().setYil(cariYil),
