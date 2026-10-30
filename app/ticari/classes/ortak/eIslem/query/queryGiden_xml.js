@@ -116,11 +116,12 @@ class EIslemQuery_XML extends EIslemQuery_Giden {
 				sahismi: alici('car.sahismi', 'dadr.sahismi'), vergiDairesi: alici('car.vdaire', 'dadr.vdaire'),
 				ticSicilNo: alici('car.ticaretsicilno', sqlEmpty), mersisNo: alici('car.mersisno', sqlEmpty),
 				gibAlias: alici(`CASE WHEN ${alias}.efayrimtipi = 'IR' THEN COALESCE(NULLIF(car.eirsgibalias, ''), car.efatgibalias) ELSE car.efatgibalias END`, 'dadr.efatgibalias'),
-				musrefkod: 'car.musrefkod', kondepomu: 'car.kondepomu',
+				musRefKod: 'car.musrefkod', kondepomu: 'car.kondepomu',
 				sevkYerKod: 'fis.xadreskod',
 				tlBakiye: ticarimi ? 'fis.tlacikhesap' : sqlZero, tloncekibakiye: ticarimi ? 'fis.tloncekibakiye' : sqlZero,
 				dvBakiye: ticarimi ? 'fis.dvacikhesap' : sqlZero, dvoncekibakiye: ticarimi ? 'fis.dvoncekibakiye' : sqlZero,
-				refnox: sutMakbuzmu ? sqlEmpty : 'fis.refstrnox',
+				refTarih: ticarimi ? 'fis.reftarih': sqlEmpty,
+				refNox: ticarimi ? 'fis.refstrnox' : sqlEmpty,
 				plasiyerkod: sutMakbuzmu ? sqlEmpty : 'fis.plasiyerkod', nakseklikod: sutMakbuzmu ? sqlEmpty : 'fis.nakseklikod',
 				plasiyeradi: sutMakbuzmu ? sqlEmpty : 'pls.birunvan', naksekliadi: sutMakbuzmu ? sqlEmpty : 'nak.aciklama',
 				tahtipi: ticarimi ? 'fis.tahtipi' : sqlEmpty, tahseklino: ticarimi ? 'fis.martahsil' : sqlZero,
@@ -152,7 +153,7 @@ class EIslemQuery_XML extends EIslemQuery_Giden {
 				tevislemturu: ticarimi ? 'COALESCE(tevver.tevislemturu, \'\')' : sqlEmpty,
 				perotv: ticarimi ? 'har.perotv' : sqlZero, otvorani: ticarimi && stokmu ? 'COALESCE(otver.otvorani, 0)' : sqlZero,
 				satiriskonto: ticarimi ? 'har.satiriskonto' : sqlZero, sonuciskoran: ticarimi ? 'har.sonuciskoran' : sqlZero,
-				konSubeKod: 'car.kendidetaykod'
+				konSubeKod: 'car.kendidetaykod', malKabulNo: ticarimi ? 'fis.malkabulno' : sqlEmpty
 			}
 			for (let { rowAttr, numerikmi } of HMRBilgi)
 				f[rowAttr] = stokmu && !sutMakbuzmu ? `har.${rowAttr}` : numerikmi ? sqlZero : sqlEmpty

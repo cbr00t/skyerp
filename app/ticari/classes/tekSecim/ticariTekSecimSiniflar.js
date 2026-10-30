@@ -109,7 +109,7 @@ class TicariFisTipi_Satis extends TicariFisTipi {
 
 	kaListeDuzenle({ kaListe }) {
 		super.kaListeDuzenle(...arguments)
-		let { satis: { kullanim: { kamuIhale } } } = app.params
+		let { kamuIhale } = app.params.satis?.kullanim ?? {}
 		kaListe.push(...[
 			( kamuIhale ? new CKodVeAdi(['IH', 'Teklif Usulü İhale', 'teklifUsuluIhalemi']) : null ),
 			new CKodVeAdi(['DK', 'Dekont', 'dekontmu'])

@@ -136,8 +136,12 @@ class FisGirisPart extends GridliGirisWindowPart {
 				setTimeout(() => { if (header.height() < 10) { this.splitMain.jqxSplitter('collapse', 0) } }, 200)
 				setTimeout(() => header.removeClass('jqx-hidden basic-hidden'), 500)
 			}, 10)
-			setTimeout(() => makeScrollable(header), 100)
-			setTimeout(() => { this.onResize(e); if (!gridIslemTuslari?.find(':not(div)').length) { splitGridVeIslemTuslari.jqxSplitter('collapse') } }, 300)
+			delay(300).then(() => {
+				makeScrollable(header)
+				this.onResize(e)
+				if (!gridIslemTuslari?.find(':not(div)').length)
+					splitGridVeIslemTuslari.jqxSplitter('collapse')
+			})
 		}
 		catch (ex) { hConfirm(getErrorText(ex), 'Fiş Giriş Ekranı'); throw ex }
 	}
@@ -438,4 +442,11 @@ class FisGirisPart extends GridliGirisWindowPart {
 	islemSil() { this.islem = 'sil'; return this }
 	setKaydetIslemi(value) { this.kaydetIslemi = value; return this } setKaydedince(value) { this.kaydedince = value; return this }
 	veriYuklenince(handler) { this.bindingCompleteBlock = handler; return this }
+
+	onResize(e) {
+		super.onResize(e)
+		let { layout } = this
+		;arrayFrom(layout.find('.simpleComboBox.part')).forEach(elm =>
+			$(elm).data('part')?.onResize())
+	}
 }

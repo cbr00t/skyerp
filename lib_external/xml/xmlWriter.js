@@ -93,23 +93,30 @@ var proto = XMLWriter.prototype = {
 	},
 	//shortcut, open an element, write the CDATA and close
 	writeElementCDATA:function( name, text, ns, attributes, escape ){
-		this.writeStartElement( name, ns );
+		this.writeStartElement( name, ns )
 		if (attributes)
 			this.writeAttributes(attributes)
 		this.writeCDATA( text, escape );
 		this.writeEndElement();
 	},
 	writeEmptyElement:function( name, ns, attributes ){
-		this.writeStartElement( name, ns );
+		this.writeStartElement( name, ns )
 		if (attributes)
 			this.writeAttributes(attributes)
 		this.writeEndElement()
 	},
 	writeElementBlock:function( name, ns, block, attributes ){
-		this.writeStartElement( name, ns );
+		this.writeStartElement( name, ns )
 		if (attributes)
 			this.writeAttributes(attributes)
-		block(this);
+		block(this)
+		this.writeEndElement()
+	},
+	writeElementBlockAsync:async function( name, ns, block, attributes ){
+		this.writeStartElement( name, ns )
+		if (attributes)
+			this.writeAttributes(attributes)
+		await block(this)
 		this.writeEndElement()
 	},
 	writeElements:function( elements ){

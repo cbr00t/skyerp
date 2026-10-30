@@ -195,6 +195,7 @@ class TSOrtakFis extends MQTicariGenelFis {
 				})
 			})
 			.addStyle_wh(600)
+			.addStyle(`$elementCSS { margin-top: 20px !important }`)
 
 		baslikForm.builders.at(-1).addTextArea('fisEkBilgi', 'Fiş Ek Bilgi')
 			.setPlaceHolder('Fiş Ek Bilgi')

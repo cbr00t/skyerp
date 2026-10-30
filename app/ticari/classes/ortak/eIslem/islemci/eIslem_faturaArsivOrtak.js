@@ -164,9 +164,6 @@ class EIslFaturaArsivOrtak extends EIslTicariOrtak {
 		await super.xmlDuzenle_docRefs_ilk(...arguments)
 		await this.xmlDuzenle_docRefs_sgk(e)
 	}
-	async xmlDuzenle_docRefs_sonOncesi({ xw }) {
-		await super.xmlDuzenle_docRefs_sonOncesi(...arguments)
-	}
 	xmlDuzenle_docRefs_sgk(e) { }
 
 	xmlDuzenle_notes_ilk(e) {

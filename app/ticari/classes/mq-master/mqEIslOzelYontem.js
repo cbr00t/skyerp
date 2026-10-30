@@ -6,7 +6,7 @@ class MQEIslOzelYontem extends MQKA {
 	get yontemAdi() { return this.aciklama || '' } get varsaGenelYontem() { return null }
 	static get pTanimListe_kullanim() {
 		return {
-			adiYerineAdi2: new PInstBool('fladi2'), stokRefKoduKuKullan: new PInstBool('flcaristokrefkodu'), barkodKullan: new PInstBool('flbarkod'),
+			adiYerineAdi2: new PInstBool('fladi2'), stokRefKoduKullan: new PInstBool('flcaristokrefkodu'), barkodKullan: new PInstBool('flbarkod'),
 			stokYerineRefKoduGoster: new PInstBool('flstokicinrefkullan'), stokYerineBarkodGoster: new PInstBool('flstokicinbarkodkullan'),
 			baslikSipRefKullan: new PInstBool('flrefsipno'), konsolideSubeKoduKullan: new PInstBool('flkonsube'), kendiRefKoduKullan: new PInstBool('flkendirefkodu'),
 			barkodReferansKaldir: new PInstBool('flbarrefyok'), subeKoduBayiNoOlarakYazilsin: new PInstBool('flsubebayinoolarak'), goMasrafKoduHizmetAdinaEklensin: new PInstBool('flgomasrafkodekle'),
@@ -18,19 +18,27 @@ class MQEIslOzelYontem extends MQKA {
 		}
 	}
 	constructor(e) { super(e) }
-	static pTanimDuzenle(e) { super.pTanimDuzenle(e); const {pTanim} = e; $.extend(pTanim, this.pTanimListe_kullanim) }
-	static rootFormBuilderDuzenle(e) {
-		e = e || {}; super.rootFormBuilderDuzenle(e); this.formBuilder_addTabPanelWithGenelTab(e);
-		const tabPage = e.tabPage_genel; let form = tabPage.addFormWithParent().yanYana(3);
-		for (const [key, pInst] of Object.entries(this.pTanimListe_kullanim)) {
-			if (pInst instanceof PInstBool || pInst instanceof PInstBitBool) { form.addCheckBox(key, key) }
-			else if (pInst instanceof PInstStr) { form.addTextInput(key, key) }
-			else if (pInst instanceof PInstTekSecim) { form.addModelKullan(key, key).dropDown().noMF().kodsuz().setSource(pInst.sinif.kaListe) }
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
+		extend(pTanim, this.pTanimListe_kullanim)
+	}
+	static rootFormBuilderDuzenle(e = {}) {
+		super.rootFormBuilderDuzenle(e)
+		this.formBuilder_addTabPanelWithGenelTab(e)
+		let tabPage = e.tabPage_genel
+		let form = tabPage.addFormWithParent().yanYana(3)
+		for (let [key, pInst] of entries(this.pTanimListe_kullanim)) {
+			if (pInst instanceof PInstBool || pInst instanceof PInstBitBool)
+				form.addCheckBox(key, key)
+			else if (pInst instanceof PInstStr)
+				form.addTextInput(key, key)
+			else if (pInst instanceof PInstTekSecim)
+				form.addModelKullan(key, key).dropDown().noMF().kodsuz().setSource(pInst.sinif.kaListe)
 		}
 	}
 	static orjBaslikListesiDuzenle({ liste }) {
 		super.orjBaslikListesiDuzenle(...arguments)
-		for (const [key, pInst] of entries(this.pTanimListe_kullanim)) {
+		for (let [key, pInst] of entries(this.pTanimListe_kullanim)) {
 			let { rowAttr } = pInst
 			if (!rowAttr)
 				continue
@@ -48,36 +56,41 @@ class MQEIslOzelYontem extends MQKA {
 		wh.add(`${aliasVeNokta}silindi = ''`)
 		sahalar.add(`${aliasVeNokta}*`)
 	}
-	xmlDuzenle_docRefs(e) {
+	
+	async xmlDuzenle_docRefs(e) {
 		let { eFis, xw } = e
 		let { subeKod } = eFis.baslik
 		if (subeKod && this.subeKoduBayiNoOlarakYazilsin)
-			eFis.xmlDuzenleInternal_docRef({ xw, type: 'BAYINO', id: subeKod })
+			await eFis.xmlDuzenleInternal_docRef({ xw, type: 'BAYINO', id: subeKod })
 	}
-	eIslemOnKontrol(e) {
-		let err = errorTextsAsObject({ errors: this.eIslemOnKontrolMesajlar(e) }); if (err) { throw err }
+	async eIslemOnKontrol(e) {
+		let errors = await this.eIslemOnKontrolMesajlar(e)
+		let err = errorTextsAsObject({ errors })
+		if (err)
+			throw err
 		return this
 	}
-	eIslemOnKontrolMesajlar(e) {
-		const _e = $.extend({}, e, { liste: [] }); this.eIslemOnKontrolMesajlarDuzenle(_e); this.eIslemOnKontrolMesajlarDuzenle_son(_e);
+	async eIslemOnKontrolMesajlar(e) {
+		let _e = { ...e, liste: [] }
+		await this.eIslemOnKontrolMesajlarDuzenle(_e)
+		await this.eIslemOnKontrolMesajlarDuzenle_son(_e)
 		return _e.liste?.filter(x => !!x)
 	}
-	async xmlDuzenle_xsltOncesi_ve_ozelDip_arasi({ xw, eFis, eFis: { baslik } }) { }
-	eIslemOnKontrolMesajlarDuzenle(e) {
-		let { varsaGenelYontem: genelYontem } = this
-		let { liste, eFis } = e
+	
+	async eIslemOnKontrolMesajlarDuzenle({ liste, eFis }) {
+		let { varsaGenelYontem: eYontem } = this
 		let { baslik, detaylar } = eFis
-		if (genelYontem?.metrommu)
-			liste.push(this.metroIcinUygunmuDegilseMesaj(e))
+		let { mustKod, mustRefKod, refNox } = baslik
 		
-		if (this.baslikSipRefKullan && !baslik.refNox)
+		if (eYontem?.metromu)
+			liste.push(await this.metroIcinUygunmuDegilseMesaj(...arguments))
+		
+		if (this.baslikSipRefKullan && !refNox)
 			liste.push(`<b>Başlık Sipariş Referansı</b> verilmelidir`)
-		
-		if (this.kendiRefKoduKullan && !baslik.musRefKod)
+		if (this.kendiRefKoduKullan && !musRefKod)
 			liste.push(`<b>Müşteri Kendi Referans Kodu</b> verilmelidir`)
 		
-		if (this.stokRefKoduKuKullan) {
-			let { mustKod } = baslik
+		if (this.stokRefKoduKullan) {
 			let subErrors = []
 			for (let det of detaylar.filter(d => d.stokmu)) {
 				let { stokRefKod: refKod } = det
@@ -96,30 +109,56 @@ class MQEIslOzelYontem extends MQKA {
 			}
 		}
 	}
-	eIslemOnKontrolMesajlarDuzenle_son(e) { }
+	async eIslemOnKontrolMesajlarDuzenle_son(e) { }
 	metroIcinUygunmuDegilseMesaj(e) { return null }
-	malKabulNoKontrolu(e) {
-		let { fis = e.ticariFis } = e
-		if (!app.params.satis.malKabulNo)
+	malKabulNoKontrolu({ eFis } = {}) {
+		let { kullanim: satis = {} } = app.params.satis ?? {}
+		if (!satis.malKabulNo)
 			return `<u>Satış Genel</u> Parametrelerinde <b class="royalblue">Mal Kabul No</b> kullanımı açılmalıdır`
-		if (!fis.malKabulNo)
-			return this.getUygunDegilMesaji(`<b>Müşteri Mal Kabul No</b> belirtilmelidir`, fis.fisNo)
+
+		let { malKabulNo, fisNox } = eFis?.baslik ?? {}
+		if (!malKabulNo)
+			return this.getUygunDegilMesaji(`<b>Müşteri Mal Kabul No</b> belirtilmelidir`, fisNox)
+		
 		return null
 	}
 	getUygunDegilMesaji(text, belgeNox) {
 		let { yontemAdi } = this
 		return `<b class="royalblue">${belgeNox}</b> nolu belge ${yontemAdi} e-İşlem Kuralına uygun değildir (<b>${text}</b>)`
 	}
+
+	async xmlDuzenle_profileIDVeBelgeTipKodu_arasi({ xw, eFis }) {
+		//let { baslik, dipNotlar } = eFis
+		//debugger
+	}
+	async xmlDuzenle_xsltOncesi_ve_ozelDip_arasi({ xw, eFis }) {
+		// let { baslik } = eFis
+	}
 }
 
 class MQEIslGeneldenOzelYontem extends MQEIslOzelYontem {
     static { globalThis[this.name] = this; this._key2Class[this.name] = this }
 	get yontemAdi() { return this.genelYontem?.aciklama }
-	get varsaGenelYontem() { const rec = this.genelYontem; return rec?.yokmu ? null : (rec ?? null) }
-	get iskontoZorunlumu() { const rec = this.genelYontem; return (rec.migrosmu || super.iskontoZorunlumu) ?? false }
-	get iskontoTekilYazilirmi() { const rec = this.genelYontem; return (rec.migrosmu || super.iskontoTekilYazilirmi) ?? false }
-	get kendiReferansiMusteriNoOlarakYazilirmi() { const rec = this.genelYontem; return (rec.migrosmu || super.kendiReferansiMusteriNoOlarakYazilirmi) ?? false }
-	get irsaliyeAsilAliciVeyaSaticiGonderilirmi() { const rec = this.genelYontem; return rec.migrosmu ?? false }
+	get varsaGenelYontem() {
+		let { genelYontem: rec } = this
+		return rec?.yokmu ? null : (rec ?? null)
+	}
+	get iskontoZorunlumu() {
+		let { genelYontem: rec } = this
+		return (rec.migrosmu || super.iskontoZorunlumu) ?? false
+	}
+	get iskontoTekilYazilirmi() {
+		let { genelYontem: rec } = this
+		return (rec.migrosmu || super.iskontoTekilYazilirmi) ?? false
+	}
+	get kendiReferansiMusteriNoOlarakYazilirmi() {
+		let { genelYontem: rec } = this
+		return (rec.migrosmu || super.kendiReferansiMusteriNoOlarakYazilirmi) ?? false
+	}
+	get irsaliyeAsilAliciVeyaSaticiGonderilirmi() {
+		let { genelYontem: rec } = this
+		return rec.migrosmu ?? false
+	}
 	
 	constructor(e) {
 		super(e)
@@ -132,11 +171,11 @@ class MQEIslGeneldenOzelYontem extends MQEIslOzelYontem {
 		if (!rec)
 			return this
 		
-		let konsolidemi = e.konsolide ?? e.konsolidemi
+		let { konsolidemi = e.konsolide } = e
 		extend(this, {
 			subeKodEtiketi: rec.subeBayimidir ? 'BAYINO' : rec.subeMusterimidir ? 'MUSTERINO' : konsolidemi ? 'SUBENO' : '',
 			barkodKullan: rec.stokBarkodZorunlumu ?? false,
-			stokRefKoduKuKullan: rec.stokCariReferansZorunlumu ?? false,
+			stokRefKoduKullan: rec.stokCariReferansZorunlumu ?? false,
 			baslikSipRefKullan: rec.baslikSipReferansZorunlumu ?? false,
 			konsolideSubeKoduKullan: rec.konsolideSubeReferansZorunlumu ?? false,
 			stokYerineRefKoduGoster: rec.stokYerineRefKodmu ?? false,
@@ -151,26 +190,67 @@ class MQEIslGeneldenOzelYontem extends MQEIslOzelYontem {
 	}
 	
 	metroIcinUygunmuDegilseMesaj(e) { return this.malKabulNoKontrolu(e) ?? null }
-	
-	xmlDuzenle_docRefs({ xw, eFis, eFis: { baslik } }) {
-		let { varsaGenelYontem: genelYontem } = this
-		if (genelYontem?.migrosmu) {
+
+	async xmlDuzenle_profileIDVeBelgeTipKodu_arasi({ xw, eFis }) {
+		let { varsaGenelYontem: eYontem } = this
+		let { baslik, dipNotlar } = eFis
+		let { konSubeKod, malKabulNo } = baslik
+		
+		if ((this.konsolideSubeKoduKullan || eYontem?.metromu) && konSubeKod)
+			dipNotlar.push(`Mağaza No: ${konSubeKod}`)
+		if (eYontem?.metromu && malKabulNo)
+			dipNotlar.push(`Mal Kabul No: ${String(malKabulNo)}`)
+	}
+	async xmlDuzenle_docRefs_oncesi({ xw, eFis }) {
+		let { varsaGenelYontem: eYontem } = this
+		let { baslik } = eFis
+		let { tarihStr, refTarih, refNox } = baslik
+		if ((this.baslikSipRefKullan /*|| eYontem?.metromu */) && refNox) {
+			xw.writeElementBlock('cac:OrderReference', null, () => {
+				xw.writeElements({
+					'cbc:ID': refNox,
+					'cbc:IssueDate': ( refTarih ? asReverseDateString(asDate(refTarih)) : tarihStr )
+				})
+			})
+		}
+		if (eYontem?.metromu) {    // netroya bagli degil oYontem icin mal kabul durumu vardır - MD NOT
+			let { malKabulNo } = baslik
+			if (malKabulNo) {
+				xw.writeElementBlock('cac:ReceiptDocumentReference', null, () => {
+					xw.writeElements({
+						'cbc:ID': String(malKabulNo),
+						'cbc:IssueDate': tarihStr
+					})
+				})
+			}
+		}
+	}
+	async xmlDuzenle_docRefs({ xw, eFis }) {
+		let { varsaGenelYontem: eYontem } = this
+		let { baslik } = eFis
+		if (eYontem?.migrosmu) {
 			let oncekiIrsTSNListe = baslik.oncekiIrsTSNListe ?? []
 			let { borsatescilvarmi, kunyenox } = baslik
-			for (let rec of oncekiIrsTSNListe) {
-				let { tarih, nox } = rec
-				eFis.xmlDuzenleInternal_docRef({ xw, type: 'IRSALIYE', id: nox, tarih })
-			}
+			for (let { tarih, nox } of oncekiIrsTSNListe)
+				await eFis.xmlDuzenleInternal_docRef({ xw, type: 'IRSALIYE', id: nox, tarih })
 			if (borsatescilvarmi)
-				eFis.xmlDuzenleInternal_docRef({ xw, type: 'BORSATESCIL', id: 'VAR' })
+				await eFis.xmlDuzenleInternal_docRef({ xw, type: 'BORSATESCIL', id: 'VAR' })
 			if (kunyenox) {
-				eFis.xmlDuzenleInternal_docRef({ xw, type: 'KUNYE', id: 'VAR' })
-				eFis.xmlDuzenleInternal_docRef({ xw, type: 'KUNYENO', id: kunyenox })
+				await eFis.xmlDuzenleInternal_docRef({ xw, type: 'KUNYE', id: 'VAR' })
+				await eFis.xmlDuzenleInternal_docRef({ xw, type: 'KUNYENO', id: kunyenox })
 			}
 			;{
 				let faturaKod = `101.0000${asBool(baslik.kondepomu) ? '4' : '1'}.0000010019`
-				eFis.xmlDuzenleInternal_docRef({ xw, type: 'FATURAKODLIST', id: faturaKod })
+				await eFis.xmlDuzenleInternal_docRef({ xw, type: 'FATURAKODLIST', id: faturaKod })
 			}
+		}
+		else if (eYontem?.metromu) {
+			let { musRefKod, malKabulNo, refNox } = baslik
+			let cnv = {
+				MUSTERI_KOD: musRefKod
+			}
+			for (let [type, id] of entries(cnv))
+				await eFis.xmlDuzenleInternal_docRef({ xw, type, id })
 		}
 	}
 	async xmlDuzenle_xsltOncesi_ve_ozelDip_arasi({ xw, eFis }) {
@@ -209,22 +289,34 @@ class MQEIslGeneldenOzelYontem extends MQEIslOzelYontem {
 }
 
 class EIslGenelYontem extends TekSecim {
-	static { globalThis[this.name] = this; this._key2Class[this.name] = this } get stokYerineBarkodmu() { return this.getirmi } get stokYerineRefKodmu() { return this.kipami || this.carrefourmu }
+	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
+	
 	static get defaultChar() { return ' ' }
-	get varsaGenelYontem() { return this }
-	get yokmu() { return this.char == ' ' } get migrosmu() { return this.char == 'MIG' } get metromu() { return this.char == 'MET' }
-	get carrefourmu() { return this.char == 'CSA' } get bimmi() { return this.char == 'BIM' }
-	get a101mi() { return this.char == 'A101' } get kilermi() { return this.char == 'KIL' }
-	get kipami() { return this.char == 'KIP' } get adesami() { return this.char == 'ADE' }
-	get ozenmi() { return this.char == 'OZN' } get eformu() { return this.char == 'EFOR' }
+	get yokmu() { return this.char == ' ' } get migrosmu() { return this.char == 'MIG' }
+	get metromu() { return this.char == 'MET' }
+	get carrefourmu() { return this.char == 'CSA' }
+	get bimmi() { return this.char == 'BIM' }
+	get a101mi() { return this.char == 'A101' }
+	get kilermi() { return this.char == 'KIL' }
+	get kipami() { return this.char == 'KIP' } 
+	get adesami() { return this.char == 'ADE' }
+	get ozenmi() { return this.char == 'OZN' }
+	get eformu() { return this.char == 'EFOR' }
 	get cetinkayami() { return this.char == 'CET' }
 	get lezitami() { return this.char == 'LEZ' } 
-	get sofraGrupmu() { return this.char == 'SOF' } get getirmi() { return this.char == 'GET' }
-	get tofasmi() { return this.char == 'TOF' } get fordmu() { return this.char == 'FOR' }
-	get sgkmi() { return this.char == 'SGK' } get dmomu() { return this.char == 'DMO' }
-	get ibbmi() { return this.char == 'IBB' } get sokmu() { return this.char == 'SOK' }
+	get sofraGrupmu() { return this.char == 'SOF' }
+	get getirmi() { return this.char == 'GET' }
+	get tofasmi() { return this.char == 'TOF' }
+	get fordmu() { return this.char == 'FOR' }
+	get sgkmi() { return this.char == 'SGK' }
+	get dmomu() { return this.char == 'DMO' }
+	get ibbmi() { return this.char == 'IBB' }
+	get sokmu() { return this.char == 'SOK' }
 	get tarimKredimi() { return this.char == 'TRK' }
-	
+
+	get varsaGenelYontem() { return this }
+	get stokYerineBarkodmu() { return this.getirmi }
+	get stokYerineRefKodmu() { return this.kipami || this.carrefourmu }
 	get subeMusterimidir() { return false }
 	get subeBayimidir() { return this.migrosmu || this.kilermi || this.a101mi || this.metromu || this.bimmi || this.carrefourmu }
 	get stokCariReferansZorunlumu() {
@@ -273,23 +365,5 @@ class EIslGenelYontem extends TekSecim {
 			new CKodVeAdi(['DMO', 'Devlet Malzeme Ofisi']), 
 			new CKodVeAdi(['IBB', 'İstanbul Büyükşehir Belediyesi'])
 		)
-	}
-	async getEkstraNotSatirlari(e) {
-		const fis = e.fis ?? e.ticariFis, {} = ticariFis, result = [];
-		if (this.kilermi) {
-			let mustKonKendiDetayKod = await fis.getMustKonKendiDetayKod()
-			if (mustKonKendiDetayKod)
-				result.push(`"${mustKonKendiDetayKod}"`)
-		}
-		else if (this.metromu) {
-			let mustKonKendiDetayKod = await fis.getMustKonKendiDetayKod()
-			let karsiRefKod = await fis.getMusKarsiRefKod()
-			let { malKabulNo } = fis, ekBilgiler = []
-			if (mustKonKendiDetayKod) { ekBilgiler.push(`Mağaza No: ${mustKonKendiDetayKod}`) }
-			if (karsiRefKod) { ekBilgiler.push(`Satıcı No: ${karsiRefKod}`) }
-			if (malKabulNo) { ekBilgiler.push(`Mal Kabul No: ${malKabulNo}`) }
-			if (ekBilgiler?.length) { result.push(ekBilgiler.join(' ')) }
-		}
-		return result
 	}
 }

@@ -801,42 +801,63 @@ class MQCari_Ticari extends MQCariAlt {
 }
 class MQCari_EIslem extends MQCariAlt {
 	static { globalThis[this.name] = this; this._key2Class[this.name] = this }
-	static pTanimDuzenle(e) {
-		super.pTanimDuzenle(e); let {pTanim} = e; $.extend(pTanim, {
+	static pTanimDuzenle({ pTanim }) {
+		super.pTanimDuzenle(...arguments)
+		extend(pTanim, {
 			eFaturaKullanirmi: new PInstBool('efaturakullanirmi'), senaryoTipi: new PInstTekSecim('efatsenaryotipi', SenaryoTipi),
-			eFaturaYontem: new PInstTekSecim('efatyontem', EIslGenelYontem), efOzelYontemKod:new PInstStr('efozelyontemkod'),
+			genelYontemKod: new PInstTekSecim('efatyontem', EIslGenelYontem),
+			ozelYontemKod: new PInstStr('efozelyontemkod'),
 			ozelButceliVkn: new PInstStr('ozelbutcelivkn'), ozelButceliUnvan: new PInstStr('ozelbutceliunvan'), bOzelButceliKurumdur: new PInstBitBool('bozelbutcelikurumdur'),
 			eFatDovizliDokum: new PInstBool('efatdovizlidokum'), beFatDipIsk2Satir: new PInstBitBool('befatdipisk2satir'),
 			fiyatGosterim: new PInstTekSecim('fiyatgosterim', EIslKural_Fiyat), eArsivBelgeTipi: new PInstTekSecim('earsivbelgetipi', EArsiv_BelgeTipi),
 			eIslOzelDipKod: new PInstStr('eislozeldipkod'), eIrsAlimiAdetTeslimeDuzenlenirmi: new PInstBitBool('beirsalimiadeteslimeduzenlenir'),
-			eFatGIBAlias: new PInstStr('efatgibalias'), eIrsGIBAlias: new PInstStr('eirsgibalias')
+			eFatGIBAlias: new PInstStr('efatgibalias'), eIrsGIBAlias: new PInstStr('eirsgibalias'),
+			musRefKod: new PInstStr('musrefkod')
 		})
 	}
 	static rootFormBuilderDuzenle(e) {
-		let {mfSinif} = this, {tabPanel} = e, tabPage = tabPanel.addTab({ id: 'eislem', etiket: 'E-İşlem' }); tabPage.setAltInst(({ builder: fbd }) => fbd.inst.eIslem);
+		let { mfSinif } = this, { tabPanel } = e
+		let tabPage = tabPanel.addTab('eislem', 'E-İşlem')
+		tabPage.setAltInst(({ builder: fbd }) =>
+			fbd.inst.eIslem)
+		
 		let form = tabPage.addFormWithParent().yanYana(4)/*.addStyle(e=>`$elementCSS {box-shadow:5px 5px 20px cadetblue}`)*/;
 			/*tabPanel.addBaslik({ etiket: 'E-Fatura/E-Arşiv' });*/
 			form.addCheckBox('eFaturaKullanirmi', 'E-Fatura').addStyle_wh(150);
 			let eFatKullanimKosulu = ({ builder: fbd }) => fbd.inst.eIslem.eFaturaKullanirmi;
 			form.addButton('ozelEntegratorKontrol', 'Özel Entegratörden Kontrol Et').onClick(_e => this.ozelEntegratordenKontrolEtIstendi({ ...e, ..._e }));
+		form = tabPage.addFormWithParent().yanYana()
+			form.addModelKullan('genelYontemKod', 'Genel Yöntem')
+				.dropDown().kodsuz().noMF()
+				.setSource(EIslGenelYontem.kaListe)
+				.addStyle_wh(400)
+			form.addSimpleComboBox('ozelYontemKod', 'Özel Yöntem', 'Özel Yöntem')
+				.setMFSinif(MQEIslOzelYontem)
+				.addStyle_wh(500)
+				.addStyle(`$elementCSS { margin-top: 0 !important }`)
+		form = tabPage.addFormWithParent().yanYana(4)
 			form.addModelKullan({ id: 'senaryoTipi', etiket: 'Senaryo Tipi', source: e => SenaryoTipi.instance.kaListe}).noMF().dropDown().setVisibleKosulu(e => eFatKullanimKosulu(e));
-			form.addModelKullan({ id: 'eFaturaYontem', etiket: 'Genel Yöntem', source: e => EIslGenelYontem.instance.kaListe}).noMF().dropDown().setVisibleKosulu(e => eFatKullanimKosulu(e));
-			form.addModelKullan({ id: 'efOzelYontemKod',etiket:' Özel Yöntem', mfSinif: MQEIslOzelYontem}).dropDown().setVisibleKosulu(e => eFatKullanimKosulu(e));
 			form.addCheckBox({ id: 'bOzelButceliKurumdur',etiket: 'Özel Bütçeli Kurumdur'})
-				.degisince(({ builder: fbd }) => { for (let subBuilder of fbd.parentBuilder.parentBuilder.id2Builder.ozelButceliKurum_parent.builders) { subBuilder.updateVisible() } });
-			let rayicBedelVisibleKosulu = ({ builder: fbd }) => fbd.altInst.bOzelButceliKurumdur;
-			form.addTextInput({ id: 'ozelButceliVkn',etiket: 'VKN', maxLength: 11}).setVisibleKosulu(rayicBedelVisibleKosulu);
-			form.addTextInput({ id: 'ozelButceliUnvan',etiket: 'Ünvan'}).setVisibleKosulu(rayicBedelVisibleKosulu);
-		form = tabPage.addFormWithParent().yanYana(1);
+				/*.degisince(({ builder: fbd }) => {
+					for (let fbd of fbd.parentBuilder.parentBuilder.id2Builder.ozelButceliKurum_parent.builders)
+						subBuilder.updateVisible()
+				})*/
+			//let rayicBedelVisibleKosulu = ({ builder: fbd }) => fbd.altInst.bOzelButceliKurumdur
+			form.addTextInput({ id: 'ozelButceliVkn',etiket: 'VKN', maxLength: 11})//.setVisibleKosulu(rayicBedelVisibleKosulu)
+			form.addTextInput({ id: 'ozelButceliUnvan',etiket: 'Ünvan'})//.setVisibleKosulu(rayicBedelVisibleKosulu)
+		form = tabPage.addFormWithParent().yanYana(1)
 		form.addLabel({ id: 'uyari', renk: 'cadetblue', etiket: `SGK kamu kurumu olmasına rağmen senaryo olarak KAMU seçilmemelidir. Satış param'da  'SGK fatura' seçilmeli ve yeni açılan ekranda sgk param doldurulmalıdır.` });
-		form = tabPage.addFormWithParent().yanYana(2);
-			form.addCheckBox({ id: 'eFatDovizliDokum',etiket: 'E-Fatura Döviz Bedelleri İle Gösterilir' });
-			form.addCheckBox({ id: 'beFatDipIsk2Satir',etiket: 'Dip İskonto Satırlara Yansıtılır' });
-		form = tabPage.addFormWithParent().yanYana(4);
-			form.addModelKullan({ id: 'fiyatGosterim', etiket: 'Fiyat Gösterim', source: e => EIslKural_Fiyat.instance.kaListe}).noMF().dropDown();
+		form = tabPage.addFormWithParent().yanYana(2)
+			form.addCheckBox({ id: 'eFatDovizliDokum',etiket: 'E-Fatura Döviz Bedelleri İle Gösterilir' })
+			form.addCheckBox({ id: 'beFatDipIsk2Satir',etiket: 'Dip İskonto Satırlara Yansıtılır' })
+		form = tabPage.addFormWithParent().yanYana()
+			form.addModelKullan({ id: 'fiyatGosterim', etiket: 'Fiyat Gösterim', source: e => EIslKural_Fiyat.instance.kaListe}).noMF().dropDown()
 			form.addModelKullan({ id: 'eIslOzelDipKod', etiket:'E-İşlem Özel Dip', mfSinif: MQEIslemOzelDip }).dropDown();
-			form.addModelKullan({ id: 'eArsivBelgeTipi', etiket: 'E-Arşiv Belge Gönderim Tipi', source: e => EArsiv_BelgeTipi.instance.kaListe}).noMF().dropDown();
-		form.addCheckBox({ id: 'eIrsAlimiAdetTeslimeDuzenlenirmi',etiket: `E-İrsaliye Alim İade'de Sevk Yeri Varsa Alıcı Olarak Kabul Edilir`});
+			form.addModelKullan({ id: 'eArsivBelgeTipi', etiket: 'E-Arşiv Belge Gönderim Tipi', source: e => EArsiv_BelgeTipi.instance.kaListe}).noMF().dropDown()
+			form.addTextInput('musRefKod', 'Müşteri Referansı')
+				.addStyle_wh(150)
+				.setMaxLength(20)
+		form.addCheckBox({ id: 'eIrsAlimiAdetTeslimeDuzenlenirmi',etiket: `E-İrsaliye Alim İade'de Sevk Yeri Varsa Alıcı Olarak Kabul Edilir`})
 		let getSource_gibAlias = (vknOrBuilder, vtTip) => {
 			return () => {
 				let vkn = vknOrBuilder; if (typeof vkn == 'object') { vkn = vkn?.vkn ?? vkn?.inst?.vkn } if (!vkn) { return [] }

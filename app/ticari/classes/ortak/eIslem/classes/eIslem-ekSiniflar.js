@@ -77,8 +77,8 @@ class EIslBaslik extends EIslBaslikVeDetayOrtak {
 				res = new MQEIslGeneldenOzelYontem({ genelYontem: new EIslGenelYontem(genelYontemKod) })
 			else {
 				let { ozelYontemKod2Rec } = _temps
-				res = new MQEIslOzelYontem()
 				let rec = ozelYontemKod2Rec?.[ozelYontemKod]
+				res = new MQEIslOzelYontem()
 				if (rec)
 					res.setValues({ rec })
 			}
@@ -116,6 +116,11 @@ class EIslBaslik extends EIslBaslikVeDetayOrtak {
 	get tlBakiye() { return this.rec.tlBakiye }
 	get oncekiTLBakiye() { return this.rec.tloncekibakiye }
 	get sonrakiTLBakiye() { return (this.oncekiTLBakiye || 0) + (this.tlBakiye || 0) }
+	get refTarih() { return this.rec.refTarih }
+	get refNox() { return this.rec.refNox }
+	get musRefKod() { return this.rec.musRefKod }
+	get konSubeKod() { return this.rec.konSubeKod }
+	get malKabulNo() { return this.rec.malKabulNo }
 
 	async onKontrol(e) {
 		await super.onKontrol(e)

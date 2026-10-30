@@ -379,23 +379,23 @@ class EIslTicariOrtak extends EIslGiden {
 			await this.xmlDuzenleInternal_docRefBaslikEkSaha({ xw, name: 'Tahsil Şekli', value: tahsekliadi })
 	}
 
-	xmlDuzenle_notes(e) {
-		super.xmlDuzenle_notes(e)
+	async xmlDuzenle_notes(e) {
+		await super.xmlDuzenle_notes(e)
 		// this.xmlDuzenle_bakiye(e)
 	}
-	xmlDuzenle_notes_son(e) {
-		super.xmlDuzenle_notes_son(e)
-		this.xmlDuzenle_notes_miktar(e)
+	async xmlDuzenle_notes_son(e) {
+		await super.xmlDuzenle_notes_son(e)
+		await this.xmlDuzenle_notes_miktar(e)
 	}
-	xmlDuzenle_notes_miktar({ xw }) {
+	async xmlDuzenle_notes_miktar({ xw }) {
 		let { class: { innovami } } = this
-		let { kullanim } = app.params.eIslem
-		let { dipMiktarToplami, satirEIrsKoli } = kullanim ?? {}
+		let { kullanim = {} } = app.params.eIslem ?? {}
+		let { dipMiktarToplami, satirEIrsKoli } = kullanim
 		
 		if (dipMiktarToplami) {
 			let koliToplam = {}, miktarToplam = {}
 			for (let det of this.detaylar) {
-				let koliBilgi = satirEIrsKoli && this.getKoliBilgi(det)
+				let koliBilgi = satirEIrsKoli && await this.getKoliBilgi(det)
 				if (koliBilgi) {
 					let { cinsi, koli } = koliBilgi
 					koliToplam[cinsi] = (koliToplam[cinsi] || 0) + koli
@@ -415,7 +415,7 @@ class EIslTicariOrtak extends EIslGiden {
 		let { dipOncekiBakiye, dipSonBakiye, bakiyeDovizliIseAyricaTLBakiye } = app.params.eIslem.kullanim
 		
 		const PF = '$$', Sep = '|'
-		let keysInNotes = {}  // $$ONCEKI_BAKIYE|... -> note index
+		let keysInNotes = {}                                    // $$ONCEKI_BAKIYE|... -> note index
 		;dipNotlar.forEach((line, index) => {
 			if (line.startsWith(PF) && line.includes(Sep)) {    // 'ONCEKI_BAKIYE|...', 'SONRAKI_BAKIYE|...'
 				let t = line.slice(PF.length).split(Sep)
@@ -426,7 +426,7 @@ class EIslTicariOrtak extends EIslGiden {
 		})
 		
 		let removeIndexes = []
-		let bakiyeTextEkle = args => {
+		let bakiyeTextEkle = async args => {
 			let { prefix, etiket, bakiye, tlBakiye } = args
 			let k = [prefix, 'BAKIYE'].join('_')
 			;{
@@ -450,44 +450,49 @@ class EIslTicariOrtak extends EIslGiden {
 					}
 					
 					let v = textListe.join('<br/>')
-					this.xsltDuzenleyiciEkle({
+					await this.xmlDuzenleInternal_docRef({
+						xw, id: '0',
+						type: 'EK_NOTLAR', typeCode: k,
+						desc: v
+					})
+					/*this.xsltDuzenleyiciEkle({
 						args: { k, v },
 						handler: ({ args: { k, v }, result: res }) =>
 							res.replaceAll(`${PF}${k}`, v)
-					})
+					})*/
 				}
 			}
 			
 			//for (let desc of textListe)
-			//	this.xmlDuzenleInternal_docRef({ xw, id: '0', typeCode, desc })
+			//	await this.xmlDuzenleInternal_docRef({ xw, id: '0', typeCode, desc })
 		}
 			
-		bakiyeTextEkle({ prefix: 'ONCEKI', etiket: 'Önceki Bakiye', bakiye: dipOncekiBakiye ? oncekiXBakiye : null, tlBakiye: baslik.oncekiTLBakiye })
-		bakiyeTextEkle({ prefix: 'SONRAKI', etiket: 'Sonraki Bakiye', bakiye: dipSonBakiye ? sonrakiXBakiye : null, tlBakiye: baslik.sonrakiTLBakiye })
+		await bakiyeTextEkle({ prefix: 'ONCEKI', etiket: 'Önceki Bakiye', bakiye: dipOncekiBakiye ? oncekiXBakiye : null, tlBakiye: baslik.oncekiTLBakiye })
+		await bakiyeTextEkle({ prefix: 'SONRAKI', etiket: 'Sonraki Bakiye', bakiye: dipSonBakiye ? sonrakiXBakiye : null, tlBakiye: baslik.sonrakiTLBakiye })
 
 		;removeIndexes.sort().reverse().forEach(i =>
 			dipNotlar.splice(i, 1))
 	}
-	xmlDuzenle_doviz(e) {
-		super.xmlDuzenle_doviz(e)
-		this.xmlDuzenleInternal_doviz(e)
+	async xmlDuzenle_doviz(e) {
+		await super.xmlDuzenle_doviz(e)
+		await this.xmlDuzenleInternal_doviz(e)
 	}
-	xmlDuzenle_dvKur(e) {
-		super.xmlDuzenle_dvKur(e)
+	async xmlDuzenle_dvKur(e) {
+		await super.xmlDuzenle_dvKur(e)
 		if (this.dovizlimi)
-			this.xmlDuzenleInternal_dvKur({ ...e, dvKod: this.dvKod, dvKur: this.dvKur })
+			await this.xmlDuzenleInternal_dvKur({ ...e, dvKod: this.dvKod, dvKur: this.dvKur })
 	}
-	xmlDuzenle_docRefs_yalnizYazisi({ xw }) {
-		super.xmlDuzenle_docRefs_yalnizYazisi(...arguments)
+	async xmlDuzenle_docRefs_yalnizYazisi({ xw }) {
+		await super.xmlDuzenle_docRefs_yalnizYazisi(...arguments)
 		let { bedelSelector } = this
-		let icmal = this.icmalYoksaOlustur()
+		let icmal = await this.icmalYoksaOlustur()
 		let sonucBedel = icmal.sonucBedelYapi[bedelSelector]
 		let type = 'YALNIZYAZISI'
 		let desc = `#${yalnizYazisi(sonucBedel)}#`
-		this.xmlDuzenleInternal_docRef({ xw, id: '0', type, desc })
+		await this.xmlDuzenleInternal_docRef({ xw, id: '0', type, desc })
 	}
-	xmlDuzenle_allowanceCharge({ xw }) {
-		super.xmlDuzenle_allowanceCharge(...arguments)
+	async xmlDuzenle_allowanceCharge({ xw }) {
+		await super.xmlDuzenle_allowanceCharge(...arguments)
 		let icmal = this.icmalYoksaOlustur()
 		let { hizmetler, sonucBedelYapi = {} } = icmal
 		let { bedelSelector, xattrYapi_bedel } = this
@@ -505,10 +510,10 @@ class EIslTicariOrtak extends EIslGiden {
 			)
 		}
 	}
-	xmlDuzenle_taxTotal({ xw }) {
-		super.xmlDuzenle_taxTotal(...arguments)
+	async xmlDuzenle_taxTotal({ xw }) {
+		await super.xmlDuzenle_taxTotal(...arguments)
 		let { baslik: { istisnaKod } } = this
-		let icmal = this.icmalYoksaOlustur()
+		let icmal = await this.icmalYoksaOlustur()
 		let { vergiTip2Oran2EVergiRecs_tevkifatsiz } = icmal
 		let { bedelSelector, xattrYapi_bedel, dovizlimi} = this
 
@@ -567,15 +572,15 @@ class EIslTicariOrtak extends EIslGiden {
 			}
 		})
 	}
-	xmlDuzenle_tevkifatli_taxTotal({ xw }) {
-		super.xmlDuzenle_tevkifatli_taxTotal(...arguments)
-		let icmal = this.icmalYoksaOlustur()
+	async xmlDuzenle_tevkifatli_taxTotal({ xw }) {
+		await super.xmlDuzenle_tevkifatli_taxTotal(...arguments)
+		let icmal = await this.icmalYoksaOlustur()
 		let { bedelSelector, xattrYapi_bedel, dovizlimi } = this
 		let { vergiRecs_tevkifatlar } = icmal
 		if (empty(vergiRecs_tevkifatlar))
 			return
 		
-		let toplamBedel = topla(rec => rec.bedelYapi[bedelSelector], vergiRecs_tevkifatlar)
+		let toplamBedel = topla(r => r.bedelYapi[bedelSelector], vergiRecs_tevkifatlar)
 		if (!toplamBedel)
 			return
 		
@@ -598,8 +603,8 @@ class EIslTicariOrtak extends EIslGiden {
 			}
 		})
 	}
-	xmlDuzenle_legalMonetaryTotal({ xw }) {
-		super.xmlDuzenle_legalMonetaryTotal(...arguments)
+	async xmlDuzenle_legalMonetaryTotal({ xw }) {
+		await super.xmlDuzenle_legalMonetaryTotal(...arguments)
 		let { bedelSelector, xattrYapi_bedel } = this
 		let icmal = this.icmalYoksaOlustur()
 		let brutBedel = icmal.brutBedelYapi?.[bedelSelector] || 0
@@ -615,10 +620,10 @@ class EIslTicariOrtak extends EIslGiden {
 			  .writeElementString('cbc:PayableAmount', toFileStringWithFra(sonucBedel, 2), null, xattrYapi_bedel)
 		)
 	}
-	xmlDuzenle_detayDevam_taxTotal({ xw, detay: det }) {
+	async xmlDuzenle_detayDevam_taxTotal({ xw, detay: det }) {
 		/* 'har.detkdvekvergitipi', 'har.detistisnakod', 'har.perkdv', 'har.pertevkifat', 'har.perstopaj', 'kver.kdvorani', 'sver.stopajorani',
 			'tevver.kdvtevoranx', 'tevver.kdvtevoranpay', 'tevver.tevislemturu' */
-		super.xmlDuzenle_detayDevam_taxTotal(...arguments)
+		await super.xmlDuzenle_detayDevam_taxTotal(...arguments)
 		let { bedelSelector, xattrYapi_bedel, dovizlimi } = this
 		let matrah = det.getSonucBedel({ dovizlimi })
 		let vergiBedeli = bedel => dovizlimi ? roundToDvBedelFra((bedel || 0) / (this.dvKur || 1)) : bedel
@@ -692,11 +697,11 @@ class EIslTicariOrtak extends EIslGiden {
 			}
 		})
 	}
-	xmlDuzenle_detayDevam_tevkifatli_taxTotal({ xw, detay: det }) {
+	async xmlDuzenle_detayDevam_tevkifatli_taxTotal({ xw, detay: det }) {
 		/* 'har.detkdvekvergitipi', 'har.detistisnakod',
 			'har.perkdv', 'har.pertevkifat', 'har.perstopaj', 'kver.kdvorani', 'sver.stopajorani',
 			'tevver.kdvtevoranx', 'tevver.kdvtevoranpay', 'tevver.tevislemturu' */
-		super.xmlDuzenle_detayDevam_tevkifatli_taxTotal(...arguments)
+		await super.xmlDuzenle_detayDevam_tevkifatli_taxTotal(...arguments)
 		let { bedelSelector, xattrYapi_bedel, dovizlimi } = this
 		let { pertevkifat, kdvtevoranpay } = det
 		let matrah = det.getSonucBedel({ dovizlimi })
@@ -727,26 +732,26 @@ class EIslTicariOrtak extends EIslGiden {
 			})
 		})
 	}
-	xmlDuzenle_detayDevam_item_additionalItemIds_miktar2({ xw, detay: det }) {
+	async xmlDuzenle_detayDevam_item_additionalItemIds_miktar2({ xw, detay: det }) {
 		super.xmlDuzenle_detayDevam_item_additionalItemIds_miktar2(...arguments)
 		let { eMiktarYapi: { miktar2, brm2 } = {} } = det
 		if (!miktar2)
 			return
 		brm2 ||= det.brm2
 		let text = [numberToString(miktar2), brm2].filter(Boolean).join(' ')
-		this.xmlDuzenleInternal_detAdditionalIdent({ xw, schemeID: 'MIKTAR2GORUNUM', id: text })
+		await this.xmlDuzenleInternal_detAdditionalIdent({ xw, schemeID: 'MIKTAR2GORUNUM', id: text })
 		//this.xmlDuzenleInternal_detAdditionalIdent({ xw, schemeID: 'BRM2GORUNUM', id: brm2 })
 	}
-	xmlDuzenle_detayDevam_item_additionalItemIds_netFiyat({ xw, detay: det }) {
+	async xmlDuzenle_detayDevam_item_additionalItemIds_netFiyat({ xw, detay: det }) {
 		super.xmlDuzenle_detayDevam_item_additionalItemIds_netFiyat(...arguments)
 		let { dovizlimi } = this
 		let { netFiyat } = det.getEFiyatYapi({ dovizlimi }) ?? {}
 		if (netFiyat) {
 			let { zorunlu: { fiyatFra } } = app.params
-			this.xmlDuzenleInternal_detAdditionalIdent({ xw, schemeID: 'NET_FIYAT', id: toFileStringWithFra(netFiyat, fiyatFra || 6) })
+			await this.xmlDuzenleInternal_detAdditionalIdent({ xw, schemeID: 'NET_FIYAT', id: toFileStringWithFra(netFiyat, fiyatFra || 6) })
 		}
 	}
-	xmlDuzenle_detayDevam_item_additionalItemIds_ikGosterim({ xw, detay: det, detay: { rec, topIskBedel } }) {
+	async xmlDuzenle_detayDevam_item_additionalItemIds_ikGosterim({ xw, detay: det, detay: { rec, topIskBedel } }) {
 		let { dovizlimi, dvKodUyarlanmis: dvKod, xattrYapi_bedel } = this
 		if (!dovizlimi)
 			dvKod = 'TL'
@@ -782,11 +787,11 @@ class EIslTicariOrtak extends EIslGiden {
 		
 		for (let [schemeID, values] of entries(prefix2Values)) {
 			let id = values.map(v => toFileStringWithFra(v, 2)).join('+')
-			this.xmlDuzenleInternal_detAdditionalIdent({ xw, schemeID, id })
+			await this.xmlDuzenleInternal_detAdditionalIdent({ xw, schemeID, id })
 		}
 	}
-	xmlDuzenle_detayDevam_miktar({ xw, detay: det }) {
-		super.xmlDuzenle_detayDevam_miktar(...arguments)
+	async xmlDuzenle_detayDevam_miktar({ xw, detay: det }) {
+		await super.xmlDuzenle_detayDevam_miktar(...arguments)
 		let { eMiktarYapi: { asilMiktar: miktar, brm } = {} } = det
 		if (miktar == null)
 			return
@@ -797,15 +802,16 @@ class EIslTicariOrtak extends EIslGiden {
 		
 		xw.writeElementString('cbc:InvoicedQuantity', miktar || 0, null, { unitCode })
 	}
-	xmlDuzenle_detayDevam_fiyat({ xw, detay: det }) {
-		super.xmlDuzenle_detayDevam_fiyat(...arguments)
+	async xmlDuzenle_detayDevam_fiyat({ xw, detay: det }) {
+		await super.xmlDuzenle_detayDevam_fiyat(...arguments)
 		let { asilFiyat: fiyat } = det.getEFiyatYapi({ dovizlimi: this.dovizlimi })
 		if (fiyat == null)
 			return
 		xw.writeElementBlock('cac:Price', null, () =>
 			xw.writeElementString('cbc:PriceAmount', toFileStringWithFra(fiyat || 0), null, this.xattrYapi_bedel))
 	}
-	xmlDuzenle_detayDevam_allowanceCharge({ xw, detay: det, detay: { rec } }) {
+	async xmlDuzenle_detayDevam_allowanceCharge({ xw, detay: det, detay: { rec } }) {
+		await super.xmlDuzenle_allowanceCharge(...arguments)
 		let { dovizlimi, xattrYapi_bedel } = this
 		let brut = det.getBrutBedel({ dovizlimi })
 		let iskYapilar = Array.from(TicIskYapi)

@@ -341,72 +341,72 @@ class EIslIrsaliye extends EIslTicariOrtak {
 		})*/
 	}
 
-	xmlDuzenle_docRefs_yalnizYazisi(e) {
+	async xmlDuzenle_docRefs_yalnizYazisi(e) {
 		let { eIslem } = app.params
 		let { irsDetayBedel } = eIslem.kullanim
 		if (irsDetayBedel)
-			super.xmlDuzenle_docRefs_yalnizYazisi(e)
+			await super.xmlDuzenle_docRefs_yalnizYazisi(e)
 	}
-	xmlDuzenle_allowanceCharge(e) {
+	async xmlDuzenle_allowanceCharge(e) {
 		let { eIslem } = app.params
 		let { irsDetayBedel } = eIslem.kullanim
 		if (irsDetayBedel)
-			super.xmlDuzenle_allowanceCharge(e)
+			await super.xmlDuzenle_allowanceCharge(e)
 	}
-	xmlDuzenle_taxTotal(e) {
+	async xmlDuzenle_taxTotal(e) {
 		let { eIslem } = app.params
 		let { irsDetayBedel } = eIslem.kullanim
 		if (irsDetayBedel)
-			super.xmlDuzenle_taxTotal(e)
+			await super.xmlDuzenle_taxTotal(e)
 	}
-	xmlDuzenle_tevkifatli_taxTotal(e) {
+	async xmlDuzenle_tevkifatli_taxTotal(e) {
 		let { eIslem } = app.params
 		let { irsDetayBedel } = eIslem.kullanim
 		if (irsDetayBedel)
-			super.xmlDuzenle_tevkifatli_taxTotal(e)
+			await super.xmlDuzenle_tevkifatli_taxTotal(e)
 	}
-	xmlDuzenle_legalMonetaryTotal(e) {
+	async xmlDuzenle_legalMonetaryTotal(e) {
 		let { eIslem } = app.params
 		let { irsDetayBedel } = eIslem.kullanim
 		if (irsDetayBedel)
-			super.xmlDuzenle_legalMonetaryTotal(e)
+			await super.xmlDuzenle_legalMonetaryTotal(e)
 	}
 	
-	xmlDuzenle_detayDevam_taxTotal(e) {
+	async xmlDuzenle_detayDevam_taxTotal(e) {
 		let { eIslem } = app.params
 		let { irsDetayBedel } = eIslem.kullanim
 		if (irsDetayBedel)
-			super.xmlDuzenle_detayDevam_taxTotal(e)
+			await super.xmlDuzenle_detayDevam_taxTotal(e)
 	}
-	xmlDuzenle_detayDevam_tevkifatli_taxTotal(e) {
+	async xmlDuzenle_detayDevam_tevkifatli_taxTotal(e) {
 		let { eIslem } = app.params
 		let { irsDetayBedel } = eIslem.kullanim
 		if (irsDetayBedel)
-			super.xmlDuzenle_detayDevam_tevkifatli_taxTotal(e)
+			await super.xmlDuzenle_detayDevam_tevkifatli_taxTotal(e)
 	}
-	xmlDuzenle_detayDevam_item_additionalItemIds_netFiyat(e) {
+	async xmlDuzenle_detayDevam_item_additionalItemIds_netFiyat(e) {
 		let { eIslem } = app.params
 		let { irsDetayBedel } = eIslem.kullanim
 		if (irsDetayBedel)
-			super.xmlDuzenle_detayDevam_item_additionalItemIds_netFiyat(e)
+			await super.xmlDuzenle_detayDevam_item_additionalItemIds_netFiyat(e)
 	}
-	xmlDuzenle_detayDevam_item_additionalItemIds_ikGosterim(e) {
+	async xmlDuzenle_detayDevam_item_additionalItemIds_ikGosterim(e) {
 		let { eIslem } = app.params
 		let { irsDetayBedel } = eIslem.kullanim
 		if (irsDetayBedel)
-			super.xmlDuzenle_detayDevam_item_additionalItemIds_ikGosterim(e)
+			await super.xmlDuzenle_detayDevam_item_additionalItemIds_ikGosterim(e)
 	}
 
-	xmlDuzenle_detayDevam_fiyat(e) {
+	async xmlDuzenle_detayDevam_fiyat(e) {
 		let { eIslem } = app.params
 		let { irsDetayBedel } = eIslem.kullanim
 		if (irsDetayBedel)
-			super.xmlDuzenle_detayDevam_fiyat(e)
+			await super.xmlDuzenle_detayDevam_fiyat(e)
 	}
-	xmlDuzenle_detayDevam_allowanceCharge(e) {
+	async xmlDuzenle_detayDevam_allowanceCharge(e) {
 		let { eIslem } = app.params
 		let { irsDetayBedel } = eIslem.kullanim
 		if (irsDetayBedel)
-			super.xmlDuzenle_detayDevam_allowanceCharge(e)
+			await super.xmlDuzenle_detayDevam_allowanceCharge(e)
 	}
 }

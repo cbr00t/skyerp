@@ -25,8 +25,8 @@ class MQEIslemParam extends MQTicariParamBase {
 			'satirKdv', 'satirIskBedeli', 'satirDigerVergi', 'satirNetFiyat', 'satirEFAKoli', 'satirEIrsKoli',
 			'satirTakipNo', 'irsDetayBedel', 'ihrDetayKapNosuz', 'ihrDipNetBrutKilo', 'ihrDetayUreticiVeMensei',
 			'baslikMusteriKod', 'baslikVade', 'baslikPlasiyer', 'baslikNakliyeSekli',  'baslikTahsilatSekli',
-			'musBaslikBabaVeDogum', 'dipNetBrutKilo', 'miktarToplamiKilosuz',  'dipMiktarToplami', 'dipTekstilRBK',
-			'subeFislerdeGondericiSubeOlsun', 'ozelConf', 'dipOncekiBakiye', 'dipSonBakiye', 'dipInternetSatis',
+			'musBaslikBabaVeDogum', 'dipNetBrutKilo', 'miktarToplamiKilosuz',  'dipTekstilRBK',
+			'subeFislerdeGondericiSubeOlsun', 'ozelConf', 'dipMiktarToplami', 'dipOncekiBakiye', 'dipSonBakiye', 'dipInternetSatis',
 			'eFaturaYerineEArsivGoruntuleyici', 'logoKullanilir', 'eFatIcinIslakImza', 'eMusIcinKaseImza',
 			'gondericiAliciYanYana', 'koyuCikti', 'firmaLogoUstte', 'kdv0DipteGosterilir',
 			'ihracatEskiCizgiliGorunum', '_goruntuOzelPunto', 'kodYerineSiraNo', 'bakiyeDovizliIseAyricaTLBakiye'
@@ -43,7 +43,9 @@ class MQEIslemParam extends MQTicariParamBase {
 		liste.push('efatUzakIP', 'efatWSUzakIP', 'efatGIBAlias', 'earsGIBAlias', 'eirsGIBAlias', 'kdvMuafiyetKod', 'irsMailLojistik')
 	}
 	static paramYapiDuzenle(e) {
-		super.paramYapiDuzenle(e); let {paramci} = e
+		super.paramYapiDuzenle(e)
+		let { paramci } = e
+		
 		paramci.addString('anaBolum', 'e-İşlem Ana Bölüm')
 		paramci.addModelKullan('ozelEntegrator', 'Özel Entegratör').dropDown().autoBind().noMF().kodsuz()
 			.setSource(e => EOzelEntegrator?.instance?.kaListe)
@@ -62,11 +64,9 @@ class MQEIslemParam extends MQTicariParamBase {
 						subBuilder.setValue(altInst[_id] ?? '')
 				}
 			})
-		let form = paramci.addKullanim('kullanim').addFormWithParent().yanYana()
-		form.addBool('gondericiAliciYanYana', 'Gönderici/Alıcı Yan Yana')
-		form.addBool('koyuCikti', 'Koyu Çıktı')
-		form.addBool('firmaLogoUstte', 'Firma Logo Üstte')
-		form = paramci.addFormWithParent('oeParam').setAltInst(e => e.paramci?.inst?.oeParam)
+		
+		let kullanim = paramci.addKullanim('kullanim')
+		let form = paramci.addFormWithParent('oeParam').setAltInst(e => e.paramci?.inst?.oeParam)
 		form.addString('wsUser', 'WS Kullanıcı').setRowAttr('kullaniciAdi')
 		form.addString('wsPass', 'WS Şifre').setRowAttr('sifre')
 			.addStyle(`$elementCSS > input { font-size: 80%; text-align: center }`)
@@ -77,11 +77,9 @@ class MQEIslemParam extends MQTicariParamBase {
 		form.addString('eArsGIBAlias', 'e-Arşiv GIB Alias').setRowAttr('earsGIBAlias')
 		form.addString('eIrsGIBAlias', 'e-İrs. GIB Alias').setRowAttr('eirsGIBAlias')
 		form.addString('_faturaVadeEtiket', 'Fatura Vade Etiket').setRowAttr('faturaVadeEtiket')
-		form = paramci.addKullanim().addGrup('Kullanım').addFormWithParent()
-		form.addBool('ozelConf', 'Özel Konfigurasyon')
 		form.addNumber('_goruntuOzelPunto', 'Görüntü Özel Punto').setRowAttr('goruntuOzelPunto')
 			.setAltInst(e => e.paramci?.root?.inst).addStyle_wh(180)
-		form.addBool('kodYerineSiraNo', 'Kod Yerine Sıra No'); form.addBool('bakiyeDovizliIseAyricaTLBakiye', 'Dövizli Bakiye için Ayrıca TL Bakiye')
+		
 		form = paramci.addAltObject('kisit')
 			.setAltInst(e => e.paramci?.inst.kisit)
 			.addGrup('Gönderimde Kısıtlama')
@@ -92,8 +90,23 @@ class MQEIslemParam extends MQTicariParamBase {
 		form.addBool('magaza', 'Mağaza').setRowAttr('gonKisitMagaza')
 		form.addBool('musMakbuz', 'Müstahsil Makbuz').setRowAttr('gonKisitMusMakbuz')
 		/*for (let item of form.getItems()) { item.setAltInst(altInstci) }*/
+		
 		form = paramci.addFormWithParent()
 		form.addString('kdvMuafiyetKod', 'KDV Muafiyet Kod').addStyle_wh(130)
+
+		form = kullanim.addFormWithParent().yanYana()
+		form.addBool('gondericiAliciYanYana', 'Gönderici/Alıcı Yan Yana')
+		form.addBool('koyuCikti', 'Koyu Çıktı')
+		form.addBool('firmaLogoUstte', 'Firma Logo Üstte')
+		form.addBool('ozelConf', 'Özel Konfigurasyon')
+		form.addBool('kodYerineSiraNo', 'Kod Yerine Sıra No')
+		form.addBool('bakiyeDovizliIseAyricaTLBakiye', 'Dövizli Bakiye için Ayrıca TL Bakiye')
+
+		form = kullanim.addFormWithParent().yanYana()
+		form.addBool('dipMiktarToplami', 'Dipte Miktar Toplamı')
+		form.addBool('dipOncekiBakiye', 'Dipte Önceki Bakiye')
+		form.addBool('dipSonBakiye', 'Dipte Sonraki Bakiye')
+		// form.addBool('dipInternetSatis', 'Dipte İnt. Satış')
 	}
 	static tekSecimDonusumDuzenle({ liste }) {
 		super.tekSecimDonusumDuzenle(...arguments);

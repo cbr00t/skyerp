@@ -61,7 +61,10 @@ class TicariFis extends TSOrtakFis {
 			istisnaKod: new PInstStr('kdvistisnaturu'),
 			tahsilTipi: new PInstTekSecim('tahtipi', TahsilTipi),
 			tahSekliNo: new PInst('martahsil'),
-			odemeGunKodu: new PInstStr('odemeguntext')
+			odemeGunKodu: new PInstStr('odemeguntext'),
+			internetSatisidir: new PInstBitBool('binternetsatisidir'),
+			refTarih: new PInstDate('reftarih'),
+			refNox: new PInstStr('refstrnox')
 		})
 	}
 	static secimlerDuzenle(e) {
@@ -171,44 +174,58 @@ class TicariFis extends TSOrtakFis {
 	static rootFormBuilderDuzenle_ara({ builders: allBuilders }) {
 		super.rootFormBuilderDuzenle_ara(...arguments)
 		let { tsnForm, baslikForm: { builders } } = allBuilders
+		for (let i = 3; i <= 4; i++)
+			builders[i].altAlta()
+		
 		;{
 			let form = builders[3].addFormWithParent('tahsilForm').yanYana()
-			;{
-				form.addModelKullan('tahsilTipi', 'Tahsil Tipi')
-					.etiketGosterim_normal()
-					.dropDown().noMF().listedenSecilmez()
-					.kodsuz().bosKodAlinmaz().bosKodEklenmez()
-					.setSource(TahsilTipi.kaListe)
-					.degisince(({ builder: fbd_this }) => {
-						let { parentBuilder: { builders } } = fbd_this
-						builders
-							.filter(fbd => fbd != fbd_this)
-							.map(fbd => fbd.updateVisible())
-					})
-					.addStyle_wh(250)
-			}
-
-			;{
-				form.addSimpleComboBox('tahSekliNo', 'Tahsil Şekli', 'Tahsil Şekli')
-					.etiketGosterim_normal().kodsuz()
-					.setMFSinif(MQTahsilSekli)
-					.setVisibleKosulu(({ builder: { altInst: inst } }) =>
-						inst.tahsilTipi.tekilmi ? true : 'jqx-hidden')
-					.addStyle_wh(400)
-					.addStyle(`$elementCSS { margin-top: 0 !important }`)
-			}
-			
-			;{
+			form.addModelKullan('tahsilTipi', 'Tahsil Tipi')
+				.etiketGosterim_normal()
+				.dropDown().noMF().listedenSecilmez()
+				.kodsuz().bosKodAlinmaz().bosKodEklenmez()
+				.setSource(TahsilTipi.kaListe)
+				.degisince(({ builder: fbd_this }) => {
+					let { parentBuilder: { builders } } = fbd_this
+					builders
+						.filter(fbd => fbd != fbd_this)
+						.map(fbd => fbd.updateVisible())
+				})
+				.addStyle_wh(250)
+			form.addSimpleComboBox('tahSekliNo', 'Tahsil Şekli', 'Tahsil Şekli')
+				.etiketGosterim_normal().kodsuz()
+				.setMFSinif(MQTahsilSekli)
+				.setVisibleKosulu(({ builder: { altInst: inst } }) =>
+					inst.tahsilTipi.tekilmi ? true : 'jqx-hidden')
+				.addStyle_wh(400)
+				.addStyle(`$elementCSS { margin-top: 0 !important }`)
+		}
+		
+		;{
+			let form = builders[3].addFormWithParent().yanYana()
 				form.addTextInput('odemeGunKodu', 'Ödeme Gün')
-					.etiketGosterim_normal()
-					.setMaxLength(12)
-					.setVisibleKosulu(({ builder: { altInst: inst } }) =>
-						inst.tahsilTipi.acikmi ? true : 'jqx-hidden')
-					.addStyle_wh(150)
-			}
+				.etiketGosterim_normal()
+				.setMaxLength(12)
+				.setVisibleKosulu(({ builder: { altInst: inst } }) =>
+					inst.tahsilTipi.acikmi ? true : 'jqx-hidden')
+				.addStyle_wh(150)
+			form.addCheckBox('internetSatisidir', 'İnt. Satışıdır')
+				.etiketGosterim_normal()
+				.addStyle_wh(250)
+		}
 
-			//tahSekliNo: new PInst('martahsil'),
-			//odemeGunKodu: new PInstStr('odemeguntext')
+		;{
+			let form = builders[4].addFormWithParent('refForm').yanYana()
+			form.addDateInput('refTarih', 'Ref. Tarih')
+			form.addTextInput('refNox', 'Ref. No')
+				.addStyle_wh(200)
+				.setMaxLength(32)
+
+			form.addNumberInput('malKabulNo', 'Mal Kabul No')
+				.addStyle_wh(150)
+			form.addTextInput('kunyeNox', 'Künye No')
+				.addStyle_wh(150)
+			form.addCheckBox('borsaTescilYapildimi', 'Borsa Tescil?')
+				.etiketGosterim_normal()
 		}
 	}
 	static orjBaslikListesiDuzenle_ara({ liste }) {
@@ -225,7 +242,9 @@ class TicariFis extends TSOrtakFis {
 	static orjBaslikListesiDuzenle_son({ liste }) {
 		super.orjBaslikListesiDuzenle_son(...arguments)
 		liste.push(
-			new GridKolon({ belirtec: 'net', text: 'Belge Sonuç', genislikCh: 17 }).tipDecimal_bedel().sum()
+			new GridKolon({ belirtec: 'tloncekibakiye', text: 'Önceki Bakiye (TL)', genislikCh: 17 }).bedel().sum(),
+			new GridKolon({ belirtec: 'dvoncekibakiye', text: 'Öncek Bakiye (Dv)', genislikCh: 17 }).bedel().sum(),
+			new GridKolon({ belirtec: 'net', text: 'Belge Sonuç', genislikCh: 17 }).bedel().sum()
 		)
 	}
 	static standartGorunumListesiDuzenle({ liste }) {
@@ -714,7 +733,37 @@ class TicariFis extends TSOrtakFis {
 
 	static async eIslEkNotlar1Duzenle(e = {}) {
 		await super.eIslEkNotlar1Duzenle(e)
-		//let { baslik = {}, detaylar = [] } = e
+
+		//let { kullanim = {} } = app.params.eIslem ?? {}
+		//let { dipInternetSatis } = kullanim
+		let { liste: res = [], baslik: fis = {} } = e
+		let { mustKod, internetSatisidir, fisTipi, _ekBilgi: ekBilgi } = fis
+		let { faturami = fis.class?.faturami } = fis
+		let { satismi = fis.class?.satismi } = fis
+		let { iademi = fis.class?.iademi } = fis
+		
+		fisTipi = fisTipi?.char ?? fisTipi
+
+		let m2b = MQCari._must2Bilgi ?? {}
+		let mb = mustKod ? m2b[mustKod] ?? {} : null
+		let { resmiKurum } = mb ?? {}
+		let { reyon, damga } = ekBilgi?.kamu ?? {}
+		
+		let getETicEkNotVarmi = async () =>
+			Boolean( await EIslemOrtak.getEIslemBilgiText('ETC', false) )
+		/* smalltalk:
+			if ( fis.satismi & fis.iademi.not & fis.internetSatisidir & PPTicEFaturaEkNotYapi.current.eTicaretDipNot.bosmu() )
+				E1 sahalarına ekle: 'Bu satış internet üzerinden yapılmıştır'
+		*/
+		if (satismi && !iademi && internetSatisidir && !await getETicEkNotVarmi())
+			res.push('Bu satış internet üzerinden yapılmıştır')
+
+		if (faturami && (resmiKurum || fisTipi == 'IH') && (reyon || damga)) {    // (fisTipi = 'IH'): Teklif Usulü İhale
+			res.push([
+				( reyon ? `Reyon Bedeli: ${numberToString(reyon)} TL` : null ),
+				( damga ? `Damga Vergisi: ${numberToString(damga)} TL` : null )
+			].filter(Boolean).join(' | '))
+		}
 	}
 	static async eIslEkNotlar2Duzenle(e = {}) {
 		await super.eIslEkNotlar2Duzenle(e)

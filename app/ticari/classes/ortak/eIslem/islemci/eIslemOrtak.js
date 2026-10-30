@@ -201,6 +201,43 @@ class EIslemOrtak extends CObject {
 				res[kod] = data
 		}
 	}
+
+	static async getEIslemBilgi_kod2Text(e = {}, decode) {
+		let kodListe = isString(e) ? [e] : makeArray(e.kodListe ?? e.kodlar ?? e.kod ?? e)
+		decode ??= e.decode ?? e.decodeFlag ?? true
+		kodListe = empty(kodListe) ? null : kodListe
+		
+		let stm = EIslemOrtak.getEIslemBilgiStm()
+		for (let { where: wh } of stm) {
+			if (kodListe)
+				wh.inDizi(kodListe, 'fis.kod')
+			else
+				wh.add(`fis.kod <> ''`)
+			
+		}
+
+		let source = await stm.execSelect(e)
+		let res = {}
+		seviyelendir({ source, attrListe: ['kod'] }).forEach(sev => {
+			let { orjBilgi: { kod }, detaylar } = sev
+			let v = detaylar
+				.filter(Boolean)
+				.map(r => r.xdata)
+				.join('')
+				.trimEnd()
+			if (decode && isBase64(v))
+				v = fromBase64(v)?.trimEnd()
+			res[kod] = v
+		})
+		return res
+	}
+	static getEIslemBilgiText(e = {}, decode) {
+		if (!isPlainObject(e))
+			e = { kodListe: e }
+		return this.getEIslemBilgi_kod2Text(e, decode).then(res =>
+			values(res)?.[0] ?? null)
+	}
+	
 	icmalYoksaOlustur(e) {
 		return this.icmal ??= new EIcmal(e)
 	}
@@ -366,9 +403,9 @@ class EIslemOrtak extends CObject {
 		let v = this.baslik._profileID = await this.xmlGetProfileID(...arguments)
 		xw.writeElementString('cbc:ProfileID', v)
 	}
-	xmlDuzenle_profileIDVeBelgeTipKodu_arasi({ xw }) {
+	async xmlDuzenle_profileIDVeBelgeTipKodu_arasi({ xw }) {
 		let { baslik, detaylar } = this
-		let { fisNox, uuid, tarihStr, sevkTarihStr, sevkSaatStr } = baslik
+		let { fisNox, uuid, tarihStr, sevkTarihStr, sevkSaatStr, eYontem } = baslik
 		xw.writeElements({
 			'cbc:ID': fisNox,
 			'cbc:CopyIndicator': false,
@@ -376,16 +413,17 @@ class EIslemOrtak extends CObject {
 			'cbc:IssueDate': tarihStr,
 			'cbc:IssueTime': sevkSaatStr
 		})
+		await eYontem?.xmlDuzenle_profileIDVeBelgeTipKodu_arasi?.(...arguments)
 	}
-	xmlDuzenle_belgeTipKodu({ xw }) {
+	async xmlDuzenle_belgeTipKodu({ xw }) {
 		let { baslik, class: { xmlTipBelirtec: belirtec } } = this
 		let v = baslik._belgeTipKod = this.xmlGetBelgeTipKodu(...arguments)
 		xw.writeElementString(`cbc:${belirtec}TypeCode`, v)
 	}
-	xmlDuzenle_notes_ilk({ xw }) {
+	async xmlDuzenle_notes_ilk({ xw }) {
 		xw.writeElementString('cbc:Note', '')
 	}
-	xmlDuzenle_notes({ xw }) {
+	async xmlDuzenle_notes({ xw }) {
 		let { dipNotlar, class: { innovami } } = this
 		/*if (empty(dipNotlar)) {    // en az 1 adet 'cbc:Note' olmalı
 			xw.writeElementString('cbc:Note', '')
@@ -396,9 +434,9 @@ class EIslemOrtak extends CObject {
 				xw[innovami ? 'writeElementString' : 'writeElementCDATA']('cbc:Note', v)
 		}
 	}
-	xmlDuzenle_notes_son({ xw }) { }
-	xmlDuzenle_doviz(e) { }
-	xmlDuzenleInternal_doviz({ xw }) {
+	async xmlDuzenle_notes_son({ xw }) { }
+	async xmlDuzenle_doviz(e) { }
+	async xmlDuzenleInternal_doviz({ xw }) {
 		let { dvKod } = this
 		xw.writeElementString('cbc:DocumentCurrencyCode', dvKod, null, {
 			'listAgencyName': 'United Nations Economic Commission for Europe',
@@ -407,9 +445,11 @@ class EIslemOrtak extends CObject {
 	}
 	async xmlDuzenle_detaylarOncesi(e) {
 		await this.xmlDuzenle_lineCountNumeric(e)
+		await this.xmlDuzenle_docRefs_oncesi(e)
 		await this.xmlDuzenle_docRefs(e)
 		await this.xmlDuzenle_docRefs_sonOncesi(e)
 		await this.xmlDuzenle_docRefs_son(e)
+		await this.xmlDuzenle_docRefs_sonrasi(e)
 		await this.xmlDuzenle_signatureParty(e)
 		await this.xmlDuzenle_supplierParty(e)
 		await this.xmlDuzenle_customerParty(e)
@@ -421,7 +461,7 @@ class EIslemOrtak extends CObject {
 		await this.xmlDuzenle_tevkifatli_taxTotal(e)
 		await this.xmlDuzenle_legalMonetaryTotal(e)
 	}
-	xmlDuzenle_lineCountNumeric({ xw }) {
+	async xmlDuzenle_lineCountNumeric({ xw }) {
 		let { detaylar } = this
 		xw.writeElementString('cbc:LineCountNumeric', detaylar.length)
 	}
@@ -489,7 +529,7 @@ class EIslemOrtak extends CObject {
 		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'DIPTE_VERGILER_DAHIL_TOPLAM_TUTAR', value: _belgeTipKod != 'ISTISNA' && (!eIrsaliyemi || !!kullanim.irsDetayBedel) })
 		
 		if (kullanim.baslikMusteriKod)
-			this.xmlDuzenleInternal_docRefParam({ xw, name: 'MUSTERI_KOD', value: mustKod })
+			await this.xmlDuzenleInternal_docRefParam({ xw, name: 'MUSTERI_KOD', value: mustKod })
 		
 		await this.xmlDuzenle_docRefs_qrCode(e)
 		await eYontem?.xmlDuzenle_xsltOncesi_ve_ozelDip_arasi?.(e)
@@ -501,14 +541,28 @@ class EIslemOrtak extends CObject {
 		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'KOYU_DIZAYN', value: kullanim.koyuCikti })
 		await this.xmlDuzenleInternal_docRefParam({ xw, name: 'FIRMA_LOGO_USTTE', value: kullanim.firmaLogoUstte })
 	}
+	async xmlDuzenle_docRefs_oncesi(e) {
+		let { eYontem } = this.baslik
+		await eYontem?.xmlDuzenle_docRefs_oncesi?.(e)
+	}
 	async xmlDuzenle_docRefs_ilk(e) {
 		let { eYontem } = this.baslik
 		await eYontem?.xmlDuzenle_docRefs?.(e)
 		await this.xmlDuzenleInternal_logoBilgileri(e)
 	}
-	async xmlDuzenle_docRefs_ara({ xw }) { }
+	async xmlDuzenle_docRefs_ara({ xw }) {
+		let { eYontem } = this.baslik
+		await eYontem?.xmlDuzenle_docRefs_ara?.(e)
+	}
 	async xmlDuzenle_docRefs_sonOncesi({ xw }) { }
-	async xmlDuzenle_docRefs_son({ xw }) { }
+	async xmlDuzenle_docRefs_son({ xw }) {
+		let { eYontem } = this.baslik
+		await eYontem?.xmlDuzenle_docRefs_son?.(e)
+	}
+	async xmlDuzenle_docRefs_sonrasi(e) {
+		let { eYontem } = this.baslik
+		await eYontem?.xmlDuzenle_docRefs_sonrasi?.(e)
+	}
 	async xmlDuzenleInternal_logoBilgileri({ xw }) {
 		let { params: { eIslem = {} } } = app
 		let logocu = await eIslem.getLogoData()
@@ -643,8 +697,8 @@ class EIslemOrtak extends CObject {
 		else
 			await this.xmlDuzenleInternal_docRef({ xw, id: '1', typeCode: qrURL, type })
 	}
-	xmlDuzenle_bakiye({ xw }) { }
-	xmlDuzenle_docRefs_eIslemEkBilgi({ xw }) {
+	async xmlDuzenle_bakiye({ xw }) { }
+	async xmlDuzenle_docRefs_eIslemEkBilgi({ xw }) {
 		// type: 'UST_BILGI', desc: 'içerik'
 		let { class: { efami, innovami, eIrsaliyemi }, temps: { eIslemKod2Bilgi } } = this
 		if (!eIslemKod2Bilgi)
@@ -653,7 +707,8 @@ class EIslemOrtak extends CObject {
 		let donusum = {
 			SAL: 'ALT_BILGI', SUS: 'UST_BILGI',
 			STS: 'BODY_SON', STB: 'BODY_BAS',
-			STC: 'CSS', STH: 'HTML_HEAD'
+			STC: 'CSS', STH: 'HTML_HEAD',
+			// ETC: e-Ticaret Dip Not
 		}
 		if (efami)
 			donusum.BHT = 'BANKA_HTML_BILGI'
@@ -670,7 +725,7 @@ class EIslemOrtak extends CObject {
 						.replaceAll('\r', '')
 						.replaceAll('\n', '')
 				)
-				this.xmlDuzenleInternal_docRef({
+				await this.xmlDuzenleInternal_docRef({
 					xw,
 					id: eIrsaliyemi ? '.' : '0',
 					typeCode: eIrsaliyemi ? '.' : undefined,
@@ -679,7 +734,7 @@ class EIslemOrtak extends CObject {
 			}
 		}
 	}
-	xmlDuzenle_ozelDip({ xw }) {
+	async xmlDuzenle_ozelDip({ xw }) {
 		let { baslik, temps, class: { tip: eIslTip } } = this
 		let { mustKod } = baslik, { kod2OzelDip } = temps
 		if (empty(kod2OzelDip))
@@ -693,21 +748,21 @@ class EIslemOrtak extends CObject {
 			return
 
 		let desc = turkcesiz(html).replaceAll('<', '[lt]').replaceAll('>', '[gt]')
-		this.xmlDuzenleInternal_docRef({ xw, id: '.', typeCode: '.', type: 'ALT_BILGI', desc })
+		await this.xmlDuzenleInternal_docRef({ xw, id: '.', typeCode: '.', type: 'ALT_BILGI', desc })
 	}
-	xmlDuzenle_docRefs_vioFisBilgi({ xw }) {
+	async xmlDuzenle_docRefs_vioFisBilgi({ xw }) {
 		let { baslik: { _: baslik }, detaylar, baslik: { uuid } } = this
 		detaylar = detaylar.map(det => det._)
 		let rec = { baslik, detaylar }
 		let value = Base64.encode(toJSONStr(rec))
 		let mimeType = 'text/plain'
 		let id = 4, type = 'VIO_FISBILGI', fileName = `${type}.json`
-		this.xmlDuzenleInternal_docRef({
+		await this.xmlDuzenleInternal_docRef({
 			xw, id, type,
 			attachment: { mimeType, value, fileName }
 		})
 	}
-	xmlDuzenle_docRefs_yalnizYazisi(e) { }
+	async xmlDuzenle_docRefs_yalnizYazisi(e) { }
 
 	async xmlDuzenle_docRefs_xslt({ xw }) {
 		let e = { ...arguments[0] }
@@ -726,7 +781,7 @@ class EIslemOrtak extends CObject {
 			xw.writeElementBlock('cac:ExternalReference', null, () =>
 				xw.writeElementString('cbc:URI', '#SignatureId')))
 	}
-	xmlDuzenle_signatureParty({ xw }) {
+	async xmlDuzenle_signatureParty({ xw }) {
 		let e = arguments[0]
 		let { gondericiBilgi: source } = this
 		xw.writeElementBlock('cac:Signature', null, () => {
@@ -738,21 +793,21 @@ class EIslemOrtak extends CObject {
 			this.xmlDuzenle_digitalSignatureAttachment(e)
 		})
 	}
-	xmlDuzenle_supplierParty(e) {
+	async xmlDuzenle_supplierParty(e) {
 		let { xw } = e
 		let { gondericiBilgi: source, class: { xmlTagPF_senderParty } } = this
 		xw.writeElementBlock(`cac:${xmlTagPF_senderParty}`, null, () =>
 		xw.writeElementBlock('cac:Party', null, () =>
 			this.xmlDuzenle_partyOrtak({ ...e, source, supplierPartymi: true })))
 	}
-	xmlDuzenle_customerParty(e) {
+	async xmlDuzenle_customerParty(e) {
 		let { xw } = e
 		let { aliciBilgi: source, class: { xmlTagPF_receiverParty } } = this
 		xw.writeElementBlock(`cac:${xmlTagPF_receiverParty}`, null, () =>
 		xw.writeElementBlock('cac:Party', null, () =>
 			this.xmlDuzenle_partyOrtak({ ...e, source, customerPartymi: true })))
 	}
-	xmlDuzenle_buyerCustomerParty(e) {
+	async xmlDuzenle_buyerCustomerParty(e) {
 		// KAMU için eklenti lazım ??
 		let { xw } = e
 		let { baslik, aliciBilgi: source, class: { xmlTagPF_buyerParty } } = this
@@ -841,10 +896,10 @@ class EIslemOrtak extends CObject {
 			}
 		}
 	}
-	xmlDuzenle_paymentMeans({ xw }) { }
-	xmlDuzenle_allowanceCharge(e) { }
-	xmlDuzenle_dvKur(e) { }
-	xmlDuzenleInternal_dvKur({ xw, dvKod, dvKur }) {
+	async xmlDuzenle_paymentMeans({ xw }) { }
+	async xmlDuzenle_allowanceCharge(e) { }
+	async xmlDuzenle_dvKur(e) { }
+	async xmlDuzenleInternal_dvKur({ xw, dvKod, dvKur }) {
 		let { class: { currCode_tl: hedefDvKod } } = this
 		xw.writeElementBlock('cac:PricingExchangeRate', null, () =>
 			xw.writeElements({
@@ -857,32 +912,32 @@ class EIslemOrtak extends CObject {
 	xmlDuzenle_taxTotal(e) { }
 	xmlDuzenle_tevkifatli_taxTotal(e) { }
 	xmlDuzenle_legalMonetaryTotal(e) { }
-	xmlDuzenle_detaylar(e) {
+	async xmlDuzenle_detaylar(e) {
 		let { detaylar } = this
 		for (let i = 0; i < detaylar.length; i++) {
 			let seq = i + 1
 			let detay = detaylar[i]
-			this.xmlDuzenle_detay({ ...e, seq, detay })
+			await this.xmlDuzenle_detay({ ...e, seq, detay })
 		}
 	}
-	xmlDuzenle_detay({ xw }) {
+	async xmlDuzenle_detay({ xw }) {
 		let { xmlDetayTag } = this.class
 		xw.writeStartElement(xmlDetayTag)
-		this.xmlDuzenle_detayDevam(...arguments)
+		await this.xmlDuzenle_detayDevam(...arguments)
 		xw.writeEndElement()
 	}
-	xmlDuzenle_detayDevam(e) {
-		this.xmlDuzenle_detayDevam_id(e)
-		this.xmlDuzenle_detayDevam_notes(e)
-		this.xmlDuzenle_detayDevam_item_additionalItemIds(e)
-		this.xmlDuzenle_detayDevam_miktar(e)
-		this.xmlDuzenle_detayDevam_bedel(e)
-		this.xmlDuzenle_detayDevam_allowanceCharge(e)
-		this.xmlDuzenle_detayDevam_taxTotal(e)
-		this.xmlDuzenle_detayDevam_tevkifatli_taxTotal(e)
-		this.xmlDuzenle_detayDevam_siparisSatirBaglantisi(e)
-		this.xmlDuzenle_detayDevam_item(e)
-		this.xmlDuzenle_detayDevam_fiyat(e)
+	async xmlDuzenle_detayDevam(e) {
+		await this.xmlDuzenle_detayDevam_id(e)
+		await this.xmlDuzenle_detayDevam_notes(e)
+		await this.xmlDuzenle_detayDevam_item_additionalItemIds(e)
+		await this.xmlDuzenle_detayDevam_miktar(e)
+		await this.xmlDuzenle_detayDevam_bedel(e)
+		await this.xmlDuzenle_detayDevam_allowanceCharge(e)
+		await this.xmlDuzenle_detayDevam_taxTotal(e)
+		await this.xmlDuzenle_detayDevam_tevkifatli_taxTotal(e)
+		await this.xmlDuzenle_detayDevam_siparisSatirBaglantisi(e)
+		await this.xmlDuzenle_detayDevam_item(e)
+		await this.xmlDuzenle_detayDevam_fiyat(e)
 	}
 	xmlDuzenle_detayDevam_id({ xw, seq }) {
 		xw.writeElementString('cbc:ID', seq)
@@ -906,27 +961,27 @@ class EIslemOrtak extends CObject {
 		if (!hasNote)
 			xw.writeElementString('cbc:Note', '')
 	}
-	xmlDuzenle_detayDevam_miktar(e) { }
-	xmlDuzenle_detayDevam_bedel({ xw, detay: det }) {
+	async xmlDuzenle_detayDevam_miktar(e) { }
+	async xmlDuzenle_detayDevam_bedel({ xw, detay: det }) {
 		let { dovizlimi, xattrYapi_bedel } = this
-		let value = det.getSonucBedel({ dovizlimi })
+		let value = await det.getSonucBedel({ dovizlimi })
 		xw.writeElementString('cbc:LineExtensionAmount', toFileStringWithFra(value, 2), null, xattrYapi_bedel)
 	}
-	xmlDuzenle_detayDevam_allowanceCharge(e) { }
-	xmlDuzenle_detayDevam_taxTotal(e) { }
-	xmlDuzenle_detayDevam_tevkifatli_taxTotal(e) { }
-	xmlDuzenle_detayDevam_siparisSatirBaglantisi(e) { }
-	xmlDuzenle_detayDevam_item({ detay: det, xw }) {
+	async xmlDuzenle_detayDevam_allowanceCharge(e) { }
+	async xmlDuzenle_detayDevam_taxTotal(e) { }
+	async xmlDuzenle_detayDevam_tevkifatli_taxTotal(e) { }
+	async xmlDuzenle_detayDevam_siparisSatirBaglantisi(e) { }
+	async xmlDuzenle_detayDevam_item({ detay: det, xw }) {
 		let e = arguments[0]
-		xw.writeStartElement('cac:Item');
-		this.xmlDuzenle_detayDevam_item_description(e)
-		this.xmlDuzenle_detayDevam_item_name(e)
-		this.xmlDuzenle_detayDevam_item_buyersItemId(e)
-		this.xmlDuzenle_detayDevam_item_sellersItemId(e)
-		this.xmlDuzenle_detayDevam_item_manfacturersItemId(e)
+		xw.writeStartElement('cac:Item')
+		await this.xmlDuzenle_detayDevam_item_description(e)
+		await this.xmlDuzenle_detayDevam_item_name(e)
+		await this.xmlDuzenle_detayDevam_item_buyersItemId(e)
+		await this.xmlDuzenle_detayDevam_item_sellersItemId(e)
+		await this.xmlDuzenle_detayDevam_item_manfacturersItemId(e)
 		xw.writeEndElement()
 	}
-	xmlDuzenle_detayDevam_item_description({ detay: det, xw }) {
+	async xmlDuzenle_detayDevam_item_description({ detay: det, xw }) {
 		let { kural } = app.params.eIslem
 		let kural_aciklama = kural?.aciklama
 		let kural_kapsam = kural?.aciklamaKapsam
@@ -936,36 +991,36 @@ class EIslemOrtak extends CObject {
 				xw.writeElementString('cbc:Description', escapeXML(value))
 		}
 	}
-	xmlDuzenle_detayDevam_item_name({ detay: det, xw }) {
+	async xmlDuzenle_detayDevam_item_name({ detay: det, xw }) {
 		xw.writeElementString('cbc:Name', escapeXML(det.adiGosterim))
 	}
-	xmlDuzenle_detayDevam_item_buyersItemId({ detay: det, xw }) {
+	async xmlDuzenle_detayDevam_item_buyersItemId({ detay: det, xw }) {
 		let { revizeRefKod: v, kodGosterim: d } = det
 		if (v && v != d)
-			this.xmlDuzenleInternal_detXIdent({ xw, tagName: 'cac:BuyersItemIdentification', id: escapeXML(v) })
+			await this.xmlDuzenleInternal_detXIdent({ xw, tagName: 'cac:BuyersItemIdentification', id: escapeXML(v) })
 	}
-	xmlDuzenle_detayDevam_item_sellersItemId({ detay: det, xw }) {
+	async xmlDuzenle_detayDevam_item_sellersItemId({ detay: det, xw }) {
 		let { kodGosterim: v } = det
 		if (v)
-			this.xmlDuzenleInternal_detXIdent({ xw, tagName: 'cac:SellersItemIdentification', id: escapeXML(v) })
+			await this.xmlDuzenleInternal_detXIdent({ xw, tagName: 'cac:SellersItemIdentification', id: escapeXML(v) })
 	}
-	xmlDuzenle_detayDevam_item_manfacturersItemId({ detay: det, xw }) {
+	async xmlDuzenle_detayDevam_item_manfacturersItemId({ detay: det, xw }) {
 		let { barkodGosterim: v, kodGosterim: d } = det
 		if (v && v != d)
-			this.xmlDuzenleInternal_detXIdent({ xw, tagName: 'cac:ManufacturersItemIdentification', id: escapeXML(v) })
+			await this.xmlDuzenleInternal_detXIdent({ xw, tagName: 'cac:ManufacturersItemIdentification', id: escapeXML(v) })
 	}
-	xmlDuzenle_detayDevam_item_additionalItemIds({ detay: det, xw }) {
+	async xmlDuzenle_detayDevam_item_additionalItemIds({ detay: det, xw }) {
 		let e = arguments[0]
-		this.xmlDuzenleInternal_detAdditionalIdent({ xw, id: det.shKod, schemeID: 'VIO_SHKOD' })
-		this.xmlDuzenleInternal_detAdditionalIdent({ xw, id: det.adiGosterim, schemeID: 'VIO_SHADI' })
-		this.xmlDuzenle_detayDevam_item_additionalItemIds_miktar2(e)
-		this.xmlDuzenle_detayDevam_item_additionalItemIds_netFiyat(e)
-		this.xmlDuzenle_detayDevam_item_additionalItemIds_ikGosterim(e)
+		await this.xmlDuzenleInternal_detAdditionalIdent({ xw, id: det.shKod, schemeID: 'VIO_SHKOD' })
+		await this.xmlDuzenleInternal_detAdditionalIdent({ xw, id: det.adiGosterim, schemeID: 'VIO_SHADI' })
+		await this.xmlDuzenle_detayDevam_item_additionalItemIds_miktar2(e)
+		await this.xmlDuzenle_detayDevam_item_additionalItemIds_netFiyat(e)
+		await this.xmlDuzenle_detayDevam_item_additionalItemIds_ikGosterim(e)
 	}
-	xmlDuzenle_detayDevam_item_additionalItemIds_miktar2(e) { }
-	xmlDuzenle_detayDevam_item_additionalItemIds_netFiyat(e) { }
-	xmlDuzenle_detayDevam_item_additionalItemIds_ikGosterim(e) { }
-	xmlDuzenle_detayDevam_fiyat(e) { }
+	async xmlDuzenle_detayDevam_item_additionalItemIds_miktar2(e) { }
+	async xmlDuzenle_detayDevam_item_additionalItemIds_netFiyat(e) { }
+	async xmlDuzenle_detayDevam_item_additionalItemIds_ikGosterim(e) { }
+	async xmlDuzenle_detayDevam_fiyat(e) { }
 	xmlDuzenleInternal_docRef(e) {
 		let { baslik } = this
 		let { id, xw, type, typeCode, ekIslem, noEscape, cdata } = e
@@ -984,7 +1039,7 @@ class EIslemOrtak extends CObject {
 			aciklama = escapeXML(aciklama)
 		
 		aciklama ||= '.'
-		let { tarihStr } = baslik
+		let tarihStr = tarih ? asReverseDateString(asDate(tarih)) : baslik.tarihStr
 		xw.writeStartElement('cac:AdditionalDocumentReference')
 			xw.writeElementString('cbc:ID', id || '0')
 			xw.writeElementString('cbc:IssueDate', tarihStr)
